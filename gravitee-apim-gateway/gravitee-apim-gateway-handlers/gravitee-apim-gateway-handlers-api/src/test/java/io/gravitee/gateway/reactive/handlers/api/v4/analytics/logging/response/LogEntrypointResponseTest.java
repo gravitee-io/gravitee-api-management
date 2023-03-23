@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.analytics.request;
+package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.any;
@@ -24,57 +23,49 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.context.HttpRequest;
-import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
+import io.gravitee.gateway.reactive.api.context.HttpResponse;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request.LogEntrypointRequest;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class LogEntrypointRequestTest {
+class LogEntrypointResponseTest {
 
-    protected static final String URI = "/test";
     protected static final String BODY_CONTENT = "Body content";
 
     @Mock
     protected LoggingContext loggingContext;
 
     @Mock
-    protected HttpRequest request;
+    protected HttpResponse response;
 
     @Test
-    void shouldLogMethodAndUriOnly() {
-        when(request.method()).thenReturn(HttpMethod.POST);
-        when(request.uri()).thenReturn(URI);
+    void shouldLogStatusOnly() {
+        when(response.status()).thenReturn(HttpStatusCode.OK_200);
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(false);
 
-        when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
-        when(loggingContext.entrypointRequestPayload()).thenReturn(false);
+        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
 
-        final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
-
-        assertEquals(HttpMethod.POST, logRequest.getMethod());
-        assertEquals(URI, logRequest.getUri());
-        assertNull(logRequest.getHeaders());
-        assertNull(logRequest.getBody());
+        assertThat(logResponse.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        assertNull(logResponse.getHeaders());
+        assertNull(logResponse.getBody());
     }
 
     @Test
@@ -85,15 +76,15 @@ class LogEntrypointRequestTest {
         headers.set("X-Test2", "Value2");
         headers.set("X-Test3", List.of("Value3-a", "Value3-b"));
 
-        when(request.headers()).thenReturn(headers);
-        when(loggingContext.entrypointRequestHeaders()).thenReturn(true);
-        when(loggingContext.entrypointRequestPayload()).thenReturn(false);
+        when(response.headers()).thenReturn(headers);
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(true);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(false);
 
-        final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
+        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
 
-        assertNotSame(headers, logRequest.getHeaders());
-        assertTrue(logRequest.getHeaders().deeplyEquals(headers));
-        assertNull(logRequest.getBody());
+        assertNotSame(headers, logResponse.getHeaders());
+        assertThat(logResponse.getHeaders().deeplyEquals(headers)).isTrue();
+        assertNull(logResponse.getBody());
     }
 
     @Test
@@ -101,37 +92,39 @@ class LogEntrypointRequestTest {
         final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
         final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
 
-        when(request.chunks()).thenReturn(body);
-        when(request.headers()).thenReturn(HttpHeaders.create());
-        when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
-        when(loggingContext.entrypointRequestPayload()).thenReturn(true);
+        when(response.chunks()).thenReturn(body);
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
-        final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
-        verify(request).chunks(chunksCaptor.capture());
+        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
         obs.assertComplete();
 
-        assertNull(logRequest.getHeaders());
-        assertEquals(BODY_CONTENT, logRequest.getBody());
+        assertNull(logResponse.getHeaders());
+        assertThat(logResponse.getBody()).isEqualTo(BODY_CONTENT);
     }
 
     @Test
     void shouldNotLogBodyWhenContentTypeExcluded() {
         final HttpHeaders headers = HttpHeaders.create();
         headers.set(HttpHeaderNames.CONTENT_TYPE, "application/octet-stream");
-        when(request.headers()).thenReturn(headers);
-        when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
-        when(loggingContext.entrypointRequestPayload()).thenReturn(true);
+
+        when(response.headers()).thenReturn(headers);
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable("application/octet-stream")).thenReturn(false);
 
-        final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
-        verify(request, times(0)).chunks(any(Flowable.class));
+        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
 
-        assertNull(logRequest.getHeaders());
-        assertNull(logRequest.getBody());
+        verify(response, times(0)).chunks(any(Flowable.class));
+
+        assertNull(logResponse.getHeaders());
+        assertNull(logResponse.getBody());
     }
 
     @Test
@@ -140,20 +133,20 @@ class LogEntrypointRequestTest {
         final int maxPayloadSize = 5;
 
         final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
-        when(request.chunks()).thenReturn(body);
-        when(request.headers()).thenReturn(HttpHeaders.create());
-        when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
-        when(loggingContext.entrypointRequestPayload()).thenReturn(true);
+        when(response.chunks()).thenReturn(body);
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxPayloadSize);
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
-        final LogEntrypointRequest logRequest = new LogEntrypointRequest(loggingContext, request);
-        verify(request).chunks(chunksCaptor.capture());
+        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
         obs.assertComplete();
 
-        assertNull(logRequest.getHeaders());
-        assertEquals(BODY_CONTENT.substring(0, maxPayloadSize), logRequest.getBody());
+        assertNull(logResponse.getHeaders());
+        assertThat(logResponse.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
     }
 }

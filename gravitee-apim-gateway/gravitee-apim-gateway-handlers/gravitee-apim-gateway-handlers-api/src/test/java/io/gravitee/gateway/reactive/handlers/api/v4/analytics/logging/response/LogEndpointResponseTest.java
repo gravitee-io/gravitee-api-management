@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.analytics.response;
+package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.any;
@@ -30,27 +29,24 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.HttpResponse;
-import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.LogEntrypointResponse;
+import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LogHeadersCaptor;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class LogEntrypointResponseTest {
+class LogEndpointResponseTest {
 
     protected static final String BODY_CONTENT = "Body content";
 
@@ -61,14 +57,14 @@ class LogEntrypointResponseTest {
     protected HttpResponse response;
 
     @Test
-    void shouldLogStatusOnly() {
+    void shouldLogMethodAndUriOnly() {
         when(response.status()).thenReturn(HttpStatusCode.OK_200);
-        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
-        when(loggingContext.entrypointResponsePayload()).thenReturn(false);
+        when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+        when(loggingContext.endpointResponsePayload()).thenReturn(false);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
 
-        assertEquals(HttpStatusCode.OK_200, logResponse.getStatus());
+        assertThat(logResponse.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         assertNull(logResponse.getHeaders());
         assertNull(logResponse.getBody());
     }
@@ -82,13 +78,35 @@ class LogEntrypointResponseTest {
         headers.set("X-Test3", List.of("Value3-a", "Value3-b"));
 
         when(response.headers()).thenReturn(headers);
-        when(loggingContext.entrypointResponseHeaders()).thenReturn(true);
-        when(loggingContext.entrypointResponsePayload()).thenReturn(false);
+        when(response.status()).thenReturn(HttpStatusCode.OK_200);
+        when(loggingContext.endpointResponseHeaders()).thenReturn(true);
+        when(loggingContext.endpointResponsePayload()).thenReturn(false);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
 
         assertNotSame(headers, logResponse.getHeaders());
-        assertTrue(logResponse.getHeaders().deeplyEquals(headers));
+        assertThat(logResponse.getHeaders().deeplyEquals(headers)).isTrue();
+        assertNull(logResponse.getBody());
+    }
+
+    @Test
+    void shouldLogNoHeadersWhenUsingLogHeadersCaptorAndNoHeadersHasChanged() {
+        final VertxHttpHeaders existingHeaders = new VertxHttpHeaders(new HeadersMultiMap());
+        existingHeaders.set("X-Test1", "Value1");
+        existingHeaders.set("X-Test2", "Value2");
+        existingHeaders.set("X-Test3", List.of("Value3-a", "Value3-b"));
+
+        final HttpHeaders headers = new LogHeadersCaptor(existingHeaders);
+
+        when(response.headers()).thenReturn(headers);
+        when(response.status()).thenReturn(HttpStatusCode.OK_200);
+        when(loggingContext.endpointResponseHeaders()).thenReturn(true);
+        when(loggingContext.endpointResponsePayload()).thenReturn(false);
+
+        final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
+
+        assertNotSame(headers, logResponse.getHeaders());
+        assertThat(logResponse.getHeaders().deeplyEquals(HttpHeaders.create())).isTrue();
         assertNull(logResponse.getBody());
     }
 
@@ -99,19 +117,19 @@ class LogEntrypointResponseTest {
 
         when(response.chunks()).thenReturn(body);
         when(response.headers()).thenReturn(HttpHeaders.create());
-        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
-        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+        when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+        when(loggingContext.endpointResponsePayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
         obs.assertComplete();
 
         assertNull(logResponse.getHeaders());
-        assertEquals(BODY_CONTENT, logResponse.getBody());
+        assertThat(logResponse.getBody()).isEqualTo(BODY_CONTENT);
     }
 
     @Test
@@ -120,12 +138,11 @@ class LogEntrypointResponseTest {
         headers.set(HttpHeaderNames.CONTENT_TYPE, "application/octet-stream");
 
         when(response.headers()).thenReturn(headers);
-        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
-        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+        when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+        when(loggingContext.endpointResponsePayload()).thenReturn(true);
         when(loggingContext.isContentTypeLoggable("application/octet-stream")).thenReturn(false);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
-
+        final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
         verify(response, times(0)).chunks(any(Flowable.class));
 
         assertNull(logResponse.getHeaders());
@@ -140,18 +157,18 @@ class LogEntrypointResponseTest {
         final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
         when(response.chunks()).thenReturn(body);
         when(response.headers()).thenReturn(HttpHeaders.create());
-        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
-        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+        when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+        when(loggingContext.endpointResponsePayload()).thenReturn(true);
         when(loggingContext.getMaxSizeLogMessage()).thenReturn(maxPayloadSize);
         when(loggingContext.isContentTypeLoggable(any())).thenReturn(true);
 
-        final LogEntrypointResponse logResponse = new LogEntrypointResponse(loggingContext, response);
+        final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, response);
         verify(response).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
         obs.assertComplete();
 
         assertNull(logResponse.getHeaders());
-        assertEquals(BODY_CONTENT.substring(0, maxPayloadSize), logResponse.getBody());
+        assertThat(logResponse.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
     }
 }
