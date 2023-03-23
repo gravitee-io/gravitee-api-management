@@ -411,6 +411,7 @@ class ApiHistoryController {
   stringifyCurrentApi() {
     const payload = _.cloneDeep(this.api);
 
+    delete payload.crossId;
     delete payload.deployed_at;
     delete payload.created_at;
     delete payload.updated_at;
@@ -430,7 +431,6 @@ class ApiHistoryController {
     delete payload.path_mappings;
     delete payload.tags;
     delete payload.workflow_state;
-    delete payload.response_templates;
 
     if (payload.flows && _.isEmpty(payload.flows)) {
       delete payload.flows;
@@ -446,7 +446,7 @@ class ApiHistoryController {
     }
 
     if (payload.plans) {
-      _.forEach(payload.plans, (plan) => {
+      payload.plans.forEach((plan) => {
         delete plan.characteristics;
         delete plan.comment_message;
         delete plan.comment_required;
@@ -462,6 +462,8 @@ class ApiHistoryController {
         delete plan.closed_at;
         delete plan.validation;
       });
+
+      payload.plans = payload.plans.filter((plan) => plan.status !== 'CLOSED').sort((plan) => plan.id);
     }
 
     return JSON.stringify({ definition: JSON.stringify(payload) });
@@ -494,7 +496,7 @@ class ApiHistoryController {
       tags: eventPayloadDefinition.tags,
       proxy: eventPayloadDefinition.proxy,
       paths: eventPayloadDefinition.paths,
-      plans: eventPayloadDefinition.plans,
+      plans: eventPayloadDefinition.plans.sort((plan) => plan.id),
       flows: eventPayloadDefinition.flows,
       properties: eventPayloadDefinition.properties,
       services: eventPayloadDefinition.services,
