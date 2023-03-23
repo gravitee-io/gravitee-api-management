@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.processor;
 
 import io.gravitee.definition.jackson.datatype.DeploymentRequiredMapper;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,11 @@ public class SynchronizationService {
         this.deploymentRequiredMapper = new DeploymentRequiredMapper();
     }
 
-    public <T> boolean checkSynchronization(final T deployedEntity, final T entityToDeploy) {
+    public boolean checkSynchronization(final ApiEntity deployedEntity, final ApiEntity entityToDeploy) {
+        return check(deployedEntity, entityToDeploy);
+    }
+
+    protected <T> boolean check(final T deployedEntity, final T entityToDeploy) {
         try {
             String requiredFieldsDeployedApiDefinition = deploymentRequiredMapper.writeValueAsString(deployedEntity);
             String requiredFieldsApiToDeployDefinition = deploymentRequiredMapper.writeValueAsString(entityToDeploy);
