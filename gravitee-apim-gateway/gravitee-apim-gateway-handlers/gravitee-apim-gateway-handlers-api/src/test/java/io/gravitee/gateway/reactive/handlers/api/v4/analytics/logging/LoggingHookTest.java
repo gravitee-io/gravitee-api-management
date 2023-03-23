@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.hook.logging;
+package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.lenient;
@@ -28,8 +28,7 @@ import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LogHeadersCaptor;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
+import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
@@ -111,6 +110,36 @@ class LoggingHookTest {
         obs.assertComplete();
 
         assertNotNull(log.getEndpointRequest());
+    }
+
+    @Test
+    void shouldSetEndpointRequestHeaderWhenEndpointRequest() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointRequest(new Request());
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.endpointRequest()).thenReturn(true);
+        when(request.headers()).thenReturn(HttpHeaders.create());
+
+        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        obs.assertComplete();
+
+        assertNotNull(log.getEndpointRequest().getHeaders());
+    }
+
+    @Test
+    void shouldSetEndpointRequestHeaderWhenEndpointRequestAndInterrupt() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointRequest(new Request());
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.endpointRequest()).thenReturn(true);
+        when(request.headers()).thenReturn(HttpHeaders.create());
+
+        final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500)).test();
+        obs.assertComplete();
+
+        assertNotNull(log.getEndpointRequest().getHeaders());
     }
 
     @Test

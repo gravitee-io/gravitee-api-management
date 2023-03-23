@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.analytics.request;
+package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -32,9 +27,7 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request.LogEndpointRequest;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
@@ -46,7 +39,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -92,8 +84,8 @@ class LogEndpointRequestTest {
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();
         obs.assertComplete();
 
-        assertEquals(HttpMethod.POST, logRequest.getMethod());
-        assertEquals(URI, logRequest.getUri());
+        assertThat(logRequest.getMethod()).isEqualTo(HttpMethod.POST);
+        assertThat(logRequest.getUri()).isEqualTo(URI);
         assertNull(logRequest.getHeaders());
         assertNull(logRequest.getBody());
     }
@@ -120,7 +112,7 @@ class LogEndpointRequestTest {
         obs.assertComplete();
 
         assertNotSame(headers, logRequest.getHeaders());
-        assertTrue(logRequest.getHeaders().deeplyEquals(headers));
+        assertThat(logRequest.getHeaders().deeplyEquals(headers)).isTrue();
         assertNull(logRequest.getBody());
     }
 
@@ -144,7 +136,7 @@ class LogEndpointRequestTest {
         obs.assertComplete();
 
         assertNull(logRequest.getHeaders());
-        assertEquals(BODY_CONTENT, logRequest.getBody());
+        assertThat(logRequest.getBody()).isEqualTo(BODY_CONTENT);
     }
 
     @Test
@@ -192,6 +184,6 @@ class LogEndpointRequestTest {
         obs.assertComplete();
 
         assertNull(logRequest.getHeaders());
-        assertEquals(BODY_CONTENT.substring(0, maxPayloadSize), logRequest.getBody());
+        assertThat(logRequest.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
     }
 }

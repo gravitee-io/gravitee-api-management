@@ -49,8 +49,7 @@ public class LoggingHook implements InvokerHook {
             final LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
             if (log != null && loggingContext != null && loggingContext.endpointRequest()) {
-                final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
-                log.setEndpointRequest(logRequest);
+                log.setEndpointRequest(new LogEndpointRequest(loggingContext, ctx));
                 ((MutableExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
             }
         });
@@ -62,6 +61,10 @@ public class LoggingHook implements InvokerHook {
             final Log log = ctx.metrics().getLog();
             final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
             final LoggingContext loggingContext = analyticsContext.getLoggingContext();
+
+            if (log != null && loggingContext != null && loggingContext.endpointRequest()) {
+                log.getEndpointRequest().setHeaders(ctx.request().headers());
+            }
 
             if (log != null && loggingContext != null && loggingContext.endpointResponse()) {
                 final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, ctx.response());
