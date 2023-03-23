@@ -20,6 +20,7 @@ import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplicati
 import java.io.IOException;
 import java.security.Principal;
 import javax.annotation.Priority;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -50,8 +51,13 @@ public abstract class JerseySpringTest {
 
     private String orgBaseURL = "/organizations/DEFAULT";
     private String envBaseURL = orgBaseURL + "/environments/DEFAULT";
+    private HttpServletRequest httpServletRequest;
 
     protected abstract String contextPath();
+
+    public HttpServletRequest httpServletRequest() {
+        return httpServletRequest;
+    }
 
     public final WebTarget envTarget() {
         return envTarget("");
@@ -118,12 +124,14 @@ public abstract class JerseySpringTest {
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
 
+        httpServletRequest = Mockito.spy(HttpServletRequest.class);
         final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
         resourceConfig.register(
             new AbstractBinder() {
                 @Override
                 protected void configure() {
                     bind(response).to(HttpServletResponse.class);
+                    bind(httpServletRequest).to(HttpServletRequest.class);
                 }
             }
         );

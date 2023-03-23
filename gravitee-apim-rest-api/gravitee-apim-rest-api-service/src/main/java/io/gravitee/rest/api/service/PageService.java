@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -121,5 +122,5 @@ public interface PageService {
 
     boolean shouldHaveRevision(String pageType);
 
-    void attachMedia(String pageId, String mediaId, String mediaName);
+    Optional<PageEntity> attachMedia(String pageId, String mediaId, String mediaName);
 }

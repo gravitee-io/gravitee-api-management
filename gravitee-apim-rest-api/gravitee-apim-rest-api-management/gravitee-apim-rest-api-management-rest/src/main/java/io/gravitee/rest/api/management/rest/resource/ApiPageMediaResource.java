@@ -34,11 +34,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -75,7 +77,7 @@ public class ApiPageMediaResource extends AbstractResource {
     @ApiResponse(
         responseCode = "201",
         description = "Media successfully added",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = MediaEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
@@ -108,11 +110,18 @@ public class ApiPageMediaResource extends AbstractResource {
         mediaEntity.setFileName(originalFileName);
 
         mediaId = mediaService.saveApiMedia(api, mediaEntity);
-        pageService.attachMedia(page, mediaId, fileName == null ? originalFileName : fileName);
+        pageService
+            .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
+            .flatMap(pageEntity -> pageEntity.getAttachedMedia().stream().filter(media -> media.getMediaHash().equals(mediaId)).findFirst())
+            .ifPresent(createdMedia -> {
+                mediaEntity.setUploadDate(createdMedia.getAttachedAt());
+                mediaEntity.setHash(createdMedia.getMediaHash());
+            });
 
         //remove data before sending entity
         mediaEntity.setData(null);
-        return Response.ok(mediaEntity).build();
+        URI location = URI.create(uriInfo.getPath());
+        return Response.created(location).entity(mediaEntity).build();
     }
 
     @GET

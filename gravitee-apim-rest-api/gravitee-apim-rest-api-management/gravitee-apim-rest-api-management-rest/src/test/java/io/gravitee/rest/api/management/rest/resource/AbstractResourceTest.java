@@ -231,6 +231,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected AuditService auditService;
 
+    @Autowired
+    protected MediaService mediaService;
+
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
     static class ContextConfiguration {
