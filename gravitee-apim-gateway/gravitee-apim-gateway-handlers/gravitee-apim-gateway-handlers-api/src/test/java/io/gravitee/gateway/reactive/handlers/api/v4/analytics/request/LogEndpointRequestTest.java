@@ -113,7 +113,12 @@ class LogEndpointRequestTest {
         when(loggingContext.endpointRequestPayload()).thenReturn(false);
         when(request.chunks()).thenReturn(Flowable.empty()).thenAnswer(i -> chunksCaptor.getValue());
 
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/test/java/io/gravitee/gateway/reactive/handlers/api/v4/analytics/request/LogEndpointRequestTest.java
         final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
+=======
+        final LogProxyRequest logRequest = new LogProxyRequest(loggingContext, request);
+        logRequest.setHeaders(headers);
+>>>>>>> 038918e0c7 (fix: put backend host in proxy request headers log):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/test/java/io/gravitee/gateway/jupiter/handlers/api/logging/request/LogProxyRequestTest.java
         verify(request).chunks(chunksCaptor.capture());
 
         final TestSubscriber<Buffer> obs = chunksCaptor.getValue().test();

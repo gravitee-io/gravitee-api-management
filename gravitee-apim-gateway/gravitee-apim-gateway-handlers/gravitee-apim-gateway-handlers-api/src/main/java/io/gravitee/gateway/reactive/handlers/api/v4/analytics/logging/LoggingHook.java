@@ -48,9 +48,15 @@ public class LoggingHook implements InvokerHook {
             final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
             final LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/reactive/handlers/api/v4/analytics/logging/LoggingHook.java
             if (log != null && loggingContext != null && loggingContext.endpointRequest()) {
                 final LogEndpointRequest logRequest = new LogEndpointRequest(loggingContext, ctx);
                 log.setEndpointRequest(logRequest);
+=======
+            if (log != null && loggingContext.proxyMode()) {
+                log.setProxyRequest(new LogProxyRequest(loggingContext, ctx.request()));
+
+>>>>>>> 038918e0c7 (fix: put backend host in proxy request headers log):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/jupiter/handlers/api/hook/logging/LoggingHook.java
                 ((MutableExecutionContext) ctx).response().setHeaders(new LogHeadersCaptor(ctx.response().headers()));
             }
         });
@@ -63,9 +69,17 @@ public class LoggingHook implements InvokerHook {
             final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
             final LoggingContext loggingContext = analyticsContext.getLoggingContext();
 
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/reactive/handlers/api/v4/analytics/logging/LoggingHook.java
             if (log != null && loggingContext != null && loggingContext.endpointResponse()) {
                 final LogEndpointResponse logResponse = new LogEndpointResponse(loggingContext, ctx.response());
                 log.setEndpointResponse(logResponse);
+=======
+            if (log != null && loggingContext.proxyMode()) {
+                log.getProxyRequest().setHeaders(ctx.request().headers());
+
+                final LogProxyResponse logResponse = new LogProxyResponse(loggingContext, ctx.response());
+                log.setProxyResponse(logResponse);
+>>>>>>> 038918e0c7 (fix: put backend host in proxy request headers log):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/jupiter/handlers/api/hook/logging/LoggingHook.java
 
                 final MutableResponse response = ((MutableExecutionContext) ctx).response();
                 response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());

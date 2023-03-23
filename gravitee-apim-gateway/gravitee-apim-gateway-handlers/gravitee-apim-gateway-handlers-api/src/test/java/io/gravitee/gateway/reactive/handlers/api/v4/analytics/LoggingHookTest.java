@@ -20,6 +20,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.http.HttpHeaders;
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/test/java/io/gravitee/gateway/reactive/handlers/api/v4/analytics/LoggingHookTest.java
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -32,6 +33,18 @@ import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LogHeaders
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+=======
+import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.gateway.jupiter.api.ExecutionFailure;
+import io.gravitee.gateway.jupiter.api.ExecutionPhase;
+import io.gravitee.gateway.jupiter.core.context.MutableExecutionContext;
+import io.gravitee.gateway.jupiter.core.context.MutableRequest;
+import io.gravitee.gateway.jupiter.core.context.MutableResponse;
+import io.gravitee.gateway.jupiter.handlers.api.logging.LogHeadersCaptor;
+import io.gravitee.reporter.api.common.Request;
+import io.gravitee.reporter.api.http.Metrics;
+import io.gravitee.reporter.api.log.Log;
+>>>>>>> 038918e0c7 (fix: put backend host in proxy request headers log):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/test/java/io/gravitee/gateway/jupiter/handlers/api/hook/logging/LoggingHookTest.java
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
@@ -135,11 +148,22 @@ class LoggingHookTest {
     }
 
     @Test
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/test/java/io/gravitee/gateway/reactive/handlers/api/v4/analytics/LoggingHookTest.java
     void shouldSetEndpointResponseWhenEndpointResponse() {
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
 
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointResponse()).thenReturn(true);
+=======
+    void shouldSetProxyResponseWhenProxyMode() {
+        final Log log = new Log(System.currentTimeMillis());
+        log.setProxyRequest(new Request());
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.proxyMode()).thenReturn(true);
+
+        when(request.headers()).thenReturn(HttpHeaders.create());
+>>>>>>> 038918e0c7 (fix: put backend host in proxy request headers log):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/test/java/io/gravitee/gateway/jupiter/handlers/api/hook/logging/LoggingHookTest.java
         when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
 
         final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
@@ -149,11 +173,38 @@ class LoggingHookTest {
     }
 
     @Test
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/test/java/io/gravitee/gateway/reactive/handlers/api/v4/analytics/LoggingHookTest.java
     void shouldSetEndpointResponseWhenEndpointResponseAndInterrupt() {
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
 
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointResponse()).thenReturn(true);
+=======
+    void shouldSetProxyRequestHeadersWhenProxyMode() {
+        final Log log = new Log(System.currentTimeMillis());
+        log.setProxyRequest(new Request());
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.proxyMode()).thenReturn(true);
+
+        when(request.headers()).thenReturn(HttpHeaders.create());
+        when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
+
+        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        obs.assertComplete();
+
+        assertNotNull(log.getProxyRequest().getHeaders());
+    }
+
+    @Test
+    void shouldSetProxyResponseWhenProxyModeAndInterrupt() {
+        final Log log = new Log(System.currentTimeMillis());
+        log.setProxyRequest(new Request());
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.proxyMode()).thenReturn(true);
+        when(request.headers()).thenReturn(HttpHeaders.create());
+>>>>>>> 038918e0c7 (fix: put backend host in proxy request headers log):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/test/java/io/gravitee/gateway/jupiter/handlers/api/hook/logging/LoggingHookTest.java
         when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
 
         final TestObserver<Void> obs = cut.interrupt("test", ctx, ExecutionPhase.REQUEST).test();
@@ -163,17 +214,43 @@ class LoggingHookTest {
     }
 
     @Test
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/test/java/io/gravitee/gateway/reactive/handlers/api/v4/analytics/LoggingHookTest.java
     void shouldSetEndpointResponseWhenProxyModeAndInterruptWith() {
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
 
         when(metrics.getLog()).thenReturn(log);
         when(loggingContext.endpointResponse()).thenReturn(true);
+=======
+    void shouldSetProxyResponseWhenProxyModeAndInterruptWith() {
+        final Log log = new Log(System.currentTimeMillis());
+        log.setProxyRequest(new Request());
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.proxyMode()).thenReturn(true);
+        when(request.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
+>>>>>>> 038918e0c7 (fix: put backend host in proxy request headers log):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/test/java/io/gravitee/gateway/jupiter/handlers/api/hook/logging/LoggingHookTest.java
         when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
 
         final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500)).test();
         obs.assertComplete();
 
         assertNotNull(log.getEndpointResponse());
+    }
+
+    @Test
+    void shouldSetProxyRequestHeadersWhenProxyModeAndInterruptWith() {
+        final Log log = new Log(System.currentTimeMillis());
+        log.setProxyRequest(new Request());
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.proxyMode()).thenReturn(true);
+        when(request.headers()).thenReturn(HttpHeaders.create());
+        when(response.headers()).thenReturn(new LogHeadersCaptor(HttpHeaders.create()));
+
+        final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500)).test();
+        obs.assertComplete();
+
+        assertNotNull(log.getProxyRequest().getHeaders());
     }
 
     @Test
