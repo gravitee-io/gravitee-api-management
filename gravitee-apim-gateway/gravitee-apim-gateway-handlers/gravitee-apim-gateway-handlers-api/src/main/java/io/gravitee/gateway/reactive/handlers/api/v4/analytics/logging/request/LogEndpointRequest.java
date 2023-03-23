@@ -15,10 +15,16 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request;
 
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/reactive/handlers/api/v4/analytics/logging/request/LogEndpointRequest.java
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+=======
+import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.core.logging.LoggingContext;
+import io.gravitee.gateway.jupiter.api.context.HttpRequest;
+>>>>>>> 038918e0c7 (fix: put backend host in proxy request headers log):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/jupiter/handlers/api/logging/request/LogProxyRequest.java
 
 /**
  * Allows to log the response status, headers and body sent to the backend endpoint depending on what is configured on the {@link LoggingContext}.
@@ -34,6 +40,11 @@ public class LogEndpointRequest extends LogRequest {
         Metrics metrics = ctx.metrics();
         Request request = ctx.request();
         request.chunks(request.chunks().doOnSubscribe(s -> this.setUri(metrics.getEndpoint() != null ? metrics.getEndpoint() : "")));
+    }
+
+    @Override
+    public void setHeaders(HttpHeaders headers) {
+        super.setHeaders(HttpHeaders.create(headers));
     }
 
     protected boolean isLogPayload() {
