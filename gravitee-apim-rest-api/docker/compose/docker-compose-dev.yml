@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: '3.5'
+version: '3.8'
 
 volumes:
   data-elasticsearch:
@@ -24,6 +24,11 @@ services:
   mongodb:
     image: mongo:${MONGODB_VERSION:-6.0}
     container_name: gio_apim_mongodb
+    healthcheck:
+      test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
+      interval: 5s
+      timeout: 3s
+      retries: 10
     volumes:
       - ./logs/apim-mongodb:/var/log/mongodb
 
@@ -40,6 +45,11 @@ services:
       - bootstrap.memory_lock=true
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     ulimits:
       memlock:
         soft: -1
@@ -55,8 +65,10 @@ services:
       - mongodb
       - elasticsearch
     depends_on:
-      - mongodb
-      - elasticsearch
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     volumes:
       - ./logs/apim-management-api:/opt/graviteeio-management-api/logs
     environment:
