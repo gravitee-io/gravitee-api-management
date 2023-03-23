@@ -34,6 +34,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -69,7 +70,7 @@ public class PortalPageMediaResource extends AbstractResource {
     @ApiResponse(
         responseCode = "201",
         description = "Media successfully added",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PageEntity.class))
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = MediaEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
@@ -102,11 +103,24 @@ public class PortalPageMediaResource extends AbstractResource {
         mediaEntity.setFileName(originalFileName);
 
         mediaId = mediaService.savePortalMedia(mediaEntity);
-        pageService.attachMedia(page, mediaId, fileName == null ? originalFileName : fileName);
+        pageService
+            .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
+            .ifPresent(pageEntity ->
+                pageEntity
+                    .getAttachedMedia()
+                    .stream()
+                    .filter(media -> media.getMediaHash().equals(mediaId))
+                    .findFirst()
+                    .ifPresent(createdMedia -> {
+                        mediaEntity.setUploadDate(createdMedia.getAttachedAt());
+                        mediaEntity.setHash(createdMedia.getMediaHash());
+                    })
+            );
 
         //remove data before sending entity
         mediaEntity.setData(null);
-        return Response.ok(mediaEntity).build();
+        URI location = URI.create(uriInfo.getPath());
+        return Response.created(location).entity(mediaEntity).build();
     }
 
     @GET
