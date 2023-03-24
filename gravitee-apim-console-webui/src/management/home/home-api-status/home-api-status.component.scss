@@ -3,20 +3,28 @@
 :host {
   @include gio-layout.gio-responsive-margin-container;
 }
+.time-frame {
+  padding-bottom: 0;
+}
 
 .mat-column-picture {
   width: 0%;
   padding-right: 16px;
 }
-
-.mat-column-actions {
-  width: 0%;
+.mat-column-name {
+  padding-right: 16px;
 }
-
+.mat-column-states {
+  padding-right: 16px;
+}
 .mat-column-status {
+  padding-right: 16px;
   .status__gauge {
     width: 56px;
     height: 56px;
-    padding: 8px;
+    margin: 2px 0;
   }
+}
+.mat-column-actions {
+  width: 0%;
 }

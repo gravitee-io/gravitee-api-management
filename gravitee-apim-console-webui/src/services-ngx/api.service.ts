@@ -21,7 +21,7 @@ import { catchError, map, mapTo } from 'rxjs/operators';
 import { IScope } from 'angular';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors, ValidatorFn } from '@angular/forms';
 
-import { Api, ApiQualityMetrics, ApiStateEntity, UpdateApi } from '../entities/api';
+import { Api, ApiMetrics, ApiQualityMetrics, ApiStateEntity, UpdateApi } from '../entities/api';
 import { Constants } from '../entities/Constants';
 import { FlowSchema } from '../entities/flow/flowSchema';
 import { PagedResult } from '../entities/pagedResult';
@@ -278,5 +278,19 @@ export class ApiService {
 
   getGroupIdsWithMembers(apiId: string): Observable<Record<string, GroupMember[]>> {
     return this.http.get<Record<string, GroupMember[]>>(`${this.constants.env.baseURL}/apis/${apiId}/groups`);
+  }
+
+  apiHealth(api: string, type?: 'availability' | 'response_time', field?: 'endpoint' | 'gateway'): Observable<ApiMetrics> {
+    const params = [];
+    if (type !== undefined) {
+      params.push(`type=${type}`);
+    }
+    if (field !== undefined) {
+      params.push(`field=${field}`);
+    }
+
+    const paramsStr = params.length > 0 ? `?${params.join('&')}` : '';
+
+    return this.http.get<ApiMetrics>(`${this.constants.env.baseURL}/apis/${api}/health${paramsStr}`);
   }
 }
