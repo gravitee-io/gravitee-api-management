@@ -72,9 +72,12 @@ public class TableConstraintsTest extends AbstractRepositoryTest {
             "order by tab.table_schema,\n" +
             "         tab.table_name;",
             rs -> {
-                while (rs.next()) {
-                    tables.add(rs.getString("table_name").replace(prefix, ""));
+                if (rs.wasNull()) {
+                    return;
                 }
+                do {
+                    tables.add(rs.getString("table_name").replace(prefix, ""));
+                } while (rs.next());
             }
         );
 
