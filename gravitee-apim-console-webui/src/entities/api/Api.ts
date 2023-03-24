@@ -62,6 +62,7 @@ export interface Api {
 
   etag?: string;
   definition_context: ApiDefinitionContext;
+  healthcheck_enabled?: boolean;
 }
 
 export type ApiVisibility = 'PUBLIC' | 'PRIVATE';

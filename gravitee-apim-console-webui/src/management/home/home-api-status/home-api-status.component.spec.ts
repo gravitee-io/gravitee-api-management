@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { HarnessLoader } from '@angular/cdk/testing';
+import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { HomeApiStatusComponent } from './home-api-status.component';
 
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
-import { GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
+import { Api } from '../../../entities/api';
+import { fakePagedResult } from '../../../entities/pagedResult';
+import { fakeApi } from '../../../entities/api/Api.fixture';
+import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 
 describe('HomeApiStatusComponent', () => {
   let fixture: ComponentFixture<HomeApiStatusComponent>;
@@ -32,27 +39,100 @@ describe('HomeApiStatusComponent', () => {
   let httpTestingController: HttpTestingController;
 
   const currentUser = new User();
+  const fakeUiRouter = { go: jest.fn() };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+      imports: [NoopAnimationsModule, GioUiRouterTestingModule, GioHttpTestingModule, HomeModule, MatIconTestingModule],
+      providers: [
+        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: UIRouterStateParams, useValue: {} },
+      ],
     });
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(HomeApiStatusComponent);
-    loader = TestbedHarnessEnvironment.loader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
+    loader = TestbedHarnessEnvironment.loader(fixture);
   });
 
   afterEach(() => {
     httpTestingController.verify();
+    jest.clearAllMocks();
   });
 
-  it('should work', async () => {
-    expect(loader).toBeTruthy();
+  it('should display an empty table', fakeAsync(async () => {
+    fixture.detectChanges();
+    expectApisListRequest([]);
+
+    const { headerCells, rowCells } = await computeApisTableCells();
+    expect(headerCells).toEqual([
+      {
+        actions: '',
+        name: 'Name',
+        picture: '',
+        states: '',
+        status: 'API Status',
+      },
+    ]);
+    expect(rowCells).toEqual([['There is no API (yet).']]);
+  }));
+
+  it('should display a table with one row', fakeAsync(async () => {
+    fixture.detectChanges();
+    const api = fakeApi();
+    expectApisListRequest([api]);
+
+    const { headerCells, rowCells } = await computeApisTableCells();
+    expect(headerCells).toEqual([
+      {
+        actions: '',
+        name: 'Name',
+        picture: '',
+        states: '',
+        status: 'API Status',
+      },
+    ]);
+    expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '70%', '']]);
+  }));
+
+  describe('onAddApiClick', () => {
+    beforeEach(fakeAsync(() => {
+      fixture.detectChanges();
+      expectApisListRequest([fakeApi()]);
+    }));
+
+    it('should navigate to view API HealthCheck', async () => {
+      await loader
+        .getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to view API HealthCheck"]' }))
+        .then((button) => button.click());
+
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.proxy.healthCheckDashboard');
+    });
   });
+
+  async function computeApisTableCells() {
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#apisTable' }));
+
+    const headerRows = await table.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+    return { headerCells, rowCells };
+  }
+
+  function expectApisListRequest(apis: Api[] = [], q?: string, order?: string, page = 1) {
+    // wait debounceTime
+    tick(400);
+
+    const req = httpTestingController.expectOne(
+      `${CONSTANTS_TESTING.env.baseURL}/apis/_search/_paged?page=${page}&size=10&q=${q ? q : '*'}${order ? `&order=${order}` : ''}`,
+    );
+    expect(req.request.method).toEqual('POST');
+    req.flush(fakePagedResult(apis));
+  }
 });
