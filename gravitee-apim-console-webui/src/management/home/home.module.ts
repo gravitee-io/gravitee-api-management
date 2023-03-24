@@ -15,13 +15,21 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { GioAvatarModule } from '@gravitee/ui-particles-angular';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
 import { MatCardModule } from '@angular/material/card';
 
 import { HomeApiStatusComponent } from './home-api-status/home-api-status.component';
 import { HomeLayoutComponent } from './home-layout/home-layout.component';
 import { HomeOverviewComponent } from './home-overview/home-overview.component';
+
+import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
+import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 export const states: Ng2StateDeclaration[] = [
   {
@@ -46,7 +54,7 @@ export const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'home.apiStatus',
-    url: '/api-status',
+    url: '/api-status?{q:string}{page:int}{size:int}{order:string}',
     data: {
       useAngularMaterial: true,
       docs: null,
@@ -56,7 +64,21 @@ export const states: Ng2StateDeclaration[] = [
 ];
 
 @NgModule({
-  imports: [CommonModule, MatCardModule, MatTabsModule, UIRouterModule.forChild({ states })],
+  imports: [
+    CommonModule,
+    UIRouterModule.forChild({ states }),
+
+    MatTabsModule,
+    MatCardModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+
+    GioAvatarModule,
+    GioTableWrapperModule,
+    GioCircularPercentageModule,
+  ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiStatusComponent],
 })
 export class HomeModule {}
