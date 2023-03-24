@@ -4,6 +4,6 @@
         "danger": "danger ci"
     },
     "dependencies": {
-        "danger": "^11.2.0"
+        "danger": "11.2.0"
     }
 }

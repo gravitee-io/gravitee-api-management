@@ -5,9 +5,9 @@
   "author": "Gravitee Team",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^16.0.1",
-    "xml2json": "^0.12.0",
-    "zx": "^7.0.8"
+    "dotenv": "16.0.1",
+    "xml2json": "0.12.0",
+    "zx": "7.0.8"
   },
   "scripts": {
     "prettier": "prettier --check \"**/*.{js,mjs,json}\"",
