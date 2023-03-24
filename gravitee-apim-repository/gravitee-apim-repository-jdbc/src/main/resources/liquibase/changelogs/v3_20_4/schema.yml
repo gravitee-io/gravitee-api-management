@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.20.4
+      author: GraviteeSource Team
+      changes:
+        # Create a new auto increment column and set it as a PK
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions_metadata
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
