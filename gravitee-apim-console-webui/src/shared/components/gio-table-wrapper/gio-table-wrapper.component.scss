@@ -78,6 +78,13 @@ $typography: map.get(gio.$mat-theme, typography);
     // Remove form field padding provided to display mat-hint and mat-error. Not used here
     // For search field and mat-paginator
     .gio-table-wrapper__header-bar {
+      .mat-paginator-page-size {
+        align-items: center;
+        .mat-form-field {
+          margin: 0 4px;
+        }
+      }
+
       .mat-form-field-wrapper {
         padding-bottom: 0;
       }
