@@ -323,6 +323,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
         List<String> applicationsGroups = applicationService
             .findByIds(context, applicationIds)
             .stream()
+            .filter(application -> application.getGroups() != null)
             .flatMap((ApplicationListItem applicationListItem) -> applicationListItem.getGroups().stream())
             .distinct()
             .collect(Collectors.toList());
