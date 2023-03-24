@@ -22,8 +22,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.EmptyStreamableProcessor;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.chain.DefaultStreamableProcessorChain;
+import io.gravitee.gateway.flow.AbstractFlowParametersProvider;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
-import io.gravitee.gateway.flow.FlowProvider;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.policy.StreamType;
@@ -35,7 +35,7 @@ import java.util.List;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class OrganizationFlowProvider implements FlowProvider {
+public class OrganizationFlowProvider extends AbstractFlowParametersProvider {
 
     private final StreamType streamType;
 
@@ -64,6 +64,9 @@ public class OrganizationFlowProvider implements FlowProvider {
 
             for (Flow flow : flows) {
                 flow.setStage(FlowStage.PLATFORM);
+
+                addContextRequestPathParameters(context, flow);
+
                 chain.add(
                     policyChainFactory.create(
                         flowPolicyResolverFactory.create(flow).resolve(streamType, context),
