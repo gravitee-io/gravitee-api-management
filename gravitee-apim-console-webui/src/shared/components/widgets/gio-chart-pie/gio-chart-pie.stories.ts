@@ -28,12 +28,25 @@ export default {
       imports: [MatCardModule, GioChartPieComponentModule],
     }),
   ],
-  render: () => ({}),
+  render: ({ data, dataDescription, title }) => {
+    return {
+      template: `
+      <mat-card style="width: 500px">
+            <gio-chart-pie [data]="data" [dataDescription]="dataDescription" [title]="title"></gio-chart-pie>
+      </mat-card>
+      `,
+      props: {
+        data,
+        dataDescription,
+        title,
+      },
+    };
+  },
 } as Meta;
 
 export const Simple: Story = {
-  render: () => {
-    const data = [
+  args: {
+    data: [
       {
         color: '#bbb',
         label: '1xx',
@@ -59,43 +72,16 @@ export const Simple: Story = {
         label: '5xx',
         value: 300,
       },
-    ];
-
-    const title = 'A Sample Title';
-    const dataDescription = 'Nb hits';
-    return {
-      template: `
-      <mat-card style="width: 500px">
-            <gio-chart-pie [data]="data" [dataDescription]="dataDescription" [title]="title"></gio-chart-pie>
-      </mat-card>
-      `,
-      props: {
-        data,
-        dataDescription,
-        title,
-      },
-      styles: [],
-    };
+    ],
+    title: 'A Sample Title',
+    dataDescription: 'Nb hits',
   },
 };
 
 export const NoData: Story = {
-  render: () => {
-    const data = [];
-    const title = 'A Sample Title';
-    const dataDescription = 'Nb hits';
-    return {
-      template: `
-      <mat-card style="width: 500px">
-            <gio-chart-pie [data]="data" [dataDescription]="dataDescription" [title]="title"></gio-chart-pie>
-      </mat-card>
-      `,
-      props: {
-        data,
-        dataDescription,
-        title,
-      },
-      styles: [],
-    };
+  args: {
+    data: [],
+    title: 'A Sample Title',
+    dataDescription: 'Nb hits',
   },
 };

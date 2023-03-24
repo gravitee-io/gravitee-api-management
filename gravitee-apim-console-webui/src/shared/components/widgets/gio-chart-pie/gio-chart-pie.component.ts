@@ -15,7 +15,7 @@
  */
 
 import { Component, Input, OnInit } from '@angular/core';
-import Highcharts from 'highcharts';
+import * as Highcharts from 'highcharts';
 
 export interface GioChartPieInput {
   label: string;
