@@ -30,8 +30,11 @@ import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.WebSocketConnector;
 import io.reactivex.rxjava3.core.Completable;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -46,14 +49,15 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
     protected final HttpProxyEndpointConnectorConfiguration configuration;
     private final HttpClientFactory httpClientFactory;
     private final GrpcHttpClientFactory grpcHttpClientFactory;
+    private final Map<String, ProxyConnector> connectors = new ConcurrentHashMap<>();
 
     public HttpProxyEndpointConnector(HttpProxyEndpointConnectorConfiguration configuration) {
         this.configuration = configuration;
         if (this.configuration.getTarget() == null || this.configuration.getTarget().isBlank()) {
             throw new IllegalArgumentException("target cannot be null or empty");
         }
-        httpClientFactory = new HttpClientFactory();
-        grpcHttpClientFactory = new GrpcHttpClientFactory();
+        this.httpClientFactory = new HttpClientFactory();
+        this.grpcHttpClientFactory = new GrpcHttpClientFactory();
     }
 
     @Override
@@ -70,19 +74,21 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
     public Completable connect(ExecutionContext ctx) {
         return Completable.defer(() -> {
             Request request = ctx.request();
-            ProxyConnector proxyConnector;
-            if (request.isWebSocket()) {
-                proxyConnector = new WebSocketConnector(configuration, httpClientFactory);
-            } else if (isGrpc(request, configuration.getTarget())) {
-                proxyConnector = new GrpcConnector(configuration, grpcHttpClientFactory);
-            } else {
-                proxyConnector = new HttpConnector(configuration, httpClientFactory);
-            }
-            return proxyConnector.connect(ctx);
+            return getConnector(request).connect(ctx);
         });
     }
 
-    private static boolean isGrpc(final HttpRequest httpRequest, final String target) {
+    private ProxyConnector getConnector(final HttpRequest request) {
+        if (request.isWebSocket()) {
+            return this.connectors.computeIfAbsent("ws", (type) -> new WebSocketConnector(configuration, httpClientFactory));
+        } else if (isGrpc(request, configuration.getTarget())) {
+            return this.connectors.computeIfAbsent("grpc", (type) -> new GrpcConnector(configuration, grpcHttpClientFactory));
+        } else {
+            return this.connectors.computeIfAbsent("http", (type) -> new HttpConnector(configuration, httpClientFactory));
+        }
+    }
+
+    private boolean isGrpc(final HttpRequest httpRequest, final String target) {
         String contentType = httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
         if (contentType == null) {
             return target.startsWith("grpc://");
