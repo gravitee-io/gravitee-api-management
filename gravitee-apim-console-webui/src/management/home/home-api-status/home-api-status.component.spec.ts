@@ -21,6 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { HomeApiStatusComponent } from './home-api-status.component';
 
@@ -78,12 +79,14 @@ describe('HomeApiStatusComponent', () => {
         status: 'API Status',
       },
     ]);
-    expect(rowCells).toEqual([['There is no API (yet).']]);
+    expect(rowCells).toEqual([['No APIs to display.']]);
   }));
 
   it('should display a table with one row', fakeAsync(async () => {
     fixture.detectChanges();
-    const api = fakeApi();
+    const api = fakeApi({
+      healthcheck_enabled: false,
+    });
     expectApisListRequest([api]);
 
     const { headerCells, rowCells } = await computeApisTableCells();
@@ -96,7 +99,36 @@ describe('HomeApiStatusComponent', () => {
         status: 'API Status',
       },
     ]);
-    expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '70%', '']]);
+    expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', 'Health-check has not been configured', '']]);
+  }));
+
+  it('should display api with HeathCheck configured', fakeAsync(async () => {
+    fixture.detectChanges();
+    const api = fakeApi({
+      healthcheck_enabled: true,
+    });
+    expectApisListRequest([api]);
+    fixture.detectChanges();
+    expectGetApiHealth(api.id);
+
+    const { headerCells, rowCells } = await computeApisTableCells();
+    expect(headerCells).toEqual([
+      {
+        actions: '',
+        name: 'Name',
+        picture: '',
+        states: '',
+        status: 'API Status',
+      },
+    ]);
+    expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '50%', '']]);
+
+    // Expect HealthCheck TimeFrame select changes
+    const healthCheckTimeFrameSelect = await loader.getHarness(MatSelectHarness);
+    await healthCheckTimeFrameSelect.clickOptions({ text: 'last week' });
+
+    const { rowCells: rowCells_2 } = await computeApisTableCells();
+    expect(rowCells_2).toEqual([['', '🪐 Planets (1.0)', '', '20%', '']]);
   }));
 
   describe('onAddApiClick', () => {
@@ -134,5 +166,35 @@ describe('HomeApiStatusComponent', () => {
     );
     expect(req.request.method).toEqual('POST');
     req.flush(fakePagedResult(apis));
+  }
+
+  function expectGetApiHealth(apiId: string) {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/health?type=availability`,
+      method: 'GET',
+    });
+    req.flush({
+      global: {
+        '1d': 10,
+        '1w': 20,
+        '1h': 30,
+        '1M': 40,
+        '1m': 50,
+      },
+      buckets: {
+        default: {
+          '1d': 10,
+          '1w': 20,
+          '1h': 30,
+          '1M': 40,
+          '1m': 50,
+        },
+      },
+      metadata: {
+        default: {
+          target: 'https://apim-master-gateway.team-apim.gravitee.dev',
+        },
+      },
+    });
   }
 });

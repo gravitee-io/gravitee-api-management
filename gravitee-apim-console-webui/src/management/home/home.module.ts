@@ -20,8 +20,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { GioAvatarModule } from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioBannerModule } from '@gravitee/ui-particles-angular';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 
 import { HomeApiStatusComponent } from './home-api-status/home-api-status.component';
@@ -66,6 +69,7 @@ export const states: Ng2StateDeclaration[] = [
 @NgModule({
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     UIRouterModule.forChild({ states }),
 
     MatTabsModule,
@@ -74,10 +78,14 @@ export const states: Ng2StateDeclaration[] = [
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatCardModule,
 
     GioAvatarModule,
     GioTableWrapperModule,
     GioCircularPercentageModule,
+    GioBannerModule,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiStatusComponent],
 })

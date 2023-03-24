@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { FormControl, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
-import { isEqual } from 'lodash';
-import { BehaviorSubject, of, Subject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { isEqual, isNumber } from 'lodash';
+import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api, ApiOrigin, ApiState } from '../../../entities/api';
@@ -38,7 +39,18 @@ export type ApisTableDS = {
   picture: string;
   state: ApiState;
   origin: ApiOrigin;
-  statusGaugeValue: number;
+  status$: Observable<
+    | {
+        type: 'not-configured';
+      }
+    | {
+        type: 'no-data';
+      }
+    | {
+        type: 'configured';
+        healthCheckAvailability: number;
+      }
+  >;
 };
 
 @Component({
@@ -55,6 +67,14 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
     searchTerm: '',
   };
   isLoadingData = true;
+  timeFrames = [
+    { label: 'last minute', id: '1m' },
+    { label: 'last hour', id: '1h' },
+    { label: 'last day', id: '1d' },
+    { label: 'last week', id: '1w' },
+    { label: 'last month', id: '1M' },
+  ];
+  timeFrameControl = new FormControl('1m', Validators.required);
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
@@ -145,7 +165,7 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
           workflowBadge: this.getWorkflowBadge(api),
           healthcheck_enabled: api.healthcheck_enabled,
           origin: api.definition_context.origin,
-          statusGaugeValue: 0.7,
+          status$: this.getStatus$(api),
         } as ApisTableDS),
     );
   }
@@ -159,5 +179,37 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
       REQUEST_FOR_CHANGES: { text: 'Need changes', class: 'gio-badge-error' },
     };
     return toReadableState[state];
+  }
+
+  private getStatus$(api: Api): ApisTableDS['status$'] {
+    if (!api.healthcheck_enabled) {
+      return of({
+        type: 'not-configured' as const,
+      });
+    }
+
+    return combineLatest([
+      this.apiService.apiHealth(api.id, 'availability'),
+      this.timeFrameControl.valueChanges.pipe(startWith(this.timeFrameControl.value)),
+    ]).pipe(
+      map(([healthcheck, timeFrameId]) => {
+        const healthCheckAvailability = healthcheck.global[timeFrameId] || null;
+        if (healthCheckAvailability === null || !isNumber(healthCheckAvailability)) {
+          return {
+            type: 'no-data' as const,
+          };
+        }
+
+        return {
+          type: 'configured' as const,
+          healthCheckAvailability: healthCheckAvailability / 100,
+        };
+      }),
+      catchError(() =>
+        of({
+          type: 'no-data' as const,
+        }),
+      ),
+    );
   }
 }

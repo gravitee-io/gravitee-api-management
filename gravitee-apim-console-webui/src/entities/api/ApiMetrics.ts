@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './Api';
-export * from './UpdateApi';
-export * from './ApiMembers';
-export * from './ApiMembership';
-export * from './ApiMetrics';
+export interface ApiMetrics {
+  buckets?: Record<string, Record<string, number>>;
+  global?: Record<string, number>;
+  metadata?: Record<string, Record<string, string>>;
+}
