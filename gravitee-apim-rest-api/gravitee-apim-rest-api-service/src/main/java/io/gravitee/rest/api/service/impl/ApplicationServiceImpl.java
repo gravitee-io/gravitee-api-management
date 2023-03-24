@@ -162,7 +162,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
 
             ApplicationCriteria.Builder criteriaBuilder = new ApplicationCriteria.Builder()
-                .ids(applicationIds.toArray(new String[0]))
+                .ids(new HashSet<>(applicationIds))
                 .status(ApplicationStatus.ACTIVE);
 
             if (executionContext.hasEnvironmentId()) {
