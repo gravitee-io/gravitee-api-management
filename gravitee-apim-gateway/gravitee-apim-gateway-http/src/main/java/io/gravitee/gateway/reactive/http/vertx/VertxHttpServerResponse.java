@@ -147,6 +147,7 @@ public class VertxHttpServerResponse extends AbstractResponse {
         }
     }
 
+    @Override
     public boolean isStreaming() {
         if (isStreaming == null) {
             isStreaming = RequestUtils.isStreaming(vertxHttpServerRequest, this);

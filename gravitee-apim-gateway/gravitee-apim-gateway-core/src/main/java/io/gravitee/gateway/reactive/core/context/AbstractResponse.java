@@ -177,7 +177,7 @@ public abstract class AbstractResponse implements MutableResponse {
         return this.bufferFlow;
     }
 
-    private boolean isStreaming() {
+    public boolean isStreaming() {
         return false;
     }
 
