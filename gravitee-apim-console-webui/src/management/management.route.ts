@@ -17,8 +17,6 @@ import { StateParams } from '@uirouter/core';
 
 import TicketsListController from './support/tickets-list.controller';
 
-import { Scope } from '../entities/alert';
-import AlertService from '../services/alert.service';
 import AnalyticsService from '../services/analytics.service';
 import { ApiService } from '../services/api.service';
 import ApplicationService from '../services/application.service';
@@ -74,22 +72,6 @@ function managementRouterConfig($stateProvider) {
       data: {
         docs: {
           page: 'management-dashboard-apis-status',
-        },
-      },
-    })
-    .state('management.dashboard.alerts', {
-      url: '/alerts',
-      template: require('./dashboard-ajs/alerts-dashboard/platform-alerts-dashboard.html'),
-      controller: 'PlatformAlertsDashboardController',
-      controllerAs: '$ctrl',
-      resolve: {
-        configuredAlerts: (AlertService: AlertService) =>
-          AlertService.listAlerts(Scope.ENVIRONMENT, false).then((response) => response.data),
-        alertingStatus: (AlertService: AlertService) => AlertService.getStatus(Scope.ENVIRONMENT).then((response) => response.data),
-      },
-      data: {
-        docs: {
-          page: 'management-dashboard-alerts',
         },
       },
     })

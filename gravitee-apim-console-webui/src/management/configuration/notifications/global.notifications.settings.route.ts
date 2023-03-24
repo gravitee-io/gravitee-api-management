@@ -56,11 +56,29 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       },
     })
     .state('management.alerts', {
-      abstract: true,
       url: '/alerts',
+      template: require('../../../components/alerts/alertTabs/alert-tabs.html'),
+      controller: 'AlertTabsController',
+      controllerAs: '$ctrl',
+    })
+    .state('management.alerts.activity', {
+      url: '/activity',
+      template: require('../../../components/alerts/activity/alerts-activity.html'),
+      controller: 'AlertsActivityController',
+      controllerAs: '$ctrl',
+      resolve: {
+        configuredAlerts: (AlertService: AlertService) =>
+          AlertService.listAlerts(AlertScope.ENVIRONMENT, false).then((response) => response.data),
+        alertingStatus: (AlertService: AlertService) => AlertService.getStatus(AlertScope.ENVIRONMENT).then((response) => response.data),
+      },
+      data: {
+        docs: {
+          page: 'management-dashboard-alerts',
+        },
+      },
     })
     .state('management.alerts.list', {
-      url: '/',
+      url: '/list',
       component: 'alertsComponent',
       data: {
         perms: {
@@ -78,8 +96,8 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         mode: () => 'detail',
       },
     })
-    .state('management.alerts.alertnew', {
-      url: '/create',
+    .state('management.alertnew', {
+      url: '/alerts/create',
       component: 'alertComponent',
       data: {
         menu: null,
@@ -98,8 +116,8 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         mode: () => 'create',
       },
     })
-    .state('management.alerts.alert', {
-      url: '/:alertId?:tab',
+    .state('management.editalert', {
+      url: '/alerts/:alertId?:tab',
       component: 'alertComponent',
       data: {
         menu: null,
