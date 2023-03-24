@@ -95,19 +95,15 @@ public class VertxHttpServerResponse extends AbstractResponse {
             }
             prepareHeaders();
 
-            final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
-
             if (lazyBufferFlow().hasChunks()) {
                 return nativeResponse
                     .rxSend(
                         chunks()
-                            .doOnSubscribe(subscriptionRef::set)
                             .map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
                             .doOnNext(buffer ->
                                 ctx.metrics().setResponseContentLength(ctx.metrics().getResponseContentLength() + buffer.length())
                             )
-                    )
-                    .doOnDispose(() -> subscriptionRef.get().cancel());
+                    );
             }
 
             return nativeResponse.rxEnd();
