@@ -31,7 +31,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SimpleFlowProvider implements FlowProvider {
+public class SimpleFlowProvider extends AbstractFlowParametersProvider {
 
     private final StreamType streamType;
 
@@ -60,6 +60,8 @@ public class SimpleFlowProvider implements FlowProvider {
             final List<StreamableProcessor<ExecutionContext, Buffer>> chain = new ArrayList<>(flows.size());
 
             for (Flow flow : flows) {
+                addContextRequestPathParameters(context, flow);
+
                 chain.add(
                     policyChainFactory.create(
                         flowPolicyResolverFactory.create(flow).resolve(streamType, context),
