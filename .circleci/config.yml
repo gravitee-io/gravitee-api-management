@@ -1200,8 +1200,8 @@ jobs:
                       sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
 
                       # UI
-                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"/" gravitee-apim-console-webui/build.json
-                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"/" gravitee-apim-portal-webui/build.json
+                      sed -i "s#\"version\": \".*\"#\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"#" gravitee-apim-console-webui/build.json
+                      sed -i "s#\"version\": \".*\"#\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"#" gravitee-apim-portal-webui/build.json
 
                       git add --update
                       git commit -m "${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
@@ -1225,18 +1225,26 @@ jobs:
                         git checkout ${CIRCLE_BRANCH}
                       fi
 
+                      # Set the version to the next version (bump patch version + '-SNAPSHOT')
                       if [ "${CIRCLE_BRANCH}" = "master" ]; then
-                        sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.$((${GRAVITEEIO_VERSION_MINOR}+1)).0</revision>#" pom.xml
-                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+                        export MVN_PRJ_NEXT_VERSION="${MVN_PRJ_VERSION_MAJOR}.$((${MVN_PRJ_VERSION_MINOR}+1)).0"
+                        export MVN_PRJ_NEXT_QUALIFIER=""
                       elif [ "${GRAVITEEIO_QUALIFIER}" = "" ]; then
-                        sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.$((${GRAVITEEIO_VERSION_PATCH}+1))</revision>#" pom.xml
-                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+                        export MVN_PRJ_NEXT_VERSION="${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.$((${GRAVITEEIO_VERSION_PATCH}+1))"
+                        export MVN_PRJ_NEXT_QUALIFIER=""
                       else
-                        sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.${GRAVITEEIO_VERSION_PATCH}</revision>#" pom.xml
-                        sed -i "s#<sha1>.*</sha1>#<sha1>-${GRAVITEEIO_QUALIFIER_NAME}.$((${GRAVITEEIO_QUALIFIER_VERSION}+1))</sha1>#" pom.xml
-                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+                        export MVN_PRJ_NEXT_VERSION="${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.${GRAVITEEIO_VERSION_PATCH}"
+                        export MVN_PRJ_NEXT_QUALIFIER="-${GRAVITEEIO_QUALIFIER_NAME}.$((${GRAVITEEIO_QUALIFIER_VERSION}+1))"
                       fi;
-
+                    
+                      sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_NEXT_VERSION}</revision>#" pom.xml                   
+                      sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+                      sed -i "s#<sha1>.*</sha1>#<sha1>${MVN_PRJ_NEXT_QUALIFIER}</sha1>#" pom.xml
+    
+                      sed -i "s#version: \".*\"#version: \"${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT\"#" gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
+                      sed -i "s#\"version\": \".*\"#\"version\": \"${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT\"#" gravitee-apim-console-webui/build.json
+                      sed -i "s#\"version\": \".*\"#\"version\": \"${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT\"#" gravitee-apim-portal-webui/build.json
+                      
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
 
