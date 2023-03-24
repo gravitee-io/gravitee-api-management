@@ -101,7 +101,7 @@ public class HttpConnector implements ProxyConnector {
 
     @Override
     public Completable connect(final ExecutionContext ctx) {
-        return Completable.defer(() -> {
+        try {
             final Request request = ctx.request();
             final Response response = ctx.response();
 
@@ -139,7 +139,9 @@ public class HttpConnector implements ProxyConnector {
                     );
                 })
                 .ignoreElement();
-        });
+        } catch (Exception e) {
+            return Completable.error(e);
+        }
     }
 
     protected HttpClientRequest customizeHttpClientRequest(final HttpClientRequest httpClientRequest) {

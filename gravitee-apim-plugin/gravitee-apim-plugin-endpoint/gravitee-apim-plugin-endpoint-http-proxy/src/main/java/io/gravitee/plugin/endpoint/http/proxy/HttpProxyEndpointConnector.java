@@ -30,11 +30,10 @@ import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.WebSocketConnector;
 import io.reactivex.rxjava3.core.Completable;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -72,19 +71,17 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
 
     @Override
     public Completable connect(ExecutionContext ctx) {
-        return Completable.defer(() -> {
-            Request request = ctx.request();
-            return getConnector(request).connect(ctx);
-        });
+        Request request = ctx.request();
+        return getConnector(request).connect(ctx);
     }
 
     private ProxyConnector getConnector(final HttpRequest request) {
         if (request.isWebSocket()) {
-            return this.connectors.computeIfAbsent("ws", (type) -> new WebSocketConnector(configuration, httpClientFactory));
+            return this.connectors.computeIfAbsent("ws", type -> new WebSocketConnector(configuration, httpClientFactory));
         } else if (isGrpc(request, configuration.getTarget())) {
-            return this.connectors.computeIfAbsent("grpc", (type) -> new GrpcConnector(configuration, grpcHttpClientFactory));
+            return this.connectors.computeIfAbsent("grpc", type -> new GrpcConnector(configuration, grpcHttpClientFactory));
         } else {
-            return this.connectors.computeIfAbsent("http", (type) -> new HttpConnector(configuration, httpClientFactory));
+            return this.connectors.computeIfAbsent("http", type -> new HttpConnector(configuration, httpClientFactory));
         }
     }
 
