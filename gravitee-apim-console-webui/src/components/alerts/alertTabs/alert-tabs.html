@@ -17,12 +17,12 @@
 -->
 <div class="gv-sub-content">
   <md-tabs md-selected="$ctrl.selectedIndex" md-center-tabs md-dynamic-height>
-    <md-tab ui-sref="management.dashboard.home">
-      <md-tab-label><ng-md-icon icon="home" style="fill: var(--gv-theme-color-darker)"></ng-md-icon> Home</md-tab-label>
+    <md-tab ui-sref="management.alerts.list">
+      <md-tab-label><ng-md-icon icon="home" style="fill: var(--gv-theme-color-darker)"></ng-md-icon> My Alerts</md-tab-label>
       <md-tab-body></md-tab-body>
     </md-tab>
-    <md-tab ui-sref="management.dashboard.apis-status" ng-if="$ctrl.canViewApiStatus">
-      <md-tab-label><ng-md-icon icon="favorite" style="fill: var(--gv-theme-color-darker)"></ng-md-icon> APIs Status</md-tab-label>
+    <md-tab ui-sref="management.alerts.activity">
+      <md-tab-label><ng-md-icon icon="alarm" style="fill: var(--gv-theme-color-darker)"></ng-md-icon> Activity</md-tab-label>
       <md-tab-body></md-tab-body>
     </md-tab>
   </md-tabs>

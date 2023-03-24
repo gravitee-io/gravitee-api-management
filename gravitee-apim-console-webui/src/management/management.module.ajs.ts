@@ -385,7 +385,6 @@ import SpelService from '../services/spel.service';
 import DashboardController from './dashboard-ajs/dashboard.controller';
 import HomeDashboardController from './dashboard-ajs/home-dashboard/home-dashboard.controller';
 import AlertsDashboardComponent from '../components/alerts/dashboard/alerts-dashboard.component';
-import PlatformAlertsDashboardController from './dashboard-ajs/alerts-dashboard/platform-alerts-dashboard.controller';
 import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
 
 import { PromotionService } from '../services/promotion.service';
@@ -531,6 +530,8 @@ import { ApiPortalMembersComponent } from './api/portal/user-group-access/member
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
 import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
 import { ApiPortalTransferOwnershipComponent } from './api/portal/user-group-access/transfer-ownership/api-portal-transfer-ownership.component';
+import AlertTabsController from '../components/alerts/alertTabs/alert-tabs-component';
+import AlertsActivityController from '../components/alerts/activity/alerts-activity.controller';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -714,7 +715,7 @@ graviteeManagementModule.controller('AnalyticsDashboardController', AnalyticsDas
 graviteeManagementModule.controller('DashboardController', DashboardController);
 graviteeManagementModule.controller('HomeDashboardController', HomeDashboardController);
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
-graviteeManagementModule.controller('PlatformAlertsDashboardController', PlatformAlertsDashboardController);
+graviteeManagementModule.controller('AlertsActivityController', AlertsActivityController);
 graviteeManagementModule.controller('ApiAlertsDashboardController', ApiAlertsDashboardController);
 graviteeManagementModule.controller('CategoriesController', CategoriesController);
 graviteeManagementModule.controller('CategoryController', CategoryController);
@@ -1035,6 +1036,7 @@ graviteeManagementModule.service('ClientRegistrationProviderService', ClientRegi
 
 // Alerts
 graviteeManagementModule.service('AlertService', AlertService);
+graviteeManagementModule.controller('AlertTabsController', AlertTabsController);
 graviteeManagementModule.component('alertsComponent', AlertsComponent);
 graviteeManagementModule.component('alertComponent', AlertComponent);
 graviteeManagementModule.component('gvAlertNotification', AlertNotificationComponent);
