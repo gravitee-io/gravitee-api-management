@@ -462,7 +462,7 @@ class VertxHttpServerResponseTest {
 
             obs.assertValue(buffer -> BODY.equals(buffer.toString()));
 
-            verify(metrics).setResponseContentLength(new Long(BODY.length()));
+            verify(metrics).setResponseContentLength(BODY.length());
         }
     }
 
