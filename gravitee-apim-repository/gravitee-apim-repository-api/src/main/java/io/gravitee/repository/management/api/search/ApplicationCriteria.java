@@ -84,10 +84,6 @@ public class ApplicationCriteria {
         private ApplicationStatus status;
         private Set<String> groups;
 
-        public ApplicationCriteria.Builder ids(final String... ids) {
-            return ids(Set.of(ids));
-        }
-
         public ApplicationCriteria.Builder ids(final Set<String> ids) {
             this.ids = ids;
             return this;
@@ -110,10 +106,6 @@ public class ApplicationCriteria {
         public ApplicationCriteria.Builder status(final ApplicationStatus status) {
             this.status = status;
             return this;
-        }
-
-        public ApplicationCriteria.Builder groups(final String... groups) {
-            return groups(Set.of(groups));
         }
 
         public ApplicationCriteria.Builder groups(final Set<String> groups) {

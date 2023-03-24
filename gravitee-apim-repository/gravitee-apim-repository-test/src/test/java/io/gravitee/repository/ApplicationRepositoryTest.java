@@ -320,7 +320,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         final Page<Application> appsPage = applicationRepository.search(
             new ApplicationCriteria.Builder()
                 .name("SeArched-app")
-                .ids("searched-app1", "app-with-long-client-id", "app-with-long-name")
+                .ids(Set.of("searched-app1", "app-with-long-client-id", "app-with-long-name"))
                 .status(ApplicationStatus.ACTIVE)
                 .environmentIds("DEV")
                 .build(),
@@ -391,7 +391,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldSearchByGroups() throws Exception {
         final Page<Application> appsPage = applicationRepository.search(
-            new ApplicationCriteria.Builder().groups("application-group").build(),
+            new ApplicationCriteria.Builder().groups(Set.of("application-group")).build(),
             null
         );
 
