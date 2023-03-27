@@ -16,9 +16,11 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
-import { isEqual, isNumber } from 'lodash';
+import { has, isEqual, isNumber } from 'lodash';
 import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+
+import { HealthAvailabilityTimeFrameOption } from './health-availability-time-frame/health-availability-time-frame.component';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api, ApiOrigin, ApiState } from '../../../entities/api';
@@ -49,8 +51,17 @@ export type ApisTableDS = {
     | {
         type: 'configured';
         healthCheckAvailability: number;
+        healthAvailabilityTimeFrame: HealthAvailabilityTimeFrameOption;
       }
   >;
+};
+
+const timeFrameRangesParams = (interval: number, nbValuesByBucket = 30) => {
+  return {
+    from: new Date().getTime() - interval,
+    to: Date.now(),
+    interval: interval / nbValuesByBucket,
+  };
 };
 
 @Component({
@@ -68,11 +79,31 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
   };
   isLoadingData = true;
   timeFrames = [
-    { label: 'last minute', id: '1m' },
-    { label: 'last hour', id: '1h' },
-    { label: 'last day', id: '1d' },
-    { label: 'last week', id: '1w' },
-    { label: 'last month', id: '1M' },
+    {
+      label: 'last minute',
+      id: '1m',
+      timeFrameRangesParams: () => timeFrameRangesParams(1000 * 60),
+    },
+    {
+      label: 'last hour',
+      id: '1h',
+      timeFrameRangesParams: () => timeFrameRangesParams(1000 * 60 * 60),
+    },
+    {
+      label: 'last day',
+      id: '1d',
+      timeFrameRangesParams: () => timeFrameRangesParams(1000 * 60 * 60 * 24),
+    },
+    {
+      label: 'last week',
+      id: '1w',
+      timeFrameRangesParams: () => timeFrameRangesParams(1000 * 60 * 60 * 24 * 7),
+    },
+    {
+      label: 'last month',
+      id: '1M',
+      timeFrameRangesParams: () => timeFrameRangesParams(1000 * 60 * 60 * 24 * 30),
+    },
   ];
   timeFrameControl = new FormControl('1m', Validators.required);
 
@@ -192,9 +223,27 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
       this.apiService.apiHealth(api.id, 'availability'),
       this.timeFrameControl.valueChanges.pipe(startWith(this.timeFrameControl.value)),
     ]).pipe(
-      map(([healthcheck, timeFrameId]) => {
-        const healthCheckAvailability = healthcheck.global[timeFrameId] || null;
-        if (healthCheckAvailability === null || !isNumber(healthCheckAvailability)) {
+      switchMap(([healthAvailability, timeFrameId]) => {
+        const currentTimeFrame = this.timeFrames.find((timeFrame) => timeFrame.id === timeFrameId).timeFrameRangesParams();
+        return combineLatest([
+          of(healthAvailability),
+          of(timeFrameId),
+          this.apiService.apiHealthAverage(api.id, {
+            from: currentTimeFrame.from,
+            to: currentTimeFrame.to,
+            interval: currentTimeFrame.interval,
+            type: 'AVAILABILITY',
+          }),
+        ]);
+      }),
+      map(([healthAvailability, timeFrameId, healthAvailabilityTimeFrame]) => {
+        const healthCheckAvailability = healthAvailability.global[timeFrameId] || null;
+        if (
+          !healthCheckAvailability ||
+          !isNumber(healthCheckAvailability) ||
+          !healthAvailabilityTimeFrame ||
+          !has(healthAvailabilityTimeFrame, 'values[0].buckets[0].data')
+        ) {
           return {
             type: 'no-data' as const,
           };
@@ -203,6 +252,13 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
         return {
           type: 'configured' as const,
           healthCheckAvailability: healthCheckAvailability / 100,
+          healthAvailabilityTimeFrame: {
+            data: healthAvailabilityTimeFrame.values[0].buckets[0].data,
+            timestamp: {
+              start: healthAvailabilityTimeFrame.timestamp.from,
+              interval: healthAvailabilityTimeFrame.timestamp.interval,
+            },
+          },
         };
       }),
       catchError(() =>

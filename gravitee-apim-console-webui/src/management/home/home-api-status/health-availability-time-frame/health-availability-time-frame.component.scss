@@ -1,0 +1,11 @@
+.health-availability-time-frame {
+  &__chart {
+    display: block;
+    height: 56px;
+    width: 300px;
+  }
+  &__no-data {
+    display: flex;
+    justify-content: center;
+  }
+}

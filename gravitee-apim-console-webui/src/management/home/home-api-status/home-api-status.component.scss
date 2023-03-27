@@ -15,14 +15,20 @@
   padding-right: 16px;
 }
 .mat-column-states {
+  width: 120px;
   padding-right: 16px;
 }
 .mat-column-status {
+  width: 356px;
   padding-right: 16px;
-  .status__gauge {
-    width: 56px;
-    height: 56px;
-    margin: 2px 0;
+  padding: 2px 0;
+
+  .chart {
+    display: flex;
+    &__gauge {
+      width: 56px;
+      height: 56px;
+    }
   }
 }
 .mat-column-actions {
