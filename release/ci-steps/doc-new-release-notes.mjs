@@ -1,5 +1,6 @@
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
 import { getJiraIssuesOfVersion, getJiraVersion } from '../helpers/jira-helper.mjs';
+import { getChangelogFor } from '../helpers/changelog-helper.mjs';
 
 console.log(chalk.magenta(`#############################################`));
 console.log(chalk.magenta(`# 📰 Open APIM docs PR for new Release Note #`));
@@ -104,35 +105,42 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 }
 
 const version = await getJiraVersion(releasingVersion);
-const issues = await getJiraIssuesOfVersion(version.id);
-const changelog = issues
-  .map((issue) => {
-    const githubLink = `https://github.com/gravitee-io/issues/issues/${issue.fields.customfield_10115}`;
-    return `* ${issue.fields.summary} ${githubLink}[#${issue.fields.customfield_10115}]`;
-  })
-  .join('\n');
+let issues = await getJiraIssuesOfVersion(version.id);
+
+const gatewayIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Gateway'));
+issues = issues.filter((issue) => !gatewayIssues.includes(issue));
+
+const managementAPIIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Management API'));
+issues = issues.filter((issue) => !managementAPIIssues.includes(issue));
+
+const consoleIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Console'));
+issues = issues.filter((issue) => !consoleIssues.includes(issue));
+
+const portalIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Portal'));
+const otherIssues = issues.filter((issue) => !portalIssues.includes(issue));
 
 let changelogPatchTemplate = `
 == APIM - ${releasingVersion} (${new Date().toISOString().slice(0, 10)})
 
-// Move these issues to the right section
-${changelog}
-
 === Gateway
 
-// TODO: List all Bug fixes & Improvements
+${getChangelogFor(gatewayIssues)}
 
 === API
 
-// TODO: List all Bug fixes & Improvements
+${getChangelogFor(managementAPIIssues)}
 
 === Console
 
-// TODO: List all Bug fixes & Improvements
+${getChangelogFor(consoleIssues)}
 
 === Portal
 
-// TODO: List all Bug fixes & Improvements
+${getChangelogFor(portalIssues)}
+
+=== Other
+
+${getChangelogFor(otherIssues)}
 `;
 echo(changelogPatchTemplate);
 
