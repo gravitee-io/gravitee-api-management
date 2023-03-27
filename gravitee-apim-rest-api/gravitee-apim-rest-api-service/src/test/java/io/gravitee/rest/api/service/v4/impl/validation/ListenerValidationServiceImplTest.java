@@ -45,8 +45,15 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.*;
-import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
+import io.gravitee.rest.api.service.v4.exception.HttpListenerPathMissingException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidDlqException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedDlqException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedListenerTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
+import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.util.ArrayList;
 import java.util.List;
@@ -114,7 +121,13 @@ public class ListenerValidationServiceImplTest {
     public void shouldThrowDuplicatedExceptionWithDuplicatedType() {
         // Given
         Listener httpListener1 = new HttpListener();
+        Entrypoint e1 = new Entrypoint();
+        e1.setType("e1");
+        httpListener1.setEntrypoints(List.of(e1));
         Listener httpListener2 = new HttpListener();
+        Entrypoint e2 = new Entrypoint();
+        e2.setType("e2");
+        httpListener1.setEntrypoints(List.of(e2));
         List<Listener> listeners = List.of(httpListener1, httpListener2);
         // When
         assertThatExceptionOfType(ListenersDuplicatedException.class)

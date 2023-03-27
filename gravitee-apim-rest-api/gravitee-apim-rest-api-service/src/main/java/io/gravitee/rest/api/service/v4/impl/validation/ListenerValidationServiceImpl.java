@@ -31,8 +31,15 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.exception.*;
-import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointDuplicatedException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidDlqException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointInvalidQosException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedDlqException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedListenerTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
+import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import io.gravitee.rest.api.service.v4.validation.PathValidationService;
@@ -96,10 +103,10 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private void checkDuplicatedListeners(final List<Listener> listeners) {
-        Set<Listener> seenListeners = new HashSet<>();
+        Set<ListenerType> seenListeners = new HashSet<>();
         Set<String> duplicatedListeners = listeners
             .stream()
-            .filter(e -> !seenListeners.add(e))
+            .filter(e -> !seenListeners.add(e.getType()))
             .map(selector -> selector.getType().getLabel())
             .collect(Collectors.toSet());
         if (!duplicatedListeners.isEmpty()) {

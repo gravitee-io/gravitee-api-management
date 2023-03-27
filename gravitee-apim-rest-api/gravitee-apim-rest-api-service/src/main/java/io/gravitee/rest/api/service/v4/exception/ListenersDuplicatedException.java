@@ -41,7 +41,7 @@ public class ListenersDuplicatedException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "The api contains duplicated listeners type [" + duplicatedListeners + "].";
+        return "The api contains duplicated listeners type " + duplicatedListeners + ".";
     }
 
     @Override
