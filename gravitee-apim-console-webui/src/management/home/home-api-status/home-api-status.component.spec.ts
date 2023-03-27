@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
@@ -22,6 +22,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { HighchartsChartModule } from 'highcharts-angular';
 
 import { HomeApiStatusComponent } from './home-api-status.component';
 
@@ -44,7 +45,14 @@ describe('HomeApiStatusComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioUiRouterTestingModule, GioHttpTestingModule, HomeModule, MatIconTestingModule],
+      imports: [
+        NoopAnimationsModule,
+        GioUiRouterTestingModule,
+        GioHttpTestingModule,
+        HomeModule,
+        MatIconTestingModule,
+        HighchartsChartModule,
+      ],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
@@ -65,9 +73,10 @@ describe('HomeApiStatusComponent', () => {
     jest.clearAllMocks();
   });
 
-  it('should display an empty table', fakeAsync(async () => {
+  it('should display an empty table', async () => {
     fixture.detectChanges();
-    expectApisListRequest([]);
+
+    await expectApisListRequest([]);
 
     const { headerCells, rowCells } = await computeApisTableCells();
     expect(headerCells).toEqual([
@@ -80,14 +89,15 @@ describe('HomeApiStatusComponent', () => {
       },
     ]);
     expect(rowCells).toEqual([['No APIs to display.']]);
-  }));
+  });
 
-  it('should display a table with one row', fakeAsync(async () => {
+  it('should display a table with one row', async () => {
     fixture.detectChanges();
     const api = fakeApi({
       healthcheck_enabled: false,
     });
-    expectApisListRequest([api]);
+
+    await expectApisListRequest([api]);
 
     const { headerCells, rowCells } = await computeApisTableCells();
     expect(headerCells).toEqual([
@@ -100,16 +110,19 @@ describe('HomeApiStatusComponent', () => {
       },
     ]);
     expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', 'Health-check has not been configured', '']]);
-  }));
+  });
 
-  it('should display api with HeathCheck configured', fakeAsync(async () => {
+  it('should display api with HeathCheck configured', async () => {
     fixture.detectChanges();
     const api = fakeApi({
       healthcheck_enabled: true,
     });
-    expectApisListRequest([api]);
+
+    await expectApisListRequest([api]);
     fixture.detectChanges();
     expectGetApiHealth(api.id);
+    expectGetApiHealthAverage(api.id);
+    fixture.detectChanges();
 
     const { headerCells, rowCells } = await computeApisTableCells();
     expect(headerCells).toEqual([
@@ -121,21 +134,27 @@ describe('HomeApiStatusComponent', () => {
         status: 'API Status',
       },
     ]);
-    expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '50%', '']]);
+    expect(rowCells).toEqual([
+      ['', '🪐 Planets (1.0)', '', '50%Created with Highcharts 9.2.213:21:3013:21:4013:21:5013:22:0013:22:1013:22:20', ''],
+    ]);
 
     // Expect HealthCheck TimeFrame select changes
     const healthCheckTimeFrameSelect = await loader.getHarness(MatSelectHarness);
     await healthCheckTimeFrameSelect.clickOptions({ text: 'last week' });
+    expectGetApiHealthAverage(api.id);
 
     const { rowCells: rowCells_2 } = await computeApisTableCells();
-    expect(rowCells_2).toEqual([['', '🪐 Planets (1.0)', '', '20%', '']]);
-  }));
+    expect(rowCells_2).toEqual([
+      ['', '🪐 Planets (1.0)', '', '20%Created with Highcharts 9.2.213:21:3013:21:4013:21:5013:22:0013:22:1013:22:20', ''],
+    ]);
+  });
 
   describe('onAddApiClick', () => {
-    beforeEach(fakeAsync(() => {
+    beforeEach(async () => {
       fixture.detectChanges();
-      expectApisListRequest([fakeApi()]);
-    }));
+
+      await expectApisListRequest([fakeApi()]);
+    });
 
     it('should navigate to view API HealthCheck', async () => {
       await loader
@@ -157,9 +176,8 @@ describe('HomeApiStatusComponent', () => {
     return { headerCells, rowCells };
   }
 
-  function expectApisListRequest(apis: Api[] = [], q?: string, order?: string, page = 1) {
-    // wait debounceTime
-    tick(400);
+  async function expectApisListRequest(apis: Api[] = [], q?: string, order?: string, page = 1) {
+    await fixture.whenStable();
 
     const req = httpTestingController.expectOne(
       `${CONSTANTS_TESTING.env.baseURL}/apis/_search/_paged?page=${page}&size=10&q=${q ? q : '*'}${order ? `&order=${order}` : ''}`,
@@ -195,6 +213,34 @@ describe('HomeApiStatusComponent', () => {
           target: 'https://apim-master-gateway.team-apim.gravitee.dev',
         },
       },
+    });
+  }
+
+  function expectGetApiHealthAverage(apiId: string) {
+    const req = httpTestingController.expectOne((req) => {
+      return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/health/average`);
+    });
+    req.flush({
+      timestamp: {
+        from: 1679923284000,
+        to: 1679923346000,
+        interval: 2000,
+      },
+      values: [
+        {
+          buckets: [
+            {
+              name: 'by_available',
+              data: [
+                100.0, 0, 0, 100.0, 0, 100.0, 0, 0, 100.0, 0, 100.0, 0, 0, 100.0, 0, 100.0, 0, 0, 100.0, 0, 100.0, 0, 0, 100.0, 0, 100.0, 0,
+                0, 100.0, 0, 0, 0,
+              ],
+            },
+          ],
+          field: 'available',
+          name: 'by_available',
+        },
+      ],
     });
   }
 });

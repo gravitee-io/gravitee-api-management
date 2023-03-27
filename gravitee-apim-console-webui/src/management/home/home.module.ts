@@ -30,6 +30,7 @@ import { MatCardModule } from '@angular/material/card';
 import { HomeApiStatusComponent } from './home-api-status/home-api-status.component';
 import { HomeLayoutComponent } from './home-layout/home-layout.component';
 import { HomeOverviewComponent } from './home-overview/home-overview.component';
+import { HealthAvailabilityTimeFrameModule } from './home-api-status/health-availability-time-frame/health-availability-time-frame.module';
 
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -86,6 +87,7 @@ export const states: Ng2StateDeclaration[] = [
     GioTableWrapperModule,
     GioCircularPercentageModule,
     GioBannerModule,
+    HealthAvailabilityTimeFrameModule,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiStatusComponent],
 })

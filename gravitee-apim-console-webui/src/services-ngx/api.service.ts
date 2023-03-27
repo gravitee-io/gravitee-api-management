@@ -27,6 +27,7 @@ import { FlowSchema } from '../entities/flow/flowSchema';
 import { PagedResult } from '../entities/pagedResult';
 import { AjsRootScope } from '../ajs-upgraded-providers';
 import { GroupMember } from '../entities/group/groupMember';
+import { ApiHealthAverage } from '../entities/api/ApiHealthAverage';
 
 @Injectable({
   providedIn: 'root',
@@ -292,5 +293,34 @@ export class ApiService {
     const paramsStr = params.length > 0 ? `?${params.join('&')}` : '';
 
     return this.http.get<ApiMetrics>(`${this.constants.env.baseURL}/apis/${api}/health${paramsStr}`);
+  }
+
+  apiHealthAverage(
+    apiId: string,
+    params: {
+      from: number;
+      to: number;
+      interval: number;
+      type: 'RESPONSE_TIME' | 'AVAILABILITY';
+    },
+  ): Observable<ApiHealthAverage> {
+    const queryParams = [];
+
+    if (params.type !== undefined) {
+      queryParams.push(`type=${params.type}`);
+    }
+    if (params.from !== undefined) {
+      queryParams.push(`from=${params.from}`);
+    }
+    if (params.to !== undefined) {
+      queryParams.push(`to=${params.to}`);
+    }
+    if (params.interval !== undefined) {
+      queryParams.push(`interval=${params.interval}`);
+    }
+
+    const paramsStr = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+
+    return this.http.get<ApiHealthAverage>(`${this.constants.env.baseURL}/apis/${apiId}/health/average${paramsStr}`);
   }
 }
