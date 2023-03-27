@@ -43,12 +43,15 @@ public class DefaultParameterUpgrader implements Upgrader {
      */
     private final Logger logger = LoggerFactory.getLogger(DefaultParameterUpgrader.class);
 
-    @Lazy
-    @Autowired
-    private ParameterRepository parameterRepository;
+    private final ParameterRepository parameterRepository;
+
+    private final ConfigurableEnvironment environment;
 
     @Autowired
-    private ConfigurableEnvironment environment;
+    public DefaultParameterUpgrader(@Lazy ParameterRepository parameterRepository, ConfigurableEnvironment environment) {
+        this.parameterRepository = parameterRepository;
+        this.environment = environment;
+    }
 
     @Override
     public boolean upgrade() {
