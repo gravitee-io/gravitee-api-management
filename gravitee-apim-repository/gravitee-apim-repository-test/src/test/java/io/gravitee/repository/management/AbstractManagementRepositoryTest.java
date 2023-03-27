@@ -17,6 +17,8 @@ package io.gravitee.repository.management;
 
 import io.gravitee.node.api.Monitoring;
 import io.gravitee.node.api.NodeMonitoringRepository;
+import io.gravitee.node.api.upgrader.UpgradeRecord;
+import io.gravitee.node.api.upgrader.UpgraderRepository;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
@@ -179,6 +181,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected PromotionRepository promotionRepository;
 
+    @Inject
+    protected UpgraderRepository upgraderRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         if (object instanceof Application) {
             applicationRepository.create((Application) object);
@@ -281,6 +286,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             flowRepository.create((Flow) object);
         } else if (object instanceof Promotion) {
             promotionRepository.create((Promotion) object);
+        } else if (object instanceof UpgradeRecord) {
+            upgraderRepository.create((UpgradeRecord) object);
         }
     }
 
