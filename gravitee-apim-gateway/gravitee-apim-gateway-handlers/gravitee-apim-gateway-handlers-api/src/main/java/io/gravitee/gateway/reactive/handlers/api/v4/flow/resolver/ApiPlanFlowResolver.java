@@ -40,7 +40,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
 
     private final Api api;
 
-    private Map<String, Flowable<Flow>> flowsByPlanId = new ConcurrentHashMap<>();
+    private Map<String, List<Flow>> flowsByPlanId = new ConcurrentHashMap<>();
 
     public ApiPlanFlowResolver(Api api, ConditionFilter<Flow> filter) {
         super(filter);
@@ -59,22 +59,22 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
             return Flowable.empty();
         }
 
-        return getFlows(plans, planId);
+        List<Flow> flows = getFlows(plans, planId);
+        addContextRequestPathParameters(ctx, flows);
+        return Flowable.fromIterable(flows);
     }
 
-    private Flowable<Flow> getFlows(List<Plan> plans, String planId) {
+    private List<Flow> getFlows(List<Plan> plans, String planId) {
         return this.flowsByPlanId.computeIfAbsent(
                 planId,
                 id ->
-                    Flowable.fromIterable(
-                        plans
-                            .stream()
-                            .filter(plan -> Objects.equals(plan.getId(), id))
-                            .filter(plan -> Objects.nonNull(plan.getFlows()))
-                            .flatMap(plan -> plan.getFlows().stream())
-                            .filter(Flow::isEnabled)
-                            .collect(Collectors.toList())
-                    )
+                    plans
+                        .stream()
+                        .filter(plan -> Objects.equals(plan.getId(), id))
+                        .filter(plan -> Objects.nonNull(plan.getFlows()))
+                        .flatMap(plan -> plan.getFlows().stream())
+                        .filter(Flow::isEnabled)
+                        .collect(Collectors.toList())
             );
     }
 }
