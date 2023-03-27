@@ -17,7 +17,7 @@ import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { camelCase } from 'lodash';
 import { EMPTY, Subject } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
-import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
 
 import { Constants } from '../../../../../entities/Constants';
@@ -67,6 +67,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   });
 
   public securityConfigSchema: unknown;
+  private currentSecurityType: string;
 
   private resourceTypes: ResourceListItem[];
 
@@ -91,7 +92,15 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
       .get('securityTypes')
       .valueChanges.pipe(
         takeUntil(this.unsubscribe$),
-        tap(() => (this.securityConfigSchema = undefined)),
+        distinctUntilChanged(),
+        tap(() => {
+          this.securityConfigSchema = undefined;
+          // Only reset security config if security type has changed
+          if (this.currentSecurityType !== this.secureForm.get('securityTypes').value) {
+            this.secureForm.get('securityConfig').reset({});
+            this.currentSecurityType = this.secureForm.get('securityTypes').value;
+          }
+        }),
         filter((securityType) => securityType && securityType !== PlanSecurityType.KEY_LESS),
         map((securityType) => this.securityTypes.find((type) => type.id === securityType).policy),
         switchMap((securityTypePolicy) => this.policyService.getSchema(securityTypePolicy)),
@@ -101,7 +110,6 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe((schema) => {
-        this.secureForm.get('securityConfig').reset({});
         this.securityConfigSchema = schema;
       });
 
