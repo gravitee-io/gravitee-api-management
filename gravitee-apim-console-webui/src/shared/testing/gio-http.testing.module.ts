@@ -36,6 +36,9 @@ export const CONSTANTS_TESTING: Constants = {
   env: {
     baseURL: 'https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT',
     settings: {
+      analytics: {
+        clientTimeout: 50,
+      },
       apiQualityMetrics: {
         enabled: false,
       },
