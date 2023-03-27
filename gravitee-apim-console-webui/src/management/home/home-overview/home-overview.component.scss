@@ -1,5 +1,18 @@
 @use 'src/scss/gio-layout' as gio-layout;
 
-:host {
-  @include gio-layout.gio-responsive-margin-container;
+.home-overview {
+  padding: 24px;
+  display: flex;
+  flex-flow: column;
+  gap: 14px;
+
+  &__row {
+    display: flex;
+    gap: 14px;
+  }
+
+  &__card {
+    width: 100%;
+    flex: 1 1 100%;
+  }
 }

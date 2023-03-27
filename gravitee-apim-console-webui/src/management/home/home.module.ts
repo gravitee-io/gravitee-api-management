@@ -17,6 +17,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
+import { MatCardModule } from '@angular/material/card';
 
 import { HomeApiStatusComponent } from './home-api-status/home-api-status.component';
 import { HomeLayoutComponent } from './home-layout/home-layout.component';
@@ -55,7 +56,7 @@ export const states: Ng2StateDeclaration[] = [
 ];
 
 @NgModule({
-  imports: [CommonModule, MatTabsModule, UIRouterModule.forChild({ states })],
+  imports: [CommonModule, MatCardModule, MatTabsModule, UIRouterModule.forChild({ states })],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiStatusComponent],
 })
 export class HomeModule {}
