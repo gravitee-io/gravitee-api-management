@@ -41,7 +41,7 @@ public abstract class OneShotUpgrader implements Upgrader {
     private static final Logger LOGGER = LoggerFactory.getLogger(OneShotUpgrader.class);
 
     @Autowired
-    private InstallationService installationService;
+    protected InstallationService installationService;
 
     private String installationStatusKey;
 
