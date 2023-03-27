@@ -24,6 +24,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
+import { By } from '@angular/platform-browser';
 
 import { ApiPlanFormComponent } from './api-plan-form.component';
 import { ApiPlanFormModule } from './api-plan-form.module';
@@ -38,7 +39,7 @@ import { fakeTag } from '../../../../entities/tag/tag.fixture';
 import { Page } from '../../../../entities/page';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { Api } from '../../../../entities/api';
-import { Plan } from '../../../../entities/plan';
+import { Plan, PlanSecurityType } from '../../../../entities/plan';
 import { fakePlan } from '../../../../entities/plan/plan.fixture';
 
 describe('ApiPlanFormComponent', () => {
@@ -300,6 +301,55 @@ describe('ApiPlanFormComponent', () => {
       });
       req.flush({});
       expect(fakeUiRouter.go).toHaveBeenCalled();
+    });
+
+    it('should display api-key plan', async () => {
+      const TAG_1_ID = 'tag-1';
+      const planToUpdate = fakePlan({
+        id: PLAN_ID,
+        name: 'Old 🗺',
+        description: 'Old Description',
+        security: PlanSecurityType.API_KEY,
+        securityDefinition: JSON.stringify({ propagateApiKey: true }),
+        tags: [TAG_1_ID],
+      });
+
+      expectApiGetRequest(fakeApi({ id: API_ID, tags: [TAG_1_ID] }));
+      expectPlanGetRequest(API_ID, planToUpdate);
+
+      expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
+      expectCurrentUserTagsRequest([TAG_1_ID]);
+      expectResourceGetRequest();
+      expectPolicySchemaGetRequest('api-key', {});
+      fixture.detectChanges();
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      // 1- General Step
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+      expect(await nameInput.getValue()).toBe('Old 🗺');
+
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+      expect(await descriptionInput.getValue()).toBe('Old Description');
+
+      const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
+      expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
+
+      // 2- Secure Step
+      const securityTypesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="securityTypes"]' }));
+      expect(await securityTypesInput.isDisabled()).toEqual(true);
+      expect(await securityTypesInput.getValueText()).toEqual('API Key');
+
+      // Expect the security config value to be completed correctly
+      expect(fixture.debugElement.query(By.css('.securityConfigSchema-form')).componentInstance.secureForm.value.securityConfig).toEqual({
+        propagateApiKey: true,
+      });
+
+      const selectionRuleInput = await loader.getAllHarnesses(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
+      expect(selectionRuleInput.length).toEqual(1); // no selection rule for keyless
     });
   });
 
