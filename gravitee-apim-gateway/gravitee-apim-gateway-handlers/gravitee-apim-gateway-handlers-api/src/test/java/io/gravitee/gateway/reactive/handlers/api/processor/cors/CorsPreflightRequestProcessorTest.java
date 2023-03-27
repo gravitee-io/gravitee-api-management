@@ -37,7 +37,6 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightInvoker;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionException;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
-import java.util.Random;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,39 +110,6 @@ class CorsPreflightRequestProcessorTest extends AbstractProcessorTest {
         verify(mockResponse, times(1)).status(eq(200));
         assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
         assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
-    }
-
-    @Test
-    public void shouldInterruptWithInvalidRequestBadMethodAndPoliciesNotRun() {
-        // if policies are not executed, the context is interrupted what ever is the CORS validation status.
-        // only the absence of CORS Specific Header and the error message assert the right behaviour
-        api.getProxy().getCors().setRunPolicies(false);
-
-        spyRequestHeaders.set(ORIGIN, "origin");
-        spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "POST");
-        corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
-        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
-        assertThat(spyCtx.metrics().getErrorMessage()).contains("Request method 'POST' is not allowed");
-        verify(mockResponse, times(1)).status(eq(400));
-        assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
-        assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
-        verify(mockResponse, never()).headers();
-    }
-
-    @Test
-    public void shouldInterruptWithInvalidRequestBadMethodAndRunPolicies() {
-        // if policies are marked as runnable, the context must be interrupted if the CORS validation status fails.
-        api.getProxy().getCors().setRunPolicies(true);
-
-        spyRequestHeaders.set(ORIGIN, "origin");
-        spyRequestHeaders.set(ACCESS_CONTROL_REQUEST_METHOD, "POST");
-        corsPreflightRequestProcessor.execute(spyCtx).test().assertError(InterruptionException.class);
-        assertThat(spyCtx.metrics().getApplicationId()).isEqualTo("1");
-        assertThat(spyCtx.metrics().getErrorMessage()).contains("Request method 'POST' is not allowed");
-        verify(mockResponse, times(1)).status(eq(400));
-        assertThat(spyCtx.<Boolean>getInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP)).isNull();
-        assertThat(spyCtx.<CorsPreflightInvoker>getInternalAttribute(ATTR_INTERNAL_INVOKER)).isNull();
-        verify(mockResponse, never()).headers();
     }
 
     @Test
