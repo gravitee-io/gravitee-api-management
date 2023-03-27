@@ -16,12 +16,21 @@
 package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.flow.Flow;
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/jupiter/handlers/api/flow/resolver/ApiPlanFlowResolver.java
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.jupiter.api.context.ExecutionContext;
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.jupiter.flow.AbstractFlowResolver;
 import io.reactivex.Flowable;
+=======
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
+import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
+import io.gravitee.gateway.reactive.flow.AbstractFlowResolver;
+import io.reactivex.rxjava3.core.Flowable;
+import java.util.List;
+>>>>>>> d5a816621b (fix(gateway): fix pathParameter for jupiter/v4):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/reactive/handlers/api/flow/resolver/ApiPlanFlowResolver.java
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -46,6 +55,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
             return Flowable.empty();
         }
 
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/jupiter/handlers/api/flow/resolver/ApiPlanFlowResolver.java
         final String planId = ctx.getAttribute(ExecutionContext.ATTR_PLAN);
 
         return Flowable.fromIterable(
@@ -58,5 +68,18 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
                 .filter(Flow::isEnabled)
                 .collect(Collectors.toList())
         );
+=======
+        final String planId = ctx.getAttribute(ContextAttributes.ATTR_PLAN);
+        List<Flow> flows = api
+            .getPlans()
+            .stream()
+            .filter(plan -> Objects.equals(plan.getId(), planId))
+            .filter(plan -> Objects.nonNull(plan.getFlows()))
+            .flatMap(plan -> plan.getFlows().stream())
+            .filter(Flow::isEnabled)
+            .collect(Collectors.toList());
+        addContextRequestPathParameters(ctx, flows);
+        return Flowable.fromIterable(flows);
+>>>>>>> d5a816621b (fix(gateway): fix pathParameter for jupiter/v4):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/reactive/handlers/api/flow/resolver/ApiPlanFlowResolver.java
     }
 }

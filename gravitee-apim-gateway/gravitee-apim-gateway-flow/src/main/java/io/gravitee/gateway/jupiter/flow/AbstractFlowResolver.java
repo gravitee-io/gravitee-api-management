@@ -16,9 +16,22 @@
 package io.gravitee.gateway.jupiter.flow;
 
 import io.gravitee.definition.model.flow.Flow;
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-flow/src/main/java/io/gravitee/gateway/jupiter/flow/AbstractFlowResolver.java
 import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionEvaluator;
 import io.reactivex.Flowable;
+=======
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
+import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
+import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
+import io.reactivex.rxjava3.core.Flowable;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+>>>>>>> d5a816621b (fix(gateway): fix pathParameter for jupiter/v4):gravitee-apim-gateway/gravitee-apim-gateway-flow/src/main/java/io/gravitee/gateway/reactive/flow/AbstractFlowResolver.java
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -26,7 +39,14 @@ import io.reactivex.Flowable;
  */
 public abstract class AbstractFlowResolver implements FlowResolver {
 
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-flow/src/main/java/io/gravitee/gateway/jupiter/flow/AbstractFlowResolver.java
     private final ConditionEvaluator<Flow> evaluator;
+=======
+    private static final String URL_PATH_SEPARATOR = "/";
+    private static final Pattern URL_PATH_SEPARATOR_PATTERN = Pattern.compile(URL_PATH_SEPARATOR);
+    private static final String PATH_PARAM_PREFIX = ":";
+    private final ConditionFilter<Flow> filter;
+>>>>>>> d5a816621b (fix(gateway): fix pathParameter for jupiter/v4):gravitee-apim-gateway/gravitee-apim-gateway-flow/src/main/java/io/gravitee/gateway/reactive/flow/AbstractFlowResolver.java
 
     protected AbstractFlowResolver(ConditionEvaluator<Flow> evaluator) {
         this.evaluator = evaluator;
@@ -34,5 +54,50 @@ public abstract class AbstractFlowResolver implements FlowResolver {
 
     public Flowable<Flow> resolve(RequestExecutionContext ctx) {
         return evaluator.filter(ctx, provideFlows(ctx));
+    }
+
+    protected void addContextRequestPathParameters(GenericExecutionContext context, List<Flow> flows) {
+        flows.stream().forEach(flow -> addContextRequestPathParameters(context, flow));
+    }
+
+    protected void addContextRequestPathParameters(GenericExecutionContext context, Flow flow) {
+        if (flow.getPath() == null || flow.getPath().isEmpty()) {
+            return;
+        }
+
+        Map<Integer, String> parameters = new HashMap();
+        String[] branches = URL_PATH_SEPARATOR_PATTERN.split(flow.getPath());
+
+        for (int position = 0; position < branches.length; position++) {
+            final String branch = branches[position];
+            if (branch.startsWith(PATH_PARAM_PREFIX)) {
+                parameters.put(position, branch.substring(PATH_PARAM_PREFIX.length()));
+            }
+        }
+
+        if (parameters.isEmpty()) {
+            return;
+        }
+
+        int count = 0;
+        int off = 0;
+        int next;
+
+        final String pathInfo = context.request().pathInfo();
+        final Iterator<Integer> iterator = parameters.keySet().iterator();
+
+        Integer currentPosition = iterator.next();
+        while ((next = pathInfo.indexOf(URL_PATH_SEPARATOR, off)) != -1) {
+            if (count == currentPosition) {
+                context.request().pathParameters().add(parameters.get(currentPosition), pathInfo.substring(off, next));
+                if (iterator.hasNext()) {
+                    currentPosition = iterator.next();
+                }
+            }
+            off = next + 1;
+            count++;
+        }
+
+        context.request().pathParameters().add(parameters.get(currentPosition), pathInfo.substring(off));
     }
 }
