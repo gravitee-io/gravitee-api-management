@@ -13,25 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.flow.resolver;
+package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.flow.Flow;
-<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/jupiter/handlers/api/flow/resolver/ApiPlanFlowResolver.java
-import io.gravitee.gateway.jupiter.api.context.ContextAttributes;
-import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
-import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
-import io.gravitee.gateway.jupiter.flow.AbstractFlowResolver;
-import io.reactivex.Flowable;
-=======
+import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
-import io.gravitee.gateway.reactive.flow.AbstractFlowResolver;
+import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
->>>>>>> d5a816621b (fix(gateway): fix pathParameter for jupiter/v4):gravitee-apim-gateway/gravitee-apim-gateway-handlers/gravitee-apim-gateway-handlers-api/src/main/java/io/gravitee/gateway/reactive/handlers/api/flow/resolver/ApiPlanFlowResolver.java
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -40,32 +35,46 @@ import java.util.stream.Collectors;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 class ApiPlanFlowResolver extends AbstractFlowResolver {
 
     private final Api api;
 
+    private Map<String, List<Flow>> flowsByPlanId = new ConcurrentHashMap<>();
+
     public ApiPlanFlowResolver(Api api, ConditionFilter<Flow> filter) {
         super(filter);
         this.api = api;
-        api.getPlans();
     }
 
     @Override
     public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
-        if (api.getPlans() == null || api.getPlans().isEmpty()) {
+        final List<Plan> plans = api.getPlans();
+        if (plans == null || plans.isEmpty()) {
             return Flowable.empty();
         }
 
         final String planId = ctx.getAttribute(ContextAttributes.ATTR_PLAN);
-        List<Flow> flows = api
-            .getPlans()
-            .stream()
-            .filter(plan -> Objects.equals(plan.getId(), planId))
-            .filter(plan -> Objects.nonNull(plan.getFlows()))
-            .flatMap(plan -> plan.getFlows().stream())
-            .filter(Flow::isEnabled)
-            .collect(Collectors.toList());
+        if (planId == null) {
+            return Flowable.empty();
+        }
+
+        List<Flow> flows = getFlows(plans, planId);
         addContextRequestPathParameters(ctx, flows);
         return Flowable.fromIterable(flows);
+    }
+
+    private List<Flow> getFlows(List<Plan> plans, String planId) {
+        return this.flowsByPlanId.computeIfAbsent(
+                planId,
+                id ->
+                    plans
+                        .stream()
+                        .filter(plan -> Objects.equals(plan.getId(), id))
+                        .filter(plan -> Objects.nonNull(plan.getFlows()))
+                        .flatMap(plan -> plan.getFlows().stream())
+                        .filter(Flow::isEnabled)
+                        .collect(Collectors.toList())
+            );
     }
 }
