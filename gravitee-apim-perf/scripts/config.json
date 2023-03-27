@@ -13,10 +13,18 @@
     "simpleUserName": "user",
     "simplePassword": "password",
     "apiEndpointUrl": "http://localhost:8080/echo",
+    "kafkaBoostrapServer": "localhost:9092",
     "apiExecutionMode": "v3",
     "organization": "DEFAULT",
     "environment": "DEFAULT",
-    "gatewaySyncInterval": 1000
+    "gatewaySyncInterval": 1000,
+    "httpPost": {
+      "requestHeadersToMessage": false,
+      "messageSizeInKB": 1,
+      "topic": "msg-http-post",
+      "numPartitions": 1,
+      "withJsontoJson": false
+    }
   },
   "k6": {
     "prometheusRemoteUrl": "http://localhost:9090/api/v1/write",

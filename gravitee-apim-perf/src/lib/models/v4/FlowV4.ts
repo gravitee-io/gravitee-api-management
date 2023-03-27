@@ -116,6 +116,9 @@ export interface Selector {
    * @memberof Selector
    */
   type: SelectorTypeEnum;
+  operation?: Array<string>;
+  channel?: string;
+  'channel-operator'?: string;
 }
 
 export const enum SelectorTypeEnum {

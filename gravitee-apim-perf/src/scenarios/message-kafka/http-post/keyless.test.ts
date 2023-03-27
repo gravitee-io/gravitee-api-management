@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { check } from 'k6';
+import { Connection } from 'k6/x/kafka';
 import http from 'k6/http';
 import { ADMIN_USER, authorizationHeaderFor, k6Options } from '@env/environment';
 import { LifecycleAction } from '@models/v3/ApiEntity';
@@ -21,7 +22,7 @@ import { failIf } from '@helpers/k6.helper';
 import { ApisFixture } from '@fixtures/v3/apis.fixture';
 import { HttpHelper } from '@helpers/http.helper';
 import { GatewayTestData } from '@lib/test-api';
-import { GatewayClient } from '@clients/GatewayClient';
+import { GatewayClient, HttpMethod } from '@clients/GatewayClient';
 import { ApisV4Fixture } from '@fixtures/v4/apis.v4.fixture';
 import { ApisV4Client } from '@clients/v4/ApisV4Client';
 import { PlansV4Client } from '@clients/v4/PlansV4Client';
@@ -32,6 +33,18 @@ import { PlanEntityV4 } from '@models/v4/PlanEntityV4';
 import { NewApiEntityV4TypeEnum } from '@models/v4/NewApiEntityV4';
 
 export const options = k6Options;
+
+const connection = new Connection({
+  // ConnectionConfig object
+  address: k6Options.apim.kafkaBoostrapServer,
+});
+
+const kafkaTopic = k6Options.apim.httpPost.topic;
+const numPartitions = k6Options.apim.httpPost.numPartitions;
+
+if (__VU == 0) {
+  connection.createTopic({ topic: kafkaTopic, numPartitions: numPartitions });
+}
 
 export function setup(): GatewayTestData {
   const contextPath = ApisFixture.randomPath();
@@ -45,7 +58,10 @@ export function setup(): GatewayTestData {
         ],
         entrypoints: [
           {
-            type: 'http-proxy',
+            type: 'http-post',
+            configuration: {
+              requestHeadersToMessage: k6Options.apim.httpPost.requestHeadersToMessage,
+            },
           },
         ],
       }),
@@ -53,14 +69,18 @@ export function setup(): GatewayTestData {
     endpointGroups: [
       {
         name: 'default-group',
-        type: 'http-proxy',
+        type: 'kafka',
         endpoints: [
           {
             name: 'default',
-            type: 'http-proxy',
+            type: 'kafka',
             inheritConfiguration: false,
             configuration: {
-              target: k6Options.apim.apiEndpointUrl,
+              bootstrapServers: k6Options.apim.kafkaBoostrapServer,
+              producer: {
+                enabled: true,
+                topics: [kafkaTopic],
+              },
             },
           },
         ],
@@ -68,47 +88,29 @@ export function setup(): GatewayTestData {
     ],
     flows: [
       {
-        name: 'flow-1',
+        name: 'Routing Flow',
+        selectors: [],
+        request: [],
+        response: [],
+        subscribe: [],
+        publish: k6Options.apim.httpPost.withJsontoJson
+          ? [
+              {
+                name: 'Json to Json',
+                description: 'add an api properties in the message and change the Json Structure',
+                enabled: true,
+                policy: 'json-to-json',
+                configuration: {
+                  specification:
+                    '[{ "operation": "default", "spec": { "static": "static-value" } },{"operation": "shift","spec": {"static": "StaticEntry","key_*": "Keys.&(0,1)"}}]',
+                },
+              },
+            ]
+          : [],
         enabled: true,
-        request: [
-          {
-            name: 'Transform header',
-            description: 'Add some headers',
-            enabled: true,
-            policy: 'transform-headers',
-            configuration: {
-              addHeaders: [
-                {
-                  name: 'header-added-1',
-                  value: 'value-1',
-                },
-                {
-                  name: 'header-added-2',
-                  value: 'value-2',
-                },
-              ],
-            },
-          },
-        ],
-        response: [
-          {
-            name: 'Transform header',
-            description: 'Add some headers to response',
-            enabled: true,
-            policy: 'transform-headers',
-            configuration: {
-              addHeaders: [
-                {
-                  name: 'response-header-added-1',
-                  value: 'value-1',
-                },
-              ],
-            },
-          },
-        ],
       },
     ],
-    type: NewApiEntityV4TypeEnum.PROXY,
+    type: NewApiEntityV4TypeEnum.MESSAGE,
   });
   const apiCreationResponse = ApisV4Client.createApi(api, {
     headers: {
@@ -140,17 +142,31 @@ export function setup(): GatewayTestData {
   });
   failIf(changeLifecycleResponse.status !== 204, 'Could not change lifecycle');
 
-  GatewayClient.waitForApiAvailability({ contextPath: contextPath });
+  GatewayClient.waitForApiAvailability({ contextPath: contextPath, expectedStatusCode: 202, method: HttpMethod.POST, body: '' });
 
-  return { api: createdApi, plan: createdPlan, waitGateway: { contextPath: contextPath } };
+  const message = generatePayload();
+  return { api: createdApi, plan: createdPlan, waitGateway: { contextPath: contextPath }, msg: message };
+}
+
+function generatePayload() {
+  let message: any = {};
+  const expectedLength = k6Options.apim.httpPost.messageSizeInKB * 1024;
+  let i = 0;
+  do {
+    i = i + 1;
+    message[`key_${i}`] = `value_${i}`;
+  } while (JSON.stringify(message).length < expectedLength);
+  return message;
 }
 
 export default (data: GatewayTestData) => {
-  const res = http.get(k6Options.apim.gatewayBaseUrl + data.waitGateway.contextPath);
+  const res = http.post(k6Options.apim.gatewayBaseUrl + data.waitGateway.contextPath, JSON.stringify(data.msg), {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
   check(res, {
-    'status is 200': () => res.status === 200,
-    'contains header': () => res.headers['Content-Type'] === 'application/json',
-    'contains header added header': () => res.headers['response-header-added-1'] === 'value-1',
+    'status is 202': () => res.status === 202,
   });
 };
 
@@ -173,4 +189,12 @@ export function teardown(data: GatewayTestData) {
       ...authorizationHeaderFor(ADMIN_USER),
     },
   });
+
+  // clear kafka topic
+  if (__VU == 0) {
+    // Delete the topic
+    connection.deleteTopic(kafkaTopic);
+  }
+
+  connection.close();
 }
