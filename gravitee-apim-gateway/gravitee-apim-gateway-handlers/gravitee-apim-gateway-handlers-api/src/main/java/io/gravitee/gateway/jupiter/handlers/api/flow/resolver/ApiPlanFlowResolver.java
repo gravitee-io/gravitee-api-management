@@ -22,6 +22,7 @@ import io.gravitee.gateway.jupiter.api.context.GenericExecutionContext;
 import io.gravitee.gateway.jupiter.core.condition.ConditionFilter;
 import io.gravitee.gateway.jupiter.flow.AbstractFlowResolver;
 import io.reactivex.rxjava3.core.Flowable;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -48,16 +49,15 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
         }
 
         final String planId = ctx.getAttribute(ContextAttributes.ATTR_PLAN);
-
-        return Flowable.fromIterable(
-            api
-                .getPlans()
-                .stream()
-                .filter(plan -> Objects.equals(plan.getId(), planId))
-                .filter(plan -> Objects.nonNull(plan.getFlows()))
-                .flatMap(plan -> plan.getFlows().stream())
-                .filter(Flow::isEnabled)
-                .collect(Collectors.toList())
-        );
+        List<Flow> flows = api
+            .getPlans()
+            .stream()
+            .filter(plan -> Objects.equals(plan.getId(), planId))
+            .filter(plan -> Objects.nonNull(plan.getFlows()))
+            .flatMap(plan -> plan.getFlows().stream())
+            .filter(Flow::isEnabled)
+            .collect(Collectors.toList());
+        addContextRequestPathParameters(ctx, flows);
+        return Flowable.fromIterable(flows);
     }
 }
