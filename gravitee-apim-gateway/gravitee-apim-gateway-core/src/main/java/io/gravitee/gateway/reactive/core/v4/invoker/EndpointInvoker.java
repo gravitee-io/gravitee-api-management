@@ -162,26 +162,21 @@ public class EndpointInvoker implements Invoker {
     }
 
     private Completable connect(final EndpointConnector endpointConnector, final ExecutionContext ctx) {
-        return computeRequest(ctx).andThen(endpointConnector.connect(ctx));
-    }
-
-    private Completable computeRequest(ExecutionContext ctx) {
-        return Completable.defer(() -> {
-            final Object requestMethodAttribute = ctx.getAttribute(io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD);
-            if (requestMethodAttribute != null) {
-                final HttpMethod httpMethod = computeHttpMethodFromAttribute(requestMethodAttribute);
-                if (httpMethod == null) {
-                    return ctx.interruptWith(
+        final Object requestMethodAttribute = ctx.getAttribute(io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD);
+        if (requestMethodAttribute != null) {
+            final HttpMethod httpMethod = computeHttpMethodFromAttribute(requestMethodAttribute);
+            if (httpMethod == null) {
+                return ctx.interruptWith(
                         new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
-                            .key(INVALID_HTTP_METHOD)
-                            .message("Http method can not be overridden because ATTR_REQUEST_METHOD attribute is invalid")
-                    );
-                } else {
-                    ctx.request().method(httpMethod);
-                }
+                                .key(INVALID_HTTP_METHOD)
+                                .message("Http method can not be overridden because ATTR_REQUEST_METHOD attribute is invalid")
+                );
+            } else {
+                ctx.request().method(httpMethod);
             }
-            return Completable.complete();
-        });
+        }
+
+        return endpointConnector.connect(ctx);
     }
 
     @SuppressWarnings("unchecked")
