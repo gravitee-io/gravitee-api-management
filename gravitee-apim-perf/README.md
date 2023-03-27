@@ -40,6 +40,20 @@ Please use at least K6 0.42.0 to support 'experimental-prometheus-rw'  output mo
 brew install k6
 ```
 
+---
+**WARNING**
+
+If you want execute simulation for MESSAGE APIs, you will have to build your how k6 binary to be able to use the kafka extension
+To do so, please install the k6x utility then request a k6 build using the [xk6-kafka extension](https://github.com/mostafa/xk6-kafka) (be careful to the extension release note to use the right version of k6):
+
+---
+
+
+```shell
+go install go.k6.io/xk6/cmd/xk6@latest
+xk6 build v0.42.0 --with github.com/mostafa/xk6-kafka@v0.16.1
+```
+
 ## Collecting the metrics
 
 ### Activate gateway metrics

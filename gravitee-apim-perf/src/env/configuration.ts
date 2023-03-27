@@ -34,10 +34,20 @@ interface APIManagementConfiguration {
   simpleUserName: string;
   simplePassword: string;
   apiEndpointUrl: string;
+  kafkaBoostrapServer: string;
   apiExecutionMode: string;
   organization: string;
   environment: string;
   gatewaySyncInterval: number;
+  httpPost: HttpPost;
+}
+
+interface HttpPost {
+  requestHeadersToMessage: boolean;
+  messageSizeInKB: number;
+  topic: string;
+  withJsontoJson: boolean;
+  numPartitions: number;
 }
 
 interface K6Configuration {

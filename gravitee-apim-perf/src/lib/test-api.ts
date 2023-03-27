@@ -23,4 +23,5 @@ export interface GatewayTestData {
   api?: ApiEntity | ApiEntityV4;
   plan?: PlanEntity | PlanEntityV4;
   waitGateway?: { contextPath: string };
+  msg?: string;
 }

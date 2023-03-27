@@ -29,6 +29,7 @@ import { PlansV4Fixture } from '@fixtures/v4/plans.v4.fixture';
 import { NewPlanEntityV4StatusEnum } from '@models/v4/NewPlanEntityV4';
 import { ApiEntityV4 } from '@models/v4/ApiEntityV4';
 import { PlanEntityV4 } from '@models/v4/PlanEntityV4';
+import { NewApiEntityV4TypeEnum } from '@models/v4/NewApiEntityV4';
 
 export const options = k6Options;
 
@@ -65,6 +66,7 @@ export function setup(): GatewayTestData {
         ],
       },
     ],
+    type: NewApiEntityV4TypeEnum.PROXY,
   });
   const apiCreationResponse = ApisV4Client.createApi(api, {
     headers: {
