@@ -33,6 +33,8 @@ import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
+import io.gravitee.rest.api.service.TokenService;
+import io.gravitee.rest.api.service.UserService;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -97,6 +99,12 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     @Autowired
     private EventManager eventManager;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TokenService tokenService;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -197,7 +205,7 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         cors(http);
 
         http.addFilterBefore(
-            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, authoritiesProvider),
+            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
             BasicAuthenticationFilter.class
         );
         http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
