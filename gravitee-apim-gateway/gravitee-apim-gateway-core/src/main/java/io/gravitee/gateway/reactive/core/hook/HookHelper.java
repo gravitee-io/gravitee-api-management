@@ -113,7 +113,7 @@ public class HookHelper {
     ) {
         return Flowable
             .fromIterable(hooks)
-            .flatMapCompletable(
+            .concatMapCompletable(
                 hook -> {
                     switch (phase) {
                         case PRE:
@@ -131,9 +131,7 @@ public class HookHelper {
                                 new RuntimeException(String.format("Unknown hook phase %s while executing hook", phase))
                             );
                     }
-                },
-                false,
-                1
+                }
             )
             .doOnError(error -> log.warn("Unable to execute '{}' hook on flow '{}'", phase.name(), componentId, error))
             .onErrorComplete();
