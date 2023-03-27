@@ -38,6 +38,11 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
 
     private final Api api;
 
+<<<<<<< HEAD
+=======
+    private Map<String, List<Flow>> flowsByPlanId = new ConcurrentHashMap<>();
+
+>>>>>>> d5a816621b (fix(gateway): fix pathParameter for jupiter/v4)
     public ApiPlanFlowResolver(Api api, ConditionFilter<Flow> filter) {
         super(filter);
         this.api = api;
@@ -52,6 +57,7 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
 
         final String planId = ctx.getAttribute(ContextAttributes.ATTR_PLAN);
 
+<<<<<<< HEAD
         return Flowable.fromIterable(
             plans
                 .stream()
@@ -61,5 +67,24 @@ class ApiPlanFlowResolver extends AbstractFlowResolver {
                 .filter(Flow::isEnabled)
                 .collect(Collectors.toList())
         );
+=======
+        List<Flow> flows = getFlows(plans, planId);
+        addContextRequestPathParameters(ctx, flows);
+        return Flowable.fromIterable(flows);
+    }
+
+    private List<Flow> getFlows(List<Plan> plans, String planId) {
+        return this.flowsByPlanId.computeIfAbsent(
+                planId,
+                id ->
+                    plans
+                        .stream()
+                        .filter(plan -> Objects.equals(plan.getId(), id))
+                        .filter(plan -> Objects.nonNull(plan.getFlows()))
+                        .flatMap(plan -> plan.getFlows().stream())
+                        .filter(Flow::isEnabled)
+                        .collect(Collectors.toList())
+            );
+>>>>>>> d5a816621b (fix(gateway): fix pathParameter for jupiter/v4)
     }
 }

@@ -17,10 +17,14 @@ package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
 import io.reactivex.rxjava3.core.Flowable;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -32,7 +36,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 class ApiFlowResolver extends AbstractFlowResolver {
 
-    private final Flowable<Flow> flows;
+    private final List<Flow> flows;
 
     public ApiFlowResolver(Api api, ConditionFilter<Flow> filter) {
         super(filter);
@@ -42,14 +46,15 @@ class ApiFlowResolver extends AbstractFlowResolver {
 
     @Override
     public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
-        return this.flows;
+        addContextRequestPathParameters(ctx, flows);
+        return Flowable.fromIterable(flows);
     }
 
-    private Flowable<Flow> provideFlows(Api api) {
+    private List<Flow> provideFlows(Api api) {
         if (api.getFlows() == null || api.getFlows().isEmpty()) {
-            return Flowable.empty();
+            return Collections.emptyList();
         }
 
-        return Flowable.fromIterable(api.getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList()));
+        return api.getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList());
     }
 }
