@@ -88,7 +88,10 @@ public class RedisClient {
                 // allow further processing
                 promise.complete(conn);
             })
-            .onFailure(promise::fail);
+            .onFailure(t -> {
+                logger.error("Unable to connect to Redis", t);
+                promise.fail(t);
+            });
 
         return promise.future();
     }
