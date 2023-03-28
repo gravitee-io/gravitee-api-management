@@ -6,6 +6,11 @@
   flex-flow: column;
   gap: 14px;
 
+  &__time-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
   &__row {
     display: flex;
     gap: 14px;
@@ -14,5 +19,14 @@
   &__card {
     width: 100%;
     flex: 1 1 100%;
+  }
+}
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gio-loader {
+    width: 32px;
   }
 }

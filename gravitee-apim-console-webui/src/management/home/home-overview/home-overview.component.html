@@ -16,6 +16,9 @@
 
 -->
 <div class="home-overview">
+  <div class="home-overview__time-selector">
+    <gio-quick-time-range [formControl]="timeRangeControl" (onRefreshClicked)="refresh()"></gio-quick-time-range>
+  </div>
   <div class="home-overview__row">
     <mat-card class="home-overview__card">
       <div class="mat-subheading-1">Quick Summary</div>
@@ -47,7 +50,14 @@
 
     <mat-card class="home-overview__card">
       <div class="mat-subheading-1">Request Stats</div>
-      <div class="mat-body">No content to display</div>
+      <ng-container *ngIf="!loading; else loader">
+        <div class="mat-body" *ngIf="!requestStats">No content to display</div>
+        <gio-request-stats *ngIf="requestStats" [data]="requestStats"></gio-request-stats>
+      </ng-container>
     </mat-card>
   </div>
 </div>
+
+<ng-template #loader
+  ><div class="loader"><gio-loader></gio-loader></div
+></ng-template>
