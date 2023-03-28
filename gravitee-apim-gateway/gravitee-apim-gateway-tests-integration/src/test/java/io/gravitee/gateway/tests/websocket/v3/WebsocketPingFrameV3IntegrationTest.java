@@ -15,10 +15,8 @@
  */
 package io.gravitee.gateway.tests.websocket.v3;
 
-import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.gateway.tests.websocket.reactive.WebsocketPingFrameJupiterIntegrationTest;
 
 @GatewayTest
-@DeployApi({ "/apis/http/api.json" })
 public class WebsocketPingFrameV3IntegrationTest extends WebsocketPingFrameJupiterIntegrationTest {}

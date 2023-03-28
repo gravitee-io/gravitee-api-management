@@ -23,41 +23,37 @@ import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
-@DeployApi({ "/apis/v4/http/api.json" })
 public class WebsocketAcceptTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
+    @DeployApi({ "/apis/v4/http/api.json" })
     public void websocket_accepted_request(VertxTestContext testContext) throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
         var serverMessageChecked = testContext.checkpoint();
 
-        httpServer
-            .webSocketHandler(serverWebSocket -> {
+        websocketServerHandler =
+            serverWebSocket -> {
                 serverConnected.flag();
                 serverWebSocket.exceptionHandler(testContext::failNow);
                 serverWebSocket.accept();
                 serverWebSocket.writeTextMessage("PING").doOnComplete(serverMessageSent::flag).doOnError(testContext::failNow).subscribe();
+            };
+
+        httpClient
+            .webSocket("/test")
+            .doOnSuccess(webSocket -> {
+                webSocket.exceptionHandler(testContext::failNow);
+                webSocket.frameHandler(frame -> {
+                    if (frame.isText()) {
+                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                        serverMessageChecked.flag();
+                    } else {
+                        testContext.failNow("The frame is not a text frame");
+                    }
+                });
             })
-            .listen(websocketPort)
-            .map(httpServer ->
-                httpClient
-                    .webSocket("/test")
-                    .subscribe(
-                        webSocket -> {
-                            webSocket.exceptionHandler(testContext::failNow);
-                            webSocket.frameHandler(frame -> {
-                                if (frame.isText()) {
-                                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                    serverMessageChecked.flag();
-                                } else {
-                                    testContext.failNow("The frame is not a text frame");
-                                }
-                            });
-                        },
-                        testContext::failNow
-                    )
-            )
+            .doOnError(testContext::failNow)
             .test()
             .await();
     }

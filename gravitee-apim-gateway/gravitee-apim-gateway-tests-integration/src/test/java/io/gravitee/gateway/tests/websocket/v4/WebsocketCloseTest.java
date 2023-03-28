@@ -21,34 +21,30 @@ import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
-@DeployApi({ "/apis/v4/http/api.json" })
 public class WebsocketCloseTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
+    @DeployApi({ "/apis/v4/http/api.json" })
     public void websocket_closed_request(VertxTestContext testContext) throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverClosed = testContext.checkpoint();
         var clientClosed = testContext.checkpoint();
 
-        httpServer
-            .webSocketHandler(serverWebSocket -> {
+        websocketServerHandler =
+            serverWebSocket -> {
                 serverConnected.flag();
                 serverWebSocket.exceptionHandler(testContext::failNow);
                 serverWebSocket.accept();
                 serverWebSocket.close().doOnComplete(serverClosed::flag).doOnError(testContext::failNow).subscribe();
+            };
+
+        httpClient
+            .webSocket("/test")
+            .doOnSuccess(webSocket -> {
+                webSocket.exceptionHandler(testContext::failNow);
+                webSocket.closeHandler(__ -> clientClosed.flag());
             })
-            .listen(websocketPort)
-            .map(httpServer ->
-                httpClient
-                    .webSocket("/test")
-                    .subscribe(
-                        webSocket -> {
-                            webSocket.exceptionHandler(testContext::failNow);
-                            webSocket.closeHandler(__ -> clientClosed.flag());
-                        },
-                        testContext::failNow
-                    )
-            )
+            .doOnError(testContext::failNow)
             .test()
             .await();
     }

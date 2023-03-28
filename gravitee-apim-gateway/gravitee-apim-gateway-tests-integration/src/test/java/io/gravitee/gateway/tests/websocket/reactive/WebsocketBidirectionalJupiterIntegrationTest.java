@@ -25,10 +25,10 @@ import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest(mode = GatewayMode.JUPITER)
-@DeployApi({ "/apis/http/api.json" })
 public class WebsocketBidirectionalJupiterIntegrationTest extends AbstractWebsocketGatewayTest {
 
     @Test
+    @DeployApi({ "/apis/http/api.json" })
     public void websocket_bidirectional_request(VertxTestContext testContext) throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
@@ -36,8 +36,8 @@ public class WebsocketBidirectionalJupiterIntegrationTest extends AbstractWebsoc
         var clientMessageSent = testContext.checkpoint();
         var clientMessageChecked = testContext.checkpoint();
 
-        httpServer
-            .webSocketHandler(serverWebSocket -> {
+        websocketServerHandler =
+            serverWebSocket -> {
                 serverConnected.flag();
                 serverWebSocket.exceptionHandler(testContext::failNow);
                 serverWebSocket.accept();
@@ -52,29 +52,21 @@ public class WebsocketBidirectionalJupiterIntegrationTest extends AbstractWebsoc
                             .subscribe();
                     }
                 });
+            };
+
+        httpClient
+            .webSocket("/test")
+            .doOnSuccess(webSocket -> {
+                webSocket.exceptionHandler(testContext::failNow);
+                webSocket.frameHandler(frame -> {
+                    if (frame.isText()) {
+                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PONG"));
+                        serverMessageChecked.flag();
+                    }
+                });
+                webSocket.writeTextMessage("PING").doOnComplete(clientMessageSent::flag).doOnError(testContext::failNow).subscribe();
             })
-            .listen(websocketPort)
-            .map(httpServer ->
-                httpClient
-                    .webSocket("/test")
-                    .subscribe(
-                        webSocket -> {
-                            webSocket.exceptionHandler(testContext::failNow);
-                            webSocket.frameHandler(frame -> {
-                                if (frame.isText()) {
-                                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PONG"));
-                                    serverMessageChecked.flag();
-                                }
-                            });
-                            webSocket
-                                .writeTextMessage("PING")
-                                .doOnComplete(clientMessageSent::flag)
-                                .doOnError(testContext::failNow)
-                                .subscribe();
-                        },
-                        testContext::failNow
-                    )
-            )
+            .doOnError(testContext::failNow)
             .test()
             .await();
     }

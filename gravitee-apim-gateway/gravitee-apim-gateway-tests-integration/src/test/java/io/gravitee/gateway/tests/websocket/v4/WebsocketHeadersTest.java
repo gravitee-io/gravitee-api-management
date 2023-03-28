@@ -25,10 +25,10 @@ import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
-@DeployApi({ "/apis/v4/http/api.json" })
 public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
+    @DeployApi({ "/apis/v4/http/api.json" })
     public void websocket_header_request(VertxTestContext testContext) throws Throwable {
         var serverConnected = testContext.checkpoint();
         var serverMessageSent = testContext.checkpoint();
@@ -39,8 +39,8 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
         WebSocketConnectOptions options = new WebSocketConnectOptions();
         options.setURI("/test").setHeaders(MultiMap.caseInsensitiveMultiMap().add(customHeaderName, customHeaderValue));
 
-        httpServer
-            .webSocketHandler(serverWebSocket -> {
+        websocketServerHandler =
+            serverWebSocket -> {
                 serverConnected.flag();
                 serverWebSocket.accept();
                 String customHeader = serverWebSocket.headers().get(customHeaderName);
@@ -48,23 +48,19 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
                 testContext.verify(() -> assertThat(customHeader).isNotNull());
                 testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
                 serverWebSocket.writeTextMessage("PING").doOnComplete(serverMessageSent::flag).doOnError(testContext::failNow).subscribe();
+            };
+
+        httpClient
+            .webSocket(options)
+            .doOnSuccess(webSocket -> {
+                webSocket.exceptionHandler(testContext::failNow);
+                webSocket.frameHandler(frame -> {
+                    testContext.verify(() -> assertThat(frame.isText()).isTrue());
+                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                    serverMessageChecked.flag();
+                });
             })
-            .listen(websocketPort)
-            .map(httpServer ->
-                httpClient
-                    .webSocket(options)
-                    .subscribe(
-                        webSocket -> {
-                            webSocket.exceptionHandler(testContext::failNow);
-                            webSocket.frameHandler(frame -> {
-                                testContext.verify(() -> assertThat(frame.isText()).isTrue());
-                                testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                serverMessageChecked.flag();
-                            });
-                        },
-                        testContext::failNow
-                    )
-            )
+            .doOnError(testContext::failNow)
             .test()
             .await();
     }

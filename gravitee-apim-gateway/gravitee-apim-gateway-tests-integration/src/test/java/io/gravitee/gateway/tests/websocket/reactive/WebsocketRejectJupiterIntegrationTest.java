@@ -27,30 +27,22 @@ import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest(mode = GatewayMode.JUPITER)
-@DeployApi({ "/apis/http/api.json" })
 public class WebsocketRejectJupiterIntegrationTest extends AbstractWebsocketGatewayTest {
 
     @Test
+    @DeployApi({ "/apis/http/api.json" })
     public void websocket_rejected_request(VertxTestContext testContext) throws Throwable {
-        httpServer
-            .webSocketHandler(webSocket -> webSocket.reject(UNAUTHORIZED_401))
-            .listen(websocketPort)
-            .map(httpServer ->
-                httpClient
-                    .webSocket("/test")
-                    .subscribe(
-                        webSocket -> testContext.failNow("Websocket connection should not succeed"),
-                        error -> {
-                            testContext.verify(() ->
-                                assertThat(error)
-                                    .isInstanceOf(UpgradeRejectedException.class)
-                                    .extracting("status")
-                                    .isEqualTo(UNAUTHORIZED_401)
-                            );
-                            testContext.completeNow();
-                        }
-                    )
-            )
+        websocketServerHandler = (webSocket -> webSocket.reject(UNAUTHORIZED_401));
+
+        httpClient
+            .webSocket("/test")
+            .doOnSuccess(webSocket -> testContext.failNow("Websocket connection should not succeed"))
+            .doOnError(error -> {
+                testContext.verify(() ->
+                    assertThat(error).isInstanceOf(UpgradeRejectedException.class).extracting("status").isEqualTo(UNAUTHORIZED_401)
+                );
+                testContext.completeNow();
+            })
             .test()
             .await();
     }
