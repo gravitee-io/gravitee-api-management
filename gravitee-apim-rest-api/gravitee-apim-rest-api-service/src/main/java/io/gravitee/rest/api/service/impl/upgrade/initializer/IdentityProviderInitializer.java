@@ -48,23 +48,34 @@ public class IdentityProviderInitializer implements Initializer {
     private final List<String> notStorableIDPs = Arrays.asList("gravitee", "ldap", "memory");
     private final List<String> idpTypeNames = Arrays.stream(IdentityProviderType.values()).map(Enum::name).collect(Collectors.toList());
 
-    @Autowired
-    private ConfigurableEnvironment environment;
+    private final ConfigurableEnvironment environment;
+
+    private final GroupService groupService;
+
+    private final OrganizationService organizationService;
+
+    private final EnvironmentService environmentService;
+
+    private final IdentityProviderService identityProviderService;
+
+    private final IdentityProviderActivationService identityProviderActivationService;
 
     @Autowired
-    private GroupService groupService;
-
-    @Autowired
-    private OrganizationService organizationService;
-
-    @Autowired
-    private EnvironmentService environmentService;
-
-    @Autowired
-    private IdentityProviderService identityProviderService;
-
-    @Autowired
-    private IdentityProviderActivationService identityProviderActivationService;
+    public IdentityProviderInitializer(
+        ConfigurableEnvironment environment,
+        GroupService groupService,
+        OrganizationService organizationService,
+        EnvironmentService environmentService,
+        IdentityProviderService identityProviderService,
+        IdentityProviderActivationService identityProviderActivationService
+    ) {
+        this.environment = environment;
+        this.groupService = groupService;
+        this.organizationService = organizationService;
+        this.environmentService = environmentService;
+        this.identityProviderService = identityProviderService;
+        this.identityProviderActivationService = identityProviderActivationService;
+    }
 
     @Override
     public boolean initialize() {

@@ -50,6 +50,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+/**
+ * @author GraviteeSource Team
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class SearchIndexInitializerTest {
 
