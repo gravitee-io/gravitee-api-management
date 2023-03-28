@@ -10,8 +10,7 @@ RUN yarn install
 COPY --chown=node:node . .
 RUN rm -r dist/ && yarn build
 
-
-FROM grafana/k6:0.42.0@sha256:aba50200f5f832925bfc20d2fd822f522f83a6ee794233d46f8837588eba5799 as runner
+FROM mostafamoradian/xk6-kafka:0.17.0 as runner
 
 USER root
 RUN apk add --update --no-cache jq util-linux bash
