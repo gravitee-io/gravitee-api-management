@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl.upgrade.initializer;
+package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.mockito.Mockito.*;
 
-import io.gravitee.rest.api.service.EnvironmentService;
-import java.util.List;
+import io.gravitee.rest.api.service.OrganizationService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -29,20 +28,25 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultEnvironmentInitializerTest {
+public class DefaultOrganizationUpgraderTest {
 
     @Mock
-    private EnvironmentService environmentService;
+    private OrganizationService organizationService;
 
     @InjectMocks
-    private final DefaultEnvironmentInitializer initializer = new DefaultEnvironmentInitializer();
+    private final DefaultOrganizationUpgrader upgrader = new DefaultOrganizationUpgrader();
 
     @Test
-    public void shouldCreateDefaultEnvironment() {
-        when(environmentService.findByOrganization(any())).thenReturn(List.of());
+    public void shouldInitializeOrganisation() {
+        when(organizationService.count()).thenReturn(0L);
+        upgrader.upgrade();
+        verify(organizationService, times(1)).initialize();
+    }
 
-        initializer.initialize();
-
-        verify(environmentService, times(1)).initialize();
+    @Test
+    public void shouldNotInitializeOrganisation() {
+        when(organizationService.count()).thenReturn(1L);
+        upgrader.upgrade();
+        verify(organizationService, never()).initialize();
     }
 }

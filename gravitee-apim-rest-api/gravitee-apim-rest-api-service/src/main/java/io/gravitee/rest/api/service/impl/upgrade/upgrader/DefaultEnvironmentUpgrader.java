@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl.upgrade.initializer;
+package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import io.gravitee.node.api.initializer.Initializer;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.slf4j.Logger;
@@ -28,18 +29,18 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultEnvironmentInitializer implements Initializer {
+public class DefaultEnvironmentUpgrader implements Upgrader {
 
     /**
      * Logger.
      */
-    private final Logger logger = LoggerFactory.getLogger(DefaultEnvironmentInitializer.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultEnvironmentUpgrader.class);
 
     @Autowired
     private EnvironmentService environmentService;
 
     @Override
-    public boolean initialize() {
+    public boolean upgrade() {
         // initialize roles.
         if (environmentService.findByOrganization(GraviteeContext.getDefaultOrganization()).isEmpty()) {
             logger.info("    No environment found. Add default one.");

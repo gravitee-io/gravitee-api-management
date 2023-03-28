@@ -37,7 +37,7 @@ public abstract class EnvironmentInitializer implements Initializer {
     @Autowired
     private EnvironmentRepository environmentRepository;
 
-    // upgradeEnvironment is called once for each environment
+    // initializeEnvironment is called once for each environment
     protected abstract void initializeEnvironment(ExecutionContext executionContext);
 
     @Override

@@ -38,7 +38,6 @@ public class CockpitIdInitializer implements Initializer {
 
     @Override
     public boolean initialize() {
-        // FIXME : this initializer uses the default ExecutionContext, but should handle all environments/organizations
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         Collection<OrganizationEntity> organizations = organizationService.findAll();
