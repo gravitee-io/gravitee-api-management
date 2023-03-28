@@ -40,7 +40,7 @@ public class DefaultApiHeaderInitializer extends EnvironmentInitializer {
     @Override
     public void initializeEnvironment(ExecutionContext executionContext) {
         // Initialize default headers
-        if (apiHeaderService.findAll(executionContext.getEnvironmentId()).size() == 0) {
+        if (apiHeaderService.findAll(executionContext.getEnvironmentId()).isEmpty()) {
             logger.info("Create default API Headers configuration for {}", executionContext);
             apiHeaderService.initialize(executionContext);
         }

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl.upgrade.initializer;
+package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import io.gravitee.node.api.initializer.Initializer;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.rest.api.service.OrganizationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,18 +27,18 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultOrganizationInitializer implements Initializer {
+public class DefaultOrganizationUpgrader implements Upgrader {
 
     /**
      * Logger.
      */
-    private final Logger logger = LoggerFactory.getLogger(DefaultOrganizationInitializer.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultOrganizationUpgrader.class);
 
     @Autowired
     private OrganizationService organizationService;
 
     @Override
-    public boolean initialize() {
+    public boolean upgrade() {
         // initialize default organization.
         if (organizationService.count().equals(0L)) {
             logger.info("    No organization found. Add default one.");

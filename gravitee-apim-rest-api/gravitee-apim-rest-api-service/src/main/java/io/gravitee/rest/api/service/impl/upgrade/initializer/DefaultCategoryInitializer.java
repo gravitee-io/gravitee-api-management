@@ -84,7 +84,7 @@ public class DefaultCategoryInitializer implements Initializer {
                 }
             }
         } catch (TechnicalException e) {
-            logger.error("Error while upgrading categories : {}", e);
+            logger.error("Error while upgrading categories", e);
         }
         return true;
     }
