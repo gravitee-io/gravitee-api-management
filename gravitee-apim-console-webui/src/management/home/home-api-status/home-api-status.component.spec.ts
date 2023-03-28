@@ -149,7 +149,7 @@ describe('HomeApiStatusComponent', () => {
     ]);
   });
 
-  describe('onAddApiClick', () => {
+  describe('onViewHealthCheckClicked', () => {
     beforeEach(async () => {
       fixture.detectChanges();
 
@@ -162,6 +162,28 @@ describe('HomeApiStatusComponent', () => {
         .then((button) => button.click());
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.proxy.healthCheckDashboard');
+    });
+  });
+
+  describe('onRefreshClick', () => {
+    const api = fakeApi({
+      healthcheck_enabled: true,
+    });
+    beforeEach(async () => {
+      fixture.detectChanges();
+
+      await expectApisListRequest([api]);
+      fixture.detectChanges();
+      expectGetApiHealth(api.id);
+      expectGetApiHealthAverage(api.id);
+      fixture.detectChanges();
+    });
+
+    it('should fetch last Health data', async () => {
+      await loader.getHarness(MatButtonHarness.with({ selector: '.time-frame__refresh-btn' })).then((button) => button.click());
+
+      expectGetApiHealth(api.id);
+      expectGetApiHealthAverage(api.id);
     });
   });
 

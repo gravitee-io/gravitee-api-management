@@ -20,7 +20,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { GioAvatarModule, GioBannerModule } from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -87,6 +87,7 @@ export const states: Ng2StateDeclaration[] = [
     GioTableWrapperModule,
     GioCircularPercentageModule,
     GioBannerModule,
+    GioIconsModule,
     HealthAvailabilityTimeFrameModule,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiStatusComponent],
