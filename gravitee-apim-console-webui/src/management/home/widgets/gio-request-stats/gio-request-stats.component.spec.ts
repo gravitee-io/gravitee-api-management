@@ -20,7 +20,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 
 import { GioRequestStatsModule } from './gio-request-stats.module';
 import { GioRequestStatsHarness } from './gio-request-stats.harness';
-import { GioRequestStatsComponent, RequestStatsSource } from './gio-request-stats.component';
+import { GioRequestStatsComponent } from './gio-request-stats.component';
+
+import { AnalyticsStatsResponse } from '../../../../entities/analytics/analyticsResponse';
 
 describe('GioRequestStatsComponent', () => {
   let fixture: ComponentFixture<GioRequestStatsComponent>;
@@ -42,7 +44,10 @@ describe('GioRequestStatsComponent', () => {
       max: 23009.29732,
       avg: 8.4363,
       rps: 1.2712334,
-      total: 332981092,
+      rpm: 76.274004,
+      rph: 4576.44024,
+      count: 332981092,
+      sum: 43788.0,
     });
     const harness = await loader.getHarness(GioRequestStatsHarness);
     expect(await harness.getMin()).toEqual('0.02 ms');
@@ -52,8 +57,8 @@ describe('GioRequestStatsComponent', () => {
     expect(await harness.getTotalRequests()).toEqual('332,981,092');
   });
 
-  function loadData(data: RequestStatsSource) {
-    fixture.componentInstance.source = data;
+  function loadData(data: AnalyticsStatsResponse) {
+    fixture.componentInstance.data = data;
     fixture.detectChanges();
   }
 });
