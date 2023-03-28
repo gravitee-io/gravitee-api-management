@@ -25,6 +25,7 @@ import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.node.services.initializer.spring.InitializerConfiguration;
 import io.gravitee.node.services.upgrader.spring.UpgraderConfiguration;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.apiservice.spring.ApiServicePluginConfiguration;
@@ -82,6 +83,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         EndpointConnectorPluginConfiguration.class,
         EntrypointConnectorPluginConfiguration.class,
         UpgraderConfiguration.class,
+        InitializerConfiguration.class,
         ApiServicePluginConfiguration.class,
     }
 )

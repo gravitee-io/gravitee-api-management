@@ -71,7 +71,7 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
+import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
@@ -341,7 +341,7 @@ public class ApiService_CreateTest {
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(newApiMetadataEntity ->
                     newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                    newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
+                    newApiMetadataEntity.getName().equals(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
                 )
             );
     }

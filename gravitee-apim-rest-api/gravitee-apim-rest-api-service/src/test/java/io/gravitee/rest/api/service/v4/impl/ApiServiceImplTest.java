@@ -115,7 +115,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
-import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
+import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
@@ -413,7 +413,7 @@ public class ApiServiceImplTest {
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(newApiMetadataEntity ->
                     newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                    newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
+                    newApiMetadataEntity.getName().equals(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
                 )
             );
         verify(membershipService, times(1))
@@ -480,7 +480,7 @@ public class ApiServiceImplTest {
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(newApiMetadataEntity ->
                     newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                    newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
+                    newApiMetadataEntity.getName().equals(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
                 )
             );
         verify(membershipService, times(1))
