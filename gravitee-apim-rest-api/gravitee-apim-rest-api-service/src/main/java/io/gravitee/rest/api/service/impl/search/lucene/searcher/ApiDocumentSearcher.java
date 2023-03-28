@@ -15,27 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION_LOWERCASE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DESCRIPTION_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HOSTS;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HOSTS_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_METADATA;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_METADATA_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME_LOWERCASE;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME_SORTED;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ORIGIN;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_OWNER;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PATHS_SPLIT;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS;
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS_SPLIT;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -132,6 +112,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_PATHS,
         FIELD_TAGS,
         FIELD_ORIGIN,
+        FIELD_HAS_HEALTH_CHECK,
     };
 
     private BooleanQuery.Builder buildApiQuery(ExecutionContext executionContext, Optional<Query> filterQuery) {
@@ -353,7 +334,12 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         String text = term.text();
         if (FIELD_CATEGORIES.equals(term.field())) {
             text = formatCategoryField(term.text());
-        } else if (!FIELD_PATHS.equals(term.field()) && !FIELD_TAGS.equals(term.field()) && !FIELD_ORIGIN.equals(term.field())) {
+        } else if (
+            !FIELD_PATHS.equals(term.field()) &&
+            !FIELD_TAGS.equals(term.field()) &&
+            !FIELD_ORIGIN.equals(term.field()) &&
+            !FIELD_HAS_HEALTH_CHECK.equals(term.field())
+        ) {
             text = text.toLowerCase();
             field = field.concat("_lowercase");
         }

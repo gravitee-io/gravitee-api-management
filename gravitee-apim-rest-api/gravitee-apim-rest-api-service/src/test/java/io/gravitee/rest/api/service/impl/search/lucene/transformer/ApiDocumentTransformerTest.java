@@ -20,9 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,14 +36,21 @@ import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexableField;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ApiDocumentTransformerTest {
 
-    ApiDocumentTransformer cut = new ApiDocumentTransformer();
+    @InjectMocks
+    ApiDocumentTransformer cut = new ApiDocumentTransformer(new ApiServiceImpl());
 
     @Test
     public void shouldTransform() {
@@ -75,6 +86,11 @@ public class ApiDocumentTransformerTest {
         toTransform.setPrimaryOwner(primaryOwnerEntity);
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Arrays.asList(new VirtualHost("host", "path"), new VirtualHost("host2", "path2")));
+        HealthCheckService healthCheckService = new HealthCheckService();
+        healthCheckService.setEnabled(true);
+        Services services = new Services();
+        services.setHealthCheckService(healthCheckService);
+        toTransform.setServices(services);
         toTransform.setProxy(proxy);
         toTransform.setLabels(Arrays.asList("label1", "label2", "label2"));
         toTransform.setCategories(new HashSet<>(Arrays.asList("cat1", "cat2")));
@@ -110,5 +126,6 @@ public class ApiDocumentTransformerTest {
         assertThat(toTransform.getUpdatedAt().getTime()).isEqualTo(((LongPoint) transformed.getField("updatedAt")).numericValue());
         assertThat(toTransform.getMetadata().values()).hasSameSizeAs(transformed.getFields("metadata"));
         assertThat(toTransform.getDefinitionContext().getOrigin()).isEqualTo(transformed.get("origin"));
+        assertThat("true").isEqualTo(transformed.get("has_health_check"));
     }
 }
