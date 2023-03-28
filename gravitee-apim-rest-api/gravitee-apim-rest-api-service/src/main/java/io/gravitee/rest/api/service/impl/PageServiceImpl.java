@@ -172,7 +172,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private static final String SENSITIVE_DATA_REPLACEMENT = "********";
 
-    @Value("${documentation.markdown.sanitize:false}")
+    @Value("${documentation.markdown.sanitize:true}")
     private boolean markdownSanitize;
 
     @Lazy
