@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { FormControl, Validators } from '@angular/forms';
+import { distinctUntilChanged, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+
+import { AnalyticsStatsResponse } from '../../../entities/analytics/analyticsResponse';
+import { AnalyticsService } from '../../../services-ngx/analytics.service';
+import { GioQuickTimeRangeComponent, TimeRangeParams } from '../widgets/gio-quick-time-range/gio-quick-time-range.component';
 
 @Component({
   selector: 'home-overview',
@@ -23,15 +29,41 @@ import { Subject } from 'rxjs';
 })
 export class HomeOverviewComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  loading = false;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  constructor() {}
+  constructor(private readonly statsService: AnalyticsService) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  ngOnInit(): void {}
+  requestStats: AnalyticsStatsResponse;
+  timeRangeControl = new FormControl('1m', Validators.required);
+
+  ngOnInit(): void {
+    this.timeRangeControl.valueChanges
+      .pipe(
+        startWith(this.timeRangeControl.value),
+        takeUntil(this.unsubscribe$),
+        distinctUntilChanged(),
+        switchMap((timeRange) => this.getRequestStats(GioQuickTimeRangeComponent.getTimeFrameRangesParams(timeRange))),
+      )
+      .subscribe();
+  }
+
+  getRequestStats(val: TimeRangeParams): Observable<AnalyticsStatsResponse> {
+    this.loading = true;
+    return this.statsService.getStats({ field: 'response-time', interval: val.interval, from: val.from, to: val.to }).pipe(
+      tap((data) => {
+        this.loading = false;
+        this.requestStats = data;
+      }),
+    );
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
+  }
+
+  refresh() {
+    const timeRange = this.timeRangeControl.value;
+    if (timeRange.from && timeRange.to) this.getRequestStats(timeRange).subscribe();
   }
 }
