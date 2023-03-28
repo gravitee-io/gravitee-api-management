@@ -31,6 +31,7 @@ import { HomeApiStatusComponent } from './home-api-status/home-api-status.compon
 import { HomeLayoutComponent } from './home-layout/home-layout.component';
 import { HomeOverviewComponent } from './home-overview/home-overview.component';
 import { HealthAvailabilityTimeFrameModule } from './home-api-status/health-availability-time-frame/health-availability-time-frame.module';
+import { GioQuickTimeRangeModule } from './widgets/gio-quick-time-range/gio-quick-time-range.module';
 
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -89,6 +90,7 @@ export const states: Ng2StateDeclaration[] = [
     GioBannerModule,
     GioIconsModule,
     HealthAvailabilityTimeFrameModule,
+    GioQuickTimeRangeModule,
   ],
   declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiStatusComponent],
 })

@@ -21,7 +21,6 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
 import { HighchartsChartModule } from 'highcharts-angular';
 
 import { HomeApiStatusComponent } from './home-api-status.component';
@@ -34,6 +33,7 @@ import { Api } from '../../../entities/api';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { fakeApi } from '../../../entities/api/Api.fixture';
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
+import { GioQuickTimeRangeHarness } from '../widgets/gio-quick-time-range/gio-quick-time-range.harness';
 
 describe('HomeApiStatusComponent', () => {
   let fixture: ComponentFixture<HomeApiStatusComponent>;
@@ -139,8 +139,8 @@ describe('HomeApiStatusComponent', () => {
     ]);
 
     // Expect HealthCheck TimeFrame select changes
-    const healthCheckTimeFrameSelect = await loader.getHarness(MatSelectHarness);
-    await healthCheckTimeFrameSelect.clickOptions({ text: 'last week' });
+    const healthCheckTimeFrameSelect = await loader.getHarness(GioQuickTimeRangeHarness);
+    await healthCheckTimeFrameSelect.selectTimeRangeByText('last week');
     expectGetApiHealthAverage(api.id);
 
     const { rowCells: rowCells_2 } = await computeApisTableCells();
