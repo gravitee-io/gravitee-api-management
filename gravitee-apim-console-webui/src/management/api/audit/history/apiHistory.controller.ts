@@ -432,6 +432,7 @@ class ApiHistoryController {
     delete payload.tags;
     delete payload.workflow_state;
     delete payload.crossId;
+    delete payload.definition_context;
 
     if (payload.response_templates && _.isEmpty(payload.response_templates)) {
       delete payload.response_templates;
