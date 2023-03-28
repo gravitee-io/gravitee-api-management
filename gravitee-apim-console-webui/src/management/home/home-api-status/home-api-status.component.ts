@@ -29,6 +29,7 @@ import { PagedResult } from '../../../entities/pagedResult';
 import { ApiService } from '../../../services-ngx/api.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { timeFrames } from '../widgets/gio-quick-time-range/gio-quick-time-range.component';
 
 export type ApisTableDS = {
   id: string;
@@ -56,14 +57,6 @@ export type ApisTableDS = {
   >;
 };
 
-const timeFrameRangesParams = (interval: number, nbValuesByBucket = 30) => {
-  return {
-    from: new Date().getTime() - interval,
-    to: Date.now(),
-    interval: interval / nbValuesByBucket,
-  };
-};
-
 @Component({
   selector: 'home-api-status',
   template: require('./home-api-status.component.html'),
@@ -78,34 +71,7 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
     searchTerm: '',
   };
   isLoadingData = true;
-  timeFrames = [
-    {
-      label: 'last minute',
-      id: '1m',
-      timeFrameRangesParams: () => timeFrameRangesParams(1000 * 60),
-    },
-    {
-      label: 'last hour',
-      id: '1h',
-      timeFrameRangesParams: () => timeFrameRangesParams(1000 * 60 * 60),
-    },
-    {
-      label: 'last day',
-      id: '1d',
-      timeFrameRangesParams: () => timeFrameRangesParams(1000 * 60 * 60 * 24),
-    },
-    {
-      label: 'last week',
-      id: '1w',
-      timeFrameRangesParams: () => timeFrameRangesParams(1000 * 60 * 60 * 24 * 7),
-    },
-    {
-      label: 'last month',
-      id: '1M',
-      timeFrameRangesParams: () => timeFrameRangesParams(1000 * 60 * 60 * 24 * 30),
-    },
-  ];
-  timeFrameControl = new FormControl('1m', Validators.required);
+  timeFrameControl = new FormControl({}, Validators.required);
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
@@ -159,8 +125,7 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.detail.proxy.healthCheckDashboard');
   }
 
-  onRefreshClicked($event: Event) {
-    $event.stopPropagation();
+  onRefreshClicked() {
     this.refreshStatus$.next();
   }
 
@@ -229,14 +194,14 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
       switchMap(() =>
         combineLatest([
           this.apiService.apiHealth(api.id, 'availability'),
-          this.timeFrameControl.valueChanges.pipe(startWith(this.timeFrameControl.value)),
+          this.timeFrameControl.valueChanges.pipe(startWith(timeFrames[0])),
         ]),
       ),
-      switchMap(([healthAvailability, timeFrameId]) => {
-        const currentTimeFrame = this.timeFrames.find((timeFrame) => timeFrame.id === timeFrameId).timeFrameRangesParams();
+      switchMap(([healthAvailability, timeFrame]) => {
+        const currentTimeFrame = this.timeFrameControl.value;
         return combineLatest([
           of(healthAvailability),
-          of(timeFrameId),
+          of(timeFrame),
           this.apiService.apiHealthAverage(api.id, {
             from: currentTimeFrame.from,
             to: currentTimeFrame.to,
@@ -245,8 +210,8 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
           }),
         ]);
       }),
-      map(([healthAvailability, timeFrameId, healthAvailabilityTimeFrame]) => {
-        const healthCheckAvailability = healthAvailability.global[timeFrameId] || null;
+      map(([healthAvailability, timeFrame, healthAvailabilityTimeFrame]) => {
+        const healthCheckAvailability = healthAvailability.global[timeFrame.id] || null;
         if (
           !healthCheckAvailability ||
           !isNumber(healthCheckAvailability) ||

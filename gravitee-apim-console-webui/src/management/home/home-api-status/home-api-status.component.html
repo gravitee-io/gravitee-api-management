@@ -23,18 +23,7 @@
 
 <mat-card>
   See APIs status for
-  <mat-form-field class="time-frame">
-    <mat-label>Select time range</mat-label>
-    <mat-select [formControl]="timeFrameControl">
-      <mat-option *ngFor="let timeFrame of timeFrames" [value]="timeFrame.id">
-        {{ timeFrame.label }}
-      </mat-option>
-    </mat-select>
-
-    <button matSuffix mat-icon-button class="time-frame__refresh-btn" matTooltip="Refresh" (click)="onRefreshClicked($event)">
-      <mat-icon svgIcon="gio:refresh-ccw"></mat-icon>
-    </button>
-  </mat-form-field>
+  <gio-quick-time-range [formControl]="timeFrameControl" (onRefreshClicked)="onRefreshClicked()"></gio-quick-time-range>
 
   <gio-table-wrapper
     [searchLabel]="searchLabel"

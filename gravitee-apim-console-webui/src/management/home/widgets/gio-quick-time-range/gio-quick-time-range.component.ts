@@ -104,9 +104,7 @@ export class GioQuickTimeRangeComponent implements ControlValueAccessor, OnInit 
     this.emitValueChange(this.selectedTimeFrame);
   }
 
-  onRefresh($event: Event) {
-    $event.stopPropagation();
-
+  onRefresh() {
     this.onRefreshClicked.emit();
   }
 }
