@@ -109,6 +109,7 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
+  private refreshStatus$ = new BehaviorSubject<void>(undefined);
 
   constructor(
     @Inject(UIRouterStateParams) private ajsStateParams,
@@ -156,6 +157,11 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
 
   onViewHealthCheckClicked() {
     this.ajsState.go('management.apis.detail.proxy.healthCheckDashboard');
+  }
+
+  onRefreshClicked($event: Event) {
+    $event.stopPropagation();
+    this.refreshStatus$.next();
   }
 
   private initFilters() {
@@ -219,10 +225,13 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
       });
     }
 
-    return combineLatest([
-      this.apiService.apiHealth(api.id, 'availability'),
-      this.timeFrameControl.valueChanges.pipe(startWith(this.timeFrameControl.value)),
-    ]).pipe(
+    return this.refreshStatus$.pipe(
+      switchMap(() =>
+        combineLatest([
+          this.apiService.apiHealth(api.id, 'availability'),
+          this.timeFrameControl.valueChanges.pipe(startWith(this.timeFrameControl.value)),
+        ]),
+      ),
       switchMap(([healthAvailability, timeFrameId]) => {
         const currentTimeFrame = this.timeFrames.find((timeFrame) => timeFrame.id === timeFrameId).timeFrameRangesParams();
         return combineLatest([

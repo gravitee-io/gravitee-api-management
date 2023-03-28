@@ -5,6 +5,10 @@
 }
 .time-frame {
   padding-bottom: 0;
+
+  &__refresh-btn {
+    margin-left: 4px;
+  }
 }
 
 .mat-column-picture {
@@ -20,8 +24,7 @@
 }
 .mat-column-status {
   width: 356px;
-  padding-right: 16px;
-  padding: 2px 0;
+  padding: 2px 16px 2px 0;
 
   .chart {
     display: flex;
