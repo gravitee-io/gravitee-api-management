@@ -13,30 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
-export interface RequestStatsSource {
-  min: number;
-  max: number;
-  avg: number;
-  rps: number;
-  total: number;
-}
+import { AnalyticsStatsResponse } from '../../../../entities/analytics/analyticsResponse';
 
 @Component({
   selector: 'gio-request-stats',
   template: require('./gio-request-stats.component.html'),
   styles: [require('./gio-request-stats.component.scss')],
 })
-export class GioRequestStatsComponent implements OnInit {
+export class GioRequestStatsComponent {
   @Input()
-  public source: RequestStatsSource;
-
-  public data: RequestStatsSource;
-
-  ngOnInit() {
-    if (this.source) {
-      this.data = this.source;
-    }
-  }
+  public data: AnalyticsStatsResponse;
 }

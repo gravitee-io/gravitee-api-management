@@ -20,6 +20,8 @@ import { MatCardModule } from '@angular/material/card';
 import { GioRequestStatsComponent } from './gio-request-stats.component';
 import { GioRequestStatsModule } from './gio-request-stats.module';
 
+import { AnalyticsStatsResponse } from '../../../../entities/analytics/analyticsResponse';
+
 export default {
   title: 'Home / Widgets / Request stats',
   component: GioRequestStatsComponent,
@@ -33,18 +35,21 @@ export default {
 
 export const Simple: Story = {
   render: () => {
-    const input = {
+    const input: AnalyticsStatsResponse = {
       min: 0.02336,
       max: 23009.29032,
       avg: 8.4323,
       rps: 1.2012334,
-      total: 332981092,
+      rpm: 72.074004,
+      rph: 4324.44024,
+      count: 332981092,
+      sum: 4567115654.2,
     };
 
     return {
       template: `
       <mat-card style="width: 500px">
-          <gio-request-stats [source]="source"></gio-request-stats>
+          <gio-request-stats [data]="source"></gio-request-stats>
       </mat-card>
       `,
       props: { source: input },
