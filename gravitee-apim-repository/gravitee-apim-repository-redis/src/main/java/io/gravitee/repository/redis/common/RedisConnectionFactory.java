@@ -54,7 +54,13 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
 
     @Override
     public RedisClient getObject() {
+        return new RedisClient(vertx, buildRedisOptions());
+    }
+
+    protected RedisOptions buildRedisOptions() {
         final RedisOptions options = new RedisOptions();
+
+        boolean ssl = readPropertyValue(propertyPrefix + "ssl", boolean.class, false);
 
         if (isSentinelEnabled()) {
             // Sentinels + Redis master / replicas
@@ -65,7 +71,9 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
 
             // Redis Password
             String password = readPropertyValue(propertyPrefix + PASSWORD_PARAMETER, String.class);
-            sentinelNodes.forEach(hostAndPort -> options.addConnectionString(hostAndPort.withPassword(password).toConnectionString()));
+            sentinelNodes.forEach(hostAndPort ->
+                options.addConnectionString(hostAndPort.withPassword(password).withSsl(ssl).toConnectionString())
+            );
 
             String redisMaster = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "master", String.class);
             if (!StringUtils.hasText(redisMaster)) {
@@ -93,13 +101,13 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
                     readPropertyValue(propertyPrefix + "host", String.class, "localhost"),
                     readPropertyValue(propertyPrefix + "port", int.class, 6379)
                 )
-                .withPassword(readPropertyValue(propertyPrefix + PASSWORD_PARAMETER, String.class));
+                .withPassword(readPropertyValue(propertyPrefix + PASSWORD_PARAMETER, String.class))
+                .withSsl(ssl);
 
             options.setConnectionString(hostAndPort.toConnectionString());
         }
 
         // SSL
-        boolean ssl = readPropertyValue(propertyPrefix + "ssl", boolean.class, false);
         if (ssl) {
             options.getNetClientOptions().setSsl(true).setTrustAll(true);
         }
@@ -107,7 +115,7 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
         // Set max waiting handlers high enough to manage high throughput since we are not using the pooled mode
         options.setMaxWaitingHandlers(1024);
 
-        return new RedisClient(vertx, options);
+        return options;
     }
 
     @Override
@@ -153,6 +161,7 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
         private final String host;
         private final int port;
         private String password;
+        private boolean useSsl;
 
         private HostAndPort(String host, int port) {
             this.host = host;
@@ -169,12 +178,24 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
             return this;
         }
 
+        public HostAndPort withSsl(boolean useSsl) {
+            this.useSsl = useSsl;
+
+            return this;
+        }
+
         public String toConnectionString() {
-            if (StringUtils.hasText(password)) {
-                return "redis://:" + password + '@' + host + ':' + port;
+            String connectionType = "redis";
+
+            if (useSsl) {
+                connectionType = "rediss";
             }
 
-            return "redis://" + host + ':' + port;
+            if (StringUtils.hasText(password)) {
+                return connectionType + "://:" + password + '@' + host + ':' + port;
+            }
+
+            return connectionType + "://" + host + ':' + port;
         }
     }
 }
