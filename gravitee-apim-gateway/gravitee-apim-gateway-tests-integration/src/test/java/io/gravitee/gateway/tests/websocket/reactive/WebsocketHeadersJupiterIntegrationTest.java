@@ -13,45 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.tests.websocket.jupiter;
+package io.gravitee.gateway.tests.websocket.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.junit5.VertxTestContext;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
-@GatewayTest
+@GatewayTest(mode = GatewayMode.JUPITER)
 @DeployApi({ "/apis/http/api.json" })
 public class WebsocketHeadersJupiterIntegrationTest extends AbstractWebsocketGatewayTest {
 
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(true).jupiterModeDefault("always");
-    }
-
     @Test
     public void websocket_header_request(VertxTestContext testContext) throws Throwable {
+        var serverConnected = testContext.checkpoint();
+        var serverMessageSent = testContext.checkpoint();
+        var serverMessageChecked = testContext.checkpoint();
+
         final String customHeaderName = "Custom-Header";
         final String customHeaderValue = "My-Custom-Header-Value";
         WebSocketConnectOptions options = new WebSocketConnectOptions();
         options.setURI("/test").setHeaders(MultiMap.caseInsensitiveMultiMap().add(customHeaderName, customHeaderValue));
 
         httpServer
-            .webSocketHandler(event -> {
-                event.accept();
-                String customHeader = event.headers().get(customHeaderName);
+            .webSocketHandler(serverWebSocket -> {
+                serverConnected.flag();
+                serverWebSocket.accept();
+                String customHeader = serverWebSocket.headers().get(customHeaderName);
 
                 testContext.verify(() -> assertThat(customHeader).isNotNull());
                 testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
-                event.writeTextMessage("PING");
+                serverWebSocket.writeTextMessage("PING").doOnComplete(serverMessageSent::flag).doOnError(testContext::failNow).subscribe();
             })
             .listen(websocketPort)
             .map(httpServer ->
@@ -63,17 +61,13 @@ public class WebsocketHeadersJupiterIntegrationTest extends AbstractWebsocketGat
                             webSocket.frameHandler(frame -> {
                                 testContext.verify(() -> assertThat(frame.isText()).isTrue());
                                 testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                testContext.completeNow();
+                                serverMessageChecked.flag();
                             });
                         },
                         testContext::failNow
                     )
             )
-            .subscribe();
-
-        testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        if (testContext.failed()) {
-            throw testContext.causeOfFailure();
-        }
+            .test()
+            .await();
     }
 }

@@ -21,7 +21,6 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.buffer.Buffer;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
@@ -30,14 +29,20 @@ public class WebsocketPingFrameTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
     public void websocket_ping_request(VertxTestContext testContext) throws Throwable {
+        var serverConnected = testContext.checkpoint();
+        var pingReceived = testContext.checkpoint();
+        var pingSent = testContext.checkpoint();
+        var pongReceived = testContext.checkpoint();
+
         httpServer
             .webSocketHandler(serverWebSocket -> {
+                serverConnected.flag();
                 serverWebSocket.exceptionHandler(testContext::failNow);
                 serverWebSocket.accept();
                 serverWebSocket.frameHandler(frame -> {
                     if (frame.isPing()) {
                         testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                        testContext.completeNow();
+                        pingReceived.flag();
                     }
                 });
             })
@@ -45,17 +50,20 @@ public class WebsocketPingFrameTest extends AbstractWebsocketV4GatewayTest {
             .map(httpServer ->
                 httpClient
                     .webSocket("/test")
-                    .flatMapCompletable(webSocket -> {
-                        webSocket.exceptionHandler(testContext::failNow);
-                        return webSocket.rxWritePing(Buffer.buffer("PING"));
-                    })
-                    .subscribe(() -> {}, testContext::failNow)
+                    .subscribe(
+                        webSocket -> {
+                            webSocket.exceptionHandler(testContext::failNow);
+                            webSocket.pongHandler(buffer -> pongReceived.flag());
+                            webSocket
+                                .writePing(Buffer.buffer("PING"))
+                                .doOnComplete(pingSent::flag)
+                                .doOnError(testContext::failNow)
+                                .subscribe();
+                        },
+                        testContext::failNow
+                    )
             )
-            .subscribe();
-
-        testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        if (testContext.failed()) {
-            throw testContext.causeOfFailure();
-        }
+            .test()
+            .await();
     }
 }

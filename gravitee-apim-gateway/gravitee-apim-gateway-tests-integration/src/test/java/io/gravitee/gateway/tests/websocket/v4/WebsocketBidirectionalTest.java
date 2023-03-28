@@ -17,11 +17,9 @@ package io.gravitee.gateway.tests.websocket.v4;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.vertx.junit5.VertxTestContext;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
@@ -30,14 +28,26 @@ public class WebsocketBidirectionalTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
     public void websocket_bidirectional_request(VertxTestContext testContext) throws Throwable {
+        var serverConnected = testContext.checkpoint();
+        var serverMessageSent = testContext.checkpoint();
+        var serverMessageChecked = testContext.checkpoint();
+        var clientMessageSent = testContext.checkpoint();
+        var clientMessageChecked = testContext.checkpoint();
+
         httpServer
             .webSocketHandler(serverWebSocket -> {
+                serverConnected.flag();
                 serverWebSocket.exceptionHandler(testContext::failNow);
                 serverWebSocket.accept();
                 serverWebSocket.frameHandler(frame -> {
                     if (frame.isText()) {
                         testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                        serverWebSocket.writeTextMessage("PONG");
+                        clientMessageChecked.flag();
+                        serverWebSocket
+                            .writeTextMessage("PONG")
+                            .doOnComplete(serverMessageSent::flag)
+                            .doOnError(testContext::failNow)
+                            .subscribe();
                     }
                 });
             })
@@ -51,19 +61,19 @@ public class WebsocketBidirectionalTest extends AbstractWebsocketV4GatewayTest {
                             webSocket.frameHandler(frame -> {
                                 if (frame.isText()) {
                                     testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PONG"));
-                                    testContext.completeNow();
+                                    serverMessageChecked.flag();
                                 }
                             });
-                            webSocket.writeTextMessage("PING");
+                            webSocket
+                                .writeTextMessage("PING")
+                                .doOnComplete(clientMessageSent::flag)
+                                .doOnError(testContext::failNow)
+                                .subscribe();
                         },
                         testContext::failNow
                     )
             )
-            .subscribe();
-
-        testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        if (testContext.failed()) {
-            throw testContext.causeOfFailure();
-        }
+            .test()
+            .await();
     }
 }

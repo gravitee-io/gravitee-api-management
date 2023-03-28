@@ -17,13 +17,11 @@ package io.gravitee.gateway.tests.websocket.v4;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.junit5.VertxTestContext;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
@@ -32,19 +30,24 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
 
     @Test
     public void websocket_header_request(VertxTestContext testContext) throws Throwable {
+        var serverConnected = testContext.checkpoint();
+        var serverMessageSent = testContext.checkpoint();
+        var serverMessageChecked = testContext.checkpoint();
+
         final String customHeaderName = "Custom-Header";
         final String customHeaderValue = "My-Custom-Header-Value";
         WebSocketConnectOptions options = new WebSocketConnectOptions();
         options.setURI("/test").setHeaders(MultiMap.caseInsensitiveMultiMap().add(customHeaderName, customHeaderValue));
 
         httpServer
-            .webSocketHandler(event -> {
-                event.accept();
-                String customHeader = event.headers().get(customHeaderName);
+            .webSocketHandler(serverWebSocket -> {
+                serverConnected.flag();
+                serverWebSocket.accept();
+                String customHeader = serverWebSocket.headers().get(customHeaderName);
 
                 testContext.verify(() -> assertThat(customHeader).isNotNull());
                 testContext.verify(() -> assertThat(customHeaderValue).isEqualTo(customHeader));
-                event.writeTextMessage("PING");
+                serverWebSocket.writeTextMessage("PING").doOnComplete(serverMessageSent::flag).doOnError(testContext::failNow).subscribe();
             })
             .listen(websocketPort)
             .map(httpServer ->
@@ -56,17 +59,13 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
                             webSocket.frameHandler(frame -> {
                                 testContext.verify(() -> assertThat(frame.isText()).isTrue());
                                 testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                                testContext.completeNow();
+                                serverMessageChecked.flag();
                             });
                         },
                         testContext::failNow
                     )
             )
-            .subscribe();
-
-        testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        if (testContext.failed()) {
-            throw testContext.causeOfFailure();
-        }
+            .test()
+            .await();
     }
 }
