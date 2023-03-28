@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.tests.websocket.jupiter;
+package io.gravitee.gateway.tests.websocket.reactive;
 
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,21 +21,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.vertx.core.http.UpgradeRejectedException;
 import io.vertx.junit5.VertxTestContext;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
-@GatewayTest
+@GatewayTest(mode = GatewayMode.JUPITER)
 @DeployApi({ "/apis/http/api.json" })
 public class WebsocketRejectJupiterIntegrationTest extends AbstractWebsocketGatewayTest {
-
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(true).jupiterModeDefault("always");
-    }
 
     @Test
     public void websocket_rejected_request(VertxTestContext testContext) throws Throwable {
@@ -46,22 +39,19 @@ public class WebsocketRejectJupiterIntegrationTest extends AbstractWebsocketGate
                 httpClient
                     .webSocket("/test")
                     .subscribe(
-                        webSocket -> {
-                            testContext.failNow("Websocket connection should not succeed");
-                        },
+                        webSocket -> testContext.failNow("Websocket connection should not succeed"),
                         error -> {
-                            testContext.verify(() -> assertThat(error.getClass()).isEqualTo(UpgradeRejectedException.class));
-                            testContext.verify(() -> assertThat(((UpgradeRejectedException) error).getStatus()).isEqualTo(UNAUTHORIZED_401)
+                            testContext.verify(() ->
+                                assertThat(error)
+                                    .isInstanceOf(UpgradeRejectedException.class)
+                                    .extracting("status")
+                                    .isEqualTo(UNAUTHORIZED_401)
                             );
                             testContext.completeNow();
                         }
                     )
             )
-            .subscribe();
-
-        testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        if (testContext.failed()) {
-            throw testContext.causeOfFailure();
-        }
+            .test()
+            .await();
     }
 }

@@ -21,7 +21,7 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.gateway.tests.websocket.jupiter.WebsocketCloseJupiterIntegrationTest;
+import io.gravitee.gateway.tests.websocket.reactive.WebsocketCloseJupiterIntegrationTest;
 
 @GatewayTest
 @DeployApi({ "/apis/http/api.json" })

@@ -17,27 +17,9 @@ package io.gravitee.gateway.tests.websocket.v3Compatibility;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.gateway.tests.websocket.jupiter.WebsocketAcceptJupiterIntegrationTest;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
+import io.gravitee.gateway.tests.websocket.reactive.WebsocketAcceptJupiterIntegrationTest;
 
-@GatewayTest
+@GatewayTest(mode = GatewayMode.COMPATIBILITY)
 @DeployApi({ "/apis/http/api.json" })
-public class WebsocketAcceptV3CompatibilityIntegrationTest extends WebsocketAcceptJupiterIntegrationTest {
-
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(true);
-    }
-
-    public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
-        super.configureApi(api, definitionClass);
-        if (isLegacyApi(definitionClass)) {
-            final Api definition = (Api) api.getDefinition();
-            definition.setExecutionMode(ExecutionMode.V3);
-        }
-    }
-}
+public class WebsocketAcceptV3CompatibilityIntegrationTest extends WebsocketAcceptJupiterIntegrationTest {}

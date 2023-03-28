@@ -13,39 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.tests.websocket.jupiter;
+package io.gravitee.gateway.tests.websocket.reactive;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.buffer.Buffer;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
-@GatewayTest
+@GatewayTest(mode = GatewayMode.JUPITER)
 @DeployApi({ "/apis/http/api.json" })
 public class WebsocketPingFrameJupiterIntegrationTest extends AbstractWebsocketGatewayTest {
 
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(true).jupiterModeDefault("always");
-    }
-
     @Test
     public void websocket_ping_request(VertxTestContext testContext) throws Throwable {
+        var serverConnected = testContext.checkpoint();
+        var pingReceived = testContext.checkpoint();
+        var pingSent = testContext.checkpoint();
+        var pongReceived = testContext.checkpoint();
+
         httpServer
             .webSocketHandler(serverWebSocket -> {
+                serverConnected.flag();
                 serverWebSocket.exceptionHandler(testContext::failNow);
                 serverWebSocket.accept();
                 serverWebSocket.frameHandler(frame -> {
                     if (frame.isPing()) {
                         testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                        testContext.completeNow();
+                        pingReceived.flag();
                     }
                 });
             })
@@ -56,16 +55,17 @@ public class WebsocketPingFrameJupiterIntegrationTest extends AbstractWebsocketG
                     .subscribe(
                         webSocket -> {
                             webSocket.exceptionHandler(testContext::failNow);
-                            webSocket.writePing(Buffer.buffer("PING"));
+                            webSocket.pongHandler(buffer -> pongReceived.flag());
+                            webSocket
+                                .writePing(Buffer.buffer("PING"))
+                                .doOnComplete(pingSent::flag)
+                                .doOnError(testContext::failNow)
+                                .subscribe();
                         },
                         testContext::failNow
                     )
             )
-            .subscribe();
-
-        testContext.awaitCompletion(10, TimeUnit.SECONDS);
-        if (testContext.failed()) {
-            throw testContext.causeOfFailure();
-        }
+            .test()
+            .await();
     }
 }

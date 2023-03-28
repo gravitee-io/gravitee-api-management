@@ -15,25 +15,11 @@
  */
 package io.gravitee.gateway.tests.websocket.v3;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.gateway.tests.websocket.jupiter.WebsocketAcceptJupiterIntegrationTest;
-import io.gravitee.gateway.tests.websocket.jupiter.WebsocketBidirectionalJupiterIntegrationTest;
-import io.vertx.junit5.VertxTestContext;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Test;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
+import io.gravitee.gateway.tests.websocket.reactive.WebsocketBidirectionalJupiterIntegrationTest;
 
-@GatewayTest
+@GatewayTest(mode = GatewayMode.V3)
 @DeployApi({ "/apis/http/api.json" })
-public class WebsocketBidirectionalV3IntegrationTest extends WebsocketBidirectionalJupiterIntegrationTest {
-
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(false);
-    }
-}
+public class WebsocketBidirectionalV3IntegrationTest extends WebsocketBidirectionalJupiterIntegrationTest {}

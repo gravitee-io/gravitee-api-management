@@ -15,25 +15,10 @@
  */
 package io.gravitee.gateway.tests.websocket.v3;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.gateway.tests.websocket.jupiter.WebsocketPingFrameJupiterIntegrationTest;
-import io.vertx.junit5.VertxTestContext;
-import io.vertx.rxjava3.core.buffer.Buffer;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Test;
+import io.gravitee.gateway.tests.websocket.reactive.WebsocketPingFrameJupiterIntegrationTest;
 
 @GatewayTest
 @DeployApi({ "/apis/http/api.json" })
-public class WebsocketPingFrameV3IntegrationTest extends WebsocketPingFrameJupiterIntegrationTest {
-
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(false);
-    }
-}
+public class WebsocketPingFrameV3IntegrationTest extends WebsocketPingFrameJupiterIntegrationTest {}
