@@ -23,7 +23,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HighchartsChartModule } from 'highcharts-angular';
 
-import { HomeApiStatusComponent } from './home-api-status.component';
+import { HomeApiHealthCheckComponent } from './home-api-health-check.component';
 
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
@@ -35,8 +35,8 @@ import { fakeApi } from '../../../entities/api/Api.fixture';
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 import { GioQuickTimeRangeHarness } from '../widgets/gio-quick-time-range/gio-quick-time-range.harness';
 
-describe('HomeApiStatusComponent', () => {
-  let fixture: ComponentFixture<HomeApiStatusComponent>;
+describe('HomeApiHealthCheckComponent', () => {
+  let fixture: ComponentFixture<HomeApiHealthCheckComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
@@ -62,7 +62,7 @@ describe('HomeApiStatusComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(HomeApiStatusComponent);
+    fixture = TestBed.createComponent(HomeApiHealthCheckComponent);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
@@ -85,7 +85,7 @@ describe('HomeApiStatusComponent', () => {
         name: 'Name',
         picture: '',
         states: '',
-        status: 'API Status',
+        availability: 'API Availability',
       },
     ]);
     expect(rowCells).toEqual([['No APIs to display.']]);
@@ -106,7 +106,7 @@ describe('HomeApiStatusComponent', () => {
         name: 'Name',
         picture: '',
         states: '',
-        status: 'API Status',
+        availability: 'API Availability',
       },
     ]);
     expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', 'Health-check has not been configured', '']]);
@@ -131,7 +131,7 @@ describe('HomeApiStatusComponent', () => {
         name: 'Name',
         picture: '',
         states: '',
-        status: 'API Status',
+        availability: 'API Availability',
       },
     ]);
     expect(rowCells).toEqual([
@@ -158,10 +158,10 @@ describe('HomeApiStatusComponent', () => {
 
     it('should navigate to view API HealthCheck', async () => {
       await loader
-        .getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to view API HealthCheck"]' }))
+        .getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to view API Health-check"]' }))
         .then((button) => button.click());
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.proxy.healthCheckDashboard');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.proxy.healthCheckDashboard.visualize', { apiId: fakeApi().id });
     });
   });
 

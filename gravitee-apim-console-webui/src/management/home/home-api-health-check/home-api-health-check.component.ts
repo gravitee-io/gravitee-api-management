@@ -42,7 +42,7 @@ export type ApisTableDS = {
   picture: string;
   state: ApiState;
   origin: ApiOrigin;
-  status$: Observable<
+  availability$: Observable<
     | {
         type: 'not-configured';
       }
@@ -58,12 +58,12 @@ export type ApisTableDS = {
 };
 
 @Component({
-  selector: 'home-api-status',
-  template: require('./home-api-status.component.html'),
-  styles: [require('./home-api-status.component.scss')],
+  selector: 'home-api-health-check',
+  template: require('./home-api-health-check.component.html'),
+  styles: [require('./home-api-health-check.component.scss')],
 })
-export class HomeApiStatusComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'states', 'status', 'actions'];
+export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
+  displayedColumns = ['picture', 'name', 'states', 'availability', 'actions'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS[] = [];
   filters: GioTableWrapperFilters = {
@@ -75,7 +75,7 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
-  private refreshStatus$ = new BehaviorSubject<void>(undefined);
+  private refreshAvailability$ = new BehaviorSubject<void>(undefined);
 
   constructor(
     @Inject(UIRouterStateParams) private ajsStateParams,
@@ -93,7 +93,7 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
         tap(({ pagination, searchTerm, sort }) => {
           // Change url params
           this.ajsState.go(
-            'home.apiStatus',
+            'home.apiHealthCheck',
             { q: searchTerm, page: pagination.index, size: pagination.size, order: toOrder(sort) },
             { notify: false },
           );
@@ -121,12 +121,12 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
     this.filters$.next(this.filters);
   }
 
-  onViewHealthCheckClicked() {
-    this.ajsState.go('management.apis.detail.proxy.healthCheckDashboard');
+  onViewHealthCheckClicked(api: ApisTableDS) {
+    this.ajsState.go('management.apis.detail.proxy.healthCheckDashboard.visualize', { apiId: api.id });
   }
 
   onRefreshClicked() {
-    this.refreshStatus$.next();
+    this.refreshAvailability$.next();
   }
 
   private initFilters() {
@@ -167,7 +167,7 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
           workflowBadge: this.getWorkflowBadge(api),
           healthcheck_enabled: api.healthcheck_enabled,
           origin: api.definition_context.origin,
-          status$: this.getStatus$(api),
+          availability$: this.getAvailability$(api),
         } as ApisTableDS),
     );
   }
@@ -183,14 +183,14 @@ export class HomeApiStatusComponent implements OnInit, OnDestroy {
     return toReadableState[state];
   }
 
-  private getStatus$(api: Api): ApisTableDS['status$'] {
+  private getAvailability$(api: Api): ApisTableDS['availability$'] {
     if (!api.healthcheck_enabled) {
       return of({
         type: 'not-configured' as const,
       });
     }
 
-    return this.refreshStatus$.pipe(
+    return this.refreshAvailability$.pipe(
       switchMap(() =>
         combineLatest([
           this.apiService.apiHealth(api.id, 'availability'),

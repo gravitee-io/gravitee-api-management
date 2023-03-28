@@ -27,10 +27,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 
-import { HomeApiStatusComponent } from './home-api-status/home-api-status.component';
+import { HomeApiHealthCheckComponent } from './home-api-health-check/home-api-health-check.component';
 import { HomeLayoutComponent } from './home-layout/home-layout.component';
 import { HomeOverviewComponent } from './home-overview/home-overview.component';
-import { HealthAvailabilityTimeFrameModule } from './home-api-status/health-availability-time-frame/health-availability-time-frame.module';
+import { HealthAvailabilityTimeFrameModule } from './home-api-health-check/health-availability-time-frame/health-availability-time-frame.module';
 import { GioQuickTimeRangeModule } from './widgets/gio-quick-time-range/gio-quick-time-range.module';
 
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
@@ -58,13 +58,13 @@ export const states: Ng2StateDeclaration[] = [
     component: HomeOverviewComponent,
   },
   {
-    name: 'home.apiStatus',
-    url: '/api-status?{q:string}{page:int}{size:int}{order:string}',
+    name: 'home.apiHealthCheck',
+    url: '/api-health-check?{q:string}{page:int}{size:int}{order:string}',
     data: {
       useAngularMaterial: true,
       docs: null,
     },
-    component: HomeApiStatusComponent,
+    component: HomeApiHealthCheckComponent,
   },
 ];
 
@@ -92,6 +92,6 @@ export const states: Ng2StateDeclaration[] = [
     HealthAvailabilityTimeFrameModule,
     GioQuickTimeRangeModule,
   ],
-  declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiStatusComponent],
+  declarations: [HomeLayoutComponent, HomeOverviewComponent, HomeApiHealthCheckComponent],
 })
 export class HomeModule {}
