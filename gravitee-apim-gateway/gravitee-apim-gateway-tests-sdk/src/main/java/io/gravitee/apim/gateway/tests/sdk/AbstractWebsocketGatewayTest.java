@@ -17,24 +17,60 @@ package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.reactor.ReactableApi;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpServer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import io.vertx.rxjava3.core.http.ServerWebSocket;
+import org.junit.jupiter.api.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
 
     protected HttpServer httpServer;
     protected HttpClient httpClient;
     protected int websocketPort;
 
+    protected Handler<ServerWebSocket> websocketServerHandler;
+    private Disposable serverDispose;
+
+    @BeforeAll
+    public void beforeAll(Vertx vertx, VertxTestContext context) {
+        serverDispose =
+            vertx
+                .createHttpServer()
+                .webSocketHandler(serverWebSocket -> {
+                    if (null != websocketServerHandler) {
+                        websocketServerHandler.handle(serverWebSocket);
+                    }
+                })
+                .listen()
+                .subscribe(
+                    server -> {
+                        httpServer = server;
+                        context.completeNow();
+                    },
+                    context::failNow
+                );
+    }
+
+    @AfterAll
+    public void afterAll() {
+        if (null != serverDispose) {
+            serverDispose.dispose();
+        }
+        if (null != httpServer) {
+            httpServer.close().subscribe();
+        }
+    }
+
     @Override
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
-        websocketPort = getAvailablePort();
+        websocketPort = httpServer.actualPort();
         if (isLegacyApi(definitionClass)) {
             updateEndpointsPort((Api) api.getDefinition(), websocketPort);
         } else if (isV4Api(definitionClass)) {
@@ -51,20 +87,13 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
     @BeforeEach
     public void setup(Vertx vertx) {
         wiremock.stop();
-        httpServer = vertx.createHttpServer();
         httpClient = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(gatewayPort()).setDefaultHost("localhost"));
     }
 
     @AfterEach
-    public void tearDown(Vertx vertx) {
-        if (null != httpServer) {
-            httpServer.close();
-        }
-
+    public void tearDown() {
         if (null != httpClient) {
-            httpClient.close();
+            httpClient.close().subscribe();
         }
-
-        vertx.close();
     }
 }

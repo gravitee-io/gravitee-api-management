@@ -15,11 +15,9 @@
  */
 package io.gravitee.gateway.tests.websocket.v3Compatibility;
 
-import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.gateway.tests.websocket.reactive.WebsocketAcceptJupiterIntegrationTest;
 
 @GatewayTest(mode = GatewayMode.COMPATIBILITY)
-@DeployApi({ "/apis/http/api.json" })
 public class WebsocketAcceptV3CompatibilityIntegrationTest extends WebsocketAcceptJupiterIntegrationTest {}

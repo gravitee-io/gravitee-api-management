@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.tests.websocket.v3Compatibility;
 
-import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.definition.model.Api;
@@ -24,7 +23,6 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.tests.websocket.reactive.WebsocketCloseJupiterIntegrationTest;
 
 @GatewayTest
-@DeployApi({ "/apis/http/api.json" })
 public class WebsocketCloseV3CompatibilityIntegrationTest extends WebsocketCloseJupiterIntegrationTest {
 
     @Override
