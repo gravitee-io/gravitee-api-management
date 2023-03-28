@@ -26,13 +26,11 @@ import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Ticket;
-import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.MetadataEntity;
 import io.gravitee.rest.api.model.NewTicketEntity;
 import io.gravitee.rest.api.model.TicketEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -40,7 +38,6 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.MetadataService;
@@ -55,7 +52,7 @@ import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
-import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
+import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -145,14 +142,16 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             final ApplicationEntity applicationEntity;
             if (ticketEntity.getApi() == null || ticketEntity.getApi().isEmpty()) {
                 api = null;
-                final MetadataEntity emailMetadata = metadataService.findDefaultByKey(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
+                final MetadataEntity emailMetadata = metadataService.findDefaultByKey(
+                    DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY
+                );
                 if (emailMetadata == null) {
                     throw new IllegalStateException("The support email metadata has not been found");
                 }
                 emailTo = emailMetadata.getValue();
             } else {
                 api = apiTemplateService.findByIdForTemplates(executionContext, ticketEntity.getApi(), true);
-                final String apiMetadataEmailSupport = api.getMetadata().get(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
+                final String apiMetadataEmailSupport = api.getMetadata().get(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY);
                 if (apiMetadataEmailSupport == null) {
                     throw new IllegalStateException("The support email API metadata has not been found");
                 }
@@ -160,7 +159,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
                 parameters.put("api", api);
             }
 
-            if (DefaultMetadataUpgrader.DEFAULT_METADATA_EMAIL_SUPPORT.equals(emailTo)) {
+            if (DefaultMetadataInitializer.DEFAULT_METADATA_EMAIL_SUPPORT.equals(emailTo)) {
                 throw new IllegalStateException("The support email API metadata has not been changed");
             }
 

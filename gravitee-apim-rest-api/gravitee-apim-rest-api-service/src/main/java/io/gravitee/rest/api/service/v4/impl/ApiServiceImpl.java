@@ -80,7 +80,7 @@ import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
-import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
+import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -247,7 +247,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // create the default mail support metadata
             NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
             newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
-            newApiMetadataEntity.setName(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
+            newApiMetadataEntity.setName(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY);
             newApiMetadataEntity.setDefaultValue(emailMetadataValue);
             newApiMetadataEntity.setValue(emailMetadataValue);
             newApiMetadataEntity.setApiId(createdApi.getId());

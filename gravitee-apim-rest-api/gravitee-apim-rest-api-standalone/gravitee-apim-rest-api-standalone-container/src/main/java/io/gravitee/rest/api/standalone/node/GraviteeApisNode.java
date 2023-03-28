@@ -18,6 +18,7 @@ package io.gravitee.rest.api.standalone.node;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.container.AbstractNode;
+import io.gravitee.node.services.initializer.spring.InitializerConfiguration;
 import io.gravitee.node.services.upgrader.spring.UpgraderConfiguration;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import io.gravitee.plugin.alert.AlertTriggerProviderManager;
@@ -68,6 +69,7 @@ public class GraviteeApisNode extends AbstractNode {
         components.add(ScheduledCommandService.class);
 
         // Keep it at the end
+        components.addAll(InitializerConfiguration.getComponents());
         components.addAll(UpgraderConfiguration.getComponents());
         return components;
     }
