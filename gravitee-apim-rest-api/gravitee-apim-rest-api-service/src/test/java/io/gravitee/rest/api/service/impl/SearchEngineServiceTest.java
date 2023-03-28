@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -54,6 +55,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -706,7 +708,7 @@ public class SearchEngineServiceTest {
 
         @Bean
         public Collection<DocumentTransformer> transformers() {
-            return Arrays.asList(new ApiDocumentTransformer(), new PageDocumentTransformer());
+            return Arrays.asList(new ApiDocumentTransformer(new ApiServiceImpl()), new PageDocumentTransformer());
         }
 
         @Bean

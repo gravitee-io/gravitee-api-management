@@ -21,6 +21,7 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import java.util.regex.Pattern;
 import org.apache.lucene.document.Document;
@@ -31,6 +32,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.util.BytesRef;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -72,6 +74,13 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_DEFINITION_VERSION = "definition_version";
     private static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
     public static final String FIELD_ORIGIN = "origin";
+    public static final String FIELD_HAS_HEALTH_CHECK = "has_health_check";
+
+    private ApiService apiService;
+
+    public ApiDocumentTransformer(@Lazy ApiService apiService) {
+        this.apiService = apiService;
+    }
 
     @Override
     public Document transform(GenericApiEntity api) {
@@ -119,6 +128,13 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
                         appendPath(doc, pathIndex, virtualHost.getHost(), virtualHost.getPath());
                     });
             }
+            doc.add(
+                new StringField(
+                    FIELD_HAS_HEALTH_CHECK,
+                    apiService.hasHealthCheckEnabled(apiEntity, false) ? "true" : "false",
+                    Field.Store.NO
+                )
+            );
         } else {
             io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) api;
             if (apiEntity.getListeners() != null) {
@@ -133,6 +149,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
                     })
                     .forEach(path -> appendPath(doc, pathIndex, path.getHost(), path.getPath()));
             }
+            // TODO: add FIELD_HAS_HEALTH_CHECK for v4 api
         }
 
         // labels

@@ -71,4 +71,12 @@ public class ApiDocumentSearcherTest {
         assertEquals("", searcher.completeQueryWithFilters(query, builder));
         assertEquals("#(origin:\"kubernetes\" origin:kubernetes)", builder.build().toString());
     }
+
+    @Test
+    public void shouldCompleteQueryWithHasHealthCheck() {
+        Query query = QueryBuilder.create(ApiEntity.class).setQuery("has_health_check:true").build();
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        assertEquals("", searcher.completeQueryWithFilters(query, builder));
+        assertEquals("#(has_health_check:\"true\" has_health_check:true)", builder.build().toString());
+    }
 }
