@@ -69,8 +69,8 @@ public class GraviteeApisNode extends AbstractNode {
         components.add(ScheduledCommandService.class);
 
         // Keep it at the end
-        components.addAll(InitializerConfiguration.getComponents());
         components.addAll(UpgraderConfiguration.getComponents());
+        components.addAll(InitializerConfiguration.getComponents());
         return components;
     }
 }
