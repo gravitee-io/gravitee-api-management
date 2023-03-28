@@ -430,13 +430,14 @@ class ApiHistoryController {
     delete payload.path_mappings;
     delete payload.tags;
     delete payload.workflow_state;
-    delete payload.response_templates;
+    delete payload.crossId;
+
+    if (payload.response_templates && _.isEmpty(payload.response_templates)) {
+      delete payload.response_templates;
+    }
 
     if (payload.flows && _.isEmpty(payload.flows)) {
       delete payload.flows;
-    }
-    if (payload.plans && _.isEmpty(payload.plans)) {
-      delete payload.plans;
     }
     if (payload.resources && _.isEmpty(payload.resources)) {
       delete payload.resources;
@@ -445,8 +446,9 @@ class ApiHistoryController {
       delete payload.services;
     }
 
-    if (payload.plans) {
-      _.forEach(payload.plans, (plan) => {
+    payload.plans = (payload.plans ?? [])
+      .filter((plan) => plan.status !== 'CLOSED')
+      .map((plan) => {
         delete plan.characteristics;
         delete plan.comment_message;
         delete plan.comment_required;
@@ -462,8 +464,9 @@ class ApiHistoryController {
         delete plan.updated_at;
         delete plan.closed_at;
         delete plan.validation;
-      });
-    }
+        return plan;
+      })
+      .sort((plan) => plan.id);
 
     return JSON.stringify({ definition: JSON.stringify(payload) });
   }
@@ -495,7 +498,7 @@ class ApiHistoryController {
       tags: eventPayloadDefinition.tags,
       proxy: eventPayloadDefinition.proxy,
       paths: eventPayloadDefinition.paths,
-      plans: eventPayloadDefinition.plans,
+      plans: (eventPayloadDefinition.plans ?? []).sort((plan) => plan.id),
       flows: eventPayloadDefinition.flows,
       properties: eventPayloadDefinition.properties,
       services: eventPayloadDefinition.services,

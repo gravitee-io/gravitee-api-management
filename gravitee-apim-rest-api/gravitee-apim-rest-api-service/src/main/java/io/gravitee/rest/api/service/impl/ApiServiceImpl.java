@@ -1557,7 +1557,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     removeDescriptionFromPolicies(api);
                     removeDescriptionFromPolicies(deployedApi);
 
+<<<<<<< HEAD
                     sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApi, api);
+=======
+                    // FIXME: Dirty hack due to ec1abe6c8560ff5da7284191ff72e4e54b7630e3, after this change the
+                    //  payloadEntity doesn't contain the flow ids yet as there were no upgrader to update the last
+                    //  publish_api event. So we need to remove the flow ids before comparing the deployed API and the
+                    //  current one.
+                    removeIdsFromFlows(api);
+                    removeIdsFromFlows(deployedApi);
+
+                    sync = apiSynchronizationProcessor.processCheckSynchronization(deployedApi, api);
+>>>>>>> f8de40e91e (fix: allow use of personal token on the Portal API)
 
                     // 2_ If API definition is synchronized, check if there is any modification for API's plans
                     // but only for published or closed plan
@@ -1578,6 +1589,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return false;
+    }
+
+    private void removeIdsFromFlows(ApiEntity api) {
+        api.getFlows().forEach(flow -> flow.setId(null));
+        api.getPlans().forEach(plan -> plan.getFlows().forEach(flow -> flow.setId(null)));
     }
 
     private void removeDescriptionFromPolicies(final ApiEntity api) {
