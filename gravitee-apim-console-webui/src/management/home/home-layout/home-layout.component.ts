@@ -27,8 +27,8 @@ export class HomeLayoutComponent {
       uiSref: 'home.overview',
     },
     {
-      label: 'API status',
-      uiSref: 'home.apiStatus',
+      label: 'API Health-check',
+      uiSref: 'home.apiHealthCheck',
     },
   ];
 }
