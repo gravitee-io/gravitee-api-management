@@ -72,7 +72,7 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     @Bean(destroyMethod = "stop")
     public MongoDBContainer mongoDBContainer() {
         MongoDBContainer mongoDb = new MongoDBContainer(DockerImageName.parse("mongo:" + mongoVersion));
-        mongoDb.start();
+        mongoDb.withCommand("--replSet", "docker-rs", "--setParameter", "notablescan=true").start();
 
         LOG.info("Running tests with MongoDB version: {}", getMongoFullVersion(mongoDb.getContainerInfo().getConfig().getEnv()));
 
