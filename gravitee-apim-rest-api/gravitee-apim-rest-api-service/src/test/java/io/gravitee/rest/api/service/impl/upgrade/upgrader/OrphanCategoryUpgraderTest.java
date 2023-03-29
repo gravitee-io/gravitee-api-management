@@ -22,6 +22,8 @@ import static org.mockito.Mockito.*;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.model.InstallationEntity;
@@ -30,6 +32,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -84,7 +87,8 @@ public class OrphanCategoryUpgraderTest {
 
         Api apiWithOrphanCategory = new Api();
         apiWithOrphanCategory.setCategories(Set.of(orphanCategoryId, existingCategory.getId()));
-        when(apiRepository.findAll()).thenReturn(Set.of(apiWithOrphanCategory));
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
+            .thenReturn(Stream.of(apiWithOrphanCategory));
 
         setUpgradeStatus(null);
         assertTrue(upgrader.upgrade());
