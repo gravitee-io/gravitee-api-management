@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 import { Inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { AnalyticsRequestParam, AnalyticsRequestType } from '../entities/analytics/analyticsRequestParam';
-import {
-  AnalyticsCountResponse,
-  AnalyticsGroupByResponse,
-  AnalyticsResponse,
-  AnalyticsStatsResponse,
-} from '../entities/analytics/analyticsResponse';
+import { AnalyticsRequestParam } from '../entities/analytics/analyticsRequestParam';
+import { AnalyticsCountResponse, AnalyticsGroupByResponse, AnalyticsStatsResponse } from '../entities/analytics/analyticsResponse';
 
 @Injectable({
   providedIn: 'root',
@@ -32,44 +27,39 @@ import {
 export class AnalyticsService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
-  get(type: AnalyticsRequestType, params: AnalyticsRequestParam): Observable<AnalyticsResponse> {
-    switch (type) {
-      case 'COUNT':
-        return this.getCount(params);
-      case 'GROUP_BY':
-        return this.getGroupBy(params);
-      case 'STATS':
-        return this.getStats(params);
-    }
-  }
-
   getStats(params: AnalyticsRequestParam): Observable<AnalyticsStatsResponse> {
     const url =
-      `${this.constants.env.baseURL}/platform/analytics?type=stats` +
+      `${this.constants.env.baseURL}/analytics?type=stats` +
       `&field=${params.field}` +
       `&interval=${params.interval}` +
-      `&from=${params.from.getTime()}` +
-      `&to=${params.to.getTime()}`;
-    return this.http.get<AnalyticsStatsResponse>(url, { params: { timeout: this.constants.env.settings.analytics.clientTimeout } });
+      `&from=${params.from}` +
+      `&to=${params.to}`;
+    return this.http.get<AnalyticsStatsResponse>(url, {
+      headers: new HttpHeaders({ timeout: `${this.constants.env.settings.analytics.clientTimeout}` }),
+    });
   }
 
   getGroupBy(params: AnalyticsRequestParam): Observable<AnalyticsGroupByResponse> {
     const url =
-      `${this.constants.env.baseURL}/platform/analytics?type=group_by` +
+      `${this.constants.env.baseURL}/analytics?type=group_by` +
       `&field=${params.field}` +
       `&interval=${params.interval}` +
-      `&from=${params.from.getTime()}` +
-      `&to=${params.to.getTime()}`;
-    return this.http.get<AnalyticsGroupByResponse>(url, { params: { timeout: this.constants.env.settings.analytics.clientTimeout } });
+      `&from=${params.from}` +
+      `&to=${params.to}`;
+    return this.http.get<AnalyticsGroupByResponse>(url, {
+      headers: new HttpHeaders({ timeout: `${this.constants.env.settings.analytics.clientTimeout}` }),
+    });
   }
 
   getCount(params: AnalyticsRequestParam): Observable<AnalyticsCountResponse> {
     const url =
-      `${this.constants.env.baseURL}/platform/analytics?type=count` +
+      `${this.constants.env.baseURL}/analytics?type=count` +
       `&field=${params.field}` +
       `&interval=${params.interval}` +
-      `&from=${params.from.getTime()}` +
-      `&to=${params.to.getTime()}`;
-    return this.http.get<AnalyticsCountResponse>(url, { params: { timeout: this.constants.env.settings.analytics.clientTimeout } });
+      `&from=${params.from}` +
+      `&to=${params.to}`;
+    return this.http.get<AnalyticsCountResponse>(url, {
+      headers: new HttpHeaders({ timeout: `${this.constants.env.settings.analytics.clientTimeout}` }),
+    });
   }
 }

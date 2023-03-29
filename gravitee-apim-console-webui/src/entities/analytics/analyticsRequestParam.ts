@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-export type AnalyticsRequestType = 'STATS' | 'GROUP_BY' | 'COUNT';
-
 export class AnalyticsRequestParam {
   field: string;
-  from: Date;
-  to: Date;
+  from: number;
+  to: number;
   interval: number;
 }
