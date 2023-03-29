@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl.upgrade;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.service.InstallationService;
@@ -66,8 +68,7 @@ public class OrphanCategoryUpgrader extends OneShotUpgrader {
         Set<String> existingCategoryIds = getExistingCategoryIds();
 
         return apiRepository
-            .findAll()
-            .stream()
+            .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
             .filter(api -> hasOrphanCategories(api, existingCategoryIds))
             .peek(api -> removeOrphanCategories(api, existingCategoryIds))
             .collect(Collectors.toSet());
