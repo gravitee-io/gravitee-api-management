@@ -25,6 +25,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.service.ApiService;
@@ -98,19 +100,23 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
 
     @Override
     protected void processOneShotUpgrade() throws Exception {
-        for (Api api : apiRepository.findAll()) {
-            io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                api.getDefinition(),
-                io.gravitee.definition.model.Api.class
-            );
-
-            if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion()) {
-                ExecutionContext executionContext = getApiExecutionContext(api);
-                if (executionContext != null) {
-                    fixApiPlans(executionContext, api, apiDefinition);
+        apiRepository
+            .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
+            .forEach(api -> {
+                try {
+                    io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                        api.getDefinition(),
+                        io.gravitee.definition.model.Api.class
+                    );
+                    ExecutionContext executionContext = getApiExecutionContext(api);
+                    if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion() && executionContext != null) {
+                        fixApiPlans(executionContext, api, apiDefinition);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-            }
-        }
+            });
+
         if (!anomalyFound) {
             LOGGER.info("No plan data anomaly found");
         }

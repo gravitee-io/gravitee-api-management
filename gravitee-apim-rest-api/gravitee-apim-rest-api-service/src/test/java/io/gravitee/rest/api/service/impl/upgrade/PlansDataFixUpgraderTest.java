@@ -23,6 +23,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Plan;
@@ -34,6 +37,7 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -164,7 +168,8 @@ public class PlansDataFixUpgraderTest {
         apiv2_2.setId("api4");
         apiv2_2.setDefinition("{\"gravitee\": \"2.0.0\"}");
         apiv2_2.setEnvironmentId("envId");
-        when(apiRepository.findAll()).thenReturn(Set.of(apiv1_1, apiv2_1, apiv1_2, apiv2_2));
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
+            .thenReturn(Stream.of(apiv1_1, apiv2_1, apiv1_2, apiv2_2));
 
         upgrader.processOneShotUpgrade();
 
@@ -192,7 +197,7 @@ public class PlansDataFixUpgraderTest {
         api3.setEnvironmentId("env1");
         api3.setDefinition("{\"gravitee\": \"2.0.0\"}");
 
-        when(apiRepository.findAll()).thenReturn(Set.of(api1, api2, api3));
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(Stream.of(api1, api2, api3));
 
         when(environmentRepository.findById("env1")).thenReturn(Optional.of(buildTestEnvironment("env1", "org1")));
         when(environmentRepository.findById("env2")).thenReturn(Optional.of(buildTestEnvironment("env2", "org2")));
@@ -222,7 +227,7 @@ public class PlansDataFixUpgraderTest {
         api1.setEnvironmentId("env1");
         api1.setDefinition("{\"gravitee\": \"2.0.0\"}");
 
-        when(apiRepository.findAll()).thenReturn(Set.of(api1));
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(Stream.of(api1));
         when(environmentRepository.findById(any())).thenThrow(new TechnicalException("this is a test exception"));
 
         upgrader.processOneShotUpgrade();
