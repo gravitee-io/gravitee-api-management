@@ -21,10 +21,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import java.util.Map;
 import java.util.function.Function;
@@ -68,17 +71,22 @@ public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
     }
 
     @Override
-    protected void processOneShotUpgrade() throws Exception {
-        for (Api api : apiRepository.findAll()) {
-            io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                api.getDefinition(),
-                io.gravitee.definition.model.Api.class
-            );
-
-            if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion()) {
-                migrateApiFlows(api.getId(), apiDefinition);
-            }
-        }
+    protected void processOneShotUpgrade() {
+        apiRepository
+            .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
+            .forEach(api -> {
+                try {
+                    io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                        api.getDefinition(),
+                        io.gravitee.definition.model.Api.class
+                    );
+                    if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion()) {
+                        migrateApiFlows(api.getId(), apiDefinition);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 
     protected void migrateApiFlows(String apiId, io.gravitee.definition.model.Api apiDefinition) throws Exception {

@@ -23,6 +23,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Api;
@@ -163,7 +165,10 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     }
 
     protected List<CompletableFuture<?>> runApisIndexationAsync(ExecutorService executorService) throws TechnicalException {
-        return apiRepository.findAll().stream().map(api -> runApiIndexationAsync(executorService, api)).collect(toList());
+        return apiRepository
+            .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
+            .map(api -> runApiIndexationAsync(executorService, api))
+            .collect(toList());
     }
 
     private CompletableFuture<?> runApiIndexationAsync(ExecutorService executorService, Api api) {
