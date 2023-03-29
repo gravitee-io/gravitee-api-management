@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static java.util.Optional.ofNullable;
+
 import io.gravitee.gateway.reactive.api.connector.ConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -68,9 +70,13 @@ public class EntrypointConnectorPluginServiceImpl
     }
 
     private String validateSubscriptionConfiguration(String pluginId, String configuration) {
-        if (pluginId != null && configuration != null) {
+        if (pluginId != null) {
             String schema = getSubscriptionSchema(pluginId);
-            return jsonSchemaService.validate(schema, configuration);
+            if (schema != null) {
+                // schema maybe null, if not we run the validation against the configuration or an empty object if the config is null
+                // this ensures that a null configuration is acceptable when there is not required fields.
+                return jsonSchemaService.validate(schema, ofNullable(configuration).orElse("{}"));
+            }
         }
         return configuration;
     }
