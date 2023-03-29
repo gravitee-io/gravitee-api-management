@@ -15,24 +15,13 @@
  */
 package io.gravitee.definition.jackson.datatype.api.deser;
 
-import static java.util.Comparator.reverseOrder;
-
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.plugins.resources.Resource;
-import io.gravitee.definition.model.services.Services;
-import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import java.io.IOException;
-import java.util.*;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

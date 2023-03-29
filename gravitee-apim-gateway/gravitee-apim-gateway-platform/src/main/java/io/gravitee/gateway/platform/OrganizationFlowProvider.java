@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.platform;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.definition.model.flow.FlowStage;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -57,12 +57,12 @@ public class OrganizationFlowProvider implements FlowProvider {
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context) {
-        List<Flow> flows = flowResolver.resolve(context);
+        List<FlowEntity> flows = flowResolver.resolve(context);
 
         if (flows != null && !flows.isEmpty()) {
             final List<StreamableProcessor<ExecutionContext, Buffer>> chain = new ArrayList<>(flows.size());
 
-            for (Flow flow : flows) {
+            for (FlowEntity flow : flows) {
                 flow.setStage(FlowStage.PLATFORM);
                 chain.add(
                     policyChainFactory.create(

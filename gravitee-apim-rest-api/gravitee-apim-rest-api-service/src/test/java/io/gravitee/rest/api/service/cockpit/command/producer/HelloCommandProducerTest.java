@@ -29,7 +29,7 @@ import io.gravitee.cockpit.api.command.hello.HelloCommand;
 import io.gravitee.cockpit.api.command.hello.HelloPayload;
 import io.gravitee.cockpit.api.command.hello.HelloReply;
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.InstallationEntity;
@@ -153,7 +153,7 @@ public class HelloCommandProducerTest {
         helloReply.setCommandStatus(CommandStatus.SUCCEEDED);
         helloReply.setDefaultOrganizationCockpitId("org#cockpit-1");
 
-        Flow flow = new Flow();
+        FlowEntity flow = new FlowEntity();
         flow.setName("My-Flow");
 
         String defaultOrgId = "DEFAULT";

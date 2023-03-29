@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.flow;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
@@ -46,11 +46,11 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
         flowResolver = new TestFlowResolver(evaluator, buildFlows());
     }
 
-    private List<Flow> buildFlows() {
+    private List<FlowEntity> buildFlows() {
         return flowPaths
             .stream()
             .map(path -> {
-                Flow flow = new Flow();
+                FlowEntity flow = new FlowEntity();
                 PathOperator pathOperator = new PathOperator();
                 pathOperator.setPath(path);
                 // No need to test different operator in this test.
@@ -64,25 +64,25 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
 
     protected static class TestFlowResolver extends ConditionalFlowResolver implements FlowResolver {
 
-        private final List<Flow> flows;
+        private final List<FlowEntity> flows;
 
-        public TestFlowResolver(ConditionEvaluator<Flow> evaluator, List<Flow> flows) {
+        public TestFlowResolver(ConditionEvaluator<FlowEntity> evaluator, List<FlowEntity> flows) {
             super(evaluator);
             this.flows = flows;
         }
 
         @Override
-        protected List<Flow> resolve0(ExecutionContext context) {
+        protected List<FlowEntity> resolve0(ExecutionContext context) {
             return flows;
         }
 
         @Override
-        public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
+        public Flowable<FlowEntity> provideFlows(GenericExecutionContext ctx) {
             return Flowable.fromIterable(flows);
         }
 
         @Override
-        public Flowable<Flow> resolve(GenericExecutionContext ctx) {
+        public Flowable<FlowEntity> resolve(GenericExecutionContext ctx) {
             return Flowable.fromIterable(super.resolve(ExecutionContextAdapter.create((HttpExecutionContext) ctx)));
         }
     }

@@ -22,15 +22,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -45,7 +42,6 @@ import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import java.util.*;
-import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -154,7 +150,7 @@ public class ApiService_FindByIdTest {
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
+        List<FlowEntity> apiFlows = List.of(mock(FlowEntity.class), mock(FlowEntity.class));
         when(flowService.findByReference(FlowReferenceType.API, API_ID)).thenReturn(apiFlows);
 
         MembershipEntity po = new MembershipEntity();

@@ -23,7 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.debug.DebugApi;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
@@ -653,8 +653,8 @@ public class EventServiceTest {
         return plan;
     }
 
-    private Flow buildFlow(String name) {
-        Flow flow = new Flow();
+    private FlowEntity buildFlow(String name) {
+        FlowEntity flow = new FlowEntity();
         flow.setName(name);
         return flow;
     }

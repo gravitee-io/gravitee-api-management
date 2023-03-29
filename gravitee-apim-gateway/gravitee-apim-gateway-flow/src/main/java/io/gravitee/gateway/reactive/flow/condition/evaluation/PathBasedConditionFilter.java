@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.flow.condition.evaluation;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
@@ -23,17 +23,17 @@ import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * This {@link ConditionFilter} evaluates to true if the path of the request is matching the
- * path declared within the {@link Flow} depending on the {@link Operator}
+ * path declared within the {@link FlowEntity} depending on the {@link Operator}
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PathBasedConditionFilter
     extends io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator
-    implements ConditionFilter<Flow> {
+    implements ConditionFilter<FlowEntity> {
 
     @Override
-    public Maybe<Flow> filter(GenericExecutionContext ctx, Flow flow) {
+    public Maybe<FlowEntity> filter(GenericExecutionContext ctx, FlowEntity flow) {
         return evaluate(ctx.request().pathInfo(), flow) ? Maybe.just(flow) : Maybe.empty();
     }
 }

@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.*;
@@ -40,7 +40,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,7 +120,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     }
 
     @Override
-    public List<Flow> findByReference(FlowReferenceType flowReferenceType, String referenceId) {
+    public List<FlowEntity> findByReference(FlowReferenceType flowReferenceType, String referenceId) {
         try {
             LOGGER.debug("Find flows by reference {} - {}", flowReferenceType, flowReferenceType);
             return flowRepository
@@ -138,7 +137,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
     }
 
     @Override
-    public List<Flow> save(FlowReferenceType flowReferenceType, String referenceId, List<Flow> flows) {
+    public List<FlowEntity> save(FlowReferenceType flowReferenceType, String referenceId, List<FlowEntity> flows) {
         try {
             LOGGER.debug("Save flows for reference {},{}", flowReferenceType, referenceId);
             if (flows == null || flows.isEmpty()) {
@@ -150,7 +149,7 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 .stream()
                 .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
 
-            Set<String> flowIdsToSave = flows.stream().map(Flow::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+            Set<String> flowIdsToSave = flows.stream().map(FlowEntity::getId).filter(Objects::nonNull).collect(Collectors.toSet());
 
             for (String dbFlowId : dbFlowsById.keySet()) {
                 if (!flowIdsToSave.contains(dbFlowId)) {
@@ -158,10 +157,10 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                 }
             }
 
-            List<Flow> savedFlows = new ArrayList<>();
+            List<FlowEntity> savedFlows = new ArrayList<>();
             io.gravitee.repository.management.model.flow.Flow dbFlow;
             for (int order = 0; order < flows.size(); ++order) {
-                Flow flow = flows.get(order);
+                FlowEntity flow = flows.get(order);
                 if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
                     dbFlow = flowRepository.create(flowConverter.toRepository(flow, flowReferenceType, referenceId, order));
                 } else {

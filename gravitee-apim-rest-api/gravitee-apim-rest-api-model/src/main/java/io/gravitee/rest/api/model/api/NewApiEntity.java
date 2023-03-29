@@ -16,10 +16,8 @@
 package io.gravitee.rest.api.model.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.rest.api.model.DeploymentRequired;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Set;
@@ -71,7 +69,7 @@ public class NewApiEntity {
     private List<String> paths;
 
     @Schema(description = "API's paths. A json representation of the design of each flow.")
-    private List<Flow> flows;
+    private List<FlowEntity> flows;
 
     @JsonProperty(value = "flow_mode")
     @Schema(description = "API's flow mode.", example = "BEST_MATCH")
@@ -137,11 +135,11 @@ public class NewApiEntity {
         this.groups = groups;
     }
 
-    public List<Flow> getFlows() {
+    public List<FlowEntity> getFlows() {
         return flows;
     }
 
-    public void setFlows(List<Flow> flows) {
+    public void setFlows(List<FlowEntity> flows) {
         this.flows = flows;
     }
 

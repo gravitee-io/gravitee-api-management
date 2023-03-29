@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.*;
@@ -76,7 +76,7 @@ public class UpdateApiEntity {
 
     @JsonProperty(value = "flows")
     @Schema(description = "a list of flows (the policies configuration)")
-    private List<Flow> flows = new ArrayList<>();
+    private List<FlowEntity> flows = new ArrayList<>();
 
     @JsonProperty(value = "plans")
     @Schema(description = "a list of plans with flows (the policies configuration)")

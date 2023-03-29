@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -55,7 +55,7 @@ class DefaultPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainForRequestPhase() {
         final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
+        final FlowEntity flow = mock(FlowEntity.class);
         final Step step1 = mock(Step.class);
         final Step step2 = mock(Step.class);
 
@@ -103,7 +103,7 @@ class DefaultPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainWithoutDisabledSteps() {
         final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
+        final FlowEntity flow = mock(FlowEntity.class);
         final Step step1 = mock(Step.class);
         final Step step2 = mock(Step.class);
 
@@ -137,7 +137,7 @@ class DefaultPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainOnceAndPutInCache() {
         final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
+        final FlowEntity flow = mock(FlowEntity.class);
         final Step step1 = mock(Step.class);
         final Step step2 = mock(Step.class);
 
@@ -187,7 +187,7 @@ class DefaultPolicyChainFactoryTest {
     @Test
     public void shouldCreatePolicyChainForResponsePhase() {
         final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
+        final FlowEntity flow = mock(FlowEntity.class);
         final Step step1 = mock(Step.class);
 
         when(step1.isEnabled()).thenReturn(true);
@@ -205,7 +205,7 @@ class DefaultPolicyChainFactoryTest {
     @Test
     public void shouldFilterNullPoliciesReturnedByPolicyManager() {
         final Policy policy = mock(Policy.class);
-        final Flow flow = mock(Flow.class);
+        final FlowEntity flow = mock(FlowEntity.class);
         final Step step1 = mock(Step.class);
         final Step step2 = mock(Step.class);
 
@@ -233,7 +233,7 @@ class DefaultPolicyChainFactoryTest {
 
     @Test
     public void shouldNoCreateAnyPolicyWhenUnsupportedPhase() {
-        final Flow flow = mock(Flow.class);
+        final FlowEntity flow = mock(FlowEntity.class);
 
         final PolicyChain policyChain = cut.create("fowchain-test", flow, ExecutionPhase.MESSAGE_REQUEST);
         assertNotNull(policyChain);

@@ -27,7 +27,7 @@ import java.util.*;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Flow implements Serializable, ConditionSupplier {
+public class FlowEntity implements Serializable, ConditionSupplier {
 
     @JsonProperty("id")
     private String id;

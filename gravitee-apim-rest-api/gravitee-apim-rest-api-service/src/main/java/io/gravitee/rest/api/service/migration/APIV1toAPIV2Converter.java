@@ -25,7 +25,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
@@ -71,8 +71,8 @@ public class APIV1toAPIV2Converter {
      * @param policies, the list of available policies, containing available scopes
      * @return the list of Flows
      */
-    private List<Flow> migratePathsToFlows(Map<String, List<Rule>> paths, Set<PolicyEntity> policies) {
-        List<Flow> flows = new ArrayList<>();
+    private List<FlowEntity> migratePathsToFlows(Map<String, List<Rule>> paths, Set<PolicyEntity> policies) {
+        List<FlowEntity> flows = new ArrayList<>();
         if (!CollectionUtils.isEmpty(paths)) {
             paths.forEach((pathKey, pathValue) -> {
                 // if all rules for a path have the same set of HttpMethods, then we have a unique flow for this path.
@@ -91,7 +91,7 @@ public class APIV1toAPIV2Converter {
 
                 if (oneFlowPerPathMode) {
                     // since, all HttpMethods are the same in this case, we can use `pathValue.getRules().get(0).getMethods()`
-                    final Flow flow = createFlow(pathKey, pathValue.get(0).getMethods());
+                    final FlowEntity flow = createFlow(pathKey, pathValue.get(0).getMethods());
                     pathValue.forEach(rule -> {
                         configurePolicies(policies, rule, flow);
                     });
@@ -101,7 +101,7 @@ public class APIV1toAPIV2Converter {
                     flows.add(flow);
                 } else {
                     pathValue.forEach(rule -> {
-                        final Flow flow = createFlow(pathKey, rule.getMethods());
+                        final FlowEntity flow = createFlow(pathKey, rule.getMethods());
                         configurePolicies(policies, rule, flow);
 
                         // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
@@ -152,7 +152,7 @@ public class APIV1toAPIV2Converter {
      * @param rule, the rule to transform into Step
      * @param flow, the current Flow
      */
-    private void configurePolicies(Set<PolicyEntity> policies, Rule rule, Flow flow) {
+    private void configurePolicies(Set<PolicyEntity> policies, Rule rule, FlowEntity flow) {
         policies
             .stream()
             .filter(policy -> policy.getId().equals(rule.getPolicy().getName()))
@@ -208,11 +208,11 @@ public class APIV1toAPIV2Converter {
     }
 
     @NotNull
-    private Flow createFlow(String path, Set<HttpMethod> methods) {
+    private FlowEntity createFlow(String path, Set<HttpMethod> methods) {
         // If contains all methods of HttpMethod enum or all methods without OTHER
         Set<HttpMethod> flowMethods = methods.containsAll(HTTP_METHODS) ? Collections.emptySet() : methods;
 
-        final Flow flow = new Flow();
+        final FlowEntity flow = new FlowEntity();
         flow.setName("");
         flow.setCondition("");
         flow.setEnabled(true);

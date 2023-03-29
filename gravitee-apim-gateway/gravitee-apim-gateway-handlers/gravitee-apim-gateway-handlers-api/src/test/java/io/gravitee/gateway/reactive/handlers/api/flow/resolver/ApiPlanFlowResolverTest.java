@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.reactivex.rxjava3.core.Maybe;
@@ -45,7 +45,7 @@ class ApiPlanFlowResolverTest {
     private Api api;
 
     @Mock
-    private ConditionFilter<Flow> filter;
+    private ConditionFilter<FlowEntity> filter;
 
     @Mock
     private HttpExecutionContext ctx;
@@ -53,17 +53,17 @@ class ApiPlanFlowResolverTest {
     @Test
     public void shouldProvideApiPlanFlowsOrdered() {
         final Plan plan1 = mock(Plan.class);
-        final List<Flow> planFlows1 = new ArrayList<>();
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final List<FlowEntity> planFlows1 = new ArrayList<>();
+        final FlowEntity flow1 = mock(FlowEntity.class);
+        final FlowEntity flow2 = mock(FlowEntity.class);
 
         planFlows1.add(flow1);
         planFlows1.add(flow2);
 
         final Plan plan2 = mock(Plan.class);
-        final List<Flow> planFlows2 = new ArrayList<>();
-        final Flow flow3 = mock(Flow.class);
-        final Flow flow4 = mock(Flow.class);
+        final List<FlowEntity> planFlows2 = new ArrayList<>();
+        final FlowEntity flow3 = mock(FlowEntity.class);
+        final FlowEntity flow4 = mock(FlowEntity.class);
 
         planFlows2.add(flow3);
         planFlows2.add(flow4);
@@ -80,7 +80,7 @@ class ApiPlanFlowResolverTest {
         when(plan2.getFlows()).thenReturn(planFlows2);
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow1, flow2, flow3, flow4);
     }
@@ -88,17 +88,17 @@ class ApiPlanFlowResolverTest {
     @Test
     public void shouldProvideEnabledApiPlanFlowsOnly() {
         final Plan plan1 = mock(Plan.class);
-        final List<Flow> planFlows1 = new ArrayList<>();
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final List<FlowEntity> planFlows1 = new ArrayList<>();
+        final FlowEntity flow1 = mock(FlowEntity.class);
+        final FlowEntity flow2 = mock(FlowEntity.class);
 
         planFlows1.add(flow1);
         planFlows1.add(flow2);
 
         final Plan plan2 = mock(Plan.class);
-        final List<Flow> planFlows2 = new ArrayList<>();
-        final Flow flow3 = mock(Flow.class);
-        final Flow flow4 = mock(Flow.class);
+        final List<FlowEntity> planFlows2 = new ArrayList<>();
+        final FlowEntity flow3 = mock(FlowEntity.class);
+        final FlowEntity flow4 = mock(FlowEntity.class);
 
         planFlows2.add(flow3);
         planFlows2.add(flow4);
@@ -115,7 +115,7 @@ class ApiPlanFlowResolverTest {
         when(plan2.getFlows()).thenReturn(planFlows2);
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow2, flow4);
     }
@@ -125,7 +125,7 @@ class ApiPlanFlowResolverTest {
         when(api.getPlans()).thenReturn(null);
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -135,7 +135,7 @@ class ApiPlanFlowResolverTest {
         when(api.getPlans()).thenReturn(emptyList());
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -145,7 +145,7 @@ class ApiPlanFlowResolverTest {
         when(api.getPlans()).thenReturn(List.of(new Plan()));
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -157,7 +157,7 @@ class ApiPlanFlowResolverTest {
         when(api.getPlans()).thenReturn(List.of(plan));
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -165,17 +165,17 @@ class ApiPlanFlowResolverTest {
     @Test
     public void shouldResolve() {
         final Plan plan1 = mock(Plan.class);
-        final List<Flow> planFlows1 = new ArrayList<>();
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final List<FlowEntity> planFlows1 = new ArrayList<>();
+        final FlowEntity flow1 = mock(FlowEntity.class);
+        final FlowEntity flow2 = mock(FlowEntity.class);
 
         planFlows1.add(flow1);
         planFlows1.add(flow2);
 
         final Plan plan2 = mock(Plan.class);
-        final List<Flow> planFlows2 = new ArrayList<>();
-        final Flow flow3 = mock(Flow.class);
-        final Flow flow4 = mock(Flow.class);
+        final List<FlowEntity> planFlows2 = new ArrayList<>();
+        final FlowEntity flow3 = mock(FlowEntity.class);
+        final FlowEntity flow4 = mock(FlowEntity.class);
 
         planFlows2.add(flow3);
         planFlows2.add(flow4);
@@ -193,7 +193,7 @@ class ApiPlanFlowResolverTest {
         when(filter.filter(eq(ctx), any())).thenAnswer(i -> Maybe.just(i.getArgument(1)));
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
+        final TestSubscriber<FlowEntity> obs = cut.resolve(ctx).test();
 
         obs.assertResult(flow1, flow2, flow3, flow4);
     }
@@ -201,17 +201,17 @@ class ApiPlanFlowResolverTest {
     @Test
     public void shouldResolveEmptyFlowsWhenAllFlowFiltered() {
         final Plan plan1 = mock(Plan.class);
-        final List<Flow> planFlows1 = new ArrayList<>();
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final List<FlowEntity> planFlows1 = new ArrayList<>();
+        final FlowEntity flow1 = mock(FlowEntity.class);
+        final FlowEntity flow2 = mock(FlowEntity.class);
 
         planFlows1.add(flow1);
         planFlows1.add(flow2);
 
         final Plan plan2 = mock(Plan.class);
-        final List<Flow> planFlows2 = new ArrayList<>();
-        final Flow flow3 = mock(Flow.class);
-        final Flow flow4 = mock(Flow.class);
+        final List<FlowEntity> planFlows2 = new ArrayList<>();
+        final FlowEntity flow3 = mock(FlowEntity.class);
+        final FlowEntity flow4 = mock(FlowEntity.class);
 
         planFlows2.add(flow3);
         planFlows2.add(flow4);
@@ -229,7 +229,7 @@ class ApiPlanFlowResolverTest {
         when(filter.filter(eq(ctx), any())).thenReturn(Maybe.empty());
 
         final ApiPlanFlowResolver cut = new ApiPlanFlowResolver(api, filter);
-        final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
+        final TestSubscriber<FlowEntity> obs = cut.resolve(ctx).test();
 
         obs.assertResult();
     }

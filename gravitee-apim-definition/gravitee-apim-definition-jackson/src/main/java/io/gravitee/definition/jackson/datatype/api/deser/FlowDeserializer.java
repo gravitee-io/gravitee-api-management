@@ -20,10 +20,6 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.Failover;
-import io.gravitee.definition.model.FailoverCase;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.*;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,17 +30,17 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FlowDeserializer extends StdScalarDeserializer<Flow> {
+public class FlowDeserializer extends StdScalarDeserializer<FlowEntity> {
 
-    public FlowDeserializer(Class<Flow> vc) {
+    public FlowDeserializer(Class<FlowEntity> vc) {
         super(vc);
     }
 
     @Override
-    public Flow deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public FlowEntity deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        Flow flow = new Flow();
+        FlowEntity flow = new FlowEntity();
 
         JsonNode jsonId = node.path("id");
 

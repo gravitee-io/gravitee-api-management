@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.definition.model.flow.Step;
 import java.util.List;
 import java.util.Set;
@@ -34,7 +34,7 @@ public class ApiTest {
     public void shouldFilterDisabledFlowPreStep() {
         io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
         Api api = new Api(definition);
-        Flow flow = new Flow();
+        FlowEntity flow = new FlowEntity();
         flow.setPre(aStepList());
         definition.setFlows(List.of(flow));
 
@@ -47,7 +47,7 @@ public class ApiTest {
     public void shouldFilterDisabledFlowPostStep() {
         io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
         Api api = new Api(definition);
-        Flow flow = new Flow();
+        FlowEntity flow = new FlowEntity();
         flow.setPost(aStepList());
         definition.setFlows(List.of(flow));
 
@@ -60,7 +60,7 @@ public class ApiTest {
     public void shouldFilterDisabledPlanFlowPreStep() {
         io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
         Api api = new Api(definition);
-        Flow flow = new Flow();
+        FlowEntity flow = new FlowEntity();
         flow.setPre(aStepList());
         Plan plan = aPlan(List.of(flow));
         definition.setPlans(List.of(plan));
@@ -74,7 +74,7 @@ public class ApiTest {
     public void shouldFilterDisabledPlanFlowPostStep() {
         io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
         Api api = new Api(definition);
-        Flow flow = new Flow();
+        FlowEntity flow = new FlowEntity();
         flow.setPost(aStepList());
         Plan plan = aPlan(List.of(flow));
         definition.setPlans(List.of(plan));
@@ -117,7 +117,7 @@ public class ApiTest {
         return List.of(enabledPreStep, disabledPreStep);
     }
 
-    private Plan aPlan(List<Flow> flowList) {
+    private Plan aPlan(List<FlowEntity> flowList) {
         Plan plan = new Plan();
         plan.setPaths(null);
         plan.setSecurity("KEY_LESS");
@@ -125,10 +125,10 @@ public class ApiTest {
         return plan;
     }
 
-    private List<Flow> aFlowList() {
-        Flow enabledFlow = new Flow();
+    private List<FlowEntity> aFlowList() {
+        FlowEntity enabledFlow = new FlowEntity();
         enabledFlow.setEnabled(true);
-        Flow disabledFlow = new Flow();
+        FlowEntity disabledFlow = new FlowEntity();
         disabledFlow.setPre(aStepList());
         disabledFlow.setEnabled(false);
         return List.of(enabledFlow, disabledFlow);

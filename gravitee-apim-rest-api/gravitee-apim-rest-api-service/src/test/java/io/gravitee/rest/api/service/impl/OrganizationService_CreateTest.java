@@ -21,13 +21,11 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
@@ -36,8 +34,6 @@ import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
-import io.gravitee.rest.api.service.impl.OrganizationServiceImpl;
-import java.util.*;
 import java.util.*;
 import org.junit.After;
 import org.junit.Before;
@@ -150,7 +146,7 @@ public class OrganizationService_CreateTest {
         org1.setDescription("org_desc");
         List<String> domainRestrictions = Arrays.asList("domain", "restriction");
         org1.setDomainRestrictions(domainRestrictions);
-        org1.setFlows(List.of(mock(Flow.class)));
+        org1.setFlows(List.of(mock(FlowEntity.class)));
 
         Organization createdOrganization = new Organization();
         createdOrganization.setId("org_id");

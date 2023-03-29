@@ -19,11 +19,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
@@ -64,10 +62,10 @@ class FlowChainTest {
 
     @Test
     public void shouldExecuteOnRequest() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final FlowEntity flow1 = mock(FlowEntity.class);
+        final FlowEntity flow2 = mock(FlowEntity.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
+        final Flowable<FlowEntity> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final PolicyChain policyChain1 = mock(PolicyChain.class);
@@ -88,10 +86,10 @@ class FlowChainTest {
 
     @Test
     public void shouldExecuteOnResponse() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final FlowEntity flow1 = mock(FlowEntity.class);
+        final FlowEntity flow2 = mock(FlowEntity.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
+        final Flowable<FlowEntity> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final PolicyChain policyChain1 = mock(PolicyChain.class);
@@ -112,10 +110,10 @@ class FlowChainTest {
 
     @Test
     public void shouldExecuteAndReusePreviousFlowResolution() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final FlowEntity flow1 = mock(FlowEntity.class);
+        final FlowEntity flow2 = mock(FlowEntity.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
+        final Flowable<FlowEntity> resolvedFlows = Flowable.just(flow1, flow2);
         when(ctx.getInternalAttribute(eq("flow." + FLOW_CHAIN_ID))).thenReturn(resolvedFlows);
 
         final PolicyChain policyChain1 = mock(PolicyChain.class);
@@ -137,10 +135,10 @@ class FlowChainTest {
 
     @Test
     public void shouldExecuteOnlyFlow1IfError() {
-        final Flow flow1 = mock(Flow.class);
-        final Flow flow2 = mock(Flow.class);
+        final FlowEntity flow1 = mock(FlowEntity.class);
+        final FlowEntity flow2 = mock(FlowEntity.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
+        final Flowable<FlowEntity> resolvedFlows = Flowable.just(flow1, flow2);
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
 
         final PolicyChain policyChain1 = mock(PolicyChain.class);

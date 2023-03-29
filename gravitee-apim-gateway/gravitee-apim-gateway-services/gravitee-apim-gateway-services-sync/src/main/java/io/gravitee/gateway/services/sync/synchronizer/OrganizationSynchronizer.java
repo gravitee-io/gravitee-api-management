@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.repository.management.api.EventRepository;
@@ -132,7 +132,7 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
                 try {
                     List<String> shardingTags = gatewayConfiguration.shardingTags().orElse(null);
                     if (shardingTags != null && !shardingTags.isEmpty()) {
-                        List<Flow> filteredFlows = organization
+                        List<FlowEntity> filteredFlows = organization
                             .getFlows()
                             .stream()
                             .filter(flow -> {

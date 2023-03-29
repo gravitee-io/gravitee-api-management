@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.mapper;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
@@ -56,7 +57,7 @@ public class GenericPlanMapper {
             List<Flow> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
             return planMapper.toEntity(plan, flows);
         } else {
-            List<io.gravitee.definition.model.flow.Flow> flows = flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId());
+            List<FlowEntity> flows = flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId());
             return planConverter.toPlanEntity(plan, flows);
         }
     }

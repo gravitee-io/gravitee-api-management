@@ -16,11 +16,9 @@
 package io.gravitee.gateway.platform;
 
 import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -53,15 +51,10 @@ public class Organization extends io.gravitee.definition.model.Organization impl
         // Load policies from flows
         if (getFlows() != null) {
             getFlows()
-                .forEach(
-                    new Consumer<Flow>() {
-                        @Override
-                        public void accept(Flow flow) {
-                            policies.addAll(getPolicies(flow.getPre()));
-                            policies.addAll(getPolicies(flow.getPost()));
-                        }
-                    }
-                );
+                .forEach(flow -> {
+                    policies.addAll(getPolicies(flow.getPre()));
+                    policies.addAll(getPolicies(flow.getPost()));
+                });
         }
 
         return policies;

@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
@@ -33,9 +33,9 @@ import io.gravitee.gateway.reactor.ReactableApi;
  */
 public class FlowResolverFactory {
 
-    private final ConditionFilter<Flow> flowFilter;
+    private final ConditionFilter<FlowEntity> flowFilter;
 
-    public FlowResolverFactory(ConditionFilter<Flow> flowFilter) {
+    public FlowResolverFactory(ConditionFilter<FlowEntity> flowFilter) {
         this.flowFilter = flowFilter;
     }
 

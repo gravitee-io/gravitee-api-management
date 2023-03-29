@@ -27,7 +27,7 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDAT
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -604,7 +604,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     private PlanEntity convert(Plan plan) {
-        List<Flow> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
+        List<FlowEntity> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
         return planConverter.toPlanEntity(plan, flows);
     }
 

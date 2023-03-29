@@ -15,7 +15,7 @@
  */
 package io.gravitee.definition.model;
 
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,7 +30,7 @@ public class Organization implements Serializable {
     private String description;
     private List<String> domainRestrictions;
     private FlowMode flowMode;
-    private List<Flow> flows = new ArrayList<>();
+    private List<FlowEntity> flows = new ArrayList<>();
     private Date updatedAt;
 
     public String getId() {
@@ -81,11 +81,11 @@ public class Organization implements Serializable {
         this.flowMode = flowMode;
     }
 
-    public List<Flow> getFlows() {
+    public List<FlowEntity> getFlows() {
         return flows;
     }
 
-    public void setFlows(List<Flow> flows) {
+    public void setFlows(List<FlowEntity> flows) {
         this.flows = flows;
     }
 

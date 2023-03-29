@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
@@ -396,7 +396,7 @@ public class ApiService_CreateTest {
         when(newApi.getVersion()).thenReturn("v1");
         when(newApi.getDescription()).thenReturn("Ma description");
 
-        List<Flow> apiFlows = List.of(mock(Flow.class), mock(Flow.class));
+        List<FlowEntity> apiFlows = List.of(mock(FlowEntity.class), mock(FlowEntity.class));
         when(newApi.getFlows()).thenReturn(apiFlows);
 
         apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);

@@ -20,7 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class PlanConverter {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public PlanEntity toPlanEntity(Plan plan, List<Flow> flows) {
+    public PlanEntity toPlanEntity(Plan plan, List<FlowEntity> flows) {
         PlanEntity entity = new PlanEntity();
 
         entity.setId(plan.getId());

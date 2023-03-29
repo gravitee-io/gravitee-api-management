@@ -18,7 +18,7 @@ package io.gravitee.gateway.reactive.policy;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.*;
 
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -76,7 +76,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
      * Once created, the policy chain is put in cache to avoid useless re-instantiations.
      */
     @Override
-    public PolicyChain create(final String flowChainId, Flow flow, ExecutionPhase phase) {
+    public PolicyChain create(final String flowChainId, FlowEntity flow, ExecutionPhase phase) {
         final String key = getFlowKey(flow, phase);
         PolicyChain policyChain = policyChains.get(key);
 
@@ -107,7 +107,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
         return policyMetadata;
     }
 
-    private List<Step> getSteps(Flow flow, ExecutionPhase phase) {
+    private List<Step> getSteps(FlowEntity flow, ExecutionPhase phase) {
         List<Step> steps = null;
 
         if (phase == REQUEST) {
@@ -119,11 +119,11 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
         return steps != null ? steps : Collections.emptyList();
     }
 
-    private String getFlowKey(Flow flow, ExecutionPhase phase) {
+    private String getFlowKey(FlowEntity flow, ExecutionPhase phase) {
         return flow.hashCode() + "-" + phase.name();
     }
 
-    private String getFlowId(final String flowChainId, final Flow flow) {
+    private String getFlowId(final String flowChainId, final FlowEntity flow) {
         StringBuilder flowNameBuilder = new StringBuilder(flowChainId).append(ID_SEPARATOR);
         if (StringUtil.isNullOrEmpty(flow.getName())) {
             if (flow.getMethods().isEmpty()) {

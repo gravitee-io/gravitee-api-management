@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
@@ -140,7 +140,7 @@ public interface ApiService {
 
     boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
 
-    void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, Set<PlanEntity> plans);
+    void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<FlowEntity> flows, Set<PlanEntity> plans);
 
     long countByCategoryForUser(ExecutionContext executionContext, String categoryId, String userId);
 
