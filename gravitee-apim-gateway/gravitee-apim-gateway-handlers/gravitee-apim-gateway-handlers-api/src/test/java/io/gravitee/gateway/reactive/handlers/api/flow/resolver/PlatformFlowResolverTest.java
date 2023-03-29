@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
@@ -55,16 +55,16 @@ class PlatformFlowResolverTest {
     private Organization organization;
 
     @Mock
-    private ConditionFilter<FlowEntity> filter;
+    private ConditionFilter<Flow> filter;
 
     @Mock
     private HttpExecutionContext ctx;
 
     @Test
     public void shouldProvidePlatformFlows() {
-        final List<FlowEntity> flows = new ArrayList<>();
-        final FlowEntity flow1 = mock(FlowEntity.class);
-        final FlowEntity flow2 = mock(FlowEntity.class);
+        final List<Flow> flows = new ArrayList<>();
+        final Flow flow1 = mock(Flow.class);
+        final Flow flow2 = mock(Flow.class);
 
         flows.add(flow1);
         flows.add(flow2);
@@ -78,16 +78,16 @@ class PlatformFlowResolverTest {
         when(organization.getFlows()).thenReturn(flows);
 
         final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
-        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow1, flow2);
     }
 
     @Test
     public void shouldProvideEnabledPlatformFlowsOnly() {
-        final List<FlowEntity> flows = new ArrayList<>();
-        final FlowEntity flow1 = mock(FlowEntity.class);
-        final FlowEntity flow2 = mock(FlowEntity.class);
+        final List<Flow> flows = new ArrayList<>();
+        final Flow flow1 = mock(Flow.class);
+        final Flow flow2 = mock(Flow.class);
 
         flows.add(flow1);
         flows.add(flow2);
@@ -101,7 +101,7 @@ class PlatformFlowResolverTest {
         when(organization.getFlows()).thenReturn(flows);
 
         final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
-        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult(flow2);
     }
@@ -114,7 +114,7 @@ class PlatformFlowResolverTest {
         when(organization.getFlows()).thenReturn(null);
 
         final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
-        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -127,7 +127,7 @@ class PlatformFlowResolverTest {
         when(organization.getFlows()).thenReturn(emptyList());
 
         final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
-        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
@@ -139,16 +139,16 @@ class PlatformFlowResolverTest {
         when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
 
         final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
-        final TestSubscriber<FlowEntity> obs = cut.provideFlows(ctx).test();
+        final TestSubscriber<Flow> obs = cut.provideFlows(ctx).test();
 
         obs.assertResult();
     }
 
     @Test
     public void shouldResolve() {
-        final List<FlowEntity> flows = new ArrayList<>();
-        final FlowEntity flow1 = mock(FlowEntity.class);
-        final FlowEntity flow2 = mock(FlowEntity.class);
+        final List<Flow> flows = new ArrayList<>();
+        final Flow flow1 = mock(Flow.class);
+        final Flow flow2 = mock(Flow.class);
 
         flows.add(flow1);
         flows.add(flow2);
@@ -163,16 +163,16 @@ class PlatformFlowResolverTest {
         when(filter.filter(eq(ctx), any())).thenAnswer(i -> Maybe.just(i.getArgument(1)));
 
         final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
-        final TestSubscriber<FlowEntity> obs = cut.resolve(ctx).test();
+        final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult(flow1, flow2);
     }
 
     @Test
     public void shouldResolveEmptyFlowsWhenAllFlowFiltered() {
-        final List<FlowEntity> flows = new ArrayList<>();
-        final FlowEntity flow1 = mock(FlowEntity.class);
-        final FlowEntity flow2 = mock(FlowEntity.class);
+        final List<Flow> flows = new ArrayList<>();
+        final Flow flow1 = mock(Flow.class);
+        final Flow flow2 = mock(Flow.class);
 
         flows.add(flow1);
         flows.add(flow2);
@@ -187,7 +187,7 @@ class PlatformFlowResolverTest {
         when(filter.filter(eq(ctx), any())).thenReturn(Maybe.empty());
 
         final PlatformFlowResolver cut = new PlatformFlowResolver(api, organizationManager, filter);
-        final TestSubscriber<FlowEntity> obs = cut.resolve(ctx).test();
+        final TestSubscriber<Flow> obs = cut.resolve(ctx).test();
 
         obs.assertResult();
     }

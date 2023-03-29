@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
+import io.gravitee.rest.api.service.converter.FlowConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -432,7 +433,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             .collect(toSet());
 
         apiDefinition.setPlans(planConverter.toPlansDefinitions(plans));
-        apiDefinition.setFlows(flowService.findByReference(FlowReferenceType.API, api.getId()));
+        apiDefinition.setFlows(FlowConverter.toFlows(flowService.findByReference(FlowReferenceType.API, api.getId())));
         return apiDefinition;
     }
 

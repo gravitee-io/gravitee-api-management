@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service.configuration.flow;
 
-import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 

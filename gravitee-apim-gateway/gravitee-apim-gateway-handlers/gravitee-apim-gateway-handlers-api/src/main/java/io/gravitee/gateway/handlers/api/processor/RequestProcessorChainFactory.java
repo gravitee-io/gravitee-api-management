@@ -18,7 +18,7 @@ package io.gravitee.gateway.handlers.api.processor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
@@ -114,7 +114,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         // Prepare security policy chain
         add(new SecurityPolicyChainProvider(securityPolicyResolver));
 
-        final ConditionEvaluator<FlowEntity> evaluator = new CompositeConditionEvaluator<>(
+        final ConditionEvaluator<Flow> evaluator = new CompositeConditionEvaluator<>(
             new HttpMethodConditionEvaluator(),
             new PathBasedConditionEvaluator(),
             new ExpressionLanguageFlowConditionEvaluator()

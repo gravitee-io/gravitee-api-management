@@ -21,7 +21,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -93,7 +93,7 @@ public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
                     plan
                         .getFlows()
                         .stream()
-                        .filter(FlowEntity::isEnabled)
+                        .filter(Flow::isEnabled)
                         .forEach(flow -> {
                             policies.addAll(getPolicies(flow.getPre()));
                             policies.addAll(getPolicies(flow.getPost()));
@@ -106,7 +106,7 @@ public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
             definition
                 .getFlows()
                 .stream()
-                .filter(FlowEntity::isEnabled)
+                .filter(Flow::isEnabled)
                 .forEach(flow -> {
                     policies.addAll(getPolicies(flow.getPre()));
                     policies.addAll(getPolicies(flow.getPost()));

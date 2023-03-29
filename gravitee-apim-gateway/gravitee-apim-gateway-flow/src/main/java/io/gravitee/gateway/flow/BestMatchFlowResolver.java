@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.flow;
 
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowSelector;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * This flow provider is resolving only the {@link FlowEntity} which best match according to the incoming request.
+ * This flow provider is resolving only the {@link Flow} which best match according to the incoming request.
  * This flow provider relies on the result of the {@link io.gravitee.gateway.flow.condition.ConditionalFlowResolver} use to build this instance.
  * This means that the flows list patterns to filter for Best Match mode already matches the request.
  *
@@ -38,8 +38,8 @@ public class BestMatchFlowResolver implements FlowResolver {
     }
 
     @Override
-    public List<FlowEntity> resolve(ExecutionContext context) {
-        final FlowEntity bestMatch = BestMatchFlowSelector.forPath(flowResolver.resolve(context), context.request().pathInfo());
+    public List<Flow> resolve(ExecutionContext context) {
+        final Flow bestMatch = BestMatchFlowSelector.forPath(flowResolver.resolve(context), context.request().pathInfo());
         return bestMatch == null ? Collections.emptyList() : List.of(bestMatch);
     }
 }

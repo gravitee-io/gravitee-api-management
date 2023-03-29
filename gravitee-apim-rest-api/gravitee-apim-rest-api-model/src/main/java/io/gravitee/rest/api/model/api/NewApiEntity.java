@@ -17,7 +17,7 @@ package io.gravitee.rest.api.model.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Set;

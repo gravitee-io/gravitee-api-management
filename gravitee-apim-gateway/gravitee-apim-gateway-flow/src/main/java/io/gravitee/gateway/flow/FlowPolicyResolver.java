@@ -16,7 +16,7 @@
 package io.gravitee.gateway.flow;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.flow.policy.PolicyResolver;
@@ -38,12 +38,12 @@ public class FlowPolicyResolver implements PolicyResolver {
     public static final long CACHE_MAX_SIZE = 15;
     public static final long CACHE_TIME_TO_IDLE = 3600;
 
-    private final FlowEntity flow;
+    private final Flow flow;
 
     @VisibleForTesting
     final Cache<Step, PolicyMetadata> cache;
 
-    public FlowPolicyResolver(FlowEntity flow) {
+    public FlowPolicyResolver(Flow flow) {
         this.flow = flow;
 
         final CacheConfiguration cacheConfiguration = new CacheConfiguration();

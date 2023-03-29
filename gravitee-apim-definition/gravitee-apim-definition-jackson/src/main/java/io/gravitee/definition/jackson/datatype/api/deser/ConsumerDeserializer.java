@@ -22,16 +22,12 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import java.io.IOException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ConsumerDeserializer extends StdScalarDeserializer<Consumer> {
-
-    private final Logger logger = LoggerFactory.getLogger(ConsumerDeserializer.class);
 
     public ConsumerDeserializer(Class<Consumer> vc) {
         super(vc);

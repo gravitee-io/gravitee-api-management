@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.DebugApiService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.converter.FlowConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.DebugApiInvalidDefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.DebugApiNoCompatibleInstanceException;
@@ -153,7 +154,7 @@ public class DebugApiServiceImpl implements DebugApiService {
         debugApi.setServices(debugApiEntity.getServices());
         debugApi.setTags(debugApiEntity.getTags());
         debugApi.setPaths(debugApiEntity.getPaths());
-        debugApi.setFlows(debugApiEntity.getFlows());
+        debugApi.setFlows(FlowConverter.toFlows(debugApiEntity.getFlows()));
         debugApi.setPlans(planConverter.toPlansDefinitions(debugApiEntity.getPlans()));
 
         // Disable logging for the debugged API

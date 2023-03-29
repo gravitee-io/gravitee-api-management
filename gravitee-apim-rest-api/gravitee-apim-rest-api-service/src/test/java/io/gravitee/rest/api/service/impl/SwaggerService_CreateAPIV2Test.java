@@ -20,10 +20,10 @@ import static org.junit.Assert.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import java.util.stream.Collectors;

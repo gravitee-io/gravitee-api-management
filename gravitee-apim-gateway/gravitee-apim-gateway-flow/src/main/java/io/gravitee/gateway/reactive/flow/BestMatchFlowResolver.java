@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.reactive.flow;
 
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowSelector;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 
 /**
- * This flow resolver resolves only the {@link FlowEntity} which best matches according to the incoming request.
+ * This flow resolver resolves only the {@link Flow} which best matches according to the incoming request.
  * This flow resolver relies on the result of a previous {@link FlowResolver} used to build this instance.
  * This means that the flows list patterns to filter for Best Match mode already matched the request.
  *
@@ -38,7 +38,7 @@ public class BestMatchFlowResolver implements FlowResolver {
     }
 
     @Override
-    public Flowable<FlowEntity> resolve(final GenericExecutionContext ctx) {
+    public Flowable<Flow> resolve(final GenericExecutionContext ctx) {
         return provideFlows(ctx)
             .toList()
             .flatMapMaybe(flows -> Maybe.fromCallable(() -> BestMatchFlowSelector.forPath(flows, ctx.request().pathInfo())))
@@ -46,7 +46,7 @@ public class BestMatchFlowResolver implements FlowResolver {
     }
 
     @Override
-    public Flowable<FlowEntity> provideFlows(final GenericExecutionContext ctx) {
+    public Flowable<Flow> provideFlows(final GenericExecutionContext ctx) {
         return flowResolver.resolve(ctx);
     }
 }

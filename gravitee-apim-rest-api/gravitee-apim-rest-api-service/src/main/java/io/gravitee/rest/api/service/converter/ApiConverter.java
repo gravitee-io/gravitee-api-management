@@ -21,7 +21,6 @@ import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -34,6 +33,7 @@ import io.gravitee.rest.api.model.PropertiesEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
@@ -116,7 +116,7 @@ public class ApiConverter {
                     apiEntity.setFlowMode(apiDefinition.getFlowMode());
                 }
                 if (apiDefinition.getFlows() != null) {
-                    apiEntity.setFlows(apiDefinition.getFlows());
+                    apiEntity.setFlows(FlowConverter.toFlowEntities(apiDefinition.getFlows()));
                 }
 
                 // Issue https://github.com/gravitee-io/issues/issues/3356

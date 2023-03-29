@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.flow;
+package io.gravitee.rest.api.model.flow;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.ConditionSupplier;
+import io.gravitee.definition.model.flow.*;
 import java.io.Serializable;
 import java.util.*;
+import lombok.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
 public class FlowEntity implements Serializable, ConditionSupplier {
 
     @JsonProperty("id")

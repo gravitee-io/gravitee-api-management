@@ -15,24 +15,24 @@
  */
 package io.gravitee.gateway.reactive.flow.condition.evaluation;
 
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.reactivex.rxjava3.core.Maybe;
 
 /**
  * This {@link ConditionFilter} evaluates to true if the method of the request is matching the
- * methods declared within the {@link FlowEntity}.
+ * methods declared within the {@link Flow}.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HttpMethodConditionFilter
     extends io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator
-    implements ConditionFilter<FlowEntity> {
+    implements ConditionFilter<Flow> {
 
     @Override
-    public Maybe<FlowEntity> filter(GenericExecutionContext ctx, FlowEntity flow) {
+    public Maybe<Flow> filter(GenericExecutionContext ctx, Flow flow) {
         return evaluate(ctx.request().method(), flow) ? Maybe.just(flow) : Maybe.empty();
     }
 }

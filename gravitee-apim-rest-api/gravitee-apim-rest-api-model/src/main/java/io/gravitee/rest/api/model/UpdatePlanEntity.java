@@ -17,7 +17,7 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

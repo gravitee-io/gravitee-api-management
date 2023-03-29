@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
@@ -40,7 +40,7 @@ public class CompositeConditionEvaluatorTest {
     private ExecutionContext context;
 
     @Mock
-    private FlowEntity flow;
+    private Flow flow;
 
     @Test
     public void shouldEvaluate_noCondition() {

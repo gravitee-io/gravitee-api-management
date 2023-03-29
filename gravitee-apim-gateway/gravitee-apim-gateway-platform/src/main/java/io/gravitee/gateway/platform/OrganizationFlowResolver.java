@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.platform;
 
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
@@ -46,7 +46,7 @@ public class OrganizationFlowResolver extends ConditionalFlowResolver {
     }
 
     @Override
-    protected List<FlowEntity> resolve0(ExecutionContext context) {
+    protected List<Flow> resolve0(ExecutionContext context) {
         Organization currentOrganization = organizationManager.getCurrentOrganization();
         if (currentOrganization != null) {
             return currentOrganization.getFlows() != null ? currentOrganization.getFlows() : Collections.emptyList();

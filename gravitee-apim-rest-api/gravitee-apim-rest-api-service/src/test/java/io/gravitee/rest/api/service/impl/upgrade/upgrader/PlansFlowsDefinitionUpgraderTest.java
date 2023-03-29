@@ -18,12 +18,13 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import java.util.List;
 import java.util.Set;
@@ -96,7 +97,7 @@ public class PlansFlowsDefinitionUpgraderTest {
         apiDefinition.setPlans(List.of(definitionPlan1, definitionPlan3, definitionPlan4, definitionPlan5));
 
         // API has 2 api flows in definition : flow5 and flow6
-        List<FlowEntity> apiFlows = List.of(buildFlow("flow5"), buildFlow("flow6"));
+        List<Flow> apiFlows = List.of(buildFlow("flow5"), buildFlow("flow6"));
         apiDefinition.setFlows(apiFlows);
 
         upgrader.migrateApiFlows(API_ID, apiDefinition);
@@ -105,11 +106,26 @@ public class PlansFlowsDefinitionUpgraderTest {
         // not plan2 because it is not in definition
         // not plan3 because it is not in database
         // not plan4 because it has no flows
-        verify(flowService, times(1)).save(FlowReferenceType.PLAN, plan1.getId(), definitionPlan1.getFlows());
-        verify(flowService, times(1)).save(FlowReferenceType.PLAN, plan5.getId(), definitionPlan5.getFlows());
+        verify(flowService, times(1))
+            .save(
+                eq(FlowReferenceType.PLAN),
+                eq(plan1.getId()),
+                argThat(flows -> flows.size() == 2 && flows.get(0).getName().equals("flow1") && flows.get(1).getName().equals("flow2"))
+            );
+        verify(flowService, times(1))
+            .save(
+                eq(FlowReferenceType.PLAN),
+                eq(plan5.getId()),
+                argThat(flows -> flows.size() == 1 && flows.get(0).getName().equals("flow4"))
+            );
 
         // should save api flows in database
-        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
+        verify(flowService, times(1))
+            .save(
+                eq(FlowReferenceType.API),
+                eq(API_ID),
+                argThat(flows -> flows.size() == 2 && flows.get(0).getName().equals("flow5") && flows.get(1).getName().equals("flow6"))
+            );
 
         verifyNoMoreInteractions(flowService);
     }
@@ -127,15 +143,15 @@ public class PlansFlowsDefinitionUpgraderTest {
         return plan;
     }
 
-    private io.gravitee.definition.model.Plan buildDefinitionPlan(String id, List<FlowEntity> flows) {
+    private io.gravitee.definition.model.Plan buildDefinitionPlan(String id, List<Flow> flows) {
         io.gravitee.definition.model.Plan plan = new io.gravitee.definition.model.Plan();
         plan.setId(id);
         plan.setFlows(flows);
         return plan;
     }
 
-    private FlowEntity buildFlow(String name) {
-        FlowEntity flow = new FlowEntity();
+    private Flow buildFlow(String name) {
+        Flow flow = new Flow();
         flow.setName(name);
         return flow;
     }

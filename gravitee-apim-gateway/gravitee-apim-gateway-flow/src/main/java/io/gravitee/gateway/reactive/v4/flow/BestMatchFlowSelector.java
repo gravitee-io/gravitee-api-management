@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.v4.flow;
 
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -156,8 +156,8 @@ public class BestMatchFlowSelector {
     }
 
     private static <T> String[] splitPath(final ApiType apiType, T flow) {
-        if (flow instanceof FlowEntity) {
-            return splitPath(((FlowEntity) flow).getPath());
+        if (flow instanceof Flow) {
+            return splitPath(((Flow) flow).getPath());
         } else if (flow instanceof io.gravitee.definition.model.v4.flow.Flow) {
             io.gravitee.definition.model.v4.flow.Flow flowV4 = (io.gravitee.definition.model.v4.flow.Flow) flow;
             if (apiType == ApiType.PROXY) {

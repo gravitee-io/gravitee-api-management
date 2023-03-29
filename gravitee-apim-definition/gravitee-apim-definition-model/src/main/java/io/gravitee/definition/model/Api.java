@@ -16,7 +16,7 @@
 package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import java.io.Serializable;
@@ -61,7 +61,7 @@ public class Api implements Serializable {
     private Map<String, List<Rule>> paths;
 
     @JsonProperty("flows")
-    private List<FlowEntity> flows;
+    private List<Flow> flows;
 
     @JsonProperty("properties")
     private Properties properties;
@@ -183,11 +183,11 @@ public class Api implements Serializable {
         this.flowMode = flowMode;
     }
 
-    public List<FlowEntity> getFlows() {
+    public List<Flow> getFlows() {
         return flows;
     }
 
-    public void setFlows(List<FlowEntity> flows) {
+    public void setFlows(List<Flow> flows) {
         this.flows = flows;
     }
 

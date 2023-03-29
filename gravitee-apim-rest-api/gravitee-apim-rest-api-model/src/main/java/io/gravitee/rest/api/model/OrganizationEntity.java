@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import java.util.List;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;

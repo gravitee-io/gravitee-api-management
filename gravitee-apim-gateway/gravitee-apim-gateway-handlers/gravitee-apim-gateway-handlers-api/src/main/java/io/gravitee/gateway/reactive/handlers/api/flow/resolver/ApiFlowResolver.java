@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.AbstractFlowResolver;
@@ -24,31 +24,31 @@ import io.reactivex.rxjava3.core.Flowable;
 import java.util.stream.Collectors;
 
 /**
- * Allows resolving {@link FlowEntity}s to execute for a given {@link Api}.
+ * Allows resolving {@link Flow}s to execute for a given {@link Api}.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 class ApiFlowResolver extends AbstractFlowResolver {
 
-    private final Flowable<FlowEntity> flows;
+    private final Flowable<Flow> flows;
 
-    public ApiFlowResolver(Api api, ConditionFilter<FlowEntity> filter) {
+    public ApiFlowResolver(Api api, ConditionFilter<Flow> filter) {
         super(filter);
         // Api flows can be determined once and then reused.
         this.flows = provideFlows(api);
     }
 
     @Override
-    public Flowable<FlowEntity> provideFlows(GenericExecutionContext ctx) {
+    public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
         return this.flows;
     }
 
-    private Flowable<FlowEntity> provideFlows(Api api) {
+    private Flowable<Flow> provideFlows(Api api) {
         if (api.getFlows() == null || api.getFlows().isEmpty()) {
             return Flowable.empty();
         }
 
-        return Flowable.fromIterable(api.getFlows().stream().filter(FlowEntity::isEnabled).collect(Collectors.toList()));
+        return Flowable.fromIterable(api.getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList()));
     }
 }

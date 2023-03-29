@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.flow.resolver;
 
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
@@ -27,7 +27,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Allows resolving {@link FlowEntity}s managed at platform level.
+ * Allows resolving {@link Flow}s managed at platform level.
  * Api is linked to an organization and inherits from all flows defined at organization level (aka platform level).
  * The current implementation relies on the {@link OrganizationManager} to retrieve the organization of the api.
  *
@@ -38,10 +38,10 @@ class PlatformFlowResolver extends AbstractFlowResolver {
 
     private final ReactableApi<?> api;
     private final OrganizationManager organizationManager;
-    private Flowable<FlowEntity> flows;
+    private Flowable<Flow> flows;
     private Organization organization;
 
-    public PlatformFlowResolver(ReactableApi<?> api, OrganizationManager organizationManager, ConditionFilter<FlowEntity> filter) {
+    public PlatformFlowResolver(ReactableApi<?> api, OrganizationManager organizationManager, ConditionFilter<Flow> filter) {
         super(filter);
         this.api = api;
         this.organizationManager = organizationManager;
@@ -49,7 +49,7 @@ class PlatformFlowResolver extends AbstractFlowResolver {
     }
 
     @Override
-    public Flowable<FlowEntity> provideFlows(GenericExecutionContext ctx) {
+    public Flowable<Flow> provideFlows(GenericExecutionContext ctx) {
         initFlows();
         return this.flows;
     }
@@ -68,11 +68,11 @@ class PlatformFlowResolver extends AbstractFlowResolver {
         }
     }
 
-    private Flowable<FlowEntity> provideFlows() {
+    private Flowable<Flow> provideFlows() {
         if (organization == null || organization.getFlows() == null || organization.getFlows().isEmpty()) {
             return Flowable.empty();
         }
 
-        return Flowable.fromIterable(organization.getFlows().stream().filter(FlowEntity::isEnabled).collect(Collectors.toList()));
+        return Flowable.fromIterable(organization.getFlows().stream().filter(Flow::isEnabled).collect(Collectors.toList()));
     }
 }

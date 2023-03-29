@@ -16,7 +16,7 @@
 package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import java.io.Serializable;
 import java.util.*;
 import lombok.AllArgsConstructor;
@@ -56,7 +56,7 @@ public class Plan implements Serializable {
 
     @Builder.Default
     @JsonProperty("flows")
-    private List<FlowEntity> flows = new ArrayList<>();
+    private List<Flow> flows = new ArrayList<>();
 
     @JsonProperty("tags")
     private Set<String> tags;
@@ -120,11 +120,11 @@ public class Plan implements Serializable {
         this.selectionRule = selectionRule;
     }
 
-    public List<FlowEntity> getFlows() {
+    public List<Flow> getFlows() {
         return flows;
     }
 
-    public void setFlows(List<FlowEntity> flows) {
+    public void setFlows(List<Flow> flows) {
         this.flows = flows;
     }
 

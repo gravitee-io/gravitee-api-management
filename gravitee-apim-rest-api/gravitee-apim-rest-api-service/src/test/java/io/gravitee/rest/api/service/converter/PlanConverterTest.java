@@ -17,9 +17,9 @@ package io.gravitee.rest.api.service.converter;
 
 import static org.junit.Assert.*;
 
-import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

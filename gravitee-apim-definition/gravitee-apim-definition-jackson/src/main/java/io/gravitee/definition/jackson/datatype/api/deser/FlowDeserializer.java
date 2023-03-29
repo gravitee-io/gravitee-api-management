@@ -20,7 +20,10 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.flow.*;
+import io.gravitee.definition.model.flow.Consumer;
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.PathOperator;
+import io.gravitee.definition.model.flow.Step;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -30,23 +33,17 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FlowDeserializer extends StdScalarDeserializer<FlowEntity> {
+public class FlowDeserializer extends StdScalarDeserializer<Flow> {
 
-    public FlowDeserializer(Class<FlowEntity> vc) {
+    public FlowDeserializer(Class<Flow> vc) {
         super(vc);
     }
 
     @Override
-    public FlowEntity deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public Flow deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        FlowEntity flow = new FlowEntity();
-
-        JsonNode jsonId = node.path("id");
-
-        if (jsonId != null && !jsonId.asText().isEmpty()) {
-            flow.setId(jsonId.asText());
-        }
+        Flow flow = new Flow();
 
         flow.setName(node.path("name").asText());
         flow.setEnabled(node.path("enabled").asBoolean(true));

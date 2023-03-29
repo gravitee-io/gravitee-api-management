@@ -17,17 +17,13 @@ package io.gravitee.rest.api.service.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.flow.Consumer;
-import io.gravitee.definition.model.flow.ConsumerType;
-import io.gravitee.definition.model.flow.FlowEntity;
-import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.flow.PathOperator;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.*;
 import io.gravitee.repository.management.model.flow.FlowConsumer;
 import io.gravitee.repository.management.model.flow.FlowConsumerType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Collections;
 import java.util.Date;
@@ -162,5 +158,41 @@ public class FlowConverter {
         flow.setCreatedAt(dbFlow.getCreatedAt());
         flow.setUpdatedAt(new Date());
         return flow;
+    }
+
+    public static Flow toFlow(FlowEntity flowEntity) {
+        Flow flow = new Flow();
+        flow.setName(flowEntity.getName());
+        flow.setPathOperator(flowEntity.getPathOperator());
+        flow.setPre(flowEntity.getPre());
+        flow.setPost(flowEntity.getPost());
+        flow.setEnabled(flowEntity.isEnabled());
+        flow.setMethods(flowEntity.getMethods());
+        flow.setCondition(flowEntity.getCondition());
+        flow.setConsumers(flowEntity.getConsumers());
+        flow.setStage(flowEntity.getStage());
+        return flow;
+    }
+
+    public static List<Flow> toFlows(List<FlowEntity> flowEntities) {
+        return flowEntities.stream().map(FlowConverter::toFlow).collect(Collectors.toList());
+    }
+
+    public static FlowEntity toFlowEntity(Flow flow) {
+        FlowEntity flowEntity = new FlowEntity();
+        flowEntity.setName(flow.getName());
+        flowEntity.setPathOperator(flow.getPathOperator());
+        flowEntity.setPre(flow.getPre());
+        flowEntity.setPost(flow.getPost());
+        flowEntity.setEnabled(flow.isEnabled());
+        flowEntity.setMethods(flow.getMethods());
+        flowEntity.setCondition(flow.getCondition());
+        flowEntity.setConsumers(flow.getConsumers());
+        flowEntity.setStage(flow.getStage());
+        return flowEntity;
+    }
+
+    public static List<FlowEntity> toFlowEntities(List<Flow> flows) {
+        return flows.stream().map(FlowConverter::toFlowEntity).collect(Collectors.toList());
     }
 }

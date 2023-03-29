@@ -22,11 +22,11 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.flow.FlowEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import io.gravitee.rest.api.service.converter.FlowConverter;
 import io.gravitee.rest.api.service.impl.configuration.flow.FlowServiceImpl;
 import java.util.ArrayList;

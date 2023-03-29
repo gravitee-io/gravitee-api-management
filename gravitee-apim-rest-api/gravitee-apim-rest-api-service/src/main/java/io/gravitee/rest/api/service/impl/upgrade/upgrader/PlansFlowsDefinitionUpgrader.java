@@ -24,8 +24,11 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.flow.FlowEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
+import io.gravitee.rest.api.service.converter.FlowConverter;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -85,7 +88,7 @@ public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
         LOGGER.debug("Migrate flows for api [{}]", apiId);
         Map<String, Plan> plansById = planRepository.findByApi(apiId).stream().collect(toMap(Plan::getId, Function.identity()));
 
-        flowService.save(FlowReferenceType.API, apiDefinition.getId(), apiDefinition.getFlows());
+        flowService.save(FlowReferenceType.API, apiDefinition.getId(), FlowConverter.toFlowEntities(apiDefinition.getFlows()));
 
         apiDefinition
             .getPlans()
@@ -95,7 +98,11 @@ public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
                     !apiDefinitionPlan.getFlows().isEmpty() &&
                     plansById.containsKey(apiDefinitionPlan.getId())
                 ) {
-                    flowService.save(FlowReferenceType.PLAN, apiDefinitionPlan.getId(), apiDefinitionPlan.getFlows());
+                    flowService.save(
+                        FlowReferenceType.PLAN,
+                        apiDefinitionPlan.getId(),
+                        FlowConverter.toFlowEntities(apiDefinitionPlan.getFlows())
+                    );
                 }
             });
     }

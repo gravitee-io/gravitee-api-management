@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.AbstractTest;
-import io.gravitee.definition.model.flow.FlowEntity;
+import io.gravitee.definition.model.flow.Flow;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -31,10 +31,10 @@ public class FlowSerializerTest extends AbstractTest {
 
     @Test
     public void should_serialize_methods_in_the_same_order() throws JsonProcessingException {
-        FlowEntity flow1 = new FlowEntity();
+        Flow flow1 = new Flow();
         flow1.setMethods(Set.of(HttpMethod.POST, HttpMethod.PUT));
 
-        FlowEntity flow2 = new FlowEntity();
+        Flow flow2 = new Flow();
         flow2.setMethods(Set.of(HttpMethod.PUT, HttpMethod.POST));
 
         String flow1json = objectMapper().writeValueAsString(flow1);
