@@ -55,8 +55,8 @@ describe('AnalyticsService', () => {
       const params: AnalyticsRequestParam = {
         field,
         interval,
-        from: new Date(fromTimestamp),
-        to: new Date(toTimestamp),
+        from: fromTimestamp,
+        to: toTimestamp,
       };
       analyticsService.getGroupBy(params).subscribe((response) => {
         expect(response).toMatchObject(fakeAnalytics);
@@ -64,7 +64,7 @@ describe('AnalyticsService', () => {
       });
 
       const req = httpTestingController.expectOne(
-        `${CONSTANTS_TESTING.env.baseURL}/platform/analytics?type=group_by&field=${field}&interval=${interval}&from=${fromTimestamp}&to=${toTimestamp}&timeout=${CONSTANTS_TESTING.env.settings.analytics.clientTimeout}`,
+        `${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=${field}&interval=${interval}&from=${fromTimestamp}&to=${toTimestamp}`,
       );
       expect(req.request.method).toEqual('GET');
 
@@ -96,8 +96,8 @@ describe('AnalyticsService', () => {
       const params: AnalyticsRequestParam = {
         field,
         interval,
-        from: new Date(fromTimestamp),
-        to: new Date(toTimestamp),
+        from: fromTimestamp,
+        to: toTimestamp,
       };
       analyticsService.getGroupBy(params).subscribe((response) => {
         expect(response).toMatchObject(fakeAnalytics);
@@ -105,7 +105,7 @@ describe('AnalyticsService', () => {
       });
 
       const req = httpTestingController.expectOne(
-        `${CONSTANTS_TESTING.env.baseURL}/platform/analytics?type=group_by&field=${field}&interval=${interval}&from=${fromTimestamp}&to=${toTimestamp}&timeout=${CONSTANTS_TESTING.env.settings.analytics.clientTimeout}`,
+        `${CONSTANTS_TESTING.env.baseURL}/analytics?type=group_by&field=${field}&interval=${interval}&from=${fromTimestamp}&to=${toTimestamp}`,
       );
       expect(req.request.method).toEqual('GET');
 
@@ -124,8 +124,8 @@ describe('AnalyticsService', () => {
       const params: AnalyticsRequestParam = {
         field,
         interval,
-        from: new Date(fromTimestamp),
-        to: new Date(toTimestamp),
+        from: fromTimestamp,
+        to: toTimestamp,
       };
       analyticsService.getCount(params).subscribe((response) => {
         expect(response).toMatchObject(fakeAnalytics);
@@ -133,35 +133,7 @@ describe('AnalyticsService', () => {
       });
 
       const req = httpTestingController.expectOne(
-        `${CONSTANTS_TESTING.env.baseURL}/platform/analytics?type=count&field=${field}&interval=${interval}&from=${fromTimestamp}&to=${toTimestamp}&timeout=${CONSTANTS_TESTING.env.settings.analytics.clientTimeout}`,
-      );
-      expect(req.request.method).toEqual('GET');
-
-      req.flush(fakeAnalytics);
-    });
-
-    it('should call the right API depending on type', (done) => {
-      const fromTimestamp = 1677339613055;
-      const toTimestamp = 1679931613055;
-      const interval = 86400000;
-      const field = 'application';
-
-      const fakeAnalytics: AnalyticsCountResponse = {
-        count: 1234,
-      };
-      const params: AnalyticsRequestParam = {
-        field,
-        interval,
-        from: new Date(fromTimestamp),
-        to: new Date(toTimestamp),
-      };
-      analyticsService.get('COUNT', params).subscribe((response) => {
-        expect(response).toMatchObject(fakeAnalytics);
-        done();
-      });
-
-      const req = httpTestingController.expectOne(
-        `${CONSTANTS_TESTING.env.baseURL}/platform/analytics?type=count&field=${field}&interval=${interval}&from=${fromTimestamp}&to=${toTimestamp}&timeout=${CONSTANTS_TESTING.env.settings.analytics.clientTimeout}`,
+        `${CONSTANTS_TESTING.env.baseURL}/analytics?type=count&field=${field}&interval=${interval}&from=${fromTimestamp}&to=${toTimestamp}`,
       );
       expect(req.request.method).toEqual('GET');
 

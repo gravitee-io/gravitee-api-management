@@ -39,5 +39,3 @@ export class AnalyticsStatsResponse {
 export class AnalyticsCountResponse {
   count: number;
 }
-
-export type AnalyticsResponse = AnalyticsCountResponse | AnalyticsGroupByResponse | AnalyticsStatsResponse;
