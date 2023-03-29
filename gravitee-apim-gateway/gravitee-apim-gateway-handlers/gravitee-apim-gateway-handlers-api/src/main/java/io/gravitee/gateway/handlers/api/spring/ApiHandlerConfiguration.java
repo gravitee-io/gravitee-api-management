@@ -15,11 +15,13 @@
  */
 package io.gravitee.gateway.handlers.api.spring;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -53,7 +55,6 @@ import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilte
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
-import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -84,8 +85,8 @@ public class ApiHandlerConfiguration {
     private io.gravitee.node.api.configuration.Configuration configuration;
 
     @Bean
-    public ApiManager apiManager() {
-        return new ApiManagerImpl();
+    public ApiManager apiManager(EventManager eventManager, GatewayConfiguration gatewayConfiguration, DataEncryptor dataEncryptor) {
+        return new ApiManagerImpl(eventManager, gatewayConfiguration, dataEncryptor);
     }
 
     @Bean
@@ -193,13 +194,13 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ApiKeyCacheService apiKeyService(CacheManager cacheManager) {
-        return new ApiKeyCacheService(cacheManager);
+    public ApiKeyCacheService apiKeyService() {
+        return new ApiKeyCacheService();
     }
 
     @Bean
-    public SubscriptionCacheService subscriptionService(CacheManager cacheManager, ApiKeyCacheService apiKeyService) {
-        return new SubscriptionCacheService(cacheManager, apiKeyService);
+    public SubscriptionCacheService subscriptionService(ApiKeyCacheService apiKeyService) {
+        return new SubscriptionCacheService(apiKeyService);
     }
 
     @Bean

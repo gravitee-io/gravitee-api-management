@@ -17,22 +17,15 @@ package io.gravitee.gateway.services.heartbeat.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.services.heartbeat.HeartbeatStrategy;
-import io.gravitee.gateway.services.heartbeat.impl.hazelcast.HazelcastHeartbeatStrategy;
-import io.gravitee.gateway.services.heartbeat.impl.standalone.StandaloneHeartbeatStrategy;
 import io.gravitee.gateway.services.heartbeat.spring.configuration.HeartbeatStrategyConfiguration;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
-import io.gravitee.node.api.message.MessageProducer;
-import io.gravitee.node.cluster.spring.HazelcastClusterConfiguration;
-import io.gravitee.node.cluster.spring.StandaloneClusterConfiguration;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -43,32 +36,12 @@ import org.springframework.context.annotation.Configuration;
 public class HeartbeatConfiguration {
 
     @Bean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
-    }
-
-    @Bean("heartbeatStrategy")
-    @Conditional(StandaloneClusterConfiguration.StandaloneModeEnabled.class)
-    public HeartbeatStrategy heartbeatStandaloneStrategy(HeartbeatStrategyConfiguration heartbeatStrategyConfiguration) {
-        return new StandaloneHeartbeatStrategy(heartbeatStrategyConfiguration);
-    }
-
-    @Bean("heartbeatStrategy")
-    @Conditional(HazelcastClusterConfiguration.ClusterModeEnabled.class)
-    public HeartbeatStrategy heartbeatHazelcastStrategy(
-        HeartbeatStrategyConfiguration heartbeatStrategyConfiguration,
-        ClusterManager clusterManager,
-        MessageProducer messageProducer
-    ) {
-        return new HazelcastHeartbeatStrategy(heartbeatStrategyConfiguration, clusterManager, messageProducer);
-    }
-
-    @Bean
     public HeartbeatStrategyConfiguration heartbeatDependencies(
         ObjectMapper objectMapper,
         Node node,
         EnvironmentRepository environmentRepository,
         OrganizationRepository organizationRepository,
+        ClusterManager clusterManager,
         EventRepository eventRepository,
         GatewayConfiguration gatewayConfiguration,
         PluginRegistry pluginRegistry,
@@ -84,6 +57,7 @@ public class HeartbeatConfiguration {
             node,
             environmentRepository,
             organizationRepository,
+            clusterManager,
             eventRepository,
             gatewayConfiguration,
             pluginRegistry

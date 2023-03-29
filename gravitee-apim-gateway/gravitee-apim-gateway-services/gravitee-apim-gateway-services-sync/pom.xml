@@ -34,12 +34,6 @@
         <!-- Gravitee.io dependencies -->
         <dependency>
             <groupId>io.gravitee.node</groupId>
-            <artifactId>gravitee-node-cluster</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-kubernetes</artifactId>
             <scope>provided</scope>
         </dependency>

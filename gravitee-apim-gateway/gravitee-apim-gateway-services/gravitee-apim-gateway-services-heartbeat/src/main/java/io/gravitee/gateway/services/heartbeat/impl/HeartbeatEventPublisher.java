@@ -13,44 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.heartbeat.impl.hazelcast;
+package io.gravitee.gateway.services.heartbeat.impl;
 
 import static io.gravitee.gateway.services.heartbeat.HeartbeatService.EVENT_LAST_HEARTBEAT_PROPERTY;
 
-import io.gravitee.node.api.message.Topic;
+import io.gravitee.node.api.cluster.messaging.Topic;
 import io.gravitee.repository.management.model.Event;
 import java.util.Date;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.HashMap;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HeartbeatThread implements Runnable {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatThread.class);
+@RequiredArgsConstructor
+@Slf4j
+public class HeartbeatEventPublisher implements Runnable {
 
     private final Topic<Event> topic;
     private final Event event;
 
-    HeartbeatThread(Topic<Event> topic, Event event) {
-        this.topic = topic;
-        this.event = event;
-    }
-
     @Override
     public void run() {
-        LOGGER.debug("Run monitor for gateway at {}", new Date());
+        log.debug("Run monitor for gateway at {}", new Date());
         try {
             synchronized (event) {
-                // Update heartbeat timestamp
                 event.setUpdatedAt(new Date());
+                if (event.getProperties() == null) {
+                    event.setProperties(new HashMap<>());
+                }
                 event.getProperties().put(EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(event.getUpdatedAt().getTime()));
                 topic.publish(event);
             }
         } catch (Exception ex) {
-            LOGGER.error("An unexpected error occurs while monitoring the gateway", ex);
+            log.error("An unexpected error occurs while monitoring the gateway", ex);
         }
     }
 }

@@ -17,28 +17,18 @@ package io.gravitee.gateway.handlers.api.services;
 
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
-import io.gravitee.node.api.cache.Cache;
-import io.gravitee.node.api.cache.CacheManager;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
-@Component
 @Slf4j
 public class ApiKeyCacheService implements ApiKeyService {
 
-    private static final String CACHE_NAME_API_KEYS = "API_KEYS";
-    private static final String CACHE_NAME_API_KEYS_BY_API = "API_KEYS_BY_API";
-
-    private final Cache<String, ApiKey> cacheApiKeys;
-    private final Cache<String, Set<String>> cacheApiKeysByApi;
-
-    public ApiKeyCacheService(final CacheManager cacheManager) {
-        cacheApiKeys = cacheManager.getOrCreateCache(CACHE_NAME_API_KEYS);
-        cacheApiKeysByApi = cacheManager.getOrCreateCache(CACHE_NAME_API_KEYS_BY_API);
-    }
+    private final Map<String, ApiKey> cacheApiKeys = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> cacheApiKeysByApi = new ConcurrentHashMap<>();
 
     @Override
     public void register(final ApiKey apiKey) {
@@ -73,11 +63,11 @@ public class ApiKeyCacheService implements ApiKeyService {
             apiKey.getPlan(),
             apiKey.getApplication()
         );
-        if (cacheApiKeys.evict(cacheKey) != null) {
+        if (cacheApiKeys.remove(cacheKey) != null) {
             Set<String> keysByApi = cacheApiKeysByApi.get(apiKey.getApi());
             if (keysByApi != null && keysByApi.remove(cacheKey)) {
                 if (keysByApi.isEmpty()) {
-                    cacheApiKeysByApi.evict(apiKey.getApi());
+                    cacheApiKeysByApi.remove(apiKey.getApi());
                 } else {
                     cacheApiKeysByApi.put(apiKey.getApi(), keysByApi);
                 }
@@ -88,10 +78,10 @@ public class ApiKeyCacheService implements ApiKeyService {
     @Override
     public void unregisterByApiId(final String apiId) {
         log.debug("Unload all api-key by api [api_id: {}]", apiId);
-        Set<String> keysByApi = cacheApiKeysByApi.evict(apiId);
+        Set<String> keysByApi = cacheApiKeysByApi.remove(apiId);
         if (keysByApi != null) {
             keysByApi.forEach(cacheKey -> {
-                ApiKey evictedApiKey = cacheApiKeys.evict(cacheKey);
+                ApiKey evictedApiKey = cacheApiKeys.remove(cacheKey);
                 if (evictedApiKey != null) {
                     log.debug(
                         "Unload inactive api-key [id: {}] [api: {}] [plan: {}] [app: {}]",

@@ -118,6 +118,14 @@
     </properties>
 
     <dependencies>
+        <!-- Clusters -->
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-cluster-plugin-standalone</artifactId>
+            <version>${gravitee-node.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
         <!-- Connectors -->
         <dependency>
             <groupId>io.gravitee.ae</groupId>
