@@ -1,4 +1,5 @@
 = Gravitee Redis Repository
+:table-caption: Configuration
 
 ifdef::env-github[]
 image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-repository-redis/master["Build status", link="https://ci.gravitee.io/job/gravitee-io/job/gravitee-repository-redis"]
@@ -28,28 +29,130 @@ $ mvn clean package
 
 == Installing
 
-Unzip the gravitee-repository-redis-3.1.0-SNAPSHOT.zip in the gravitee home directory.
+Unzip the gravitee-apim-repository-redis-4.0.0-SNAPSHOT.zip in the gravitee home directory.
 
 == Configuration
 
-  repository.redis options (standalone) :
+All the specific configurations are located under the `ratelimit.redis` attribute.
 
-  | Parameter                                        |   default  |
-  | ------------------------------------------------ | ---------: |
-  | host                                             | localhost  |
-  | port                                             |      6379  |
-  | password                                         |            |
-  | timeout                                          |   1000 ms  |
+.Redis Standalone options
+|===
+|Parameter |Default |Description
 
-  repository.redis options (using sentinel) :
+|host
+|localhost
+|
 
-  | Parameter                                        |   default  |
-  | ------------------------------------------------ | ---------: |
-  | sentinel.nodes                                   |            |
-  | sentinel.password                                |            |
-  | sentinel.master (mandatory when using Sentinel)  |            |
-  | password                                         |            |
-  | timeout                                          |   1000 ms  |
+|port
+|6379
+|
+
+|password
+|
+|
+|===
+
+.Redis Sentinel options
+|===
+|Parameter |Default |Description
+
+|sentinel.nodes
+|
+|List of sentinels with host and port
+
+|sentinel.master
+|
+|mandatory when using Sentinel
+
+|password
+|
+|
+|===
+
+.Redis SSL options
+|===
+|Parameter |Default |Description
+
+|ssl
+|false
+|
+
+|trustAll
+|true
+|Default value is true for backward compatibility but keep in mind that this is not a good practice and you should set to false and configure a truststore
+
+|tlsProtocols
+|See https://vertx.io/docs/vertx-core/java/#_configuring_tls_protocol_versions[Vert.x doc]
+|List of TLS protocols to allow comma separated.
+
+|tlsCiphers
+|See https://vertx.io/docs/vertx-core/java/#_configuring_the_cipher_suite[Vert.x doc]
+|List of TLS ciphers to allow comma separated.
+
+|alpn
+|false
+|
+
+|openssl
+|false
+|Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+
+|keystore
+|
+|Configuration for Mutual TLS. The keystore is used to select the client certificate to send to the backend server when connecting. See <<keystore-table>>
+
+|truststore
+|
+|Configuration for the truststore. The truststore is used to validate the server’s certificate. See <<truststore-table>>
+|===
+
+
+[#keystore-table]
+.Redis SSL keystore options (client certificate, Mutual TLS)
+|===
+|Parameter |Default |Description
+|type
+|
+|Supports `jks`, `pem`, `pkcs12`
+
+|path
+|
+|A path is required if certificate's type is jks or pkcs12
+
+|password
+|
+|
+
+|alias
+|
+|
+
+|certificates
+|
+|List of certificates with cert and key. Certificates are required if keystore's type is pem
+|===
+
+[#truststore-table]
+.Redis SSL truststore options
+|===
+|Parameter |Default |Description
+|type
+|
+|Supports `jks`, `pem`, `pkcs12`
+
+|path
+|
+|
+
+|password
+|
+|
+
+|alias
+|
+|
+|===
+
 
 Examples :
 
@@ -57,35 +160,70 @@ _Standalone redis_ :
 
 [source,yaml]
 ----
-redis:
-  host: 'redis.mycompany'
-  port: 6379
-  password: 'mysecretpassword'
-  timeout: 2000
+ratelimit:
+  type: redis
+  redis:
+    host: 'redis.mycompany'
+    port: 6379
+    password: 'mysecretpassword'
 ----
 
 _Redis replicaset behind Sentinels_ :
 
 [source,yaml]
 ----
-redis:
-  sentinel:
-    master: 'mymaster'
-    nodes:
-      - host: 'sentinel-1.mycompany'
-        port: 26379
-      - host: 'sentinel-2.mycompany'
-        port: 26379
-      - host: 'sentinel-3.mycompany'
-        port: 26379
-    password: 'sentinel-password'
-  password: 'redis-password'
-  timeout: 2000
+ratelimit:
+  type: redis
+  redis:
+    password: 'redis-password'
+    sentinel:
+      master: 'mymaster'
+      nodes:
+        - host: 'sentinel-1.mycompany'
+          port: 26379
+        - host: 'sentinel-2.mycompany'
+          port: 26379
+        - host: 'sentinel-3.mycompany'
+          port: 26379
+----
+
+_Redis client SSL_ :
+
+[source,yaml]
+----
+ratelimit:
+  type: redis
+  redis:
+    password: 'redis-password'
+    # SSL settings
+    ssl: true
+    trustAll: false
+    tlsProtocols: TLSv1.2, TLSv1.3
+    tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+    alpn: false
+    openssl: false
+    # Keystore for redis mTLS (client certificate)
+    keystore:
+      type: jks
+      path: ${gravitee.home}/security/redis-keystore.jks
+      password: secret
+      keyPassword:
+      alias:
+      certificates: # Certificates are required if keystore's type is pem
+#        - cert: ${gravitee.home}/security/redis-mycompany.org.pem
+#          key: ${gravitee.home}/security/redis-mycompany.org.key
+#        - cert: ${gravitee.home}/security/redis-myothercompany.com.pem
+#          key: ${gravitee.home}/security/redis-myothercompany.com.key
+    truststore:
+      type: pem
+      path: ${gravitee.home}/security/redis-truststore.jks
+      password: secret
+      alias:
 ----
 
 == Testing
 
-By default, unit tests are run with a TestContainer version of Redis 7.0.2, but sometimes it can be useful to run them against other version of Redis.
+By default, unit tests are run with a TestContainer version of Redis 7.0.10, but sometimes it can be useful to run them against other version of Redis.
 
 You can use the version of Redis you want to test by using the docker image tag in the `-DredisVersion` parameter.
 
