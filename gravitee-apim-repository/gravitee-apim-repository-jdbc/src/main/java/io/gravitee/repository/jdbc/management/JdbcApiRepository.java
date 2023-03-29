@@ -96,15 +96,14 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
     };
 
     @Override
+    /**
+     * DO NOT USE THIS METHOD
+     * @deprecated use {@link #search(ApiCriteria, Sortable, ApiFieldFilter, int)} instead
+     */
     public Set<Api> findAll() throws TechnicalException {
-        LOGGER.debug("JdbcApiRepository.findAll()");
-        try {
-            return new HashSet<>(jdbcTemplate.query(getOrm().getSelectAllSql(), getOrm().getRowMapper()));
-        } catch (final Exception ex) {
-            final String error = "Failed to find all api";
-            LOGGER.error(error, ex);
-            throw new TechnicalException(error, ex);
-        }
+        throw new IllegalStateException(
+            "Too many results, please use search(ApiCriteria, Sortable, ApiFieldFilter, int) returning a Stream instead."
+        );
     }
 
     @Override
