@@ -123,7 +123,8 @@
 
         <dependency>
             <groupId>io.gravitee.node</groupId>
-            <artifactId>gravitee-node-cluster</artifactId>
+            <artifactId>gravitee-node-cluster-plugin-standalone</artifactId>
+            <version>${gravitee-node.version}</version>
         </dependency>
 
         <dependency>

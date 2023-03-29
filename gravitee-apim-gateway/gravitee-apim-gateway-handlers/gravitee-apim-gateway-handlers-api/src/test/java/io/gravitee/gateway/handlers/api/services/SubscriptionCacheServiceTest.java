@@ -22,8 +22,7 @@ import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
-import io.gravitee.node.api.cache.Cache;
-import io.gravitee.node.cache.standalone.StandaloneCacheManager;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,16 +47,16 @@ class SubscriptionCacheServiceTest {
     private ApiKeyService apiKeyService;
 
     private SubscriptionCacheService subscriptionService;
-    private Cache<String, Subscription> cacheByApiClientId;
-    private Cache<String, Subscription> cacheBySubscriptionId;
-    private Cache<String, Set<String>> cacheByApiId;
+    private Map<String, Subscription> cacheByApiClientId;
+    private Map<String, Subscription> cacheBySubscriptionId;
+    private Map<String, Set<String>> cacheByApiId;
 
     @BeforeEach
-    public void setup() {
-        subscriptionService = new SubscriptionCacheService(new StandaloneCacheManager(), apiKeyService);
-        cacheByApiClientId = (Cache<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiClientId");
-        cacheBySubscriptionId = (Cache<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheBySubscriptionId");
-        cacheByApiId = (Cache<String, Set<String>>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiId");
+    public void setup() throws Exception {
+        subscriptionService = new SubscriptionCacheService(apiKeyService);
+        cacheByApiClientId = (Map<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiClientId");
+        cacheBySubscriptionId = (Map<String, Subscription>) ReflectionTestUtils.getField(subscriptionService, "cacheBySubscriptionId");
+        cacheByApiId = (Map<String, Set<String>>) ReflectionTestUtils.getField(subscriptionService, "cacheByApiId");
     }
 
     @Nested

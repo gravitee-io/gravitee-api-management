@@ -20,13 +20,16 @@ import static org.mockito.Mockito.mock;
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.gateway.standalone.reporter.FakeReporter;
 import io.gravitee.gateway.standalone.tracer.NoOpTracer;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.container.NodeFactory;
+import io.gravitee.node.plugin.cluster.standalone.StandaloneClusterManager;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.tracing.api.Tracer;
+import io.vertx.core.Vertx;
 import java.util.List;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -54,6 +57,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public NodeFactory node() {
             return new NodeFactory(GatewayTestNode.class);
+        }
+
+        @Bean
+        public ClusterManager clusterManager(final Vertx vertx) {
+            return new StandaloneClusterManager(vertx);
         }
 
         @Bean

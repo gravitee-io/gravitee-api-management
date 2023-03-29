@@ -100,7 +100,7 @@
 
         <dependency>
             <groupId>io.gravitee.node</groupId>
-            <artifactId>gravitee-node-cluster</artifactId>
+            <artifactId>gravitee-node-cluster-plugin-handler</artifactId>
         </dependency>
 
         <dependency>
@@ -321,6 +321,13 @@
             <groupId>io.gravitee.connector</groupId>
             <artifactId>gravitee-connector-http</artifactId>
             <version>${gravitee-connector-http.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-cluster-plugin-standalone</artifactId>
+            <version>${gravitee-node.version}</version>
             <scope>test</scope>
         </dependency>
 

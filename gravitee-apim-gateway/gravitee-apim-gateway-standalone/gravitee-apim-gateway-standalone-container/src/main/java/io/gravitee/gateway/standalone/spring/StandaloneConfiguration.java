@@ -37,7 +37,6 @@ import io.gravitee.gateway.standalone.node.GatewayNodeMetadataResolver;
 import io.gravitee.gateway.standalone.vertx.VertxReactorConfiguration;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.certificates.spring.NodeCertificatesConfiguration;
-import io.gravitee.node.cluster.spring.ClusterConfiguration;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.kubernetes.spring.NodeKubernetesConfiguration;
 import io.gravitee.node.vertx.spring.VertxConfiguration;
@@ -80,7 +79,6 @@ import org.springframework.context.annotation.Import;
         EntrypointConnectorPluginConfiguration.class,
         ApiServicePluginConfiguration.class,
         EndpointConnectorPluginConfiguration.class,
-        ClusterConfiguration.class,
         TimeoutConfiguration.class,
     }
 )

@@ -38,11 +38,6 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.node.api.cache.CacheConfiguration;
-import io.gravitee.node.api.cache.EntryEvent;
-import io.gravitee.node.api.cache.EntryEventType;
-import io.gravitee.node.api.cluster.ClusterManager;
-import io.gravitee.node.cache.standalone.StandaloneCache;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -55,18 +50,18 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ApiManagerV4Test {
 
-    @InjectMocks
-    private ApiManagerImpl apiManager = new ApiManagerImpl();
+    private ApiManagerImpl apiManager;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -80,16 +75,9 @@ public class ApiManagerV4Test {
     @Mock
     private DataEncryptor dataEncryptor;
 
-    @Mock
-    private ClusterManager clusterManager;
-
     @Before
-    public void setUp() {
-        apiManager = spy(new ApiManagerImpl());
-        MockitoAnnotations.initMocks(this);
-        apiManager.afterPropertiesSet();
-
-        apiManager.setApis(new StandaloneCache<>("api_manager_test", new CacheConfiguration()));
+    public void setUp() throws Exception {
+        apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, dataEncryptor));
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
     }
@@ -210,6 +198,7 @@ public class ApiManagerV4Test {
         api.getDefinition().setTags(new HashSet<>(singletonList("test")));
 
         final Plan mockedPlan = mock(Plan.class);
+        when(mockedPlan.getStatus()).thenReturn(PlanStatus.PUBLISHED);
         when(mockedPlan.getTags()).thenReturn(new HashSet<>(singletonList("test2")));
         api.getDefinition().setPlans(singletonList(mockedPlan));
 
@@ -414,55 +403,6 @@ public class ApiManagerV4Test {
             Map.of("key1", "plain value 1", "key2", "plain value 2", "key3", "plain value 3"),
             api.getDefinition().getProperties().stream().collect(Collectors.toMap(Property::getKey, Property::getValue))
         );
-    }
-
-    @Test
-    public void shouldPublishEventWhenADDEDEventIsSent() {
-        final Api api = buildTestApi();
-        api.getDefinition().setPlans(Collections.singletonList(buildMockPlan()));
-        when(clusterManager.isMasterNode()).thenReturn(false);
-
-        apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.ADDED, api.getId(), null, api));
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-    }
-
-    @Test
-    public void shouldPublishEventWhenUPDATEDEventIsSent() {
-        final Api api = buildTestApi();
-        api.getDefinition().setPlans(List.of(buildMockPlan()));
-        when(clusterManager.isMasterNode()).thenReturn(false);
-
-        apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.UPDATED, api.getId(), null, api));
-
-        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
-    }
-
-    @Test
-    public void shouldPublishEventWhenEXPIREDEventIsSent() {
-        final Api api = buildTestApi();
-        api.getDefinition().setPlans(List.of(buildMockPlan()));
-        when(clusterManager.isMasterNode()).thenReturn(false);
-
-        apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.ADDED, api.getId(), null, api));
-
-        apiManager.onEvent(new EntryEvent<>(new Object(), EntryEventType.EXPIRED, api.getId(), api, null));
-
-        verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
-    }
-
-    private Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {
-        return mockApi(api, new String[] {});
-    }
-
-    private Api mockApi(final io.gravitee.repository.management.model.Api api, final String[] tags) throws Exception {
-        final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
-        final Api api2 = new Api(definition);
-        definition.setId(api.getId());
-        definition.setName(api.getName());
-        definition.setTags(new HashSet<>(Arrays.asList(tags)));
-        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class)).thenReturn(definition);
-        return api2;
     }
 
     private Api buildTestApi() {

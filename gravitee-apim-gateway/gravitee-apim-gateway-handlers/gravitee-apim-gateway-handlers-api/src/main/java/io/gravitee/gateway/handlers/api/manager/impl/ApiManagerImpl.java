@@ -25,62 +25,42 @@ import io.gravitee.gateway.handlers.api.manager.Deployer;
 import io.gravitee.gateway.handlers.api.manager.deployer.ApiDeployer;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.node.api.cache.Cache;
-import io.gravitee.node.api.cache.CacheListener;
-import io.gravitee.node.api.cache.CacheManager;
-import io.gravitee.node.api.cache.EntryEvent;
-import io.gravitee.node.api.cache.EntryEventType;
-import io.gravitee.node.api.cluster.ClusterManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListener<String, ReactableApi<?>> {
+@Slf4j
+@RequiredArgsConstructor
+public class ApiManagerImpl implements ApiManager {
 
     private static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
-    private final Logger logger = LoggerFactory.getLogger(ApiManagerImpl.class);
 
-    @Autowired
-    private EventManager eventManager;
+    private final EventManager eventManager;
+    private final GatewayConfiguration gatewayConfiguration;
+    private final Map<String, ReactableApi<?>> apis = new ConcurrentHashMap<>();
+    private final Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
 
-    @Autowired
-    private GatewayConfiguration gatewayConfiguration;
-
-    @Autowired
-    private ClusterManager clusterManager;
-
-    @Autowired
-    private CacheManager cacheManager;
-
-    @Autowired
-    private DataEncryptor dataEncryptor;
-
-    private Cache<String, ReactableApi<?>> apis;
-
-    private Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
-
-    @Override
-    public void afterPropertiesSet() {
-        if (cacheManager != null) {
-            apis = cacheManager.getOrCreateCache("apis");
-            apis.addCacheListener(this);
-        }
-
+    public ApiManagerImpl(
+        final EventManager eventManager,
+        final GatewayConfiguration gatewayConfiguration,
+        final DataEncryptor dataEncryptor
+    ) {
+        this.eventManager = eventManager;
+        this.gatewayConfiguration = gatewayConfiguration;
         deployers =
             Map.of(
                 Api.class,
@@ -88,24 +68,6 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
                 io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
                 new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor)
             );
-    }
-
-    @Override
-    public void onEvent(EntryEvent<String, ReactableApi<?>> event) {
-        // Replication is only done for secondary nodes
-        if (!clusterManager.isMasterNode()) {
-            if (event.getEventType() == EntryEventType.ADDED) {
-                register(event.getValue());
-            } else if (event.getEventType() == EntryEventType.UPDATED) {
-                register(event.getValue());
-            } else if (
-                event.getEventType() == EntryEventType.REMOVED ||
-                event.getEventType() == EntryEventType.EVICTED ||
-                event.getEventType() == EntryEventType.EXPIRED
-            ) {
-                unregister(event.getKey());
-            }
-        }
     }
 
     private boolean register(ReactableApi<?> api, boolean force) {
@@ -135,7 +97,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
                 return true;
             }
         } else {
-            logger.debug("The API {} has been ignored because not in configured tags {}", api.getName(), api.getTags());
+            log.debug("The API {} has been ignored because not in configured tags {}", api.getName(), api.getTags());
 
             // Check that the API was not previously deployed with other tags
             // In that case, we must undeploy it
@@ -181,7 +143,7 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
         if (apis != null && !apis.isEmpty()) {
             final long begin = System.currentTimeMillis();
 
-            logger.info("Starting apis refresh. {} apis to be refreshed.", apis.size());
+            log.info("Starting apis refresh. {} apis to be refreshed.", apis.size());
 
             // Create an executor to parallelize a refresh for all the apis.
             final ExecutorService refreshAllExecutor = createExecutor(Math.min(PARALLELISM, apis.size()));
@@ -197,19 +159,19 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
                 refreshAllExecutor.shutdown();
                 while (!refreshAllExecutor.awaitTermination(100, TimeUnit.MILLISECONDS));
             } catch (InterruptedException e) {
-                logger.error("Unable to refresh apis", e);
+                log.error("Unable to refresh apis", e);
                 Thread.currentThread().interrupt();
             } finally {
                 refreshAllExecutor.shutdown();
             }
 
-            logger.info("Apis refresh done in {}ms", (System.currentTimeMillis() - begin));
+            log.info("Apis refresh done in {}ms", (System.currentTimeMillis() - begin));
         }
     }
 
     private void deploy(ReactableApi api) {
         MDC.put("api", api.getId());
-        logger.debug("Deployment of {}", api);
+        log.debug("Deployment of {}", api);
 
         if (api.isEnabled()) {
             Deployer deployer = deployers.get(api.getClass());
@@ -217,19 +179,19 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
 
             // Deploy the API only if there is at least one plan
             if (!plans.isEmpty()) {
-                logger.debug("Deploying {} plan(s) for {}:", plans.size(), api);
+                log.debug("Deploying {} plan(s) for {}:", plans.size(), api);
                 for (String plan : plans) {
-                    logger.debug("\t- {}", plan);
+                    log.debug("\t- {}", plan);
                 }
 
                 apis.put(api.getId(), api);
                 eventManager.publishEvent(ReactorEvent.DEPLOY, api);
-                logger.info("{} has been deployed", api);
+                log.info("{} has been deployed", api);
             } else {
-                logger.warn("There is no published plan associated to this API, skipping deployment...");
+                log.warn("There is no published plan associated to this API, skipping deployment...");
             }
         } else {
-            logger.debug("{} is not enabled. Skip deployment.", api);
+            log.debug("{} is not enabled. Skip deployment.", api);
         }
 
         MDC.remove("api");
@@ -251,22 +213,22 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
 
     private void update(ReactableApi<?> api) {
         MDC.put("api", api.getId());
-        logger.debug("Updating {}", api);
+        log.debug("Updating {}", api);
 
         Deployer deployer = deployers.get(api.getClass());
         List<String> plans = deployer.getPlans(api);
 
         if (!plans.isEmpty()) {
-            logger.debug("Deploying {} plan(s) for {}:", plans.size(), api);
+            log.debug("Deploying {} plan(s) for {}:", plans.size(), api);
             for (String plan : plans) {
-                logger.info("\t- {}", plan);
+                log.info("\t- {}", plan);
             }
 
             apis.put(api.getId(), api);
             eventManager.publishEvent(ReactorEvent.UPDATE, api);
-            logger.info("{} has been updated", api);
+            log.info("{} has been updated", api);
         } else {
-            logger.warn("There is no published plan associated to this API, undeploy it...");
+            log.warn("There is no published plan associated to this API, undeploy it...");
             undeploy(api.getId());
         }
 
@@ -274,13 +236,13 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
     }
 
     private void undeploy(String apiId) {
-        ReactableApi<?> currentApi = apis.evict(apiId);
+        ReactableApi<?> currentApi = apis.remove(apiId);
         if (currentApi != null) {
             MDC.put("api", apiId);
-            logger.debug("Undeployment of {}", currentApi);
+            log.debug("Undeployment of {}", currentApi);
 
             eventManager.publishEvent(ReactorEvent.UNDEPLOY, currentApi);
-            logger.info("{} has been undeployed", currentApi);
+            log.info("{} has been undeployed", currentApi);
             MDC.remove("api");
         }
     }
@@ -293,13 +255,5 @@ public class ApiManagerImpl implements ApiManager, InitializingBean, CacheListen
     @Override
     public ReactableApi<?> get(String name) {
         return apis.get(name);
-    }
-
-    public void setEventManager(EventManager eventManager) {
-        this.eventManager = eventManager;
-    }
-
-    public void setApis(Cache<String, ReactableApi<?>> apis) {
-        this.apis = apis;
     }
 }

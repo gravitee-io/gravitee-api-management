@@ -23,35 +23,24 @@ import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
-import io.gravitee.node.api.cache.Cache;
-import io.gravitee.node.api.cache.CacheManager;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
-@Component
 @Slf4j
+@RequiredArgsConstructor
 public class SubscriptionCacheService implements SubscriptionService {
-
-    private static final String CACHE_NAME_BY_API_AND_CLIENT_ID = "SUBSCRIPTIONS_BY_API_AND_CLIENT_ID";
-    private static final String CACHE_NAME_BY_SUBSCRIPTION_ID = "SUBSCRIPTIONS_BY_ID";
-    private static final String CACHE_NAME_BY_API_ID = "SUBSCRIPTIONS_BY_API_ID";
-
-    // Caches only contains active subscriptions
-    private final Cache<String, Subscription> cacheByApiClientId;
-    private final Cache<String, Subscription> cacheBySubscriptionId;
-    private final Cache<String, Set<String>> cacheByApiId;
 
     private final ApiKeyService apiKeyService;
 
-    public SubscriptionCacheService(CacheManager cacheManager, ApiKeyService apiKeyService) {
-        this.cacheByApiClientId = cacheManager.getOrCreateCache(CACHE_NAME_BY_API_AND_CLIENT_ID);
-        this.cacheBySubscriptionId = cacheManager.getOrCreateCache(CACHE_NAME_BY_SUBSCRIPTION_ID);
-        this.cacheByApiId = cacheManager.getOrCreateCache(CACHE_NAME_BY_API_ID);
-        this.apiKeyService = apiKeyService;
-    }
+    // Caches only contains active subscriptions
+    private final Map<String, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
+    private final Map<String, Subscription> cacheBySubscriptionId = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> cacheByApiId = new ConcurrentHashMap<>();
 
     @Override
     public Optional<Subscription> getByApiAndSecurityToken(String api, SecurityToken securityToken, String plan) {
@@ -147,7 +136,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         Set<String> keysByApi = cacheByApiId.get(apiId);
         if (keysByApi != null && keysByApi.remove(cacheKey)) {
             if (keysByApi.isEmpty()) {
-                cacheByApiId.evict(apiId);
+                cacheByApiId.remove(apiId);
             } else {
                 cacheByApiId.put(apiId, keysByApi);
             }
@@ -164,10 +153,10 @@ public class SubscriptionCacheService implements SubscriptionService {
             subscription.getApi()
         );
         final String idKey = subscription.getId();
-        Subscription evictSubscription = cacheBySubscriptionId.evict(idKey);
-        if (evictSubscription != null) {
+        Subscription removeSubscription = cacheBySubscriptionId.remove(idKey);
+        if (removeSubscription != null) {
             removeKeyForApi(subscription.getApi(), idKey);
-            unregisterFromClientId(evictSubscription);
+            unregisterFromClientId(removeSubscription);
         }
         // In case new one has different client id than the one in cache
         unregisterFromClientId(subscription);
@@ -176,11 +165,11 @@ public class SubscriptionCacheService implements SubscriptionService {
     private void unregisterFromClientId(final Subscription subscription) {
         if (subscription.getClientId() != null) {
             final String clientIdKey = buildClientIdCacheKey(subscription);
-            if (cacheByApiClientId.evict(clientIdKey) != null) {
+            if (cacheByApiClientId.remove(clientIdKey) != null) {
                 removeKeyForApi(subscription.getApi(), clientIdKey);
             }
             final String clientIdKeyWithoutPlan = buildClientIdCacheKey(subscription.getApi(), subscription.getClientId(), null);
-            if (cacheByApiClientId.evict(clientIdKeyWithoutPlan) != null) {
+            if (cacheByApiClientId.remove(clientIdKeyWithoutPlan) != null) {
                 removeKeyForApi(subscription.getApi(), clientIdKeyWithoutPlan);
             }
         }
@@ -189,10 +178,10 @@ public class SubscriptionCacheService implements SubscriptionService {
     @Override
     public void unregisterByApiId(final String apiId) {
         log.debug("Unload all subscriptions by api [api_id: {}]", apiId);
-        Set<String> subscriptionsByApi = cacheByApiId.evict(apiId);
+        Set<String> subscriptionsByApi = cacheByApiId.remove(apiId);
         if (subscriptionsByApi != null) {
             subscriptionsByApi.forEach(cacheKey -> {
-                Subscription subscription = cacheBySubscriptionId.evict(cacheKey);
+                Subscription subscription = cacheBySubscriptionId.remove(cacheKey);
                 if (subscription != null) {
                     log.debug(
                         "Unload subscription [id: {}] [api: {}] [plan: {}] [application: {}]",
@@ -202,7 +191,7 @@ public class SubscriptionCacheService implements SubscriptionService {
                         subscription.getApi()
                     );
                 }
-                cacheByApiClientId.evict(cacheKey);
+                cacheByApiClientId.remove(cacheKey);
             });
         }
     }

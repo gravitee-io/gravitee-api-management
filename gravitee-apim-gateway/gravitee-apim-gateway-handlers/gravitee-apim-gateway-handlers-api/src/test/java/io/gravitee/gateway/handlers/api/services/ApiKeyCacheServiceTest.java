@@ -18,8 +18,7 @@ package io.gravitee.gateway.handlers.api.services;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.gravitee.gateway.api.service.ApiKey;
-import io.gravitee.node.api.cache.Cache;
-import io.gravitee.node.cache.standalone.StandaloneCacheManager;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,14 +32,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class ApiKeyCacheServiceTest {
 
     private ApiKeyCacheService apiKeyService;
-    private Cache<String, ApiKey> cacheApiKeys;
-    private Cache<String, Set<String>> cacheApiKeysByApi;
+    private Map<String, ApiKey> cacheApiKeys;
+    private Map<String, Set<String>> cacheApiKeysByApi;
 
     @BeforeEach
-    public void beforeEach() {
-        apiKeyService = new ApiKeyCacheService(new StandaloneCacheManager());
-        cacheApiKeys = (Cache<String, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeys");
-        cacheApiKeysByApi = (Cache<String, Set<String>>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeysByApi");
+    public void beforeEach() throws Exception {
+        apiKeyService = new ApiKeyCacheService();
+        cacheApiKeys = (Map<String, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeys");
+        cacheApiKeysByApi = (Map<String, Set<String>>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeysByApi");
     }
 
     @Nested
