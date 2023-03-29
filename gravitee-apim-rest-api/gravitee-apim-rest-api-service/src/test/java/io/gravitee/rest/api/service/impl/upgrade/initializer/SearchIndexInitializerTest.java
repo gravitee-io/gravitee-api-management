@@ -24,6 +24,8 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.User;
@@ -43,6 +45,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -204,13 +207,13 @@ public class SearchIndexInitializerTest {
     }
 
     private void mockTestApis() throws Exception {
-        Set<Api> apis = Set.of(
+        Stream<Api> apis = Stream.of(
             mockTestApi("api1", "env1"),
             mockTestApi("api2", "env2"),
             mockTestApi("api3", "env1"),
             mockTestApi("api4", "env3")
         );
-        when(apiRepository.findAll()).thenReturn(apis);
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(apis);
     }
 
     private Api mockTestApi(String apiId, String environmentId) {

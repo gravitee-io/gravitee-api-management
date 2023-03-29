@@ -21,12 +21,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,7 +70,8 @@ public class PlansFlowsDefinitionUpgraderTest {
         Api api2 = buildApi("api2", "2.0.0");
         Api api3 = buildApi("api3", "1.0.0");
         Api api4 = buildApi("api4", "2.0.0");
-        when(apiRepository.findAll()).thenReturn(Set.of(api1, api2, api3, api4));
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
+            .thenReturn(Stream.of(api1, api2, api3, api4));
 
         upgrader.processOneShotUpgrade();
 
