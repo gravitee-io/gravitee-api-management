@@ -1,2 +1,6 @@
 printWidth: 140
 tabWidth: 4
+overrides:
+  - files: "gravitee-apim-repository/gravitee-apim-repository-mongodb/**/upgrader/index/**/*.java"
+    options:
+      printWidth: 90

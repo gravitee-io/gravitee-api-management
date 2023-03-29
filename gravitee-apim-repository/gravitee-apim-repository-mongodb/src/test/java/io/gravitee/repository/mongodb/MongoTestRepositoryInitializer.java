@@ -17,9 +17,12 @@ package io.gravitee.repository.mongodb;
 
 import com.mongodb.client.MongoClient;
 import io.gravitee.repository.config.TestRepositoryInitializer;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
+import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
@@ -37,12 +40,11 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
     private final MongoClient mongoClient;
 
     @Autowired
-    public MongoTestRepositoryInitializer(MongoClient mongoClient) {
+    public MongoTestRepositoryInitializer(MongoClient mongoClient, ApplicationContext applicationContext) {
         LOG.debug("Constructed");
         this.mongoClient = mongoClient;
-        final MongoTemplate mt = new MongoTemplate(mongoClient, "test");
-        LOG.debug("Dropping database...");
-        mt.getDb().drop();
+        LOG.info("Running MongoDB upgraders");
+        applicationContext.getBeansOfType(MongoUpgrader.class).values().forEach(MongoUpgrader::upgrade);
     }
 
     @Override
@@ -50,8 +52,8 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
 
     @Override
     public void tearDown() {
-        LOG.debug("Dropping database...");
+        LOG.debug("Deleting all documents...");
         final MongoTemplate mt = new MongoTemplate(mongoClient, "test");
-        mt.getDb().drop();
+        mt.getDb().listCollectionNames().forEach(collection -> mt.getDb().getCollection(collection).deleteMany(new BsonDocument()));
     }
 }

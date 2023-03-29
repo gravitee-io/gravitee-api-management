@@ -48,6 +48,8 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
 
     protected final Environment environment;
 
+    protected ApplicationContext applicationContext;
+
     protected AbstractRepositoryConfiguration(Environment environment) {
         this.environment = environment;
     }
@@ -56,6 +58,7 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
         final ConfigurableListableBeanFactory beanFactory = getConfigurableApplicationContext(applicationContext).getBeanFactory();
         beanFactory.registerSingleton("graviteeTransactionManager", new NoTransactionManager());
+        this.applicationContext = applicationContext;
     }
 
     private ConfigurableApplicationContext getConfigurableApplicationContext(ApplicationContext applicationContext) {
