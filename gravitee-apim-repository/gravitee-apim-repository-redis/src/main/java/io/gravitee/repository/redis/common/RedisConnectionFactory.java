@@ -17,6 +17,12 @@ package io.gravitee.repository.redis.common;
 
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.vertx.core.*;
+import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.NetClientOptions;
+import io.vertx.core.net.OpenSSLEngineOptions;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PemTrustOptions;
+import io.vertx.core.net.PfxOptions;
 import io.vertx.redis.client.RedisClientType;
 import io.vertx.redis.client.RedisOptions;
 import io.vertx.redis.client.RedisRole;
@@ -45,6 +51,10 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
     private static final String SENTINEL_PARAMETER_PREFIX = "sentinel.";
 
     private static final String PASSWORD_PARAMETER = "password";
+
+    private static final String STORE_FORMAT_JKS = "JKS";
+    private static final String STORE_FORMAT_PEM = "PEM";
+    private static final String STORE_FORMAT_PKCS12 = "PKCS12";
 
     public RedisConnectionFactory(Environment environment, Vertx vertx, String propertyPrefix) {
         this.environment = environment;
@@ -109,13 +119,167 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
 
         // SSL
         if (ssl) {
-            options.getNetClientOptions().setSsl(true).setTrustAll(true);
+            logger.debug("Redis repository configured with ssl enabled");
+
+            boolean trustAll = readPropertyValue(propertyPrefix + "trustAll", boolean.class, true);
+            options.getNetClientOptions().setSsl(true);
+            options.getNetClientOptions().setTrustAll(trustAll);
+
+            // TLS Protocols
+            options
+                .getNetClientOptions()
+                .setEnabledSecureTransportProtocols(
+                    StringUtils.commaDelimitedListToSet(
+                        StringUtils.trimAllWhitespace(readPropertyValue(propertyPrefix + "tlsProtocols", String.class, ""))
+                    )
+                );
+
+            // TLS Ciphers
+            StringUtils
+                .commaDelimitedListToSet(readPropertyValue(propertyPrefix + "tlsCiphers", String.class, ""))
+                .forEach(cipherSuite -> options.getNetClientOptions().addEnabledCipherSuite(cipherSuite.strip()));
+
+            options.getNetClientOptions().setUseAlpn(readPropertyValue(propertyPrefix + "alpn", boolean.class, false));
+
+            if (readPropertyValue(propertyPrefix + "openssl", boolean.class, false)) {
+                options.getNetClientOptions().setSslEngineOptions(new OpenSSLEngineOptions());
+            }
+
+            if (!trustAll) {
+                // Client truststore configuration (trust server certificate).
+                configureTrustStore(options.getNetClientOptions());
+            } else {
+                logger.warn("Redis repository configured with ssl and trustAll which is not a good practice for security");
+            }
+
+            // Client keystore configuration (client certificate for mtls).
+            configureKeyStore(options.getNetClientOptions());
         }
 
         // Set max waiting handlers high enough to manage high throughput since we are not using the pooled mode
         options.setMaxWaitingHandlers(1024);
 
         return options;
+    }
+
+    private void configureTrustStore(NetClientOptions netClientOptions) {
+        String truststorePropertyPrefix = propertyPrefix + "truststore.";
+        String truststorePath = readPropertyValue(truststorePropertyPrefix + "path", String.class);
+        String truststoreType = readPropertyValue(truststorePropertyPrefix + "type", String.class);
+        String truststorePassword = readPropertyValue(truststorePropertyPrefix + "password", String.class);
+        String truststoreAlias = readPropertyValue(truststorePropertyPrefix + "alias", String.class);
+
+        if (StringUtils.hasText(truststoreType)) {
+            switch (truststoreType.toUpperCase()) {
+                case STORE_FORMAT_PEM:
+                    final PemTrustOptions pemTrustOptions = new PemTrustOptions();
+
+                    if (StringUtils.hasText(truststorePath)) {
+                        pemTrustOptions.addCertPath(truststorePath);
+                    } else {
+                        throw new IllegalArgumentException("Missing PEM truststore value");
+                    }
+
+                    netClientOptions.setPemTrustOptions(pemTrustOptions);
+                    break;
+                case STORE_FORMAT_PKCS12:
+                    final PfxOptions pfxOptions = new PfxOptions();
+
+                    if (StringUtils.hasText(truststorePath)) {
+                        pfxOptions.setPath(truststorePath);
+                    } else {
+                        throw new IllegalArgumentException("Missing PKCS12 truststore value");
+                    }
+
+                    pfxOptions.setAlias(truststoreAlias);
+                    pfxOptions.setPassword(truststorePassword);
+                    netClientOptions.setPfxTrustOptions(pfxOptions);
+                    break;
+                case STORE_FORMAT_JKS:
+                    final JksOptions jksOptions = new JksOptions();
+
+                    if (StringUtils.hasText(truststorePath)) {
+                        jksOptions.setPath(truststorePath);
+                    } else {
+                        throw new IllegalArgumentException("Missing JKS truststore value");
+                    }
+
+                    jksOptions.setAlias(truststoreAlias);
+                    jksOptions.setPassword(truststorePassword);
+                    netClientOptions.setTrustStoreOptions(jksOptions);
+                    break;
+                default:
+                    logger.error("Unknown type of Truststore provided {}", truststoreType);
+                    break;
+            }
+        }
+    }
+
+    private void configureKeyStore(NetClientOptions netClientOptions) {
+        String keystorePropertyPrefix = propertyPrefix + "keystore.";
+        String keystorePath = readPropertyValue(keystorePropertyPrefix + "path", String.class);
+        String keystorePassword = readPropertyValue(keystorePropertyPrefix + "password", String.class);
+        String keyPassword = readPropertyValue(keystorePropertyPrefix + "keyPassword", String.class);
+        String keystoreType = readPropertyValue(keystorePropertyPrefix + "type", String.class);
+        String keystoreAlias = readPropertyValue(keystorePropertyPrefix + "alias", String.class);
+
+        if (StringUtils.hasText(keystoreType)) {
+            switch (keystoreType.toUpperCase()) {
+                case STORE_FORMAT_PEM:
+                    final PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
+
+                    for (
+                        int idx = 0;
+                        StringUtils.hasText(readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].cert", String.class));
+                        idx++
+                    ) {
+                        pemKeyCertOptions.addCertPath(
+                            readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].cert", String.class)
+                        );
+                        pemKeyCertOptions.addKeyPath(
+                            readPropertyValue(keystorePropertyPrefix + "certificates[" + idx + "].key", String.class)
+                        );
+                    }
+
+                    if (pemKeyCertOptions.getCertPaths().isEmpty()) {
+                        throw new IllegalArgumentException("Missing PEM keystore value");
+                    }
+
+                    netClientOptions.setPemKeyCertOptions(pemKeyCertOptions);
+                    break;
+                case STORE_FORMAT_PKCS12:
+                    final PfxOptions pfxOptions = new PfxOptions();
+
+                    if (StringUtils.hasText(keystorePath)) {
+                        pfxOptions.setPath(keystorePath);
+                    } else {
+                        throw new IllegalArgumentException("Missing PKCS12 keystore value");
+                    }
+
+                    pfxOptions.setAlias(keystoreAlias);
+                    pfxOptions.setAliasPassword(keyPassword);
+                    pfxOptions.setPassword(keystorePassword);
+                    netClientOptions.setPfxKeyCertOptions(pfxOptions);
+                    break;
+                case STORE_FORMAT_JKS:
+                    final JksOptions jksOptions = new JksOptions();
+
+                    if (StringUtils.hasText(keystorePath)) {
+                        jksOptions.setPath(keystorePath);
+                    } else {
+                        throw new IllegalArgumentException("Missing JKS keystore value");
+                    }
+
+                    jksOptions.setAlias(keystoreAlias);
+                    jksOptions.setAliasPassword(keyPassword);
+                    jksOptions.setPassword(keystorePassword);
+                    netClientOptions.setKeyStoreOptions(jksOptions);
+                    break;
+                default:
+                    logger.error("Unknown type of Keystore provided {}", keystoreType);
+                    break;
+            }
+        }
     }
 
     @Override

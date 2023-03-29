@@ -16,13 +16,20 @@
 package io.gravitee.repository.redis.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
+import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PemTrustOptions;
+import io.vertx.core.net.PfxOptions;
 import io.vertx.redis.client.RedisOptions;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -36,14 +43,14 @@ public class RedisConnectionFactoryTest {
     private RedisConnectionFactory redisConnectionFactory;
     private MockEnvironment environment;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         environment = new MockEnvironment();
         redisConnectionFactory = new RedisConnectionFactory(environment, null, PROPERTY_PREFIX);
     }
 
     @Test
-    public void shouldReturnRedisOptionsWithSecuredEndpoint() {
+    void shouldReturnRedisOptionsWithSecuredEndpoint() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
         environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
         environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
@@ -55,7 +62,7 @@ public class RedisConnectionFactoryTest {
     }
 
     @Test
-    public void shouldReturnRedisOptionsWithoutSecuredEndpoint() {
+    void shouldReturnRedisOptionsWithoutSecuredEndpoint() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
         environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
 
@@ -84,7 +91,7 @@ public class RedisConnectionFactoryTest {
     }
 
     @Test
-    public void shouldReturnRedisOptionsWithSentinelsSecuredEndpoints() {
+    void shouldReturnRedisOptionsWithSentinelsSecuredEndpoints() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.master", "redis-master");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[0].host", "sent1");
@@ -103,7 +110,7 @@ public class RedisConnectionFactoryTest {
     }
 
     @Test
-    public void shouldThrowAnExceptionWhenMissingSentinelMaster() {
+    void shouldThrowAnExceptionWhenMissingSentinelMaster() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[0].host", "sent1");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[0].port", "26379");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.nodes[1].host", "sent2");
@@ -112,5 +119,133 @@ public class RedisConnectionFactoryTest {
         assertThatIllegalStateException()
             .isThrownBy(() -> redisConnectionFactory.buildRedisOptions())
             .withMessageContaining("Incorrect Sentinel configuration");
+    }
+
+    @Test
+    void shouldReturnRedisOptionsWithPemTruststoreAndKeystore() {
+        String keystoreCertPath = "/path/to/client.crt";
+        String keystoreKeyPath = "/path/to/client.key";
+        String truststorePath = "/path/to/ca.crt";
+        environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.trustAll", "false");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.type", "pem");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.certificates[0].cert", keystoreCertPath);
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.certificates[0].key", keystoreKeyPath);
+
+        environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.type", "pem");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.path", truststorePath);
+
+        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+
+        PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
+        pemKeyCertOptions.addCertPath(keystoreCertPath);
+        pemKeyCertOptions.addKeyPath(keystoreKeyPath);
+
+        PemTrustOptions pemTrustOptions = new PemTrustOptions();
+        pemTrustOptions.addCertPath(truststorePath);
+
+        assertThat(options).isNotNull();
+        assertThat(options.getNetClientOptions().getPemKeyCertOptions()).usingRecursiveComparison().isEqualTo(pemKeyCertOptions);
+        assertThat(options.getNetClientOptions().getPemTrustOptions()).usingRecursiveComparison().isEqualTo(pemTrustOptions);
+    }
+
+    @Test
+    void shouldReturnRedisOptionsWithPKCS12TruststoreAndKeystore() {
+        String keystorePath = "/path/to/client.pkcs12";
+        String truststorePath = "/path/to/ca.pkcs12";
+        environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.trustAll", "false");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.type", "pkcs12");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.path", keystorePath);
+
+        environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.type", "pkcs12");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.path", truststorePath);
+
+        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+
+        PfxOptions keystorePfxOptions = new PfxOptions();
+        keystorePfxOptions.setPath(keystorePath);
+
+        PfxOptions truststorePfxOptions = new PfxOptions();
+        truststorePfxOptions.setPath(truststorePath);
+
+        assertThat(options).isNotNull();
+        assertThat(options.getNetClientOptions().getPfxKeyCertOptions()).usingRecursiveComparison().isEqualTo(keystorePfxOptions);
+        assertThat(options.getNetClientOptions().getPfxTrustOptions()).usingRecursiveComparison().isEqualTo(truststorePfxOptions);
+    }
+
+    @Test
+    void shouldReturnRedisOptionsWithJKSTruststoreAndKeystore() {
+        String keystorePath = "/path/to/client.jks";
+        String truststorePath = "/path/to/ca.jks";
+        environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.trustAll", "false");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.type", "jks");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.path", keystorePath);
+
+        environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.type", "jks");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.path", truststorePath);
+
+        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+
+        JksOptions keystoreJksOptions = new JksOptions();
+        keystoreJksOptions.setPath(keystorePath);
+
+        JksOptions truststoreJksOptions = new JksOptions();
+        truststoreJksOptions.setPath(truststorePath);
+
+        assertThat(options).isNotNull();
+        assertThat(options.getNetClientOptions().getKeyStoreOptions()).usingRecursiveComparison().isEqualTo(keystoreJksOptions);
+        assertThat(options.getNetClientOptions().getTrustStoreOptions()).usingRecursiveComparison().isEqualTo(truststoreJksOptions);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "JKS", "PEM", "PKCS12" })
+    void shouldThrowAnExceptionWhenSslEnabledAndMissingKeystoreCertPath(String keystoreType) {
+        environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.trustAll", "false");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.type", keystoreType);
+        environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.type", "jks");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.path", "truststorePath");
+
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> redisConnectionFactory.buildRedisOptions())
+            .withMessageContaining("Missing " + keystoreType + " keystore value");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "JKS", "PEM", "PKCS12" })
+    void shouldThrowAnExceptionWhenSslEnabledAndMissingTruststoreCertPath(String truststoreType) {
+        environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.trustAll", "false");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.type", "jks");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.path", "keystorePath");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.truststore.type", truststoreType);
+
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> redisConnectionFactory.buildRedisOptions())
+            .withMessageContaining("Missing " + truststoreType + " truststore value");
+    }
+
+    @Test
+    void shouldReturnRedisOptionsWithTrustAllEnabledToAvoidBreakingChangeWhenOnlySslConfigured() {
+        environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
+
+        RedisOptions options = redisConnectionFactory.buildRedisOptions();
+
+        assertThat(options.getNetClientOptions()).isNotNull();
+        assertThat(options.getNetClientOptions().isTrustAll()).isTrue();
     }
 }

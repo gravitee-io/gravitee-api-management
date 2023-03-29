@@ -154,6 +154,43 @@ ratelimit:
   type: mongodb
   mongodb:
     uri: mongodb://${ds.mongodb.host}:${ds.mongodb.port}/${ds.mongodb.dbname}
+#  redis:
+#    password:
+#    # Redis Standalone settings
+#    host: localhost
+#    port: 6379
+#    # Redis Sentinel settings
+#    sentinel:
+#      master: redis-master
+#      nodes:
+#        - host: sentinel1
+#          port: 26379
+#        - host: sentinel2
+#          port: 26379
+#    # SSL settings
+#    ssl: false
+#    trustAll: true # default value is true to keep backward compatibility but you should set it to false and configure a truststore for security concerns
+#    tlsProtocols: # List of TLS protocols to allow comma separated i.e: TLSv1.2, TLSv1.3
+#    tlsCiphers: # List of TLS ciphers to allow comma separated i.e: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+#    alpn: false
+#    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+#    # Keystore for redis mTLS (client certificate)
+#    keystore:
+#      type: pem # Supports jks, pem, pkcs12
+#      path: ${gravitee.home}/security/redis-keystore.jks # A path is required if certificate's type is jks or pkcs12
+#      password: secret
+#      keyPassword:
+#      alias:
+#      certificates: # Certificates are required if keystore's type is pem
+#        - cert: ${gravitee.home}/security/redis-mycompany.org.pem
+#          key: ${gravitee.home}/security/redis-mycompany.org.key
+#        - cert: ${gravitee.home}/security/redis-mycompany.com.pem
+#          key: ${gravitee.home}/security/redis-mycompany.com.key
+#    truststore:
+#      type: pem # Supports jks, pem, pkcs12
+#      path: ${gravitee.home}/security/redis-truststore.jks
+#      password: secret
+#      alias:
 
 cache:
   type: ehcache
