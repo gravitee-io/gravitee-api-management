@@ -3,12 +3,8 @@
 :host {
   @include gio-layout.gio-responsive-content-container;
 }
-.time-frame {
-  padding-bottom: 0;
-
-  &__refresh-btn {
-    margin-left: 4px;
-  }
+.only-configured-button {
+  margin-left: 16px;
 }
 
 .mat-column-picture {

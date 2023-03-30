@@ -23,9 +23,11 @@
 
 <mat-card>
   <gio-quick-time-range [formControl]="timeFrameControl" (onRefreshClicked)="onRefreshClicked()"></gio-quick-time-range>
+  <!-- button to set filter-->
+  <button mat-stroked-button class="only-configured-button" (click)="onOnlyHCConfigured()">Filter by Heath-Check enabled only</button>
 
   <gio-table-wrapper
-    [searchLabel]="searchLabel"
+    [searchLabel]="'Search APIs | name:&quot;My api *&quot; ownerName:admin'"
     [length]="apisTableDSUnpaginatedLength"
     [filters]="filters"
     (filtersChange)="onFiltersChanged($event)"

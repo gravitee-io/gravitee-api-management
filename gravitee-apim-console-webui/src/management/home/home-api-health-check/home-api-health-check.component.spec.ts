@@ -187,6 +187,26 @@ describe('HomeApiHealthCheckComponent', () => {
     });
   });
 
+  describe('onOnlyHCConfigured', () => {
+    const api = fakeApi({
+      healthcheck_enabled: true,
+    });
+    beforeEach(async () => {
+      fixture.detectChanges();
+
+      await expectApisListRequest([api]);
+      fixture.detectChanges();
+      expectGetApiHealth(api.id);
+      expectGetApiHealthAverage(api.id);
+      fixture.detectChanges();
+    });
+
+    it("should filter by 'has_health_check:true'", async () => {
+      await loader.getHarness(MatButtonHarness.with({ text: 'Filter by Heath-Check enabled only' })).then((button) => button.click());
+
+      expectApisListRequest([api], 'has_health_check:true');
+    });
+  });
   async function computeApisTableCells() {
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#apisTable' }));
 
