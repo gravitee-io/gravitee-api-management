@@ -168,9 +168,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private PlanService planService;
 
     @Autowired
-    private SynchronizationService synchronizationService;
-
-    @Autowired
     private ApiMetadataService apiMetadataService;
 
     @Autowired
@@ -290,6 +287,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Lazy
     @Autowired
     private ApiSearchService apiSearchService;
+
+    @Autowired
+    private ApiDefinitionServiceImpl apiDefinitionService;
 
     @Override
     public ApiEntity createFromSwagger(
@@ -1519,11 +1519,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public boolean isSynchronized(ExecutionContext executionContext, String apiId) {
         try {
-            // 1_ First, check the API state
-            ApiEntity api = findById(executionContext, apiId);
+            // 1_ First, get the Api from database and build the definition we would send to the gateway if we deploy the api.
+            Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+            io.gravitee.definition.model.Api gatewayApiDefinition = apiDefinitionService.buildGatewayApiDefinition(executionContext, api);
 
             // The state of the api is managed by kubernetes. There is no synchronization allowed from management.
-            if (DefinitionContext.isKubernetes(api.getDefinitionContext())) {
+            if (DefinitionContext.isKubernetes(gatewayApiDefinition.getDefinitionContext())) {
                 return true;
             }
 
@@ -1552,12 +1553,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     Api payloadEntity = objectMapper.readValue(lastEvent.getPayload(), Api.class);
                     objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, enabled);
 
-                    final ApiEntity deployedApi = convert(executionContext, payloadEntity, false);
-                    // Remove policy description from sync check
-                    removeDescriptionFromPolicies(api);
-                    removeDescriptionFromPolicies(deployedApi);
-
-                    sync = synchronizationService.checkSynchronization(ApiEntity.class, deployedApi, api);
+                    sync = payloadEntity.getDefinition().equals(objectMapper.writeValueAsString(gatewayApiDefinition));
 
                     // 2_ If API definition is synchronized, check if there is any modification for API's plans
                     // but only for published or closed plan
@@ -1578,18 +1574,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return false;
-    }
-
-    private void removeDescriptionFromPolicies(final ApiEntity api) {
-        if (api.getPaths() != null) {
-            api
-                .getPaths()
-                .forEach((s, rules) -> {
-                    if (rules != null) {
-                        rules.forEach(rule -> rule.setDescription(""));
-                    }
-                });
-        }
     }
 
     @Override
