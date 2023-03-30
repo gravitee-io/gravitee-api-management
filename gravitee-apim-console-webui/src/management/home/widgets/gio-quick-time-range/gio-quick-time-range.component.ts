@@ -17,7 +17,18 @@ import { Component, EventEmitter, forwardRef, Output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject } from 'rxjs';
 
-const timeFrameRangesParams = (id: string, interval: number, nbValuesByBucket = 30) => {
+export type TimeRangeParams = {
+  id: string;
+  from: number;
+  to: number;
+  interval: number;
+};
+
+const timeFrameRangesParams: (id: string, interval: number, nbValuesByBucket?: number) => TimeRangeParams = (
+  id: string,
+  interval: number,
+  nbValuesByBucket = 30,
+) => {
   return {
     id,
     from: new Date().getTime() - interval,
@@ -75,8 +86,7 @@ export class GioQuickTimeRangeComponent implements ControlValueAccessor {
 
   @Output()
   onRefreshClicked = new EventEmitter<void>();
-
-  selectedTimeFrame = timeFrames[0].id;
+  selectedTimeFrame: string;
   options = timeFrames;
 
   private _onChange: (value: any) => void = () => ({});
