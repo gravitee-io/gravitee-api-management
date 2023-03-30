@@ -17,12 +17,14 @@ import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { map, startWith, switchMap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 
 import { GioQuickTimeRangeComponent } from './gio-quick-time-range.component';
 import { GioQuickTimeRangeModule } from './gio-quick-time-range.module';
 
 export default {
-  title: 'Shared / Quick time range',
+  title: 'Home / Quick time range',
   component: GioQuickTimeRangeComponent,
   decorators: [
     moduleMetadata({
@@ -33,18 +35,27 @@ export default {
     onRefreshClicked: { action: 'onRefreshClicked' },
   },
   render: ({ onRefreshClicked }) => {
-    const formControl = new FormControl();
+    const formControl = new FormControl('1M');
     const formGroup = new FormGroup({
       range: formControl,
     });
 
+    const onRefresh$ = new BehaviorSubject(undefined);
+
+    const timeFrameRangesParams$ = onRefresh$.pipe(
+      switchMap(() => formControl.valueChanges.pipe(startWith(formControl.value))),
+      map((value) => GioQuickTimeRangeComponent.getTimeFrameRangesParams(value)),
+    );
+
     return {
       template: `
-    <form [formGroup]="formGroup">
-        <gio-quick-time-range [formControl]="formControl" (onRefreshClicked)="onRefreshClicked()"></gio-quick-time-range>
-    </form>
-    {{ formGroup?.getRawValue() | json }}`,
-      props: { formControl, formGroup, onRefreshClicked },
+      <form [formGroup]="formGroup">
+          <gio-quick-time-range [formControl]="formControl" (onRefreshClicked)="onRefreshClicked() ; onRefresh$.next()"></gio-quick-time-range>
+      </form>
+      <br>
+      Form value : {{ formGroup?.getRawValue() | json }}<br>
+      Selected timeFrameRangesParams : {{ timeFrameRangesParams$ | async | json }}`,
+      props: { formControl, formGroup, onRefreshClicked, timeFrameRangesParams$, onRefresh$ },
     };
   },
 } as Meta;
