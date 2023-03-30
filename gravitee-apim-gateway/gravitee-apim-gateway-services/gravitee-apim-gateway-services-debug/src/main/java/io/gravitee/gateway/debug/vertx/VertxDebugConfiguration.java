@@ -33,6 +33,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.StandardEnvironment;
 
 @Configuration
 public class VertxDebugConfiguration {
@@ -47,10 +49,12 @@ public class VertxDebugConfiguration {
             .withEnvironment(environment)
             .withPort(Integer.parseInt(environment.getProperty("debug.port", "8482")))
             .withHost(environment.getProperty("debug.host", "localhost"))
-            .withDefaultSecured(Boolean.TRUE.equals(environment.getProperty("http.secured", Boolean.class)))
-            .withDefaultAlpn(Boolean.TRUE.equals(environment.getProperty("http.alpn", Boolean.class)))
-            .withDefaultOpenssl(Boolean.TRUE.equals(environment.getProperty("http.ssl.openssl", Boolean.class)))
-            .build();
+            .build()
+            // We can't use the default withDefaultProxyProtocol because the implementation of HttpServerConfiguration rely on the environment value and not the one passed in builder
+            .withSecured(Boolean.TRUE.equals(environment.getProperty("http.secured", Boolean.class)))
+            .withAlpn(Boolean.TRUE.equals(environment.getProperty("http.alpn", Boolean.class)))
+            .withOpenssl(Boolean.TRUE.equals(environment.getProperty("http.ssl.openssl", Boolean.class)))
+            .withProxyProtocol(false);
     }
 
     @Bean("debugGatewayHttpServer")
