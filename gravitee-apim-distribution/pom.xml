@@ -99,8 +99,13 @@
         <gravitee-resource-oauth2-provider-generic.version>2.0.0</gravitee-resource-oauth2-provider-generic.version>
         <gravitee-service-discovery-consul.version>1.3.0</gravitee-service-discovery-consul.version>
         <!-- Management API Only -->
+<<<<<<< HEAD
         <gravitee-cockpit-connectors-ws.version>3.0.0</gravitee-cockpit-connectors-ws.version>
         <gravitee-fetcher-bitbucket.version>1.7.0</gravitee-fetcher-bitbucket.version>
+=======
+        <gravitee-cockpit-connectors-ws.version>2.6.0</gravitee-cockpit-connectors-ws.version>
+        <gravitee-fetcher-bitbucket.version>1.7.1</gravitee-fetcher-bitbucket.version>
+>>>>>>> 9802565660 (chore: bump gravitee fetcher bitbucket to 1.7.1)
         <gravitee-fetcher-git.version>1.8.1</gravitee-fetcher-git.version>
         <gravitee-fetcher-github.version>1.6.0</gravitee-fetcher-github.version>
         <gravitee-fetcher-gitlab.version>1.11.0</gravitee-fetcher-gitlab.version>
