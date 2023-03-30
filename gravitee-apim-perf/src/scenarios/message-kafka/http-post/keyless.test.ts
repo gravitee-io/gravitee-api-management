@@ -77,6 +77,8 @@ export function setup(): GatewayTestData {
             inheritConfiguration: false,
             configuration: {
               bootstrapServers: k6Options.apim.kafkaBoostrapServer,
+            },
+            sharedConfigurationOverride: {
               producer: {
                 enabled: true,
                 topics: [kafkaTopic],

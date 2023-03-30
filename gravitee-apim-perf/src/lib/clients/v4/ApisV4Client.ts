@@ -19,6 +19,7 @@ import { LifecycleAction } from '@models/v3/ApiEntity';
 import { HttpHelper } from '@helpers/http.helper';
 import { OUT_OF_SCENARIO } from '@clients/GatewayClient';
 import { NewApiEntityV4 } from '@models/v4/NewApiEntityV4';
+import { NewSubscriptionEntitV4 } from '@lib/models/v4/NewSubscriptionEntityV4';
 
 const baseUrl = k6Options.apim.managementBaseUrl;
 const apisUrl = `${baseUrl}/organizations/${k6Options.apim.organization}/environments/${k6Options.apim.environment}/v4/apis`;
@@ -40,6 +41,20 @@ export class ApisV4Client {
         ...params,
       },
     );
+  }
+
+  static createSubscription(api: string, app: string, plan: string, subscription: NewSubscriptionEntitV4, params: RefinedParams<any>) {
+    return http.post(apisUrl + `/${api}/subscriptions?application=${app}&plan=${plan}`, JSON.stringify(subscription), {
+      tags: { name: OUT_OF_SCENARIO },
+      ...params,
+    });
+  }
+
+  static stopSubscription(api: string, subscription: string, params: RefinedParams<any>) {
+    return http.post(apisUrl + `/${api}/subscriptions/${subscription}/status?status=CLOSED`, null, {
+      tags: { name: OUT_OF_SCENARIO },
+      ...params,
+    });
   }
 
   static deleteApi(api: string, params: RefinedParams<any>) {

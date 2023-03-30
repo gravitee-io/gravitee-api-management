@@ -67,6 +67,12 @@ export interface EndpointV4 {
   inheritConfiguration?: boolean;
   /**
    *
+   * @type {boolean}
+   * @memberof EndpointV4
+   */
+  sharedConfigurationOverride?: any;
+  /**
+   *
    * @type {string}
    * @memberof EndpointV4
    */

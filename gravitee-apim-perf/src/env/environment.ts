@@ -37,6 +37,20 @@ const k6DefaultOptions: Configuration = {
     organization: 'DEFAULT',
     environment: 'DEFAULT',
     gatewaySyncInterval: 1000,
+    httpPost: {
+      requestHeadersToMessage: false,
+      messageSizeInKB: 1,
+      topic: 'msg-http-post',
+      numPartitions: 1,
+      withJsontoJson: false,
+    },
+    webhook: {
+      messageSizeInKB: 1,
+      topic: 'msg-webhook',
+      numPartitions: 1,
+      subscriptions: 1,
+      callbackBaseUrl: 'http://localhost:8888/hook',
+    },
   },
   k6: {
     prometheusRemoteUrl: 'http://localhost:9090/api/v1/write',
