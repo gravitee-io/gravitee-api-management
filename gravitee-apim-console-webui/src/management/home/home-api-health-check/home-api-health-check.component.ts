@@ -29,7 +29,7 @@ import { PagedResult } from '../../../entities/pagedResult';
 import { ApiService } from '../../../services-ngx/api.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
-import { timeFrames } from '../widgets/gio-quick-time-range/gio-quick-time-range.component';
+import { GioQuickTimeRangeComponent, timeFrames } from '../widgets/gio-quick-time-range/gio-quick-time-range.component';
 
 export type ApisTableDS = {
   id: string;
@@ -71,7 +71,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
     searchTerm: '',
   };
   isLoadingData = true;
-  timeFrameControl = new FormControl({}, Validators.required);
+  timeFrameControl = new FormControl('1m', Validators.required);
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
@@ -194,24 +194,24 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
       switchMap(() =>
         combineLatest([
           this.apiService.apiHealth(api.id, 'availability'),
-          this.timeFrameControl.valueChanges.pipe(startWith(timeFrames[0])),
+          this.timeFrameControl.valueChanges.pipe(startWith(this.timeFrameControl.value)) as Observable<string>,
         ]),
       ),
       switchMap(([healthAvailability, timeFrame]) => {
-        const currentTimeFrame = this.timeFrameControl.value;
+        const currentTimeFrameRangesParams = GioQuickTimeRangeComponent.getTimeFrameRangesParams(timeFrame);
         return combineLatest([
           of(healthAvailability),
           of(timeFrame),
           this.apiService.apiHealthAverage(api.id, {
-            from: currentTimeFrame.from,
-            to: currentTimeFrame.to,
-            interval: currentTimeFrame.interval,
+            from: currentTimeFrameRangesParams.from,
+            to: currentTimeFrameRangesParams.to,
+            interval: currentTimeFrameRangesParams.interval,
             type: 'AVAILABILITY',
           }),
         ]);
       }),
       map(([healthAvailability, timeFrame, healthAvailabilityTimeFrame]) => {
-        const healthCheckAvailability = healthAvailability.global[timeFrame.id] || null;
+        const healthCheckAvailability = healthAvailability.global[timeFrame] || null;
         if (
           !healthCheckAvailability ||
           !isNumber(healthCheckAvailability) ||

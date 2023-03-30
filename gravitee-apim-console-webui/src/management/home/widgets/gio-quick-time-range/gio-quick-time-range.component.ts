@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, forwardRef, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, forwardRef, Output } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject } from 'rxjs';
 
@@ -66,17 +66,22 @@ export const timeFrames = [
     },
   ],
 })
-export class GioQuickTimeRangeComponent implements ControlValueAccessor, OnInit {
+export class GioQuickTimeRangeComponent implements ControlValueAccessor {
   private unsubscribe$: Subject<void> = new Subject<void>();
+
+  static getTimeFrameRangesParams(id: string) {
+    return timeFrames.find((timeFrame) => timeFrame.id === id)?.timeFrameRangesParams();
+  }
 
   @Output()
   onRefreshClicked = new EventEmitter<void>();
+
   selectedTimeFrame = timeFrames[0].id;
   options = timeFrames;
 
-  _onChange: (value: any) => void = () => ({});
+  private _onChange: (value: any) => void = () => ({});
 
-  _onTouched: () => void = () => ({});
+  private _onTouched: () => void = () => ({});
 
   registerOnChange(fn: any): void {
     this._onChange = fn;
@@ -96,15 +101,12 @@ export class GioQuickTimeRangeComponent implements ControlValueAccessor, OnInit 
   }
 
   emitValueChange(value: string) {
-    const selectedTimeFrame = timeFrames.find((timeFrame) => timeFrame.id === value).timeFrameRangesParams();
-    this._onChange(selectedTimeFrame);
+    this._onChange(value);
   }
 
-  ngOnInit(): void {
-    this.emitValueChange(this.selectedTimeFrame);
-  }
-
-  onRefresh() {
+  onRefresh($event: Event) {
+    $event.stopPropagation();
+    this._onTouched();
     this.onRefreshClicked.emit();
   }
 }
