@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -29,6 +30,7 @@ public interface DictionaryService {
     DictionaryEntity create(ExecutionContext executionContext, NewDictionaryEntity dictionary);
 
     DictionaryEntity update(ExecutionContext executionContext, String id, UpdateDictionaryEntity dictionary);
+    DictionaryEntity updateProperties(ExecutionContext executionContext, String id, Map<String, String> properties);
 
     DictionaryEntity findById(String id);
 

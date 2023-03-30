@@ -24,7 +24,10 @@ import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -57,7 +60,12 @@ public interface EventService {
         Dictionary dictionary
     );
 
-    EventEntity createDictionaryEvent(ExecutionContext executionContext, Set<String> environmentsIds, EventType type, String dictionnaryId);
+    EventEntity createDynamicDictionaryEvent(
+        ExecutionContext executionContext,
+        Set<String> environmentsIds,
+        EventType type,
+        String dictionaryId
+    );
 
     EventEntity createDebugApiEvent(
         ExecutionContext executionContext,

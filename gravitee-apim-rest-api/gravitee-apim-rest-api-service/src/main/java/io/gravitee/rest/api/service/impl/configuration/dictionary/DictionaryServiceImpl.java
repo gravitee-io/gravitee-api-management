@@ -27,7 +27,6 @@ import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
@@ -44,7 +43,6 @@ import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -127,6 +125,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             // add deployment date
             dictionary.setUpdatedAt(new Date());
+            dictionary.setDeployedAt(dictionary.getUpdatedAt());
 
             dictionary = dictionaryRepository.update(dictionary);
 
@@ -158,7 +157,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
             // And create event
-            eventService.createDictionaryEvent(
+            eventService.createDynamicDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.START_DICTIONARY,
@@ -195,7 +194,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
             // And create event
-            eventService.createDictionaryEvent(
+            eventService.createDynamicDictionaryEvent(
                 executionContext,
                 Collections.singleton(executionContext.getEnvironmentId()),
                 EventType.STOP_DICTIONARY,
@@ -268,8 +267,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
             // Force a new start event if the dictionary is already started when updating.
-            if (updatedDictionary.getState() == LifecycleState.STARTED) {
-                eventService.createDictionaryEvent(
+            if (updatedDictionary.getType() == DictionaryType.DYNAMIC && updatedDictionary.getState() == LifecycleState.STARTED) {
+                eventService.createDynamicDictionaryEvent(
                     executionContext,
                     Collections.singleton(executionContext.getEnvironmentId()),
                     EventType.START_DICTIONARY,
@@ -290,6 +289,43 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update dictionary {}", updateDictionaryEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to update " + updateDictionaryEntity, ex);
+        }
+    }
+
+    @Override
+    public DictionaryEntity updateProperties(ExecutionContext executionContext, final String id, final Map<String, String> properties) {
+        try {
+            LOGGER.debug("Update dictionary properties {}", id);
+
+            Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
+            if (optDictionary.isEmpty()) {
+                throw new DictionaryNotFoundException(id);
+            }
+            Dictionary dictionary = optDictionary.get();
+            dictionary.setProperties(properties);
+            dictionary.setUpdatedAt(new Date());
+            dictionary.setDeployedAt(dictionary.getUpdatedAt());
+            Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
+
+            // Create publish event
+            eventService.createDictionaryEvent(
+                executionContext,
+                Collections.singleton(executionContext.getEnvironmentId()),
+                EventType.PUBLISH_DICTIONARY,
+                dictionary
+            );
+            // Audit
+            createAuditLog(
+                executionContext,
+                Dictionary.AuditEvent.DICTIONARY_UPDATED,
+                updatedDictionary.getUpdatedAt(),
+                optDictionary.get(),
+                updatedDictionary
+            );
+
+            return convert(updatedDictionary);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to update dictionary '" + id + "' properties", ex);
         }
     }
 

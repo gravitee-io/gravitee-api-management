@@ -224,7 +224,7 @@ public class EventServiceTest {
             10,
             Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
-        assertTrue(0L == eventPageEntity.getTotalElements());
+        assertEquals(0L, eventPageEntity.getTotalElements());
     }
 
     @Test
@@ -270,8 +270,8 @@ public class EventServiceTest {
             Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
 
-        assertTrue(2L == eventPageEntity.getTotalElements());
-        assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
+        assertEquals(2L, eventPageEntity.getTotalElements());
+        assertEquals("event1", eventPageEntity.getContent().get(0).getId());
     }
 
     @Test
@@ -286,7 +286,7 @@ public class EventServiceTest {
         when(event2.getPayload()).thenReturn(EVENT_PAYLOAD);
         when(event2.getProperties()).thenReturn(EVENT_PROPERTIES);
 
-        when(eventPage.getTotalElements()).thenReturn(2l);
+        when(eventPage.getTotalElements()).thenReturn(2L);
         when(eventPage.getContent()).thenReturn(Arrays.asList(event, event2));
 
         when(
@@ -314,8 +314,8 @@ public class EventServiceTest {
             Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
 
-        assertTrue(2L == eventPageEntity.getTotalElements());
-        assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
+        assertEquals(2L, eventPageEntity.getTotalElements());
+        assertEquals("event1", eventPageEntity.getContent().get(0).getId());
     }
 
     @Test
@@ -361,8 +361,8 @@ public class EventServiceTest {
             Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
 
-        assertTrue(2L == eventPageEntity.getTotalElements());
-        assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
+        assertEquals(2L, eventPageEntity.getTotalElements());
+        assertEquals("event1", eventPageEntity.getContent().get(0).getId());
     }
 
     @Test
@@ -409,8 +409,8 @@ public class EventServiceTest {
             Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
 
-        assertTrue(2L == eventPageEntity.getTotalElements());
-        assertTrue("event1".equals(eventPageEntity.getContent().get(0).getId()));
+        assertEquals(2L, eventPageEntity.getTotalElements());
+        assertEquals("event1", eventPageEntity.getContent().get(0).getId());
     }
 
     @Test
@@ -434,7 +434,7 @@ public class EventServiceTest {
         // test without predicate
         Page<Map<String, String>> page = eventService.search(
             GraviteeContext.getExecutionContext(),
-            Arrays.asList(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
+            List.of(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
             Collections.EMPTY_MAP,
             0,
             0,
@@ -456,7 +456,7 @@ public class EventServiceTest {
         page =
             eventService.search(
                 GraviteeContext.getExecutionContext(),
-                Arrays.asList(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
+                List.of(io.gravitee.rest.api.model.EventType.GATEWAY_STARTED),
                 Collections.EMPTY_MAP,
                 0,
                 0,
@@ -512,13 +512,13 @@ public class EventServiceTest {
     }
 
     @Test
-    public void createDictionaryEvent_shouldCreateEvent_withId() throws TechnicalException {
+    public void createDynamicDictionaryEvent_shouldCreateEvent_withId() throws TechnicalException {
         when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
 
-        eventService.createDictionaryEvent(
+        eventService.createDynamicDictionaryEvent(
             GraviteeContext.getExecutionContext(),
             Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            io.gravitee.rest.api.model.EventType.START_DICTIONARY,
             "dictionaryId"
         );
 
@@ -706,14 +706,14 @@ public class EventServiceTest {
         event.setCreatedAt(new Date(Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli()));
         event.setUpdatedAt(new Date(Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli()));
         Map<String, String> properties = new HashMap<>();
-        properties.put("started_at", "" + Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli());
+        properties.put("started_at", String.valueOf(Instant.now().minus(1, ChronoUnit.HOURS).toEpochMilli()));
         if (isUnknown) {
             event.setType(EventType.GATEWAY_STARTED);
-            properties.put("last_heartbeat_at", "" + Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
+            properties.put("last_heartbeat_at", String.valueOf(Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli()));
         } else {
             event.setType(EventType.GATEWAY_STOPPED);
-            properties.put("last_heartbeat_at", "" + Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
-            properties.put("stopped_at", "" + Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli());
+            properties.put("last_heartbeat_at", String.valueOf(Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli()));
+            properties.put("stopped_at", String.valueOf(Instant.now().minus(50, ChronoUnit.MINUTES).toEpochMilli()));
         }
         event.setProperties(properties);
         return event;

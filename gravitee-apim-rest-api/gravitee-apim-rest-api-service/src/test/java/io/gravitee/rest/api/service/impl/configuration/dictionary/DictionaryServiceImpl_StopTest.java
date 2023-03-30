@@ -17,7 +17,11 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -69,7 +73,7 @@ public class DictionaryServiceImpl_StopTest {
         updatedDictionary.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
         when(
             dictionaryRepository.update(
-                argThat(arg -> arg.getId() == dictionaryInDb.getId() && arg.getState().equals(updatedDictionary.getState()))
+                argThat(arg -> arg.getId().equals(dictionaryInDb.getId()) && arg.getState().equals(updatedDictionary.getState()))
             )
         )
             .thenReturn(updatedDictionary);
@@ -79,7 +83,7 @@ public class DictionaryServiceImpl_StopTest {
 
         verify(dictionaryRepository, times(1)).update(any(Dictionary.class));
         verify(eventService, times(1))
-            .createDictionaryEvent(
+            .createDynamicDictionaryEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Collections.singleton(ENVIRONMENT_ID)),
                 eq(EventType.STOP_DICTIONARY),

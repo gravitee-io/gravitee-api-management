@@ -17,7 +17,12 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -80,12 +85,74 @@ public class DictionaryServiceImpl_UpdateTest {
         when(
             dictionaryRepository.update(
                 argThat(arg ->
-                    arg.getId() == dictionaryInDb.getId() &&
+                    arg.getId().equals(dictionaryInDb.getId()) &&
                     arg.getCreatedAt().equals(dictionaryInDb.getCreatedAt()) &&
                     arg.getState().equals(dictionaryInDb.getState()) &&
-                    arg.getEnvironmentId() == ENVIRONMENT_ID &&
-                    arg.getName() == updateDictionaryEntity.getName() &&
-                    arg.getDescription() == updateDictionaryEntity.getDescription() &&
+                    arg.getEnvironmentId().equals(ENVIRONMENT_ID) &&
+                    arg.getName().equals(updateDictionaryEntity.getName()) &&
+                    arg.getDescription().equals(updateDictionaryEntity.getDescription()) &&
+                    arg.getProperties().equals(updateDictionaryEntity.getProperties()) &&
+                    arg.getType().name().equals(updateDictionaryEntity.getType().name())
+                )
+            )
+        )
+            .thenReturn(updatedDictionary);
+
+        DictionaryEntity dictionaryEntityUpdated = dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            dictionaryInDb.getId(),
+            updateDictionaryEntity
+        );
+        assertNotNull(dictionaryEntityUpdated);
+
+        verify(dictionaryRepository, times(1)).update(any(Dictionary.class));
+        verify(eventService, never())
+            .createDynamicDictionaryEvent(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Collections.singleton(ENVIRONMENT_ID)),
+                eq(EventType.START_DICTIONARY),
+                eq("dictionaryId")
+            );
+        verify(auditService, times(1))
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
+                eq(updatedDictionary.getUpdatedAt()),
+                any(),
+                any()
+            );
+    }
+
+    @Test
+    public void shouldUpdateDynamicDictionary() throws TechnicalException {
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId(DICTIONARY_ID);
+        dictionaryInDb.setCreatedAt(new Date());
+        dictionaryInDb.setState(LifecycleState.STARTED);
+        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
+        when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
+
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("UpdatedName");
+        updateDictionaryEntity.setDescription("UpdatedDescription");
+        updateDictionaryEntity.setProperties(Collections.singletonMap("foo", "bar"));
+        updateDictionaryEntity.setType(DictionaryType.DYNAMIC);
+
+        Dictionary updatedDictionary = new Dictionary();
+        updatedDictionary.setId(DICTIONARY_ID);
+        updatedDictionary.setUpdatedAt(new Date());
+        updatedDictionary.setState(LifecycleState.STARTED);
+        updatedDictionary.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        when(
+            dictionaryRepository.update(
+                argThat(arg ->
+                    arg.getId().equals(dictionaryInDb.getId()) &&
+                    arg.getCreatedAt().equals(dictionaryInDb.getCreatedAt()) &&
+                    arg.getState().equals(dictionaryInDb.getState()) &&
+                    arg.getEnvironmentId().equals(ENVIRONMENT_ID) &&
+                    arg.getName().equals(updateDictionaryEntity.getName()) &&
+                    arg.getDescription().equals(updateDictionaryEntity.getDescription()) &&
                     arg.getProperties().equals(updateDictionaryEntity.getProperties()) &&
                     arg.getType().name().equals(updateDictionaryEntity.getType().name())
                 )
@@ -102,7 +169,7 @@ public class DictionaryServiceImpl_UpdateTest {
 
         verify(dictionaryRepository, times(1)).update(any(Dictionary.class));
         verify(eventService, times(1))
-            .createDictionaryEvent(
+            .createDynamicDictionaryEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Collections.singleton(ENVIRONMENT_ID)),
                 eq(EventType.START_DICTIONARY),

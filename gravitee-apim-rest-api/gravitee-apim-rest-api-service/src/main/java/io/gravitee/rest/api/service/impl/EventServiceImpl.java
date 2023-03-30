@@ -57,7 +57,6 @@ import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -198,18 +197,18 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public EventEntity createDictionaryEvent(
+    public EventEntity createDynamicDictionaryEvent(
         ExecutionContext executionContext,
         Set<String> environmentsIds,
         EventType type,
-        String dictionnaryId
+        String dictionaryId
     ) {
         Map<String, String> eventProperties = new HashMap<>();
-        if (dictionnaryId != null) {
-            eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionnaryId);
+        if (dictionaryId != null) {
+            eventProperties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionaryId);
         }
         EventEntity event = createEvent(executionContext, environmentsIds, type, null, eventProperties);
-        createOrPatchLatestEvent(dictionnaryId, event);
+        createOrPatchLatestEvent(dictionaryId + "-dynamic", event);
         return event;
     }
 
