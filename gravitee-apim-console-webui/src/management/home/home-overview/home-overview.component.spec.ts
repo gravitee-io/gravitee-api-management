@@ -75,9 +75,7 @@ describe('HomeOverviewComponent', () => {
 
   function expectLoadRequestStats(): TestRequest {
     const req = httpTestingController.expectOne((req) => {
-      return (
-        req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/platform/analytics?type=stats&field=response-time`)
-      );
+      return req.method === 'GET' && req.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/analytics?type=stats&field=response-time`);
     });
     req.flush({
       min: 0.02336,
