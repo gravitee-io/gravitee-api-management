@@ -42,6 +42,8 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.net.OpenSSLEngineOptions;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -177,6 +179,7 @@ public class DebugReactor extends DefaultReactor {
         options.setConnectTimeout(debugHttpClientConfiguration.getConnectTimeout());
         options.setTryUseCompression(debugHttpClientConfiguration.isCompressionSupported());
         options.setUseAlpn(debugHttpClientConfiguration.isAlpn());
+        options.setVerifyHost(false);
         if (debugHttpClientConfiguration.isSecured()) {
             options.setSsl(debugHttpClientConfiguration.isSecured());
             options.setTrustAll(true);
