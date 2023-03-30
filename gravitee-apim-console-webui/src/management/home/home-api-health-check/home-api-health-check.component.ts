@@ -29,7 +29,7 @@ import { PagedResult } from '../../../entities/pagedResult';
 import { ApiService } from '../../../services-ngx/api.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
-import { GioQuickTimeRangeComponent, timeFrames } from '../widgets/gio-quick-time-range/gio-quick-time-range.component';
+import { GioQuickTimeRangeComponent } from '../widgets/gio-quick-time-range/gio-quick-time-range.component';
 
 export type ApisTableDS = {
   id: string;
@@ -92,11 +92,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
         distinctUntilChanged(isEqual),
         tap(({ pagination, searchTerm, sort }) => {
           // Change url params
-          this.ajsState.go(
-            'home.apiHealthCheck',
-            { q: searchTerm, page: pagination.index, size: pagination.size, order: toOrder(sort) },
-            { notify: false },
-          );
+          this.ajsState.go('home.apiHealthCheck', { q: searchTerm, page: pagination.index, size: pagination.size, order: toOrder(sort) });
         }),
         switchMap(({ pagination, searchTerm, sort }) => this.apiService.list(searchTerm, toOrder(sort), pagination.index, pagination.size)),
         tap((apisPage) => {

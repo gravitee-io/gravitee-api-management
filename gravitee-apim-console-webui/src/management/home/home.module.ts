@@ -64,6 +64,20 @@ export const states: Ng2StateDeclaration[] = [
       useAngularMaterial: true,
       docs: null,
     },
+    params: {
+      q: {
+        dynamic: true,
+      },
+      page: {
+        dynamic: true,
+      },
+      size: {
+        dynamic: true,
+      },
+      order: {
+        dynamic: true,
+      },
+    },
     component: HomeApiHealthCheckComponent,
   },
 ];
