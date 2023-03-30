@@ -16,15 +16,23 @@
 
 -->
 <div class="health-availability-time-frame">
-  <highcharts-chart
-    *ngIf="chartOptions && option?.data && option.data.length > 0; else noData"
-    [Highcharts]="Highcharts"
-    [options]="chartOptions"
-    class="health-availability-time-frame__chart"
-  ></highcharts-chart>
+  <ng-container *ngIf="chartOptions$ | async as chartOptions">
+    <highcharts-chart
+      *ngIf="chartOptions && option?.data && option.data.length > 0; else noData"
+      [Highcharts]="Highcharts"
+      [options]="chartOptions"
+      class="health-availability-time-frame__chart"
+    ></highcharts-chart>
+  </ng-container>
   <ng-template #noData>
     <div class="health-availability-time-frame__no-data">
       <div class="mat-body">No data to display</div>
     </div>
   </ng-template>
+</div>
+
+<div class="theme-color">
+  <div #colorBad class="theme-color__bad"></div>
+  <div #colorWarning class="theme-color__warning"></div>
+  <div #colorGood class="theme-color__good"></div>
 </div>

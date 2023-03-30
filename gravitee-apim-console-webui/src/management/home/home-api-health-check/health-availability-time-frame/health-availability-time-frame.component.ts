@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import * as Highcharts from 'highcharts';
+import { combineLatest, Observable, ReplaySubject } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface HealthAvailabilityTimeFrameOption {
   timestamp: {
@@ -25,88 +27,115 @@ export interface HealthAvailabilityTimeFrameOption {
   data: number[];
 }
 
+interface HealthAvailabilityTimeFrameColors {
+  colorBad: string;
+  colorWarning: string;
+  colorGood: string;
+}
+
 @Component({
   selector: 'health-availability-time-frame',
   template: require('./health-availability-time-frame.component.html'),
   styles: [require('./health-availability-time-frame.component.scss')],
 })
-export class HealthAvailabilityTimeFrameComponent implements OnChanges {
+export class HealthAvailabilityTimeFrameComponent implements AfterViewInit, OnChanges {
   @Input()
   public option: HealthAvailabilityTimeFrameOption;
+  private optionChange$ = new ReplaySubject<HealthAvailabilityTimeFrameOption>();
+
+  @ViewChild('colorBad') colorBadElement: ElementRef;
+  @ViewChild('colorWarning') colorWarningElement: ElementRef;
+  @ViewChild('colorGood') colorGoodElement: ElementRef;
+
+  private colors$ = new ReplaySubject<HealthAvailabilityTimeFrameColors>();
 
   Highcharts: typeof Highcharts = Highcharts;
-  chartOptions: Highcharts.Options;
+  chartOptions$: Observable<Highcharts.Options> = combineLatest([this.optionChange$, this.colors$]).pipe(
+    map(([option, colors]) => getChartOption(option, colors)),
+  );
+
+  ngAfterViewInit() {
+    this.colors$.next({
+      colorBad: getComputedStyle(this.colorBadElement.nativeElement).color,
+      colorWarning: getComputedStyle(this.colorWarningElement.nativeElement).color,
+      colorGood: getComputedStyle(this.colorGoodElement.nativeElement).color,
+    });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.option) {
-      this.chartOptions = {
-        chart: {
-          type: 'column',
-          backgroundColor: 'transparent',
-          marginBottom: 20,
-        },
-        title: undefined,
-        plotOptions: {
-          series: {
-            pointStart: this.option.timestamp.start,
-            pointInterval: this.option.timestamp.interval,
-            marker: {
-              enabled: false,
-            },
-          },
-        },
-        series: [
-          {
-            name: 'Availability',
-            data: [...this.option.data],
-            color: '#5CB85C',
-            type: 'column',
-            label: {
-              format: '{value} %',
-            },
-            zones: [
-              {
-                value: 80,
-                color: '#D9534F',
-              },
-              {
-                value: 95,
-                color: '#F0AD4E',
-              },
-              {
-                color: '#5CB85C',
-              },
-            ],
-          },
-        ],
-        xAxis: {
-          type: 'datetime',
-          dateTimeLabelFormats: {
-            month: '%e. %b',
-            year: '%b',
-          },
-          crosshair: true,
-        },
-        yAxis: {
-          visible: false,
-          max: 100,
-        },
-
-        tooltip: {
-          pointFormat: '<tr><td>{series.name}: </td><td><b>{point.y:.1f} %</b></td></tr>',
-          shared: true,
-          useHTML: true,
-          style: {
-            zIndex: 1000,
-          },
-        },
-        legend: {
-          enabled: false,
-        },
-        credits: {
-          enabled: false,
-        },
-      };
+      this.optionChange$.next(changes.option.currentValue);
     }
   }
 }
+
+const getChartOption = (option: HealthAvailabilityTimeFrameOption, colors: HealthAvailabilityTimeFrameColors): Highcharts.Options => {
+  return {
+    chart: {
+      type: 'column',
+      backgroundColor: 'transparent',
+      marginBottom: 20,
+    },
+    title: undefined,
+    plotOptions: {
+      series: {
+        pointStart: option.timestamp.start,
+        pointInterval: option.timestamp.interval,
+        marker: {
+          enabled: false,
+        },
+      },
+    },
+    series: [
+      {
+        name: 'Availability',
+        data: [...option.data],
+        color: colors.colorGood,
+        type: 'column',
+        label: {
+          format: '{value} %',
+        },
+        zones: [
+          {
+            value: 80,
+            color: colors.colorBad,
+          },
+          {
+            value: 95,
+            color: colors.colorWarning,
+          },
+          {
+            color: colors.colorGood,
+          },
+        ],
+      },
+    ],
+    xAxis: {
+      type: 'datetime',
+      dateTimeLabelFormats: {
+        month: '%e. %b',
+        year: '%b',
+      },
+      crosshair: true,
+    },
+    yAxis: {
+      visible: false,
+      max: 100,
+    },
+
+    tooltip: {
+      pointFormat: '<tr><td>{series.name}: </td><td><b>{point.y:.1f} %</b></td></tr>',
+      shared: true,
+      useHTML: true,
+      style: {
+        zIndex: 1000,
+      },
+    },
+    legend: {
+      enabled: false,
+    },
+    credits: {
+      enabled: false,
+    },
+  };
+};
