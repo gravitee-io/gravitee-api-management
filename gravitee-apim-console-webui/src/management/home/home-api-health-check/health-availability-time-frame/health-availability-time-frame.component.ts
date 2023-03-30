@@ -16,8 +16,8 @@
 
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import * as Highcharts from 'highcharts';
-import { combineLatest, Observable, ReplaySubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { asyncScheduler, combineLatest, Observable, ReplaySubject } from 'rxjs';
+import { map, observeOn } from 'rxjs/operators';
 
 export interface HealthAvailabilityTimeFrameOption {
   timestamp: {
@@ -51,6 +51,7 @@ export class HealthAvailabilityTimeFrameComponent implements AfterViewInit, OnCh
 
   Highcharts: typeof Highcharts = Highcharts;
   chartOptions$: Observable<Highcharts.Options> = combineLatest([this.optionChange$, this.colors$]).pipe(
+    observeOn(asyncScheduler),
     map(([option, colors]) => getChartOption(option, colors)),
   );
 

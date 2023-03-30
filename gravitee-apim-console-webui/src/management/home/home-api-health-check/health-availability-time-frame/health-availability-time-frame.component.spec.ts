@@ -48,6 +48,7 @@ describe('HealthAvailabilityTimeFrameComponent', () => {
       option: new SimpleChange(null, fixture.componentInstance.option, false),
     });
     fixture.detectChanges();
+
     expect(await pieChartHarness.hasNoData()).toBeTruthy();
     expect(await pieChartHarness.displaysChart()).toBeFalsy();
   });
