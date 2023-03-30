@@ -125,6 +125,11 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
     this.refreshAvailability$.next();
   }
 
+  onOnlyHCConfigured() {
+    this.filters = { ...this.filters, searchTerm: 'has_health_check:true' };
+    this.filters$.next(this.filters);
+  }
+
   private initFilters() {
     const initialSearchValue = this.ajsStateParams.q ?? this.filters.searchTerm;
     const initialPageNumber = this.ajsStateParams.page ? Number(this.ajsStateParams.page) : this.filters.pagination.index;
