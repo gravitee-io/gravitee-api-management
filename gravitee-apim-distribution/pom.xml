@@ -768,14 +768,14 @@
 
                 <!-- Enterprise plugins -->
                 <gravitee-policy-assign-metrics.version>2.0.1</gravitee-policy-assign-metrics.version>
-                <gravitee-policy-transform-avro-json.version>1.0.0-alpha.4</gravitee-policy-transform-avro-json.version>
+                <gravitee-policy-transform-avro-json.version>1.0.0-alpha.5</gravitee-policy-transform-avro-json.version>
                 <gravitee-policy-data-logging-masking.version>2.0.3</gravitee-policy-data-logging-masking.version>
                 <gravitee-policy-interrupt.version>1.1.0</gravitee-policy-interrupt.version>
                 <gravitee-entrypoint-sse-advanced.version>3.0.0-alpha.6</gravitee-entrypoint-sse-advanced.version>
                 <gravitee-entrypoint-webhook-advanced.version>1.0.0-alpha.9</gravitee-entrypoint-webhook-advanced.version>
                 <gravitee-endpoint-kafka-advanced.version>1.2.0-alpha.6</gravitee-endpoint-kafka-advanced.version>
                 <gravitee-endpoint-mqtt5-advanced.version>1.1.0-alpha.6</gravitee-endpoint-mqtt5-advanced.version>
-                <gravitee-resource-schema-registry-confluent.version>1.0.0-alpha.7</gravitee-resource-schema-registry-confluent.version>
+                <gravitee-resource-schema-registry-confluent.version>1.0.0-alpha.8</gravitee-resource-schema-registry-confluent.version>
 
                 <!-- Management API Only -->
                 <!-- Gateway Only -->
