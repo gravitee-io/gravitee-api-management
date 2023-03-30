@@ -36,6 +36,18 @@ describe('HealthAvailabilityTimeFrameComponent', () => {
   });
 
   it('should show message when no data', async () => {
+    fixture.componentInstance.option = {
+      timestamp: {
+        start: 1679900320000,
+        interval: 2000,
+      },
+      data: [],
+    };
+
+    fixture.componentInstance.ngOnChanges({
+      option: new SimpleChange(null, fixture.componentInstance.option, false),
+    });
+    fixture.detectChanges();
     expect(await pieChartHarness.hasNoData()).toBeTruthy();
     expect(await pieChartHarness.displaysChart()).toBeFalsy();
   });
