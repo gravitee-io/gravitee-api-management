@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-import { ApiEntity } from '@lib/models/v3/ApiEntity';
-import { PlanEntity } from '@lib/models/v3/PlanEntity';
-import { ApiEntityV4 } from '@models/v4/ApiEntityV4';
-import { PlanEntityV4 } from '@models/v4/PlanEntityV4';
-import { ApplicationEntityV4 } from './models/v4/ApplicationEntityV4';
-import { SubscriptionEntityV4 } from './models/v4/SubscriptionEntityV4';
-
-export interface GatewayTestData {
-  api?: ApiEntity | ApiEntityV4;
-  plan?: PlanEntity | PlanEntityV4;
-  waitGateway?: { contextPath: string };
-  msg?: string;
-  applications?: Array<ApplicationEntityV4>;
-  subscriptions?: Array<SubscriptionEntityV4>;
+export interface SubscriptionConfigurationEntityV4 {
+  /**
+   *
+   * @type {string}
+   * @memberof NewSubscriptionEntity
+   */
+  entrypointId?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof NewSubscriptionEntity
+   */
+  channel?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof NewSubscriptionEntity
+   */
+  entrypointConfiguration?: any;
 }

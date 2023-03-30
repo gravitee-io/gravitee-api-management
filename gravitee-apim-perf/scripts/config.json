@@ -24,6 +24,13 @@
       "topic": "msg-http-post",
       "numPartitions": 1,
       "withJsontoJson": false
+    },
+    "webhook": {
+      "messageSizeInKB": 1,
+      "topic": "msg-webhook",
+      "numPartitions": 1,
+      "subscriptions": 1,
+      "callbackBaseUrl": "http://localhost:8080/hook"
     }
   },
   "k6": {

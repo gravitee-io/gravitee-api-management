@@ -40,6 +40,7 @@ interface APIManagementConfiguration {
   environment: string;
   gatewaySyncInterval: number;
   httpPost: HttpPost;
+  webhook: Webhook;
 }
 
 interface HttpPost {
@@ -48,6 +49,14 @@ interface HttpPost {
   topic: string;
   withJsontoJson: boolean;
   numPartitions: number;
+}
+
+interface Webhook {
+  messageSizeInKB: number;
+  topic: string;
+  numPartitions: number;
+  subscriptions: number;
+  callbackBaseUrl: string;
 }
 
 interface K6Configuration {
