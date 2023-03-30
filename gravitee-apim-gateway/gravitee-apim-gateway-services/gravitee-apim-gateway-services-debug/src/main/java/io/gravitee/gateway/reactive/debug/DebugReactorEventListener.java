@@ -185,6 +185,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
         options.setConnectTimeout(debugHttpClientConfiguration.getConnectTimeout());
         options.setTryUseCompression(debugHttpClientConfiguration.isCompressionSupported());
         options.setUseAlpn(debugHttpClientConfiguration.isAlpn());
+        options.setVerifyHost(false);
         if (debugHttpClientConfiguration.isSecured()) {
             options.setSsl(debugHttpClientConfiguration.isSecured());
             options.setTrustAll(true);
