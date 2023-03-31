@@ -24,27 +24,36 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatCardModule } from '@angular/material/card';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { ApiPortalPlanListComponent } from './list/api-portal-plan-list.component';
+import { ApiPortalPlanEditComponent } from './edit/api-portal-plan-edit.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { ApiPlanFormModule } from '../../component/plan/api-plan-form.module';
+import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  declarations: [ApiPortalPlanListComponent],
-  exports: [ApiPortalPlanListComponent],
+  declarations: [ApiPortalPlanListComponent, ApiPortalPlanEditComponent],
+  exports: [ApiPortalPlanListComponent, ApiPortalPlanEditComponent],
   imports: [
     CommonModule,
     DragDropModule,
+    ReactiveFormsModule,
+
+    MatCardModule,
     MatButtonModule,
     MatDialogModule,
     MatSnackBarModule,
     MatTableModule,
     MatTooltipModule,
     MatButtonToggleModule,
+
     GioIconsModule,
     GioPermissionModule,
     GioSaveBarModule,
+    GioGoBackButtonModule,
 
     ApiPlanFormModule,
   ],
