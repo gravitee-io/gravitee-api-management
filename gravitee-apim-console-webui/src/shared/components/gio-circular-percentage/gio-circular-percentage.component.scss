@@ -33,7 +33,7 @@
       stroke: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
     }
     .circular__percentage {
-      fill: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+      fill: mat.get-color-from-palette(gio.$mat-error-palette, 'darker40');
     }
   }
 
@@ -42,7 +42,7 @@
       stroke: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
     }
     .circular__percentage {
-      fill: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
+      fill: mat.get-color-from-palette(gio.$mat-warning-palette, 'darker20');
     }
   }
 
@@ -51,7 +51,7 @@
       stroke: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
     }
     .circular__percentage {
-      fill: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+      fill: mat.get-color-from-palette(gio.$mat-success-palette, 'darker60');
     }
   }
 }
