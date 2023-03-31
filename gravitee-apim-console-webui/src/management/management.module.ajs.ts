@@ -517,7 +517,7 @@ import { ApplicationNavigationComponent } from './application/details/applicatio
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
 import { ApiPortalPlanListComponent } from './api/portal/plans/list/api-portal-plan-list.component';
-import { ApiPortalPlanEditComponent } from './api/portal/plans/edit/api-portal-plan-edit.component';
+import { ApiPortalPlanEditComponent } from './api/component/plan/api-portal-plan-edit.component';
 import { TaskService } from '../services-ngx/task.service';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import ApiPortalController from './api/portal/general/apiPortal.controller';

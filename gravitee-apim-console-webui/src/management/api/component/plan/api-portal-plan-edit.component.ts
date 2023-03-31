@@ -24,14 +24,14 @@ import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 
-import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { Api } from '../../../../../entities/api';
-import { ApiService } from '../../../../../services-ngx/api.service';
-import { PlanService } from '../../../../../services-ngx/plan.service';
-import { NewPlan, PlanValidation } from '../../../../../entities/plan';
-import { Flow, Step } from '../../../../../entities/flow/flow';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { Api } from '../../../../entities/api';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { PlanService } from '../../../../services-ngx/plan.service';
+import { NewPlan, PlanValidation } from '../../../../entities/plan';
+import { Flow, Step } from '../../../../entities/flow/flow';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-portal-plan-edit',

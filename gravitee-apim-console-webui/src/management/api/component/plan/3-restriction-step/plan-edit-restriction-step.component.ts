@@ -18,7 +18,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { PolicyService } from '../../../../../../services-ngx/policy.service';
+import { PolicyService } from '../../../../../services-ngx/policy.service';
 
 @Component({
   selector: 'plan-edit-restriction-step',
