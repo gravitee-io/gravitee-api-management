@@ -19,6 +19,7 @@ import static java.lang.Class.forName;
 import static java.util.Arrays.asList;
 import static org.springframework.util.StringUtils.capitalize;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.node.api.Monitoring;
 import io.gravitee.node.api.NodeMonitoringRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -32,8 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -351,7 +350,7 @@ public abstract class AbstractRepositoryTest {
     }
 
     protected <T> List<T> mapToModel(final File file, final Class<T> clazz) throws Exception {
-        return mapper.readValue(file, TypeFactory.collectionType(List.class, clazz));
+        return mapper.readValue(file, mapper.getTypeFactory().constructCollectionType(List.class, clazz));
     }
 
     @Configuration
