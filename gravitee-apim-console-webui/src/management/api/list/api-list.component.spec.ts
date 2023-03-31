@@ -34,6 +34,7 @@ import { fakeApi } from '../../../entities/api/Api.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { Api, ApiLifecycleState, ApiOrigin, ApiState } from '../../../entities/api';
+import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 describe('ApisListComponent', () => {
   const fakeUiRouter = { go: jest.fn() };
@@ -106,6 +107,19 @@ describe('ApisListComponent', () => {
       ]);
       expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', 'admin', 'Policy studio', 'public', 'edit']]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
+    }));
+
+    it('should allow new search on request throw', fakeAsync(async () => {
+      await initComponent([]);
+
+      await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('bad-search'));
+      await tick(400);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/_search/_paged?page=1&size=10&q=bad-search`);
+      req.flush('Internal error', { status: 500, statusText: 'Internal error' });
+
+      await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('good-search'));
+
+      expectApisListRequest([], 'good-search');
     }));
 
     it('should display one row with kubernetes icon', fakeAsync(async () => {
@@ -288,7 +302,6 @@ describe('ApisListComponent', () => {
     );
     expect(req.request.method).toEqual('POST');
     req.flush(fakePagedResult(apis));
-    httpTestingController.verify();
   }
 
   function expectSyncedApi(apiId: string, isSynced: boolean) {

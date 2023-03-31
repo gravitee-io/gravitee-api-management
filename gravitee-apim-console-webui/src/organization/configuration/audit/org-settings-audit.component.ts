@@ -165,12 +165,13 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
         throttleTime(100),
         distinctUntilChanged(isEqual),
         switchMap(({ auditFilters, tableWrapper }) =>
-          this.auditService.listByOrganization(auditFilters, tableWrapper.pagination.index, tableWrapper.pagination.size),
+          this.auditService.listByOrganization(auditFilters, tableWrapper.pagination.index, tableWrapper.pagination.size).pipe(
+            catchError(() => {
+              this.snackBarService.error('Unable to run the request, please try again');
+              return EMPTY;
+            }),
+          ),
         ),
-        catchError(() => {
-          this.snackBarService.error('Unable to run the request, please try again');
-          return EMPTY;
-        }),
       )
       .subscribe((auditsPage) => {
         this.nbTotalAudit = auditsPage.totalElements;

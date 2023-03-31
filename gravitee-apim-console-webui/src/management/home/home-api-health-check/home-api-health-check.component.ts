@@ -16,7 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/core';
-import { has, isEqual, isNumber } from 'lodash';
+import { get, has, isEqual, isNumber } from 'lodash';
 import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 
@@ -94,13 +94,16 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
           // Change url params
           this.ajsState.go('home.apiHealthCheck', { q: searchTerm, page: pagination.index, size: pagination.size, order: toOrder(sort) });
         }),
-        switchMap(({ pagination, searchTerm, sort }) => this.apiService.list(searchTerm, toOrder(sort), pagination.index, pagination.size)),
+        switchMap(({ pagination, searchTerm, sort }) =>
+          this.apiService
+            .list(searchTerm, toOrder(sort), pagination.index, pagination.size)
+            .pipe(catchError(() => of(new PagedResult<Api>()))),
+        ),
         tap((apisPage) => {
           this.apisTableDS = this.toApisTableDS(apisPage);
           this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
           this.isLoadingData = false;
         }),
-        catchError(() => of(new PagedResult<Api>())),
       )
       .subscribe();
 
@@ -212,7 +215,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
         ]);
       }),
       map(([healthAvailability, timeFrame, healthAvailabilityTimeFrame]) => {
-        const healthCheckAvailability = healthAvailability.global[timeFrame] || null;
+        const healthCheckAvailability = get(healthAvailability, `global.${timeFrame}`);
         if (
           !healthCheckAvailability ||
           !isNumber(healthCheckAvailability) ||
@@ -236,11 +239,6 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
           },
         };
       }),
-      catchError(() =>
-        of({
-          type: 'no-data' as const,
-        }),
-      ),
     );
   }
 }

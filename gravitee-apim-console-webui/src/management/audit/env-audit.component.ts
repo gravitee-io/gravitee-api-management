@@ -127,12 +127,13 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
         throttleTime(100),
         distinctUntilChanged(isEqual),
         switchMap(({ auditFilters, tableWrapper }) =>
-          this.auditService.list(auditFilters, tableWrapper.pagination.index, tableWrapper.pagination.size),
+          this.auditService.list(auditFilters, tableWrapper.pagination.index, tableWrapper.pagination.size).pipe(
+            catchError(() => {
+              this.snackBarService.error('Unable to try the request, please try again');
+              return EMPTY;
+            }),
+          ),
         ),
-        catchError(() => {
-          this.snackBarService.error('Unable to try the request, please try again');
-          return EMPTY;
-        }),
       )
       .subscribe((auditsPage) => {
         this.nbTotalAudit = auditsPage.totalElements;
