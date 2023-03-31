@@ -26,9 +26,9 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiPortalPlanListComponent } from './list/api-portal-plan-list.component';
-import { ApiPortalPlanEditModule } from './edit/api-portal-plan-edit.module';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { ApiPortalPlanEditModule } from '../../component/plan/api-portal-plan-edit.module';
 
 @NgModule({
   declarations: [ApiPortalPlanListComponent],

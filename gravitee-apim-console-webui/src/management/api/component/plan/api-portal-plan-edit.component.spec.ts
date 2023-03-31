@@ -28,18 +28,18 @@ import { set } from 'lodash';
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 import { ApiPortalPlanEditModule } from './api-portal-plan-edit.module';
 
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { User } from '../../../../../entities/user';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { Tag } from '../../../../../entities/tag/tag';
-import { Group } from '../../../../../entities/group/group';
-import { fakeGroup } from '../../../../../entities/group/group.fixture';
-import { fakeTag } from '../../../../../entities/tag/tag.fixture';
-import { Page } from '../../../../../entities/page';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
-import { Api } from '../../../../../entities/api';
-import { Plan } from '../../../../../entities/plan';
-import { fakePlan } from '../../../../../entities/plan/plan.fixture';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { User } from '../../../../entities/user';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { Tag } from '../../../../entities/tag/tag';
+import { Group } from '../../../../entities/group/group';
+import { fakeGroup } from '../../../../entities/group/group.fixture';
+import { fakeTag } from '../../../../entities/tag/tag.fixture';
+import { Page } from '../../../../entities/page';
+import { fakeApi } from '../../../../entities/api/Api.fixture';
+import { Api } from '../../../../entities/api';
+import { Plan } from '../../../../entities/plan';
+import { fakePlan } from '../../../../entities/plan/plan.fixture';
 
 describe('ApiPortalPlanEditComponent', () => {
   const API_ID = 'my-api';

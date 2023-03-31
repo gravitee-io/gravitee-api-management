@@ -41,7 +41,7 @@ import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-st
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 
-import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
   declarations: [ApiPortalPlanEditComponent, PlanEditGeneralStepComponent, PlanEditSecureStepComponent, PlanEditRestrictionStepComponent],
