@@ -34,9 +34,9 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
-  selector: 'api-portal-plan-edit',
-  template: require('./api-portal-plan-edit.component.html'),
-  styles: [require('./api-portal-plan-edit.component.scss')],
+  selector: 'api-plan-form',
+  template: require('./api-plan-form.component.html'),
+  styles: [require('./api-plan-form.component.scss')],
   providers: [
     {
       provide: STEPPER_GLOBAL_OPTIONS,
@@ -44,7 +44,7 @@ import { GioPermissionService } from '../../../../shared/components/gio-permissi
     },
   ],
 })
-export class ApiPortalPlanEditComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public mode: 'create' | 'edit' = 'create';

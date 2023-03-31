@@ -39,13 +39,13 @@ import { MatDividerModule } from '@angular/material/divider';
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
-import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
+import { ApiPlanFormComponent } from './api-plan-form.component';
 
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  declarations: [ApiPortalPlanEditComponent, PlanEditGeneralStepComponent, PlanEditSecureStepComponent, PlanEditRestrictionStepComponent],
-  exports: [ApiPortalPlanEditComponent],
+  declarations: [ApiPlanFormComponent, PlanEditGeneralStepComponent, PlanEditSecureStepComponent, PlanEditRestrictionStepComponent],
+  exports: [ApiPlanFormComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
