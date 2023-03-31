@@ -25,7 +25,7 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
 
-import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
+import { ApiPlanFormComponent } from './api-plan-form.component';
 import { ApiPlanFormModule } from './api-plan-form.module';
 
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
@@ -41,13 +41,13 @@ import { Api } from '../../../../entities/api';
 import { Plan } from '../../../../entities/plan';
 import { fakePlan } from '../../../../entities/plan/plan.fixture';
 
-describe('ApiPortalPlanEditComponent', () => {
+describe('ApiPlanFormComponent', () => {
   const API_ID = 'my-api';
   const currentUser = new User();
   const fakeUiRouter = { go: jest.fn() };
   currentUser.userPermissions = ['api-plan-u'];
 
-  let fixture: ComponentFixture<ApiPortalPlanEditComponent>;
+  let fixture: ComponentFixture<ApiPlanFormComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
@@ -72,7 +72,7 @@ describe('ApiPortalPlanEditComponent', () => {
       ],
     });
 
-    fixture = TestBed.createComponent(ApiPortalPlanEditComponent);
+    fixture = TestBed.createComponent(ApiPlanFormComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     TestbedHarnessEnvironment.documentRootLoader(fixture);
 

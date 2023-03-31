@@ -517,7 +517,7 @@ import { ApplicationNavigationComponent } from './application/details/applicatio
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
 import { ApiPortalPlanListComponent } from './api/portal/plans/list/api-portal-plan-list.component';
-import { ApiPortalPlanEditComponent } from './api/component/plan/api-portal-plan-edit.component';
+import { ApiPlanFormComponent } from './api/component/plan/api-plan-form.component';
 import { TaskService } from '../services-ngx/task.service';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import ApiPortalController from './api/portal/general/apiPortal.controller';
@@ -880,7 +880,7 @@ graviteeManagementModule.component('gvDashboardTimeframe', DashboardTimeframeCom
 graviteeManagementModule.controller('DashboardTimeframeController', DashboardTimeframeController);
 
 // Plan
-graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiPortalPlanEditComponent }));
+graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiPlanFormComponent }));
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 graviteeManagementModule.directive('ngApiPortalGroups', downgradeComponent({ component: ApiPortalGroupsComponent }));
 
