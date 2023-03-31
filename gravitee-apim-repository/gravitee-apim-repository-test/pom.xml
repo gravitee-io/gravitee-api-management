@@ -74,7 +74,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+<<<<<<< HEAD
             <scope>compile</scope>
+=======
+>>>>>>> 096fdce1cb (fix(deps): remove outdated jackson-mapper-asl)
         </dependency>
 
         <dependency>

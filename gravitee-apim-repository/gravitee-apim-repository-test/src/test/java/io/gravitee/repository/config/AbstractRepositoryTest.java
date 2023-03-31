@@ -18,9 +18,15 @@ package io.gravitee.repository.config;
 import static java.lang.Class.forName;
 import static org.springframework.util.StringUtils.capitalize;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+=======
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.node.api.Monitoring;
+import io.gravitee.node.api.NodeMonitoringRepository;
+>>>>>>> 096fdce1cb (fix(deps): remove outdated jackson-mapper-asl)
 import io.gravitee.repository.exceptions.TechnicalException;
 import java.io.File;
 import java.net.URL;
@@ -100,6 +106,7 @@ public abstract class AbstractRepositoryTest {
         return MAPPER.readValue(file, MAPPER.getTypeFactory().constructCollectionType(List.class, clazz));
     }
 
+<<<<<<< HEAD
     private List<File> getSortedFilesList(File[] files) {
         return Stream.of(files).sorted((o1, o2) -> o2.getName().compareTo(o1.getName())).collect(Collectors.toList());
     }
@@ -110,6 +117,10 @@ public abstract class AbstractRepositoryTest {
         for (final Object object : mapToModel(file, c)) {
             createModel(object);
         }
+=======
+    protected <T> List<T> mapToModel(final File file, final Class<T> clazz) throws Exception {
+        return mapper.readValue(file, mapper.getTypeFactory().constructCollectionType(List.class, clazz));
+>>>>>>> 096fdce1cb (fix(deps): remove outdated jackson-mapper-asl)
     }
 
     @Configuration
