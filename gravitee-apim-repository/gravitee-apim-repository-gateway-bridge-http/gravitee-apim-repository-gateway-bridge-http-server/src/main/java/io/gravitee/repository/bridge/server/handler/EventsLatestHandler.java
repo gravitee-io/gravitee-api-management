@@ -22,17 +22,12 @@ import static io.gravitee.repository.bridge.server.utils.ParamUtils.getPageSize;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.WorkerExecutor;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -82,7 +77,7 @@ public class EventsLatestHandler extends AbstractHandler {
             promise -> {
                 try {
                     Event event = ctx.body().asJsonObject().mapTo(Event.class);
-                    promise.complete(eventLatestRepository.createOrPatch(event));
+                    promise.complete(eventLatestRepository.createOrUpdate(event));
                 } catch (Exception ex) {
                     LOGGER.error("Unable to create or update an event", ex);
                     promise.fail(ex);

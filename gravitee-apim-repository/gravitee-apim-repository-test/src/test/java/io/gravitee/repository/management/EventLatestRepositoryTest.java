@@ -40,7 +40,7 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
 
     protected void createModel(Object object) throws TechnicalException {
         if (object instanceof Event) {
-            eventLatestRepository.createOrPatch((Event) object);
+            eventLatestRepository.createOrUpdate((Event) object);
         }
     }
 
@@ -55,7 +55,7 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         event.setCreatedAt(new Date());
         event.setUpdatedAt(event.getCreatedAt());
 
-        Event eventCreated = eventLatestRepository.createOrPatch(event);
+        Event eventCreated = eventLatestRepository.createOrUpdate(event);
 
         assertEquals("Invalid saved event type.", EventType.PUBLISH_API, eventCreated.getType());
         assertEquals("Invalid saved event payload.", "{}", eventCreated.getPayload());
@@ -76,7 +76,7 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
         Map<String, String> properties = Map.of("key", "value");
         event.setProperties(properties);
 
-        Event eventCreated = eventLatestRepository.createOrPatch(event);
+        Event eventCreated = eventLatestRepository.createOrUpdate(event);
 
         assertEquals("Invalid saved event type.", EventType.PUBLISH_API, eventCreated.getType());
         assertEquals("Invalid saved event payload.", "{}", eventCreated.getPayload());
@@ -85,7 +85,7 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
 
         eventCreated.setCreatedAt(new Date());
         eventCreated.setUpdatedAt(event.getCreatedAt());
-        Event eventUpdated = eventLatestRepository.createOrPatch(eventCreated);
+        Event eventUpdated = eventLatestRepository.createOrUpdate(eventCreated);
         assertEquals("Invalid updated event type.", EventType.PUBLISH_API, eventUpdated.getType());
         assertEquals("Invalid updated event payload.", "{}", eventUpdated.getPayload());
         assertEquals("Invalid updated event properties.", properties, eventUpdated.getProperties());

@@ -19,7 +19,20 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.repository.bridge.server.handler.*;
+import io.gravitee.repository.bridge.server.handler.ApiKeysHandler;
+import io.gravitee.repository.bridge.server.handler.ApiPlansHandler;
+import io.gravitee.repository.bridge.server.handler.ApisHandler;
+import io.gravitee.repository.bridge.server.handler.CommandsHandler;
+import io.gravitee.repository.bridge.server.handler.DictionariesHandler;
+import io.gravitee.repository.bridge.server.handler.EnvironmentsHandler;
+import io.gravitee.repository.bridge.server.handler.EventsHandler;
+import io.gravitee.repository.bridge.server.handler.EventsLatestHandler;
+import io.gravitee.repository.bridge.server.handler.InstallationHandler;
+import io.gravitee.repository.bridge.server.handler.NodeMonitoringHandler;
+import io.gravitee.repository.bridge.server.handler.OrganizationsHandler;
+import io.gravitee.repository.bridge.server.handler.PlansHandler;
+import io.gravitee.repository.bridge.server.handler.RootHandler;
+import io.gravitee.repository.bridge.server.handler.SubscriptionsHandler;
 import io.gravitee.repository.bridge.server.http.configuration.HttpServerConfiguration;
 import io.gravitee.repository.bridge.server.version.VersionHandler;
 import io.vertx.core.Vertx;
@@ -163,7 +176,7 @@ public class BridgeService extends AbstractService {
             applicationContext.getAutowireCapableBeanFactory().autowireBean(eventsLatestHandler);
             bridgeRouter.post("/eventsLatest/_search").handler(eventsLatestHandler::search);
             bridgeRouter.post("/events/_searchLatest").handler(eventsLatestHandler::search);
-            bridgeRouter.post("/eventsLatest/_createOrPatch").handler(eventsLatestHandler::createOrPatch);
+            bridgeRouter.post("/eventsLatest/_createOrUpdate").handler(eventsLatestHandler::createOrPatch);
 
             // Dictionaries handler
             DictionariesHandler dictionariesHandler = new DictionariesHandler(bridgeWorkerExecutor);

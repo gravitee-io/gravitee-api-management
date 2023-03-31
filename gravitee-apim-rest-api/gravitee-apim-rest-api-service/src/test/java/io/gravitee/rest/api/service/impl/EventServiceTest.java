@@ -605,6 +605,22 @@ public class EventServiceTest {
     }
 
     @Test
+    public void createApiEvent_shouldCreateEventFromId_withoutPayload() throws TechnicalException {
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        eventService.createApiEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(),
+            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            "apiId",
+            Map.of()
+        );
+        verify(eventRepository, times(1)).create(argThat(e -> e.getPayload() == null));
+
+        verifyNoMoreInteractions(eventRepository);
+    }
+
+    @Test
     public void createApiEvent_shouldReadDatabasePlans_thenCreateEvent_withPayloadContainingPlans()
         throws TechnicalException, JsonProcessingException {
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -628,7 +644,7 @@ public class EventServiceTest {
         eventService.createApiEvent(
             GraviteeContext.getExecutionContext(),
             Set.of(),
-            io.gravitee.rest.api.model.EventType.DEBUG_API,
+            io.gravitee.rest.api.model.EventType.START_API,
             api,
             Map.of()
         );

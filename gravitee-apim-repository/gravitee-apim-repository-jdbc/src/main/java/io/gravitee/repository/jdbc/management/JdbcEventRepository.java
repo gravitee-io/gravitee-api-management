@@ -264,9 +264,36 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         if (updatedEventCount <= 0) {
             return create(event);
         } else {
-            storeProperties(event, true);
-            storeEnvironments(event, true);
+            // We don't want to erase existing properties only add/update new one
+            patchEventProperties(event);
+            // Environments are updated only if new ones are provided
+            if (event.getEnvironments() != null) {
+                storeEnvironments(event, true);
+            }
             return event;
+        }
+    }
+
+    private void patchEventProperties(Event event) {
+        if (event.getProperties() != null) {
+            event.getProperties().forEach((property, value) -> updateEventProperty(event.getId(), property, value));
+        }
+    }
+
+    private void updateEventProperty(String eventId, String propertyKey, String value) {
+        int update = jdbcTemplate.update(
+            "update " + EVENT_PROPERTIES + " set property_value = ? where event_id = ? and property_key = ?",
+            value,
+            eventId,
+            propertyKey
+        );
+        if (update <= 0) {
+            jdbcTemplate.update(
+                "insert into " + EVENT_PROPERTIES + " ( event_id, property_key, property_value ) values ( ?, ?, ? )",
+                eventId,
+                propertyKey,
+                value
+            );
         }
     }
 

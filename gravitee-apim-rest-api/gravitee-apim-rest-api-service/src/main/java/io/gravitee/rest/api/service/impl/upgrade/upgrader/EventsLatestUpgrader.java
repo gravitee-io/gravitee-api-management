@@ -149,7 +149,7 @@ public class EventsLatestUpgrader extends OneShotUpgrader {
                 }
                 event.getProperties().put(Event.EventProperties.ID.getValue(), event.getId());
                 event.setId(id);
-                this.eventLatestRepository.createOrPatch(event);
+                this.eventLatestRepository.createOrUpdate(event);
                 eventsForModelCounter++;
             }
         }

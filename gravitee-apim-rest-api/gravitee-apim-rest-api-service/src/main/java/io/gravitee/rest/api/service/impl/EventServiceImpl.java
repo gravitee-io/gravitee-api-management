@@ -542,8 +542,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         }
         latestEvent.getProperties().put(Event.EventProperties.ID.getValue(), event.getId());
         try {
-            LOGGER.debug("Create or Patch latest event {}.", latestEventId);
-            eventLatestRepository.createOrPatch(latestEvent);
+            LOGGER.debug("Create or Update latest event {}.", latestEventId);
+            eventLatestRepository.createOrUpdate(latestEvent);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying create or patch " + latestEvent, ex);
         }

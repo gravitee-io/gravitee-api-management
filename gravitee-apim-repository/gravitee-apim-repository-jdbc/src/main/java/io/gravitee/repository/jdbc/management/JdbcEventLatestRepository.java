@@ -146,25 +146,22 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
     }
 
     @Override
-    public Event createOrPatch(Event event) {
+    public Event createOrUpdate(Event event) {
         if (event == null || event.getId() == null || event.getType() == null) {
             throw new IllegalStateException("Event to create or update must have an id and a type");
         }
 
-        final int updatedEventCount = patchEvent(event);
+        final int updatedEventCount = jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(event, event.getId()));
+        // No event updated so new one will be created
         if (updatedEventCount <= 0) {
-            createEvent(event);
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(event));
+            storeProperties(event, false);
+            storeEnvironments(event, false);
         } else {
             storeProperties(event, true);
             storeEnvironments(event, true);
         }
         return event;
-    }
-
-    private void createEvent(Event event) {
-        jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(event));
-        storeProperties(event, false);
-        storeEnvironments(event, false);
     }
 
     private void storeEnvironments(Event event, boolean deleteFirst) {
@@ -189,39 +186,6 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
                 }
             );
         }
-    }
-
-    private int patchEvent(Event event) {
-        List<Object> args = new ArrayList<>();
-        StringBuilder queryBuilder = new StringBuilder();
-        boolean hasSet = false;
-        queryBuilder.append("update ").append(this.tableName);
-        if (event.getType() != null) {
-            queryBuilder.append(" set type = ?");
-            args.add(event.getType().name());
-            hasSet = true;
-        }
-        if (event.getPayload() != null) {
-            queryBuilder.append(hasSet ? "," : " set").append(" payload = ?");
-            args.add(event.getPayload());
-            hasSet = true;
-        }
-        if (event.getParentId() != null) {
-            queryBuilder.append(hasSet ? "," : " set").append(" parent_id = ?");
-            args.add(event.getParentId());
-            hasSet = true;
-        }
-        if (event.getCreatedAt() != null) {
-            queryBuilder.append(hasSet ? "," : " set").append(" created_at = ?");
-            args.add(event.getCreatedAt());
-        }
-        if (event.getUpdatedAt() != null) {
-            queryBuilder.append(hasSet ? "," : " set").append(" updated_at = ?");
-            args.add(event.getUpdatedAt());
-        }
-        queryBuilder.append(" where id = ? ");
-        args.add(event.getId());
-        return jdbcTemplate.update(queryBuilder.toString(), args.toArray());
     }
 
     List<Event> queryEvents(String sql, List<Object> args) {

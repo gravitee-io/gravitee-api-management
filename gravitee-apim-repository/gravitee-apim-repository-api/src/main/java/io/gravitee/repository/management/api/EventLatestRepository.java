@@ -40,20 +40,13 @@ public interface EventLatestRepository {
     List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size);
 
     /**
-     * This method allows to create an event if it does not exist in database or patch it if it's present.
+     * This method allows to create an event if it does not exist in database or update it if it's present (replace old values by new ones).
      *
-     * <p>
-     * The patch allows to pass a partial {@link Event}: <br/>
-     * - For the root fields of {@link Event} object, the update will perform only on non-null fields. It's not possible to update to null one of these fields<br/>
-     * - For the properties map, it will update the property value based on its key.
-     * </p>
-     *
-     * createdAt field is not updatable
      * @param event
      * @return the event passed as parameter.
      * @throws TechnicalException
      */
-    Event createOrPatch(Event event) throws TechnicalException;
+    Event createOrUpdate(Event event) throws TechnicalException;
 
     /**
      * This method allows to delete an event from its id

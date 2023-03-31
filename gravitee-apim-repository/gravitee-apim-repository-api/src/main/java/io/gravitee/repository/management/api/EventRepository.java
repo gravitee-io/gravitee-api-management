@@ -57,9 +57,10 @@ public interface EventRepository extends CrudRepository<Event, String> {
      * This method allows to create an event if it does not exist in database or patch it if it's present.
      *
      * <p>
-     * The patch allows to pass a partial {@link Event}: <br/>
-     * - For the root fields of {@link Event} object, the update will perform only on non-null fields. It's not possible to update to null one of these fields<br/>
-     * - For the properties map, it will update the property value based on its key.
+     * The patch will do a partial update: <br/>
+     * - Root fields of {@link Event} object will be updated only if non-null, i.e it won't removed or update to <code>null</code> any of <code>null</code> fields<br/>
+     * - Updated properties map will be used to update existing property or added based on its key, i.e it won't removed or update to <code>null</code> any of <code>null</code> non existing properties.<br/>
+     * - Old environments will be removed and replaced only if the new properties map is non-null.
      * </p>
      *
      * createdAt field is not updatable

@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.bridge.client.http.HttpResponse;
 import io.gravitee.repository.bridge.client.utils.BodyCodecs;
@@ -23,12 +22,9 @@ import io.gravitee.repository.bridge.client.utils.ExcludeMethodFromGeneratedCove
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.vertx.ext.web.codec.BodyCodec;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,8 +35,8 @@ import org.springframework.stereotype.Component;
 public class HttpEventLatestRepository extends AbstractRepository implements EventLatestRepository {
 
     @Override
-    public Event createOrPatch(Event event) throws TechnicalException {
-        return blockingGet(post("/eventsLatest/_createOrPatch", BodyCodec.json(Event.class)).send(event)).payload();
+    public Event createOrUpdate(Event event) throws TechnicalException {
+        return blockingGet(post("/eventsLatest/_createOrUpdate", BodyCodec.json(Event.class)).send(event)).payload();
     }
 
     @Override

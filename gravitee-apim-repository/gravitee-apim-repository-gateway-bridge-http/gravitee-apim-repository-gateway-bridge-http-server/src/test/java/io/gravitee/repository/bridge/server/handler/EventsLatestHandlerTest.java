@@ -77,7 +77,7 @@ public class EventsLatestHandlerTest {
 
         router.route().handler(BodyHandler.create());
         router.post("/_search").handler(eventsLatestHandler::search);
-        router.post("/_createOrPatch").handler(eventsLatestHandler::createOrPatch);
+        router.post("/_createOrUpdate").handler(eventsLatestHandler::createOrPatch);
 
         int port = getRandomPort();
 
@@ -203,10 +203,10 @@ public class EventsLatestHandlerTest {
             Event event = new Event();
             event.setId("eventId");
 
-            when(eventLatestRepository.createOrPatch(event)).thenReturn(event);
+            when(eventLatestRepository.createOrUpdate(event)).thenReturn(event);
 
             client
-                .post("/_createOrPatch")
+                .post("/_createOrUpdate")
                 .expect(ResponsePredicate.SC_OK)
                 .expect(ResponsePredicate.JSON)
                 .as(BodyCodec.json(Event.class))
@@ -228,10 +228,10 @@ public class EventsLatestHandlerTest {
             Event event = new Event();
             event.setId("eventId");
 
-            when(eventLatestRepository.createOrPatch(event)).thenThrow(new RuntimeException());
+            when(eventLatestRepository.createOrUpdate(event)).thenThrow(new RuntimeException());
 
             client
-                .post("/_createOrPatch")
+                .post("/_createOrUpdate")
                 .expect(ResponsePredicate.SC_INTERNAL_SERVER_ERROR)
                 .as(BodyCodec.string())
                 .send()

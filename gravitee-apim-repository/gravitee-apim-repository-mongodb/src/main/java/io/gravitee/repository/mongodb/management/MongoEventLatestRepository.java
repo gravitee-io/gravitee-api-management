@@ -43,7 +43,7 @@ public class MongoEventLatestRepository implements EventLatestRepository {
     private GraviteeMapper mapper;
 
     @Override
-    public Event createOrPatch(Event event) {
+    public Event createOrUpdate(Event event) {
         if (event == null || event.getId() == null || event.getType() == null) {
             throw new IllegalStateException("Event to create or update must have an id and a type");
         }

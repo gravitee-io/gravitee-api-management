@@ -99,7 +99,7 @@ public class EventsLatestUpgraderTest {
             )
         )
             .thenReturn(new Page<>(List.of(event1), 0, 1, 1));
-        when(eventLatestRepository.createOrPatch(event1)).thenReturn(event1);
+        when(eventLatestRepository.createOrUpdate(event1)).thenReturn(event1);
         Event event2 = new Event();
         when(
             eventRepository.search(
@@ -108,12 +108,12 @@ public class EventsLatestUpgraderTest {
             )
         )
             .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
-        when(eventLatestRepository.createOrPatch(event2)).thenReturn(event2);
+        when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
 
         cut.processOneShotUpgrade();
 
-        verify(eventLatestRepository).createOrPatch(event1);
-        verify(eventLatestRepository).createOrPatch(event2);
+        verify(eventLatestRepository).createOrUpdate(event1);
+        verify(eventLatestRepository).createOrUpdate(event2);
         verifyNoMoreInteractions(eventLatestRepository);
     }
 
@@ -132,7 +132,7 @@ public class EventsLatestUpgraderTest {
             )
         )
             .thenReturn(new Page<>(List.of(event1), 0, 1, 1));
-        when(eventLatestRepository.createOrPatch(event1)).thenReturn(event1);
+        when(eventLatestRepository.createOrUpdate(event1)).thenReturn(event1);
         Event event2 = new Event();
         when(
             eventRepository.search(
@@ -141,12 +141,12 @@ public class EventsLatestUpgraderTest {
             )
         )
             .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
-        when(eventLatestRepository.createOrPatch(event2)).thenReturn(event2);
+        when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
 
         cut.processOneShotUpgrade();
 
-        verify(eventLatestRepository).createOrPatch(event1);
-        verify(eventLatestRepository).createOrPatch(event2);
+        verify(eventLatestRepository).createOrUpdate(event1);
+        verify(eventLatestRepository).createOrUpdate(event2);
         verifyNoMoreInteractions(eventLatestRepository);
     }
 
@@ -165,7 +165,7 @@ public class EventsLatestUpgraderTest {
             )
         )
             .thenReturn(new Page<>(List.of(event1), 0, 1, 1));
-        when(eventLatestRepository.createOrPatch(event1)).thenReturn(event1);
+        when(eventLatestRepository.createOrUpdate(event1)).thenReturn(event1);
         Event event2 = new Event();
         when(
             eventRepository.search(
@@ -174,12 +174,12 @@ public class EventsLatestUpgraderTest {
             )
         )
             .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
-        when(eventLatestRepository.createOrPatch(event2)).thenReturn(event2);
+        when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
 
         cut.processOneShotUpgrade();
 
-        verify(eventLatestRepository).createOrPatch(event1);
-        verify(eventLatestRepository).createOrPatch(event2);
+        verify(eventLatestRepository).createOrUpdate(event1);
+        verify(eventLatestRepository).createOrUpdate(event2);
         verifyNoMoreInteractions(eventLatestRepository);
     }
 
@@ -213,10 +213,10 @@ public class EventsLatestUpgraderTest {
                 )
             )
                 .thenReturn(new Page<>(List.of(event), 0, 1, 1));
-            when(eventLatestRepository.createOrPatch(event)).thenReturn(event);
+            when(eventLatestRepository.createOrUpdate(event)).thenReturn(event);
         }
         cut.processOneShotUpgrade();
 
-        verify(eventLatestRepository, times(500)).createOrPatch(any());
+        verify(eventLatestRepository, times(500)).createOrUpdate(any());
     }
 }
