@@ -26,7 +26,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
 
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
-import { ApiPortalPlanEditModule } from './api-portal-plan-edit.module';
+import { ApiPlanFormModule } from './api-plan-form.module';
 
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
@@ -53,7 +53,7 @@ describe('ApiPortalPlanEditComponent', () => {
 
   const configureTestingModule = (planId?: string) => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalPlanEditModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPlanFormModule, MatIconTestingModule],
       providers: [
         { provide: CurrentUserService, useValue: { currentUser } },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID, planId } },

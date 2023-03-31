@@ -71,4 +71,4 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     GioGoBackButtonModule,
   ],
 })
-export class ApiPortalPlanEditModule {}
+export class ApiPlanFormModule {}
