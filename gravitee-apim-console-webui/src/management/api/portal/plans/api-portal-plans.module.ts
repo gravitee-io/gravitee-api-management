@@ -28,7 +28,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiPortalPlanListComponent } from './list/api-portal-plan-list.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { ApiPortalPlanEditModule } from '../../component/plan/api-portal-plan-edit.module';
+import { ApiPlanFormModule } from '../../component/plan/api-plan-form.module';
 
 @NgModule({
   declarations: [ApiPortalPlanListComponent],
@@ -46,7 +46,7 @@ import { ApiPortalPlanEditModule } from '../../component/plan/api-portal-plan-ed
     GioPermissionModule,
     GioSaveBarModule,
 
-    ApiPortalPlanEditModule,
+    ApiPlanFormModule,
   ],
 })
 export class ApiPortalPlansModule {}
