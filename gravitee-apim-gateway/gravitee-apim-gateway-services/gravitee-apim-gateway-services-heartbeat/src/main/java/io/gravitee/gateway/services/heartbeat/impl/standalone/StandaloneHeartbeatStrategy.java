@@ -25,7 +25,7 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -116,12 +116,10 @@ public class StandaloneHeartbeatStrategy implements HeartbeatStrategy {
     private Event buildLiteEvent(Event heartbeatEvent) {
         Event eventLite = new Event();
         eventLite.setId(heartbeatEvent.getId());
+        eventLite.setType(heartbeatEvent.getType());
         Date updatedAt = new Date();
         eventLite.setUpdatedAt(updatedAt);
-        eventLite.setType(heartbeatEvent.getType());
-        eventLite.setEnvironments(heartbeatEvent.getEnvironments());
-        eventLite.setProperties(new HashMap<>());
-        eventLite.getProperties().put(EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(updatedAt.getTime()));
+        eventLite.setProperties(Map.of(EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(updatedAt.getTime())));
         return eventLite;
     }
 
