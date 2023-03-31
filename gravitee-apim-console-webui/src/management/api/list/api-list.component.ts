@@ -102,13 +102,16 @@ export class ApiListComponent implements OnInit, OnDestroy {
             { notify: false },
           );
         }),
-        switchMap(({ pagination, searchTerm, sort }) => this.apiService.list(searchTerm, toOrder(sort), pagination.index, pagination.size)),
+        switchMap(({ pagination, searchTerm, sort }) =>
+          this.apiService
+            .list(searchTerm, toOrder(sort), pagination.index, pagination.size)
+            .pipe(catchError(() => of(new PagedResult<Api>()))),
+        ),
         tap((apisPage) => {
           this.apisTableDS = this.toApisTableDS(apisPage);
           this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
           this.isLoadingData = false;
         }),
-        catchError(() => of(new PagedResult<Api>())),
       )
       .subscribe();
   }
