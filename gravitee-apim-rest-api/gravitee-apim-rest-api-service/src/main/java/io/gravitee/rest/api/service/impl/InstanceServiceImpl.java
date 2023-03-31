@@ -37,8 +37,13 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.function.Function;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -95,39 +100,35 @@ public class InstanceServiceImpl implements InstanceService {
         }
 
         ExpiredPredicate filter = new ExpiredPredicate(Duration.ofSeconds(unknownExpireAfterInSec));
-        long from = Instant.now().minus(unknownExpireAfterInSec, ChronoUnit.SECONDS).toEpochMilli();
-        long to = Instant.now().toEpochMilli();
+        long from = query.getFrom() > 0 ? query.getFrom() : Instant.now().minus(unknownExpireAfterInSec, ChronoUnit.SECONDS).toEpochMilli();
 
         return eventService.search(
             executionContext,
             types,
             query.getProperties(),
             from,
-            to,
+            query.getTo(),
             query.getPage(),
             query.getSize(),
-            new Function<EventEntity, InstanceListItem>() {
-                @Override
-                public InstanceListItem apply(EventEntity eventEntity) {
-                    InstanceEntity instanceEntity = convert(eventEntity);
+            eventEntity -> {
+                InstanceEntity instanceEntity = convert(eventEntity);
 
-                    InstanceListItem item = new InstanceListItem();
-                    item.setId(instanceEntity.getId());
-                    item.setEvent(instanceEntity.getEvent());
-                    item.setHostname(instanceEntity.getHostname());
-                    item.setIp(instanceEntity.getIp());
-                    item.setPort(instanceEntity.getPort());
-                    item.setLastHeartbeatAt(instanceEntity.getLastHeartbeatAt());
-                    item.setStartedAt(instanceEntity.getStartedAt());
-                    item.setStoppedAt(instanceEntity.getStoppedAt());
-                    item.setVersion(instanceEntity.getVersion());
-                    item.setTags(instanceEntity.getTags());
-                    item.setTenant(instanceEntity.getTenant());
-                    item.setOperatingSystemName(instanceEntity.getSystemProperties().get("os.name"));
-                    item.setState(instanceEntity.getState());
+                InstanceListItem item = new InstanceListItem();
+                item.setId(instanceEntity.getId());
+                item.setEvent(instanceEntity.getEvent());
+                item.setHostname(instanceEntity.getHostname());
+                item.setIp(instanceEntity.getIp());
+                item.setPort(instanceEntity.getPort());
+                item.setLastHeartbeatAt(instanceEntity.getLastHeartbeatAt());
+                item.setStartedAt(instanceEntity.getStartedAt());
+                item.setStoppedAt(instanceEntity.getStoppedAt());
+                item.setVersion(instanceEntity.getVersion());
+                item.setTags(instanceEntity.getTags());
+                item.setTenant(instanceEntity.getTenant());
+                item.setOperatingSystemName(instanceEntity.getSystemProperties().get("os.name"));
+                item.setState(instanceEntity.getState());
 
-                    return item;
-                }
+                return item;
             },
             filter,
             Collections.singletonList(executionContext.getEnvironmentId())
@@ -333,7 +334,7 @@ public class InstanceServiceImpl implements InstanceService {
 
     public static final class ExpiredPredicate implements Predicate<InstanceListItem> {
 
-        private Duration threshold;
+        private final Duration threshold;
 
         public ExpiredPredicate(Duration threshold) {
             this.threshold = threshold;

@@ -16,27 +16,35 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.EventEntity;
+import io.gravitee.rest.api.model.EventQuery;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.InstanceEntity;
+import io.gravitee.rest.api.model.InstanceListItem;
+import io.gravitee.rest.api.model.InstanceQuery;
+import io.gravitee.rest.api.model.InstanceState;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalField;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -283,7 +291,7 @@ public class InstanceServiceTest {
                 argThat(collection -> collection.stream().allMatch(e -> e.equals(EventType.GATEWAY_STARTED))),
                 isNull(),
                 fromCaptor.capture(),
-                toCaptor.capture(),
+                eq(0L),
                 eq(0),
                 eq(100),
                 any(),
@@ -293,7 +301,6 @@ public class InstanceServiceTest {
 
         // expect from to be today minus 7 days
         Instant now = Instant.now();
-        assertEquals(now.toEpochMilli(), toCaptor.getValue(), 1000);
         assertEquals(now.minus(604800, ChronoUnit.SECONDS).toEpochMilli(), fromCaptor.getValue(), 1000);
     }
 
