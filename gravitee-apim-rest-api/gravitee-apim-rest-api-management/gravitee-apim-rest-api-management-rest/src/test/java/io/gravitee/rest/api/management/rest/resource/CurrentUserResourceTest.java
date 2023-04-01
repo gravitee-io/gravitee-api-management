@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
@@ -41,6 +42,7 @@ import org.springframework.security.core.context.SecurityContextImpl;
 public class CurrentUserResourceTest extends AbstractResourceTest {
 
     private static final String ID = "040f6a20-9fc2-429f-8f6a-209fc2629f8d";
+    private static final String ORG = "MY-ORG";
 
     @AfterClass
     public static void afterClass() {
@@ -63,13 +65,20 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         final UserDetails userDetails = new UserDetails(USER_NAME, "PASSWORD", Collections.emptyList());
         assertThat(userDetails.getPassword()).isNotNull();
 
-        setCurrentUserDetails(userDetails);
+        Date now = new Date();
+        setCurrentUserDetails(now, userDetails);
 
         final Response response = orgTarget().request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-        assertThat(response.readEntity(HashMap.class)).isNotNull().containsKeys("created_at", "updated_at", "last_connection_at");
+
+        JsonNode returnUserDetails = response.readEntity(JsonNode.class);
+        assertThat(returnUserDetails).isNotNull();
+        assertThat(returnUserDetails.get("created_at").asLong()).isEqualTo(now.getTime());
+        assertThat(returnUserDetails.get("updated_at").asLong()).isEqualTo(now.getTime());
+        assertThat(returnUserDetails.get("last_connection_at").asLong()).isEqualTo(now.getTime());
+        assertThat(returnUserDetails.get("organizationId").asText()).isEqualTo(ORG);
     }
 
     @Test
@@ -80,12 +89,20 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         userDetails.eraseCredentials();
         assertThat(userDetails.getPassword()).isNull();
 
-        setCurrentUserDetails(userDetails);
+        Date now = new Date();
+        setCurrentUserDetails(now, userDetails);
 
         final Response response = orgTarget().request().get();
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+
+        JsonNode returnUserDetails = response.readEntity(JsonNode.class);
+        assertThat(returnUserDetails).isNotNull();
+        assertThat(returnUserDetails.get("created_at").asLong()).isEqualTo(now.getTime());
+        assertThat(returnUserDetails.get("updated_at").asLong()).isEqualTo(now.getTime());
+        assertThat(returnUserDetails.get("last_connection_at").asLong()).isEqualTo(now.getTime());
+        assertThat(returnUserDetails.get("organizationId").asText()).isEqualTo(ORG);
     }
 
     @Test
@@ -119,15 +136,16 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         assertThat(response.readEntity(Object.class)).isNull();
     }
 
-    private void setCurrentUserDetails(final UserDetails userDetails) {
+    private void setCurrentUserDetails(Date now, final UserDetails userDetails) {
         final Authentication authentication = mock(Authentication.class);
         final UserEntity userEntity = new UserEntity();
         userEntity.setId(ID);
         userEntity.setRoles(Collections.emptySet());
         userEntity.setFirstConnectionAt(new Date());
-        userEntity.setCreatedAt(new Date());
-        userEntity.setUpdatedAt(new Date());
-        userEntity.setLastConnectionAt(new Date());
+        userEntity.setCreatedAt(now);
+        userEntity.setUpdatedAt(now);
+        userEntity.setLastConnectionAt(now);
+        userEntity.setOrganizationId(ORG);
 
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userService.findByIdWithRoles(any(), eq(USER_NAME))).thenReturn(userEntity);

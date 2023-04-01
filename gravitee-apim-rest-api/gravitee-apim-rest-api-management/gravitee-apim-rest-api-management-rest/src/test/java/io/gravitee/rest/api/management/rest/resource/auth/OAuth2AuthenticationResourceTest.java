@@ -35,6 +35,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.*;
@@ -61,6 +62,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author Christophe LANNOY (chrislannoy.java at gmail.com)
@@ -194,10 +196,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         //mock DB find user by name
         UserEntity userEntity = mockUserEntity();
-        userEntity.setId("janedoe@example.com");
-        userEntity.setSource(USER_SOURCE_OAUTH2);
-        userEntity.setSourceId("janedoe@example.com");
-        userEntity.setPicture("http://example.com/janedoe/me.jpg");
 
         when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), anyString())).thenReturn(userEntity);
 
@@ -238,6 +236,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertEquals(jwt.getClaim("sub").asString(), "janedoe@example.com");
         assertEquals(jwt.getClaim("email").asString(), "janedoe@example.com");
         assertEquals(jwt.getClaim("lastname").asString(), "Doe");
+        assertEquals(jwt.getClaim("org").asString(), "my-org");
     }
 
     private void verifyJwtTokenIsNotPresent(Response response)
@@ -269,7 +268,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(userInfo));
 
         //mock create user
-        NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
         UserEntity createdUser = mockUserEntity();
         mockUserCreation(identityProvider, userInfo, createdUser);
 
@@ -293,28 +291,12 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verifyJwtToken(response);
     }
 
-    /*
-    private void verifyUserInResponseBody(Response response) {
-        UserEntity responseUser = response.readEntity(UserEntity.class);
-
-        assertEquals(responseUser.getEmail(),"janedoe@example.com");
-        assertEquals(responseUser.getFirstname(),"Jane");
-        assertEquals(responseUser.getLastname(),"Doe");
-        assertEquals(responseUser.getUsername(),"janedoe@example.com");
-        assertEquals(responseUser.getPicture(),"http://example.com/janedoe/me.jpg");
-        assertEquals(responseUser.getSource(),"oauth2");
-    }
-    */
-
     private UpdateUserEntity mockUpdateUserPicture(UserEntity user) {
         UpdateUserEntity updateUserEntity = new UpdateUserEntity();
         updateUserEntity.setPicture("http://example.com/janedoe/me.jpg");
         updateUserEntity.setFirstname("Jane");
         updateUserEntity.setLastname("Doe");
-
         user.setPicture("http://example.com/janedoe/me.jpg");
-        //user.setFirstname("Jane");
-        //user.setLastname("Doe");
 
         when(userService.update(eq(GraviteeContext.getExecutionContext()), eq(user.getId()), refEq(updateUserEntity))).thenReturn(user);
         return updateUserEntity;
@@ -328,6 +310,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     private UserEntity mockUserEntity() {
         UserEntity createdUser = new UserEntity();
         createdUser.setId("janedoe@example.com");
+        createdUser.setOrganizationId("my-org");
         createdUser.setSource(USER_SOURCE_OAUTH2);
         createdUser.setSourceId("janedoe@example.com");
         createdUser.setLastname("Doe");
@@ -335,17 +318,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         createdUser.setEmail("janedoe@example.com");
         createdUser.setPicture("http://example.com/janedoe/me.jpg");
         return createdUser;
-    }
-
-    private NewExternalUserEntity mockNewExternalUserEntity() {
-        NewExternalUserEntity newExternalUserEntity = new NewExternalUserEntity();
-        newExternalUserEntity.setSource(USER_SOURCE_OAUTH2);
-        newExternalUserEntity.setSourceId("janedoe@example.com");
-        newExternalUserEntity.setLastname("Doe");
-        newExternalUserEntity.setFirstname("Jane");
-        newExternalUserEntity.setEmail("janedoe@example.com");
-        newExternalUserEntity.setPicture("http://example.com/janedoe/me.jpg");
-        return newExternalUserEntity;
     }
 
     @Test
@@ -476,7 +448,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
-        NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
         UserEntity createdUser = mockUserEntity();
         mockUserCreation(identityProvider, userInfoBody, createdUser);
 
@@ -555,7 +526,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             .thenThrow(new UserNotFoundException("janedoe@example.com"));
 
         //mock create user
-        NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
         UserEntity createdUser = mockUserEntity();
         mockUserCreation(identityProvider, userInfo, createdUser);
 
@@ -618,7 +588,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Others")).thenReturn(Collections.emptyList());
         when(groupService.findByName(GraviteeContext.getCurrentEnvironment(), "Api consumer")).thenReturn(Collections.emptyList());
 
-        NewExternalUserEntity newExternalUserEntity = mockNewExternalUserEntity();
         UserEntity createdUser = mockUserEntity();
         mockUserCreation(identityProvider, userInfo, createdUser);
 
