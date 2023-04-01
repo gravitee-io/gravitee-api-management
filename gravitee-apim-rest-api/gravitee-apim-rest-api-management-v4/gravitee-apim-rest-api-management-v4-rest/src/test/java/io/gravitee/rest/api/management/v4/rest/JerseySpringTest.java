@@ -127,7 +127,7 @@ public abstract class JerseySpringTest {
         );
     }
 
-    @Priority(50)
+    @Priority(5)
     public static class AuthenticationFilter implements ContainerRequestFilter {
 
         @Override

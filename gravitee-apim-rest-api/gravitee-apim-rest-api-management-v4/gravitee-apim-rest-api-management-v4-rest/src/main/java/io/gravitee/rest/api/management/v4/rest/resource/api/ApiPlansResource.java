@@ -62,6 +62,7 @@ import javax.ws.rs.core.Response;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Path("/environments/{envId}/apis/{apiId}/plans")
 public class ApiPlansResource extends AbstractResource {
 
     @Inject

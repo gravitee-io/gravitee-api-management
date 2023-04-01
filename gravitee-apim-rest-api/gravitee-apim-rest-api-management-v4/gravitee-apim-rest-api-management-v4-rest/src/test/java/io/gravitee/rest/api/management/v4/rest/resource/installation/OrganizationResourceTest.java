@@ -35,8 +35,6 @@ import org.junit.Test;
 
 public class OrganizationResourceTest extends AbstractResourceTest {
 
-    public static final String ORG = "my-org";
-
     @Inject
     private OrganizationService organizationService;
 
@@ -47,14 +45,14 @@ public class OrganizationResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() {
-        GraviteeContext.setCurrentOrganization(ORG);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
         GraviteeContext.setCurrentEnvironment(null);
     }
 
     @Test
     public void shouldGetOrganizationById() {
         OrganizationEntity organizationEntity = new OrganizationEntity();
-        organizationEntity.setId(ORG);
+        organizationEntity.setId(ORGANIZATION);
         organizationEntity.setName("org-name");
         organizationEntity.setDescription("A nice description");
         organizationEntity.setCockpitId("cockpit-id");
@@ -62,15 +60,15 @@ public class OrganizationResourceTest extends AbstractResourceTest {
         organizationEntity.setFlowMode(FlowMode.BEST_MATCH);
         organizationEntity.setHrids(List.of("one-hrid"));
 
-        doReturn(organizationEntity).when(organizationService).findById(eq(ORG));
+        doReturn(organizationEntity).when(organizationService).findById(eq(ORGANIZATION));
 
-        final Response response = rootTarget(ORG).request().get();
+        final Response response = rootTarget(ORGANIZATION).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         var body = response.readEntity(Organization.class);
         assertNotNull(body);
 
-        assertEquals(ORG, body.getId());
+        assertEquals(ORGANIZATION, body.getId());
         assertEquals("org-name", body.getName());
         assertEquals("A nice description", body.getDescription());
     }
