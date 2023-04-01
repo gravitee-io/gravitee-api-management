@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v4.rest;
 import io.gravitee.rest.api.management.v4.rest.provider.ObjectMapperResolver;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Collections;
 import javax.annotation.Priority;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.client.WebTarget;
@@ -37,6 +38,7 @@ import org.junit.Before;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -44,7 +46,7 @@ import org.springframework.context.ApplicationContext;
 public abstract class JerseySpringTest {
 
     protected static final String USER_NAME = "UnitTests";
-    protected static final Principal PRINCIPAL = () -> USER_NAME;
+    protected static final String ORGANIZATION = "fake-org";
     private JerseyTest _jerseyTest;
 
     protected abstract String contextPath();
@@ -134,7 +136,11 @@ public abstract class JerseySpringTest {
                 new SecurityContext() {
                     @Override
                     public Principal getUserPrincipal() {
-                        return () -> USER_NAME;
+                        UserDetails userDetails = new UserDetails(USER_NAME, "", Collections.emptyList());
+                        userDetails.setOrganizationId(ORGANIZATION);
+
+                        UsernamePasswordAuthenticationToken principal = new UsernamePasswordAuthenticationToken(userDetails, new Object());
+                        return principal;
                     }
 
                     @Override
