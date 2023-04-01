@@ -149,6 +149,7 @@ abstract class AbstractAuthenticationResource {
             .withClaim(JWTHelper.Claims.EMAIL, user.getEmail())
             .withClaim(JWTHelper.Claims.FIRSTNAME, user.getFirstname())
             .withClaim(JWTHelper.Claims.LASTNAME, user.getLastname())
+            .withClaim(JWTHelper.Claims.ORG, user.getOrganizationId())
             .withJWTId(UUID.randomUUID().toString())
             .sign(algorithm);
 

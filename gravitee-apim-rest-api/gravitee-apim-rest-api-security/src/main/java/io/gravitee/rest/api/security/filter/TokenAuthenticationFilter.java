@@ -120,6 +120,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                         userDetails.setEmail(jwt.getClaim(Claims.EMAIL).asString());
                         userDetails.setFirstname(jwt.getClaim(Claims.FIRSTNAME).asString());
                         userDetails.setLastname(jwt.getClaim(Claims.LASTNAME).asString());
+                        userDetails.setOrganizationId(jwt.getClaim(Claims.ORG).asString());
 
                         SecurityContextHolder
                             .getContext()
@@ -136,6 +137,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                         userDetails.setEmail(user.getEmail());
                         userDetails.setSource("token");
                         userDetails.setSourceId(token.getName());
+                        userDetails.setOrganizationId(user.getOrganizationId());
 
                         SecurityContextHolder
                             .getContext()

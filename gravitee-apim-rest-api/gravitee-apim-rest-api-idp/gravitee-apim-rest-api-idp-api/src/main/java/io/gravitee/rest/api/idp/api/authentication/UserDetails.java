@@ -43,6 +43,7 @@ public class UserDetails extends User implements org.springframework.security.co
     private boolean displayNewsletterSubscription;
     private Map<String, Object> customFields;
     private boolean isSystem;
+    private String organizationId;
 
     /**
      * The user creation date
@@ -303,5 +304,13 @@ public class UserDetails extends User implements org.springframework.security.co
 
     public void setSystem(boolean system) {
         isSystem = system;
+    }
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
     }
 }

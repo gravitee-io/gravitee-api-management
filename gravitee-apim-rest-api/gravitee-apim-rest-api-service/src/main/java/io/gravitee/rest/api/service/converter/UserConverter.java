@@ -75,6 +75,7 @@ public class UserConverter {
         UserEntity userEntity = new UserEntity();
 
         userEntity.setId(user.getId());
+        userEntity.setOrganizationId(user.getOrganizationId());
         userEntity.setSource(user.getSource());
         userEntity.setSourceId(user.getSourceId());
         userEntity.setEmail(user.getEmail());

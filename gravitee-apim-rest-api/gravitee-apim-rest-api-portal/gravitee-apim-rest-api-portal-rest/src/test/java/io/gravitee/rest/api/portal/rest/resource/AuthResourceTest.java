@@ -19,10 +19,19 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.portal.rest.model.Token;
 import io.gravitee.rest.api.portal.rest.model.Token.TokenTypeEnum;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.Collections;
 import javax.servlet.http.Cookie;
 import javax.ws.rs.core.HttpHeaders;
@@ -62,8 +71,9 @@ public class AuthResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldLogin() {
+    public void shouldLogin() throws NoSuchAlgorithmException, IOException, SignatureException, InvalidKeyException {
         final UserDetails userDetails = new UserDetails(USER_NAME, "PASSWORD", Collections.emptyList());
+        userDetails.setOrganizationId("DEFAULT");
 
         final Authentication authentication = mock(Authentication.class);
         when(authentication.getPrincipal()).thenReturn(userDetails);
@@ -80,12 +90,30 @@ public class AuthResourceTest extends AbstractResourceTest {
         final Response response = target().path("login").request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Token token = response.readEntity(Token.class);
-        assertNotNull(token);
-        assertNotNull(token.getToken());
-        assertNotEquals("", token.getToken());
-        assertEquals(TokenTypeEnum.BEARER, token.getTokenType());
+        verifyJwtToken(response);
         //APIPortal: can't test Cookie, since servletResponse is mocked
 
+    }
+
+    private void verifyJwtToken(Response response)
+        throws NoSuchAlgorithmException, InvalidKeyException, IOException, SignatureException, JWTVerificationException {
+        Token responseToken = response.readEntity(Token.class);
+        assertEquals("BEARER", responseToken.getTokenType().name());
+
+        String token = responseToken.getToken();
+
+        Algorithm algorithm = Algorithm.HMAC256("myJWT4Gr4v1t33_S3cr3t");
+        JWTVerifier jwtVerifier = JWT.require(algorithm).build();
+
+        DecodedJWT jwt = jwtVerifier.verify(token);
+
+        assertEquals(jwt.getSubject(), USER_NAME);
+
+        assertNull(jwt.getClaim("firstname").asString());
+        assertEquals("gravitee-management-auth", jwt.getClaim("iss").asString());
+        assertEquals(USER_NAME, jwt.getClaim("sub").asString());
+        assertNull(jwt.getClaim("email").asString());
+        assertNull(jwt.getClaim("lastname").asString());
+        assertEquals("DEFAULT", jwt.getClaim("org").asString());
     }
 }

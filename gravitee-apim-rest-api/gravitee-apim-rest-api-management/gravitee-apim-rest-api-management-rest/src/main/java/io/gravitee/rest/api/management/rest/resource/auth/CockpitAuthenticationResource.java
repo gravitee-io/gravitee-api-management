@@ -143,6 +143,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
 
             UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
+            userDetails.setOrganizationId(user.getOrganizationId());
             userDetails.setEmail(user.getEmail());
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
