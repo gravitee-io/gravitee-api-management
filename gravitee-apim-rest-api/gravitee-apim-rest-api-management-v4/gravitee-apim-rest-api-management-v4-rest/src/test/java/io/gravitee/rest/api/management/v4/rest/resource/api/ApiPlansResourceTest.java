@@ -52,11 +52,10 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     private static final String API = "my-api";
     private static final String PLAN = "my-plan";
     private static final String ENVIRONMENT = "my-env";
-    private static final String ORGANIZATION = "my-org";
 
     @Override
     protected String contextPath() {
-        return "apis";
+        return "/environments/" + ENVIRONMENT + "/apis/" + API + "/plans";
     }
 
     @Before
@@ -73,6 +72,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         environmentEntity.setId(ENVIRONMENT);
         environmentEntity.setOrganizationId(ORGANIZATION);
         doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
+        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
@@ -113,13 +113,10 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         when(planService.create(eq(GraviteeContext.getExecutionContext()), eq(fullNewPlanEntity))).thenReturn(createdPlanEntity);
 
-        final Response response = rootTarget().path(API).path("plans").request().post(Entity.json(newPlanEntity));
+        final Response response = rootTarget().request().post(Entity.json(newPlanEntity));
 
         assertEquals(CREATED_201, response.getStatus());
-        assertEquals(
-            rootTarget().path(API).path("plans").path("new-plan-id").getUri().toString(),
-            response.getHeaders().getFirst(HttpHeaders.LOCATION)
-        );
+        assertEquals(rootTarget().path("new-plan-id").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
         var createdPlan = response.readEntity(Plan.class);
         assertEquals(API, createdPlan.getApiId());
         assertEquals(PLAN, createdPlan.getName());
@@ -148,7 +145,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         newPlanEntity.setSecurity(planSecurity);
         newPlanEntity.setStatus(PlanStatus.STAGING);
 
-        final Response response = rootTarget().path(API).path("plans").request().post(Entity.json(newPlanEntity));
+        final Response response = rootTarget().request().post(Entity.json(newPlanEntity));
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
@@ -171,7 +168,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         doReturn(planEntity).when(planService).findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
 
-        final Response response = rootTarget().path(API).path("plans").path(PLAN).request().get();
+        final Response response = rootTarget().path(PLAN).request().get();
 
         assertEquals(200, response.getStatus());
         var body = response.readEntity(Plan.class);
@@ -189,7 +186,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             .when(permissionService)
             .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
 
-        final Response response = rootTarget().path(API).path("plans").path(PLAN).request().get();
+        final Response response = rootTarget().path(PLAN).request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
@@ -207,7 +204,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         doReturn(existingPlan).when(planService).findById(GraviteeContext.getExecutionContext(), PLAN);
         when(planService.close(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(closedPlan);
 
-        final Response response = rootTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
+        final Response response = rootTarget().path(PLAN).path("_close").request().post(Entity.json(""));
 
         assertEquals(OK_200, response.getStatus());
         verify(planService, times(1)).close(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
@@ -219,7 +216,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             .when(permissionService)
             .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
 
-        final Response response = rootTarget().path(API).path("plans").path(PLAN).path("_close").request().post(Entity.json(""));
+        final Response response = rootTarget().path(PLAN).path("_close").request().post(Entity.json(""));
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
@@ -234,7 +231,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
         when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
 
-        final Response response = rootTarget().path(API).path("plans").path(PLAN).request().delete();
+        final Response response = rootTarget().path(PLAN).request().delete();
 
         assertEquals(NO_CONTENT_204, response.getStatus());
         verify(planService, times(1)).delete(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
@@ -246,7 +243,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             .when(permissionService)
             .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
 
-        final Response response = rootTarget().path(API).path("plans").path(PLAN).request().delete();
+        final Response response = rootTarget().path(PLAN).request().delete();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
@@ -256,7 +253,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             .when(permissionService)
             .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
 
-        final Response response = rootTarget().path(API).path("plans").path(PLAN).request().put(Entity.json(""));
+        final Response response = rootTarget().path(PLAN).request().put(Entity.json(""));
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
@@ -266,7 +263,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             .when(permissionService)
             .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
 
-        final Response response = rootTarget().path(API).path("plans").path(PLAN).path("_publish").request().post(Entity.json(""));
+        final Response response = rootTarget().path(PLAN).path("_publish").request().post(Entity.json(""));
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
@@ -276,7 +273,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             .when(permissionService)
             .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
 
-        final Response response = rootTarget().path(API).path("plans").path(PLAN).path("_deprecate").request().post(Entity.json(""));
+        final Response response = rootTarget().path(PLAN).path("_deprecate").request().post(Entity.json(""));
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 

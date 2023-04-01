@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v4.rest.filter.*;
 import io.gravitee.rest.api.management.v4.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.management.v4.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.management.v4.rest.resource.OpenAPIResource;
+import io.gravitee.rest.api.management.v4.rest.resource.api.ApiPlansResource;
 import io.gravitee.rest.api.management.v4.rest.resource.api.ApiResource;
 import io.gravitee.rest.api.management.v4.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v4.rest.resource.connector.EndpointsResource;
@@ -50,8 +51,9 @@ public class GraviteeManagementV4Application extends ResourceConfig {
         //Main resource
         register(OrganizationResource.class);
         register(EnvironmentsResource.class);
-        register(ApiResource.class);
         register(ApisResource.class);
+        register(ApiResource.class);
+        register(ApiPlansResource.class);
         register(EndpointsResource.class);
         register(EntrypointsResource.class);
 

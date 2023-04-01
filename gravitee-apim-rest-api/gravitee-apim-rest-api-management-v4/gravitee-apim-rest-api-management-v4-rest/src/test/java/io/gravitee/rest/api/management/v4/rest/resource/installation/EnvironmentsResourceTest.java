@@ -79,6 +79,7 @@ public class EnvironmentsResourceTest extends AbstractResourceTest {
         env.setDomainRestrictions(List.of("restriction-1"));
 
         doReturn(env).when(environmentService).findById(eq("my-env-id"));
+        doReturn(env).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, "my-env-id");
 
         final Response response = rootTarget("my-env-id").request().get();
         assertEquals(200, response.getStatus());

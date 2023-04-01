@@ -81,35 +81,4 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     public void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
-
-    @Priority(50)
-    public static class NotAdminAuthenticationFilter implements ContainerRequestFilter {
-
-        @Override
-        public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(
-                new SecurityContext() {
-                    @Override
-                    public Principal getUserPrincipal() {
-                        return () -> USER_NAME;
-                    }
-
-                    @Override
-                    public boolean isUserInRole(String string) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean isSecure() {
-                        return true;
-                    }
-
-                    @Override
-                    public String getAuthenticationScheme() {
-                        return "BASIC";
-                    }
-                }
-            );
-        }
-    }
 }
