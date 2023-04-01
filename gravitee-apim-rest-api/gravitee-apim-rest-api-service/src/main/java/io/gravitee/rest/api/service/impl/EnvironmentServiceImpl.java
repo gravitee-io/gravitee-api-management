@@ -26,7 +26,9 @@ import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -109,6 +111,33 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             }
 
             return envStream.map(this::convert).collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find all environments", ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);
+        }
+    }
+
+    @Override
+    public EnvironmentEntity findByOrgAndIdOrHrid(final String organizationId, String idOrHrid) {
+        try {
+            LOGGER.debug("Find all environments by org and environment id or hrid");
+
+            Set<Environment> byOrgAndIdOrHrid = environmentRepository
+                .findByOrganization(organizationId)
+                .stream()
+                .filter(Objects::nonNull)
+                .filter(env -> env.getId().equals(idOrHrid) || env.getHrids().contains(idOrHrid))
+                .collect(Collectors.toSet());
+
+            if (byOrgAndIdOrHrid.isEmpty()) {
+                throw new EnvironmentNotFoundException(idOrHrid);
+            }
+
+            if (byOrgAndIdOrHrid.size() > 1) {
+                throw new IllegalStateException("More than one environment found for hrid or id " + idOrHrid);
+            }
+
+            return convert(byOrgAndIdOrHrid.iterator().next());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all environments", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);
