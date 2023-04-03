@@ -21,12 +21,21 @@ import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSortModule } from '@angular/material/sort';
+import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
 
 import { ApiListComponent } from './api-list.component';
 
 import { GioAvatarModule } from '../../../shared/components/gio-avatar/gio-avatar.module';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+
+export const states: Ng2StateDeclaration[] = [
+  {
+    name: 'management.apis.detail.ng-redirect',
+    redirectTo: { state: 'management.apis.detail.portal.general' },
+    url: '/portal',
+  },
+];
 
 @NgModule({
   declarations: [ApiListComponent],
@@ -42,6 +51,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioIconsModule,
     GioTableWrapperModule,
     GioPermissionModule,
+    UIRouterModule.forChild({ states }),
   ],
 })
 export class ApiListModule {}
