@@ -517,7 +517,6 @@ import { ApplicationNavigationComponent } from './application/details/applicatio
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
 import { ApiPortalPlanListComponent } from './api/portal/plans/list/api-portal-plan-list.component';
-import { ApiPlanFormComponent } from './api/component/plan/api-plan-form.component';
 import { TaskService } from '../services-ngx/task.service';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import ApiPortalController from './api/portal/general/apiPortal.controller';
@@ -532,6 +531,7 @@ import { SearchAndSelectController } from '../components/search-and-select/searc
 import { ApiPortalTransferOwnershipComponent } from './api/portal/user-group-access/transfer-ownership/api-portal-transfer-ownership.component';
 import AlertTabsController from '../components/alerts/alertTabs/alert-tabs-component';
 import AlertsActivityController from '../components/alerts/activity/alerts-activity.controller';
+import { ApiPortalPlanEditComponent } from './api/portal/plans/edit/api-portal-plan-edit.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -880,7 +880,7 @@ graviteeManagementModule.component('gvDashboardTimeframe', DashboardTimeframeCom
 graviteeManagementModule.controller('DashboardTimeframeController', DashboardTimeframeController);
 
 // Plan
-graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiPlanFormComponent }));
+graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiPortalPlanEditComponent }));
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 graviteeManagementModule.directive('ngApiPortalGroups', downgradeComponent({ component: ApiPortalGroupsComponent }));
 

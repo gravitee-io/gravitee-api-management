@@ -15,51 +15,33 @@
     limitations under the License.
 
 -->
-<div>
-  <span class="md-headline">
-    <gio-go-back-button [ajsGo]="{ to: 'management.apis.detail.portal.plans' }"></gio-go-back-button>
-    Plan
-  </span>
-</div>
-<form *ngIf="planForm" [hidden]="isLoadingData" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm">
-  <mat-card>
-    <mat-stepper>
-      <mat-step state="general" [stepControl]="planForm.get('general')">
-        <ng-template matStepperIcon="general">
-          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-        </ng-template>
-        <ng-template matStepLabel>General</ng-template>
-        <plan-edit-general-step
-          matStepContent
-          [api]="api"
-          [mode]="mode"
-          [displaySubscriptionsSection]="displaySubscriptionsSection"
-        ></plan-edit-general-step>
-      </mat-step>
+<mat-stepper>
+  <mat-step state="general" [stepControl]="planForm.get('general')">
+    <ng-template matStepperIcon="general">
+      <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+    </ng-template>
+    <ng-template matStepLabel>General</ng-template>
+    <plan-edit-general-step
+      matStepContent
+      [api]="api"
+      [mode]="mode"
+      [displaySubscriptionsSection]="displaySubscriptionsSection"
+    ></plan-edit-general-step>
+  </mat-step>
 
-      <mat-step state="secure" [stepControl]="planForm.get('secure')">
-        <ng-template matStepperIcon="secure">
-          <mat-icon svgIcon="gio:lock"></mat-icon>
-        </ng-template>
-        <ng-template matStepLabel>Secure</ng-template>
-        <plan-edit-secure-step matStepContent [api]="api"></plan-edit-secure-step>
-      </mat-step>
+  <mat-step state="secure" [stepControl]="planForm.get('secure')">
+    <ng-template matStepperIcon="secure">
+      <mat-icon svgIcon="gio:lock"></mat-icon>
+    </ng-template>
+    <ng-template matStepLabel>Secure</ng-template>
+    <plan-edit-secure-step matStepContent [api]="api"></plan-edit-secure-step>
+  </mat-step>
 
-      <mat-step *ngIf="mode === 'create'" state="restriction" [stepControl]="planForm.get('restriction')">
-        <ng-template matStepperIcon="restriction">
-          <mat-icon svgIcon="gio:shield-cross"></mat-icon>
-        </ng-template>
-        <ng-template matStepLabel>Restriction</ng-template>
-        <plan-edit-restriction-step matStepContent></plan-edit-restriction-step>
-      </mat-step>
-    </mat-stepper>
-  </mat-card>
-
-  <gio-save-bar
-    *ngIf="planForm && !isReadOnly"
-    [creationMode]="mode === 'create'"
-    [form]="planForm"
-    [formInitialValues]="initialPlanFormValue"
-    (submitted)="onSubmit()"
-  ></gio-save-bar>
-</form>
+  <mat-step *ngIf="mode === 'create'" state="restriction" [stepControl]="planForm.get('restriction')">
+    <ng-template matStepperIcon="restriction">
+      <mat-icon svgIcon="gio:shield-cross"></mat-icon>
+    </ng-template>
+    <ng-template matStepLabel>Restriction</ng-template>
+    <plan-edit-restriction-step matStepContent></plan-edit-restriction-step>
+  </mat-step>
+</mat-stepper>

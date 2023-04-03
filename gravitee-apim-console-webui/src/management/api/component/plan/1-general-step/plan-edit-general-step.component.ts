@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { includes } from 'lodash';
-import { combineLatest, Subject } from 'rxjs';
-import { map, startWith, takeUntil } from 'rxjs/operators';
+import { combineLatest, ReplaySubject, Subject } from 'rxjs';
+import { map, startWith, switchMap, takeUntil } from 'rxjs/operators';
 
-import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { Api } from '../../../../../entities/api';
 import { CurrentUserService } from '../../../../../services-ngx/current-user.service';
 import { DocumentationService } from '../../../../../services-ngx/documentation.service';
@@ -33,7 +32,7 @@ import { TagService } from '../../../../../services-ngx/tag.service';
 })
 export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  public api$ = new Subject<Api>();
+  public api$ = new ReplaySubject<Api>();
 
   public generalForm: FormGroup;
 
@@ -49,10 +48,14 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   @Input()
   displaySubscriptionsSection = true;
 
-  conditionPages$ = this.documentationService.apiSearch(this.ajsStateParams.apiId, {
-    type: 'MARKDOWN',
-    api: this.ajsStateParams.apiId,
-  });
+  conditionPages$ = this.api$.pipe(
+    switchMap((api) =>
+      this.documentationService.apiSearch(api.id, {
+        type: 'MARKDOWN',
+        api: api.id,
+      }),
+    ),
+  );
   shardingTags$ = combineLatest([this.tagService.list(), this.api$, this.currentUserService.getTags()]).pipe(
     map(([tags, api, userTags]) => {
       return tags.map((tag) => ({
@@ -65,7 +68,6 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   groups$ = this.groupService.list();
 
   constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly tagService: TagService,
     private readonly groupService: GroupService,
     private readonly documentationService: DocumentationService,
