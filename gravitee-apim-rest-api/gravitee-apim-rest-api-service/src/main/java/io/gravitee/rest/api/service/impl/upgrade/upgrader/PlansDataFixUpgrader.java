@@ -80,9 +80,6 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     @Value("${services.plans-data-fix-upgrader.enabled:true}")
     private boolean enabled;
 
-    @Value("${services.plans-data-fix-upgrader.dryRun:false}")
-    private boolean dryRun;
-
     @Value("${services.plans-data-fix-upgrader.notifyApiOwner:false}")
     private boolean notifyApiOwner;
 
@@ -153,7 +150,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
         updateApiDefinitionPlans(api, apiDefinition, definitionPlansMap);
 
         // notify API owner by email
-        if (!dryRun && notifyApiOwner) {
+        if (notifyApiOwner) {
             sendEmailToApiOwner(executionContext, api, createdPlans, closedPlans);
         }
     }
@@ -175,9 +172,9 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
                     api.getName(),
                     api.getId()
                 );
-                if (!dryRun) {
-                    planRepository.create(newApiPlan);
-                }
+
+                planRepository.create(newApiPlan);
+
                 apiPlansMap.put(planId, newApiPlan);
                 definitionPlan.setId(newApiPlan.getId());
                 definitionPlan.setName(newApiPlan.getName());
@@ -200,9 +197,8 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
         for (Plan plan : extraPlans) {
             LOGGER.info("- Will close plan \"{}\" ({}), cause it's absent from api definition", plan.getName(), plan.getId());
             plan.setStatus(Plan.Status.CLOSED);
-            if (!dryRun) {
-                planRepository.update(plan);
-            }
+
+            planRepository.update(plan);
         }
         return extraPlans;
     }
@@ -235,9 +231,8 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     ) throws TechnicalException, JsonProcessingException {
         apiDefinition.setPlans(new ArrayList<>(definitionPlansMap.values()));
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
-        if (!dryRun) {
-            apiRepository.update(api);
-        }
+
+        apiRepository.update(api);
     }
 
     private boolean hasPlansDataAnomaly(Set<Plan> apiPlans, List<io.gravitee.definition.model.Plan> definitionPlans) {
@@ -277,13 +272,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
         LOGGER.warn("");
         LOGGER.warn("We detected database anomalies in your plans data.");
         LOGGER.warn("");
-        if (dryRun) {
-            LOGGER.warn("THIS IS A DRY RUN. DATABASE WON'T BE UPDATED.");
-            LOGGER.warn("To fix anomalies, disable the dry run mode.");
-            LOGGER.warn("Below, a list of changes that would happen without dry run");
-        } else {
-            LOGGER.warn("Database anomalies will be fixed.");
-        }
+        LOGGER.warn("Database anomalies will be fixed.");
         LOGGER.warn("See related documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8");
         LOGGER.warn("");
         LOGGER.warn("##############################################################");
@@ -302,11 +291,6 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
                 }
             }
         );
-    }
-
-    @Override
-    public boolean isDryRun() {
-        return dryRun;
     }
 
     @Override

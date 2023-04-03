@@ -131,21 +131,6 @@ public class PlansDataFixUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_run_and_set_dry_success_status() throws Exception {
-        ReflectionTestUtils.setField(upgrader, "enabled", true);
-        ReflectionTestUtils.setField(upgrader, "dryRun", true);
-        InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).processOneShotUpgrade();
-
-        boolean success = upgrader.upgrade();
-
-        assertTrue(success);
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "DRY_SUCCESS");
-        verify(installationService, times(2)).setAdditionalInformation(installation.getAdditionalInformation());
-    }
-
-    @Test
     public void fixPlansData_should_fix_only_v2_apis() throws Exception {
         ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
         doNothing().when(upgrader).fixApiPlans(any(), any(), any());

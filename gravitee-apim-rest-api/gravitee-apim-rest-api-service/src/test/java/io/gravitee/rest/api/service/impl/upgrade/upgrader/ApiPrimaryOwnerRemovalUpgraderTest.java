@@ -94,7 +94,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
     }
 
     @Test
-    public void shouldWarnWithPrimaryOwnerMissingAndNoConfigurationProperty() throws TechnicalException {
+    public void shouldWarnAndStopWithPrimaryOwnerMissingAndNoConfigurationProperty() throws TechnicalException {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization()));
 
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
@@ -111,7 +111,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
 
         boolean success = upgrader.upgrade();
 
-        assertThat(success).isTrue();
+        assertThat(success).isFalse();
 
         verify(appender, times(1)).doAppend(argThat(event -> Level.WARN == event.getLevel() && "api-test".equals(event.getMessage())));
         verify(appender, times(1)).doAppend(argThat(event -> Level.WARN == event.getLevel() && "api-test-2".equals(event.getMessage())));
@@ -120,7 +120,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
     }
 
     @Test
-    public void shouldWarnAndFixWithUserWithPrimaryOwnerMissingAndConfigurationProperty() throws TechnicalException {
+    public void shouldFixWithUserWithPrimaryOwnerMissingAndConfigurationProperty() throws TechnicalException {
         ReflectionTestUtils.setField(upgrader, "defaultPrimaryOwnerId", DEFAULT_PRIMARY_OWNER_ID);
 
         when(organizationRepository.findAll()).thenReturn(Set.of(organization()));
@@ -143,9 +143,6 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
 
         assertThat(success).isTrue();
 
-        verify(appender, times(1)).doAppend(argThat(event -> Level.WARN == event.getLevel() && "api-test".equals(event.getMessage())));
-        verify(appender, times(1)).doAppend(argThat(event -> Level.WARN == event.getLevel() && "api-test-2".equals(event.getMessage())));
-
         verify(membershipRepository, times(2))
             .create(
                 argThat(membership ->
@@ -155,7 +152,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
     }
 
     @Test
-    public void shouldWarnAndFixWithGroupWithPrimaryOwnerMissingAndConfigurationProperty() throws TechnicalException {
+    public void shouldFixWithGroupWithPrimaryOwnerMissingAndConfigurationProperty() throws TechnicalException {
         ReflectionTestUtils.setField(upgrader, "defaultPrimaryOwnerId", DEFAULT_PRIMARY_OWNER_ID);
 
         when(organizationRepository.findAll()).thenReturn(Set.of(organization()));
@@ -174,8 +171,6 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
 
         assertThat(success).isTrue();
 
-        verify(appender, times(1)).doAppend(argThat(event -> Level.WARN == event.getLevel() && "api-test".equals(event.getMessage())));
-
         verify(membershipRepository, times(1))
             .create(
                 argThat(membership ->
@@ -185,7 +180,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
     }
 
     @Test
-    public void shouldNotWarnNorFixWithoutPrimaryOwnerMissing() throws TechnicalException {
+    public void shouldNotFixWithoutPrimaryOwnerMissing() throws TechnicalException {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization()));
 
         when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(any(), any(), any(), any()))
