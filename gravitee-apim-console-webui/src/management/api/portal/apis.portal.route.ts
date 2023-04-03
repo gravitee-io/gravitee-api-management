@@ -70,6 +70,7 @@ function apisPortalRouterConfig($stateProvider) {
       url: '/new',
       component: 'ngApiPortalPlanEdit',
       data: {
+        useAngularMaterial: true,
         perms: {
           only: ['api-plan-c'],
         },
@@ -82,6 +83,7 @@ function apisPortalRouterConfig($stateProvider) {
       url: '/:planId/edit',
       component: 'ngApiPortalPlanEdit',
       data: {
+        useAngularMaterial: true,
         perms: {
           only: ['api-plan-u'],
         },
