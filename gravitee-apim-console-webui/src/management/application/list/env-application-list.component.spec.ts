@@ -22,11 +22,12 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { UIRouterModule } from '@uirouter/angular';
 
 import { EnvApplicationListComponent } from './env-application-list.component';
 
 import { EnvironmentApplicationModule } from '../environment-application.module';
-import { UIRouterStateParams, UIRouterState, CurrentUserService } from '../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { User as DeprecatedUser } from '../../../entities/user';
@@ -46,7 +47,14 @@ describe('EnvApplicationListComponent', () => {
       currentUser.roles = [{ scope: 'ORGANIZATION', name: 'ADMIN' }];
 
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, EnvironmentApplicationModule, GioHttpTestingModule],
+        imports: [
+          NoopAnimationsModule,
+          EnvironmentApplicationModule,
+          GioHttpTestingModule,
+          UIRouterModule.forRoot({
+            useHash: true,
+          }),
+        ],
         providers: [
           { provide: UIRouterState, useValue: { go: jest.fn() } },
           { provide: UIRouterStateParams, useValue: {} },
@@ -160,7 +168,14 @@ describe('EnvApplicationListComponent', () => {
       currentUser.roles = [{ scope: 'ORGANIZATION', name: 'ADMIN' }];
 
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, EnvironmentApplicationModule, GioHttpTestingModule],
+        imports: [
+          NoopAnimationsModule,
+          EnvironmentApplicationModule,
+          GioHttpTestingModule,
+          UIRouterModule.forRoot({
+            useHash: true,
+          }),
+        ],
         providers: [
           { provide: UIRouterState, useValue: { go: jest.fn() } },
           { provide: UIRouterStateParams, useValue: { status: 'ARCHIVED' } },
