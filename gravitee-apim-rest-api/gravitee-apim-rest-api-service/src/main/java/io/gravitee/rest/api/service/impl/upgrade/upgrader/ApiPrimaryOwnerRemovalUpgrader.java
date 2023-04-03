@@ -94,16 +94,18 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
         try {
             Set<Organization> organizations = organizationRepository.findAll();
             for (Organization org : organizations) {
-                checkOrganization(org.getId());
+                if (!checkOrganization(org.getId())) {
+                    return false;
+                }
             }
             return true;
         } catch (Exception e) {
             LOG.error("Failed to fix APIs Primary Owner removal", e);
-            return true;
+            return false;
         }
     }
 
-    private void checkOrganization(String organizationId) throws TechnicalException {
+    private boolean checkOrganization(String organizationId) throws TechnicalException {
         String apiPrimaryOwnerRoleId = findApiPrimaryOwnerRoleId(organizationId);
         List<String> environmentIds = findEnvironmentIds(organizationId);
         ArrayList<String> corruptedApiIds = new ArrayList<>();
@@ -127,16 +129,15 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
         }
 
         if (!corruptedApiIds.isEmpty()) {
-            warnOrFix(corruptedApiIds, apiPrimaryOwnerRoleId);
-        }
-    }
+            if (isEmpty(defaultPrimaryOwnerId)) {
+                warn(corruptedApiIds);
+                return false;
+            }
 
-    private void warnOrFix(List<String> apiIds, String apiPrimaryOwnerRoleId) throws TechnicalException {
-        if (isDryRun()) {
-            warn(apiIds);
-        } else {
-            warnAndFix(apiIds, apiPrimaryOwnerRoleId);
+            fix(corruptedApiIds, apiPrimaryOwnerRoleId);
         }
+
+        return true;
     }
 
     private void warn(List<String> apiIds) {
@@ -149,15 +150,14 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
         LOG.warn("");
         apiIds.forEach(LOG::warn);
         LOG.warn("");
-        LOG.warn("This can be fixed by editing the services.api-primary-owner-default property of your configuration file");
+        LOG.warn("Please edit the services.api-primary-owner-default property of your configuration file to fix this");
         LOG.warn("This value must refer to a valid user or group ID");
         LOG.warn("");
         LOG.warn("##############################################################");
         LOG.warn("");
     }
 
-    private void warnAndFix(List<String> apiIds, String apiPrimaryOwnerRoleId) throws TechnicalException {
-        warn(apiIds);
+    private void fix(List<String> apiIds, String apiPrimaryOwnerRoleId) throws TechnicalException {
         LOG.info("Attempting to fix APIs without a Primary Owner from configuration");
         Membership membership = prepareMembership(apiPrimaryOwnerRoleId);
         for (String apiId : apiIds) {
@@ -216,10 +216,5 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
 
     private static Membership membership(String memberId, MembershipMemberType memberType, String roleId) {
         return new Membership(null, memberId, memberType, null, MembershipReferenceType.API, roleId);
-    }
-
-    @Override
-    public boolean isDryRun() {
-        return isEmpty(defaultPrimaryOwnerId);
     }
 }

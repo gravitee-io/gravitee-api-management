@@ -60,13 +60,6 @@ public abstract class OneShotUpgrader implements Upgrader {
         }
 
         InstallationEntity installation = installationService.getOrInitialize();
-        if (isDryRun() && isStatus(installation, DRY_SUCCESS)) {
-            LOGGER.info(
-                "Skipping {} execution cause it has already been successfully executed in dry mode",
-                this.getClass().getSimpleName()
-            );
-            return true;
-        }
         if (isStatus(installation, SUCCESS)) {
             LOGGER.info("Skipping {} execution cause it has already been successfully executed", this.getClass().getSimpleName());
             return true;
@@ -77,10 +70,10 @@ public abstract class OneShotUpgrader implements Upgrader {
         }
 
         try {
-            LOGGER.info("Starting {} execution with dry-run {}", this.getClass().getSimpleName(), isDryRun() ? "enabled" : "disabled");
+            LOGGER.info("Starting {} execution", this.getClass().getSimpleName());
             setExecutionStatus(installation, RUNNING);
             processOneShotUpgrade();
-            setExecutionStatus(installation, isDryRun() ? DRY_SUCCESS : SUCCESS);
+            setExecutionStatus(installation, SUCCESS);
         } catch (Throwable e) {
             LOGGER.error("{} execution failed", this.getClass().getSimpleName(), e);
             setExecutionStatus(installation, FAILURE);
