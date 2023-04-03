@@ -23,6 +23,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSortHeaderHarness } from '@angular/material/sort/testing';
 import { By } from '@angular/platform-browser';
+import { UIRouterModule } from '@uirouter/angular';
 
 import { ApiListModule } from './api-list.module';
 import { ApiListComponent } from './api-list.component';
@@ -52,7 +53,16 @@ describe('ApisListComponent', () => {
   describe('without quality score', () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
-        imports: [ApiListModule, MatIconTestingModule, GioUiRouterTestingModule, NoopAnimationsModule, GioHttpTestingModule],
+        imports: [
+          ApiListModule,
+          MatIconTestingModule,
+          GioUiRouterTestingModule,
+          NoopAnimationsModule,
+          GioHttpTestingModule,
+          UIRouterModule.forRoot({
+            useHash: true,
+          }),
+        ],
         providers: [
           { provide: UIRouterState, useValue: fakeUiRouter },
           { provide: UIRouterStateParams, useValue: {} },
@@ -201,7 +211,16 @@ describe('ApisListComponent', () => {
       withQualityEnabled.env.settings.apiQualityMetrics.enabled = true;
 
       await TestBed.configureTestingModule({
-        imports: [ApiListModule, MatIconTestingModule, GioUiRouterTestingModule, NoopAnimationsModule, GioHttpTestingModule],
+        imports: [
+          ApiListModule,
+          MatIconTestingModule,
+          GioUiRouterTestingModule,
+          NoopAnimationsModule,
+          GioHttpTestingModule,
+          UIRouterModule.forRoot({
+            useHash: true,
+          }),
+        ],
         providers: [
           { provide: UIRouterState, useValue: fakeUiRouter },
           { provide: UIRouterStateParams, useValue: {} },
