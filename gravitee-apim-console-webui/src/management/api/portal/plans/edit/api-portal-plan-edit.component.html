@@ -21,8 +21,10 @@
     Plan
   </span>
 </div>
-<form *ngIf="planForm" [hidden]="isLoadingData" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm">
-  <mat-card> 🚧 Plan form component here </mat-card>
+<form *ngIf="planForm" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm">
+  <mat-card>
+    <api-plan-form formControlName="plan" [mode]="mode" [api]="api"></api-plan-form>
+  </mat-card>
 
   <gio-save-bar
     *ngIf="planForm && !isReadOnly"
