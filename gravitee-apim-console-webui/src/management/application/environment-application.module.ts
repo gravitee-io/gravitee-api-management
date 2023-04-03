@@ -27,6 +27,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgModule } from '@angular/core';
+import { UIRouterModule } from '@uirouter/angular';
 
 import { EnvApplicationListComponent } from './list/env-application-list.component';
 
@@ -58,6 +59,12 @@ import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.m
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
+<<<<<<< HEAD
+=======
+
+    ApplicationNavigationModule,
+    UIRouterModule,
+>>>>>>> c3d8bfd868 (feat: enable open application in new tab)
   ],
   declarations: [EnvApplicationListComponent],
   exports: [EnvApplicationListComponent],
