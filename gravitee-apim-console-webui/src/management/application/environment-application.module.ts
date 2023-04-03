@@ -27,6 +27,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgModule } from '@angular/core';
+import { UIRouterModule } from '@uirouter/angular';
 
 import { EnvApplicationListComponent } from './list/env-application-list.component';
 import { ApplicationNavigationModule } from './details/application-navigation/application-navigation.module';
@@ -61,6 +62,7 @@ import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.m
     MatTooltipModule,
 
     ApplicationNavigationModule,
+    UIRouterModule,
   ],
   declarations: [EnvApplicationListComponent],
   exports: [EnvApplicationListComponent],
