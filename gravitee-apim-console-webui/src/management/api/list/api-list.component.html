@@ -46,8 +46,13 @@
     <!-- Display Name Column -->
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef mat-sort-header id="name">Name</th>
+<<<<<<< HEAD
       <td mat-cell *matCellDef="let element" (click)="onEditActionClicked(element)">
         <a title="{{ element.name }} ({{ element.version }})">{{ element.name }} ({{ element.version }})</a>
+=======
+      <td mat-cell *matCellDef="let element" title="{{ element.name }} ({{ element.version }})">
+        <a [uiSref]="'management.apis.detail.ng-redirect'" [uiParams]="{ apiId: element.id }">{{ element.name }} ({{ element.version }})</a>
+>>>>>>> 609d18c31d (feat: allow navigation to api details with a href)
       </td>
     </ng-container>
 
