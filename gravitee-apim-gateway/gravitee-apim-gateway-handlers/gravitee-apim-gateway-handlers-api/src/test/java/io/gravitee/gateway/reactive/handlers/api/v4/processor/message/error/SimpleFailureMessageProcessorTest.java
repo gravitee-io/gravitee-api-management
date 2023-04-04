@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
@@ -40,7 +39,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -50,15 +48,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
 
-    private static final ObjectMapper mapper = new GraviteeMapper();
-
-    @Captor
-    ArgumentCaptor<Buffer> bufferCaptor;
+    private static final ObjectMapper mapper = new GraviteeMapper(false);
 
     private SimpleFailureMessageProcessor simpleFailureMessageProcessor;
 
     @BeforeEach
     public void beforeEach() {
+        componentProvider.add(ObjectMapper.class, mapper);
         simpleFailureMessageProcessor = SimpleFailureMessageProcessor.instance();
     }
 

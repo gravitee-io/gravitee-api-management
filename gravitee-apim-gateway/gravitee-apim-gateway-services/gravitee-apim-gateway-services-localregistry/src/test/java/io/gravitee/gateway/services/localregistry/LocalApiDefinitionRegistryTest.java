@@ -15,9 +15,11 @@
  */
 package io.gravitee.gateway.services.localregistry;
 
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -39,14 +41,15 @@ public class LocalApiDefinitionRegistryTest {
 
         registry = new LocalApiDefinitionRegistry();
         registry.setApiManager(apiManager);
+        registry.setObjectMapper(new GraviteeMapper(false));
         registry.setEnabled(true);
     }
 
     @Test
-    public void test() throws Exception {
+    public void should_start() throws Exception {
         URL resource = LocalApiDefinitionRegistryTest.class.getResource("/registry");
 
-        registry.setRegistryPath(URLDecoder.decode(resource.getPath(), "UTF-8"));
+        registry.setRegistryPath(URLDecoder.decode(resource.getPath(), StandardCharsets.UTF_8));
         registry.start();
     }
 }

@@ -15,20 +15,24 @@
  */
 package io.gravitee.gateway.services.localregistry;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.utils.IdGenerator;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -36,9 +40,8 @@ import org.springframework.beans.factory.annotation.Value;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class LocalApiDefinitionRegistry extends AbstractService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(LocalApiDefinitionRegistry.class);
+@Slf4j
+public class LocalApiDefinitionRegistry extends AbstractService<LocalApiDefinitionRegistry> {
 
     private static final String JSON_EXTENSION = ".json";
 
@@ -50,6 +53,9 @@ public class LocalApiDefinitionRegistry extends AbstractService {
 
     @Autowired
     private ApiManager apiManager;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private ExecutorService executor;
 
@@ -68,7 +74,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
     private void init() {
         if (enabled) {
             if (registryPath == null || registryPath.isEmpty()) {
-                LOGGER.error("Local API definitions registry path is not specified.");
+                log.error("Local API definitions registry path is not specified.");
                 throw new RuntimeException("Local API definitions registry path is not specified.");
             }
 
@@ -76,21 +82,21 @@ public class LocalApiDefinitionRegistry extends AbstractService {
 
             // Quick sanity check on the install root
             if (!registryDir.isDirectory()) {
-                LOGGER.error("Invalid API definitions registry directory, {} is not a directory.", registryDir.getAbsolutePath());
+                log.error("Invalid API definitions registry directory, {} is not a directory.", registryDir.getAbsolutePath());
                 throw new RuntimeException("Invalid API definitions registry directory. Not a directory: " + registryDir.getAbsolutePath());
             }
 
             initRegistry(registryDir);
         } else {
-            LOGGER.warn("Local registry for API definitions is disabled");
+            log.warn("Local registry for API definitions is disabled");
         }
     }
 
     private void initRegistry(File registryDir) {
-        LOGGER.info("Loading API definitions from {}", registryDir.getAbsoluteFile());
+        log.info("Loading API definitions from {}", registryDir.getAbsoluteFile());
         File[] definitionFiles = searchForDefinitions(registryDir);
 
-        LOGGER.info("\t{} API definitions have been found.", definitionFiles.length);
+        log.info("\t{} API definitions have been found.", definitionFiles.length);
 
         for (File definitionFile : definitionFiles) {
             try {
@@ -98,7 +104,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                 apiManager.register(api);
                 definitions.put(Paths.get(definitionFile.toURI()), api);
             } catch (IOException e) {
-                LOGGER.error("Unable to load API definition from {}", definitionFile, e);
+                log.error("Unable to load API definition from {}", definitionFile, e);
             }
         }
     }
@@ -108,7 +114,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
     }
 
     private Api loadDefinition(File apiDefinitionFile) throws IOException {
-        Api api = new GraviteeMapper().readValue(apiDefinitionFile, Api.class);
+        Api api = objectMapper.readValue(apiDefinitionFile, Api.class);
         api.getDefinition().setId(IdGenerator.generate(api.getName()));
 
         return api;
@@ -124,7 +130,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
             executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "registry-monitor"));
             executor.execute(() -> {
                 Path registry = Paths.get(registryPath);
-                LOGGER.info("Start local registry monitor for directory {}", registry);
+                log.info("Start local registry monitor for directory {}", registry);
 
                 try {
                     WatchService watcher = registry.getFileSystem().newWatchService();
@@ -151,7 +157,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                             WatchEvent<Path> ev = (WatchEvent<Path>) event;
                             Path fileName = registry.resolve(ev.context().getFileName());
 
-                            LOGGER.info("An event occurs for file {}: {}", fileName, kind.name());
+                            log.info("An event occurs for file {}: {}", fileName, kind.name());
 
                             if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
                                 Api loadedDefinition = loadDefinition(fileName.toFile());
@@ -186,7 +192,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
                         }
                     }
                 } catch (IOException ioe) {
-                    LOGGER.error("Unexpected error while looking for ÀPI definitions from filesystem", ioe);
+                    log.error("Unexpected error while looking for ÀPI definitions from filesystem", ioe);
                 }
             });
         }
@@ -204,6 +210,10 @@ public class LocalApiDefinitionRegistry extends AbstractService {
 
     public void setApiManager(ApiManager apiManager) {
         this.apiManager = apiManager;
+    }
+
+    public void setObjectMapper(final ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
     public void setEnabled(boolean enabled) {

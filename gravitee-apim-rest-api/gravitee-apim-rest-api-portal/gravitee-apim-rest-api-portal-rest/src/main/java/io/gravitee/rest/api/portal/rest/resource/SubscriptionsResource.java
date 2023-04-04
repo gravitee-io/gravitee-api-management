@@ -94,7 +94,8 @@ public class SubscriptionsResource extends AbstractResource {
     @Inject
     private KeyMapper keyMapper;
 
-    private static final GraviteeMapper MAPPER = new GraviteeMapper();
+    @Inject
+    private GraviteeMapper graviteeMapper;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -129,7 +130,7 @@ public class SubscriptionsResource extends AbstractResource {
                 subscriptionConfigurationEntity.setChannel(inputConfiguration.getChannel());
                 if (inputConfiguration.getEntrypointConfiguration() != null) {
                     subscriptionConfigurationEntity.setEntrypointConfiguration(
-                        MAPPER.valueToTree(inputConfiguration.getEntrypointConfiguration())
+                        graviteeMapper.valueToTree(inputConfiguration.getEntrypointConfiguration())
                     );
                 }
                 newSubscriptionEntity.setConfiguration(subscriptionConfigurationEntity);

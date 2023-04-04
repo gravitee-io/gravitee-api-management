@@ -15,16 +15,75 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
-import io.gravitee.rest.api.portal.rest.mapper.*;
+import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ApplicationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.CategoryMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ConfigurationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.IdentityProviderMapper;
+import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
+import io.gravitee.rest.api.portal.rest.mapper.LogMapper;
+import io.gravitee.rest.api.portal.rest.mapper.MemberMapper;
+import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
+import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
+import io.gravitee.rest.api.portal.rest.mapper.PortalNotificationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.RatingMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ReferenceMetadataMapper;
+import io.gravitee.rest.api.portal.rest.mapper.SubscriptionMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
+import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
+import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.AccessControlService;
+import io.gravitee.rest.api.service.AnalyticsService;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApplicationMetadataService;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.CustomUserFieldService;
+import io.gravitee.rest.api.service.EntrypointService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.FetcherService;
+import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.HealthCheckService;
+import io.gravitee.rest.api.service.IdentityService;
+import io.gravitee.rest.api.service.LogsService;
+import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.MessageService;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.PortalNotificationConfigService;
+import io.gravitee.rest.api.service.PortalNotificationService;
+import io.gravitee.rest.api.service.QualityMetricsService;
+import io.gravitee.rest.api.service.RatingService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SocialIdentityProviderService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.TaskService;
+import io.gravitee.rest.api.service.ThemeService;
+import io.gravitee.rest.api.service.TicketService;
+import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
@@ -268,6 +327,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected ThemeMapper themeMapper;
+
+    @Autowired
+    protected ObjectMapper objectMapper;
 
     public AbstractResourceTest() {
         super(
@@ -714,6 +776,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public ThemeMapper themeMapper() {
             return mock(ThemeMapper.class);
+        }
+
+        @Bean
+        public ObjectMapper objectMapper() {
+            return new GraviteeMapper();
         }
     }
 

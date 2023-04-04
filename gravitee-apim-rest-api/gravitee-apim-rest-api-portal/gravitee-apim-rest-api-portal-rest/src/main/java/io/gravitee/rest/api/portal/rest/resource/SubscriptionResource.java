@@ -24,7 +24,6 @@ import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
-import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
@@ -78,7 +77,8 @@ public class SubscriptionResource extends AbstractResource {
     @Inject
     private SubscriptionMapper subscriptionMapper;
 
-    private static final GraviteeMapper MAPPER = new GraviteeMapper();
+    @Inject
+    private GraviteeMapper graviteeMapper;
 
     private static final String INCLUDE_KEYS = "keys";
 
@@ -146,7 +146,7 @@ public class SubscriptionResource extends AbstractResource {
             subscriptionConfigurationEntity.setChannel(subscriptionConfigurationInput.getChannel());
             subscriptionConfigurationEntity.setEntrypointId(subscriptionConfigurationInput.getEntrypointId());
             subscriptionConfigurationEntity.setEntrypointConfiguration(
-                MAPPER.valueToTree(subscriptionConfigurationInput.getEntrypointConfiguration())
+                graviteeMapper.valueToTree(subscriptionConfigurationInput.getEntrypointConfiguration())
             );
             updateSubscriptionConfigurationEntity.setConfiguration(subscriptionConfigurationEntity);
         }

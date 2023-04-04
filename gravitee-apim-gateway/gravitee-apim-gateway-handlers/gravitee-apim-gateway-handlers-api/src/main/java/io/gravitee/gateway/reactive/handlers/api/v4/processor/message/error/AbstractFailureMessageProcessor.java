@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
@@ -47,7 +46,6 @@ import java.util.UUID;
 public abstract class AbstractFailureMessageProcessor implements MessageProcessor {
 
     public static final String ID = "message-processor-simple-failure";
-    private static final ObjectMapper OBJECT_MAPPER = new GraviteeMapper();
 
     @Override
     public String getId() {
@@ -122,7 +120,7 @@ public abstract class AbstractFailureMessageProcessor implements MessageProcesso
             ExecutionFailureMessage failureMessage = ExecutionFailureMessageHelper.createFailureMessage(
                 ctx.request(),
                 executionFailure,
-                OBJECT_MAPPER
+                ctx.getComponent(ObjectMapper.class)
             );
 
             String contentType = failureMessage.getContentType();

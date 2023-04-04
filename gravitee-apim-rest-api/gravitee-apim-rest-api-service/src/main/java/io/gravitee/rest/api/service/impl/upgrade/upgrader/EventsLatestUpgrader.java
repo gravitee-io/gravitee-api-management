@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -54,6 +56,7 @@ public class EventsLatestUpgrader extends OneShotUpgrader {
     private final EventLatestRepository eventLatestRepository;
     private int modelCounter;
     private int eventsForModelCounter;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     public EventsLatestUpgrader(
@@ -61,7 +64,8 @@ public class EventsLatestUpgrader extends OneShotUpgrader {
         @Lazy DictionaryRepository dictionaryRepository,
         @Lazy OrganizationRepository organizationRepository,
         @Lazy EventRepository eventRepository,
-        @Lazy EventLatestRepository eventLatestRepository
+        @Lazy EventLatestRepository eventLatestRepository,
+        @Lazy ObjectMapper objectMapper
     ) {
         super(InstallationService.EVENTS_LATEST_UPGRADER_STATUS);
         this.apiRepository = apiRepository;
@@ -69,6 +73,7 @@ public class EventsLatestUpgrader extends OneShotUpgrader {
         this.organizationRepository = organizationRepository;
         this.eventRepository = eventRepository;
         this.eventLatestRepository = eventLatestRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -149,6 +154,14 @@ public class EventsLatestUpgrader extends OneShotUpgrader {
                 }
                 event.getProperties().put(Event.EventProperties.ID.getValue(), event.getId());
                 event.setId(id);
+                // allow to reformat json payload without pretty
+                if (event.getPayload() != null) {
+                    try {
+                        event.setPayload(objectMapper.writeValueAsString(objectMapper.readTree(event.getPayload())));
+                    } catch (JsonProcessingException e) {
+                        // Ignore this and keep existing payload
+                    }
+                }
                 this.eventLatestRepository.createOrUpdate(event);
                 eventsForModelCounter++;
             }

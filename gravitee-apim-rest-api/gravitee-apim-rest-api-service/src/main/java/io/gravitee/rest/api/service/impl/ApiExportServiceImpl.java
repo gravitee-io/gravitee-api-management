@@ -32,7 +32,6 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.converter.PageConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
@@ -60,7 +59,6 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
     private final PathValidationService pathValidationService;
     private final ApiConverter apiConverter;
     private final PlanConverter planConverter;
-    private final PageConverter pageConverter;
     private final CustomResourceDefinitionMapper customResourceDefinitionMapper;
 
     public ApiExportServiceImpl(
@@ -71,7 +69,6 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         PathValidationService pathValidationService,
         ApiConverter apiConverter,
         PlanConverter planConverter,
-        PageConverter pageConverter,
         CustomResourceDefinitionMapper customResourceDefinitionMapper
     ) {
         this.objectMapper = objectMapper;
@@ -81,7 +78,6 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         this.pathValidationService = pathValidationService;
         this.apiConverter = apiConverter;
         this.planConverter = planConverter;
-        this.pageConverter = pageConverter;
         this.customResourceDefinitionMapper = customResourceDefinitionMapper;
     }
 
@@ -101,7 +97,7 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         apiEntity.setMetadata(metadata);
 
         try {
-            return objectMapper.writeValueAsString(apiEntity);
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
         } catch (final Exception e) {
             LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
         }

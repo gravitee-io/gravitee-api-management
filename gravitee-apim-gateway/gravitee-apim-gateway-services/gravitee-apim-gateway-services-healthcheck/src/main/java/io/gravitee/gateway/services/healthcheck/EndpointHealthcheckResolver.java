@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.healthcheck;
 
-import static io.gravitee.common.util.VertxProxyOptionsUtils.*;
+import static io.gravitee.common.util.VertxProxyOptionsUtils.buildProxyOptions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,7 +57,7 @@ public class EndpointHealthcheckResolver implements InitializingBean {
 
     private ProxyOptions systemProxyOptions;
 
-    private final ObjectMapper mapper = new GraviteeMapper();
+    private final ObjectMapper mapper = new GraviteeMapper(false);
 
     @Override
     public void afterPropertiesSet() throws Exception {

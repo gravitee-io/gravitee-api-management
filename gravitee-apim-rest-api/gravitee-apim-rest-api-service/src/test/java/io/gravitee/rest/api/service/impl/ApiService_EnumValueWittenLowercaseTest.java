@@ -71,7 +71,7 @@ public class ApiService_EnumValueWittenLowercaseTest {
         );
         apiEntity.setMetadata(metadata);
 
-        String result = objectMapper.writeValueAsString(apiEntity);
+        String result = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
         assertThat(result)
             .isEqualTo(
                 "{\n" +
@@ -106,7 +106,7 @@ public class ApiService_EnumValueWittenLowercaseTest {
         );
         apiEntity.setMetadata(metadata);
 
-        String result = objectMapper.writeValueAsString(apiEntity);
+        String result = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
         assertThat(result)
             .isEqualTo(
                 "{\n" +

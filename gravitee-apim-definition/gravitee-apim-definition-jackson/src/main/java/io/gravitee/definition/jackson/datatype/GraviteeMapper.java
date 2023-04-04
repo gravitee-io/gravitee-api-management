@@ -38,6 +38,10 @@ public class GraviteeMapper extends ObjectMapper {
     private static final long serialVersionUID = 1L;
 
     public GraviteeMapper() {
+        this(true);
+    }
+
+    public GraviteeMapper(final boolean pretty) {
         registerModule(new ApiModule(this));
         registerModule(new ServiceModule());
         registerModule(new HealthCheckModule());
@@ -47,7 +51,9 @@ public class GraviteeMapper extends ObjectMapper {
         registerModule(new DebugApiModule());
         registerModule(new JavaTimeModule());
 
-        enable(SerializationFeature.INDENT_OUTPUT);
+        if (pretty) {
+            enable(SerializationFeature.INDENT_OUTPUT);
+        }
         enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         setSerializationInclusion(JsonInclude.Include.NON_NULL);
         enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
