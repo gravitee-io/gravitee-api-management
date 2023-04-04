@@ -90,7 +90,7 @@ describe('ApiPlanFormComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('New mode with API', () => {
+  describe('Create mode with API', () => {
     const TAG_1_ID = 'tag-1';
     const API = fakeApi({
       tags: [TAG_1_ID],
@@ -183,6 +183,124 @@ describe('ApiPlanFormComponent', () => {
         securityDefinition: '{}',
         selection_rule: '{ #el ...}',
         tags: [TAG_1_ID],
+        validation: 'AUTO',
+        flows: [
+          {
+            enabled: true,
+            'path-operator': {
+              operator: 'STARTS_WITH',
+              path: '/',
+            },
+            post: [],
+            pre: [
+              {
+                configuration: {},
+                enabled: true,
+                name: 'Rate Limiting',
+                policy: 'rate-limit',
+              },
+              {
+                configuration: {},
+                enabled: true,
+                name: 'Quota',
+                policy: 'quota',
+              },
+              {
+                configuration: {},
+                enabled: true,
+                name: 'Resource Filtering',
+                policy: 'resource-filtering',
+              },
+            ],
+          },
+        ],
+      });
+    });
+  });
+
+  describe('Create mode without API', () => {
+    beforeEach(async () => {
+      configureTestingModule('create');
+      fixture.detectChanges();
+    });
+
+    it('should add new plan', async () => {
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
+      fixture.detectChanges();
+
+      expect(testComponent.planControl.touched).toEqual(false);
+      expect(testComponent.planControl.dirty).toEqual(false);
+      expect(testComponent.planControl.valid).toEqual(false);
+
+      // 1- General Step
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('🗺');
+
+      const descriptionInput = await planForm.getDescriptionInput();
+      await descriptionInput.setValue('Description');
+
+      const characteristicsInput = await planForm.getCharacteristicsInput();
+      await characteristicsInput.addTag('C1');
+
+      const generalConditionsInput = await planForm.getGeneralConditionsInput();
+      expect(generalConditionsInput).toEqual(null);
+
+      const validationToggle = await planForm.getValidationToggle();
+      await validationToggle.toggle();
+
+      const commentRequired = await planForm.getCommentRequiredToggle();
+      await commentRequired.toggle();
+
+      const commentMessageInput = await planForm.getCommentMessageInput();
+      await commentMessageInput.setValue('Comment message');
+
+      const shardingTagsInput = await planForm.getShardingTagsInput();
+      expect(shardingTagsInput).toEqual(null);
+
+      const excludedGroupsInput = await planForm.getExcludedGroupsInput();
+      await excludedGroupsInput.clickOptions({ text: 'Group A' });
+
+      // 2- Secure Step
+      const securityTypeInput = await planForm.getSecurityTypeInput();
+      await securityTypeInput.clickOptions({ text: /JWT/ });
+      await securityTypeInput.getOptions({ text: /OAuth2/ }).then((options) => expect(options.length).toBe(0));
+      expectPolicySchemaGetRequest('jwt', {});
+
+      const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
+      await selectionRuleInput.setValue('{ #el ...}');
+
+      // 3- Restriction Step
+
+      const rateLimitEnabledInput = await planForm.getRateLimitEnabledInput();
+      await rateLimitEnabledInput.toggle();
+      expectPolicySchemaGetRequest('rate-limit', {});
+
+      const quotaEnabledInput = await planForm.getQuotaEnabledInput();
+      await quotaEnabledInput.toggle();
+      expectPolicySchemaGetRequest('quota', {});
+
+      const resourceFilteringEnabledInput = await planForm.getResourceFilteringEnabledInput();
+      await resourceFilteringEnabledInput.toggle();
+      expectPolicySchemaGetRequest('resource-filtering', {});
+
+      expect(testComponent.planControl.touched).toEqual(true);
+      expect(testComponent.planControl.dirty).toEqual(true);
+      expect(testComponent.planControl.valid).toEqual(true);
+      expect(testComponent.planControl.value).toEqual({
+        name: '🗺',
+        description: 'Description',
+        characteristics: ['C1'],
+        comment_message: 'Comment message',
+        comment_required: true,
+        excluded_groups: ['group-a'],
+        general_conditions: '',
+        tags: [],
+        security: 'JWT',
+        securityDefinition: '{}',
+        selection_rule: '{ #el ...}',
         validation: 'AUTO',
         flows: [
           {
