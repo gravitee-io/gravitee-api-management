@@ -74,15 +74,16 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Synchron
     @Override
     public Completable synchronize(final Long from, final Long to, final List<String> environments) {
         AtomicLong launchTime = new AtomicLong();
+        boolean initialSync = from == null || from == -1;
         return eventsFetcher
-            .fetchLatest(from, to, API_ID, environments, from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
+            .fetchLatest(from, to, API_ID, environments, initialSync ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .compose(eventsFlowable -> processEvents(eventsFlowable, from, to))
+            .compose(eventsFlowable -> processEvents(initialSync, eventsFlowable))
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
             .doOnSuccess(count -> {
                 String logMsg = String.format("%s apis synchronized in %sms", count, (System.currentTimeMillis() - launchTime.get()));
-                if (from == -1) {
+                if (initialSync) {
                     log.info(logMsg);
                 } else {
                     log.debug(logMsg);

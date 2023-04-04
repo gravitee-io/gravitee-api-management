@@ -16,9 +16,6 @@
 package io.gravitee.repository.management.api.search;
 
 import io.gravitee.repository.management.model.EventType;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +23,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 
 /**
@@ -45,10 +41,10 @@ public class EventCriteria {
     @Singular
     private final Map<String, Object> properties;
 
-    @lombok.Builder.Default
+    @Builder.Default
     private final long from = -1;
 
-    @lombok.Builder.Default
+    @Builder.Default
     private final long to = -1;
 
     @Singular

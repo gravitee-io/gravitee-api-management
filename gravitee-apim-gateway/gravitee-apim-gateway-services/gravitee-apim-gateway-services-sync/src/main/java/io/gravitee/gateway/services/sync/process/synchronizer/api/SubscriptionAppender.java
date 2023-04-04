@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.services.sync.process.synchronizer.api;
 
-import static io.gravitee.gateway.services.sync.process.DefaultSyncManager.TIMEFRAME_DELAY;
 import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 import static io.gravitee.repository.management.model.Subscription.Status.CLOSED;
 import static io.gravitee.repository.management.model.Subscription.Status.PAUSED;
@@ -50,7 +49,7 @@ public class SubscriptionAppender {
      * @param deployables the deployables to update
      * @return the deployables updated with subscriptions
      */
-    public List<ApiReactorDeployable> appends(final Long from, final Long to, final List<ApiReactorDeployable> deployables) {
+    public List<ApiReactorDeployable> appends(final boolean initialSync, final List<ApiReactorDeployable> deployables) {
         final Map<String, ApiReactorDeployable> deployableByApi = deployables
             .stream()
             .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
@@ -62,7 +61,7 @@ public class SubscriptionAppender {
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
         if (!allPlans.isEmpty()) {
-            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(from, to, allPlans);
+            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(initialSync, allPlans);
             subscriptionsByApi.forEach((api, subscriptions) -> {
                 ApiReactorDeployable deployable = deployableByApi.get(api);
                 deployable.subscriptions(subscriptions);
@@ -71,17 +70,12 @@ public class SubscriptionAppender {
         return deployables;
     }
 
-    protected Map<String, List<Subscription>> loadSubscriptions(final Long frm, final Long to, final List<String> plans) {
+    protected Map<String, List<Subscription>> loadSubscriptions(final boolean initialSync, final List<String> plans) {
         SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder().plans(plans);
-        if (frm == null || frm == -1) {
-            criteriaBuilder
-                .statuses(INITIAL_STATUS)
-                .endingAtAfter(Instant.now().toEpochMilli())
-                .includeWithoutEnd(true)
-                .from(-1)
-                .to(to == null ? -1 : to + TIMEFRAME_DELAY);
+        if (initialSync) {
+            criteriaBuilder.statuses(INITIAL_STATUS).endingAtAfter(Instant.now().toEpochMilli()).includeWithoutEnd(true);
         } else {
-            criteriaBuilder.statuses(INCREMENTAL_STATUS).from(frm - TIMEFRAME_DELAY).to(to == null ? -1 : to + TIMEFRAME_DELAY);
+            criteriaBuilder.statuses(INCREMENTAL_STATUS);
         }
 
         try {

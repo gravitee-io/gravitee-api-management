@@ -25,7 +25,6 @@ import io.gravitee.gateway.services.sync.process.synchronizer.api.ApiKeyAppender
 import io.gravitee.gateway.services.sync.process.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.synchronizer.api.SubscriptionAppender;
 import io.reactivex.rxjava3.core.Completable;
-import java.time.Instant;
 import java.util.concurrent.ThreadPoolExecutor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,7 +64,7 @@ public class KubernetesApiSynchronizer extends AbstractApiSynchronizer implement
     public Completable synchronize() {
         return configMapEventFetcher
             .fetchLatest()
-            .compose(upstream -> processEvents(upstream, -1L, Instant.now().toEpochMilli()))
+            .compose(upstream -> processEvents(false, upstream))
             .doOnNext(apiReactor -> log.debug("api {} synchronized from kubernetes", apiReactor.apiId()))
             .ignoreElements();
     }

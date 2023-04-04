@@ -70,7 +70,7 @@ class SubscriptionAppenderTest {
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(Set.of("plan2"))
             .build();
-        List<ApiReactorDeployable> appends = cut.appends(-1L, -1L, List.of(apiReactorDeployable1, apiReactorDeployable2));
+        List<ApiReactorDeployable> appends = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2));
         assertThat(appends).hasSize(2);
         assertThat(appends.get(0).subscriptions()).isEmpty();
         assertThat(appends.get(1).subscriptions()).isEmpty();
@@ -97,7 +97,7 @@ class SubscriptionAppenderTest {
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(Set.of("nosubscriptionplan"))
             .build();
-        List<ApiReactorDeployable> deployables = cut.appends(-1L, -1L, List.of(apiReactorDeployable1, apiReactorDeployable2));
+        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2));
         assertThat(deployables).hasSize(2);
         assertThat(deployables.get(0).subscriptions()).hasSize(2);
         assertThat(deployables.get(1).subscriptions()).isEmpty();

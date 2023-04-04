@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.services.sync.process.synchronizer.api;
 
-import static io.gravitee.gateway.services.sync.process.DefaultSyncManager.TIMEFRAME_DELAY;
 import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.gateway.api.service.ApiKey;
@@ -44,7 +43,7 @@ public class ApiKeyAppender {
      * @param deployables the deployables to update
      * @return the deployables updated with api keys
      */
-    public List<ApiReactorDeployable> appends(final Long from, final Long to, final List<ApiReactorDeployable> deployables) {
+    public List<ApiReactorDeployable> appends(final boolean initialSync, final List<ApiReactorDeployable> deployables) {
         final Map<String, ApiReactorDeployable> deployableByApi = deployables
             .stream()
             .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
@@ -60,7 +59,7 @@ public class ApiKeyAppender {
             )
             .collect(Collectors.toList());
         if (!allApiKeySubscriptions.isEmpty()) {
-            Map<String, List<ApiKey>> apiKeyByApi = loadApiKey(from, to, allApiKeySubscriptions);
+            Map<String, List<ApiKey>> apiKeyByApi = loadApiKey(initialSync, allApiKeySubscriptions);
             apiKeyByApi.forEach((api, apiKeys) -> {
                 ApiReactorDeployable deployable = deployableByApi.get(api);
                 deployable.apiKeys(apiKeys);
@@ -69,19 +68,14 @@ public class ApiKeyAppender {
         return deployables;
     }
 
-    private Map<String, List<ApiKey>> loadApiKey(final Long from, final Long to, final List<Subscription> subscriptions) {
+    private Map<String, List<ApiKey>> loadApiKey(final boolean initialSync, final List<Subscription> subscriptions) {
         try {
             Map<String, Subscription> subscriptionsById = subscriptions.stream().collect(Collectors.toMap(Subscription::getId, s -> s));
             ApiKeyCriteria.ApiKeyCriteriaBuilder criteriaBuilder = ApiKeyCriteria.builder().subscriptions(subscriptionsById.keySet());
-            if (from == null || from == -1) {
-                criteriaBuilder
-                    .includeRevoked(false)
-                    .expireAfter(Instant.now().toEpochMilli())
-                    .includeWithoutExpiration(true)
-                    .from(-1)
-                    .to(to == null ? -1 : to + TIMEFRAME_DELAY);
+            if (initialSync) {
+                criteriaBuilder.includeRevoked(false).expireAfter(Instant.now().toEpochMilli()).includeWithoutExpiration(true);
             } else {
-                criteriaBuilder.includeRevoked(true).from(from - TIMEFRAME_DELAY).to(to == null ? -1 : to + TIMEFRAME_DELAY);
+                criteriaBuilder.includeRevoked(true);
             }
             List<io.gravitee.repository.management.model.ApiKey> bySubscriptions = apiKeyRepository.findByCriteria(criteriaBuilder.build());
             return bySubscriptions

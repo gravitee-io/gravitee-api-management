@@ -69,7 +69,7 @@ class ApiKeyAppenderTest {
             .reactableApi(mock(ReactableApi.class))
             .subscriptions(List.of(Subscription.builder().id("subscription2").plan("plan2").build()))
             .build();
-        List<ApiReactorDeployable> appends = cut.appends(-1L, -1L, List.of(apiReactorDeployable1, apiReactorDeployable2));
+        List<ApiReactorDeployable> appends = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2));
         assertThat(appends).hasSize(2);
         assertThat(appends.get(0).apiKeys()).isEmpty();
         assertThat(appends.get(1).apiKeys()).isEmpty();
@@ -100,7 +100,7 @@ class ApiKeyAppenderTest {
             .reactableApi(mock(ReactableApi.class))
             .subscriptions(List.of(Subscription.builder().id("subscription2").api("api2").plan("noapikeyplan").build()))
             .build();
-        List<ApiReactorDeployable> deployables = cut.appends(-1L, -1L, List.of(apiReactorDeployable1, apiReactorDeployable2));
+        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2));
         assertThat(deployables).hasSize(2);
         assertThat(deployables.get(0).apiKeys()).hasSize(2);
         assertThat(deployables.get(1).apiKeys()).isEmpty();
