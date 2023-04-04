@@ -19,6 +19,7 @@ import static io.gravitee.repository.bridge.server.handler.EventsHandler.readCri
 import static io.gravitee.repository.bridge.server.utils.ParamUtils.getPageNumber;
 import static io.gravitee.repository.bridge.server.utils.ParamUtils.getPageSize;
 
+import io.gravitee.repository.bridge.server.handler.response.AbstractHandler;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
@@ -44,15 +45,15 @@ public class EventsLatestHandler extends AbstractHandler {
     }
 
     public void search(RoutingContext ctx) {
+        EventCriteria eventCriteria = readCriteria(ctx.body().asJsonObject());
+
+        Long pageSize = getPageSize(ctx, null);
+        Long pageNumber = getPageNumber(ctx, null);
+        Event.EventProperties group = getGroup(ctx);
+
         bridgeWorkerExecutor.executeBlocking(
             (Handler<Promise<List<Event>>>) promise -> {
                 try {
-                    EventCriteria eventCriteria = readCriteria(ctx.body().asJsonObject());
-
-                    Long pageSize = getPageSize(ctx, null);
-                    Long pageNumber = getPageNumber(ctx, null);
-                    Event.EventProperties group = getGroup(ctx);
-
                     promise.complete(eventLatestRepository.search(eventCriteria, group, pageNumber, pageSize));
                 } catch (Exception ex) {
                     LOGGER.error("Unable to search for events", ex);

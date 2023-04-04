@@ -17,6 +17,7 @@ package io.gravitee.repository.bridge.server.handler;
 
 import io.gravitee.node.api.Monitoring;
 import io.gravitee.node.api.NodeMonitoringRepository;
+import io.gravitee.repository.bridge.server.handler.response.AbstractHandler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.WorkerExecutor;

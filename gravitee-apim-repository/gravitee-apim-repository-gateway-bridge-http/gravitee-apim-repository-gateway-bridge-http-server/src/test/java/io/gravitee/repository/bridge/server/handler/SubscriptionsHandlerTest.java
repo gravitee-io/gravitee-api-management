@@ -292,7 +292,21 @@ public class SubscriptionsHandlerTest {
 
         @Test
         void should_return_subscriptions_with_pageable_and_criteria(VertxTestContext testContext) throws TechnicalException {
-            SubscriptionCriteria criteria = SubscriptionCriteria.builder().ids(Set.of("sub-id1", "sub-idX", "sub-id4")).build();
+            SubscriptionCriteria criteria = SubscriptionCriteria
+                .builder()
+                .ids(Set.of("sub-id1", "sub-idX", "sub-id4"))
+                .to(123)
+                .from(123)
+                .includeWithoutEnd(true)
+                .endingAtAfter(123)
+                .endingAtBefore(123)
+                .statuses(Set.of("status"))
+                .apis(Set.of("api"))
+                .applications(Set.of("application"))
+                .plans(Set.of("plan"))
+                .clientId("clientId")
+                .planSecurityTypes(Set.of("securityType"))
+                .build();
             when(subscriptionRepository.search(criteria, null, new PageableBuilder().pageSize(10).pageNumber(1).build()))
                 .thenReturn(
                     new Page<>(List.of(buildSubscription("sub-id1"), buildSubscription("sub-idX"), buildSubscription("sub-id4")), 1, 3, 1)

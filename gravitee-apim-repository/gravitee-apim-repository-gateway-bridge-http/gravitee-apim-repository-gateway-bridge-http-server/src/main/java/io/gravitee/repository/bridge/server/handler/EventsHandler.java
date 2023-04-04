@@ -19,6 +19,7 @@ import static io.gravitee.repository.bridge.server.utils.ParamUtils.getPageNumbe
 import static io.gravitee.repository.bridge.server.utils.ParamUtils.getPageSize;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.bridge.server.handler.response.AbstractHandler;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;

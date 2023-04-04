@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
+import io.gravitee.repository.bridge.server.handler.response.AbstractHandler;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.vertx.core.Handler;
@@ -25,7 +26,6 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

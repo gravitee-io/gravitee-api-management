@@ -15,16 +15,14 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.bridge.server.handler.response.AbstractHandler;
 import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Plan;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.WorkerExecutor;
 import io.vertx.ext.web.RoutingContext;
 import java.util.List;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

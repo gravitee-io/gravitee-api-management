@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
+import io.gravitee.repository.bridge.server.handler.response.AbstractHandler;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
 import io.vertx.core.Handler;
