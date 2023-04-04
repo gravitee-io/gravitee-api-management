@@ -102,7 +102,19 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
             .andThen(
                 Completable.fromRunnable(() -> {
                     log.info("Sync service has been scheduled with delay [{}{}]", delay, unit.name());
-                    refreshDisposable = Flowable.interval(delay, delay, unit).flatMapCompletable(interval -> synchronize()).subscribe();
+                    refreshDisposable =
+                        Flowable
+                            .<Long, Long>generate(
+                                () -> 0L,
+                                (state, emitter) -> {
+                                    emitter.onNext(state);
+                                    return state + 1;
+                                }
+                            )
+                            .delay(delay, unit)
+                            .rebatchRequests(1)
+                            .flatMapCompletable(interval -> synchronize())
+                            .subscribe();
                 })
             )
             .blockingSubscribe();
@@ -140,7 +152,8 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                             .doOnError(throwable ->
                                 log.warn(
                                     "An error occurs while executing synchronizer {}, retrying...",
-                                    synchronizer.getClass().getSimpleName()
+                                    synchronizer.getClass().getSimpleName(),
+                                    throwable
                                 )
                             )
                             .compose(RxHelper.retry(retryAttempt, RETRY_DELAY_MS, MILLISECONDS))
