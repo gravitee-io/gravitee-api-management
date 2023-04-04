@@ -71,7 +71,7 @@ public class DebugSynchronizer implements Synchronizer {
                         .flatMap(debugDeployable ->
                             debugDeployer
                                 .deploy(debugDeployable)
-                                .andThen(debugDeployer.doAtferDeployment(debugDeployable))
+                                .andThen(debugDeployer.doAfterDeployment(debugDeployable))
                                 .andThen(Flowable.just(debugDeployable))
                                 .onErrorResumeNext(throwable -> {
                                     log.error(throwable.getMessage(), throwable);

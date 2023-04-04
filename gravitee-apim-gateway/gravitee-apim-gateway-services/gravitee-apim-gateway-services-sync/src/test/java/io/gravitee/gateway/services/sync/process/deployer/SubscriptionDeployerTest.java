@@ -25,15 +25,12 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.gateway.services.sync.process.model.SubscriptionDeployable;
 import io.gravitee.gateway.services.sync.process.model.SyncException;
 import io.gravitee.gateway.services.sync.process.synchronizer.api.ApiReactorDeployable;
-import io.gravitee.gateway.services.sync.process.synchronizer.apikey.SingleApikeyDeployable;
 import io.gravitee.gateway.services.sync.process.synchronizer.subscription.SingleSubscriptionDeployable;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -139,7 +136,7 @@ class SubscriptionDeployerTest {
             verifyNoMoreInteractions(subscriptionService);
 
             when(subscriptionDispatcher.dispatch(subscriptionToDispatch)).thenReturn(Completable.complete());
-            cut.doAtferDeployment(apiReactorDeployable).test().assertComplete();
+            cut.doAfterDeployment(apiReactorDeployable).test().assertComplete();
             verify(subscriptionDispatcher).dispatch(subscriptionToDispatch);
         }
 
@@ -157,7 +154,7 @@ class SubscriptionDeployerTest {
             verify(subscriptionService).register(subscription);
             verifyNoMoreInteractions(subscriptionService);
 
-            cut.doAtferDeployment(apiReactorDeployable).test().assertComplete();
+            cut.doAfterDeployment(apiReactorDeployable).test().assertComplete();
             verifyNoInteractions(subscriptionDispatcher);
         }
 
@@ -192,7 +189,7 @@ class SubscriptionDeployerTest {
 
             when(subscriptionDispatcher.dispatch(subscriptionToDispatch1)).thenReturn(Completable.error(new SyncException("error")));
             when(subscriptionDispatcher.dispatch(subscriptionToDispatch2)).thenReturn(Completable.complete());
-            cut.doAtferDeployment(apiReactorDeployable).test().await().onComplete();
+            cut.doAfterDeployment(apiReactorDeployable).test().await().onComplete();
             verify(subscriptionDispatcher).dispatch(subscriptionToDispatch1);
             verify(commandRepository).create(any());
             verify(subscriptionDispatcher).dispatch(subscriptionToDispatch2);

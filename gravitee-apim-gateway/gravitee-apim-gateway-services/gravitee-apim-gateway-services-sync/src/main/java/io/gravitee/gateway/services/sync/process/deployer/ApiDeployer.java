@@ -52,7 +52,7 @@ public class ApiDeployer implements Deployer<ApiReactorDeployable> {
     }
 
     @Override
-    public Completable doAtferDeployment(final ApiReactorDeployable deployable) {
+    public Completable doAfterDeployment(final ApiReactorDeployable deployable) {
         return Completable.fromRunnable(() -> planService.register(deployable));
     }
 

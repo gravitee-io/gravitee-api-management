@@ -109,7 +109,7 @@ public class SubscriptionSynchronizer implements Synchronizer {
     ) {
         return subscriptionDeployer
             .deploy(deployable)
-            .andThen(subscriptionDeployer.doAtferDeployment(deployable))
+            .andThen(subscriptionDeployer.doAfterDeployment(deployable))
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);

@@ -89,7 +89,7 @@ class ApiKeySynchronizerTest {
             );
         lenient().when(deployerFactory.createApiKeyDeployer()).thenReturn(apiKeyDeployer);
         lenient().when(apiKeyDeployer.deploy(any())).thenReturn(Completable.complete());
-        lenient().when(apiKeyDeployer.doAtferDeployment(any())).thenReturn(Completable.complete());
+        lenient().when(apiKeyDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
         lenient().when(apiKeyDeployer.undeploy(any())).thenReturn(Completable.complete());
     }
 
@@ -139,7 +139,7 @@ class ApiKeySynchronizerTest {
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
 
             verify(apiKeyDeployer).deploy(any());
-            verify(apiKeyDeployer).doAtferDeployment(any());
+            verify(apiKeyDeployer).doAfterDeployment(any());
         }
 
         @Test

@@ -136,9 +136,9 @@ public abstract class AbstractApiSynchronizer {
             .deploy(deployable)
             .andThen(apiKeyDeployer.deploy(deployable))
             .andThen(apiDeployer.deploy(deployable))
-            .andThen(subscriptionDeployer.doAtferDeployment(deployable))
-            .andThen(apiKeyDeployer.doAtferDeployment(deployable))
-            .andThen(apiDeployer.doAtferDeployment(deployable))
+            .andThen(subscriptionDeployer.doAfterDeployment(deployable))
+            .andThen(apiKeyDeployer.doAfterDeployment(deployable))
+            .andThen(apiDeployer.doAfterDeployment(deployable))
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);

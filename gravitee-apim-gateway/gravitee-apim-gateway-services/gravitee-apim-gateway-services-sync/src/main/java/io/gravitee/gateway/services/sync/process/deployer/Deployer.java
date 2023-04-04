@@ -25,7 +25,7 @@ import io.reactivex.rxjava3.core.Completable;
 public interface Deployer<T extends Deployable> {
     Completable deploy(T deployable);
 
-    default Completable doAtferDeployment(T deployable) {
+    default Completable doAfterDeployment(T deployable) {
         return Completable.complete();
     }
 

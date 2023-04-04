@@ -93,7 +93,7 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
     }
 
     @Override
-    public Completable doAtferDeployment(final SubscriptionDeployable deployable) {
+    public Completable doAfterDeployment(final SubscriptionDeployable deployable) {
         return Completable.defer(() -> {
             // Dispatch subscription
             List<Subscription> subscriptions = dispatchableSubscription.remove(deployable.apiId());

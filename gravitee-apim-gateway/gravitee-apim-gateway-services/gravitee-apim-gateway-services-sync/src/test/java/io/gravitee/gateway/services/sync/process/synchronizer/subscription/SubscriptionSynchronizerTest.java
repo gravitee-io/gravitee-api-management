@@ -84,7 +84,7 @@ class SubscriptionSynchronizerTest {
             );
         lenient().when(deployerFactory.createSubscriptionDeployer()).thenReturn(subscriptionDeployer);
         lenient().when(subscriptionDeployer.deploy(any())).thenReturn(Completable.complete());
-        lenient().when(subscriptionDeployer.doAtferDeployment(any())).thenReturn(Completable.complete());
+        lenient().when(subscriptionDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
         lenient().when(subscriptionDeployer.undeploy(any())).thenReturn(Completable.complete());
     }
 
@@ -144,7 +144,7 @@ class SubscriptionSynchronizerTest {
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
 
             verify(subscriptionDeployer).deploy(any());
-            verify(subscriptionDeployer).doAtferDeployment(any());
+            verify(subscriptionDeployer).doAfterDeployment(any());
         }
 
         @Test

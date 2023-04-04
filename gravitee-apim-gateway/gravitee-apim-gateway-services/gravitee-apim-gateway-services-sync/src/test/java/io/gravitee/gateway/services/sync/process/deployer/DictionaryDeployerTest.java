@@ -15,21 +15,15 @@
  */
 package io.gravitee.gateway.services.sync.process.deployer;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
-import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.model.SyncException;
-import io.gravitee.gateway.services.sync.process.service.PlanService;
-import io.gravitee.gateway.services.sync.process.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.synchronizer.dictionary.DictionaryDeployable;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -79,7 +73,7 @@ class DictionaryDeployerTest {
 
         @Test
         void should_ignore_do_post_action() {
-            cut.doAtferDeployment(null).test().assertComplete();
+            cut.doAfterDeployment(null).test().assertComplete();
             verifyNoInteractions(dictionaryManager);
         }
     }

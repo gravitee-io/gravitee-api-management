@@ -85,7 +85,7 @@ class ApiDeployerTest {
                 .subscribablePlans(Set.of("plan"))
                 .reactableApi(reactableApi)
                 .build();
-            cut.doAtferDeployment(apiReactorDeployable).test().assertComplete();
+            cut.doAfterDeployment(apiReactorDeployable).test().assertComplete();
             assertThat(planService.isDeployed("apiId", "plan")).isTrue();
         }
     }

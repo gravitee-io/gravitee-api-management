@@ -104,7 +104,7 @@ public class OrganizationSynchronizer implements Synchronizer {
     ) {
         return dictionaryDeployer
             .deploy(deployable)
-            .andThen(dictionaryDeployer.doAtferDeployment(deployable))
+            .andThen(dictionaryDeployer.doAfterDeployment(deployable))
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);

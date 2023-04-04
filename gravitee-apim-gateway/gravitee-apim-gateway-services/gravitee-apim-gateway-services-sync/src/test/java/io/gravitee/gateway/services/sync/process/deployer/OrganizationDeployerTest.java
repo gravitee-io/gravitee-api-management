@@ -82,7 +82,7 @@ class OrganizationDeployerTest {
 
         @Test
         void should_ignore_do_post_action() {
-            cut.doAtferDeployment(null).test().assertComplete();
+            cut.doAfterDeployment(null).test().assertComplete();
             verifyNoInteractions(organizationManager);
         }
     }

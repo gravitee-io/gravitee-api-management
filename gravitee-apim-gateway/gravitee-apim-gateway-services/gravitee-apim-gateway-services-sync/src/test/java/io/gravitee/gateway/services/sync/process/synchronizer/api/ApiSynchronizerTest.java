@@ -138,17 +138,17 @@ class ApiSynchronizerTest {
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createApiDeployer()).thenReturn(apiDeployer);
         lenient().when(apiDeployer.deploy(any())).thenReturn(Completable.complete());
-        lenient().when(apiDeployer.doAtferDeployment(any())).thenReturn(Completable.complete());
+        lenient().when(apiDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
         lenient().when(apiDeployer.undeploy(any())).thenReturn(Completable.complete());
 
         lenient().when(deployerFactory.createApiKeyDeployer()).thenReturn(apiKeyDeployer);
         lenient().when(apiKeyDeployer.deploy(any())).thenReturn(Completable.complete());
-        lenient().when(apiKeyDeployer.doAtferDeployment(any())).thenReturn(Completable.complete());
+        lenient().when(apiKeyDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
         lenient().when(apiKeyDeployer.undeploy(any())).thenReturn(Completable.complete());
 
         lenient().when(deployerFactory.createSubscriptionDeployer()).thenReturn(subscriptionDeployer);
         lenient().when(subscriptionDeployer.deploy(any())).thenReturn(Completable.complete());
-        lenient().when(subscriptionDeployer.doAtferDeployment(any())).thenReturn(Completable.complete());
+        lenient().when(subscriptionDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
         lenient().when(subscriptionDeployer.undeploy(any())).thenReturn(Completable.complete());
     }
 
@@ -244,11 +244,11 @@ class ApiSynchronizerTest {
             cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
 
             verify(apiDeployer).deploy(any());
-            verify(apiDeployer).doAtferDeployment(any());
+            verify(apiDeployer).doAfterDeployment(any());
             verify(subscriptionDeployer).deploy(any());
-            verify(subscriptionDeployer).doAtferDeployment(any());
+            verify(subscriptionDeployer).doAfterDeployment(any());
             verify(apiKeyDeployer).deploy(any());
-            verify(apiKeyDeployer).doAtferDeployment(any());
+            verify(apiKeyDeployer).doAfterDeployment(any());
         }
 
         @Test
@@ -309,11 +309,11 @@ class ApiSynchronizerTest {
             cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
 
             verify(apiDeployer).deploy(any());
-            verify(apiDeployer).doAtferDeployment(any());
+            verify(apiDeployer).doAfterDeployment(any());
             verify(subscriptionDeployer).deploy(any());
-            verify(subscriptionDeployer).doAtferDeployment(any());
+            verify(subscriptionDeployer).doAfterDeployment(any());
             verify(apiKeyDeployer).deploy(any());
-            verify(apiKeyDeployer).doAtferDeployment(any());
+            verify(apiKeyDeployer).doAfterDeployment(any());
         }
 
         @Test

@@ -24,7 +24,6 @@ import io.gravitee.gateway.services.sync.process.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.synchronizer.Synchronizer;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
 import java.util.List;
@@ -32,7 +31,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.reactivestreams.Publisher;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -103,7 +101,7 @@ public class ApiKeySynchronizer implements Synchronizer {
     }
 
     private Flowable<SingleApikeyDeployable> deploy(final ApiKeyDeployer apiKeyDeployer, final SingleApikeyDeployable deployable) {
-        return apiKeyDeployer.deploy(deployable).andThen(apiKeyDeployer.doAtferDeployment(deployable)).andThen(Flowable.just(deployable));
+        return apiKeyDeployer.deploy(deployable).andThen(apiKeyDeployer.doAfterDeployment(deployable)).andThen(Flowable.just(deployable));
     }
 
     private Flowable<SingleApikeyDeployable> undeploy(final ApiKeyDeployer apiKeyDeployer, final SingleApikeyDeployable deployable) {
