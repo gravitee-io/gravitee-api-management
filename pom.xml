@@ -95,7 +95,6 @@
         <hazelcast.version>5.0.4</hazelcast.version>
         <httpclient.version>4.5.13</httpclient.version>
         <imageio.version>3.8.1</imageio.version>
-        <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
         <java-jwt.version>3.19.1</java-jwt.version>
         <javassist.version>3.28.0-GA</javassist.version>
         <jakarta.validation-api.version>2.0.2</jakarta.validation-api.version>
@@ -692,12 +691,6 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpkix-jdk15on</artifactId>
                 <version>${bcpkix-jdk15on.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-mapper-asl</artifactId>
-                <version>${jackson-mapper-asl.version}</version>
             </dependency>
 
             <dependency>
