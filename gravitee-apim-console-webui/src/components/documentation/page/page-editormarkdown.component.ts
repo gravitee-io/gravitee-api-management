@@ -13,31 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
+import { EditorOptions, Editor } from '@toast-ui/editor';
 import { StateService } from '@uirouter/core';
-import * as hljs from 'highlight.js';
+// eslint-disable-next-line import/no-unresolved
+import { ToolbarItemOptions } from '@toast-ui/editor/types/ui';
+import codeSyntaxHighlightPlugin from '@toast-ui/editor-plugin-code-syntax-highlight';
+import Prism from 'prismjs';
 
 import NotificationService from '../../../services/notification.service';
 
+// Step 2. Import language files of prismjs that you need
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-groovy';
+import 'prismjs/components/prism-xml-doc';
+
 class ComponentCtrl implements ng.IComponentController {
   public page: any;
-  public options: any;
   public pagesToLink: any[];
 
-  private tuiEditor: any;
+  private tuiEditor: Editor;
 
   constructor(
-    private $http,
+    private readonly $http: ng.IHttpService,
     private readonly Constants,
-    private $state: StateService,
+    private readonly $state: StateService,
     private readonly $mdDialog: angular.material.IDialogService,
     private readonly NotificationService: NotificationService,
   ) {
     'ngInject';
   }
 
-  $onChanges() {
-    const initialValue = this.page && this.page.content ? this.page.content : '';
+  $onInit() {
     let mediaURL;
     if (this.$state.params.apiId) {
       mediaURL = this.Constants.env.baseURL + '/apis/' + this.$state.params.apiId + '/media/';
@@ -47,96 +55,67 @@ class ComponentCtrl implements ng.IComponentController {
     if (mediaURL.includes('{:envId}')) {
       mediaURL = mediaURL.replace('{:envId}', this.Constants.org.currentEnv.id);
     }
-    const toolbarItems = [
-      'heading',
-      'bold',
-      'italic',
-      'strike',
-      'divider',
-      'hr',
-      'quote',
-      'divider',
-      'ul',
-      'ol',
-      'task',
-      'indent',
-      'outdent',
-      'divider',
-      'table',
-      'link',
-      'divider',
-      'code',
-      'codeblock',
+    const toolbarItems: (string | ToolbarItemOptions)[][] = [
+      ['heading', 'bold', 'italic', 'strike'],
+      ['hr', 'quote'],
+      ['ul', 'ol', 'task', 'indent', 'outdent'],
+      ['table', 'link'],
+      [
+        {
+          name: '',
+          tooltip: 'Insert page link',
+          command: 'addLinkToPage',
+          style: { backgroundImage: "url('assets/logo_file.svg')", backgroundSize: '30px 30px' },
+        },
+      ],
+      ['code', 'codeblock'],
     ];
 
     if (this.Constants.env.settings.portal.uploadMedia.enabled) {
       // toolbarItems
-      toolbarItems.splice(15, 0, 'image');
+      toolbarItems.splice(15, 0, ['image']);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const Editor = require('@toast-ui/editor');
     if (this.tuiEditor) {
-      this.tuiEditor.remove();
+      this.tuiEditor.destroy();
     }
 
-    this.tuiEditor = new Editor(
-      Object.assign(
-        {
-          el: document.querySelector('#editSection'),
-          initialEditType: 'markdown',
-          previewStyle: 'vertical',
-          initialValue: initialValue,
-          useDefaultHTMLSanitizer: false,
-          height: '500px',
-          usageStatistics: false,
-          exts: ['table', 'scrollSync'],
-          toolbarItems: toolbarItems,
-          events: {
-            change: () => {
-              this.page.content = this.tuiEditor.getMarkdown();
-            },
-          },
-          hooks: {
-            addImageBlobHook: (blob, callback) => {
-              const fd = new FormData();
-              fd.append('file', blob);
-
-              if (blob.size > this.Constants.env.settings.portal.uploadMedia.maxSizeInOctet) {
-                this.NotificationService.showError(
-                  `File uploaded is too big, you're limited at ${this.Constants.env.settings.portal.uploadMedia.maxSizeInOctet} bytes`,
-                );
-                return false;
-              }
-
-              this.$http.post(mediaURL + 'upload', fd, { headers: { 'Content-Type': undefined } }).then((response) => {
-                callback(mediaURL + response.data, blob.name);
-              });
-
-              return false;
-            },
-          },
-          plugins: [[codeSyntaxHighlight, { hljs }]],
-        },
-        this.options,
-      ),
-    );
-
-    this.tuiEditor.eventManager.addEventType('addLinkToPage');
-    const toolbar = this.tuiEditor.getUI().getToolbar();
-    toolbar.insertItem(
-      this.Constants.env.settings.portal.uploadMedia.enabled ? 17 : 16, // index depends on image button
-      {
-        type: 'button',
-        options: {
-          event: 'addLinkToPage',
-          tooltip: 'Insert page link',
-          style: "background-image: url('assets/logo_file.svg');  background-size: 20px 20px;",
+    const defaultOptions: EditorOptions = {
+      el: document.querySelector('#editSection'),
+      initialEditType: 'markdown',
+      previewStyle: 'vertical',
+      initialValue: this.page && this.page.content ? this.page.content : '',
+      height: '500px',
+      usageStatistics: false,
+      toolbarItems: toolbarItems,
+      events: {
+        change: () => {
+          this.page.content = this.tuiEditor.getMarkdown();
         },
       },
-    );
+      hooks: {
+        addImageBlobHook: (blob, callback) => {
+          const fd = new FormData();
+          fd.append('file', blob);
 
-    this.tuiEditor.eventManager.listen('addLinkToPage', () => {
+          if (blob.size > this.Constants.env.settings.portal.uploadMedia.maxSizeInOctet) {
+            this.NotificationService.showError(
+              `The uploaded file is too big, you are limited to ${this.Constants.env.settings.portal.uploadMedia.maxSizeInOctet} bytes`,
+            );
+            return false;
+          }
+
+          this.$http.post(mediaURL + 'upload', fd, { headers: { 'Content-Type': undefined } }).then((response) => {
+            callback(mediaURL + response.data, (blob as File).name);
+          });
+
+          return false;
+        },
+      },
+      plugins: [[codeSyntaxHighlightPlugin, { highlighter: Prism }]],
+    };
+    this.tuiEditor = new Editor(defaultOptions);
+    this.tuiEditor.addCommand('markdown', 'addLinkToPage', () => {
       this.$mdDialog
         .show({
           controller: 'SelectPageDialogController',
@@ -159,6 +138,7 @@ class ComponentCtrl implements ng.IComponentController {
             }
           }
         });
+      return true;
     });
   }
 }
@@ -167,7 +147,6 @@ export const PageEditorMarkdownComponent: ng.IComponentOptions = {
   template: require('./page-editormarkdown.html'),
   bindings: {
     page: '<',
-    options: '<',
     pagesToLink: '<',
   },
   controller: ComponentCtrl,
