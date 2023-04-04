@@ -32,11 +32,11 @@ export class ApiPlanFormHarness extends ComponentHarness {
   public getNameInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="name"]' }));
   public getDescriptionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="description"]' }));
   public getCharacteristicsInput = this.locatorFor(GioFormTagsInputHarness.with({ selector: '[formControlName="characteristics"]' }));
-  public getGeneralConditionsInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
+  public getGeneralConditionsInput = this.locatorForOptional(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
   public getValidationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="validation"]' }));
   public getCommentRequiredToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="commentRequired"]' }));
   public getCommentMessageInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="commentMessage"]' }));
-  public getShardingTagsInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
+  public getShardingTagsInput = this.locatorForOptional(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
   public getExcludedGroupsInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="excludedGroups"]' }));
 
   // 2- Secure Step

@@ -16,7 +16,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { includes } from 'lodash';
-import { combineLatest, ReplaySubject, Subject } from 'rxjs';
+import { combineLatest, of, ReplaySubject, Subject } from 'rxjs';
 import { map, startWith, switchMap, takeUntil } from 'rxjs/operators';
 
 import { Api } from '../../../../../entities/api';
@@ -38,7 +38,9 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
 
   @Input()
   public set api(api: Api) {
-    this.api$.next(api);
+    if (api) {
+      this.api$.next(api);
+    }
   }
 
   @Input()
@@ -56,7 +58,9 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
       }),
     ),
   );
-  shardingTags$ = combineLatest([this.tagService.list(), this.api$, this.currentUserService.getTags()]).pipe(
+  shardingTags$ = this.api$.pipe(
+    // Only load tags if api is defined
+    switchMap((api) => combineLatest([this.tagService.list(), of(api), this.currentUserService.getTags()])),
     map(([tags, api, userTags]) => {
       return tags.map((tag) => ({
         ...tag,
