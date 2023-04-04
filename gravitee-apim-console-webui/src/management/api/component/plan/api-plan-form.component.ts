@@ -58,7 +58,6 @@ type InternalPlanFormValue = {
 @Component({
   selector: 'api-plan-form',
   template: require('./api-plan-form.component.html'),
-  styles: [require('./api-plan-form.component.scss')],
   providers: [
     {
       provide: STEPPER_GLOBAL_OPTIONS,
