@@ -32,13 +32,11 @@ import io.gravitee.reporter.elasticsearch.mapping.es5.ES5PerTypeIndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es6.ES6IndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es8.ES8IndexPreparer;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -174,39 +172,35 @@ class BeanRegisterTest {
     }
 
     @Nested
-    class OpenSearch1 {
+    class OpenSearch {
 
-        @Test
-        void should_instantiate_beans_for_opensearch1_daily_mode() {
+        @DisplayName("should instantiate beans for OpenSearch daily mode")
+        @ParameterizedTest(name = "with version {0}")
+        @ValueSource(strings = { "1.0", "2.6" })
+        void should_instantiate_beans_for_opensearch_daily_mode(String version) {
             var reporterConfiguration = new ReporterConfiguration();
             reporterConfiguration.setIndexMode("daily");
 
-            register.registerBeans(opensearchInfo("1.0"), reporterConfiguration);
+            register.registerBeans(opensearchInfo(version), reporterConfiguration);
 
             assertThat(applicationContext.getBean("indexer")).isInstanceOf(ES7BulkIndexer.class);
             assertThat(applicationContext.getBean("indexPreparer")).isInstanceOf(ES7IndexPreparer.class);
             assertThat(applicationContext.getBean("indexNameGenerator")).isInstanceOf(PerTypeAndDateIndexNameGenerator.class);
         }
 
-        @Test
-        void should_instantiate_beans_for_opensearch1_ilm_mode() {
+        @DisplayName("should instantiate beans for OpenSearch ilm mode")
+        @ParameterizedTest(name = "with version {0}")
+        @ValueSource(strings = { "1.0.0", "2.6" })
+        void should_instantiate_beans_for_opensearch_ilm_mode(String version) {
             var reporterConfiguration = new ReporterConfiguration();
             reporterConfiguration.setIndexMode("ilm");
 
-            register.registerBeans(opensearchInfo("1.0"), reporterConfiguration);
+            register.registerBeans(opensearchInfo(version), reporterConfiguration);
 
             assertThat(applicationContext.getBean("indexer")).isInstanceOf(ES7BulkIndexer.class);
             assertThat(applicationContext.getBean("indexPreparer")).isInstanceOf(ES7IndexPreparer.class);
             assertThat(applicationContext.getBean("indexNameGenerator")).isInstanceOf(PerTypeIndexNameGenerator.class);
         }
-    }
-
-    @ParameterizedTest
-    @CsvSource(value = { "opensearch:2.12.7" }, delimiter = ':')
-    void should_ignore_unsupported_version(String distribution, String version) {
-        register.registerBeans(elasticsearchInfo(distribution, version), new ReporterConfiguration());
-
-        assertThat(applicationContext.getBeanDefinitionNames()).doesNotContain("indexer", "indexPreparer", "indexNameGenerator");
     }
 
     ElasticsearchInfo elasticsearchInfo(String versionNumber) {

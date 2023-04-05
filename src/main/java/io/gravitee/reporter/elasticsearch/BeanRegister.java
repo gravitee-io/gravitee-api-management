@@ -18,6 +18,7 @@ package io.gravitee.reporter.elasticsearch;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.spring.context.*;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -26,6 +27,7 @@ import org.springframework.context.ApplicationContext;
 public class BeanRegister {
 
     private final ApplicationContext applicationContext;
+    private static final Set<Integer> SUPPORTED_OPENSEARCH_MAJOR_VERSIONS = Set.of(1, 2);
 
     public BeanRegister(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
@@ -49,7 +51,7 @@ public class BeanRegister {
 
     private AbstractElasticBeanRegistrer getBeanRegistrerFromElasticsearchInfo(ElasticsearchInfo elasticsearchInfo) {
         if (elasticsearchInfo.getVersion().isOpenSearch()) {
-            if (elasticsearchInfo.getVersion().getMajorVersion() == 1) {
+            if (SUPPORTED_OPENSEARCH_MAJOR_VERSIONS.contains(elasticsearchInfo.getVersion().getMajorVersion())) {
                 return new OpenSearchBeanRegistrer();
             }
             return null;
