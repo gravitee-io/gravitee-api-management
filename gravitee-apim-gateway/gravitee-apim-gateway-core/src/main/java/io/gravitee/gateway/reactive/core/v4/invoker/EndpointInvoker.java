@@ -73,9 +73,7 @@ public class EndpointInvoker implements Invoker {
         final EndpointConnector endpointConnector = resolveConnector(ctx);
 
         if (endpointConnector == null) {
-            return ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(NO_ENDPOINT_FOUND_KEY).message("No endpoint available")
-            );
+            return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503).key(NO_ENDPOINT_FOUND_KEY));
         }
 
         if (endpointConnector.supportedApi() == ApiType.MESSAGE) {

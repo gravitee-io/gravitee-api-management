@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.InstanceOfAssertFactory;
+import org.assertj.core.api.ObjectAssertFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -188,7 +190,7 @@ class EndpointInvokerTest {
     }
 
     @Test
-    void shouldFailWith404WhenNoEndpointConnectorHasBeenResolved() {
+    void shouldFailWith503WhenNoEndpointConnectorHasBeenResolved() {
         final EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
         when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(null);
@@ -198,11 +200,12 @@ class EndpointInvokerTest {
         final TestObserver<Void> obs = cut.invoke(ctx).test();
 
         obs.assertError(e -> {
-            assertTrue(e instanceof InterruptionFailureException);
-            final InterruptionFailureException failureException = (InterruptionFailureException) e;
-            assertEquals(HttpStatusCode.NOT_FOUND_404, failureException.getExecutionFailure().statusCode());
-            assertEquals(NO_ENDPOINT_FOUND_KEY, failureException.getExecutionFailure().key());
-            assertNotNull(failureException.getExecutionFailure().message());
+            assertThat(e)
+                .isInstanceOf(InterruptionFailureException.class)
+                .asInstanceOf(new InstanceOfAssertFactory<>(InterruptionFailureException.class, Assertions::assertThat))
+                .extracting(InterruptionFailureException::getExecutionFailure)
+                .isEqualTo(new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503).key(NO_ENDPOINT_FOUND_KEY));
+
             return true;
         });
     }
