@@ -21,6 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 
@@ -105,6 +106,10 @@ describe('ApiPortalPlanEditComponent', () => {
         name: 'My plan',
         securityTypeLabel: /Keyless/,
       });
+
+      // Click on Next buttons to display Save one
+      await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then((b) => b.click());
+      await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then((b) => b.click());
 
       await saveBar.clickSubmit();
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { EMPTY, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -26,6 +26,7 @@ import { PlanService } from '../../../../../services-ngx/plan.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { NewPlan, Plan } from '../../../../../entities/plan';
+import { ApiPlanFormComponent } from '../../../component/plan/api-plan-form.component';
 
 @Component({
   selector: 'api-portal-plan-edit',
@@ -43,6 +44,9 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
   public isReadOnly = false;
   public displaySubscriptionsSection = true;
 
+  @ViewChild('apiPlanForm')
+  private apiPlanForm: ApiPlanFormComponent;
+
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -50,6 +54,7 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
     private readonly planService: PlanService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -73,6 +78,7 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
               disabled: this.isReadOnly,
             }),
           });
+          this.changeDetectorRef.detectChanges();
         }),
         catchError((error) => {
           this.snackBarService.error(error.error?.message ?? 'An ');

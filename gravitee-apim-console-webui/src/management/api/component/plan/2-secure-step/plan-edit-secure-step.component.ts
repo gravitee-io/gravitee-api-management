@@ -15,7 +15,7 @@
  */
 import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { camelCase } from 'lodash';
-import { EMPTY, Subject } from 'rxjs';
+import { EMPTY, ReplaySubject, Subject } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
 import { catchError, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
@@ -66,7 +66,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
     });
   });
 
-  public securityConfigSchema: unknown;
+  public securityConfigSchema$ = new ReplaySubject<unknown>();
   private currentSecurityType: string;
 
   private resourceTypes: ResourceListItem[];
@@ -94,7 +94,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         distinctUntilChanged(),
         tap(() => {
-          this.securityConfigSchema = undefined;
+          this.securityConfigSchema$.next(undefined);
           // Only reset security config if security type has changed
           if (this.currentSecurityType !== this.secureForm.get('securityType').value) {
             this.secureForm.get('securityConfig').reset({});
@@ -110,7 +110,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe((schema) => {
-        this.securityConfigSchema = schema;
+        this.securityConfigSchema$.next(schema);
       });
 
     this.resourceService

@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<mat-stepper>
+<mat-stepper [linear]="mode === 'create'" #stepper>
   <mat-step state="general" [stepControl]="planForm.get('general')">
     <ng-template matStepperIcon="general">
       <mat-icon svgIcon="gio:edit-pencil"></mat-icon>

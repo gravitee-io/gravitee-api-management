@@ -22,11 +22,12 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
 import { By } from '@angular/platform-browser';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { ApiPlanFormModule } from './api-plan-form.module';
 import { ApiPlanFormHarness } from './api-plan-form.harness';
+import { ApiPlanFormComponent } from './api-plan-form.component';
 
 import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { User } from '../../../../entities/user';
@@ -39,9 +40,10 @@ import { Plan, PlanSecurityType } from '../../../../entities/plan';
 import { fakePlan } from '../../../../entities/plan/plan.fixture';
 
 @Component({
-  template: ` <api-plan-form [formControl]="planControl" [mode]="mode" [api]="api"></api-plan-form> `,
+  template: ` <api-plan-form #apiPlanForm [formControl]="planControl" [mode]="mode" [api]="api"></api-plan-form> `,
 })
 class TestComponent {
+  @ViewChild('apiPlanForm') apiPlanForm: ApiPlanFormComponent;
   mode: 'create' | 'edit' = 'create';
   planControl = new FormControl();
   api?: Api;
@@ -101,6 +103,7 @@ describe('ApiPlanFormComponent', () => {
     });
 
     it('should add new plan', async () => {
+      loader = TestbedHarnessEnvironment.loader(fixture);
       const planForm = await loader.getHarness(ApiPlanFormHarness);
 
       planForm
@@ -145,6 +148,11 @@ describe('ApiPlanFormComponent', () => {
       const excludedGroupsInput = await planForm.getExcludedGroupsInput();
       await excludedGroupsInput.clickOptions({ text: 'Group A' });
 
+      expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
+      expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(false);
+      testComponent.apiPlanForm.nextStep();
+      fixture.detectChanges();
+
       // 2- Secure Step
       const securityTypeInput = await planForm.getSecurityTypeInput();
       await securityTypeInput.clickOptions({ text: /JWT/ });
@@ -153,6 +161,10 @@ describe('ApiPlanFormComponent', () => {
 
       const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
       await selectionRuleInput.setValue('{ #el ...}');
+
+      expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
+      expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
+      testComponent.apiPlanForm.nextStep();
 
       // 3- Restriction Step
 
@@ -167,6 +179,9 @@ describe('ApiPlanFormComponent', () => {
       const resourceFilteringEnabledInput = await planForm.getResourceFilteringEnabledInput();
       await resourceFilteringEnabledInput.toggle();
       expectPolicySchemaGetRequest('resource-filtering', {});
+
+      expect(testComponent.apiPlanForm.hasNextStep()).toEqual(false);
+      expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
 
       expect(testComponent.planControl.touched).toEqual(true);
       expect(testComponent.planControl.dirty).toEqual(true);

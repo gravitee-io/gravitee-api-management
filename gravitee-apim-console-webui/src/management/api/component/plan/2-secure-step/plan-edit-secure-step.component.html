@@ -23,7 +23,7 @@
     </mat-select>
   </mat-form-field>
 
-  <ng-container *ngIf="securityConfigSchema">
+  <ng-container *ngIf="securityConfigSchema$ | async as securityConfigSchema">
     <h2>Authentication configuration</h2>
 
     <gv-schema-form-group
@@ -51,8 +51,3 @@
     </mat-form-field>
   </ng-container>
 </ng-container>
-
-<div class="actions">
-  <button mat-button matStepperPrevious type="button">Back</button>
-  <button mat-button matStepperNext type="button">Next</button>
-</div>
