@@ -39,24 +39,39 @@ class LogoutComponentController implements IOnInit {
       this.$rootScope.$broadcast('graviteeUserRefresh', {});
       this.$rootScope.$broadcast('graviteeUserCancelScheduledServices');
       const userLogoutEndpoint = this.$window.localStorage.getItem('user-logout-url');
+      const idToken = this.$window.localStorage.getItem('user-id-token');
       this.$window.localStorage.removeItem('user-logout-url');
+      this.$window.localStorage.removeItem('user-id-token');
       this.reinitToDefaultOrganization();
       if (userLogoutEndpoint != null) {
         const redirectUri = window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname);
         if (userLogoutEndpoint.endsWith('target_url=')) {
           // If we use a Gravitee AM IDP, the logoutEndpoint will end with `target_url=` (See AMIdentityProviderEntity.java)
           // We must fill this query param so older versions of AM still work.
-          this.$window.location.href =
-            userLogoutEndpoint + encodeURIComponent(redirectUri) + '&post_logout_redirect_uri=' + encodeURIComponent(redirectUri);
+          this.$window.location.href = this.appendIdTokenHint(
+            userLogoutEndpoint + encodeURIComponent(redirectUri) + '&post_logout_redirect_uri=' + encodeURIComponent(redirectUri),
+            idToken,
+          );
         } else if (userLogoutEndpoint.endsWith('post_logout_redirect_uri=')) {
           // Otherwise we use an OIDC IDP, and the logout endpoint may already contain the `post_logout_redirect_uri`
-          this.$window.location.href = userLogoutEndpoint + encodeURIComponent(redirectUri);
+          this.$window.location.href = this.appendIdTokenHint(userLogoutEndpoint + encodeURIComponent(redirectUri), idToken);
         } else {
           const separator = userLogoutEndpoint.indexOf('?') > -1 ? '&' : '?';
-          this.$window.location.href = userLogoutEndpoint + separator + 'post_logout_redirect_uri=' + encodeURIComponent(redirectUri);
+          this.$window.location.href = this.appendIdTokenHint(
+            userLogoutEndpoint + separator + 'post_logout_redirect_uri=' + encodeURIComponent(redirectUri),
+            idToken,
+          );
         }
       }
     });
+  }
+
+  private appendIdTokenHint(url, idToken) {
+    if (idToken) {
+      return `${url}&id_token_hint=${encodeURIComponent(idToken)}`;
+    } else {
+      return url;
+    }
   }
 
   private reinitToDefaultOrganization() {
