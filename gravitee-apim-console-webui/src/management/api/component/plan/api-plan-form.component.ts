@@ -14,10 +14,25 @@
  * limitations under the License.
  */
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
-import { AfterViewInit, ChangeDetectorRef, Component, Host, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Host,
+  HostBinding,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  ViewChild,
+} from '@angular/core';
 import { AbstractControl, ControlValueAccessor, FormGroup, NgControl, ValidationErrors, Validator } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, map, startWith, takeUntil } from 'rxjs/operators';
+import { MatStepper } from '@angular/material/stepper';
+import { GIO_FORM_FOCUS_INVALID_IGNORE_SELECTOR } from '@gravitee/ui-particles-angular';
+import { isEmpty } from 'lodash';
 
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
@@ -64,9 +79,13 @@ type InternalPlanFormValue = {
       useValue: { displayDefaultIndicatorType: false, showError: true },
     },
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, ControlValueAccessor, Validator {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  @HostBinding(`attr.${GIO_FORM_FOCUS_INVALID_IGNORE_SELECTOR}`)
+  private gioFormFocusInvalidIgnore = true;
 
   @Input()
   api?: Api;
@@ -80,9 +99,15 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   public initialPlanFormValue: unknown;
   public displaySubscriptionsSection = true;
 
-  @ViewChild(PlanEditGeneralStepComponent) planEditGeneralStepComponent: PlanEditGeneralStepComponent;
-  @ViewChild(PlanEditSecureStepComponent) planEditSecureStepComponent: PlanEditSecureStepComponent;
-  @ViewChild(PlanEditRestrictionStepComponent) planEditRestrictionStepComponent: PlanEditRestrictionStepComponent;
+  @ViewChild(PlanEditGeneralStepComponent)
+  private planEditGeneralStepComponent: PlanEditGeneralStepComponent;
+  @ViewChild(PlanEditSecureStepComponent)
+  private planEditSecureStepComponent: PlanEditSecureStepComponent;
+  @ViewChild(PlanEditRestrictionStepComponent)
+  private planEditRestrictionStepComponent: PlanEditRestrictionStepComponent;
+
+  @ViewChild('stepper', { static: true })
+  private matStepper: MatStepper;
 
   private _onChange: (_: NewPlan | Plan) => void;
   private _onTouched: () => void;
@@ -102,6 +127,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     if (!this.ngControl?.control) {
       throw new Error('ApiPlanFormComponent must be used with a form control');
     }
+
     // Add default validator to the form control
     this.ngControl.control.setValidators(this.validate.bind(this));
     this.ngControl.control.updateValueAndValidity();
@@ -173,6 +199,32 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     }
 
     return null;
+  }
+
+  setMatStepper(matStepper: MatStepper) {
+    this.matStepper = matStepper;
+  }
+
+  hasNextStep(): boolean | null {
+    if (isEmpty(this.matStepper?.steps)) {
+      return null;
+    }
+    return !!this.matStepper.steps.get(this.matStepper.selectedIndex + 1);
+  }
+
+  nextStep() {
+    this.matStepper.next();
+  }
+
+  hasPreviousStep(): boolean | null {
+    if (isEmpty(this.matStepper?.steps)) {
+      return false;
+    }
+    return !!this.matStepper.steps.get(this.matStepper.selectedIndex - 1);
+  }
+
+  previousStep() {
+    this.matStepper.previous();
   }
 
   private initPlanForm() {
