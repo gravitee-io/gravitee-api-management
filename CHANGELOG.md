@@ -1,3 +1,10 @@
+# [4.2.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0...4.2.0) (2023-04-05)
+
+
+### Features
+
+* add support for OpenSearch 2 ([c3e41a3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/c3e41a3bd45d5a372126ab7245393711a2609d0e))
+
 # [4.1.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.0.1...4.1.0) (2023-03-17)
 
 
