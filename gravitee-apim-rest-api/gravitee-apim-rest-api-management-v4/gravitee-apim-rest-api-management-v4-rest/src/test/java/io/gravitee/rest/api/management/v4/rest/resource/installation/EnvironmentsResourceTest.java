@@ -78,10 +78,9 @@ public class EnvironmentsResourceTest extends AbstractResourceTest {
         env.setCockpitId("cockpit-id");
         env.setDomainRestrictions(List.of("restriction-1"));
 
-        doReturn(env).when(environmentService).findById(eq("my-env-id"));
-        doReturn(env).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, "my-env-id");
+        doReturn(env).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, "hrid-1");
 
-        final Response response = rootTarget("my-env-id").request().get();
+        final Response response = rootTarget("hrid-1").request().get();
         assertEquals(200, response.getStatus());
 
         Environment body = response.readEntity(Environment.class);
@@ -95,8 +94,9 @@ public class EnvironmentsResourceTest extends AbstractResourceTest {
     public void shouldReturn404WhenEnvNotFound() {
         EnvironmentEntity env = new EnvironmentEntity();
         env.setId("my-env-id");
+        env.setHrids(List.of(env.getId()));
 
-        doThrow(new EnvironmentNotFoundException("my-env-id")).when(environmentService).findById(eq("my-env-id"));
+        when(environmentService.findByOrgAndIdOrHrid(ORGANIZATION, "my-env-id")).thenThrow(new EnvironmentNotFoundException(env.getId()));
 
         final Response response = rootTarget("my-env-id").request().get();
         assertEquals(404, response.getStatus());
