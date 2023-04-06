@@ -16,19 +16,18 @@
 package io.gravitee.rest.api.management.v4.rest.resource.connector;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.management.v4.rest.mapper.ConnectorPluginMapper;
+import io.gravitee.rest.api.management.v4.rest.mapper.MoreInformationMapper;
 import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
+import io.gravitee.rest.api.management.v4.rest.model.EndpointsResponse;
+import io.gravitee.rest.api.management.v4.rest.model.MoreInformation;
+import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v4.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
@@ -38,8 +37,8 @@ import javax.ws.rs.core.Context;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/endpoints")
-public class EndpointsResource {
+@Path("/plugins/endpoints")
+public class EndpointsResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -49,8 +48,14 @@ public class EndpointsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ConnectorPlugin> getEndpoints() {
-        return ConnectorPluginMapper.INSTANCE.convertSet(endpointService.findAll());
+    public EndpointsResponse getEndpoints(@BeanParam PaginationParam paginationParam) {
+        paginationParam.validate();
+        Set<ConnectorPlugin> connectorPlugins = ConnectorPluginMapper.INSTANCE.convertSet(endpointService.findAll());
+        List paginationData = computePaginationData(connectorPlugins, paginationParam);
+        return new EndpointsResponse()
+            .data(paginationData)
+            .pagination(computePaginationInfo(connectorPlugins.size(), paginationData.size(), paginationParam))
+            .links(computePaginationLinks(connectorPlugins, paginationParam));
     }
 
     @Path("/{endpointId}")
@@ -73,7 +78,7 @@ public class EndpointsResource {
     @GET
     @Path("/{endpointId}/documentation")
     @Produces(MediaType.TEXT_PLAIN)
-    public String getEndpointDoc(@PathParam("endpointId") String endpointId) {
+    public String getEndpointDocumentation(@PathParam("endpointId") String endpointId) {
         // Check that the endpoint exists
         endpointService.findById(endpointId);
 
@@ -81,24 +86,19 @@ public class EndpointsResource {
     }
 
     @GET
-    @Path("/{endpointId}/moreInformation")
-    @ApiResponse(
-        responseCode = "200",
-        description = "Endpoint more information",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PluginMoreInformation.class))
-    )
+    @Path("/{endpointId}/more-information")
     @Produces(MediaType.APPLICATION_JSON)
-    public PluginMoreInformation getMoreInformation(@PathParam("endpointId") String endpointId) {
+    public MoreInformation getEndpointMoreInformation(@PathParam("endpointId") String endpointId) {
         // Check that the entrypoint exists
         endpointService.findById(endpointId);
 
-        return endpointService.getMoreInformation(endpointId);
+        return MoreInformationMapper.INSTANCE.convert(endpointService.getMoreInformation(endpointId));
     }
 
     @GET
     @Path("/{endpointId}/shared-configuration-schema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getSharedConfigurationSchema(@PathParam("endpointId") String endpointId) {
+    public String getEndpointSharedConfigurationSchema(@PathParam("endpointId") String endpointId) {
         // Check that the entrypoint exists
         endpointService.findById(endpointId);
 
