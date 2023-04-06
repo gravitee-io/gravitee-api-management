@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -128,6 +129,117 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
                 new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
                 new MembershipService.MembershipMember(USERNAME, null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "CUSTOM_APP")
+            );
+    }
+
+    @Test
+    public void shouldAddMemberWithDefaultGroupRole() {
+        initADDmock();
+
+        GroupEntity groupEntity = new GroupEntity();
+        groupEntity.setRoles(Map.of(RoleScope.API, "DEFAULT_GROUP_API_ROLE", RoleScope.APPLICATION, "DEFAULT_GROUP_APPLICATION_ROLE"));
+        groupEntity.setSystemInvitation(true);
+        groupEntity.setLockApiRole(true);
+        groupEntity.setLockApplicationRole(true);
+        when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID)).thenReturn(groupEntity);
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ENVIRONMENT_GROUP),
+                eq("DEFAULT"),
+                eq(CREATE),
+                eq(UPDATE),
+                eq(DELETE)
+            )
+        )
+            .thenReturn(false);
+
+        MemberRoleEntity apiRole = new MemberRoleEntity();
+        apiRole.setRoleScope(io.gravitee.rest.api.model.permissions.RoleScope.API);
+        apiRole.setRoleName("CUSTOM_API");
+        MemberRoleEntity appRole = new MemberRoleEntity();
+        appRole.setRoleScope(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION);
+        appRole.setRoleName("CUSTOM_APP");
+
+        GroupMembership groupMembership = new GroupMembership();
+        groupMembership.setId(USERNAME);
+        groupMembership.setRoles(Arrays.asList(apiRole, appRole));
+
+        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
+        verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.APPLICATION);
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                new MembershipService.MembershipMember(USERNAME, null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.API, "DEFAULT_GROUP_API_ROLE")
+            );
+
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                new MembershipService.MembershipMember(USERNAME, null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, "DEFAULT_GROUP_APPLICATION_ROLE")
+            );
+    }
+
+    @Test
+    public void shouldAddMemberWithDefaultOrganizationRole() {
+        initADDmock();
+
+        GroupEntity groupEntity = new GroupEntity();
+        groupEntity.setSystemInvitation(true);
+        groupEntity.setLockApiRole(true);
+        groupEntity.setLockApplicationRole(true);
+        when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID)).thenReturn(groupEntity);
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ENVIRONMENT_GROUP),
+                eq("DEFAULT"),
+                eq(CREATE),
+                eq(UPDATE),
+                eq(DELETE)
+            )
+        )
+            .thenReturn(false);
+
+        MemberRoleEntity apiRole = new MemberRoleEntity();
+        apiRole.setRoleScope(io.gravitee.rest.api.model.permissions.RoleScope.API);
+        apiRole.setRoleName("CUSTOM_API");
+        MemberRoleEntity appRole = new MemberRoleEntity();
+        appRole.setRoleScope(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION);
+        appRole.setRoleName("CUSTOM_APP");
+
+        GroupMembership groupMembership = new GroupMembership();
+        groupMembership.setId(USERNAME);
+        groupMembership.setRoles(Arrays.asList(apiRole, appRole));
+
+        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(roleService).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
+        verify(roleService).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.APPLICATION);
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                new MembershipService.MembershipMember(USERNAME, null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.API, DEFAULT_API_ROLE)
+            );
+
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+                new MembershipService.MembershipMember(USERNAME, null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.APPLICATION, DEFAULT_APPLICATION_ROLE)
             );
     }
 
