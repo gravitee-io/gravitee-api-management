@@ -16,19 +16,17 @@
 package io.gravitee.rest.api.management.v4.rest.resource.connector;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.plugin.core.api.PluginMoreInformation;
 import io.gravitee.rest.api.management.v4.rest.mapper.ConnectorPluginMapper;
-import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
+import io.gravitee.rest.api.management.v4.rest.mapper.MoreInformationMapper;
+import io.gravitee.rest.api.management.v4.rest.model.*;
+import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v4.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
-import javax.ws.rs.GET;
+import javax.ws.rs.*;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
@@ -38,8 +36,8 @@ import javax.ws.rs.core.Context;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/entrypoints")
-public class EntrypointsResource {
+@Path("/plugins/entrypoints")
+public class EntrypointsResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
@@ -49,8 +47,14 @@ public class EntrypointsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<ConnectorPlugin> getEntrypoints() {
-        return ConnectorPluginMapper.INSTANCE.convertSet(entrypointService.findAll());
+    public EntrypointsResponse getEntrypoints(@BeanParam PaginationParam paginationParam) {
+        paginationParam.validate();
+        Set<ConnectorPlugin> connectorPlugins = ConnectorPluginMapper.INSTANCE.convertSet(entrypointService.findAll());
+        List paginationData = computePaginationData(connectorPlugins, paginationParam);
+        return new EntrypointsResponse()
+            .data(paginationData)
+            .pagination(computePaginationInfo(connectorPlugins.size(), paginationData.size(), paginationParam))
+            .links(computePaginationLinks(connectorPlugins, paginationParam));
     }
 
     @Path("/{entrypointId}")
@@ -73,7 +77,7 @@ public class EntrypointsResource {
     @GET
     @Path("/{entrypointId}/documentation")
     @Produces(MediaType.TEXT_PLAIN)
-    public String getEntrypointDoc(@PathParam("entrypointId") String entrypointId) {
+    public String getEntrypointDocumentation(@PathParam("entrypointId") String entrypointId) {
         // Check that the entrypoint exists
         entrypointService.findById(entrypointId);
 
@@ -81,7 +85,7 @@ public class EntrypointsResource {
     }
 
     @GET
-    @Path("/{entrypointId}/subscriptionSchema")
+    @Path("/{entrypointId}/subscription-schema")
     @Produces(MediaType.APPLICATION_JSON)
     public String getEntrypointSubscriptionSchema(@PathParam("entrypointId") String entrypointId) {
         // Check that the entrypoint exists
@@ -91,17 +95,12 @@ public class EntrypointsResource {
     }
 
     @GET
-    @Path("/{entrypointId}/moreInformation")
-    @ApiResponse(
-        responseCode = "200",
-        description = "Entrypoint more information",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PluginMoreInformation.class))
-    )
+    @Path("/{entrypointId}/more-information")
     @Produces(MediaType.APPLICATION_JSON)
-    public PluginMoreInformation getMoreInformation(@PathParam("entrypointId") String entrypointId) {
+    public MoreInformation getEntrypointMoreInformation(@PathParam("entrypointId") String entrypointId) {
         // Check that the entrypoint exists
         entrypointService.findById(entrypointId);
 
-        return entrypointService.getMoreInformation(entrypointId);
+        return MoreInformationMapper.INSTANCE.convert(entrypointService.getMoreInformation(entrypointId));
     }
 }
