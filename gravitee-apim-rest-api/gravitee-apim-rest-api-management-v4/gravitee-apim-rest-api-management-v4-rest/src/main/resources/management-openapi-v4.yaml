@@ -414,7 +414,7 @@ paths:
                                 $ref: "#/components/schemas/Plan"
                 default:
                     $ref: "#/components/responses/Error"
-    /endpoints:
+    /plugins/endpoints:
         get:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
@@ -424,14 +424,15 @@ paths:
                 - Endpoints
             summary: Get available endpoints on the platform
             description: |
-                # FIXME add a description
+                Get available endpoint types on the platform.
+                User must be authenticated.
             operationId: getEndpoints
             responses:
                 "200":
                     $ref: "#/components/responses/EndpointsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /endpoints/{endpointId}:
+    /plugins/endpoints/{endpointId}:
         parameters:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
@@ -440,7 +441,8 @@ paths:
                 - Endpoints
             summary: Get an endpoint
             description: |
-                # FIXME add a description
+                Get an endpoint type.
+                User must be authenticated.
             operationId: getEndpoint
             responses:
                 "200":
@@ -451,7 +453,7 @@ paths:
                                 $ref: "#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /endpoints/{endpointId}/schema:
+    /plugins/endpoints/{endpointId}/schema:
         parameters:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
@@ -460,14 +462,15 @@ paths:
                 - Endpoints
             summary: Get an endpoint schema
             description: |
-                # FIXME add a description
+                Get the JSON schema that describes the configuration of an endpoint.
+                User must be authenticated.
             operationId: getEndpointSchema
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /endpoints/{endpointId}/documentation:
+    /plugins/endpoints/{endpointId}/documentation:
         parameters:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
@@ -476,7 +479,8 @@ paths:
                 - Endpoints
             summary: Get an endpoint documentation
             description: |
-                # FIXME add a description
+                Get the documentation of an endpoint.
+                User must be authenticated.
             operationId: getEndpointDocumentation
             responses:
                 "200":
@@ -485,6 +489,27 @@ paths:
                         text/plain:
                             schema:
                                 type: string
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/endpoints/{endpointId}/more-information:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Connectors
+                - Endpoints
+            summary: Get more information about how to use a given endpoint
+            description: |
+                More information about the endpoint.
+                User must be authenticated.
+            operationId: getEndpointMoreInformation
+            responses:
+                "200":
+                    description: More information of the endpoint
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MoreInformation"
                 default:
                     $ref: "#/components/responses/Error"
     /endpoints/{endpointId}/shared-configuration-schema:
@@ -496,8 +521,9 @@ paths:
                 - Endpoints
             summary: Get an endpoint shared configuration schema
             description: |
-                # FIXME add a description
-            operationId: getSharedConfigurationSchema
+                Get an endpoint shared configuration schema.
+                User must be authenticated.
+            operationId: getEndpointSharedConfigurationSchema
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -1083,7 +1109,7 @@ components:
                 last:
                     type: string
                     description: In a paginated response, link to the last page
-                prev:
+                previous:
                     type: string
                     description: In a paginated response, link to the previous page. Maybe null if current is the first page
                 next:
@@ -1159,6 +1185,25 @@ components:
         MetadataResponse:
             description: Generic object to handle additional information about an entity. Can also be used for pagination data.
             type: object
+        Pagination:
+            description: Generic object to handle pagination data.
+            type: object
+            properties:
+                page:
+                    type: integer
+                    description: The current page.
+                perPage:
+                    type: integer
+                    description: The number of items requested per page.
+                pageCount:
+                    type: integer
+                    description: The total number of pages.
+                pageItemsCount:
+                    type: integer
+                    description: The number of items for the current page.
+                totalCount:
+                    type: integer
+                    description: The total number of items.
         Path:
             type: object
             properties:
@@ -1351,6 +1396,22 @@ components:
                     description: Plugin's version.
                     example: 1.0.0
                     minLength: 1
+        MoreInformation:
+            type: object
+            properties:
+                description:
+                    type: string
+                    description: Plugin's description.
+                    example: Let your consumers send synchronous, on-demand requests for events via a standard HTTP GET requests. Use a standard HTTP proxy to mediate between client applications as data consumers and event brokers such as Kafka.
+                documentationUrl:
+                    type: string
+                    description: Plugin's documentation URL.
+                    example: https://docs.gravitee.io
+                schemaImg:
+                    type: string
+                    description: Plugin's schema image as base64.
+                    format: base64
+                    example: data:image/png;base64,aFDqfda
         QoS:
             type: string
             description: Type of the quality of service.
@@ -1517,14 +1578,15 @@ components:
             content:
                 application/json:
                     schema:
+                        title: "EndpointsResponse"
                         properties:
                             data:
                                 description: List of Endpoints.
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/ConnectorPlugin"
-                            metadata:
-                                $ref: "#/components/schemas/MetadataResponse"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
         EntrypointsResponse:

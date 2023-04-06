@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.impl.AbstractPluginService;
 import io.gravitee.rest.api.service.v4.ConnectorPluginService;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -52,7 +53,8 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
 
     @Override
     public Set<ConnectorPluginEntity> findAll() {
-        return super.list().stream().map(this::convert).collect(Collectors.toSet());
+        // Need to preserve list order in Set
+        return super.list().stream().map(this::convert).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override

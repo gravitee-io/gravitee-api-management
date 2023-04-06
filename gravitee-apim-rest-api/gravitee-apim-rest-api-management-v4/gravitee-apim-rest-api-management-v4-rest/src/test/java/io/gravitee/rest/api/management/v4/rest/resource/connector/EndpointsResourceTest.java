@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.management.v4.rest.resource.connector;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -24,19 +23,17 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
-import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
-import io.gravitee.rest.api.management.v4.rest.model.ErrorEntity;
+import io.gravitee.rest.api.management.v4.rest.model.*;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.management.v4.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 import org.assertj.core.api.Assertions;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,7 +45,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/endpoints";
+        return "/plugins/endpoints";
     }
 
     private static final String FAKE_ENDPOINT_ID = "my_endpoint";
@@ -60,32 +57,125 @@ public class EndpointsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldReturnAllEndpoints() {
-        ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
-        connectorPlugin.setId("id");
-        connectorPlugin.setName("name");
-        connectorPlugin.setVersion("1.0");
-        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
-        connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
-        connectorPlugin.setSupportedQos(Set.of(Qos.AUTO));
+    public void shouldThrowBadRequestExceptionIfPerPageParamIsNotValid() {
+        final Response response = rootTarget()
+            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
+            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, -2)
+            .request()
+            .get();
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message.contains("Pagination perPage param must be >= 1"));
+    }
+
+    @Test
+    public void shouldThrowBadRequestExceptionIfPageParamIsNotValid() {
+        final Response response = rootTarget()
+            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 0)
+            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 1)
+            .request()
+            .get();
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        final String message = response.readEntity(String.class);
+        assertTrue(message.contains("Pagination page param must be >= 1"));
+    }
+
+    @Test
+    public void shouldReturnEndpointsFirstPage() {
+        ConnectorPluginEntity connectorPlugin = getConnectorPluginEntity();
         when(endpointConnectorPluginService.findAll()).thenReturn(Set.of(connectorPlugin));
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        final List<Map<String, String>> pluginEntities = response.readEntity(List.class);
-        assertEquals(1, pluginEntities.size());
-        Map<String, String> pluginEntity = pluginEntities.get(0);
-        assertEquals("id", pluginEntity.get("id"));
-        assertEquals("name", pluginEntity.get("name"));
-        assertEquals("1.0", pluginEntity.get("version"));
-        assertEquals(ApiType.MESSAGE.getLabel(), pluginEntity.get("supportedApiType"));
-        ArrayList<String> arrayList = new ArrayList<>();
-        arrayList.add(ConnectorMode.SUBSCRIBE.getLabel());
-        assertEquals(arrayList, pluginEntity.get("supportedModes"));
-        ArrayList<String> supportedQos = new ArrayList<>(
-            connectorPlugin.getSupportedQos().stream().map(qos -> qos.getLabel()).collect(Collectors.toList())
-        );
-        assertEquals(supportedQos, pluginEntity.get("supportedQos"));
+
+        // Check Response content
+        final EndpointsResponse endpointsResponse = response.readEntity(EndpointsResponse.class);
+        assertNotNull(endpointsResponse.getData());
+        assertNotNull(endpointsResponse.getPagination());
+        assertNotNull(endpointsResponse.getLinks());
+
+        // Check connectorPlugins
+        List<ConnectorPlugin> connectorPlugins = endpointsResponse.getData();
+        assertEquals(1, connectorPlugins.size());
+        ConnectorPlugin pluginEntity = connectorPlugins.get(0);
+        assertEquals("id", pluginEntity.getId());
+        assertEquals("name", pluginEntity.getName());
+        assertEquals("1.0", pluginEntity.getVersion());
+        assertEquals(ApiType.MESSAGE.getLabel(), pluginEntity.getSupportedApiType().getValue());
+        assertEquals(1, pluginEntity.getSupportedModes().size());
+        assertEquals(ConnectorMode.SUBSCRIBE.getLabel(), pluginEntity.getSupportedModes().iterator().next().getValue());
+        assertEquals(1, pluginEntity.getSupportedQos().size());
+        assertEquals(Qos.AUTO.getLabel(), pluginEntity.getSupportedQos().iterator().next().getValue());
+
+        // Check pagination
+        Pagination pagination = endpointsResponse.getPagination();
+        assertEquals(1, pagination.getPage());
+        assertEquals(10, pagination.getPerPage());
+        assertEquals(1, pagination.getPageItemsCount());
+        assertEquals(1, pagination.getTotalCount());
+        assertEquals(1, pagination.getPageCount());
+
+        // Check links
+        Links links = endpointsResponse.getLinks();
+        assertTrue(links.getSelf().endsWith("/plugins/endpoints/"));
+        assertNull(links.getFirst());
+        assertNull(links.getPrevious());
+        assertNull(links.getNext());
+        assertNull(links.getLast());
+    }
+
+    @Test
+    public void shouldReturnEndpointsSmallPage() {
+        ConnectorPluginEntity connectorPlugin = getConnectorPluginEntity("id-1");
+        when(endpointConnectorPluginService.findAll())
+            .thenReturn(
+                List
+                    .of(connectorPlugin, getConnectorPluginEntity("id-2"), getConnectorPluginEntity("id-3"))
+                    .stream()
+                    .collect(Collectors.toCollection(LinkedHashSet::new))
+            );
+
+        final Response response = rootTarget()
+            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
+            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
+            .request()
+            .get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        // Check response content
+        final EndpointsResponse endpointsResponse = response.readEntity(EndpointsResponse.class);
+        assertNotNull(endpointsResponse.getData());
+        assertNotNull(endpointsResponse.getPagination());
+        assertNotNull(endpointsResponse.getLinks());
+
+        // Check data
+        List<ConnectorPlugin> data = endpointsResponse.getData();
+        assertEquals(2, data.size());
+        ConnectorPlugin pluginEntity = data.get(0);
+        assertEquals("id-1", pluginEntity.getId());
+        assertEquals("name", pluginEntity.getName());
+        assertEquals("1.0", pluginEntity.getVersion());
+        assertEquals(ApiType.MESSAGE.getLabel(), pluginEntity.getSupportedApiType().getValue());
+        assertEquals(1, pluginEntity.getSupportedModes().size());
+        assertEquals(ConnectorMode.SUBSCRIBE.getLabel(), pluginEntity.getSupportedModes().iterator().next().getValue());
+        assertEquals(1, pluginEntity.getSupportedQos().size());
+        assertEquals(Qos.AUTO.getLabel(), pluginEntity.getSupportedQos().iterator().next().getValue());
+
+        // Check pagination
+        Pagination pagination = endpointsResponse.getPagination();
+        assertEquals(1, pagination.getPage());
+        assertEquals(2, pagination.getPerPage());
+        assertEquals(2, pagination.getPageItemsCount());
+        assertEquals(3, pagination.getTotalCount());
+        assertEquals(2, pagination.getPageCount());
+
+        // Check links
+        Links links = endpointsResponse.getLinks();
+        assertTrue(links.getSelf().endsWith("/plugins/endpoints/?page=1&perPage=2"));
+        assertTrue(links.getFirst().endsWith("/plugins/endpoints/?page=1&perPage=2"));
+        assertNull(links.getPrevious());
+        assertTrue(links.getNext().endsWith("/plugins/endpoints/?page=2&perPage=2"));
+        assertTrue(links.getLast().endsWith("/plugins/endpoints/?page=2&perPage=2"));
     }
 
     @Test
@@ -223,5 +313,22 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
 
         Assertions.assertThat(errorEntity).isEqualTo(expectedErrorEntity);
+    }
+
+    @NotNull
+    private ConnectorPluginEntity getConnectorPluginEntity() {
+        return getConnectorPluginEntity("id");
+    }
+
+    @NotNull
+    private ConnectorPluginEntity getConnectorPluginEntity(String id) {
+        ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
+        connectorPlugin.setId(id);
+        connectorPlugin.setName("name");
+        connectorPlugin.setVersion("1.0");
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
+        connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
+        connectorPlugin.setSupportedQos(Set.of(Qos.AUTO));
+        return connectorPlugin;
     }
 }
