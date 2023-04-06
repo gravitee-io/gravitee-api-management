@@ -28,7 +28,7 @@ import { Step2Entrypoints1ListHarness } from './steps/step-2-entrypoints/step-2-
 import { ApiCreationV4Module } from './api-creation-v4.module';
 import { Step6SummaryHarness } from './steps/step-6-summary/step-6-summary.harness';
 import { Step3EndpointListHarness } from './steps/step-3-endpoints/step-3-endpoints-1-list.harness';
-import { Step4Security1PlansListHarness } from './steps/step-4-security/step-4-security-1-plans-list.harness';
+import { Step4Security1PlansHarness } from './steps/step-4-security/step-4-security-1-plans.harness';
 import { Step5DocumentationHarness } from './steps/step-5-documentation/step-5-documentation.harness';
 import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
 import { Step2Entrypoints2ConfigHarness } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.harness';
@@ -861,7 +861,7 @@ describe('ApiCreationV4Component', () => {
     });
     describe('step4 - plans list', () => {
       it('should add default keyless plan to payload', async () => {
-        const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+        const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
 
         const name = await step4Security1PlansListHarness.getNameByRowIndex(0);
         expect(name).toEqual('Default Keyless (UNSECURED)');
@@ -880,7 +880,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       it('should add no plans to payload after deleting default plan', async () => {
-        const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+        const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
 
         expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
 
@@ -899,7 +899,7 @@ describe('ApiCreationV4Component', () => {
     });
 
     it('should be reinitialized if no plans saved in payload after going back to step 3', async () => {
-      let step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+      let step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
       expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
 
       await step4Security1PlansListHarness.clickRemovePlanButton();
@@ -908,7 +908,7 @@ describe('ApiCreationV4Component', () => {
       await step4Security1PlansListHarness.clickPrevious();
       await fillAndValidateStep3Endpoints2Config();
 
-      step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+      step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
       expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
     });
   });
@@ -1045,7 +1045,7 @@ describe('ApiCreationV4Component', () => {
 
       fixture.detectChanges();
 
-      const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+      const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
       expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
 
       await step4Security1PlansListHarness.clickRemovePlanButton();
@@ -1194,7 +1194,7 @@ describe('ApiCreationV4Component', () => {
   }
 
   async function fillAndValidateStep4Security1PlansList() {
-    const step4 = await harnessLoader.getHarness(Step4Security1PlansListHarness);
+    const step4 = await harnessLoader.getHarness(Step4Security1PlansHarness);
     await step4.fillAndValidate();
   }
 

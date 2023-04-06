@@ -17,8 +17,8 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-export class Step4Security1PlansListHarness extends ComponentHarness {
-  static hostSelector = 'step-4-security-1-plans-list';
+export class Step4Security1PlansHarness extends ComponentHarness {
+  static hostSelector = 'step-4-security-1-plans';
 
   private readonly table = this.locatorFor(MatTableHarness);
 

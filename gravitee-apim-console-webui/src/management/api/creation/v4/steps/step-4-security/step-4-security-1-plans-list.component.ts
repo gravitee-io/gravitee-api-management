@@ -14,47 +14,31 @@
  * limitations under the License.
  */
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { StateService } from '@uirouter/core';
 
-import { UIRouterState } from '../../../../../../ajs-upgraded-providers';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step5DocumentationComponent } from '../step-5-documentation/step-5-documentation.component';
-import { PlanSecurityType } from '../../../../../../entities/plan-v4';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
-export interface SecurityPlan {
-  name: string;
-  type: PlanSecurityType;
-  description: string;
-}
+export type SecurityPlan = ApiCreationPayload['plans'][number];
 
 @Component({
   selector: 'step-4-security-1-plans-list',
   template: require('./step-4-security-1-plans-list.component.html'),
   styles: [require('./step-4-security-1-plans-list.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
-export class Step4Security1PlansListComponent implements OnInit {
-  public form = new FormGroup({});
-  displayedColumns: string[] = ['name', 'security', 'actions'];
+export class Step4Security1PlansListComponent {
+  @Input()
   plans: SecurityPlan[] = [];
 
-  constructor(@Inject(UIRouterState) readonly ajsState: StateService, private readonly stepService: ApiCreationStepService) {}
+  @Output()
+  addPlanClicked = new EventEmitter();
 
-  ngOnInit(): void {
-    const currentStepPayload = this.stepService.payload;
+  public form = new FormGroup({});
+  displayedColumns: string[] = ['name', 'security', 'actions'];
 
-    // For first pass-through of creation workflow
-    if (!currentStepPayload.plans) {
-      this.plans.push({
-        name: 'Default Keyless (UNSECURED)',
-        type: PlanSecurityType.KEY_LESS,
-        description: 'Default unsecured plan',
-      });
-    } else {
-      this.plans = currentStepPayload.plans;
-    }
-  }
+  constructor(private readonly stepService: ApiCreationStepService) {}
 
   save(): void {
     const plans = this.plans;
@@ -68,6 +52,10 @@ export class Step4Security1PlansListComponent implements OnInit {
 
   goBack(): void {
     this.stepService.goToPreviousStep();
+  }
+
+  addPlan() {
+    this.addPlanClicked.next();
   }
 
   removePlan(plan: SecurityPlan) {

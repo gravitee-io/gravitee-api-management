@@ -15,41 +15,37 @@
     limitations under the License.
 
 -->
-<mat-card class="api-creation-v4__step">
-  <div class="api-creation-v4__step__header">
-    <div class="api-creation-v4__step__header__step-number">Step 4</div>
-    <div class="api-creation-v4__step__header__subtitle">Security</div>
-    <p class="api-creation-v4__step__header__paragraph-light">Regulate access to your API by configuring plans and access control</p>
-  </div>
-  <div class="mat-h3">Your API plans</div>
-  <div style="margin-bottom: 20px">🚧 WIP: Plan creation and modification under construction 🚧</div>
-  <form [formGroup]="form" (ngSubmit)="save()">
-    <table mat-table class="step-4-security-1-plans-list__table" [dataSource]="plans" aria-label="security plans">
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let element">{{ element.name }}</td>
-      </ng-container>
-      <ng-container matColumnDef="security">
-        <th mat-header-cell *matHeaderCellDef>Security</th>
-        <td mat-cell *matCellDef="let element">{{ element.type }}</td>
-      </ng-container>
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let element">
-          <div class="step-4-security-1-plans-list__table__actions">
-            <button type="button" mat-icon-button aria-label="Remove plan" (click)="removePlan(element)">
-              <mat-icon svgIcon="gio:cancel"></mat-icon>
-            </button>
-          </div>
-        </td>
-      </ng-container>
+<div class="step-4-security-1-plans-list__header">
+  <div class="step-4-security-1-plans-list__header__title">Your API plans</div>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
-    <div class="api-creation-v4__step__footer">
-      <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Validate my plans</button>
-    </div>
-  </form>
-</mat-card>
+  <button mat-stroked-button type="button" (click)="addPlan()">Add plan</button>
+</div>
+<form [formGroup]="form" (ngSubmit)="save()">
+  <table mat-table class="step-4-security-1-plans-list__table" [dataSource]="plans" aria-label="security plans">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+    </ng-container>
+    <ng-container matColumnDef="security">
+      <th mat-header-cell *matHeaderCellDef>Security</th>
+      <td mat-cell *matCellDef="let element">{{ element.type }}</td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let element">
+        <div class="step-4-security-1-plans-list__table__actions">
+          <button type="button" mat-icon-button aria-label="Remove plan" (click)="removePlan(element)">
+            <mat-icon svgIcon="gio:cancel"></mat-icon>
+          </button>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+  <div class="api-creation-v4__step__footer">
+    <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Validate my plans</button>
+  </div>
+</form>
