@@ -267,12 +267,16 @@ public class GroupMembersResource extends AbstractResource {
                 if (apiRoleEntity != null && !apiRoleEntity.equals(previousApiRole)) {
                     String roleName = apiRoleEntity.getName();
                     if (!hasPermission && groupEntity.isLockApiRole()) {
-                        final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(
-                            GraviteeContext.getCurrentOrganization(),
-                            RoleScope.API
-                        );
-                        if (defaultRoles != null && !defaultRoles.isEmpty()) {
-                            roleName = defaultRoles.get(0).getName();
+                        if (groupEntity.getRoles() != null && !groupEntity.getRoles().isEmpty()) {
+                            roleName = groupEntity.getRoles().get(RoleScope.API);
+                        } else {
+                            final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(
+                                GraviteeContext.getCurrentOrganization(),
+                                RoleScope.API
+                            );
+                            if (defaultRoles != null && !defaultRoles.isEmpty()) {
+                                roleName = defaultRoles.get(0).getName();
+                            }
                         }
                     }
                     updatedMembership =
@@ -306,12 +310,16 @@ public class GroupMembersResource extends AbstractResource {
                 if (applicationRoleEntity != null && !applicationRoleEntity.equals(previousApplicationRole)) {
                     String roleName = applicationRoleEntity.getName();
                     if (!hasPermission && groupEntity.isLockApplicationRole()) {
-                        final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(
-                            GraviteeContext.getCurrentOrganization(),
-                            RoleScope.APPLICATION
-                        );
-                        if (defaultRoles != null && !defaultRoles.isEmpty()) {
-                            roleName = defaultRoles.get(0).getName();
+                        if (groupEntity.getRoles() != null && !groupEntity.getRoles().isEmpty()) {
+                            roleName = groupEntity.getRoles().get(RoleScope.APPLICATION);
+                        } else {
+                            final List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(
+                                GraviteeContext.getCurrentOrganization(),
+                                RoleScope.APPLICATION
+                            );
+                            if (defaultRoles != null && !defaultRoles.isEmpty()) {
+                                roleName = defaultRoles.get(0).getName();
+                            }
                         }
                     }
                     updatedMembership =
