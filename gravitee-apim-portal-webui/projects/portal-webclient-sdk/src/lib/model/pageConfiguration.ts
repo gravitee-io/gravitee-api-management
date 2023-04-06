@@ -55,6 +55,10 @@ export interface PageConfiguration {
      */
     max_displayed_tags?: number;
     /**
+     * Enable use of PKCE with authorization code flows in documentation page.
+     */
+    use_pkce?: boolean;
+    /**
      * The type of viewer for OpenAPI specification. Default is \'Swagger\'
      */
     viewer?: PageConfiguration.ViewerEnum;
