@@ -530,7 +530,7 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    /entrypoints:
+    /plugins/entrypoints:
         get:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
@@ -540,14 +540,15 @@ paths:
                 - Entrypoints
             summary: Get available entrypoints on the platform
             description: |
-                # FIXME add a description
+                Get available entrypoint types on the platform.
+                User must be authenticated.
             operationId: getEntrypoints
             responses:
                 "200":
                     $ref: "#/components/responses/EntrypointsResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /entrypoints/{entrypointId}:
+    /plugins/entrypoints/{entrypointId}:
         parameters:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
@@ -556,7 +557,8 @@ paths:
                 - Entrypoints
             summary: Get an entrypoint
             description: |
-                # FIXME add a description
+                Get an entrypoint type.
+                User must be authenticated.
             operationId: getEntrypoint
             responses:
                 "200":
@@ -567,7 +569,7 @@ paths:
                                 $ref: "#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /entrypoints/{entrypointId}/schema:
+    /plugins/entrypoints/{entrypointId}/schema:
         parameters:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
@@ -576,14 +578,15 @@ paths:
                 - Entrypoints
             summary: Get an entrypoint schema
             description: |
-                # FIXME add a description
+                Get the JSON schema that describes the configuration of an entrypoint.
+                User must be authenticated.
             operationId: getEntrypointSchema
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /entrypoints/{entrypointId}/subscriptionSchema:
+    /plugins/entrypoints/{entrypointId}/subscription-schema:
         parameters:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
@@ -592,14 +595,15 @@ paths:
                 - Entrypoints
             summary: Get an entrypoint subscription schema
             description: |
-                # FIXME add a description
+                Get the JSON schema that describes the subscription to a given entrypoint.
+                User must be authenticated.
             operationId: getEntrypointSubscriptionSchema
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /entrypoints/{entrypointId}/documentation:
+    /plugins/entrypoints/{entrypointId}/documentation:
         parameters:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
@@ -608,7 +612,8 @@ paths:
                 - Entrypoints
             summary: Get an entrypoint documentation
             description: |
-                # FIXME add a description
+                Get the documentation of an entrypoint.
+                User must be authenticated.
             operationId: getEntrypointDocumentation
             responses:
                 "200":
@@ -617,6 +622,27 @@ paths:
                         text/plain:
                             schema:
                                 type: string
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/entrypoints/{entrypointId}/more-information:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Connectors
+                - Entrypoints
+            summary: Get more information about how to use a given entrypoint
+            description: |
+                More information about the entrypoint.
+                User must be authenticated.
+            operationId: getEntrypointMoreInformation
+            responses:
+                "200":
+                    description: More information of the entrypoint
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MoreInformation"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -1594,14 +1620,15 @@ components:
             content:
                 application/json:
                     schema:
+                        title: "EntrypointsResponse"
                         properties:
                             data:
                                 description: List of Entrypoints.
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/ConnectorPlugin"
-                            metadata:
-                                $ref: "#/components/schemas/MetadataResponse"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
         PlansResponse:
