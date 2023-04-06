@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 /**
@@ -68,12 +69,11 @@ public class ElasticsearchRepositoryConfigurationTest {
     }
 
     @Bean
-    public RepositoryConfiguration repositoryConfiguration(
-        ElasticsearchContainer elasticSearchContainer,
-        ConfigurableEnvironment environment
-    ) {
+    public RepositoryConfiguration repositoryConfiguration(GenericContainer<?> container, ConfigurableEnvironment environment) {
         RepositoryConfiguration elasticConfiguration = new RepositoryConfiguration();
-        elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://" + elasticSearchContainer.getHttpHostAddress())));
+        elasticConfiguration.setEndpoints(
+            Collections.singletonList(new Endpoint("http://" + container.getHost() + ":" + container.getMappedPort(9200)))
+        );
         elasticConfiguration.setUsername("elastic");
         elasticConfiguration.setPassword(ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
         if (elasticsearchVersion.startsWith("5")) {
