@@ -16,10 +16,10 @@
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { forkJoin, Observable, Subject } from 'rxjs';
+import { combineLatest, forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { takeUntil } from 'rxjs/operators';
-import { omitBy } from 'lodash';
+import { mapValues, omitBy } from 'lodash';
 
 import { EndpointService } from '../../../../../../services-ngx/endpoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
@@ -35,7 +35,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
 
   public formGroup: FormGroup;
   public selectedEndpoints: { id: string; name: string }[];
-  public endpointSchemas: Record<string, GioJsonSchema>;
+  public endpointSchemas: Record<string, { config: GioJsonSchema; sharedConfig: GioJsonSchema }>;
 
   constructor(private readonly endpointService: EndpointService, private readonly stepService: ApiCreationStepService) {}
 
@@ -43,23 +43,33 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
     const currentStepPayload = this.stepService.payload;
 
     forkJoin(
-      currentStepPayload.selectedEndpoints.reduce(
-        (map: Record<string, Observable<GioJsonSchema>>, { id }) => ({
+      currentStepPayload.selectedEndpoints.reduce((map: Record<string, Observable<[GioJsonSchema, GioJsonSchema]>>, { id }) => {
+        return {
           ...map,
-          [id]: this.endpointService.v4GetSchema(id),
-        }),
-        {},
-      ),
+          [id]: combineLatest([this.endpointService.v4GetSchema(id), this.endpointService.v4GetSharedConfigurationSchema(id)]),
+        };
+      }, {}),
     )
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((schemas: Record<string, GioJsonSchema>) => {
-        this.endpointSchemas = omitBy(schemas, (schema) => !GioFormJsonSchemaComponent.isDisplayable(schema));
+      .subscribe((schemas: Record<string, [GioJsonSchema, GioJsonSchema]>) => {
+        const displayableSchemas = mapValues(schemas, ([config, sharedConfig]) => ({
+          config: GioFormJsonSchemaComponent.isDisplayable(config) ? config : undefined,
+          sharedConfig: GioFormJsonSchemaComponent.isDisplayable(sharedConfig) ? sharedConfig : undefined,
+        }));
+
+        this.endpointSchemas = omitBy(displayableSchemas, ({ config, sharedConfig }) => {
+          return !config && !sharedConfig;
+        });
 
         this.selectedEndpoints = currentStepPayload.selectedEndpoints;
 
         this.formGroup = new FormGroup({
           ...(currentStepPayload.selectedEndpoints?.reduce(
-            (map, { id, configuration }) => ({ ...map, [id]: new FormControl(configuration ?? {}) }),
+            (map, { id, configuration, sharedConfiguration }) => ({
+              ...map,
+              [id + '-configuration']: new FormControl(configuration ?? {}),
+              [id + '-sharedConfiguration']: new FormControl(sharedConfiguration ?? {}),
+            }),
             {},
           ) ?? {}),
         });
@@ -78,7 +88,8 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
         id,
         name,
         icon,
-        configuration: this.formGroup.get(id)?.value,
+        configuration: this.formGroup.get(id + '-configuration')?.value,
+        sharedConfiguration: this.formGroup.get(id + '-sharedConfiguration')?.value,
       })),
     }));
 

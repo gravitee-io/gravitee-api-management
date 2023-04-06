@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { GioConfirmDialogModule, GioIconsModule, GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogModule, GioIconsModule, GioFormJsonSchemaModule, GioBannerModule } from '@gravitee/ui-particles-angular';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -77,6 +77,7 @@ import { GioConnectorDialogModule } from '../../../../components/gio-connector-d
     GioFormListenersContextPathModule,
     GioFormListenersVirtualHostModule,
     GioConnectorDialogModule,
+    GioBannerModule,
   ],
   declarations: [
     ApiCreationV4Component,
