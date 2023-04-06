@@ -29,8 +29,9 @@ public interface HttpRequestDispatcher {
      * Dispatches the incoming request to the right {@link io.gravitee.gateway.reactor.handler.ReactorHandler}.
      *
      * @param httpServerRequest the vertx http request.
+     * @param serverId the id of the server handling the request.
      *
      * @return a {@link Completable} that completes when the request has been fully dispatched and completed.
      */
-    Completable dispatch(HttpServerRequest httpServerRequest);
+    Completable dispatch(HttpServerRequest httpServerRequest, String serverId);
 }

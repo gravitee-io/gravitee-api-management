@@ -22,5 +22,5 @@ import io.gravitee.gateway.reactor.handler.HttpAcceptor;
  * @author GraviteeSource Team
  */
 public interface HttpAcceptorResolver {
-    HttpAcceptor resolve(String host, String path);
+    HttpAcceptor resolve(String host, String path, String serverId);
 }

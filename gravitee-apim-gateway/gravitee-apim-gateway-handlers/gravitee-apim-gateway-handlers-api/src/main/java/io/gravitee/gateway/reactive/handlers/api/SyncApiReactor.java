@@ -368,7 +368,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
                 .getProxy()
                 .getVirtualHosts()
                 .stream()
-                .map(virtualHost -> new DefaultHttpAcceptor(virtualHost.getHost(), virtualHost.getPath(), this))
+                .map(virtualHost ->
+                    new DefaultHttpAcceptor(virtualHost.getHost(), virtualHost.getPath(), this, api.getDefinition().getProxy().getServers())
+                )
                 .collect(Collectors.toList());
         } catch (Exception ex) {
             return Collections.emptyList();

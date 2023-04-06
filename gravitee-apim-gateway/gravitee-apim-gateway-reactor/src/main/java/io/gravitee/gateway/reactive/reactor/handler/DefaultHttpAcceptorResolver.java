@@ -31,9 +31,9 @@ public class DefaultHttpAcceptorResolver implements HttpAcceptorResolver {
     }
 
     @Override
-    public HttpAcceptor resolve(String host, String path) {
+    public HttpAcceptor resolve(String host, String path, String serverId) {
         for (HttpAcceptor httpAcceptor : handlerRegistry.getAcceptors(HttpAcceptor.class)) {
-            if (httpAcceptor.accept(host, path)) {
+            if (httpAcceptor.accept(host, path, serverId)) {
                 return httpAcceptor;
             }
         }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.reactive.reactor;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -69,6 +68,7 @@ class DefaultHttpRequestDispatcherTest {
     protected static final String HOST = "gravitee.io";
     protected static final String PATH = "/path";
     protected static final String MOCK_ERROR_MESSAGE = "Mock error";
+    public static final String SERVER_ID = null;
 
     @Spy
     private final Vertx vertx = Vertx.vertx();
@@ -183,7 +183,7 @@ class DefaultHttpRequestDispatcherTest {
 
         when(apiReactor.handle(any(MutableExecutionContext.class))).thenReturn(Completable.complete());
 
-        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
+        final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
         obs.assertResult();
     }
@@ -196,7 +196,7 @@ class DefaultHttpRequestDispatcherTest {
 
         when(apiReactor.handle(any(MutableExecutionContext.class))).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
-        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
+        final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
         obs.assertError(RuntimeException.class);
         obs.assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
@@ -216,7 +216,7 @@ class DefaultHttpRequestDispatcherTest {
             .when(apiReactor)
             .handle(any(ExecutionContext.class), any(Handler.class));
 
-        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
+        final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
         verify(vertx, never()).setTimer(anyLong(), any());
         verify(vertx, never()).cancelTimer(anyLong());
@@ -245,7 +245,7 @@ class DefaultHttpRequestDispatcherTest {
             .when(apiReactor)
             .handle(ctxCaptor.capture(), any(Handler.class));
 
-        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
+        final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
         verify(vertx).setTimer(eq(timeout), any());
         verify(vertx).cancelTimer(vertxTimerId);
@@ -273,7 +273,7 @@ class DefaultHttpRequestDispatcherTest {
             .when(apiReactor)
             .handle(any(ExecutionContext.class), any(Handler.class));
 
-        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
+        final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
         obs.assertResult();
     }
@@ -299,7 +299,7 @@ class DefaultHttpRequestDispatcherTest {
             .when(apiReactor)
             .handle(any(ExecutionContext.class), any(Handler.class));
 
-        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
+        final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
         obs.assertResult();
     }
@@ -312,7 +312,7 @@ class DefaultHttpRequestDispatcherTest {
 
         doThrow(new RuntimeException(MOCK_ERROR_MESSAGE)).when(apiReactor).handle(any(ExecutionContext.class), any(Handler.class));
 
-        final TestObserver<Void> obs = cut.dispatch(rxRequest).test();
+        final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
         obs.assertError(RuntimeException.class);
         obs.assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
@@ -322,9 +322,9 @@ class DefaultHttpRequestDispatcherTest {
     void shouldHandleNotFoundWhenNoHandlerResolved() {
         ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
         when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
-        when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(null);
+        when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(null);
 
-        cut.dispatch(rxRequest).test().assertResult();
+        cut.dispatch(rxRequest, SERVER_ID).test().assertResult();
 
         verify(notFoundProcessorChainFactory).processorChain();
         verify(processorChain).execute(any(), any());
@@ -336,21 +336,21 @@ class DefaultHttpRequestDispatcherTest {
 
         ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
         when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
-        when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(null);
-        cut.dispatch(rxRequest).test().assertResult();
+        when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(null);
+        cut.dispatch(rxRequest, SERVER_ID).test().assertResult();
 
         verify(notFoundProcessorChainFactory).processorChain();
         verify(processorChain).execute(any(), any());
     }
 
     private void prepareJupiterMock(HttpAcceptor handlerEntrypoint, ApiReactor apiReactor) {
-        when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
+        when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(handlerEntrypoint);
         when(handlerEntrypoint.path()).thenReturn(PATH);
         when(handlerEntrypoint.reactor()).thenReturn(apiReactor);
     }
 
     private void prepareV3Mock(HttpAcceptor handlerEntrypoint, ReactorHandler apiReactor) {
-        when(httpAcceptorResolver.resolve(HOST, PATH)).thenReturn(handlerEntrypoint);
+        when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(handlerEntrypoint);
 
         if (apiReactor != null) {
             when(handlerEntrypoint.reactor()).thenReturn(apiReactor);

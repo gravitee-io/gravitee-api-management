@@ -30,6 +30,7 @@ import io.vertx.core.http.HttpVersion;
 
 public class VertxDebugReactorHandler implements Handler<HttpServerRequest> {
 
+    public static final String NO_SERVER_ID = null;
     private final Reactor reactor;
     private final IdGenerator idGenerator;
 
@@ -58,6 +59,6 @@ public class VertxDebugReactorHandler implements Handler<HttpServerRequest> {
     }
 
     protected void route(final Request request, final Response response) {
-        reactor.route(request, response, __ -> {});
+        reactor.route(request, response, NO_SERVER_ID, unused -> {});
     }
 }

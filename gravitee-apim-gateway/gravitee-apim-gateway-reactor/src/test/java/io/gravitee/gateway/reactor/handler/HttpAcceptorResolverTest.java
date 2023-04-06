@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 public class HttpAcceptorResolverTest {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpAcceptorResolverTest.class);
+    private static final String SERVER_ID = "http";
 
     @Mock
     private ReactorHandlerRegistry reactorHandlerRegistry;
@@ -76,30 +77,25 @@ public class HttpAcceptorResolverTest {
     @Test
     public void test_uniqContextPath() {
         HttpAcceptor acceptor = new DefaultHttpAcceptor("/teams");
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(
-            //    new HttpAcceptorHandlerComparator()
-        );
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
         httpAcceptorHandlers.add(acceptor);
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
         when(request.path()).thenReturn("/teams");
 
-        assertEquals(acceptor, handlerResolver.resolve(context));
+        assertEquals(acceptor, handlerResolver.resolve(context, SERVER_ID));
         verify(context, times(1)).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), eq(acceptor));
     }
 
     @Test
     public void test_uniqContextPath_unknownRequestPath() {
         HttpAcceptor acceptor = new DefaultHttpAcceptor("/teams");
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(
-            //    new HttpAcceptorHandlerComparator()
-        );
-
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
         httpAcceptorHandlers.add(acceptor);
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
-        when(request.path()).thenReturn("/team");
+        when(request.path()).thenReturn("/teams");
 
-        assertNull(handlerResolver.resolve(context));
-        verify(context, never()).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), any());
+        assertEquals(acceptor, handlerResolver.resolve(context, SERVER_ID));
+        verify(context, times(1)).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), eq(acceptor));
     }
 
     @Test
@@ -107,17 +103,14 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(
-            //    new HttpAcceptorHandlerComparator()
-        );
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
 
         httpAcceptorHandlers.addAll(Arrays.asList(acceptor1, acceptor2));
 
-        //httpAcceptorHandlers.sort(new HttpAcceptorHandlerComparator());
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
         when(request.path()).thenReturn("/teams");
 
-        assertEquals(acceptor1, handlerResolver.resolve(context));
+        assertEquals(acceptor1, handlerResolver.resolve(context, SERVER_ID));
         verify(context, times(1)).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), eq(acceptor1));
     }
 
@@ -126,18 +119,15 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(
-            //    new HttpAcceptorHandlerComparator()
-        );
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
 
         httpAcceptorHandlers.addAll(Arrays.asList(acceptor1, acceptor2));
 
-        //httpAcceptorHandlers.sort(new HttpAcceptorHandlerComparator());
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
 
         when(request.path()).thenReturn("/team");
 
-        assertNull(handlerResolver.resolve(context));
+        assertNull(handlerResolver.resolve(context, SERVER_ID));
         verify(context, never()).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), any());
     }
 
@@ -146,18 +136,15 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(
-            //    new HttpAcceptorHandlerComparator()
-        );
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
 
         httpAcceptorHandlers.addAll(Arrays.asList(acceptor1, acceptor2));
 
-        //httpAcceptorHandlers.sort(new HttpAcceptorHandlerComparator());
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
 
         when(request.path()).thenReturn("/teamss");
 
-        assertNull(handlerResolver.resolve(context));
+        assertNull(handlerResolver.resolve(context, SERVER_ID));
         verify(context, never()).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), any());
     }
 
@@ -166,18 +153,15 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(
-            //    new HttpAcceptorHandlerComparator()
-        );
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
 
         httpAcceptorHandlers.addAll(Arrays.asList(acceptor1, acceptor2));
 
-        //httpAcceptorHandlers.sort(new HttpAcceptorHandlerComparator());
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
 
         when(request.path()).thenReturn("/teams/");
 
-        assertEquals(acceptor1, handlerResolver.resolve(context));
+        assertEquals(acceptor1, handlerResolver.resolve(context, SERVER_ID));
         verify(context, times(1)).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), eq(acceptor1));
     }
 
@@ -186,18 +170,15 @@ public class HttpAcceptorResolverTest {
         HttpAcceptor acceptor1 = new DefaultHttpAcceptor("/teams");
         HttpAcceptor acceptor2 = new DefaultHttpAcceptor("/teams2");
 
-        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>(
-            //    new HttpAcceptorHandlerComparator()
-        );
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
 
         httpAcceptorHandlers.addAll(Arrays.asList(acceptor1, acceptor2));
 
-        //httpAcceptorHandlers.sort(new HttpAcceptorHandlerComparator());
         when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
 
         when(request.path()).thenReturn("/teamss/");
 
-        assertNull(handlerResolver.resolve(context));
+        assertNull(handlerResolver.resolve(context, SERVER_ID));
         verify(context, never()).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), any());
     }
 
@@ -256,7 +237,7 @@ public class HttpAcceptorResolverTest {
                 reset(request);
                 when(request.host()).thenReturn(null);
                 when(request.path()).thenReturn(path);
-                assertNull(handlerResolver.resolve(context));
+                assertNull(handlerResolver.resolve(context, SERVER_ID));
             });
 
             // All this paths must match because they are exposed in path mode (no host).
@@ -271,7 +252,7 @@ public class HttpAcceptorResolverTest {
                 reset(request);
                 when(request.host()).thenReturn(null);
                 when(request.path()).thenReturn(path);
-                assertEquals(expected, handlerResolver.resolve(context));
+                assertEquals(expected, handlerResolver.resolve(context, SERVER_ID));
             });
         }
 
@@ -288,7 +269,7 @@ public class HttpAcceptorResolverTest {
                 reset(request);
                 when(request.host()).thenReturn(expected.host());
                 when(request.path()).thenReturn(path);
-                assertNull(handlerResolver.resolve(context));
+                assertNull(handlerResolver.resolve(context, SERVER_ID));
             });
 
             // All this paths must match because they all starts with "/a/b/c".
@@ -305,7 +286,7 @@ public class HttpAcceptorResolverTest {
                 reset(request);
                 when(request.host()).thenReturn(expected.host());
                 when(request.path()).thenReturn(path);
-                assertEquals(expected, handlerResolver.resolve(context));
+                assertEquals(expected, handlerResolver.resolve(context, SERVER_ID));
             });
         }
 
@@ -321,7 +302,7 @@ public class HttpAcceptorResolverTest {
                 reset(request);
                 when(request.host()).thenReturn(expected.host());
                 when(request.path()).thenReturn(path);
-                assertNull(handlerResolver.resolve(context));
+                assertNull(handlerResolver.resolve(context, SERVER_ID));
             });
 
             // All this paths must match because
@@ -336,7 +317,7 @@ public class HttpAcceptorResolverTest {
                 reset(request);
                 when(request.host()).thenReturn(expected.host());
                 when(request.path()).thenReturn(path);
-                assertEquals(expected, handlerResolver.resolve(context));
+                assertEquals(expected, handlerResolver.resolve(context, SERVER_ID));
             });
         }
     }

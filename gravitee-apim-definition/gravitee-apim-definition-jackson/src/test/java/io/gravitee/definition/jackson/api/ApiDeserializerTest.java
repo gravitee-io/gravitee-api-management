@@ -259,6 +259,16 @@ public class ApiDeserializerTest extends AbstractTest {
     }
 
     @Test
+    public void definition_withServers() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-withservers.json", Api.class);
+        Assert.assertNotNull(api.getProxy().getServers());
+        assertEquals(2, api.getProxy().getServers().size());
+        final Iterator<String> servers = api.getProxy().getServers().iterator();
+        assertEquals("server1", servers.next());
+        assertEquals("server2", servers.next());
+    }
+
+    @Test
     public void definition_singleEndpoint() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-singleendpoint.json", Api.class);
         assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());

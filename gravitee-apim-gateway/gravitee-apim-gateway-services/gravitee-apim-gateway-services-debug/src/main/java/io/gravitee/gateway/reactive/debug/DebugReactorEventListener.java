@@ -35,6 +35,7 @@ import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.net.OpenSSLEngineOptions;
@@ -189,6 +190,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
         if (debugHttpClientConfiguration.isSecured()) {
             options.setSsl(debugHttpClientConfiguration.isSecured());
             options.setTrustAll(true);
+            options.setVerifyHost(false);
             if (debugHttpClientConfiguration.isOpenssl()) {
                 options.setSslEngineOptions(new OpenSSLEngineOptions());
             }

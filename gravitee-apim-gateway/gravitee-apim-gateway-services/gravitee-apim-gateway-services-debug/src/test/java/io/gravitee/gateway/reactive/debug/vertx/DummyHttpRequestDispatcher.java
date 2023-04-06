@@ -26,7 +26,7 @@ import io.vertx.rxjava3.core.http.HttpServerRequest;
 public class DummyHttpRequestDispatcher implements HttpRequestDispatcher {
 
     @Override
-    public Completable dispatch(HttpServerRequest httpServerRequest) {
+    public Completable dispatch(HttpServerRequest httpServerRequest, String serverId) {
         return httpServerRequest.response().rxEnd();
     }
 }

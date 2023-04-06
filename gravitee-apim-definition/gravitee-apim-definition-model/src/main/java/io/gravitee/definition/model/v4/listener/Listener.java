@@ -76,6 +76,8 @@ public abstract class Listener implements Serializable {
     @NotEmpty
     private List<Entrypoint> entrypoints;
 
+    private List<String> servers;
+
     protected Listener(ListenerType type) {
         this.type = type;
     }

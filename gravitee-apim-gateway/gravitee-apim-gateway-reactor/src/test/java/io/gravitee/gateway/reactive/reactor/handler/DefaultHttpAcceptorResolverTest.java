@@ -38,6 +38,7 @@ class DefaultHttpAcceptorResolverTest {
 
     protected static final String HOST = "gravitee.io";
     protected static final String PATH = "/path";
+    private static final String SERVER_ID = "http";
 
     @Mock
     private ReactorHandlerRegistry handlerRegistry;
@@ -55,13 +56,13 @@ class DefaultHttpAcceptorResolverTest {
         final HttpAcceptor handler2 = mock(HttpAcceptor.class);
         final HttpAcceptor handler3 = mock(HttpAcceptor.class);
 
-        when(handler1.accept(HOST, PATH)).thenReturn(false);
-        when(handler2.accept(HOST, PATH)).thenReturn(false);
-        when(handler3.accept(HOST, PATH)).thenReturn(true);
+        when(handler1.accept(HOST, PATH, SERVER_ID)).thenReturn(false);
+        when(handler2.accept(HOST, PATH, SERVER_ID)).thenReturn(false);
+        when(handler3.accept(HOST, PATH, SERVER_ID)).thenReturn(true);
 
         when(handlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(List.of(handler1, handler2, handler3));
 
-        final HttpAcceptor resolvedHandler = cut.resolve(HOST, PATH);
+        final HttpAcceptor resolvedHandler = cut.resolve(HOST, PATH, SERVER_ID);
 
         assertEquals(handler3, resolvedHandler);
     }
@@ -72,13 +73,13 @@ class DefaultHttpAcceptorResolverTest {
         final HttpAcceptor handler2 = mock(HttpAcceptor.class);
         final HttpAcceptor handler3 = mock(HttpAcceptor.class);
 
-        when(handler1.accept(HOST, PATH)).thenReturn(false);
-        when(handler2.accept(HOST, PATH)).thenReturn(false);
-        when(handler3.accept(HOST, PATH)).thenReturn(false);
+        when(handler1.accept(HOST, PATH, SERVER_ID)).thenReturn(false);
+        when(handler2.accept(HOST, PATH, SERVER_ID)).thenReturn(false);
+        when(handler3.accept(HOST, PATH, SERVER_ID)).thenReturn(false);
 
         when(handlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(List.of(handler1, handler2, handler3));
 
-        final HttpAcceptor resolvedHandler = cut.resolve(HOST, PATH);
+        final HttpAcceptor resolvedHandler = cut.resolve(HOST, PATH, SERVER_ID);
 
         assertNull(resolvedHandler);
     }

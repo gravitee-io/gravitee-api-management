@@ -22,6 +22,10 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.node.api.server.DefaultServerManager;
+import io.gravitee.node.api.server.ServerManager;
+import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
+import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
@@ -41,8 +45,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(VertxExtension.class)
 class HttpProtocolVerticleTest {
 
+    private VertxHttpServerOptions httpOptions;
     private HttpRequestDispatcher mockRequestDispatcher;
-    private HttpServer httpServer;
 
     @BeforeEach
     @DisplayName("Deploy a new http protocol verticle")
@@ -50,9 +54,14 @@ class HttpProtocolVerticleTest {
         ServerSocket socket = new ServerSocket(0);
         int randomPort = socket.getLocalPort();
         socket.close();
-        httpServer = vertx.createHttpServer(new HttpServerOptions().setPort(randomPort));
+
+        final ServerManager serverManager = new DefaultServerManager();
+        final VertxHttpServerFactory vertxHttpServerFactory = new VertxHttpServerFactory(io.vertx.rxjava3.core.Vertx.newInstance(vertx));
+        httpOptions = VertxHttpServerOptions.builder().id("UnitTest").port(randomPort).build();
+        serverManager.register(vertxHttpServerFactory.create(httpOptions));
+
         mockRequestDispatcher = spy(new DummyHttpRequestDispatcher());
-        vertx.deployVerticle(new HttpProtocolVerticle(httpServer, mockRequestDispatcher), testContext.succeedingThenComplete());
+        vertx.deployVerticle(new HttpProtocolVerticle(serverManager, mockRequestDispatcher), testContext.succeedingThenComplete());
     }
 
     @AfterEach
@@ -70,7 +79,7 @@ class HttpProtocolVerticleTest {
     void httpServerShouldListen(Vertx vertx, VertxTestContext testContext) {
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
@@ -84,17 +93,20 @@ class HttpProtocolVerticleTest {
 
     @Test
     void httpServerShouldCloseAndResumeOnError(Vertx vertx, VertxTestContext testContext) {
-        doReturn(Completable.error(new RuntimeException("error"))).doCallRealMethod().when(mockRequestDispatcher).dispatch(any());
+        doReturn(Completable.error(new RuntimeException("error")))
+            .doCallRealMethod()
+            .when(mockRequestDispatcher)
+            .dispatch(any(), anyString());
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(HttpStatusCode.INTERNAL_SERVER_ERROR_500))
                 )
             )
-            .compose(httpClientResponse -> client.request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/"))
+            .compose(httpClientResponse -> client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
@@ -108,10 +120,12 @@ class HttpProtocolVerticleTest {
 
     @Test
     void httpServerShouldDisposeWhenConnectionClosed(Vertx vertx, VertxTestContext testContext) {
-        doReturn(Completable.timer(2, TimeUnit.SECONDS).doOnDispose(testContext::completeNow)).when(mockRequestDispatcher).dispatch(any());
+        doReturn(Completable.timer(2, TimeUnit.SECONDS).doOnDispose(testContext::completeNow))
+            .when(mockRequestDispatcher)
+            .dispatch(any(), anyString());
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
             .compose(request -> {
                 request.send().otherwiseEmpty();
                 return request.connection().close();
@@ -130,18 +144,18 @@ class HttpProtocolVerticleTest {
             })
             .doCallRealMethod()
             .when(mockRequestDispatcher)
-            .dispatch(any());
+            .dispatch(any(), anyString());
 
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(SERVICE_UNAVAILABLE_503))
                 )
             )
-            .compose(httpClientResponse -> client.request(HttpMethod.GET, httpServer.actualPort(), "127.0.0.1", "/"))
+            .compose(httpClientResponse -> client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->

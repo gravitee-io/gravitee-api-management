@@ -41,8 +41,9 @@
 #        - cert: ${gravitee.home}/security/mycompany.com.pem
 #          key: ${gravitee.home}/security/mycompany.com.key
 #      password: secret
+#      watch: true # Watch for any updates on the keystore and reload it. Default is true.
 #    truststore:
-#      type: jks # Supports jks, pem, pkcs12, self-signed
+#      type: jks # Supports jks, pem, pkcs12
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
 #    sni: false

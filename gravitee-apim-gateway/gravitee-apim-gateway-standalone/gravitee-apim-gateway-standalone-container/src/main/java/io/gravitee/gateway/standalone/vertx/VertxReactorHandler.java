@@ -40,13 +40,15 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
     private final Reactor reactor;
     private final IdGenerator idGenerator;
     private final long requestTimeout;
+    private final String serverId;
     private final Vertx vertx;
 
-    public VertxReactorHandler(final Reactor reactor, IdGenerator idGenerator, final Vertx vertx, long requestTimeout) {
+    public VertxReactorHandler(final Reactor reactor, IdGenerator idGenerator, final Vertx vertx, long requestTimeout, String serverId) {
         this.reactor = reactor;
         this.idGenerator = idGenerator;
         this.vertx = vertx;
         this.requestTimeout = requestTimeout;
+        this.serverId = serverId;
     }
 
     @Override
@@ -79,9 +81,9 @@ public class VertxReactorHandler implements Handler<HttpServerRequest> {
             );
 
             // Release timeout when response ends
-            reactor.route(request, new TimeoutServerResponse(vertx, response, timeoutId), __ -> {});
+            reactor.route(request, new TimeoutServerResponse(vertx, response, timeoutId), serverId, unused -> {});
         } else {
-            reactor.route(request, response, __ -> {});
+            reactor.route(request, response, serverId, unused -> {});
         }
     }
 }

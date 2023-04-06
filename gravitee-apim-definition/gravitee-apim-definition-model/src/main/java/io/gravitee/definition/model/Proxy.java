@@ -46,6 +46,9 @@ public class Proxy implements Serializable {
     @JsonProperty("preserve_host")
     private boolean preserveHost = false;
 
+    @JsonProperty("servers")
+    private List<String> servers;
+
     public boolean isStripContextPath() {
         return stripContextPath;
     }
@@ -104,5 +107,13 @@ public class Proxy implements Serializable {
 
     public void setPreserveHost(boolean preserveHost) {
         this.preserveHost = preserveHost;
+    }
+
+    public List<String> getServers() {
+        return servers;
+    }
+
+    public void setServers(List<String> servers) {
+        this.servers = servers;
     }
 }

@@ -60,7 +60,7 @@ public class DefaultReactor implements Reactor {
     }
 
     @Override
-    public void route(Request serverRequest, Response serverResponse, Handler<ExecutionContext> handler) {
+    public void route(Request serverRequest, Response serverResponse, String serverId, Handler<ExecutionContext> handler) {
         LOGGER.debug("Receiving a request {} for path {}", serverRequest.id(), serverRequest.path());
 
         // Prepare invocation execution context
@@ -76,7 +76,7 @@ public class DefaultReactor implements Reactor {
         requestProcessorChainFactory
             .create()
             .handler(ctx -> {
-                HttpAcceptor httpAcceptorHandler = acceptorResolver.resolve(ctx);
+                HttpAcceptor httpAcceptorHandler = acceptorResolver.resolve(ctx, serverId);
 
                 if (httpAcceptorHandler != null) {
                     httpAcceptorHandler

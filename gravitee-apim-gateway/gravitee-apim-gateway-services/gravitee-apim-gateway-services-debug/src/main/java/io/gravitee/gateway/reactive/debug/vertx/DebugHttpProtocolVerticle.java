@@ -17,12 +17,15 @@ package io.gravitee.gateway.reactive.debug.vertx;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.node.api.server.ServerManager;
+import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.vertx.core.http.HttpServer;
 import io.vertx.rxjava3.core.AbstractVerticle;
+import io.vertx.rxjava3.core.http.HttpServer;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,28 +40,33 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
 
     private final Logger log = LoggerFactory.getLogger(DebugHttpProtocolVerticle.class);
 
-    private final io.vertx.rxjava3.core.http.HttpServer rxHttpServer;
     private final HttpRequestDispatcher requestDispatcher;
+    private final VertxHttpServer debugServer;
     private Disposable requestDisposable;
 
     public DebugHttpProtocolVerticle(
-        @Qualifier("debugGatewayHttpServer") HttpServer httpServer,
+        @Qualifier("debugServer") VertxHttpServer debugServer,
         @Qualifier("debugHttpRequestDispatcher") HttpRequestDispatcher requestDispatcher
     ) {
-        this.rxHttpServer = io.vertx.rxjava3.core.http.HttpServer.newInstance(httpServer);
+        this.debugServer = debugServer;
         this.requestDispatcher = requestDispatcher;
     }
 
     @Override
     public Completable rxStart() {
+        final HttpServer rxHttpServer = debugServer.newInstance();
+
         // Listen and dispatch http requests.
         requestDisposable = rxHttpServer.requestStream().toFlowable().flatMapCompletable(this::dispatchRequest).subscribe();
 
         return rxHttpServer
             .rxListen()
             .ignoreElement()
-            .doOnComplete(() -> log.info("HTTP listener ready to accept requests on port {}", rxHttpServer.actualPort()))
-            .doOnError(throwable -> log.error("Unable to start HTTP Server", throwable.getCause()));
+            .doOnComplete(() ->
+                log.info("Debug HTTP server [{}] ready to accept requests on port {}", debugServer.id(), rxHttpServer.actualPort())
+            )
+            .doOnError(throwable -> log.error("Unable to start debug HTTP server [{}]", debugServer.id(), throwable.getCause()))
+            .doOnSubscribe(disposable -> log.info("Starting debug HTTP server..."));
     }
 
     /**
@@ -72,7 +80,7 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
      */
     private Completable dispatchRequest(HttpServerRequest request) {
         return requestDispatcher
-            .dispatch(request)
+            .dispatch(request, debugServer.id())
             .doOnComplete(() -> log.debug("Request properly dispatched"))
             .onErrorResumeNext(t -> handleError(t, request.response()))
             .doOnSubscribe(dispatchDisposable -> configureCloseHandler(request, dispatchDisposable));
@@ -128,9 +136,20 @@ public class DebugHttpProtocolVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStop() {
-        log.info("Stopping HTTP Server...");
         return Completable
             .fromRunnable(requestDisposable::dispose)
-            .andThen(rxHttpServer.rxClose().doOnComplete(() -> log.info("HTTP Server has been correctly stopped")));
+            .andThen(
+                debugServer
+                    .instances()
+                    .stream()
+                    .map(rxHttpServer ->
+                        rxHttpServer
+                            .rxClose()
+                            .doOnComplete(() -> log.info("Debug HTTP Server [{}] has been correctly stopped", debugServer.id()))
+                    )
+                    .findFirst()
+                    .orElse(Completable.complete())
+            )
+            .doOnSubscribe(disposable -> log.info("Stopping debug HTTP server..."));
     }
 }

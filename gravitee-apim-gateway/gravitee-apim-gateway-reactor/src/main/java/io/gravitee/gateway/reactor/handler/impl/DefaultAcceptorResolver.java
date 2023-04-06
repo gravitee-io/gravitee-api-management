@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactor.handler.impl;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -36,9 +37,11 @@ public class DefaultAcceptorResolver implements AcceptorResolver {
     }
 
     @Override
-    public HttpAcceptor resolve(ExecutionContext context) {
+    public HttpAcceptor resolve(ExecutionContext context, String serverId) {
         for (HttpAcceptor acceptor : handlerRegistry.getAcceptors(HttpAcceptor.class)) {
-            if (acceptor.accept(context.request())) {
+            final Request request = context.request();
+
+            if (acceptor.accept(request.host(), request.path(), serverId)) {
                 context.setAttribute(ATTR_ENTRYPOINT, acceptor);
 
                 return acceptor;

@@ -22,11 +22,13 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
 import java.io.IOException;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ProxySerializer extends StdScalarSerializer<Proxy> {
 
     public ProxySerializer(Class<Proxy> t) {
@@ -79,6 +81,20 @@ public class ProxySerializer extends StdScalarSerializer<Proxy> {
 
         if (proxy.getCors() != null && proxy.getCors().isEnabled()) {
             jgen.writeObjectField("cors", proxy.getCors());
+        }
+
+        if (proxy.getServers() != null && !proxy.getServers().isEmpty()) {
+            jgen.writeArrayFieldStart("servers");
+            proxy
+                .getServers()
+                .forEach(server -> {
+                    try {
+                        jgen.writeObject(server);
+                    } catch (IOException e) {
+                        log.warn("An error occurred while serializing api proxy servers.", e);
+                    }
+                });
+            jgen.writeEndArray();
         }
 
         jgen.writeEndObject();

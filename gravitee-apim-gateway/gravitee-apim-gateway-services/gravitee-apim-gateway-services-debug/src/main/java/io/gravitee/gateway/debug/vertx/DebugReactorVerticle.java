@@ -15,16 +15,16 @@
  */
 package io.gravitee.gateway.debug.vertx;
 
-import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.utils.Hex;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.reactor.Reactor;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
+import io.gravitee.node.api.server.ServerManager;
+import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,22 +38,22 @@ public class DebugReactorVerticle extends AbstractVerticle {
     private final Logger logger = LoggerFactory.getLogger(DebugReactorVerticle.class);
 
     @Autowired
-    @Qualifier("debugGatewayHttpServer")
-    private HttpServer httpServer;
-
-    @Autowired
     @Qualifier("debugReactor")
     private Reactor reactor;
 
     @Autowired
-    @Qualifier("debugHttpServerConfiguration")
-    private HttpServerConfiguration debugHttpServerConfiguration;
+    @Qualifier("debugServer")
+    private VertxHttpServer debugServer;
 
     @Value("${handlers.request.format:uuid}")
     private String requestFormat;
 
     @Override
     public void start(Promise<Void> startPromise) {
+        logger.info("Starting Debug HTTP server...");
+
+        final HttpServer httpServer = debugServer.newInstance().getDelegate();
+
         VertxDebugReactorHandler handler;
 
         final IdGenerator idGenerator;
@@ -69,7 +69,7 @@ public class DebugReactorVerticle extends AbstractVerticle {
 
         httpServer.listen(res -> {
             if (res.succeeded()) {
-                logger.info("Debug HTTP listener ready to accept requests on port {}", debugHttpServerConfiguration.getPort());
+                logger.info("Debug HTTP server ready to accept requests on port {}", httpServer.actualPort());
                 startPromise.complete();
             } else {
                 logger.error("Unable to start Debug HTTP Server", res.cause());
@@ -80,7 +80,16 @@ public class DebugReactorVerticle extends AbstractVerticle {
 
     @Override
     public void stop() {
-        logger.info("Stopping Debug HTTP Server...");
-        httpServer.close(voidAsyncResult -> logger.info("Debug HTTP Server has been correctly stopped"));
+        logger.info("Stopping Debug HTTP server...");
+
+        final Optional<HttpServer> httpServerOpt = debugServer
+            .instances()
+            .stream()
+            .map(io.vertx.rxjava3.core.http.HttpServer::getDelegate)
+            .findFirst();
+
+        httpServerOpt.ifPresent(httpServer ->
+            httpServer.close(voidAsyncResult -> logger.info("Debug HTTP Server has been correctly stopped"))
+        );
     }
 }

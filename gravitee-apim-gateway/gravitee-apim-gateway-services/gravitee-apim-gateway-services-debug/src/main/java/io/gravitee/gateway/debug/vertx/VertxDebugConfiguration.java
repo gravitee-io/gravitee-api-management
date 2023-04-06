@@ -20,12 +20,19 @@ import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_
 
 import io.gravitee.gateway.reactive.debug.vertx.DebugHttpProtocolVerticle;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.node.api.server.DefaultServerManager;
+import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
-import io.gravitee.node.vertx.VertxHttpServerFactory;
-import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
+import io.gravitee.node.vertx.server.VertxServer;
+import io.gravitee.node.vertx.server.VertxServerFactory;
+import io.gravitee.node.vertx.server.VertxServerOptions;
+import io.gravitee.node.vertx.server.http.VertxHttpServer;
+import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
+import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
 import io.vertx.core.Verticle;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServer;
+import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.http.HttpServer;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -33,8 +40,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.Environment;
-import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.env.StandardEnvironment;
 
 @Configuration
 public class VertxDebugConfiguration {
@@ -42,43 +47,63 @@ public class VertxDebugConfiguration {
     @Value("${" + JUPITER_MODE_ENABLED_KEY + ":" + JUPITER_MODE_ENABLED_BY_DEFAULT + "}")
     private boolean jupiterMode;
 
-    @Bean("debugHttpServerConfiguration")
-    public HttpServerConfiguration debugHttpServerConfiguration(Environment environment) {
-        return HttpServerConfiguration
+    @Bean("debugHttpClientConfiguration")
+    public VertxDebugHttpClientConfiguration debugHttpClientConfiguration(
+        @Qualifier("debugServer") VertxHttpServer debugServer,
+        Environment environment
+    ) {
+        final VertxHttpServerOptions options = debugServer.options();
+        return VertxDebugHttpClientConfiguration
             .builder()
-            .withEnvironment(environment)
-            .withPort(Integer.parseInt(environment.getProperty("debug.port", "8482")))
-            .withHost(environment.getProperty("debug.host", "localhost"))
-            .build()
-            // We can't use the default withDefaultProxyProtocol because the implementation of HttpServerConfiguration rely on the environment value and not the one passed in builder
-            .withSecured(Boolean.TRUE.equals(environment.getProperty("http.secured", Boolean.class)))
-            .withAlpn(Boolean.TRUE.equals(environment.getProperty("http.alpn", Boolean.class)))
-            .withOpenssl(Boolean.TRUE.equals(environment.getProperty("http.ssl.openssl", Boolean.class)))
-            .withProxyProtocol(false);
+            .port(options.getPort())
+            .host(options.getHost())
+            .secured(options.isSecured())
+            .openssl(options.isOpenssl())
+            .compressionSupported(options.isCompressionSupported())
+            .alpn(options.isAlpn())
+            .connectTimeout(environment.getProperty("debug.timeout.connect", Integer.class, 5000))
+            .requestTimeout(environment.getProperty("debug.timeout.request", Integer.class, 10000))
+            .build();
     }
 
-    @Bean("debugGatewayHttpServer")
-    public VertxHttpServerFactory debugGatewayHttpServer(
-        Vertx vertx,
-        @Qualifier("debugHttpServerConfiguration") HttpServerConfiguration httpServerConfiguration,
+    @Bean("debugServerFactory")
+    public VertxHttpServerFactory debugHttpServerFactory(Vertx vertx) {
+        return new VertxHttpServerFactory(vertx);
+    }
+
+    @Bean("debugServer")
+    public VertxHttpServer debugServer(
+        VertxHttpServerFactory debugHttpServerFactory,
+        Environment environment,
         KeyStoreLoaderManager keyStoreLoaderManager
     ) {
-        return new VertxHttpServerFactory(vertx, httpServerConfiguration, keyStoreLoaderManager);
-    }
+        final VertxHttpServerOptions.VertxHttpServerOptionsBuilder<?, ?> optionsBuilder;
 
-    @Bean("debugHttpClientConfiguration")
-    public VertxDebugHttpClientConfiguration debugHttpClientConfiguration() {
-        return new VertxDebugHttpClientConfiguration();
+        if (environment.getProperty("servers[0].type") != null) {
+            // Use the first server from the server list.
+            optionsBuilder =
+                VertxDebugHttpServerOptions
+                    .builder()
+                    .prefix("servers[0]")
+                    .environment(environment)
+                    .keyStoreLoaderManager(keyStoreLoaderManager);
+        } else {
+            // No server list configured, fallback to single http server configuration.
+            optionsBuilder =
+                VertxDebugHttpServerOptions.builder().prefix("http").environment(environment).keyStoreLoaderManager(keyStoreLoaderManager);
+        }
+
+        return debugHttpServerFactory.create(optionsBuilder.build());
     }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
     public Verticle debugVerticle(
-        @Qualifier("debugGatewayHttpServer") HttpServer httpServer,
+        @Qualifier("debugServer") VertxHttpServer debugServer,
         @Qualifier("debugHttpRequestDispatcher") HttpRequestDispatcher requestDispatcher
     ) {
         if (jupiterMode) {
-            return new DebugHttpProtocolVerticle(httpServer, requestDispatcher);
+            return new DebugHttpProtocolVerticle(debugServer, requestDispatcher);
         } else {
             return new DebugReactorVerticle();
         }

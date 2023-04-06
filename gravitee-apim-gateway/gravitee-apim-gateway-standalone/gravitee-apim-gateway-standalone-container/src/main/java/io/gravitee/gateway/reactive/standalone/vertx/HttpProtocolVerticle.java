@@ -17,15 +17,21 @@ package io.gravitee.gateway.reactive.standalone.vertx;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.node.api.server.ServerManager;
+import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.vertx.core.http.HttpServer;
 import io.vertx.rxjava3.core.AbstractVerticle;
 import io.vertx.rxjava3.core.RxHelper;
+import io.vertx.rxjava3.core.http.HttpServer;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,16 +47,19 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
     private final Logger log = LoggerFactory.getLogger(HttpProtocolVerticle.class);
 
-    private final io.vertx.rxjava3.core.http.HttpServer rxHttpServer;
+    private final ServerManager serverManager;
     private final HttpRequestDispatcher requestDispatcher;
-    private Disposable requestDisposable;
+    private final List<Disposable> requestDisposables;
+    private final Map<VertxHttpServer, HttpServer> httpServerMap;
 
     public HttpProtocolVerticle(
-        @Qualifier("gatewayHttpServer") HttpServer httpServer,
+        final ServerManager serverManager,
         @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
     ) {
-        this.rxHttpServer = io.vertx.rxjava3.core.http.HttpServer.newInstance(httpServer);
+        this.serverManager = serverManager;
         this.requestDispatcher = requestDispatcher;
+        this.requestDisposables = new ArrayList<>();
+        this.httpServerMap = new HashMap<>();
     }
 
     @Override
@@ -63,14 +72,32 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         RxJavaPlugins.setIoSchedulerHandler(s -> RxHelper.blockingScheduler(vertx));
         RxJavaPlugins.setNewThreadSchedulerHandler(s -> RxHelper.scheduler(vertx));
 
-        // Listen and dispatch http requests.
-        requestDisposable = rxHttpServer.requestStream().toFlowable().flatMapCompletable(this::dispatchRequest).subscribe();
+        final List<VertxHttpServer> servers = this.serverManager.servers(VertxHttpServer.class);
 
-        return rxHttpServer
-            .rxListen()
-            .ignoreElement()
-            .doOnComplete(() -> log.info("HTTP listener ready to accept requests on port {}", rxHttpServer.actualPort()))
-            .doOnError(throwable -> log.error("Unable to start HTTP Server", throwable.getCause()));
+        return Flowable
+            .fromIterable(servers)
+            .concatMapCompletable(gioServer -> {
+                final HttpServer rxHttpServer = gioServer.newInstance();
+                httpServerMap.put(gioServer, rxHttpServer);
+
+                // Listen and dispatch http requests.
+                requestDisposables.add(
+                    rxHttpServer
+                        .requestStream()
+                        .toFlowable()
+                        .flatMapCompletable(request -> dispatchRequest(request, gioServer.id()))
+                        .subscribe()
+                );
+
+                return rxHttpServer
+                    .rxListen()
+                    .ignoreElement()
+                    .doOnComplete(() ->
+                        log.info("HTTP server [{}] ready to accept requests on port {}", gioServer.id(), rxHttpServer.actualPort())
+                    )
+                    .doOnError(throwable -> log.error("Unable to start HTTP server [{}]", gioServer.id(), throwable.getCause()));
+            })
+            .doOnSubscribe(disposable -> log.info("Starting HTTP servers..."));
     }
 
     /**
@@ -80,11 +107,13 @@ public class HttpProtocolVerticle extends AbstractVerticle {
      * Eventually, in case of unexpected error during the request dispatch, tries to end the response if not already ended (but it's an exceptional case that should not occur).
      *
      * @param request the current request to dispatch.
+     * @param serverId the id of the server handling the request.
+     *
      * @return a {@link Completable} that completes once the request has been ended.
      */
-    private Completable dispatchRequest(HttpServerRequest request) {
+    private Completable dispatchRequest(HttpServerRequest request, String serverId) {
         return requestDispatcher
-            .dispatch(request)
+            .dispatch(request, serverId)
             .doOnComplete(() -> log.debug("Request properly dispatched"))
             .onErrorResumeNext(t -> handleError(t, request.response()))
             .doOnSubscribe(dispatchDisposable -> configureCloseHandler(request, dispatchDisposable));
@@ -140,9 +169,21 @@ public class HttpProtocolVerticle extends AbstractVerticle {
 
     @Override
     public Completable rxStop() {
-        log.info("Stopping HTTP Server...");
-        return Completable
-            .fromRunnable(() -> requestDisposable.dispose())
-            .andThen(rxHttpServer.rxClose().doOnComplete(() -> log.info("HTTP Server has been correctly stopped")));
+        return Flowable
+            .fromIterable(requestDisposables)
+            .doOnNext(Disposable::dispose)
+            .ignoreElements()
+            .andThen(
+                Flowable
+                    .fromIterable(httpServerMap.entrySet())
+                    .flatMapCompletable(entry -> {
+                        final VertxHttpServer gioServer = entry.getKey();
+                        final HttpServer rxHttpServer = entry.getValue();
+                        return rxHttpServer
+                            .rxClose()
+                            .doOnComplete(() -> log.info("HTTP server [{}] has been correctly stopped", gioServer.id()));
+                    })
+            )
+            .doOnSubscribe(disposable -> log.info("Stopping HTTP servers..."));
     }
 }

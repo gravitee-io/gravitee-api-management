@@ -16,39 +16,33 @@
 package io.gravitee.gateway.debug.vertx;
 
 import io.vertx.core.http.HttpServerOptions;
+import lombok.Builder;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Guillaume Cusnieux (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
 public class VertxDebugHttpClientConfiguration {
 
-    private static final int MAX_CONNECTION_TIMEOUT = 5000;
-    private static final int MAX_REQUEST_TIMEOUT = 10000;
+    public static final int MAX_CONNECTION_TIMEOUT = 5000;
+    public static final int MAX_REQUEST_TIMEOUT = 10000;
 
-    @Value("${http.compressionSupported:" + HttpServerOptions.DEFAULT_COMPRESSION_SUPPORTED + "}")
     private boolean compressionSupported;
 
-    @Value("${http.alpn:false}")
     private boolean alpn;
 
-    @Value("${http.secured:false}")
     private boolean secured;
 
-    @Value("${http.ssl.openssl:false}")
     private boolean openssl;
 
-    @Value("${debug.timeout.connect:5000}")
     private int connectTimeout;
 
-    @Value("${debug.timeout.request:10000}")
     private int requestTimeout;
 
-    @Value("${debug.port:8482}")
     private int port;
 
-    @Value("${debug.host:localhost}")
     private String host;
 
     public boolean isCompressionSupported() {
@@ -76,7 +70,7 @@ public class VertxDebugHttpClientConfiguration {
     }
 
     public int getConnectTimeout() {
-        return connectTimeout < MAX_CONNECTION_TIMEOUT ? connectTimeout : MAX_CONNECTION_TIMEOUT;
+        return Math.min(connectTimeout, MAX_CONNECTION_TIMEOUT);
     }
 
     public void setConnectTimeout(int connectTimeout) {
@@ -84,7 +78,7 @@ public class VertxDebugHttpClientConfiguration {
     }
 
     public int getRequestTimeout() {
-        return requestTimeout < MAX_REQUEST_TIMEOUT ? requestTimeout : MAX_REQUEST_TIMEOUT;
+        return Math.min(requestTimeout, MAX_REQUEST_TIMEOUT);
     }
 
     public void setRequestTimeout(int requestTimeout) {
