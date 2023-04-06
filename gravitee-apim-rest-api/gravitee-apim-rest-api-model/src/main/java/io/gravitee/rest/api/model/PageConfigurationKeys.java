@@ -36,6 +36,7 @@ public final class PageConfigurationKeys {
     public static final String SWAGGER_SWAGGERUI_SHOW_EXTENSIONS = "showExtensions";
     public static final String SWAGGER_SWAGGERUI_SHOW_COMMON_EXTENSIONS = "showCommonExtensions";
     public static final String SWAGGER_SWAGGERUI_MAX_DISPLAYED_TAGS = "maxDisplayedTags";
+    public static final String SWAGGER_SWAGGERUI_USE_PKCE = "usePkce";
     public static final String SWAGGER_VIEWER = "viewer";
     public static final String TRANSLATION_LANG = "lang";
     public static final String TRANSLATION_INHERIT_CONTENT = "inheritContent";
