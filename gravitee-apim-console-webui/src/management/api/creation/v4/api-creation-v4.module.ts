@@ -59,6 +59,7 @@ import { GioFormListenersContextPathModule } from '../../../../components/gio-fo
 import { GioFormListenersVirtualHostModule } from '../../../../components/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 import { GioConnectorDialogModule } from '../../../../components/gio-connector-dialog/gio-connector-dialog.module';
 import { ApiPlanFormModule } from '../../component/plan/api-plan-form.module';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   imports: [
@@ -89,6 +90,7 @@ import { ApiPlanFormModule } from '../../component/plan/api-plan-form.module';
     GioBannerModule,
     ApiPlanFormModule,
     GioFormFocusInvalidModule,
+    GioPermissionModule,
   ],
   declarations: [
     ApiCreationV4Component,

@@ -31,7 +31,10 @@ export class Step4Security1PlansListComponent {
   plans: NewPlan[] = [];
 
   @Output()
-  addPlanClicked = new EventEmitter();
+  addPlanClicked = new EventEmitter<void>();
+
+  @Output()
+  editPlanClicked = new EventEmitter<NewPlan>();
 
   public form = new FormGroup({});
   displayedColumns: string[] = ['name', 'security', 'actions'];
@@ -53,6 +56,10 @@ export class Step4Security1PlansListComponent {
 
   addPlan() {
     this.addPlanClicked.next();
+  }
+
+  editPlan(plan: NewPlan) {
+    this.editPlanClicked.emit(this.plans.find((listedPlan) => listedPlan === plan));
   }
 
   removePlan(plan: NewPlan) {

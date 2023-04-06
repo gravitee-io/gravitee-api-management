@@ -47,7 +47,7 @@
       type="submit"
       [disabled]="form.invalid"
     >
-      Add plan
+      {{ plan ? 'Edit plan' : 'Add plan' }}
     </button>
   </div>
 </form>
