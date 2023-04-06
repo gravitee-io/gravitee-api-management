@@ -441,7 +441,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
                 acceptors.addAll(
                     ((HttpListener) listener).getPaths()
                         .stream()
-                        .map(path -> new DefaultHttpAcceptor(path.getHost(), path.getPath(), this))
+                        .map(path -> new DefaultHttpAcceptor(path.getHost(), path.getPath(), this, listener.getServers()))
                         .collect(Collectors.toList())
                 );
             } else if (listener.getType().equals(ListenerType.SUBSCRIPTION)) {

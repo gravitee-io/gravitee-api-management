@@ -40,7 +40,7 @@ public interface HttpAcceptor extends Acceptor<HttpAcceptor> {
     int priority();
 
     /**
-     * @deprecated see {@link #accept(String, String)} instead.
+     * @deprecated see {@link #accept(String, String, String)} instead.
      */
     @Deprecated(forRemoval = true)
     boolean accept(Request request);
@@ -50,8 +50,9 @@ public interface HttpAcceptor extends Acceptor<HttpAcceptor> {
      *
      * @param host the request's host.
      * @param path the request's path.
+     * @param serverId the id of the server handling the request.
      *
      * @return <code>true</code> if the entrypoint is able to accept the request, <code>false</code> else.
      */
-    boolean accept(String host, String path);
+    boolean accept(String host, String path, String serverId);
 }

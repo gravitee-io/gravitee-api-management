@@ -36,8 +36,8 @@ public class VertxWebSocketReactorHandler extends VertxReactorHandler {
 
     private final IdGenerator idGenerator;
 
-    public VertxWebSocketReactorHandler(final Reactor reactor, IdGenerator idGenerator, Vertx vertx, long requestTimeout) {
-        super(reactor, idGenerator, vertx, requestTimeout);
+    public VertxWebSocketReactorHandler(final Reactor reactor, IdGenerator idGenerator, Vertx vertx, long requestTimeout, String serverId) {
+        super(reactor, idGenerator, vertx, requestTimeout, serverId);
         this.idGenerator = idGenerator;
     }
 

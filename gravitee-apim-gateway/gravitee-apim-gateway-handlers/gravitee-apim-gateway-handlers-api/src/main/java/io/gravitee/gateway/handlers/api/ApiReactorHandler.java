@@ -427,7 +427,14 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             .getProxy()
             .getVirtualHosts()
             .stream()
-            .map(virtualHost -> new DefaultHttpAcceptor(virtualHost.getHost(), virtualHost.getPath(), this))
+            .map(virtualHost ->
+                new DefaultHttpAcceptor(
+                    virtualHost.getHost(),
+                    virtualHost.getPath(),
+                    this,
+                    reactable.getDefinition().getProxy().getServers()
+                )
+            )
             .collect(Collectors.toList());
     }
 }

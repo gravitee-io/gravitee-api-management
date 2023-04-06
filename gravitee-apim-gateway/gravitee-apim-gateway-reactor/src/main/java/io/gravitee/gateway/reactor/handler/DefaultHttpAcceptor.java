@@ -16,7 +16,10 @@
 package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.gateway.api.Request;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -42,6 +45,8 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
 
     private final String host;
 
+    private final Set<String> serverIds;
+
     private final String pathWithoutTrailingSlash;
 
     private final String path;
@@ -49,11 +54,19 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
     private ReactorHandler reactor;
 
     public DefaultHttpAcceptor(String host, String path, ReactorHandler reactor) {
-        this(host, path);
+        this(host, path, reactor, null);
+    }
+
+    public DefaultHttpAcceptor(String host, String path, ReactorHandler reactor, Collection<String> serverIds) {
+        this(host, path, serverIds);
         this.reactor = reactor;
     }
 
     public DefaultHttpAcceptor(String host, String path) {
+        this(host, path, (Set<String>) null);
+    }
+
+    public DefaultHttpAcceptor(String host, String path, Collection<String> serverIds) {
         this.host = host;
 
         // Sanitize
@@ -78,6 +91,8 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
         } else {
             weight = (int) this.path.chars().filter(ch -> ch == URI_PATH_SEPARATOR_CHAR).count();
         }
+
+        this.serverIds = serverIds != null ? new HashSet<>(serverIds) : null;
     }
 
     public DefaultHttpAcceptor(String path) {
@@ -101,12 +116,16 @@ public class DefaultHttpAcceptor implements HttpAcceptor {
 
     @Override
     public boolean accept(Request request) {
-        return accept(request.host(), request.path());
+        return accept(request.host(), request.path(), null);
     }
 
     @Override
-    public boolean accept(String host, String path) {
-        return matchHost(host) && matchPath(path);
+    public boolean accept(String host, String path, String serverId) {
+        return matchServer(serverId) && matchHost(host) && matchPath(path);
+    }
+
+    private boolean matchServer(String serverId) {
+        return serverIds == null || (serverId != null && serverIds.contains(serverId));
     }
 
     private boolean matchHost(String host) {

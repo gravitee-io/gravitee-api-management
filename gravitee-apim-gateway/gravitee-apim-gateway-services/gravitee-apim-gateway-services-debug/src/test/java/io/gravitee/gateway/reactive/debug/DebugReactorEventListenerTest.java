@@ -98,7 +98,7 @@ class DebugReactorEventListenerTest {
     @BeforeEach
     public void beforeEach() {
         eventManager = new EventManagerImpl();
-        debugHttpClientConfiguration = new VertxDebugHttpClientConfiguration();
+        debugHttpClientConfiguration = VertxDebugHttpClientConfiguration.builder().build();
         debugReactorEventListener =
             spy(
                 new DebugReactorEventListener(

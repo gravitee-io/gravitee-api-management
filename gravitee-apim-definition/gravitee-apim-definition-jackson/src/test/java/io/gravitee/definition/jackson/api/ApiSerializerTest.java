@@ -77,7 +77,8 @@ public class ApiSerializerTest extends AbstractTest {
             Arguments.of("/io/gravitee/definition/jackson/api-default-executionmode-expected.json"),
             Arguments.of("/io/gravitee/definition/jackson/api-executionmode-v3-expected.json"),
             Arguments.of("/io/gravitee/definition/jackson/api-executionmode-jupiter-expected.json"),
-            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-propagateClientAcceptEncoding.json")
+            Arguments.of("/io/gravitee/definition/jackson/api-withclientoptions-propagateClientAcceptEncoding.json"),
+            Arguments.of("/io/gravitee/definition/jackson/api-withservers.json")
         );
     }
 

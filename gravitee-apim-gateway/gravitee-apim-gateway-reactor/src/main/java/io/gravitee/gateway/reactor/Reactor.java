@@ -25,5 +25,5 @@ import io.gravitee.gateway.api.handler.Handler;
  * @author GraviteeSource Team
  */
 public interface Reactor {
-    void route(Request request, Response response, Handler<ExecutionContext> handler);
+    void route(Request request, Response response, String serverId, Handler<ExecutionContext> handler);
 }

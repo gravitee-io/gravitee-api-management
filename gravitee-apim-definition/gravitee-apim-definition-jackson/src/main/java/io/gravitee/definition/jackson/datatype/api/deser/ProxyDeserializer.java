@@ -133,6 +133,13 @@ public class ProxyDeserializer extends StdScalarDeserializer<Proxy> {
             proxy.setCors(cors);
         }
 
+        JsonNode serversNode = node.get("servers");
+        if (serversNode != null && serversNode.isArray()) {
+            final List<String> servers = new ArrayList<>();
+            serversNode.elements().forEachRemaining(jsonNode -> servers.add(jsonNode.asText()));
+            proxy.setServers(servers);
+        }
+
         return proxy;
     }
 

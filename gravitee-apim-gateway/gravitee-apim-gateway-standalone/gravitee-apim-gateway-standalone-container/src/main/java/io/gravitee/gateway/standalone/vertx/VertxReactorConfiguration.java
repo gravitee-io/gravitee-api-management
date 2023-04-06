@@ -15,13 +15,17 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
+import static io.gravitee.node.vertx.server.http.VertxHttpServerOptions.HTTP_PREFIX;
+
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.gateway.reactive.standalone.vertx.HttpProtocolVerticle;
+import io.gravitee.node.api.server.DefaultServerManager;
+import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
-import io.gravitee.node.vertx.VertxHttpServerFactory;
-import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServer;
+import io.gravitee.node.vertx.server.VertxServer;
+import io.gravitee.node.vertx.server.VertxServerFactory;
+import io.gravitee.node.vertx.server.VertxServerOptions;
+import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
@@ -36,18 +40,44 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class VertxReactorConfiguration {
 
-    @Bean("httpServerConfiguration")
-    public HttpServerConfiguration httpServerConfiguration(Environment environment) {
-        return HttpServerConfiguration.builder().withEnvironment(environment).withDefaultPort(8082).build();
-    }
+    protected static final String SERVERS_PREFIX = "servers";
 
-    @Bean("gatewayHttpServer")
-    public VertxHttpServerFactory vertxHttpServerFactory(
-        Vertx vertx,
-        @Qualifier("httpServerConfiguration") HttpServerConfiguration httpServerConfiguration,
+    @Bean
+    public ServerManager serverManager(
+        VertxServerFactory<VertxServer<?, VertxServerOptions>, VertxServerOptions> serverFactory,
+        Environment environment,
         KeyStoreLoaderManager keyStoreLoaderManager
     ) {
-        return new VertxHttpServerFactory(vertx, httpServerConfiguration, keyStoreLoaderManager);
+        int counter = 0;
+
+        final DefaultServerManager serverManager = new DefaultServerManager();
+        if (environment.getProperty(SERVERS_PREFIX + "[" + counter + "].type") != null) {
+            // There is, at least one server configured in the list.
+            String prefix = SERVERS_PREFIX + "[" + counter++ + "]";
+
+            while ((environment.getProperty(prefix + ".type")) != null) {
+                final VertxServerOptions options = VertxServerOptions
+                    .builder(environment, prefix, keyStoreLoaderManager)
+                    .defaultPort(8082)
+                    .build();
+                serverManager.register(serverFactory.create(options));
+                prefix = SERVERS_PREFIX + "[" + counter++ + "]";
+            }
+        } else {
+            // No server list configured, fallback to single 'http' server configuration.
+            final VertxHttpServerOptions options = VertxHttpServerOptions
+                .builder()
+                .defaultPort(8082)
+                .prefix(HTTP_PREFIX)
+                .keyStoreLoaderManager(keyStoreLoaderManager)
+                .environment(environment)
+                .id("http")
+                .build();
+
+            serverManager.register(serverFactory.create(options));
+        }
+
+        return serverManager;
     }
 
     @Bean
@@ -60,10 +90,10 @@ public class VertxReactorConfiguration {
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public HttpProtocolVerticle graviteeVerticle(
-        @Qualifier("gatewayHttpServer") HttpServer httpServer,
+        ServerManager serverManager,
         @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher
     ) {
-        return new HttpProtocolVerticle(httpServer, requestDispatcher);
+        return new HttpProtocolVerticle(serverManager, requestDispatcher);
     }
 
     @Bean
