@@ -568,6 +568,7 @@ describe('ApiCreationV4Component', () => {
         // Init Step 3 Config and go back to Step 2 config
         const step3endpoint2config = await harnessLoader.getHarness(Step3Endpoints2ConfigHarness);
         expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }], 'endpoints');
+        expectEndpointsSharedConfigurationSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
         await step3endpoint2config.clickPrevious();
 
         // Init Step 2 config and go back to Step 2 architecture
@@ -637,6 +638,7 @@ describe('ApiCreationV4Component', () => {
         // Init Step 3 and go back to Step 2 config
         const step3endpoint2config = await harnessLoader.getHarness(Step3Endpoints2ConfigHarness);
         expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }], 'endpoints');
+        expectEndpointsSharedConfigurationSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
         await step3endpoint2config.clickPrevious();
 
         // Init Step 2 config and go back to Step 2 architecture
@@ -760,6 +762,10 @@ describe('ApiCreationV4Component', () => {
         ],
         'endpoints',
       );
+      expectEndpointsSharedConfigurationSchemaGetRequest([
+        { id: 'kafka', name: 'Kafka' },
+        { id: 'mock', name: 'Mock' },
+      ]);
     });
 
     it('should configure endpoints in the list', async () => {
@@ -792,6 +798,10 @@ describe('ApiCreationV4Component', () => {
         ],
         'endpoints',
       );
+      expectEndpointsSharedConfigurationSchemaGetRequest([
+        { id: 'kafka', name: 'Kafka' },
+        { id: 'mock', name: 'Mock' },
+      ]);
 
       const step3Endpoints2ConfigHarness = await harnessLoader.getHarness(Step3Endpoints2ConfigHarness);
       await step3Endpoints2ConfigHarness.clickValidate();
@@ -799,11 +809,13 @@ describe('ApiCreationV4Component', () => {
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
         {
           configuration: {},
+          sharedConfiguration: {},
           id: 'kafka',
           name: 'Kafka',
         },
         {
           configuration: {},
+          sharedConfiguration: {},
           id: 'mock',
           name: 'Mock',
         },
@@ -821,12 +833,14 @@ describe('ApiCreationV4Component', () => {
       const step3Endpoints2ConfigHarness = await harnessLoader.getHarness(Step3Endpoints2ConfigHarness);
       expect(step3Endpoints2ConfigHarness).toBeTruthy();
       expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }], 'endpoints');
+      expectEndpointsSharedConfigurationSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
 
       await step3Endpoints2ConfigHarness.clickValidate();
 
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
         {
           configuration: {},
+          sharedConfiguration: {},
           id: 'http-proxy',
           name: 'HTTP Proxy',
           icon: undefined,
@@ -1089,6 +1103,16 @@ describe('ApiCreationV4Component', () => {
       .flush(fullConnectors);
   }
 
+  function expectEndpointsSharedConfigurationSchemaGetRequest(connectors: Partial<ConnectorListItem>[]) {
+    connectors.forEach((connector) => {
+      httpTestingController
+        .match({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/endpoints/${connector.id}/shared-configuration-schema`, method: 'GET' })
+        .map((req) => {
+          if (!req.cancelled) req.flush(getEntrypointConnectorSchema(connector.id));
+        });
+    });
+  }
+
   function expectEndpointGetRequest(connector: Partial<ConnectorListItem>) {
     const fullConnector = fakeConnectorListItem(connector);
 
@@ -1164,6 +1188,7 @@ describe('ApiCreationV4Component', () => {
   ) {
     const step3Endpoints2ConfigHarness = await harnessLoader.getHarness(Step3Endpoints2ConfigHarness);
     expectSchemaGetRequest(endpoints, 'endpoints');
+    expectEndpointsSharedConfigurationSchemaGetRequest(endpoints);
 
     await step3Endpoints2ConfigHarness.clickValidate();
   }

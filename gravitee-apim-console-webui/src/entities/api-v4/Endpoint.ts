@@ -20,5 +20,6 @@ export interface Endpoint {
   weight?: number;
   inheritConfiguration?: boolean;
   configuration?: Record<string, unknown>;
+  sharedConfigurationOverride?: Record<string, unknown>;
   services?: unknown; // To Complete when needed
 }

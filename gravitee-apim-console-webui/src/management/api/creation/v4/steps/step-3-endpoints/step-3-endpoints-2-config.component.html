@@ -28,7 +28,17 @@
     <ng-container *ngFor="let endpoint of selectedEndpoints">
       <div class="api-creation-v4__form-container" *ngIf="endpointSchemas[endpoint.id]">
         <h3>{{ endpoint.name }}</h3>
-        <gio-form-json-schema [jsonSchema]="endpointSchemas[endpoint.id]" [formControlName]="endpoint.id"></gio-form-json-schema>
+        <gio-form-json-schema
+          [jsonSchema]="endpointSchemas[endpoint.id].config"
+          [formControlName]="endpoint.id + '-configuration'"
+        ></gio-form-json-schema>
+        <gio-banner-info *ngIf="!!endpointSchemas[endpoint.id].sharedConfiguration"
+          >The following configuration will be shareable for all the endpoints of the group</gio-banner-info
+        >
+        <gio-form-json-schema
+          [jsonSchema]="endpointSchemas[endpoint.id].sharedConfiguration"
+          [formControlName]="endpoint.id + '-sharedConfiguration'"
+        ></gio-form-json-schema>
       </div>
     </ng-container>
 

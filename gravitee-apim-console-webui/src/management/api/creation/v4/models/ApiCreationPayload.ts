@@ -39,6 +39,7 @@ export type ApiCreationPayload = Partial<{
     name: string;
     icon: string;
     configuration?: unknown;
+    sharedConfiguration?: unknown;
   }[];
 
   // Security
