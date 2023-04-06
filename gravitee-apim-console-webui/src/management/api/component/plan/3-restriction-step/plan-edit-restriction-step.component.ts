@@ -15,8 +15,8 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Observable, of, Subject } from 'rxjs';
+import { switchMap, takeUntil } from 'rxjs/operators';
 
 import { PolicyService } from '../../../../../services-ngx/policy.service';
 
@@ -30,9 +30,9 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
 
   public restrictionForm: FormGroup;
 
-  public rateLimitSchema: unknown;
-  public quotaSchema: unknown;
-  public resourceFilteringSchema: unknown;
+  public rateLimitSchema$: Observable<undefined | unknown>;
+  public quotaSchema$: Observable<undefined | unknown>;
+  public resourceFilteringSchema$: Observable<undefined | unknown>;
 
   constructor(private readonly policyService: PolicyService) {}
 
@@ -48,35 +48,20 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
       resourceFilteringConfig: new FormControl({}),
     });
 
-    this.restrictionForm
-      .get('rateLimitEnabled')
-      .valueChanges.pipe(
-        takeUntil(this.unsubscribe$),
-        tap(() => (this.rateLimitSchema = undefined)),
-        filter((enabled) => enabled),
-        switchMap(() => this.policyService.getSchema('rate-limit')),
-      )
-      .subscribe((schema) => (this.rateLimitSchema = schema));
+    this.rateLimitSchema$ = this.restrictionForm.get('rateLimitEnabled').valueChanges.pipe(
+      takeUntil(this.unsubscribe$),
+      switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit'))),
+    );
 
-    this.restrictionForm
-      .get('quotaEnabled')
-      .valueChanges.pipe(
-        takeUntil(this.unsubscribe$),
-        tap(() => (this.quotaSchema = undefined)),
-        filter((enabled) => enabled),
-        switchMap(() => this.policyService.getSchema('quota')),
-      )
-      .subscribe((schema) => (this.quotaSchema = schema));
+    this.quotaSchema$ = this.restrictionForm.get('quotaEnabled').valueChanges.pipe(
+      takeUntil(this.unsubscribe$),
+      switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('quota'))),
+    );
 
-    this.restrictionForm
-      .get('resourceFilteringEnabled')
-      .valueChanges.pipe(
-        takeUntil(this.unsubscribe$),
-        tap(() => (this.resourceFilteringSchema = undefined)),
-        filter((enabled) => enabled),
-        switchMap(() => this.policyService.getSchema('resource-filtering')),
-      )
-      .subscribe((schema) => (this.resourceFilteringSchema = schema));
+    this.resourceFilteringSchema$ = this.restrictionForm.get('resourceFilteringEnabled').valueChanges.pipe(
+      takeUntil(this.unsubscribe$),
+      switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('resource-filtering'))),
+    );
   }
 
   ngOnDestroy() {
