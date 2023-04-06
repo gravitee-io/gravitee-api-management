@@ -264,11 +264,13 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
     if (value) {
       this.planForm.patchValue(value);
-      this.planForm.get('secure').get('securityType').disable();
       this.planForm.updateValueAndValidity();
     }
     this.initialPlanFormValue = this.planForm.getRawValue();
-    // this.isLoadingData = false;
+
+    if (this.mode === 'edit') {
+      this.planForm.get('secure').get('securityType').disable();
+    }
 
     if (this.isDisabled) {
       this.planForm.disable();

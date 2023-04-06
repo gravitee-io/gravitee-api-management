@@ -952,6 +952,38 @@ describe('ApiCreationV4Component', () => {
           },
         ]);
       });
+      it('should edit default keyless plan', async () => {
+        const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+
+        await step4Security1PlansHarness.editDefaultKeylessPlanName('Update name', httpTestingController);
+
+        await step4Security1PlansHarness.clickValidate();
+
+        expect(component.currentStep.payload.plans).toEqual([
+          {
+            name: 'Update name',
+            description: 'Default unsecured plan',
+            security: {
+              type: PlanSecurityType.KEY_LESS,
+              configuration: '{}',
+            },
+            validation: 'manual',
+            comment_required: false,
+
+            flows: [
+              {
+                enabled: true,
+                'path-operator': {
+                  operator: 'STARTS_WITH',
+                  path: '/',
+                },
+                post: [],
+                pre: [],
+              },
+            ],
+          },
+        ]);
+      });
     });
 
     it('should be reinitialized if no plans saved in payload after going back to step 3', async () => {

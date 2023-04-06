@@ -25,9 +25,11 @@ import { NewPlan, PlanSecurityType, PlanValidation } from '../../../../../../ent
   styles: [require('./step-4-security-1-plans.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
 export class Step4Security1PlansComponent implements OnInit {
-  public view: 'list' | 'add' = 'list';
+  public view: 'list' | 'add' | 'edit' = 'list';
 
   public plans: NewPlan[] = [];
+
+  public planToEdit: NewPlan | undefined = undefined;
 
   constructor(private readonly stepService: ApiCreationStepService) {}
 
@@ -51,6 +53,7 @@ export class Step4Security1PlansComponent implements OnInit {
   }
 
   onAddPlanClicked() {
+    this.planToEdit = undefined;
     this.view = 'add';
   }
 
@@ -62,4 +65,17 @@ export class Step4Security1PlansComponent implements OnInit {
   onExitPlanCreation() {
     this.view = 'list';
   }
+
+  onEditPlanClicked(plan: NewPlan) {
+    this.planToEdit = plan;
+    this.view = 'edit';
+  }
+
+  editPlan(plan: NewPlan) {
+    const planToEditIndex = this.plans.findIndex((plan) => plan === this.planToEdit);
+    this.plans.splice(planToEditIndex, 1, plan);
+    this.view = 'list';
+  }
+
+  protected readonly undefined = undefined;
 }

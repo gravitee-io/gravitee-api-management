@@ -34,7 +34,10 @@
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let element">
         <div class="step-4-security-1-plans-list__table__actions">
-          <button type="button" mat-icon-button aria-label="Remove plan" (click)="removePlan(element)">
+          <button type="button" mat-icon-button aria-label="Edit plan" matTooltip="Edit plan" (click)="editPlan(element)">
+            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+          </button>
+          <button type="button" mat-icon-button aria-label="Remove plan" matTooltip="Remove plan" (click)="removePlan(element)">
             <mat-icon svgIcon="gio:cancel"></mat-icon>
           </button>
         </div>

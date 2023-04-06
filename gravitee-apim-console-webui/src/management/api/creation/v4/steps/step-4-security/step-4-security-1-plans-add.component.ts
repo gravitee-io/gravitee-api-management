@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { NewPlan, PlanSecurity } from '../../../../../../entities/plan-v4';
+import { NewPlan } from '../../../../../../entities/plan-v4';
 
 @Component({
   selector: 'step-4-security-1-plans-add',
@@ -25,9 +25,9 @@ import { NewPlan, PlanSecurity } from '../../../../../../entities/plan-v4';
   styles: [require('./step-4-security-1-plans-add.component.scss'), require('../api-creation-steps-common.component.scss')],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Step4Security1PlansAddComponent {
+export class Step4Security1PlansAddComponent implements OnInit {
   @Input()
-  plan: PlanSecurity;
+  plan?: NewPlan;
 
   @Output()
   planChanges = new EventEmitter<NewPlan>();
@@ -35,9 +35,13 @@ export class Step4Security1PlansAddComponent {
   @Output()
   exitPlanCreation = new EventEmitter<void>();
 
-  public form = new FormGroup({
-    plan: new FormControl(),
-  });
+  public form: FormGroup;
+
+  ngOnInit() {
+    this.form = new FormGroup({
+      plan: new FormControl(this.plan),
+    });
+  }
 
   onAddPlan(): void {
     this.planChanges.next(this.form.get('plan').value);
