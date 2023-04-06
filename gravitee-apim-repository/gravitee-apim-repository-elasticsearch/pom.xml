@@ -34,6 +34,7 @@
         <elasticsearch.version>5.6.16</elasticsearch.version>
         <gravitee-common-elasticsearch.version>4.1.0</gravitee-common-elasticsearch.version>
         <lucene.version>6.6.1</lucene.version>
+        <opensearch-testcontainers.version>2.0.0</opensearch-testcontainers.version>
     </properties>
 
     <dependencies>
@@ -205,6 +206,13 @@
             <groupId>org.unitils</groupId>
             <artifactId>unitils-core</artifactId>
             <version>3.4.6</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.opensearch</groupId>
+            <artifactId>opensearch-testcontainers</artifactId>
+            <version>${opensearch-testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
 
