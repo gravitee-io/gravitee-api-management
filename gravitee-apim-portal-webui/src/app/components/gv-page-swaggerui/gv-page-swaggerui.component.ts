@@ -80,7 +80,8 @@ export class GvPageSwaggerUIComponent implements OnInit {
   refresh(page: Page) {
     if (page) {
       const cfg: any = this._prepareConfig(page);
-      SwaggerUIBundle(cfg);
+      const ui = SwaggerUIBundle(cfg);
+      ui.initOAuth({ usePkceWithAuthorizationCodeGrant: page.configuration.use_pkce });
     }
   }
 
