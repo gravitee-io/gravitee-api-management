@@ -17,7 +17,13 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { GioConfirmDialogModule, GioIconsModule, GioFormJsonSchemaModule, GioBannerModule } from '@gravitee/ui-particles-angular';
+import {
+  GioConfirmDialogModule,
+  GioIconsModule,
+  GioFormJsonSchemaModule,
+  GioBannerModule,
+  GioFormFocusInvalidModule,
+} from '@gravitee/ui-particles-angular';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -45,11 +51,14 @@ import { StepEntrypointMenuItemComponent } from './steps/step-connector-menu-ite
 import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/step-endpoint-menu-item.component';
 import { Step2Entrypoints0ArchitectureComponent } from './steps/step-2-entrypoints/step-2-entrypoints-0-architecture.component';
 import { Step4MenuItemComponent } from './steps/step-4-menu-item/step-4-menu-item.component';
+import { Step4Security1PlansAddComponent } from './steps/step-4-security/step-4-security-1-plans-add.component';
+import { Step4Security1PlansComponent } from './steps/step-4-security/step-4-security-1-plans.component';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
 import { GioFormListenersContextPathModule } from '../../../../components/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
 import { GioFormListenersVirtualHostModule } from '../../../../components/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 import { GioConnectorDialogModule } from '../../../../components/gio-connector-dialog/gio-connector-dialog.module';
+import { ApiPlanFormModule } from '../../component/plan/api-plan-form.module';
 
 @NgModule({
   imports: [
@@ -78,6 +87,8 @@ import { GioConnectorDialogModule } from '../../../../components/gio-connector-d
     GioFormListenersVirtualHostModule,
     GioConnectorDialogModule,
     GioBannerModule,
+    ApiPlanFormModule,
+    GioFormFocusInvalidModule,
   ],
   declarations: [
     ApiCreationV4Component,
@@ -94,7 +105,9 @@ import { GioConnectorDialogModule } from '../../../../components/gio-connector-d
     Step3Endpoints2ConfigComponent,
     StepEndpointMenuItemComponent,
     Step4MenuItemComponent,
+    Step4Security1PlansComponent,
     Step4Security1PlansListComponent,
+    Step4Security1PlansAddComponent,
     Step5DocumentationComponent,
     Step6SummaryComponent,
   ],
