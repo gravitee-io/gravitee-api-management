@@ -59,6 +59,7 @@ public class PageMapperTest {
     private static final String PAGE_CONFIGURATION_TRY_IT_ANONYMOUS = "false";
     private static final String PAGE_CONFIGURATION_TRY_IT_URL = "http://try.it/url";
     private static final String PAGE_CONFIGURATION_VIEWER = "Redoc";
+    private static final String PAGE_CONFIGURATION_USE_PKCE = "false";
     private static final String PAGE_CONTRIBUTOR = "my-page-contributor";
     private static final String PAGE_NAME = "my-page-name";
     private static final String PAGE_PARENT = "my-page-parent";
@@ -90,6 +91,7 @@ public class PageMapperTest {
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT, PAGE_CONFIGURATION_TRY_IT);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS, PAGE_CONFIGURATION_TRY_IT_ANONYMOUS);
         configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL, PAGE_CONFIGURATION_TRY_IT_URL);
+        configuration.put(PageConfigurationKeys.SWAGGER_SWAGGERUI_USE_PKCE, PAGE_CONFIGURATION_USE_PKCE);
         configuration.put(PageConfigurationKeys.SWAGGER_VIEWER, PAGE_CONFIGURATION_VIEWER);
         pageEntity.setConfiguration(configuration);
         pageEntity.setId(PAGE_ID);
@@ -131,6 +133,7 @@ public class PageMapperTest {
         assertFalse(pageConfiguration.getShowUrl());
         assertTrue(pageConfiguration.getTryIt());
         assertFalse(pageConfiguration.getTryItAnonymous());
+        assertFalse(pageConfiguration.getUsePkce());
         assertEquals(PAGE_CONFIGURATION_TRY_IT_URL, pageConfiguration.getTryItUrl());
         assertEquals(ViewerEnum.REDOC, pageConfiguration.getViewer());
 
