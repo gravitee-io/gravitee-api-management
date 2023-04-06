@@ -108,7 +108,7 @@
           <div *ngIf="currentStepPayload.plans?.length > 0; else elseBlock">
             <div class="step-6-summary__step__info__container" *ngFor="let plan of currentStepPayload.plans">
               <span class="mat-body-strong">{{ plan.name }}</span
-              ><span class="gio-badge-neutral">{{ plan.type }}</span>
+              ><span class="gio-badge-neutral">{{ plan.security.type }}</span>
             </div>
           </div>
           <ng-template #elseBlock> No plans are selected. </ng-template>

@@ -37,18 +37,16 @@ export type PlanStatus = (typeof PLAN_STATUS)[number];
 
 export interface PlanSecurity {
   type: PlanSecurityType;
-  configuration: Record<string, unknown>;
+  configuration: string;
 }
 
 export interface NewPlan {
   name: string;
   description: string;
-  type: PlanType;
-  status: PlanStatus;
-  apiId: string;
   security: PlanSecurity;
-  flows: Flow[];
   validation: PlanValidation;
+  type?: PlanType;
+  flows?: Flow[];
   characteristics?: string[];
   tags?: string[];
   order?: number;
@@ -65,7 +63,6 @@ export interface Plan {
   name: string;
   description?: string;
   security: PlanSecurity;
-  securityDefinition?: string;
   apiId?: string;
   characteristics?: Array<string>;
   closed_at?: Date;

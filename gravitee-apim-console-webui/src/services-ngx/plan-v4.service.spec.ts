@@ -42,25 +42,24 @@ describe('PlanV4Service', () => {
 
   describe('create', () => {
     it('should create api plans', (done) => {
+      const apiId = 'fox';
       const plan: NewPlan = {
-        apiId: 'api-1',
         description: '',
         flows: [],
-        status: 'published',
         type: PlanType.API,
         validation: PlanValidation.AUTO,
         name: 'free',
-        security: { type: PlanSecurityType.API_KEY, configuration: {} },
+        security: { type: PlanSecurityType.API_KEY, configuration: '{}' },
       };
 
-      planService.create(plan).subscribe((response) => {
+      planService.create(apiId, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
         done();
       });
 
       const planReq = httpTestingController.expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${plan.apiId}/plans`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiId}/plans`,
       });
       expect(planReq.request.body).toEqual(plan);
       planReq.flush(plan);

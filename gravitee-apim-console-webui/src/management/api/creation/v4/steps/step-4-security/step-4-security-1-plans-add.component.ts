@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { SecurityPlan } from './step-4-security-1-plans-list.component';
-
-import { PlanSecurity, PlanSecurityType } from '../../../../../../entities/plan-v4';
+import { NewPlan, PlanSecurity } from '../../../../../../entities/plan-v4';
 
 @Component({
   selector: 'step-4-security-1-plans-add',
   template: require('./step-4-security-1-plans-add.component.html'),
   styles: [require('./step-4-security-1-plans-add.component.scss'), require('../api-creation-steps-common.component.scss')],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Step4Security1PlansAddComponent {
   @Input()
   plan: PlanSecurity;
 
   @Output()
-  planChanges = new EventEmitter<SecurityPlan>();
+  planChanges = new EventEmitter<NewPlan>();
 
   @Output()
   exitPlanCreation = new EventEmitter<void>();
@@ -40,13 +39,8 @@ export class Step4Security1PlansAddComponent {
     plan: new FormControl(),
   });
 
-  save(): void {
-    // TODO: add real plan
-    this.planChanges.next({
-      name: 'Default Keyless (UNSECURED)',
-      type: PlanSecurityType.KEY_LESS,
-      description: 'Default unsecured plan',
-    });
+  onAddPlan(): void {
+    this.planChanges.next(this.form.get('plan').value);
   }
 
   onExitPlanCreation(): void {

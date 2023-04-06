@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { get, has } from 'lodash';
 
-export * from './ApiType';
-export * from './Endpoint';
-export * from './EndpointGroup';
-export * from './Entrypoint';
-export * from './Flow';
-export * from './FlowMode';
-export * from './Listener';
-export * from './NewApiEntity';
-export * from './NewApiEntity.fixture';
-export * from './ApiEntity';
-export * from './ApiEntity.fixture';
-export * from './Resource';
+import { Api as ApiV3 } from '../entities/api';
+import { ApiEntity as ApiV4 } from '../entities/api-v4';
+
+export const isApiV3 = (api: ApiV3 | ApiV4): api is ApiV3 => {
+  return !isApiV4(api);
+};
+
+export const isApiV4 = (api: ApiV3 | ApiV4): api is ApiV4 => {
+  return has(api, 'definitionVersion') && get(api, 'definitionVersion') === '4.0.0';
+};

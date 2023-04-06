@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-export * from './ApiType';
-export * from './Endpoint';
-export * from './EndpointGroup';
-export * from './Entrypoint';
-export * from './Flow';
-export * from './FlowMode';
-export * from './Listener';
-export * from './NewApiEntity';
-export * from './NewApiEntity.fixture';
-export * from './ApiEntity';
-export * from './ApiEntity.fixture';
-export * from './Resource';
+export interface Resource {
+  name: string;
+  type: string;
+  configuration?: string;
+}
