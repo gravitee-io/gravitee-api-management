@@ -19,7 +19,8 @@ import { includes } from 'lodash';
 import { combineLatest, of, ReplaySubject, Subject } from 'rxjs';
 import { map, startWith, switchMap, takeUntil } from 'rxjs/operators';
 
-import { Api } from '../../../../../entities/api';
+import { Api as ApiV3 } from '../../../../../entities/api';
+import { ApiEntity as ApiV4 } from '../../../../../entities/api-v4';
 import { CurrentUserService } from '../../../../../services-ngx/current-user.service';
 import { DocumentationService } from '../../../../../services-ngx/documentation.service';
 import { GroupService } from '../../../../../services-ngx/group.service';
@@ -32,12 +33,12 @@ import { TagService } from '../../../../../services-ngx/tag.service';
 })
 export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  public api$ = new ReplaySubject<Api>();
+  public api$ = new ReplaySubject<ApiV3 | ApiV4>();
 
   public generalForm: FormGroup;
 
   @Input()
-  public set api(api: Api) {
+  public set api(api: ApiV3 | ApiV4) {
     if (api) {
       this.api$.next(api);
     }

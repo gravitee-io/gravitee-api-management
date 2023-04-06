@@ -25,7 +25,8 @@ import { PlanSecurityType } from '../../../../../entities/plan/plan';
 import { PolicyService } from '../../../../../services-ngx/policy.service';
 import { ResourceService } from '../../../../../services-ngx/resource.service';
 import { ResourceListItem } from '../../../../../entities/resource/resourceListItem';
-import { Api } from '../../../../../entities/api';
+import { Api as ApiV3 } from '../../../../../entities/api';
+import { ApiEntity as ApiV4 } from '../../../../../entities/api-v4';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 const allSecurityTypes = [
@@ -72,7 +73,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   private resourceTypes: ResourceListItem[];
 
   @Input()
-  public api: Api;
+  public api: ApiV3 | ApiV4;
 
   constructor(
     @Inject('Constants') private readonly constants: Constants,
@@ -142,7 +143,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   onFetchResources(event) {
     if (this.resourceTypes && this.api?.resources) {
       const { currentTarget, regexTypes } = event.detail;
-      const options = this.api.resources
+      const options = [...this.api.resources]
         .filter((resource) => regexTypes == null || new RegExp(regexTypes).test(resource.type))
         .map((resource) => {
           const resourceType = this.resourceTypes.find((type) => type.id === resource.type);
