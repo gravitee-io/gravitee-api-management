@@ -34,6 +34,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 class Mqtt5EndpointConnectorFactoryTest {
 
+    public static final String CONFIG = "{\"serverHost\":\"localhost\",\"serverPort\":\"1234\"}";
+    public static final String SHARED_CONFIG = "{\"consumer\":{\"topic\":\"test/topic\"}, \"producer\":{\"topic\":\"test/topic\"}}";
     private Mqtt5EndpointConnectorFactory mqtt5EndpointConnectorFactory;
     private DeploymentContext deploymentContext;
 
@@ -56,47 +58,54 @@ class Mqtt5EndpointConnectorFactoryTest {
     @ParameterizedTest
     @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
     void shouldNotCreateConnectorWithWrongConfiguration(String configuration) {
-        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, configuration);
+        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, configuration, SHARED_CONFIG);
+        assertThat(connector).isNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "wrong", "", "  ", "{\"unknown-key\":\"value\"}" })
+    void shouldNotCreateConnectorWithWrongSharedConfiguration(String sharedConfiguration) {
+        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, CONFIG, sharedConfiguration);
         assertThat(connector).isNull();
     }
 
     @Test
     void shouldCreateConnectorWithRightConfiguration() {
-        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(
-            deploymentContext,
-            "{\"serverHost\":\"localhost\",\"serverPort\":\"1234\", \"consumer\":{\"topic\":\"test/topic\"}, \"producer\":{\"topic\":\"test/topic\"}}"
-        );
+        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, CONFIG, SHARED_CONFIG);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration()).isNotNull();
         assertThat(connector.configuration().getServerHost()).isEqualTo("localhost");
         assertThat(connector.configuration().getServerPort()).isEqualTo(1234);
-        assertThat(connector.configuration().getConsumer()).isNotNull();
-        assertThat(connector.configuration().getConsumer().isEnabled()).isFalse();
-        assertThat(connector.configuration().getConsumer().getTopic()).isEqualTo("test/topic");
-        assertThat(connector.configuration().getProducer()).isNotNull();
-        assertThat(connector.configuration().getProducer().isEnabled()).isFalse();
-        assertThat(connector.configuration().getProducer().getTopic()).isEqualTo("test/topic");
+        assertThat(connector.sharedConfiguration()).isNotNull();
+        assertThat(connector.sharedConfiguration().getConsumer()).isNotNull();
+        assertThat(connector.sharedConfiguration().getConsumer().isEnabled()).isFalse();
+        assertThat(connector.sharedConfiguration().getConsumer().getTopic()).isEqualTo("test/topic");
+        assertThat(connector.sharedConfiguration().getProducer()).isNotNull();
+        assertThat(connector.sharedConfiguration().getProducer().isEnabled()).isFalse();
+        assertThat(connector.sharedConfiguration().getProducer().getTopic()).isEqualTo("test/topic");
     }
 
     @Test
     void shouldCreateConnectorWithEmptyConfiguration() {
-        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, "{}");
+        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, "{}", "{}");
         assertThat(connector).isNotNull();
         assertThat(connector.configuration()).isNotNull();
         assertThat(connector.configuration().getServerHost()).isNull();
         assertThat(connector.configuration().getServerPort()).isNull();
-        assertThat(connector.configuration().getConsumer()).isNotNull();
-        assertThat(connector.configuration().getProducer()).isNotNull();
+        assertThat(connector.sharedConfiguration()).isNotNull();
+        assertThat(connector.sharedConfiguration().getConsumer()).isNotNull();
+        assertThat(connector.sharedConfiguration().getProducer()).isNotNull();
     }
 
     @Test
     void shouldCreateConnectorWithNullConfiguration() {
-        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, null);
+        Mqtt5EndpointConnector connector = mqtt5EndpointConnectorFactory.createConnector(deploymentContext, null, null);
         assertThat(connector).isNotNull();
         assertThat(connector.configuration()).isNotNull();
         assertThat(connector.configuration().getServerHost()).isNull();
         assertThat(connector.configuration().getServerPort()).isNull();
-        assertThat(connector.configuration().getConsumer()).isNotNull();
-        assertThat(connector.configuration().getProducer()).isNotNull();
+        assertThat(connector.sharedConfiguration()).isNotNull();
+        assertThat(connector.sharedConfiguration().getConsumer()).isNotNull();
+        assertThat(connector.sharedConfiguration().getProducer()).isNotNull();
     }
 }

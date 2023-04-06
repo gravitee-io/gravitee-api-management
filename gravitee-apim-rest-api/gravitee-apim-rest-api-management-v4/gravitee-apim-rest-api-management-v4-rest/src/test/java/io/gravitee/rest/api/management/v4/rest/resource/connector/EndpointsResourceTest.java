@@ -25,13 +25,11 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.rest.api.management.v4.rest.model.ConnectorPlugin;
-import io.gravitee.rest.api.management.v4.rest.model.Endpoint;
 import io.gravitee.rest.api.management.v4.rest.model.ErrorEntity;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -191,5 +189,39 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals("1.0", endpoint.getVersion());
         assertEquals(io.gravitee.rest.api.management.v4.rest.model.ApiType.MESSAGE, endpoint.getSupportedApiType());
         assertEquals(Set.of(io.gravitee.rest.api.management.v4.rest.model.ConnectorMode.SUBSCRIBE), endpoint.getSupportedModes());
+    }
+
+    @Test
+    public void shouldGetEndpointSharedConfigurationSchema() {
+        ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
+        connectorPlugin.setId(FAKE_ENDPOINT_ID);
+        connectorPlugin.setName("Fake Endpoint");
+        connectorPlugin.setVersion("1.0");
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
+        connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
+        when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenReturn(connectorPlugin);
+        when(endpointConnectorPluginService.getSharedConfigurationSchema(FAKE_ENDPOINT_ID)).thenReturn("sharedConfigurationSchemaResponse");
+
+        final Response response = rootTarget(FAKE_ENDPOINT_ID).path("shared-configuration-schema").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final String result = response.readEntity(String.class);
+        Assertions.assertThat(result).isEqualTo("sharedConfigurationSchemaResponse");
+    }
+
+    @Test
+    public void shouldNotGetSharedConfigurationSchemaWhenPluginNotFound() {
+        when(endpointConnectorPluginService.findById(FAKE_ENDPOINT_ID)).thenThrow(new PluginNotFoundException(FAKE_ENDPOINT_ID));
+
+        final Response response = rootTarget(FAKE_ENDPOINT_ID).path("shared-configuration-schema").request().get();
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        final ErrorEntity errorEntity = response.readEntity(ErrorEntity.class);
+
+        final ErrorEntity expectedErrorEntity = new ErrorEntity();
+        expectedErrorEntity.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
+        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] can not be found.");
+        expectedErrorEntity.setTechnicalCode("plugin.notFound");
+        expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
+
+        Assertions.assertThat(errorEntity).isEqualTo(expectedErrorEntity);
     }
 }

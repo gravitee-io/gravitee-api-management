@@ -107,6 +107,7 @@ public class PageMapper {
         String tryIt = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT);
         String tryItAnonymous = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_ANONYMOUS);
         String tryItURL = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT_URL);
+        String usePkce = configuration.get(PageConfigurationKeys.SWAGGER_SWAGGERUI_USE_PKCE);
         String viewer = configuration.get(PageConfigurationKeys.SWAGGER_VIEWER);
 
         if (displayOperationId != null) {
@@ -138,6 +139,9 @@ public class PageMapper {
         }
         if (tryItURL != null) {
             pageConfiguration.setTryItUrl(tryItURL);
+        }
+        if (usePkce != null) {
+            pageConfiguration.setUsePkce(Boolean.parseBoolean(usePkce));
         }
         if (viewer != null) {
             pageConfiguration.setViewer(ViewerEnum.fromValue(viewer));

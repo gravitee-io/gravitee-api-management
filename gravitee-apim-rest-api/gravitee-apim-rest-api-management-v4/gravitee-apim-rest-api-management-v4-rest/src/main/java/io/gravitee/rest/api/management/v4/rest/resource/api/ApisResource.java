@@ -51,7 +51,6 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
     public Response createApi(@Valid @NotNull final NewApiEntity newApiEntity) {
         // FIXME: use new API model in signature
-        // FIXME: remove environmentId from openAPI descriptor API
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
         return Response.created(this.getLocationHeader(newApi.getId())).entity(ApiMapper.INSTANCE.convert(newApi)).build();
     }

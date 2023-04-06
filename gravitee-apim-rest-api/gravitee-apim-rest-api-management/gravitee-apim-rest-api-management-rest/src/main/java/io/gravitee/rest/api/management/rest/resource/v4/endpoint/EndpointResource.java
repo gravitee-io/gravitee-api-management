@@ -122,4 +122,27 @@ public class EndpointResource {
 
         return endpointService.getMoreInformation(endpointId);
     }
+
+    @GET
+    @Path("shared-configuration-schema")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "🧪 Get an endpoint shared configuration schema",
+        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Endpoint shared configuration schema",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = String.class))
+    )
+    @ApiResponse(responseCode = "404", description = "Endpoint not found")
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @ApiResponse(responseCode = "204", description = "Endpoint shared configuration schema not found")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
+    public String getEndpointSharedConfigurationSchema(@PathParam("endpoint") String endpoint) {
+        // Check that the entrypoint exists
+        endpointService.findById(endpoint);
+
+        return endpointService.getSharedConfigurationSchema(endpoint);
+    }
 }

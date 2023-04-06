@@ -37,10 +37,24 @@ Bellow you will find the common options related to endpoint configuration which 
 
 === Http proxy connector configuration
 
+==== Endpoint level configuration
+
 |===
 |Attributes | Default | Mandatory | Description
 
 |target | N/A     | Yes | The target url to use to contact the backend (ex: https://api.gravitee.io/echo).
+
+|===
+
+==== Shared configuration
+
+Shared configuration can be done directly from the endpoint group `sharedConfiguration` field.
+
+If `inheritConfiguration` is false, then shared configuration can be overridden directly from endpoint `overriddenSharedConfiguration` field.
+
+|===
+|Attributes | Default | Mandatory | Description
+
 |headers | N/A     | No | An optional list of headers to add before sending the request to the backend. Header's value support EL expression that are evaluated at Api deployment (not request time!) and support a subset of expressions (api properties, dictionary, node). All headers defined here take precedence over headers defined at request time (override).
 |http | N/A     | No | The configuration related to http (pool, timeout, ...). See bellow for details.
 |proxy | N/A     | No | The configuration related to the configuration of proxy (http or tcp proxy). See bellow for details.

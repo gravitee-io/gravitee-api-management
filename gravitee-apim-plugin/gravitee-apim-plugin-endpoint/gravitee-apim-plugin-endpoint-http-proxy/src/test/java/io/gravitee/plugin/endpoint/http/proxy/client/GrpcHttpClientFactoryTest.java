@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,5 +44,6 @@ class GrpcHttpClientFactoryTest extends HttpClientFactoryTest {
         cut = new GrpcHttpClientFactory();
         configuration = new HttpProxyEndpointConnectorConfiguration();
         configuration.setTarget("grpc://target");
+        sharedConfiguration = new HttpProxyEndpointConnectorSharedConfiguration();
     }
 }

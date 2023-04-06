@@ -31,10 +31,11 @@ import lombok.ToString;
 @Setter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "EntrypointExpandEntityV4")
+@Schema(name = "ConnectorExpandPluginEntityV4")
 public class ConnectorExpandPluginEntity extends ConnectorPluginEntity {
 
     private String schema;
     private String icon;
     private String subscriptionSchema;
+    private String sharedConfigurationSchema;
 }

@@ -22,6 +22,7 @@ import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorClassLoaderFactory;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -84,5 +85,10 @@ public class DefaultEndpointConnectorPluginManager
     @Override
     public EndpointConnectorFactory<?> getFactoryById(final String endpointPluginId) {
         return factories.get(endpointPluginId);
+    }
+
+    @Override
+    public String getSharedConfigurationSchema(String pluginId) throws IOException {
+        return getSchema(pluginId, "sharedConfiguration");
     }
 }

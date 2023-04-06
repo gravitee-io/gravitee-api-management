@@ -66,6 +66,9 @@ class AuthenticationService {
     this.$auth.authenticate(provider.id).then((response) => {
       this.UserService.current().then((user) => {
         if (provider.userLogoutEndpoint) {
+          if (response.data.id_token) {
+            this.$window.localStorage.setItem('user-id-token', response.data.id_token);
+          }
           this.$window.localStorage.setItem('user-logout-url', provider.userLogoutEndpoint);
         }
         this.$rootScope.$broadcast('graviteeUserRefresh', { user: user });

@@ -51,4 +51,8 @@ export class EndpointService {
   v4GetMoreInformation(endpointId: string): Observable<PluginMoreInformation> {
     return this.http.get<PluginMoreInformation>(`${this.constants.env.baseURL}/v4/endpoints/${endpointId}/moreInformation`);
   }
+
+  v4GetSharedConfigurationSchema(id: string): Observable<GioJsonSchema> {
+    return this.http.get<GioJsonSchema>(`${this.constants.env.baseURL}/v4/endpoints/${id}/shared-configuration-schema`);
+  }
 }

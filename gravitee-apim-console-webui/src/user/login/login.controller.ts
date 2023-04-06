@@ -66,7 +66,6 @@ class LoginController {
     const nonce = this.AuthenticationService.nonce(32);
 
     const redirectUri = this.getRedirectUri();
-
     this.$window.localStorage[nonce] = JSON.stringify({ redirectUri });
 
     const provider = _.find(this.identityProviders, { id: identityProvider }) as IdentityProvider;

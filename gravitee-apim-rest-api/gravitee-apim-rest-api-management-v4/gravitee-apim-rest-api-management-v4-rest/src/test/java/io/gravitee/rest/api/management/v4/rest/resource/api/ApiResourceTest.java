@@ -33,9 +33,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
@@ -44,7 +41,6 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
@@ -58,7 +54,6 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.management.v4.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v4.rest.model.ApiListenersInner;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -89,19 +84,20 @@ public class ApiResourceTest extends AbstractResourceTest {
     private static final String API = "my-api";
     private static final String UNKNOWN_API = "unknown";
     private static final String ENVIRONMENT = "my-env";
-    private static final String ORGANIZATION = "my-org";
 
     private ApiEntity apiEntity;
 
     @Override
     protected String contextPath() {
-        return "/apis";
+        return "/environments/" + ENVIRONMENT + "/apis";
     }
 
     @Before
     public void init() throws TechnicalException {
         reset(apiServiceV4);
         GraviteeContext.cleanContext();
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
         Api api = new Api();
         api.setId(API);
@@ -112,9 +108,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         environmentEntity.setId(ENVIRONMENT);
         environmentEntity.setOrganizationId(ORGANIZATION);
         doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
-        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
 
         apiEntity = new ApiEntity();
         apiEntity.setId(API);
@@ -169,11 +163,6 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         doReturn(apiEntity).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), API);
         doThrow(ApiNotFoundException.class).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
-    }
-
-    @After
-    public void tearDown() {
-        GraviteeContext.cleanContext();
     }
 
     @Test
@@ -392,7 +381,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotDeleteApiBecauseNotfound() throws TechnicalException {
-        doThrow(ApiNotFoundException.class).when(apiRepository).findById(UNKNOWN_API);
+        doThrow(ApiNotFoundException.class).when(apiServiceV4).delete(GraviteeContext.getExecutionContext(), UNKNOWN_API, false);
 
         final Response response = rootTarget(UNKNOWN_API).request().delete();
         assertEquals(NOT_FOUND_404, response.getStatus());

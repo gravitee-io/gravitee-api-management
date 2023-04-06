@@ -192,6 +192,7 @@ public class CurrentUserResource extends AbstractResource {
             userDetails.setCreatedAt(userEntity.getCreatedAt());
             userDetails.setUpdatedAt(userEntity.getUpdatedAt());
             userDetails.setLastConnectionAt(userEntity.getLastConnectionAt());
+            userDetails.setOrganizationId(userEntity.getOrganizationId());
 
             if (details.getEmail() == null && IDP_SOURCE_MEMORY.equals(userEntity.getSource()) && userEntity.getEmail() != null) {
                 userDetails.setEmail(userEntity.getEmail());
@@ -410,6 +411,7 @@ public class CurrentUserResource extends AbstractResource {
                 .withClaim(JWTHelper.Claims.EMAIL, userDetails.getEmail())
                 .withClaim(JWTHelper.Claims.FIRSTNAME, userDetails.getFirstname())
                 .withClaim(JWTHelper.Claims.LASTNAME, userDetails.getLastname())
+                .withClaim(JWTHelper.Claims.ORG, userDetails.getOrganizationId())
                 .withJWTId(UUID.randomUUID().toString())
                 .sign(algorithm);
 

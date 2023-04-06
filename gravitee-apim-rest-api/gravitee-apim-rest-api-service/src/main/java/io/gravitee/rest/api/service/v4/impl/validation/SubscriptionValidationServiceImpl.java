@@ -67,6 +67,7 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
     ) {
         if (
             genericPlanEntity.getPlanSecurity() != null &&
+            genericPlanEntity.getPlanSecurity().getType() != null &&
             genericPlanEntity.getPlanSecurity().getType().equals(PlanSecurityType.SUBSCRIPTION.getLabel())
         ) {
             if (configuration.getEntrypointId() == null || configuration.getEntrypointId().isEmpty()) {

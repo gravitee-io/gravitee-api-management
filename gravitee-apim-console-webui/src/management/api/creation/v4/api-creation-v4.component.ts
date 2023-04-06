@@ -220,12 +220,13 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
             ({
               name: `Default ${endpoint.name} group`,
               type: endpoint.id,
+              sharedConfiguration: endpoint.sharedConfiguration,
               endpoints: [
                 {
                   name: `Default ${endpoint.name}`,
                   type: endpoint.id,
                   weight: 1,
-                  inheritConfiguration: false,
+                  inheritConfiguration: true,
                   configuration: endpoint.configuration,
                 },
               ],

@@ -94,7 +94,9 @@ public class ListenerValidationServiceImplTest {
     @Before
     public void setUp() throws Exception {
         when(environmentService.findById(any())).thenReturn(new EnvironmentEntity());
-        lenient().when(entrypointService.validateConnectorConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        lenient()
+            .when(entrypointService.validateConnectorConfiguration(any(String.class), any()))
+            .thenAnswer(invocation -> invocation.getArgument(1));
         listenerValidationService =
             new ListenerValidationServiceImpl(
                 new PathValidationServiceImpl(apiRepository, objectMapper, environmentService),

@@ -194,10 +194,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         //mock DB find user by name
         UserEntity userEntity = mockUserEntity();
-        userEntity.setId("janedoe@example.com");
-        userEntity.setSource(USER_SOURCE_OAUTH2);
-        userEntity.setSourceId("janedoe@example.com");
-        userEntity.setPicture("http://example.com/janedoe/me.jpg");
 
         when(
             userService.createOrUpdateUserFromSocialIdentityProvider(
@@ -250,6 +246,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         assertEquals("janedoe@example.com", jwt.getClaim("sub").asString());
         assertEquals("janedoe@example.com", jwt.getClaim("email").asString());
         assertEquals("Doe", jwt.getClaim("lastname").asString());
+        assertEquals("My-organization", jwt.getClaim("org").asString());
     }
 
     private void verifyJwtTokenIsNotPresent(Response response)
@@ -274,6 +271,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         createdUser.setFirstname("Jane");
         createdUser.setEmail("janedoe@example.com");
         createdUser.setPicture("http://example.com/janedoe/me.jpg");
+        createdUser.setOrganizationId("My-organization");
         return createdUser;
     }
 

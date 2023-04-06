@@ -20,6 +20,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiPortalPlanEditComponent } from './api-portal-plan-edit.component';
 
@@ -29,6 +30,11 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { ApiPortalPlansModule } from '../api-portal-plans.module';
 import { Api } from '../../../../../entities/api';
 import { fakeApi } from '../../../../../entities/api/Api.fixture';
+import { fakeTag } from '../../../../../entities/tag/tag.fixture';
+import { fakeGroup } from '../../../../../entities/group/group.fixture';
+import { ApiPlanFormHarness } from '../../../component/plan/api-plan-form.harness';
+import { fakePlan } from '../../../../../entities/plan/plan.fixture';
+import { Plan } from '../../../../../entities/plan';
 
 describe('ApiPortalPlanEditComponent', () => {
   const API_ID = 'my-api';
@@ -66,21 +72,166 @@ describe('ApiPortalPlanEditComponent', () => {
     TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
   };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should create', () => {
-    configureTestingModule();
-    expectApiGetRequest(fakeApi({ id: API_ID }));
-    expect(fixture.componentInstance).toBeTruthy();
-    expect(loader).toBeTruthy();
+  describe('Create', () => {
+    const TAG_1_ID = 'tag-1';
+
+    beforeEach(() => {
+      configureTestingModule();
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApi({ id: API_ID }));
+    });
+
+    it('should create new plan', async () => {
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(true);
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+      planForm
+        .httpRequest(httpTestingController)
+        .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
+      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
+
+      await planForm.fillRequiredFields({
+        name: 'My plan',
+        securityTypeLabel: /Keyless/,
+      });
+
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans`, method: 'POST' });
+
+      expect(req.request.body).toEqual({
+        name: 'My plan',
+        description: '',
+        comment_message: '',
+        comment_required: false,
+        validation: 'MANUAL',
+        general_conditions: '',
+        characteristics: [],
+        excluded_groups: [],
+        tags: [],
+        security: 'KEY_LESS',
+        securityDefinition: '{}',
+        selection_rule: null,
+        flows: [
+          {
+            enabled: true,
+            'path-operator': {
+              operator: 'STARTS_WITH',
+              path: '/',
+            },
+            post: [],
+            pre: [],
+          },
+        ],
+      });
+      req.flush({});
+      expect(fakeUiRouter.go).toHaveBeenCalled();
+    });
+  });
+
+  describe('Edit', () => {
+    const TAG_1_ID = 'tag-1';
+    const PLAN = fakePlan();
+
+    beforeEach(async () => {
+      configureTestingModule(PLAN.id);
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApi({ id: API_ID }));
+      expectPlanGetRequest(API_ID, PLAN);
+    });
+
+    it('should edit plan', async () => {
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+      planForm
+        .httpRequest(httpTestingController)
+        .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
+      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('My plan edited');
+
+      expect(await saveBar.isVisible()).toBe(true);
+      await saveBar.clickSubmit();
+
+      expectPlanGetRequest(API_ID, PLAN);
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${PLAN.id}`,
+        method: 'PUT',
+      });
+
+      expect(req.request.body).toEqual({
+        name: 'My plan edited',
+        comment_required: false,
+        validation: 'MANUAL',
+        security: 'KEY_LESS',
+        securityDefinition: '{}',
+        flows: [],
+        id: '45ff00ef-8256-3218-bf0d-b289735d84bb',
+        api: 'api#1',
+        order: 0,
+        status: 'PUBLISHED',
+        paths: {},
+      });
+      req.flush({});
+      expect(fakeUiRouter.go).toHaveBeenCalled();
+    });
+  });
+
+  describe('Edit Kubernetes API', () => {
+    const TAG_1_ID = 'tag-1';
+    const PLAN = fakePlan();
+
+    beforeEach(async () => {
+      configureTestingModule(PLAN.id);
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApi({ id: API_ID, definition_context: { origin: 'kubernetes' } }));
+      expectPlanGetRequest(API_ID, PLAN);
+    });
+
+    it('should access plan in read only', async () => {
+      expect(await loader.getAllHarnesses(GioSaveBarHarness)).toHaveLength(0);
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+      planForm
+        .httpRequest(httpTestingController)
+        .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
+      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
+
+      const nameInput = await planForm.getNameInput();
+      expect(await nameInput.isDisabled()).toEqual(true);
+
+      const securityTypeInput = await planForm.getSecurityTypeInput();
+      expect(await securityTypeInput.isDisabled()).toEqual(true);
+    });
   });
 
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  }
+
+  function expectPlanGetRequest(apiId: string, plan: Plan) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/plans/${plan.id}`, method: 'GET' }).flush(plan);
   }
 });

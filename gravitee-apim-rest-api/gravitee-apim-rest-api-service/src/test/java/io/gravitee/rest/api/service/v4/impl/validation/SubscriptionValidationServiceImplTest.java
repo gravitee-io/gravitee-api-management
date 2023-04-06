@@ -123,7 +123,10 @@ public class SubscriptionValidationServiceImplTest {
                 SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
                 updateSubscriptionEntity.setConfiguration(configuration);
 
-                cut.validateAndSanitize(planEntity, updateSubscriptionEntity);
+                assertThrows(
+                    SubscriptionEntrypointIdMissingException.class,
+                    () -> cut.validateAndSanitize(planEntity, updateSubscriptionEntity)
+                );
             }
 
             @Test
@@ -158,7 +161,10 @@ public class SubscriptionValidationServiceImplTest {
                 SubscriptionConfigurationEntity configuration = new SubscriptionConfigurationEntity();
                 updateSubscriptionConfigurationEntity.setConfiguration(configuration);
 
-                cut.validateAndSanitize(planEntity, updateSubscriptionConfigurationEntity);
+                assertThrows(
+                    SubscriptionEntrypointIdMissingException.class,
+                    () -> cut.validateAndSanitize(planEntity, updateSubscriptionConfigurationEntity)
+                );
             }
 
             @Test

@@ -83,22 +83,22 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.secureForm = new FormGroup({
-      securityTypes: new FormControl(),
+      securityType: new FormControl(),
       securityConfig: new FormControl({}),
       selectionRule: new FormControl(),
     });
 
     this.secureForm
-      .get('securityTypes')
+      .get('securityType')
       .valueChanges.pipe(
         takeUntil(this.unsubscribe$),
         distinctUntilChanged(),
         tap(() => {
           this.securityConfigSchema = undefined;
           // Only reset security config if security type has changed
-          if (this.currentSecurityType !== this.secureForm.get('securityTypes').value) {
+          if (this.currentSecurityType !== this.secureForm.get('securityType').value) {
             this.secureForm.get('securityConfig').reset({});
-            this.currentSecurityType = this.secureForm.get('securityTypes').value;
+            this.currentSecurityType = this.secureForm.get('securityType').value;
           }
         }),
         filter((securityType) => securityType && securityType !== PlanSecurityType.KEY_LESS),

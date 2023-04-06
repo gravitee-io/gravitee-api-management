@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -75,6 +76,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             // Principal username is the technical identifier of the user
             // Dirty hack because spring security is requiring a username...
             details.setUsername(registeredUser.getId());
+            details.setOrganizationId(registeredUser.getOrganizationId());
             // Allows to override email of in memory users
             if ("memory".equals(details.getSource()) && registeredUser.getEmail() != null) {
                 details.setEmail(registeredUser.getEmail());
@@ -101,6 +103,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             UserEntity createdUser = userService.create(GraviteeContext.getExecutionContext(), newUser, addDefaultRole);
             // Principal username is the technical identifier of the user
             details.setUsername(createdUser.getId());
+            details.setOrganizationId(createdUser.getOrganizationId());
 
             if (!addDefaultRole) {
                 addRoles(RoleScope.ENVIRONMENT, createdUser.getId(), event.getAuthentication().getAuthorities());
@@ -109,6 +112,7 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
         }
 
         userService.connect(GraviteeContext.getExecutionContext(), details.getUsername());
+        SecurityContextHolder.getContext().setAuthentication(event.getAuthentication());
     }
 
     public String computePicture(final byte[] pictureData) {

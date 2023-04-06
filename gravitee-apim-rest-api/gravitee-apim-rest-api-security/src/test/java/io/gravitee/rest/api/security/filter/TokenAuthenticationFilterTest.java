@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.security.filter;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.model.Token;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
@@ -30,10 +32,13 @@ import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hamcrest.MatcherAssert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -65,6 +70,7 @@ public class TokenAuthenticationFilterTest {
 
     @Test
     public void shouldGenerateAuthorities() throws Exception {
+        final String ORG_ID = "My-org";
         final String USER_ID = "userid1";
         final String TOKEN = "b4c6102e-6c95-464f-8610-2e6c95064f02";
         final String BEARER = "Bearer " + TOKEN;
@@ -85,11 +91,14 @@ public class TokenAuthenticationFilterTest {
 
         UserEntity user = mock(UserEntity.class);
         when(user.getId()).thenReturn(USER_ID);
+        when(user.getOrganizationId()).thenReturn(ORG_ID);
         when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenReturn(user);
 
         filter.doFilter(request, response, filterChain);
 
         verify(authoritiesProvider).retrieveAuthorities(USER_ID);
+        UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        assertEquals(ORG_ID, principal.getOrganizationId());
     }
 
     @Test

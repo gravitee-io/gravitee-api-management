@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
@@ -27,26 +29,25 @@ import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EndpointPluginServiceImplTest {
+public class EndpointConnectorPluginServiceImplTest {
 
     private static final String PLUGIN_ID = "my-test-plugin";
     private static final String CONFIGURATION = "my-test-configuration";
     private static final String SCHEMA = "my-test-schema";
 
-    @InjectMocks
-    private EndpointConnectorPluginServiceImpl endpointService;
+    private EndpointConnectorPluginService cut;
 
     @Mock
     private JsonSchemaService jsonSchemaService;
@@ -65,7 +66,7 @@ public class EndpointPluginServiceImplTest {
 
     @Before
     public void setup() {
-        ReflectionTestUtils.setField(endpointService, "pluginManager", pluginManager);
+        cut = new EndpointConnectorPluginServiceImpl(jsonSchemaService, pluginManager);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
@@ -80,7 +81,7 @@ public class EndpointPluginServiceImplTest {
         when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
         when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn("fixed-configuration");
 
-        String resultConfiguration = endpointService.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
+        String resultConfiguration = cut.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
 
         assertEquals("fixed-configuration", resultConfiguration);
     }
@@ -89,7 +90,7 @@ public class EndpointPluginServiceImplTest {
     public void shouldValidateConfigurationWhenNullConfiguration() throws IOException {
         when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
 
-        String resultConfiguration = endpointService.validateConnectorConfiguration(PLUGIN_ID, null);
+        String resultConfiguration = cut.validateConnectorConfiguration(PLUGIN_ID, null);
 
         assertNull(resultConfiguration);
     }
@@ -98,7 +99,7 @@ public class EndpointPluginServiceImplTest {
     public void shouldFailToValidateConfigurationWhenNoPlugin() {
         when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
 
-        endpointService.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
+        cut.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
     }
 
     @Test
@@ -107,7 +108,7 @@ public class EndpointPluginServiceImplTest {
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
 
-        PlatformPluginEntity result = endpointService.findById(PLUGIN_ID);
+        PlatformPluginEntity result = cut.findById(PLUGIN_ID);
 
         assertNotNull(result);
         assertEquals(PLUGIN_ID, result.getId());
@@ -117,7 +118,7 @@ public class EndpointPluginServiceImplTest {
     public void shouldNotFindById() {
         when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
 
-        endpointService.findById(PLUGIN_ID);
+        cut.findById(PLUGIN_ID);
     }
 
     @Test
@@ -126,10 +127,28 @@ public class EndpointPluginServiceImplTest {
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
 
-        Set<ConnectorPluginEntity> result = endpointService.findAll();
+        Set<ConnectorPluginEntity> result = cut.findAll();
 
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(PLUGIN_ID, result.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldGetEndpointSharedConfigurationSchema() throws IOException {
+        when(pluginManager.getSharedConfigurationSchema(PLUGIN_ID)).thenReturn("sharedConfiguration");
+
+        final String result = cut.getSharedConfigurationSchema(PLUGIN_ID);
+
+        assertThat(result).isEqualTo("sharedConfiguration");
+    }
+
+    @Test
+    public void shouldNotGetSharedConfigurationSchemaBecauseOfIOException() throws IOException {
+        when(pluginManager.getSharedConfigurationSchema(PLUGIN_ID)).thenThrow(IOException.class);
+
+        assertThatThrownBy(() -> cut.getSharedConfigurationSchema(PLUGIN_ID))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessage("An error occurs while trying to get endpoint shared configuration schema for plugin " + PLUGIN_ID);
     }
 }

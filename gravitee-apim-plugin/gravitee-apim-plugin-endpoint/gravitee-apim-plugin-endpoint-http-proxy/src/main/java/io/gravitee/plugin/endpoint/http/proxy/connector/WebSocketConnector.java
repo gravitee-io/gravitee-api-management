@@ -29,6 +29,7 @@ import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.UpgradeRejectedException;
@@ -46,8 +47,12 @@ public class WebSocketConnector extends HttpConnector {
     private static final String HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE = "HTTP_PROXY_WEBSOCKET_UPGRADE_FAILURE";
     private static final String HTTP_PROXY_WEBSOCKET_FAILURE = "HTTP_PROXY_WEBSOCKET_FAILURE";
 
-    public WebSocketConnector(final HttpProxyEndpointConnectorConfiguration configuration, final HttpClientFactory httpClient) {
-        super(configuration, httpClient);
+    public WebSocketConnector(
+        final HttpProxyEndpointConnectorConfiguration configuration,
+        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration,
+        final HttpClientFactory httpClient
+    ) {
+        super(configuration, sharedConfiguration, httpClient);
     }
 
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")
@@ -60,7 +65,7 @@ public class WebSocketConnector extends HttpConnector {
             ctx.metrics().setEndpoint(options.getURI());
             WebSocketConnectOptions webSocketConnectOptions = new WebSocketConnectOptions(options.toJson());
             return httpClientFactory
-                .getOrBuildHttpClient(ctx, configuration)
+                .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .rxWebSocket(webSocketConnectOptions)
                 .flatMap(endpointWebSocket ->
                     request

@@ -21,7 +21,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioFormFocusInvalidModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
@@ -54,6 +54,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     GioPermissionModule,
     GioSaveBarModule,
     GioGoBackButtonModule,
+    GioFormFocusInvalidModule,
 
     ApiPlanFormModule,
   ],

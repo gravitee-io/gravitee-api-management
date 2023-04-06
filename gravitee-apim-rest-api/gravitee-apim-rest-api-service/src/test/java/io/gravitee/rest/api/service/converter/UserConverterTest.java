@@ -54,6 +54,7 @@ public class UserConverterTest {
         user.setFirstname("my-firstname");
         user.setLastname("my-lastname");
         user.setId("my-id");
+        user.setOrganizationId("my-org-id");
 
         UserEntity userEntity = userConverter.toUserEntity(user);
 
@@ -61,6 +62,7 @@ public class UserConverterTest {
         assertEquals("my-firstname", userEntity.getFirstname());
         assertEquals("my-lastname", userEntity.getLastname());
         assertEquals("my-id", userEntity.getId());
+        assertEquals("my-org-id", userEntity.getOrganizationId());
     }
 
     @Test

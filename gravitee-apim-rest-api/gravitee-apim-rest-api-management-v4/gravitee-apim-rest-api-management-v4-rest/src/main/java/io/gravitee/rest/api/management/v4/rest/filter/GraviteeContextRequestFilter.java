@@ -15,23 +15,19 @@
  */
 package io.gravitee.rest.api.management.v4.rest.filter;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import java.io.IOException;
+import java.util.Objects;
 import javax.annotation.Priority;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -41,43 +37,39 @@ import org.slf4j.LoggerFactory;
 @Priority(10)
 public class GraviteeContextRequestFilter implements ContainerRequestFilter {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final EnvironmentService environmentService;
 
     @Inject
-    private EnvironmentService environmentService;
-
-    @Inject
-    private ApiRepository apiRepository;
+    public GraviteeContextRequestFilter(EnvironmentService environmentService) {
+        this.environmentService = environmentService;
+    }
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        var principal = (UsernamePasswordAuthenticationToken) requestContext.getSecurityContext().getUserPrincipal();
+        var userDetails = Objects.isNull(principal) ? null : (UserDetails) principal.getPrincipal();
+
         MultivaluedMap<String, String> pathsParams = requestContext.getUriInfo().getPathParameters();
-        if (pathsParams.containsKey("orgId")) {
-            GraviteeContext.setCurrentEnvironment(null);
-            GraviteeContext.setCurrentOrganization(pathsParams.getFirst("orgId"));
-        } else if (pathsParams.containsKey("envId")) {
-            String envId = pathsParams.getFirst("envId");
-            EnvironmentEntity environment = environmentService.findById(envId);
-            if (environment != null) {
-                GraviteeContext.setCurrentEnvironment(environment.getId());
-                GraviteeContext.setCurrentOrganization(environment.getOrganizationId());
+
+        String organizationId = null;
+        if (Objects.nonNull(userDetails)) {
+            if (Objects.isNull(userDetails.getOrganizationId())) {
+                throw new IllegalStateException("No organization associated to user");
             }
-        } else if (pathsParams.containsKey("apiId")) {
-            String apiId = pathsParams.getFirst("apiId");
-            try {
-                apiRepository
-                    .findById(apiId)
-                    .ifPresent(api -> {
-                        EnvironmentEntity apiEnv = environmentService.findById(api.getEnvironmentId());
-                        if (apiEnv != null) {
-                            GraviteeContext.setCurrentEnvironment(apiEnv.getId());
-                            GraviteeContext.setCurrentOrganization(apiEnv.getOrganizationId());
-                        }
-                    });
-            } catch (TechnicalException e) {
-                logger.error(String.format("Error while fetching execution context for API {}", apiId), e);
-                throw new ApiNotFoundException(apiId);
-            }
+            organizationId = userDetails.getOrganizationId();
         }
+
+        if (pathsParams.containsKey("orgId") && !pathsParams.getFirst("orgId").equals(organizationId)) {
+            throw new BadRequestException("Invalid orgId");
+        }
+
+        String environmentId = null;
+        if (pathsParams.containsKey("envId")) { // The id or hrid of an environment
+            String idOrHrid = pathsParams.getFirst("envId");
+            environmentId = environmentService.findByOrgAndIdOrHrid(organizationId, idOrHrid).getId();
+        }
+
+        GraviteeContext.setCurrentEnvironment(environmentId);
+        GraviteeContext.setCurrentOrganization(organizationId);
     }
 }

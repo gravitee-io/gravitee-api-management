@@ -83,6 +83,9 @@
     <md-checkbox ng-model="$ctrl.page.configuration.displayOperationId" ng-true-value="'true'" ng-false-value="'false'">
       Display the operationId in the operations list
     </md-checkbox>
+    <md-checkbox ng-model="$ctrl.page.configuration.usePkce" ng-true-value="'true'" ng-false-value="'false'">
+      Use PKCE when authenticating with OAuth with authorization code flow
+    </md-checkbox>
     <md-input-container class="md-block">
       <label>Default expansion setting for the operations and tags</label>
       <md-select ng-model="$ctrl.page.configuration.docExpansion">

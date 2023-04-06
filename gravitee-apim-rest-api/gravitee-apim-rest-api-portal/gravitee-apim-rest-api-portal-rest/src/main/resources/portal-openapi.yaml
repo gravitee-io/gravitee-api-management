@@ -5288,6 +5288,9 @@ components:
             Number of max tagged operations displayed. \
             Limits the number of tagged operations displayed to at most this many (negative means show all operations).\
             No limit by default.
+        use_pkce:
+          type: boolean
+          description: Enable use of PKCE with authorization code flows in documentation page.
         viewer:
           type: string
           description: The type of viewer for OpenAPI specification. Default is 'Swagger'

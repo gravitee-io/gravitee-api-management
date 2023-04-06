@@ -43,6 +43,7 @@ import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.mqtt5.configuration.Mqtt5EndpointConnectorSharedConfiguration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.observers.TestObserver;
@@ -78,6 +79,7 @@ class Mqtt5EndpointConnectorTest {
     private static final HiveMQContainer mqtt = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
 
     private final Mqtt5EndpointConnectorConfiguration configuration = new Mqtt5EndpointConnectorConfiguration();
+    private final Mqtt5EndpointConnectorSharedConfiguration sharedConfiguration = new Mqtt5EndpointConnectorSharedConfiguration();
 
     @Captor
     ArgumentCaptor<io.reactivex.rxjava3.core.Flowable<Message>> messagesConsumerCaptor;
@@ -103,13 +105,13 @@ class Mqtt5EndpointConnectorTest {
     public void test() {
         configuration.setServerHost(mqtt.getHost());
         configuration.setServerPort(mqtt.getMqttPort());
-        configuration.getConsumer().setEnabled(true);
-        configuration.getConsumer().setTopic("test/topic");
-        configuration.getProducer().setEnabled(true);
-        configuration.getProducer().setTopic("test/topic");
-        configuration.getProducer().setRetained(true);
+        sharedConfiguration.getConsumer().setEnabled(true);
+        sharedConfiguration.getConsumer().setTopic("test/topic");
+        sharedConfiguration.getProducer().setEnabled(true);
+        sharedConfiguration.getProducer().setTopic("test/topic");
+        sharedConfiguration.getProducer().setRetained(true);
 
-        mqtt5EndpointConnector = new Mqtt5EndpointConnector(configuration);
+        mqtt5EndpointConnector = new Mqtt5EndpointConnector(configuration, sharedConfiguration);
 
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(ctx.request()).thenReturn(request);
@@ -142,7 +144,7 @@ class Mqtt5EndpointConnectorTest {
 
     @Test
     void shouldConsumeMqttMessages() throws InterruptedException {
-        configuration.getProducer().setEnabled(false);
+        sharedConfiguration.getProducer().setEnabled(false);
 
         TestObserver<Void> testObserver = mqtt5EndpointConnector.connect(ctx).test();
         testObserver.await(10, TimeUnit.SECONDS);
@@ -167,8 +169,8 @@ class Mqtt5EndpointConnectorTest {
                         io.reactivex.Flowable.just(
                             Mqtt5Publish
                                 .builder()
-                                .topic(configuration.getProducer().getTopic())
-                                .retain(configuration.getProducer().isRetained())
+                                .topic(sharedConfiguration.getProducer().getTopic())
+                                .retain(sharedConfiguration.getProducer().isRetained())
                                 .qos(Mqtt5Publish.DEFAULT_QOS)
                                 .payload(Buffer.buffer("message").getBytes())
                                 .build()
@@ -198,7 +200,7 @@ class Mqtt5EndpointConnectorTest {
     void shouldInterruptConsumeWithInvalidHostAndPort() throws InterruptedException {
         configuration.setServerHost("localhost");
         configuration.setServerPort(1);
-        configuration.getProducer().setEnabled(false);
+        sharedConfiguration.getProducer().setEnabled(false);
 
         when(ctx.interruptWith(any()))
             .thenAnswer(invocation -> Completable.error(new InterruptionFailureException(invocation.getArgument(0))));
@@ -217,7 +219,7 @@ class Mqtt5EndpointConnectorTest {
 
     @Test
     void shouldPublishRequestMessages() throws InterruptedException {
-        configuration.getConsumer().setEnabled(false);
+        sharedConfiguration.getConsumer().setEnabled(false);
         when(request.onMessages(any())).thenReturn(Completable.complete());
 
         Mqtt5RxClient client = Mqtt5Client
@@ -233,13 +235,13 @@ class Mqtt5EndpointConnectorTest {
                 client
                     .subscribePublishesWith()
                     .addSubscription()
-                    .topicFilter(configuration.getConsumer().getTopic())
+                    .topicFilter(sharedConfiguration.getConsumer().getTopic())
                     .qos(MqttQos.AT_LEAST_ONCE)
                     .noLocal(false)
                     .applySubscription()
                     .applySubscribe()
             )
-            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getConsumer().getTopic()).applyUnsubscribe())
+            .doFinally(() -> client.unsubscribeWith().topicFilter(sharedConfiguration.getConsumer().getTopic()).applyUnsubscribe())
             .take(1)
             .test();
 
@@ -263,7 +265,7 @@ class Mqtt5EndpointConnectorTest {
 
     @Test
     void shouldPublishRequestMessagesOnCtxOverriddenTopic() throws InterruptedException {
-        configuration.getConsumer().setEnabled(false);
+        sharedConfiguration.getConsumer().setEnabled(false);
         when(request.onMessages(any())).thenReturn(Completable.complete());
         String overriddenTopic = "overriddenTopic";
 
@@ -286,7 +288,7 @@ class Mqtt5EndpointConnectorTest {
                     .applySubscription()
                     .applySubscribe()
             )
-            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getConsumer().getTopic()).applyUnsubscribe())
+            .doFinally(() -> client.unsubscribeWith().topicFilter(sharedConfiguration.getConsumer().getTopic()).applyUnsubscribe())
             .take(1)
             .test();
 
@@ -311,7 +313,7 @@ class Mqtt5EndpointConnectorTest {
 
     @Test
     void shouldPublishRequestMessagesOnMessageOverriddenTopic() throws InterruptedException {
-        configuration.getConsumer().setEnabled(false);
+        sharedConfiguration.getConsumer().setEnabled(false);
         when(request.onMessages(any())).thenReturn(Completable.complete());
         String messageOverriddenTopic = "messageOverriddenTopic";
 
@@ -334,7 +336,7 @@ class Mqtt5EndpointConnectorTest {
                     .applySubscription()
                     .applySubscribe()
             )
-            .doFinally(() -> client.unsubscribeWith().topicFilter(configuration.getConsumer().getTopic()).applyUnsubscribe())
+            .doFinally(() -> client.unsubscribeWith().topicFilter(sharedConfiguration.getConsumer().getTopic()).applyUnsubscribe())
             .take(1)
             .test();
 

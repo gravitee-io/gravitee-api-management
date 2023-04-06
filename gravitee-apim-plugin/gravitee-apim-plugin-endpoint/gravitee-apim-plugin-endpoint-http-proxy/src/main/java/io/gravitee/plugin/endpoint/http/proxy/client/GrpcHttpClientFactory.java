@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.http.ProtocolVersion;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -27,14 +28,16 @@ import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointCon
  */
 public class GrpcHttpClientFactory extends HttpClientFactory {
 
+    @Override
     protected VertxHttpClient.VertxHttpClientBuilder buildHttpClient(
         final ExecutionContext ctx,
-        final HttpProxyEndpointConnectorConfiguration configuration
+        final HttpProxyEndpointConnectorConfiguration configuration,
+        final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
-        HttpClientOptions httpOptions = configuration.getHttpOptions();
+        HttpClientOptions httpOptions = sharedConfiguration.getHttpOptions();
         httpOptions.setVersion(ProtocolVersion.HTTP_2);
         httpOptions.setClearTextUpgrade(false);
 
-        return super.buildHttpClient(ctx, configuration).httpOptions(httpOptions);
+        return super.buildHttpClient(ctx, configuration, sharedConfiguration).httpOptions(httpOptions);
     }
 }

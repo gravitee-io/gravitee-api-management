@@ -44,30 +44,30 @@ import org.mockito.Mockito;
 
 public class ApisResourceTest extends AbstractResourceTest {
 
-    private static final String FAKE_ENVIRONMENT_ID = "fake-env";
-    private static final String FAKE_ORG_ID = "fake-org";
+    private static final String ENVIRONMENT = "fake-env";
 
     @Override
     protected String contextPath() {
-        return "/environments";
+        return "/environments/" + ENVIRONMENT + "/apis";
     }
 
     @Before
     public void init() {
         GraviteeContext.cleanContext();
-        GraviteeContext.setCurrentOrganization(FAKE_ORG_ID);
-        GraviteeContext.setCurrentEnvironment(FAKE_ENVIRONMENT_ID);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
 
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(FAKE_ENVIRONMENT_ID);
-        environment.setOrganizationId(FAKE_ORG_ID);
+        environment.setId(ENVIRONMENT);
+        environment.setOrganizationId(ORGANIZATION);
 
-        doReturn(environment).when(environmentService).findById(FAKE_ENVIRONMENT_ID);
+        doReturn(environment).when(environmentService).findById(ENVIRONMENT);
+        doReturn(environment).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
     }
 
     @Test
     public void shouldNotCreateApiWithNoContent() {
-        final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(null);
+        final Response response = rootTarget().request().post(null);
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
@@ -84,7 +84,7 @@ public class ApisResourceTest extends AbstractResourceTest {
             .when(apiServiceV4)
             .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
-        final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
@@ -101,7 +101,7 @@ public class ApisResourceTest extends AbstractResourceTest {
             .when(apiServiceV4)
             .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
-        final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
@@ -124,7 +124,7 @@ public class ApisResourceTest extends AbstractResourceTest {
             .when(apiServiceV4)
             .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
-        final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
@@ -148,13 +148,13 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         when(apiServiceV4.create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME)))
             .thenThrow(new TechnicalManagementException());
-        final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void shouldReturn404WhenEnvironmentDoesNotExist() {
-        doThrow(new EnvironmentNotFoundException(FAKE_ENVIRONMENT_ID)).when(environmentService).findById(FAKE_ENVIRONMENT_ID);
+        doThrow(new EnvironmentNotFoundException(ENVIRONMENT)).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
 
         final NewApiEntity apiEntity = new NewApiEntity();
         apiEntity.setName("My beautiful api");
@@ -172,7 +172,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         endpoint.setType("http");
         apiEntity.setEndpointGroups(List.of(endpoint));
 
-        final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
@@ -203,12 +203,9 @@ public class ApisResourceTest extends AbstractResourceTest {
             .when(apiServiceV4)
             .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
-        final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(
-            rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").path("my-beautiful-api").getUri().toString(),
-            response.getHeaders().getFirst(HttpHeaders.LOCATION)
-        );
+        assertEquals(rootTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
@@ -236,13 +233,13 @@ public class ApisResourceTest extends AbstractResourceTest {
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(RolePermission.ENVIRONMENT_API),
-                eq(FAKE_ENVIRONMENT_ID),
+                eq(ENVIRONMENT),
                 any()
             )
         )
             .thenReturn(false);
 
-        final Response response = rootTarget(FAKE_ENVIRONMENT_ID).path("/apis").request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(apiEntity));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 }

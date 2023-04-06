@@ -21,166 +21,19 @@
                     "text": "Define the port of the MQTT broker."
                 }
             }
-        },
-        "reconnectAttempt": {
-            "type": "integer",
-            "title": "Reconnect attempt (reconnectAttempt)",
-            "description": "Between 0 and 10",
-            "default": 3,
-            "minimum": 0,
-            "maximum": 10,
-            "gioConfig": {
-                "banner": {
-                    "title": "Reconnect attempt",
-                    "text": "Number of reconnect attempt after any kind of disconnection."
-                }
-            }
-        },
-
-        "consumer": {
-            "type": "object",
-            "title": "Consumer",
-            "properties": {
-                "enabled": {
-                    "const": true
-                },
-                "topic": {
-                    "title": "Topic (topic)",
-                    "type": "string",
-                    "gioConfig": {
-                        "banner": {
-                            "title": "Topic",
-                            "text": "Refers to an UTF-8 string that the broker uses to filter messages for each connected client. The topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator)."
-                        }
-                    }
-                }
-            },
-            "additionalProperties": false,
-            "required": [
-                "enabled",
-                "topic"
-            ]
-        },
-
-        "producer": {
-            "type": "object",
-            "title": "Producer",
-            "properties": {
-                "enabled": {
-                    "const": true
-                },
-                "topic": {
-                    "title": "Topic (topic)",
-                    "type": "string",
-                    "gioConfig": {
-                        "banner": {
-                            "title": "Topic",
-                            "text": "Refers to an UTF-8 string that the broker uses to filter messages for each connected client. The topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator)."
-                        }
-                    }
-                },
-                "retained": {
-                    "title": "Retained (Retained)",
-                    "type": "boolean",
-                    "default": false,
-                    "gioConfig": {
-                        "banner": {
-                            "title": "Retained",
-                            "text": "Define if the retain flag must be set to every publish messages. The broker stores the last retained message."
-                        }
-                    }
-                },
-                "responseTopic": {
-                    "title": "Response Topic (responseTopic)",
-                    "type": "string",
-                    "gioConfig": {
-                        "banner": {
-                            "title": "Response Topic",
-                            "text": "The response topic represents the topics on which the responses from the receivers of the message are expected."
-                        }
-                    }
-                }
-            },
-            "additionalProperties": false,
-            "required": [
-                "enabled",
-                "topic"
-            ]
         }
     },
-    "oneOf": [
-        {
-            "title": "Use Consumer",
-            "properties": {
-                "serverHost": {
-                    "$ref": "#/definitions/serverHost"
-                },
-                "serverPort": {
-                    "$ref": "#/definitions/serverPort"
-                },
-                "reconnectAttempt": {
-                    "$ref": "#/definitions/reconnectAttempt"
-                },
-                "consumer": {
-                    "$ref": "#/definitions/consumer"
-                }
-            },
-            "required": [
-                "serverHost",
-                "serverPort",
-                "consumer"
-            ],
-            "additionalProperties": false
+    "properties": {
+        "serverHost": {
+            "$ref": "#/definitions/serverHost"
         },
-        {
-            "title": "Use Producer",
-            "properties": {
-                "serverHost": {
-                    "$ref": "#/definitions/serverHost"
-                },
-                "serverPort": {
-                    "$ref": "#/definitions/serverPort"
-                },
-                "reconnectAttempt": {
-                    "$ref": "#/definitions/reconnectAttempt"
-                },
-                "producer": {
-                    "$ref": "#/definitions/producer"
-                }
-            },
-            "required": [
-                "serverHost",
-                "serverPort",
-                "producer"
-            ],
-            "additionalProperties": false
-        },
-        {
-            "title": "Use Consumer and Producer",
-            "properties": {
-                "serverHost": {
-                    "$ref": "#/definitions/serverHost"
-                },
-                "serverPort": {
-                    "$ref": "#/definitions/serverPort"
-                },
-                "reconnectAttempt": {
-                    "$ref": "#/definitions/reconnectAttempt"
-                },
-                "producer": {
-                    "$ref": "#/definitions/producer"
-                },
-                "consumer": {
-                    "$ref": "#/definitions/consumer"
-                }
-            },
-            "required": [
-                "serverHost",
-                "serverPort",
-                "producer",
-                "consumer"
-            ],
-            "additionalProperties": false
+        "serverPort": {
+            "$ref": "#/definitions/serverPort"
         }
-    ]
+    },
+    "required": [
+        "serverHost",
+        "serverPort"
+    ],
+    "additionalProperties": false
 }

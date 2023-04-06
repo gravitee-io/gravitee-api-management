@@ -116,6 +116,7 @@ public class AuthResource extends AbstractResource {
                 .withClaim(Claims.EMAIL, userDetails.getEmail())
                 .withClaim(Claims.FIRSTNAME, userDetails.getFirstname())
                 .withClaim(Claims.LASTNAME, userDetails.getLastname())
+                .withClaim(Claims.ORG, userDetails.getOrganizationId())
                 .withJWTId(UUID.randomUUID().toString())
                 .sign(algorithm);
 

@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.rest.resource.v4.endpoint;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.v4.connector.AbstractConnectorsResource;
-import io.gravitee.rest.api.management.rest.resource.v4.entrypoint.EntrypointResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ConnectorListItem;
@@ -70,7 +69,13 @@ public class EndpointsResource extends AbstractConnectorsResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public Collection<ConnectorExpandPluginEntity> getEndpoints(@QueryParam("expand") List<String> expands) {
-        return super.expand(endpointService.findAll(), expands);
+        final Collection<ConnectorExpandPluginEntity> connectors = super.expand(endpointService.findAll(), expands);
+        if (expands != null && expands.contains("sharedConfigurationSchema")) {
+            connectors.forEach(connector ->
+                connector.setSharedConfigurationSchema(endpointService.getSharedConfigurationSchema(connector.getId()))
+            );
+        }
+        return connectors;
     }
 
     @Path("{endpoint}")

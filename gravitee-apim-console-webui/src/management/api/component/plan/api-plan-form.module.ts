@@ -25,14 +25,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
-import {
-  GioBannerModule,
-  GioFormTagsInputModule,
-  GioIconsModule,
-  GioSaveBarModule,
-  GioFormSlideToggleModule,
-  GioFormFocusInvalidModule,
-} from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormTagsInputModule, GioIconsModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 
@@ -40,8 +33,6 @@ import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 import { ApiPlanFormComponent } from './api-plan-form.component';
-
-import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
   declarations: [ApiPlanFormComponent, PlanEditGeneralStepComponent, PlanEditSecureStepComponent, PlanEditRestrictionStepComponent],
@@ -65,10 +56,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     GioFormSlideToggleModule,
     GioFormTagsInputModule,
     GioIconsModule,
-    GioSaveBarModule,
-    GioFormFocusInvalidModule,
     GioBannerModule,
-    GioGoBackButtonModule,
   ],
 })
 export class ApiPlanFormModule {}

@@ -69,7 +69,7 @@ import javax.ws.rs.core.UriBuilder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/apis/{apiId}")
+@Path("/environments/{envId}/apis/{apiId}")
 public class ApiResource extends AbstractResource {
 
     @Context
@@ -219,11 +219,6 @@ public class ApiResource extends AbstractResource {
         ApiEntity updatedApi = apiStateService.stop(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser());
 
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
-    }
-
-    @Path("/plans")
-    public ApiPlansResource getApiPlansResource() {
-        return resourceContext.getResource(ApiPlansResource.class);
     }
 
     private ApiEntity getApiEntityById() {
