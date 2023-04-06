@@ -26,8 +26,8 @@ import { NewPlan, Plan } from '../entities/plan-v4';
 export class PlanV4Service {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
-  public create(plan: NewPlan): Observable<Plan> {
-    return this.http.post<Plan>(`${this.constants.env.baseURL}/v4/apis/${plan.apiId}/plans`, plan);
+  public create(apiId: string, plan: NewPlan): Observable<Plan> {
+    return this.http.post<Plan>(`${this.constants.env.baseURL}/v4/apis/${apiId}/plans`, plan);
   }
 
   public publish(apiId: string, planId: string): Observable<void> {

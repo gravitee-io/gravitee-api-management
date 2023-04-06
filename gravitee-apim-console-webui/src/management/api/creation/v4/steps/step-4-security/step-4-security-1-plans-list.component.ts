@@ -19,9 +19,7 @@ import { FormGroup } from '@angular/forms';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step5DocumentationComponent } from '../step-5-documentation/step-5-documentation.component';
-import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-
-export type SecurityPlan = ApiCreationPayload['plans'][number];
+import { NewPlan } from '../../../../../../entities/plan-v4';
 
 @Component({
   selector: 'step-4-security-1-plans-list',
@@ -30,7 +28,7 @@ export type SecurityPlan = ApiCreationPayload['plans'][number];
 })
 export class Step4Security1PlansListComponent {
   @Input()
-  plans: SecurityPlan[] = [];
+  plans: NewPlan[] = [];
 
   @Output()
   addPlanClicked = new EventEmitter();
@@ -41,10 +39,9 @@ export class Step4Security1PlansListComponent {
   constructor(private readonly stepService: ApiCreationStepService) {}
 
   save(): void {
-    const plans = this.plans;
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
-      plans,
+      plans: this.plans,
     }));
 
     this.stepService.goToNextStep({ groupNumber: 5, component: Step5DocumentationComponent });
@@ -58,7 +55,7 @@ export class Step4Security1PlansListComponent {
     this.addPlanClicked.next();
   }
 
-  removePlan(plan: SecurityPlan) {
+  removePlan(plan: NewPlan) {
     this.plans = this.plans.filter((listedPlan) => listedPlan !== plan);
   }
 }

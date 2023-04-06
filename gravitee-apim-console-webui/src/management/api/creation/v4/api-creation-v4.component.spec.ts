@@ -861,55 +861,111 @@ describe('ApiCreationV4Component', () => {
     });
     describe('step4 - plans list', () => {
       it('should add default keyless plan to payload', async () => {
-        const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+        const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
 
-        const name = await step4Security1PlansListHarness.getNameByRowIndex(0);
+        const { name, security } = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
         expect(name).toEqual('Default Keyless (UNSECURED)');
+        expect(security).toEqual('KEY_LESS');
 
-        const securityType = await step4Security1PlansListHarness.getSecurityTypeByRowIndex(0);
-        expect(securityType).toEqual('KEY_LESS');
-
-        await step4Security1PlansListHarness.clickValidate();
+        await step4Security1PlansHarness.clickValidate();
         expect(component.currentStep.payload.plans).toEqual([
           {
             name: 'Default Keyless (UNSECURED)',
-            type: PlanSecurityType.KEY_LESS,
             description: 'Default unsecured plan',
+            security: {
+              type: PlanSecurityType.KEY_LESS,
+              configuration: '',
+            },
+            validation: 'manual',
           },
         ]);
       });
 
       it('should add no plans to payload after deleting default plan', async () => {
-        const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+        const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
 
-        expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
+        expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(1);
 
-        const name = await step4Security1PlansListHarness.getNameByRowIndex(0);
+        const { name, security } = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
         expect(name).toEqual('Default Keyless (UNSECURED)');
+        expect(security).toEqual('KEY_LESS');
 
-        const securityType = await step4Security1PlansListHarness.getSecurityTypeByRowIndex(0);
-        expect(securityType).toEqual('KEY_LESS');
+        await step4Security1PlansHarness.clickRemovePlanButton();
+        expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
 
-        await step4Security1PlansListHarness.clickRemovePlanButton();
-        expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(0);
-
-        await step4Security1PlansListHarness.clickValidate();
+        await step4Security1PlansHarness.clickValidate();
         expect(component.currentStep.payload.plans).toEqual([]);
       });
     });
 
+    describe('step4 - add API_KEY plan', () => {
+      it('should add api key plan to payload', async () => {
+        const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+
+        const planLine1 = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
+        expect(planLine1.name).toEqual('Default Keyless (UNSECURED)');
+        expect(planLine1.security).toEqual('KEY_LESS');
+
+        await step4Security1PlansHarness.addApiKeyPlan('Secure by ApiKey', httpTestingController);
+        const planLine2 = await step4Security1PlansHarness.getColumnTextByRowIndex(1);
+        expect(planLine2.name).toEqual('Secure by ApiKey');
+        expect(planLine2.security).toEqual('API_KEY');
+
+        await step4Security1PlansHarness.clickValidate();
+
+        expect(component.currentStep.payload.plans).toEqual([
+          {
+            name: 'Default Keyless (UNSECURED)',
+            description: 'Default unsecured plan',
+            security: {
+              type: PlanSecurityType.KEY_LESS,
+              configuration: '',
+            },
+            validation: 'manual',
+          },
+          {
+            characteristics: [],
+            comment_message: '',
+            comment_required: false,
+            description: '',
+            excluded_groups: [],
+            flows: [
+              {
+                enabled: true,
+                'path-operator': {
+                  operator: 'STARTS_WITH',
+                  path: '/',
+                },
+                post: [],
+                pre: [],
+              },
+            ],
+            general_conditions: '',
+            name: 'Secure by ApiKey',
+            security: {
+              configuration: '{}',
+              type: 'API_KEY',
+            },
+            selection_rule: null,
+            tags: [],
+            validation: 'manual',
+          },
+        ]);
+      });
+    });
+
     it('should be reinitialized if no plans saved in payload after going back to step 3', async () => {
-      let step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
-      expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
+      let step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+      expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(1);
 
-      await step4Security1PlansListHarness.clickRemovePlanButton();
-      expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(0);
+      await step4Security1PlansHarness.clickRemovePlanButton();
+      expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
 
-      await step4Security1PlansListHarness.clickPrevious();
+      await step4Security1PlansHarness.clickPrevious();
       await fillAndValidateStep3Endpoints2Config();
 
-      step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
-      expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
+      step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+      expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(1);
     });
   });
 
@@ -1045,13 +1101,13 @@ describe('ApiCreationV4Component', () => {
 
       fixture.detectChanges();
 
-      const step4Security1PlansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
-      expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(1);
+      const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+      expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(1);
 
-      await step4Security1PlansListHarness.clickRemovePlanButton();
-      expect(await step4Security1PlansListHarness.countNumberOfRows()).toEqual(0);
+      await step4Security1PlansHarness.clickRemovePlanButton();
+      expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
 
-      await step4Security1PlansListHarness.clickValidate();
+      await step4Security1PlansHarness.clickValidate();
       await fillAndValidateStep5Documentation();
 
       // Reinitialize step6Harness after step4 validation
@@ -1239,7 +1295,7 @@ describe('ApiCreationV4Component', () => {
     });
     expect(createPlansRequest.request.body).toEqual(
       expect.objectContaining({
-        status: 'staging',
+        name: 'Default Keyless (UNSECURED)',
       }),
     );
     createPlansRequest.flush(fakeV4Plan({ apiId: apiId, id: planId }));

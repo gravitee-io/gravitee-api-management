@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpListenerPath } from '../../../../../entities/api-v4';
-import { PlanSecurityType } from '../../../../../entities/plan-v4';
+import { NewPlan } from '../../../../../entities/plan-v4';
 
 export type ApiCreationPayload = Partial<{
   // API details
@@ -43,11 +43,7 @@ export type ApiCreationPayload = Partial<{
   }[];
 
   // Security
-  plans?: {
-    name: string;
-    type: PlanSecurityType;
-    description: string;
-  }[];
+  plans?: NewPlan[];
 
   // Summary
   deploy: boolean;

@@ -37,7 +37,7 @@ export class Step4MenuItemComponent implements OnInit {
   ngOnInit(): void {
     this.menuItems = this.menuItemPayload?.plans?.map((plan) => ({
       name: plan.name,
-      type: plan.type,
+      type: plan.security.type,
     }));
   }
 }

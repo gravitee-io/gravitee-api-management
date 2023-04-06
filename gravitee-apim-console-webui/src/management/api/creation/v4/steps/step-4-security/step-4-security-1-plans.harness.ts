@@ -16,15 +16,15 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
+
+import { ApiPlanFormHarness } from '../../../../component/plan/api-plan-form.harness';
+import { fakeGroup } from '../../../../../../entities/group/group.fixture';
 
 export class Step4Security1PlansHarness extends ComponentHarness {
   static hostSelector = 'step-4-security-1-plans';
 
-  private readonly table = this.locatorFor(MatTableHarness);
-
-  protected getTable(): Promise<MatTableHarness> {
-    return this.table();
-  }
+  private readonly matTable = this.locatorFor(MatTableHarness);
 
   protected getButtonBySelector = (selector: string) => this.locatorFor(MatButtonHarness.with({ selector }))();
 
@@ -35,24 +35,16 @@ export class Step4Security1PlansHarness extends ComponentHarness {
       }),
     )();
 
-  private async getTextByColumnAndRowIndex(index: number, column: string): Promise<string> {
-    return this.getTable()
+  async getColumnTextByRowIndex(index: number): Promise<{ name: string; security: string }> {
+    return this.matTable()
       .then((x) => x.getRows())
       .then((rows) => rows[index])
-      .then((row) => row.getCellTextByIndex({ columnName: column }))
-      .then((text) => text[0]);
-  }
-
-  async getNameByRowIndex(index: number): Promise<string> {
-    return this.getTextByColumnAndRowIndex(index, 'name');
-  }
-
-  async getSecurityTypeByRowIndex(index: number): Promise<string> {
-    return this.getTextByColumnAndRowIndex(index, 'security');
+      .then((row) => row.getCellTextByColumnName())
+      .then((cell) => ({ name: cell.name, security: cell.security }));
   }
 
   async countNumberOfRows(): Promise<number> {
-    return this.table()
+    return this.matTable()
       .then((table) => table.getRows())
       .then((rows) => rows.length);
   }
@@ -71,5 +63,23 @@ export class Step4Security1PlansHarness extends ComponentHarness {
 
   async fillAndValidate(): Promise<void> {
     return this.clickValidate();
+  }
+
+  async addApiKeyPlan(planName: string, httpTestingController: HttpTestingController): Promise<void> {
+    await this.getButtonByText('Add plan').then((b) => b.click());
+
+    const apiPlanFormHarness = await this.locatorFor(ApiPlanFormHarness)();
+
+    apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    apiPlanFormHarness.httpRequest(httpTestingController).expectResourceGetRequest();
+    await apiPlanFormHarness.fillRequiredFields({
+      name: planName,
+      securityTypeLabel: 'API Key',
+    });
+    apiPlanFormHarness.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', {});
+
+    await (await this.getButtonByText('Next')).click();
+    await (await this.getButtonByText('Next')).click();
+    await (await this.getButtonByText('Add plan')).click();
   }
 }

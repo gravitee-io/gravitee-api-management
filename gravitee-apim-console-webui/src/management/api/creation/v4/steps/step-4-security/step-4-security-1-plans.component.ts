@@ -16,11 +16,8 @@
 
 import { Component, OnInit } from '@angular/core';
 
-import { SecurityPlan } from './step-4-security-1-plans-list.component';
-
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { PlanSecurityType } from '../../../../../../entities/plan-v4';
-import { ApiCreationPayload } from '../../models/ApiCreationPayload';
+import { NewPlan, PlanSecurityType, PlanValidation } from '../../../../../../entities/plan-v4';
 
 @Component({
   selector: 'step-4-security-1-plans',
@@ -30,7 +27,7 @@ import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 export class Step4Security1PlansComponent implements OnInit {
   public view: 'list' | 'add' = 'list';
 
-  public plans: ApiCreationPayload['plans'] = [];
+  public plans: NewPlan[] = [];
 
   constructor(private readonly stepService: ApiCreationStepService) {}
 
@@ -41,8 +38,12 @@ export class Step4Security1PlansComponent implements OnInit {
     if (!currentStepPayload.plans) {
       this.plans.push({
         name: 'Default Keyless (UNSECURED)',
-        type: PlanSecurityType.KEY_LESS,
         description: 'Default unsecured plan',
+        security: {
+          type: PlanSecurityType.KEY_LESS,
+          configuration: '',
+        },
+        validation: PlanValidation.MANUAL,
       });
     } else {
       this.plans = currentStepPayload.plans;
@@ -53,7 +54,7 @@ export class Step4Security1PlansComponent implements OnInit {
     this.view = 'add';
   }
 
-  addPlan(plan: SecurityPlan) {
+  addPlan(plan: NewPlan) {
     this.plans.push(plan);
     this.view = 'list';
   }

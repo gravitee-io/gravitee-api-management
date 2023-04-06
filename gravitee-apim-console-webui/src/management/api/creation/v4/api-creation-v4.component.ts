@@ -34,7 +34,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { ApiEntity, EndpointGroup, Listener } from '../../../../entities/api-v4';
 import { PlanV4Service } from '../../../../services-ngx/plan-v4.service';
-import { Plan, PlanType, PlanValidation } from '../../../../entities/plan-v4';
+import { Plan } from '../../../../entities/plan-v4';
 
 // TODO: Make better... Add apiId as req ?
 export interface Result {
@@ -243,20 +243,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   private createPlans$(apiCreationStatus: Result): Observable<Result> {
     const api = apiCreationStatus.result.api;
-    return forkJoin(
-      apiCreationStatus.apiCreationPayload.plans.map((plan) =>
-        this.planV4Service.create({
-          apiId: api.id,
-          description: plan.description,
-          flows: [],
-          name: plan.name,
-          security: { configuration: {}, type: plan.type },
-          status: api.lifecycleState === 'PUBLISHED' && api.state === 'STARTED' ? 'published' : 'staging',
-          type: PlanType.API,
-          validation: PlanValidation.AUTO,
-        }),
-      ),
-    ).pipe(
+    return forkJoin(apiCreationStatus.apiCreationPayload.plans.map((plan) => this.planV4Service.create(api.id, plan))).pipe(
       map((plans: Plan[]) => ({ ...apiCreationStatus, result: { ...apiCreationStatus.result, plans }, status: 'success' as const })),
       catchError((err) => {
         return of({

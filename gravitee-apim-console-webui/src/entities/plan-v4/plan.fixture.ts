@@ -21,8 +21,7 @@ export function fakeV4Plan(modifier?: Partial<Plan> | ((baseApi: Plan) => Plan))
   const base: Plan = {
     id: '45ff00ef-8256-3218-bf0d-b289735d84bb',
     name: 'Free Spaceshuttle',
-    security: { type: PlanSecurityType.KEY_LESS, configuration: {} },
-    securityDefinition: '{}',
+    security: { type: PlanSecurityType.KEY_LESS, configuration: undefined },
     paths: {},
     flows: [],
     status: 'published',

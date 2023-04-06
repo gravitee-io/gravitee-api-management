@@ -16,7 +16,7 @@
 
 -->
 
-<form [formGroup]="form" (ngSubmit)="save()">
+<form [formGroup]="form" (ngSubmit)="onAddPlan()">
   <api-plan-form #apiPlanForm formControlName="plan" mode="create"></api-plan-form>
 
   <div class="api-creation-v4__step__footer">
@@ -49,7 +49,5 @@
     >
       Add plan
     </button>
-
-    <!--      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Add plan</button>-->
   </div>
 </form>

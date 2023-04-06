@@ -18,6 +18,7 @@ import { EndpointGroup } from './EndpointGroup';
 import { Flow } from './Flow';
 import { FlowMode } from './FlowMode';
 import { Listener } from './Listener';
+import { Resource } from './Resource';
 
 export interface ApiEntity {
   id: string;
@@ -35,7 +36,7 @@ export interface ApiEntity {
   listeners?: Listener[];
   endpointGroups?: EndpointGroup[];
   properties?: unknown[]; // Property[] To Complete when needed
-  resources?: unknown[]; // Resource[] To Complete when needed
+  resources?: Resource[]; // Resource[] To Complete when needed
   plans?: unknown[]; // PlanEntity[] To Complete when needed
   flowMode?: FlowMode;
   flows?: Flow[];
