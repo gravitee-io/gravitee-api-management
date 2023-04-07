@@ -29,6 +29,8 @@ class ApplicationGeneralController {
   private application: any;
   private initialApplication: any;
 
+  private readonly = false;
+
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
@@ -139,6 +141,10 @@ class ApplicationGeneralController {
   onCopyClientSecretSuccess(e) {
     this.NotificationService.show('ClientSecret has been copied to clipboard');
     e.clearSelection();
+  }
+
+  onUnauthorized() {
+    this.readonly = true;
   }
 }
 
