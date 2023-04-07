@@ -42,6 +42,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$mdDialog = $mdDialog;
+    this.readonly = false;
 
     this.$onInit = () => {
       this.hooksByCategory = _.groupBy(this.resolvedHooks, 'category');
@@ -130,6 +131,10 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
           this.selectNotificationSetting(this.notificationSettings[0], true);
         });
       });
+    };
+
+    this.onUnauthorized = function () {
+      this.readonly = true;
     };
 
     this.addDialog = () => {
