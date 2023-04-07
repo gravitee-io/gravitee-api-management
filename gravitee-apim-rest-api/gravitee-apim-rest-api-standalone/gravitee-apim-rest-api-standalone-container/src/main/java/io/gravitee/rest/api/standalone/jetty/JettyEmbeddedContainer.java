@@ -60,7 +60,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Value("${http.api.management.enabled:true}")
     private boolean startManagementAPI;
 
-    @Value("${http.api.management.v4.enabled:false}")
+    @Value("${http.api.management.v4.enabled:true}")
     private boolean startManagementAPIv4;
 
     @Value("${http.api.management.entrypoint:${http.api.entrypoint:/}management}")
