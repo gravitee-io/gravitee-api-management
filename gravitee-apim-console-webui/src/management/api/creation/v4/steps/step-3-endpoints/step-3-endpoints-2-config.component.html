@@ -32,11 +32,11 @@
           [jsonSchema]="endpointSchemas[endpoint.id].config"
           [formControlName]="endpoint.id + '-configuration'"
         ></gio-form-json-schema>
-        <gio-banner-info *ngIf="!!endpointSchemas[endpoint.id].sharedConfiguration"
+        <gio-banner-info *ngIf="!!endpointSchemas[endpoint.id].sharedConfig"
           >The following configuration will be shareable for all the endpoints of the group</gio-banner-info
         >
         <gio-form-json-schema
-          [jsonSchema]="endpointSchemas[endpoint.id].sharedConfiguration"
+          [jsonSchema]="endpointSchemas[endpoint.id].sharedConfig"
           [formControlName]="endpoint.id + '-sharedConfiguration'"
         ></gio-form-json-schema>
       </div>
