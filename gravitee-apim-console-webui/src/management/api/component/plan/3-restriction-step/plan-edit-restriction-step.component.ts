@@ -16,7 +16,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Observable, of, Subject } from 'rxjs';
-import { switchMap, takeUntil } from 'rxjs/operators';
+import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { PolicyService } from '../../../../../services-ngx/policy.service';
 
@@ -51,28 +51,24 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
     this.rateLimitSchema$ = this.restrictionForm.get('rateLimitEnabled').valueChanges.pipe(
       takeUntil(this.unsubscribe$),
       switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit'))),
+      tap(() => this.restrictionForm.setControl('rateLimitConfig', new FormControl({}), { emitEvent: false })),
     );
 
     this.quotaSchema$ = this.restrictionForm.get('quotaEnabled').valueChanges.pipe(
       takeUntil(this.unsubscribe$),
       switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('quota'))),
+      tap(() => this.restrictionForm.setControl('quotaConfig', new FormControl({}), { emitEvent: false })),
     );
 
     this.resourceFilteringSchema$ = this.restrictionForm.get('resourceFilteringEnabled').valueChanges.pipe(
       takeUntil(this.unsubscribe$),
       switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('resource-filtering'))),
+      tap(() => this.restrictionForm.setControl('resourceFilteringConfig', new FormControl({}), { emitEvent: false })),
     );
   }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  onGvSchemaFormError(formKey: string, error: unknown) {
-    // Set error at the end of js task. Otherwise it will be reset on value change
-    setTimeout(() => {
-      this.restrictionForm.get(formKey).setErrors(error ? { error: true } : null);
-    }, 0);
   }
 }

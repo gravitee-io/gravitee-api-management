@@ -28,15 +28,12 @@
       ></mat-slide-toggle>
     </gio-form-slide-toggle>
     <ng-container *ngIf="rateLimitSchema$ | async as rateLimitSchema">
-      <gv-schema-form-group
+      <gio-form-json-schema
         *ngIf="rateLimitSchema"
-        class="rateLimit-card__schema-form"
-        ngDefaultControl
+        class="quota-card__schema-form"
         formControlName="rateLimitConfig"
-        [schema]="rateLimitSchema"
-        [attr.readonly]="restrictionForm.get('rateLimitConfig').enabled ? null : true"
-        (:gv-schema-form-group:error)="onGvSchemaFormError('rateLimitConfig', $event.detail)"
-      ></gv-schema-form-group>
+        [jsonSchema]="rateLimitSchema"
+      ></gio-form-json-schema>
     </ng-container>
   </mat-card>
 
@@ -53,15 +50,12 @@
     </gio-form-slide-toggle>
 
     <ng-container *ngIf="quotaSchema$ | async as quotaSchema">
-      <gv-schema-form-group
+      <gio-form-json-schema
         *ngIf="quotaSchema"
         class="quota-card__schema-form"
-        ngDefaultControl
         formControlName="quotaConfig"
-        [schema]="quotaSchema"
-        [attr.readonly]="restrictionForm.get('quotaConfig').enabled ? null : true"
-        (:gv-schema-form-group:error)="onGvSchemaFormError('quotaConfig', $event.detail)"
-      ></gv-schema-form-group>
+        [jsonSchema]="quotaSchema"
+      ></gio-form-json-schema>
     </ng-container>
   </mat-card>
 
@@ -78,15 +72,12 @@
     </gio-form-slide-toggle>
 
     <ng-container *ngIf="resourceFilteringSchema$ | async as resourceFilteringSchema">
-      <gv-schema-form-group
+      <gio-form-json-schema
         *ngIf="resourceFilteringSchema"
-        class="resourceFiltering-card__schema-form"
-        ngDefaultControl
+        class="quota-card__schema-form"
         formControlName="resourceFilteringConfig"
-        [schema]="resourceFilteringSchema"
-        [attr.readonly]="restrictionForm.get('resourceFilteringConfig').enabled ? null : true"
-        (:gv-schema-form-group:error)="onGvSchemaFormError('resourceFilteringConfig', $event.detail)"
-      ></gv-schema-form-group>
+        [jsonSchema]="resourceFilteringSchema"
+      ></gio-form-json-schema>
     </ng-container>
   </mat-card>
 </ng-container>
