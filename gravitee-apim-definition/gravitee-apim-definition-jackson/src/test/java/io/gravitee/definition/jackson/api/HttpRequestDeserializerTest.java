@@ -15,13 +15,10 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.HttpRequest;
-import io.gravitee.definition.model.HttpResponse;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -33,23 +30,23 @@ public class HttpRequestDeserializerTest extends AbstractTest {
     public void definition_defaultHttpResponse() throws Exception {
         HttpRequest request = load("/io/gravitee/definition/jackson/httprequest-simpleheaders.json", HttpRequest.class);
 
-        assertEquals("request-body", request.getBody());
-        assertEquals(4, request.getHeaders().size());
-        assertEquals(1, request.getHeaders().get("transfer-encoding").size());
-        assertEquals("chunked", request.getHeaders().get("transfer-encoding").get(0));
+        Assertions.assertEquals("request-body", request.getBody());
+        Assertions.assertEquals(4, request.getHeaders().size());
+        Assertions.assertEquals(1, request.getHeaders().get("transfer-encoding").size());
+        Assertions.assertEquals("chunked", request.getHeaders().get("transfer-encoding").get(0));
     }
 
     @Test
     public void definition_defaultHttpResponseMultiValueHeaders() throws Exception {
         HttpRequest request = load("/io/gravitee/definition/jackson/httprequest-multivalueheaders.json", HttpRequest.class);
 
-        assertEquals("request-body", request.getBody());
-        assertEquals(5, request.getHeaders().size());
-        assertEquals(1, request.getHeaders().get("transfer-encoding").size());
-        assertEquals("chunked", request.getHeaders().get("transfer-encoding").get(0));
-        assertEquals(3, request.getHeaders().get("accept-encoding").size());
-        assertTrue(request.getHeaders().get("accept-encoding").contains("deflate"));
-        assertTrue(request.getHeaders().get("accept-encoding").contains("gzip"));
-        assertTrue(request.getHeaders().get("accept-encoding").contains("compress"));
+        Assertions.assertEquals("request-body", request.getBody());
+        Assertions.assertEquals(5, request.getHeaders().size());
+        Assertions.assertEquals(1, request.getHeaders().get("transfer-encoding").size());
+        Assertions.assertEquals("chunked", request.getHeaders().get("transfer-encoding").get(0));
+        Assertions.assertEquals(3, request.getHeaders().get("accept-encoding").size());
+        Assertions.assertTrue(request.getHeaders().get("accept-encoding").contains("deflate"));
+        Assertions.assertTrue(request.getHeaders().get("accept-encoding").contains("gzip"));
+        Assertions.assertTrue(request.getHeaders().get("accept-encoding").contains("compress"));
     }
 }

@@ -16,10 +16,11 @@
 package io.gravitee.definition.jackson.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.AbstractTest;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
 import java.io.IOException;
@@ -85,15 +86,34 @@ public class ApiSerializerTest extends AbstractTest {
     @ParameterizedTest
     @MethodSource("provideParameters")
     public void shouldWriteValidJson(final String json) throws IOException {
-        JsonNode jsonNode = loadJson(json);
-        String generatedJsonDefinition = objectMapper().writeValueAsString(jsonNode);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(json));
+        final ObjectMapper graviteeMapper = objectMapper();
+        final String rawDefinitionToSerialize = IOUtils.toString(read(json));
 
-        assertNotNull(generatedJsonDefinition);
-        assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
+        // This test basically relies on gravitee deserialization and assume it is working properly.
+        // To ensure the test stays generic, comparison is made using JsonNode between original one (the expected one) and the one that have been passed through Gravitee ApiSerializer.
+        // If both are equals, we can consider that ApiSerializer works properly.
+
+        // originalJsonString -> graviteeDeserialize(originalJsonString) -> originalApi -> jsonNode(originalApi) -> originalJsonNode
+        // graviteeSerialize(originalApi) -> serializedJsonString -> graviteeDeserialize(serializedJsonString) -> apiFromSerializedJsonString -> jsonNode(apiFromSerializedJsonString) -> fromSerializedJsonNode
+
+        // Use gravitee mapper and rely on the de-serializer to create a proper json object from the given json.
+        final Api originalApi = graviteeMapper.readValue(rawDefinitionToSerialize, Api.class);
+
+        // Create a basic object mapper to convert the Api to json string and then to JsonNode.
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode originalJsonNode = mapper.readTree(mapper.writeValueAsString(originalApi));
+
+        // Use gravitee mapper and ApiSerializer to obtain the equivalent json string.
+        final String serializedJsonString = graviteeMapper.writeValueAsString(originalApi);
+
+        // Use gravitee mapper to convert it back to Api object.
+        Api apiFromSerializedJsonString = graviteeMapper.readValue(serializedJsonString, Api.class);
+
+        // Use the basic object mapper to convert the api to json string and then to JsonNode.
+        JsonNode fromSerializedJsonNode = mapper.readTree(mapper.writeValueAsString(apiFromSerializedJsonString));
+
+        // Use the basic object mapper to compare that both the json strings are the same.
+        assertEquals(mapper.writeValueAsString(originalJsonNode), mapper.writeValueAsString(fromSerializedJsonNode));
     }
 
     @Test

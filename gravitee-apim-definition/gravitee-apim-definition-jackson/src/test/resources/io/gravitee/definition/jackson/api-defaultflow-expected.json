@@ -12,6 +12,7 @@
     "preserve_host" : false
   },
   "flows" : [ {
+    "id": "flowId",
     "name" : "ALL",
     "path-operator" : {
       "path" : "/",
@@ -72,6 +73,7 @@
     "paths" : { },
     "selectionRule" : "#context.attributes['jwt'].claims['iss'] == 'toto'",
     "flows" : [ {
+      "id": "plan2FlowId",
       "name" : "ALL",
       "path-operator" : {
         "path" : "",
@@ -124,6 +126,7 @@
     "paths" : { },
     "selectionRule" : "#context.attributes['jwt'].claims['iss'] == 'toto'",
     "flows" : [ {
+      "id": "plan1FlowId1",
       "name" : "ALL",
       "path-operator" : {
         "path" : "",
@@ -166,6 +169,7 @@
       } ],
       "enabled" : true
     }, {
+      "id": "plan1FlowId2",
       "name" : "Other",
       "path-operator" : {
         "path" : "",

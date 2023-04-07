@@ -15,12 +15,10 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.HttpResponse;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -32,25 +30,25 @@ public class HttpResponseDeserializerTest extends AbstractTest {
     public void definition_defaultHttpResponse() throws Exception {
         HttpResponse response = load("/io/gravitee/definition/jackson/httpresponse-simpleheaders.json", HttpResponse.class);
 
-        assertEquals(200, response.getStatusCode());
-        assertEquals("response-body", response.getBody());
-        assertEquals(4, response.getHeaders().size());
-        assertEquals(1, response.getHeaders().get("transfer-encoding").size());
-        assertEquals("chunked", response.getHeaders().get("transfer-encoding").get(0));
+        Assertions.assertEquals(200, response.getStatusCode());
+        Assertions.assertEquals("response-body", response.getBody());
+        Assertions.assertEquals(4, response.getHeaders().size());
+        Assertions.assertEquals(1, response.getHeaders().get("transfer-encoding").size());
+        Assertions.assertEquals("chunked", response.getHeaders().get("transfer-encoding").get(0));
     }
 
     @Test
     public void definition_defaultHttpResponseMultiValueHeaders() throws Exception {
         HttpResponse response = load("/io/gravitee/definition/jackson/httpresponse-multivalueheaders.json", HttpResponse.class);
 
-        assertEquals(200, response.getStatusCode());
-        assertEquals("response-body", response.getBody());
-        assertEquals(5, response.getHeaders().size());
-        assertEquals(1, response.getHeaders().get("transfer-encoding").size());
-        assertEquals("chunked", response.getHeaders().get("transfer-encoding").get(0));
-        assertEquals(3, response.getHeaders().get("accept-encoding").size());
-        assertTrue(response.getHeaders().get("accept-encoding").contains("deflate"));
-        assertTrue(response.getHeaders().get("accept-encoding").contains("gzip"));
-        assertTrue(response.getHeaders().get("accept-encoding").contains("compress"));
+        Assertions.assertEquals(200, response.getStatusCode());
+        Assertions.assertEquals("response-body", response.getBody());
+        Assertions.assertEquals(5, response.getHeaders().size());
+        Assertions.assertEquals(1, response.getHeaders().get("transfer-encoding").size());
+        Assertions.assertEquals("chunked", response.getHeaders().get("transfer-encoding").get(0));
+        Assertions.assertEquals(3, response.getHeaders().get("accept-encoding").size());
+        Assertions.assertTrue(response.getHeaders().get("accept-encoding").contains("deflate"));
+        Assertions.assertTrue(response.getHeaders().get("accept-encoding").contains("gzip"));
+        Assertions.assertTrue(response.getHeaders().get("accept-encoding").contains("compress"));
     }
 }

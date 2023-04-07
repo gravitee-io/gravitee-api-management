@@ -15,59 +15,57 @@
  */
 package io.gravitee.definition.model;
 
-import static org.junit.Assert.*;
-
-import java.util.Arrays;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
  */
-public class PropertyTest {
+class PropertyTest {
 
     @Test
-    public void equals_should_return_true_cause_same_properties() {
+    void equals_should_return_true_cause_same_properties() {
         Property property1 = new Property("key", "value", true);
         Property property2 = new Property("key", "value", true);
 
-        assertTrue(property1.equals(property2));
+        Assertions.assertEquals(property1, property2);
     }
 
     @Test
-    public void equals_should_return_false_cause_property_has_different_encryption_boolean() {
+    void equals_should_return_false_cause_property_has_different_encryption_boolean() {
         Property property1 = new Property("key", "value", true);
         Property property2 = new Property("key", "value", false);
 
-        assertFalse(property1.equals(property2));
+        Assertions.assertNotEquals(property1, property2);
     }
 
     @Test
-    public void equals_should_return_false_cause_parameter_is_null() {
+    void equals_should_return_false_cause_parameter_is_null() {
         Property property1 = new Property("key", "value", true);
 
-        assertFalse(property1.equals(null));
+        Assertions.assertNotEquals(null, property1);
     }
 
     @Test
-    public void equals_should_return_false_cause_parameter_is_not_a_property() {
+    void equals_should_return_false_cause_parameter_is_not_a_property() {
         Property property1 = new Property("key", "value", true);
 
-        assertFalse(property1.equals("a string"));
+        Assertions.assertNotEquals("a string", property1);
     }
 
     @Test
-    public void hashcode_should_return_same_cause_same_properties() {
+    void hashcode_should_return_same_cause_same_properties() {
         Property property1 = new Property("key", "value", true);
         Property property2 = new Property("key", "value", true);
 
-        assertEquals(property1.hashCode(), property2.hashCode());
+        Assertions.assertEquals(property1.hashCode(), property2.hashCode());
     }
 
     @Test
-    public void hashcode_should_return_different_cause_property_has_different_encryption_boolean() {
+    void hashcode_should_return_different_cause_property_has_different_encryption_boolean() {
         Property property1 = new Property("key", "value", true);
         Property property2 = new Property("key", "value", false);
 
-        assertNotEquals(property1.hashCode(), property2.hashCode());
+        Assertions.assertNotEquals(property1.hashCode(), property2.hashCode());
     }
 }

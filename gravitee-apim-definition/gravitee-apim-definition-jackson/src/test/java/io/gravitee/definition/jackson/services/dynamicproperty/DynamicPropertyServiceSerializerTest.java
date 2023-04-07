@@ -18,8 +18,8 @@ package io.gravitee.definition.jackson.services.dynamicproperty;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
@@ -36,7 +36,7 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
         Api api = load(oldDefinition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
+        Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
         JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
@@ -50,7 +50,7 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
+        Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
         JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
@@ -64,7 +64,7 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
+        Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
         JSONAssert.assertEquals(expected, generatedJsonDefinition, false);

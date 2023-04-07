@@ -1,16 +1,20 @@
 {
   "id": "my-api",
   "name": "my-team-api",
-
   "proxy": {
     "context_path": "/team",
     "endpoint": "http://localhost:8083/myapi",
     "strip_context_path": false,
-    "servers": [ "server1", "server2"]
+    "servers": [
+      "server1",
+      "server2"
+    ]
   },
-
   "paths": {
     "/*": [
     ]
+  },
+  "properties": {
+    "properties": []
   }
 }

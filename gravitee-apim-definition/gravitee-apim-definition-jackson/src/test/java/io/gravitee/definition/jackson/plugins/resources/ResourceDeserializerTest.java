@@ -17,8 +17,8 @@ package io.gravitee.definition.jackson.plugins.resources;
 
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,24 +29,24 @@ public class ResourceDeserializerTest extends AbstractTest {
     @Test
     public void emptyResource() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
-        Assert.assertTrue(api.getResources().isEmpty());
+        Assertions.assertTrue(api.getResources().isEmpty());
     }
 
     @Test
     public void withResource() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withresource.json", Api.class);
-        Assert.assertEquals(1, api.getResources().size());
+        Assertions.assertEquals(1, api.getResources().size());
     }
 
     @Test
     public void withMultipleResources() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withresources.json", Api.class);
-        Assert.assertEquals(2, api.getResources().size());
+        Assertions.assertEquals(2, api.getResources().size());
     }
 
     @Test
     public void withDuplicatedResources() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withduplicatedresources.json", Api.class);
-        Assert.assertEquals(2, api.getResources().size());
+        Assertions.assertEquals(2, api.getResources().size());
     }
 }
