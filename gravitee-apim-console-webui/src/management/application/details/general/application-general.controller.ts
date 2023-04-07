@@ -28,7 +28,12 @@ class ApplicationGeneralController {
   private application: any;
   private initialApplication: any;
 
+<<<<<<< HEAD
   /* @ngInject */
+=======
+  private readonly = false;
+
+>>>>>>> 32db74837f (fix: application global settings fix permission)
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
@@ -135,6 +140,10 @@ class ApplicationGeneralController {
   onCopyClientSecretSuccess(e) {
     this.NotificationService.show('ClientSecret has been copied to clipboard');
     e.clearSelection();
+  }
+
+  onUnauthorized() {
+    this.readonly = true;
   }
 }
 
