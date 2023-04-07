@@ -27,6 +27,9 @@
         ng-false-value="true"
         aria-label="Enables notifications when members are added to this API"
         ng-change="apiMembersCtrl.toggleDisableMembershipNotifications()"
+        permission
+        permission-only="'api-definition-u'"
+        permission-on-unauthorized="PermissionStrategies.disableElement"
       >
         Enables notifications when members are added to this API
       </md-checkbox>
@@ -74,7 +77,7 @@
                   <md-option ng-value="role.name" ng-repeat="role in apiMembersCtrl.roles">{{role.name}}</md-option>
                 </md-select>
               </td>
-              <td md-cell permission permission-only="'api-member-u'">
+              <td md-cell permission permission-only="'api-member-d'">
                 <ng-md-icon
                   ng-if="member.role != 'PRIMARY_OWNER'"
                   ng-click="apiMembersCtrl.showDeleteMemberConfirm($event, member)"
