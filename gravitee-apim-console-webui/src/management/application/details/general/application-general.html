@@ -16,7 +16,13 @@
 
 -->
 <form name="formApplication" ng-submit="$ctrl.update()" novalidate>
-  <div class="gv-forms" layout="column" permission permission-only="'application-definition-r'">
+  <div
+    class="gv-forms"
+    layout="column"
+    permission
+    permission-only="'application-definition-u'"
+    permission-on-unauthorized="$ctrl.onUnauthorized()"
+  >
     <application-header application="$ctrl.application"></application-header>
     <div class="gv-form">
       <h2>General</h2>
@@ -26,7 +32,7 @@
             <div layout-gt-sm="row">
               <md-input-container flex>
                 <label>Name</label>
-                <input ng-model="$ctrl.application.name" type="text" name="name" md-maxlength="512" required />
+                <input ng-model="$ctrl.application.name" type="text" name="name" md-maxlength="512" required ng-disabled="$ctrl.readonly" />
                 <div class="hint" ng-if="formApplication.name.$valid || formApplication.name.$pristine">Application name</div>
                 <div ng-messages="formApplication.name.$error">
                   <div ng-message="required">Application name is required.</div>
@@ -36,7 +42,7 @@
 
               <md-input-container ng-if="!$ctrl.isOAuthClient()">
                 <label>Type</label>
-                <input ng-model="$ctrl.application.settings.app.type" type="text" name="type" />
+                <input ng-model="$ctrl.application.settings.app.type" type="text" name="type" ng-disabled="$ctrl.readonly" />
                 <div class="hint" ng-if="formApplication.type.$valid || formApplication.type.$pristine">
                   Type of the application (mobile, web, ...).
                 </div>
@@ -45,7 +51,7 @@
 
             <md-input-container>
               <label>Description</label>
-              <input ng-model="$ctrl.application.description" type="text" name="description" required />
+              <input ng-model="$ctrl.application.description" type="text" name="description" required ng-disabled="$ctrl.readonly" />
               <div class="hint" ng-if="formApplication.description.$valid || formApplication.description.$pristine">
                 Provide a description of your application, what it does, ...
               </div>
@@ -56,13 +62,15 @@
 
             <md-input-container>
               <label>Domain</label>
-              <input ng-model="$ctrl.application.domain" type="text" name="domain" />
+              <input ng-model="$ctrl.application.domain" type="text" name="domain" ng-disabled="$ctrl.readonly" />
               <div class="hint" ng-if="formApplication.domain.$valid || formApplication.domain.$pristine">
                 The domain your application will use, if relevant.
               </div>
             </md-input-container>
           </div>
+
           <gravitee-image
+            ng-if="!$ctrl.readonly"
             image-id="$ctrl.application.id"
             image="$ctrl.application.picture"
             image-url="$ctrl.application.picture_url"
@@ -71,8 +79,23 @@
             can-delete="true"
             delete-label="Use default"
           ></gravitee-image>
+          <!--
+               Only use to display the image in read-only mode (not enough rights) and to have the default jdenticon
+               image if no image is defined.
+           -->
+          <gravitee-identity-picture
+            ng-if="$ctrl.readonly"
+            image-id="$ctrl.application.id"
+            image="$ctrl.application.picture"
+            image-url="$ctrl.application.picture_url"
+            image-name="$ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
+            image-width="110"
+            no-default-image="noDefaultImage"
+          >
+          </gravitee-identity-picture>
 
           <gravitee-image
+            ng-if="!$ctrl.readonly"
             image-id="'bg-' + $ctrl.application.id"
             image="$ctrl.application.background"
             image-url="$ctrl.application.background_url"
@@ -82,6 +105,7 @@
             image-name="'bg-' + $ctrl.application.name + '  ' + $ctrl.application.type + '  ' + $ctrl.application.owner.displayName"
             can-delete="true"
             delete-label="Use default"
+            ng-disabled="$ctrl.readonly"
           ></gravitee-image>
         </div>
         <div layout="row">
@@ -102,7 +126,14 @@
       <div class="gv-form-content" layout="column">
         <md-input-container>
           <label>Client ID</label>
-          <input ng-model="$ctrl.application.settings.app.client_id" type="text" name="clientId" minlength="1" md-maxlength="300" />
+          <input
+            ng-model="$ctrl.application.settings.app.client_id"
+            type="text"
+            name="clientId"
+            minlength="1"
+            md-maxlength="300"
+            ng-disabled="$ctrl.readonly"
+          />
           <div class="hint" ng-if="formApplication.clientId.$valid || formApplication.clientId.$pristine">
             The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API Plan (OAuth2, JWT).
           </div>
