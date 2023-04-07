@@ -65,7 +65,7 @@ public class ApiNotificationSettingsResource extends AbstractResource {
     public List<Object> getApiNotificationSettings() {
         List<Object> settings = new ArrayList<>();
         settings.add(portalNotificationConfigService.findById(getAuthenticatedUser(), NotificationReferenceType.API, api));
-        if (hasPermission(GraviteeContext.getExecutionContext(), API_NOTIFICATION, api, CREATE, UPDATE, DELETE)) {
+        if (hasPermission(GraviteeContext.getExecutionContext(), API_NOTIFICATION, api, CREATE, READ, UPDATE, DELETE)) {
             settings.addAll(genericNotificationConfigService.findByReference(NotificationReferenceType.API, api));
         }
         return settings;
