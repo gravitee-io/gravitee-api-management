@@ -1774,7 +1774,7 @@ jobs:
                                       "type": "section",
                                       "text": {
                                         "type": "mrkdwn",
-                                        "text": ":memo: APIM Changelog << pipeline.parameters.graviteeio_version >> can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
+                                        "text": ":memo: Changelog for APIM << pipeline.parameters.graviteeio_version >> has been generated and can be reviewed <${RELEASE_NOTES_PR_URL}|here>"
                                       }
                                     }
                                   ]
