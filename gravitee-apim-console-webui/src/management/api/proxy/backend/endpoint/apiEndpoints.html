@@ -29,6 +29,8 @@
               <div>Group: {{group.name}}</div>
               <div>
                 <md-button
+                  permission
+                  permission-only="['api-definition-u', 'api-gateway-definition-u']"
                   class="md-icon-button"
                   aria-label="Add endpoint"
                   ui-sref="management.apis.detail.proxy.endpoint({groupName: group.name, endpointName: ''})"
@@ -37,6 +39,8 @@
                   <md-tooltip md-direction="left">Add new endpoint</md-tooltip>
                 </md-button>
                 <md-button
+                  permission
+                  permission-only="['api-definition-u', 'api-gateway-definition-u']"
                   class="md-icon-button"
                   aria-label="Edit group"
                   ui-sref="management.apis.detail.proxy.group({groupName: group.name})"
