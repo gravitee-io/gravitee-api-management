@@ -15,7 +15,13 @@
     limitations under the License.
 
 -->
-<div class="gv-forms gv-forms-fluid" layout="column">
+<div
+  class="gv-forms gv-forms-fluid"
+  layout="column"
+  permission
+  permission-only="['api-notification-u', 'application-notification-u', 'environment-notification-u']"
+  permission-on-unauthorized="$ctrl.onUnauthorized()"
+>
   <div class="gv-forms" layout="column">
     <form name="$ctrl.formNotification" novalidate>
       <h1>{{$ctrl.selectedNotificationSetting.name}}</h1>
@@ -32,10 +38,13 @@
               <md-input-container flex>
                 <label ng-if="$ctrl.selectedNotifier.type === 'EMAIL'">Email list (use space, ',' or ';' to separate emails)</label>
                 <label ng-if="$ctrl.selectedNotifier.type === 'WEBHOOK'">URL (Gravitee will POST datas to this url)</label>
-                <input ng-model="$ctrl.selectedNotificationSetting.config" aria-label="Notifier configuration" />
+                <input ng-model="$ctrl.selectedNotificationSetting.config" aria-label="Notifier configuration" readonly="$ctrl.readonly" />
               </md-input-container>
               <md-input-container flex ng-if="$ctrl.selectedNotifier.type === 'WEBHOOK'">
-                <md-checkbox ng-model="$ctrl.selectedNotificationSetting.useSystemProxy" aria-label="Use system proxy"
+                <md-checkbox
+                  ng-model="$ctrl.selectedNotificationSetting.useSystemProxy"
+                  aria-label="Use system proxy"
+                  ng-disabled="$ctrl.readonly"
                   >Use system proxy</md-checkbox
                 >
               </md-input-container>
@@ -47,7 +56,7 @@
               <h6>{{category}}</h6>
               <div layout="row" layout-wrap>
                 <div flex="35" ng-repeat="hook in $ctrl.hooksByCategory[category]">
-                  <md-checkbox ng-model="$ctrl.hookStatus[hook.id]" aria-label="Notification Hook">
+                  <md-checkbox ng-model="$ctrl.hookStatus[hook.id]" aria-label="Notification Hook" disabled="$ctrl.readonly">
                     <b>{{hook.label}}</b>
                     <br />
                     {{hook.description}}
