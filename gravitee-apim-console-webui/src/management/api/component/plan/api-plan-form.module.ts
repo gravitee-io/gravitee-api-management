@@ -25,7 +25,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatStepperModule } from '@angular/material/stepper';
-import { GioBannerModule, GioFormTagsInputModule, GioIconsModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import {
+  GioBannerModule,
+  GioFormTagsInputModule,
+  GioIconsModule,
+  GioFormSlideToggleModule,
+  GioFormJsonSchemaModule,
+} from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 
@@ -57,6 +63,7 @@ import { ApiPlanFormComponent } from './api-plan-form.component';
     GioFormTagsInputModule,
     GioIconsModule,
     GioBannerModule,
+    GioFormJsonSchemaModule,
   ],
 })
 export class ApiPlanFormModule {}

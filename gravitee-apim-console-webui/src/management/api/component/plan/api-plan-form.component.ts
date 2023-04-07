@@ -28,11 +28,11 @@ import {
   ViewChild,
 } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, FormGroup, NgControl, ValidationErrors, Validator } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { merge, Subject } from 'rxjs';
 import { distinctUntilChanged, map, startWith, takeUntil } from 'rxjs/operators';
 import { MatStepper } from '@angular/material/stepper';
 import { GIO_FORM_FOCUS_INVALID_IGNORE_SELECTOR } from '@gravitee/ui-particles-angular';
-import { isEmpty } from 'lodash';
+import { isEmpty, isEqual } from 'lodash';
 
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
@@ -225,10 +225,6 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     return null;
   }
 
-  setMatStepper(matStepper: MatStepper) {
-    this.matStepper = matStepper;
-  }
-
   hasNextStep(): boolean | null {
     if (isEmpty(this.matStepper?.steps)) {
       return null;
@@ -296,10 +292,16 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
         !this.isDisabled && this.planForm.get('general').get('validation').enable();
       });
 
-    this.planForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
-      this._onChange(this.getPlan());
-      this._onTouched();
-    });
+    merge(this.planForm.statusChanges, this.planForm.valueChanges)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        map(() => this.getPlan()),
+        distinctUntilChanged(isEqual),
+      )
+      .subscribe((plan) => {
+        this._onChange(plan);
+        this._onTouched();
+      });
   }
 
   private getPlan() {
@@ -432,6 +434,7 @@ const internalFormValueToPlanV3 = (value: InternalPlanFormValue, mode: 'create' 
     ...(mode === 'edit' ? {} : { flows: initFlowsWithRestriction(value.restriction) }),
   };
 };
+
 const internalFormValueToPlanV4 = (value: InternalPlanFormValue, mode: 'create' | 'edit'): InternalPlanV4Value => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): Flow[] => {

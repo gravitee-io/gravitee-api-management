@@ -21,7 +21,7 @@
     Plan
   </span>
 </div>
-<form *ngIf="planForm" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm">
+<form *ngIf="planForm" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm" (ngSubmit)="onSubmit()">
   <mat-card>
     <api-plan-form #apiPlanForm formControlName="plan" [mode]="mode" [api]="api"></api-plan-form>
   </mat-card>
@@ -32,7 +32,6 @@
     [form]="planForm"
     [formInitialValues]="initialPlanFormValue"
     [hideSubmitButton]="mode === 'create' && apiPlanForm.hasNextStep() === true"
-    (submitted)="onSubmit()"
   >
     <button
       *ngIf="mode === 'create' && apiPlanForm.hasPreviousStep() === true"
