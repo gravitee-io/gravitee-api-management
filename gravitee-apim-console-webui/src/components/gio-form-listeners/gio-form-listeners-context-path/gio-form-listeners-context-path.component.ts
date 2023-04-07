@@ -28,9 +28,9 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 import { dropRight, isEmpty } from 'lodash';
-import { filter, map, startWith, take, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
-import { Observable, of, Subject, zip } from 'rxjs';
+import { asyncScheduler, Observable, of, Subject, zip } from 'rxjs';
 
 import { HttpListenerPath } from '../../../entities/api-v4';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
@@ -181,6 +181,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   public validate(): Observable<ValidationErrors | null> {
     return this.listenerFormArray.statusChanges.pipe(
+      observeOn(asyncScheduler),
       startWith(this.listenerFormArray.status),
       filter(() => !this.listenerFormArray.pending),
       map(() => (this.listenerFormArray.valid ? null : { invalid: true })),
