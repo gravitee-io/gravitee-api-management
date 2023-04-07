@@ -19,9 +19,9 @@ import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
@@ -37,17 +37,17 @@ public class EndpointDiscoveryServiceSerializerTest extends AbstractTest {
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
+        Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
         JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
 
         EndpointDiscoveryService endpointDiscoveryService = api.getService(EndpointDiscoveryService.class);
-        Assert.assertNull(endpointDiscoveryService);
+        Assertions.assertNull(endpointDiscoveryService);
     }
 
     @Test
-    @Ignore("Service discovery service has been moved from API to group")
+    @Disabled("Service discovery service has been moved from API to group")
     public void definition_withEndpointDiscovery_consul() throws Exception {
         String definition = "/io/gravitee/definition/jackson/services/discovery/api-withservice-consul.json";
         String expectedDefinition = "/io/gravitee/definition/jackson/services/discovery/api-withservice-consul-expected.json";
@@ -55,7 +55,7 @@ public class EndpointDiscoveryServiceSerializerTest extends AbstractTest {
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
+        Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
         JSONAssert.assertEquals(expected, generatedJsonDefinition, false);

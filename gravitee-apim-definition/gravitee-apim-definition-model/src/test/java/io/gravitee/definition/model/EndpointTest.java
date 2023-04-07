@@ -15,14 +15,13 @@
  */
 package io.gravitee.definition.model;
 
-import static org.junit.Assert.assertEquals;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.endpoint.EndpointStatusListener;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class EndpointTest {
+class EndpointTest {
 
     private String expectedJsonString = String.join(
         ",",
@@ -37,16 +36,16 @@ public class EndpointTest {
     );
 
     @Test
-    public void shouldSerializeEndpoint() throws JsonProcessingException {
+    void shouldSerializeEndpoint() throws JsonProcessingException {
         Endpoint endpoint = new Endpoint("my-type", "my-name", "my-target");
 
         String serializedEndpoint = new ObjectMapper().writeValueAsString(endpoint);
 
-        assertEquals(expectedJsonString, serializedEndpoint);
+        Assertions.assertEquals(expectedJsonString, serializedEndpoint);
     }
 
     @Test
-    public void shouldSerializeEndpoint_withUnserializableStatusListener() throws JsonProcessingException {
+    void shouldSerializeEndpoint_withUnserializableStatusListener() throws JsonProcessingException {
         /* This simulates an EndpointStatusListener that jackson will fail to serialize
          * For serialization, jackson will call the getter that throws an exception
          */
@@ -63,6 +62,6 @@ public class EndpointTest {
 
         String serializedEndpoint = new ObjectMapper().writeValueAsString(endpoint);
 
-        assertEquals(expectedJsonString, serializedEndpoint);
+        Assertions.assertEquals(expectedJsonString, serializedEndpoint);
     }
 }

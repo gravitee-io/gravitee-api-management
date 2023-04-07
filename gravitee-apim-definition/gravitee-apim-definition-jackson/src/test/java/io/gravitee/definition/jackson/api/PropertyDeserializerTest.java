@@ -15,11 +15,10 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.junit.Assert.assertEquals;
-
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Property;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -33,6 +32,6 @@ public class PropertyDeserializerTest extends AbstractTest {
 
         Property expectedProperty = new Property("key1", "myvalue", true);
 
-        assertEquals(expectedProperty, resultProperty);
+        Assertions.assertEquals(expectedProperty, resultProperty);
     }
 }

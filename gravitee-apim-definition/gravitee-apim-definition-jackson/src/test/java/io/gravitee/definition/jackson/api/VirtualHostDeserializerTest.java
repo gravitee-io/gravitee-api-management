@@ -16,9 +16,9 @@
 package io.gravitee.definition.jackson.api;
 
 import io.gravitee.definition.jackson.AbstractTest;
-import io.gravitee.definition.model.*;
-import org.junit.Assert;
-import org.junit.Test;
+import io.gravitee.definition.model.VirtualHost;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,8 +32,8 @@ public class VirtualHostDeserializerTest extends AbstractTest {
 
         VirtualHost vHost = objectMapper().readValue(virtualHost, VirtualHost.class);
 
-        Assert.assertNull(vHost.getHost());
-        Assert.assertEquals("/", vHost.getPath());
+        Assertions.assertNull(vHost.getHost());
+        Assertions.assertEquals("/", vHost.getPath());
     }
 
     @Test
@@ -42,7 +42,7 @@ public class VirtualHostDeserializerTest extends AbstractTest {
 
         VirtualHost vHost = objectMapper().readValue(virtualHost, VirtualHost.class);
 
-        Assert.assertNull(vHost.getHost());
-        Assert.assertEquals("/randomPath", vHost.getPath());
+        Assertions.assertNull(vHost.getHost());
+        Assertions.assertEquals("/randomPath", vHost.getPath());
     }
 }

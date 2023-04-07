@@ -15,12 +15,14 @@
  */
 package io.gravitee.definition.jackson.services.healthcheck;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,11 +34,11 @@ public class HealthCheckServiceDeserializerTest extends AbstractTest {
     public void healthcheck_withoutservice() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/healthcheck/api-withoutservice-healthcheck.json", Api.class);
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
-        Assert.assertNull(healthCheckService);
+        Assertions.assertNull(healthCheckService);
         /*
         This test is to ensure that we remove the boolean "healthcheck" in the root of the definition as it was done before the SME
          */
-        Assert.assertFalse(
+        Assertions.assertFalse(
             api
                 .getProxy()
                 .getGroups()
@@ -54,75 +56,76 @@ public class HealthCheckServiceDeserializerTest extends AbstractTest {
     public void healthcheck() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck.json", Api.class);
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
-        Assert.assertNotNull(healthCheckService);
-        Assert.assertTrue(healthCheckService.isEnabled());
-        Assert.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
+        Assertions.assertNotNull(healthCheckService);
+        Assertions.assertTrue(healthCheckService.isEnabled());
+        Assertions.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
 
         // Check step
-        Assert.assertFalse(healthCheckService.getSteps().isEmpty());
+        Assertions.assertFalse(healthCheckService.getSteps().isEmpty());
 
         // Check request
-        Assert.assertNotNull(healthCheckService.getSteps().get(0).getRequest());
-        Assert.assertNotNull(healthCheckService.getSteps().get(0).getRequest().getPath());
+        Assertions.assertNotNull(healthCheckService.getSteps().get(0).getRequest());
+        Assertions.assertNotNull(healthCheckService.getSteps().get(0).getRequest().getPath());
 
         // Check expectations
-        Assert.assertNotNull(healthCheckService.getSteps().get(0).getResponse());
+        Assertions.assertNotNull(healthCheckService.getSteps().get(0).getResponse());
     }
 
     @Test
     public void healthcheck_v2() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v2.json", Api.class);
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
-        Assert.assertNotNull(healthCheckService);
-        Assert.assertTrue(healthCheckService.isEnabled());
-        Assert.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
+        Assertions.assertNotNull(healthCheckService);
+        Assertions.assertTrue(healthCheckService.isEnabled());
+        Assertions.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
 
         // Check step
-        Assert.assertFalse(healthCheckService.getSteps().isEmpty());
+        Assertions.assertFalse(healthCheckService.getSteps().isEmpty());
 
         // Check request
-        Assert.assertNotNull(healthCheckService.getSteps().get(0).getRequest());
-        Assert.assertNotNull(healthCheckService.getSteps().get(0).getRequest().getPath());
-        Assert.assertFalse(healthCheckService.getSteps().get(0).getRequest().isFromRoot());
+        Assertions.assertNotNull(healthCheckService.getSteps().get(0).getRequest());
+        Assertions.assertNotNull(healthCheckService.getSteps().get(0).getRequest().getPath());
+        Assertions.assertFalse(healthCheckService.getSteps().get(0).getRequest().isFromRoot());
 
         // Check expectations
-        Assert.assertNotNull(healthCheckService.getSteps().get(0).getResponse());
+        Assertions.assertNotNull(healthCheckService.getSteps().get(0).getResponse());
     }
 
     @Test
     public void healthcheck_v3() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v3.json", Api.class);
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
-        Assert.assertNotNull(healthCheckService);
-        Assert.assertTrue(healthCheckService.isEnabled());
-        Assert.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
+        Assertions.assertNotNull(healthCheckService);
+        Assertions.assertTrue(healthCheckService.isEnabled());
+        Assertions.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
 
         // Check step
-        Assert.assertFalse(healthCheckService.getSteps().isEmpty());
+        Assertions.assertFalse(healthCheckService.getSteps().isEmpty());
 
         // Check request
-        Assert.assertNotNull(healthCheckService.getSteps().get(0).getRequest());
-        Assert.assertNotNull(healthCheckService.getSteps().get(0).getRequest().getPath());
-        Assert.assertFalse(healthCheckService.getSteps().get(0).getRequest().isFromRoot());
+        Assertions.assertNotNull(healthCheckService.getSteps().get(0).getRequest());
+        Assertions.assertNotNull(healthCheckService.getSteps().get(0).getRequest().getPath());
+        Assertions.assertFalse(healthCheckService.getSteps().get(0).getRequest().isFromRoot());
 
         // Check expectations
-        Assert.assertNotNull(healthCheckService.getSteps().get(0).getResponse());
+        Assertions.assertNotNull(healthCheckService.getSteps().get(0).getResponse());
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void healthcheck_badUnit() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-badUnit.json", Api.class);
-
-        Assert.assertNotNull(api);
+        assertThrows(
+            JsonMappingException.class,
+            () -> load("/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-badUnit.json", Api.class)
+        );
     }
 
     @Test
     public void healthcheck_unitInLowerCase() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-unitInLowerCase.json", Api.class);
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
-        Assert.assertNotNull(healthCheckService);
-        Assert.assertTrue(healthCheckService.isEnabled());
-        Assert.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
+        Assertions.assertNotNull(healthCheckService);
+        Assertions.assertTrue(healthCheckService.isEnabled());
+        Assertions.assertEquals("*/60 * * * * *", healthCheckService.getSchedule());
     }
 
     @Test
@@ -131,29 +134,29 @@ public class HealthCheckServiceDeserializerTest extends AbstractTest {
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
 
         // Check step
-        Assert.assertFalse(healthCheckService.getSteps().isEmpty());
+        Assertions.assertFalse(healthCheckService.getSteps().isEmpty());
 
-        Assert.assertFalse(healthCheckService.getSteps().get(0).getResponse().getAssertions().isEmpty());
+        Assertions.assertFalse(healthCheckService.getSteps().get(0).getResponse().getAssertions().isEmpty());
     }
 
     @Test
     public void healthcheck_v2_fromRoot() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-v2-fromroot.json", Api.class);
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
-        Assert.assertNotNull(healthCheckService);
+        Assertions.assertNotNull(healthCheckService);
 
         // Check step
-        Assert.assertFalse(healthCheckService.getSteps().isEmpty());
+        Assertions.assertFalse(healthCheckService.getSteps().isEmpty());
 
         // Check request
-        Assert.assertTrue(healthCheckService.getSteps().get(0).getRequest().isFromRoot());
+        Assertions.assertTrue(healthCheckService.getSteps().get(0).getRequest().isFromRoot());
     }
 
     @Test
     public void healthcheck_disabled() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/healthcheck/api-withservice-healthcheck-disabled.json", Api.class);
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
-        Assert.assertNotNull(healthCheckService);
-        Assert.assertNull(healthCheckService.getSchedule());
+        Assertions.assertNotNull(healthCheckService);
+        Assertions.assertNull(healthCheckService.getSchedule());
     }
 }

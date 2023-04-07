@@ -15,8 +15,8 @@
  */
 package io.gravitee.definition.jackson.services.healthcheck;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;

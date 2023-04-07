@@ -15,7 +15,7 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.definition.jackson.AbstractTest;
@@ -25,7 +25,8 @@ import io.gravitee.definition.model.debug.DebugStep;
 import io.gravitee.definition.model.debug.DebugStepStatus;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class DebugApiDeserializerTest extends AbstractTest {
 
@@ -33,114 +34,117 @@ public class DebugApiDeserializerTest extends AbstractTest {
     public void debugApi_withRequest() throws Exception {
         DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-request.json", DebugApi.class);
 
-        assertEquals(debugApi.getRequest().getPath(), "/");
-        assertEquals(debugApi.getRequest().getMethod(), "GET");
-        assertEquals(debugApi.getRequest().getBody(), "request-body");
-        assertEquals(debugApi.getRequest().getHeaders().size(), 4);
-        assertEquals(debugApi.getRequest().getHeaders().get("X-Gravitee-Transaction-Id"), List.of("transaction-id"));
-        assertEquals(debugApi.getRequest().getHeaders().get("content-type"), List.of("application/json"));
-        assertEquals(debugApi.getRequest().getHeaders().get("X-Gravitee-Request-Id"), List.of("request-id"));
-        assertEquals(debugApi.getRequest().getHeaders().get("accept-encoding"), List.of("deflate", "gzip", "compress"));
+        Assertions.assertEquals(debugApi.getRequest().getPath(), "/");
+        Assertions.assertEquals(debugApi.getRequest().getMethod(), "GET");
+        Assertions.assertEquals(debugApi.getRequest().getBody(), "request-body");
+        Assertions.assertEquals(debugApi.getRequest().getHeaders().size(), 4);
+        Assertions.assertEquals(debugApi.getRequest().getHeaders().get("X-Gravitee-Transaction-Id"), List.of("transaction-id"));
+        Assertions.assertEquals(debugApi.getRequest().getHeaders().get("content-type"), List.of("application/json"));
+        Assertions.assertEquals(debugApi.getRequest().getHeaders().get("X-Gravitee-Request-Id"), List.of("request-id"));
+        Assertions.assertEquals(debugApi.getRequest().getHeaders().get("accept-encoding"), List.of("deflate", "gzip", "compress"));
     }
 
     @Test
     public void debugApi_withResponse() throws Exception {
         DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-response.json", DebugApi.class);
 
-        assertEquals(debugApi.getResponse().getStatusCode(), 200);
-        assertEquals(debugApi.getResponse().getBody(), "response-body");
-        assertEquals(debugApi.getResponse().getHeaders().size(), 2);
-        assertEquals(debugApi.getResponse().getHeaders().get("transfer-encoding"), List.of("chunked"));
-        assertEquals(debugApi.getResponse().getHeaders().get("accept-encoding"), List.of("deflate", "gzip", "compress"));
+        Assertions.assertEquals(debugApi.getResponse().getStatusCode(), 200);
+        Assertions.assertEquals(debugApi.getResponse().getBody(), "response-body");
+        Assertions.assertEquals(debugApi.getResponse().getHeaders().size(), 2);
+        Assertions.assertEquals(debugApi.getResponse().getHeaders().get("transfer-encoding"), List.of("chunked"));
+        Assertions.assertEquals(debugApi.getResponse().getHeaders().get("accept-encoding"), List.of("deflate", "gzip", "compress"));
     }
 
     @Test
     public void debugApi_withDebugSteps() throws Exception {
         DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps.json", DebugApi.class);
 
-        assertEquals(debugApi.getDebugSteps().size(), 10);
-        assertEquals(
+        Assertions.assertEquals(debugApi.getDebugSteps().size(), 10);
+        Assertions.assertEquals(
             debugApi.getPreprocessorStep().getAttributes(),
             Map.of("gravitee.attribute.application", "1", "gravitee.attribute.user-id", "127.0.0.1")
         );
         final Map<String, List<String>> preprocessorHeaders = debugApi.getPreprocessorStep().getHeaders();
-        assertEquals(preprocessorHeaders.size(), 2);
+        Assertions.assertEquals(preprocessorHeaders.size(), 2);
 
-        assertEquals(preprocessorHeaders.get("X-Gravitee-Transaction-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
-        assertEquals(preprocessorHeaders.get("X-Gravitee-Request-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
+        Assertions.assertEquals(preprocessorHeaders.get("X-Gravitee-Transaction-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
+        Assertions.assertEquals(preprocessorHeaders.get("X-Gravitee-Request-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
 
         DebugStep step1 = debugApi.getDebugSteps().get(0);
-        assertEquals(step1.getPolicyInstanceId(), "24b22176-e4fd-488e-b221-76e4fd388e30");
-        assertEquals(step1.getPolicyId(), "key-less");
-        assertEquals(step1.getDuration().longValue(), 1102529);
-        assertEquals(step1.getStatus(), DebugStepStatus.COMPLETED);
-        assertEquals(step1.getCondition(), null);
-        assertEquals(step1.getScope(), PolicyScope.ON_REQUEST);
-        assertEquals(step1.getResult().size(), 1);
-        assertEquals(step1.getStage(), "SECURITY");
+        Assertions.assertEquals(step1.getPolicyInstanceId(), "24b22176-e4fd-488e-b221-76e4fd388e30");
+        Assertions.assertEquals(step1.getPolicyId(), "key-less");
+        Assertions.assertEquals(step1.getDuration().longValue(), 1102529);
+        Assertions.assertEquals(step1.getStatus(), DebugStepStatus.COMPLETED);
+        Assertions.assertNull(step1.getCondition());
+        Assertions.assertEquals(step1.getScope(), PolicyScope.ON_REQUEST);
+        Assertions.assertEquals(step1.getResult().size(), 1);
+        Assertions.assertEquals(step1.getStage(), "SECURITY");
 
         final Map<String, Object> attributes = (Map<String, Object>) step1.getResult().get("attributes");
-        assertEquals(attributes.size(), 6);
+        Assertions.assertEquals(attributes.size(), 6);
 
-        assertEquals(attributes.get("gravitee.attribute.application"), "1");
-        assertEquals(attributes.get("gravitee.attribute.api.deployed-at"), "1644242411908");
-        assertEquals(attributes.get("gravitee.attribute.user-id"), "127.0.0.1");
-        assertEquals(attributes.get("gravitee.attribute.plan"), "7bc7c418-056b-4876-87c4-18056b08763d");
-        assertEquals(attributes.get("gravitee.attribute.api"), "62710ef2-83bc-4007-b10e-f283bce00763");
-        assertEquals(attributes.get("gravitee.attribute.gravitee.attribute.plan.selection.rule.based"), "false");
+        Assertions.assertEquals(attributes.get("gravitee.attribute.application"), "1");
+        Assertions.assertEquals(attributes.get("gravitee.attribute.api.deployed-at"), "1644242411908");
+        Assertions.assertEquals(attributes.get("gravitee.attribute.user-id"), "127.0.0.1");
+        Assertions.assertEquals(attributes.get("gravitee.attribute.plan"), "7bc7c418-056b-4876-87c4-18056b08763d");
+        Assertions.assertEquals(attributes.get("gravitee.attribute.api"), "62710ef2-83bc-4007-b10e-f283bce00763");
+        Assertions.assertEquals(attributes.get("gravitee.attribute.gravitee.attribute.plan.selection.rule.based"), "false");
 
         DebugStep step2 = debugApi.getDebugSteps().get(1);
-        assertEquals(step2.getPolicyInstanceId(), "23ab1ad0-bff0-43a4-ab1a-d0bff013a41e");
-        assertEquals(step2.getPolicyId(), "transform-headers");
-        assertEquals(step2.getDuration().longValue(), 3123247);
-        assertEquals(step2.getStatus(), DebugStepStatus.COMPLETED);
-        assertEquals(step2.getCondition(), null);
-        assertEquals(step2.getScope(), PolicyScope.ON_REQUEST);
-        assertEquals(step2.getResult().size(), 1);
-        assertEquals(step2.getStage(), "PLAN");
+        Assertions.assertEquals(step2.getPolicyInstanceId(), "23ab1ad0-bff0-43a4-ab1a-d0bff013a41e");
+        Assertions.assertEquals(step2.getPolicyId(), "transform-headers");
+        Assertions.assertEquals(step2.getDuration().longValue(), 3123247);
+        Assertions.assertEquals(step2.getStatus(), DebugStepStatus.COMPLETED);
+        Assertions.assertNull(step2.getCondition());
+        Assertions.assertEquals(step2.getScope(), PolicyScope.ON_REQUEST);
+        Assertions.assertEquals(step2.getResult().size(), 1);
+        Assertions.assertEquals(step2.getStage(), "PLAN");
 
         final Map<String, String> headers = (Map<String, String>) step2.getResult().get("headers");
-        assertEquals(headers.size(), 5);
+        Assertions.assertEquals(headers.size(), 5);
 
-        assertEquals(headers.get("transfer-encoding"), List.of("chunked"));
-        assertEquals(headers.get("host"), List.of("localhost:8482"));
-        assertEquals(headers.get("X-Gravitee-Transaction-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
-        assertEquals(headers.get("firstpolicy"), List.of("firstvalue", "secondvalue"));
-        assertEquals(headers.get("X-Gravitee-Request-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
+        Assertions.assertEquals(headers.get("transfer-encoding"), List.of("chunked"));
+        Assertions.assertEquals(headers.get("host"), List.of("localhost:8482"));
+        Assertions.assertEquals(headers.get("X-Gravitee-Transaction-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
+        Assertions.assertEquals(headers.get("firstpolicy"), List.of("firstvalue", "secondvalue"));
+        Assertions.assertEquals(headers.get("X-Gravitee-Request-Id"), List.of("e467b739-f921-4b9e-a7b7-39f921fb9ee9"));
 
         DebugStep skippedStep = debugApi.getDebugSteps().get(3);
-        assertEquals(skippedStep.getStatus(), DebugStepStatus.SKIPPED);
-        assertEquals(skippedStep.getCondition(), "{#request.headers.name == \"joe\"}");
+        Assertions.assertEquals(skippedStep.getStatus(), DebugStepStatus.SKIPPED);
+        Assertions.assertEquals(skippedStep.getCondition(), "{#request.headers.name == \"joe\"}");
     }
 
     @Test
     public void debugApi_withDebugStepsError() throws Exception {
         DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-debug-steps-error.json", DebugApi.class);
 
-        assertEquals(debugApi.getDebugSteps().size(), 2);
+        Assertions.assertEquals(debugApi.getDebugSteps().size(), 2);
         DebugStep errorStep = debugApi.getDebugSteps().get(1);
-        assertEquals(errorStep.getStatus(), DebugStepStatus.ERROR);
-        assertEquals(errorStep.getError().getMessage(), "Error message");
-        assertEquals(errorStep.getError().getStatus(), 400);
-        assertEquals(errorStep.getError().getKey(), "POLICY_ERROR");
-        assertEquals(errorStep.getError().getContentType(), "aplication/json");
+        Assertions.assertEquals(errorStep.getStatus(), DebugStepStatus.ERROR);
+        Assertions.assertEquals(errorStep.getError().getMessage(), "Error message");
+        Assertions.assertEquals(errorStep.getError().getStatus(), 400);
+        Assertions.assertEquals(errorStep.getError().getKey(), "POLICY_ERROR");
+        Assertions.assertEquals(errorStep.getError().getContentType(), "aplication/json");
     }
 
     @Test
     public void debugApi_withBackendResponse() throws Exception {
         DebugApi debugApi = load("/io/gravitee/definition/jackson/debug/debug-api-with-backend-response.json", DebugApi.class);
 
-        assertEquals(debugApi.getBackendResponse().getStatusCode(), 200);
-        assertEquals(debugApi.getBackendResponse().getBody(), "{\"message\": \"mock backend response\"}");
-        assertEquals(debugApi.getBackendResponse().getHeaders().size(), 4);
-        assertEquals(debugApi.getBackendResponse().getHeaders().get("transfer-encoding"), List.of("chunked"));
-        assertEquals(debugApi.getBackendResponse().getHeaders().get("content-type"), List.of("application/json"));
-        assertEquals(debugApi.getBackendResponse().getHeaders().get("transfer-encoding"), List.of("chunked"));
-        assertEquals(debugApi.getBackendResponse().getHeaders().get("content-length"), List.of("42"));
+        Assertions.assertEquals(debugApi.getBackendResponse().getStatusCode(), 200);
+        Assertions.assertEquals(debugApi.getBackendResponse().getBody(), "{\"message\": \"mock backend response\"}");
+        Assertions.assertEquals(debugApi.getBackendResponse().getHeaders().size(), 4);
+        Assertions.assertEquals(debugApi.getBackendResponse().getHeaders().get("transfer-encoding"), List.of("chunked"));
+        Assertions.assertEquals(debugApi.getBackendResponse().getHeaders().get("content-type"), List.of("application/json"));
+        Assertions.assertEquals(debugApi.getBackendResponse().getHeaders().get("transfer-encoding"), List.of("chunked"));
+        Assertions.assertEquals(debugApi.getBackendResponse().getHeaders().get("content-length"), List.of("42"));
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void debugApi_withoutRequest() throws Exception {
-        load("/io/gravitee/definition/jackson/debug/debug-api-without-request.json", DebugApi.class);
+        assertThrows(
+            JsonMappingException.class,
+            () -> load("/io/gravitee/definition/jackson/debug/debug-api-without-request.json", DebugApi.class)
+        );
     }
 }

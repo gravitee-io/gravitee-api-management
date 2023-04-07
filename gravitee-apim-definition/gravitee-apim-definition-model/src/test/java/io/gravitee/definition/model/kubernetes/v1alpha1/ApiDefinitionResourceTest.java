@@ -15,65 +15,64 @@
  */
 package io.gravitee.definition.model.kubernetes.v1alpha1;
 
-import static org.junit.Assert.*;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.net.URL;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class ApiDefinitionResourceTest {
+class ApiDefinitionResourceTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Test
-    public void shouldRemoveUnsupportedFields() throws Exception {
+    void shouldRemoveUnsupportedFields() throws Exception {
         ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
 
-        assertFalse(resource.getSpec().has("createdAt"));
-        assertFalse(resource.getSpec().has("definition_context"));
-        assertFalse(resource.getSpec().has("execution_context"));
-        assertFalse(resource.getSpec().has("primaryOwner"));
-        assertFalse(resource.getSpec().has("pages"));
-        assertFalse(resource.getSpec().has("members"));
-        assertFalse(resource.getSpec().has("picture"));
-        assertFalse(resource.getSpec().has("apiMedia"));
+        Assertions.assertFalse(resource.getSpec().has("createdAt"));
+        Assertions.assertFalse(resource.getSpec().has("definition_context"));
+        Assertions.assertFalse(resource.getSpec().has("execution_context"));
+        Assertions.assertFalse(resource.getSpec().has("primaryOwner"));
+        Assertions.assertFalse(resource.getSpec().has("pages"));
+        Assertions.assertFalse(resource.getSpec().has("members"));
+        Assertions.assertFalse(resource.getSpec().has("picture"));
+        Assertions.assertFalse(resource.getSpec().has("apiMedia"));
 
         ArrayNode plans = (ArrayNode) resource.getSpec().get("plans");
 
         JsonNode plan = plans.iterator().next();
-        assertFalse(plan.has("created_at"));
-        assertFalse(plan.has("updated_at"));
-        assertFalse(resource.getSpec().has("published_at"));
+        Assertions.assertFalse(plan.has("created_at"));
+        Assertions.assertFalse(plan.has("updated_at"));
+        Assertions.assertFalse(resource.getSpec().has("published_at"));
 
         ArrayNode metadata = (ArrayNode) resource.getSpec().get("metadata");
 
         JsonNode meta = metadata.iterator().next();
-        assertFalse(meta.has("apiId"));
+        Assertions.assertFalse(meta.has("apiId"));
     }
 
     @Test
-    public void shouldRemoveIds() throws Exception {
+    void shouldRemoveIds() throws Exception {
         ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
 
         resource.removeIds();
 
-        assertFalse(resource.getSpec().has("id"));
-        assertFalse(resource.getSpec().has("crossId"));
+        Assertions.assertFalse(resource.getSpec().has("id"));
+        Assertions.assertFalse(resource.getSpec().has("crossId"));
 
         ArrayNode plans = (ArrayNode) resource.getSpec().get("plans");
 
         JsonNode plan = plans.iterator().next();
 
-        assertFalse(plan.has("id"));
-        assertFalse(plan.has("crossId"));
-        assertFalse(plan.has("api"));
+        Assertions.assertFalse(plan.has("id"));
+        Assertions.assertFalse(plan.has("crossId"));
+        Assertions.assertFalse(plan.has("api"));
     }
 
     @Test
-    public void ShouldSetContextRef() throws Exception {
+    void shouldSetContextRef() throws Exception {
         String contextRefName = "apim-dev-ctx";
         String contextRefNamespace = "default";
 
@@ -81,46 +80,46 @@ public class ApiDefinitionResourceTest {
 
         resource.setContextRef(contextRefName, contextRefNamespace);
 
-        assertTrue(resource.getSpec().has("contextRef"));
+        Assertions.assertTrue(resource.getSpec().has("contextRef"));
 
         ObjectNode contextRef = ((ObjectNode) resource.getSpec().get("contextRef"));
 
-        assertTrue(contextRef.has("name"));
-        assertTrue(contextRef.has("namespace"));
-        assertEquals(contextRefName, contextRef.get("name").asText());
-        assertEquals(contextRefNamespace, contextRef.get("namespace").asText());
+        Assertions.assertTrue(contextRef.has("name"));
+        Assertions.assertTrue(contextRef.has("namespace"));
+        Assertions.assertEquals(contextRefName, contextRef.get("name").asText());
+        Assertions.assertEquals(contextRefNamespace, contextRef.get("namespace").asText());
     }
 
     @Test
-    public void ShouldSetContextPath() throws Exception {
+    void shouldSetContextPath() throws Exception {
         String contextPath = "/new-context-path";
 
         ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
 
         resource.setContextPath(contextPath);
 
-        assertTrue(resource.getSpec().has("proxy"));
+        Assertions.assertTrue(resource.getSpec().has("proxy"));
 
         ObjectNode proxy = (ObjectNode) resource.getSpec().get("proxy");
 
-        assertTrue(proxy.has("virtual_hosts"));
+        Assertions.assertTrue(proxy.has("virtual_hosts"));
 
         ArrayNode virtualHosts = (ArrayNode) proxy.get("virtual_hosts");
         ObjectNode virtualHost = (ObjectNode) virtualHosts.iterator().next();
 
-        assertEquals(contextPath, virtualHost.get("path").asText());
+        Assertions.assertEquals(contextPath, virtualHost.get("path").asText());
     }
 
     @Test
-    public void ShouldSetVersion() throws Exception {
+    public void shouldSetVersion() throws Exception {
         String version = "1.0.0-alpha";
 
         ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
 
         resource.setVersion(version);
 
-        assertTrue(resource.getSpec().has("version"));
-        assertEquals(version, resource.getSpec().get("version").asText());
+        Assertions.assertTrue(resource.getSpec().has("version"));
+        Assertions.assertEquals(version, resource.getSpec().get("version").asText());
     }
 
     private ObjectNode readDefinition() throws Exception {
