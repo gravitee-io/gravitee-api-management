@@ -210,6 +210,7 @@ const gatewayDependenciesExclusion = [
   // ArtifactIds to exclude
   'gravitee-apim-repository-elasticsearch',
   'gravitee-apim-repository-hazelcast',
+  'gravitee-apim-repository-noop',
   'gravitee-apim-repository-redis',
 ];
 

@@ -146,6 +146,11 @@ def get_repositories(release_json):
             "artifact_id": "gravitee-apim-repository-elasticsearch",
             "group_id": "io.gravitee.apim.repository",
             "version": apim_version
+        },
+        {
+            "artifact_id": "gravitee-apim-repository-noop",
+            "group_id": "io.gravitee.apim.repository",
+            "version": apim_version
         }
     ]
     return repositories

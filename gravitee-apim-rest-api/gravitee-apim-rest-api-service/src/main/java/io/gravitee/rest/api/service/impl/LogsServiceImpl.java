@@ -30,7 +30,6 @@ import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -151,6 +150,10 @@ public class LogsServiceImpl implements LogsService {
                     .build()
             );
 
+            if (response == null) {
+                return new SearchLogResponse<>(0);
+            }
+
             SearchLogResponse<ApiRequestItem> logResponse = new SearchLogResponse<>(response.getSize());
 
             // Transform repository logs
@@ -188,6 +191,10 @@ public class LogsServiceImpl implements LogsService {
     public ApiRequest findApiLog(final ExecutionContext executionContext, String id, Long timestamp) {
         try {
             final ExtendedLog log = logRepository.findById(id, timestamp);
+            if (log == null) {
+                return null;
+            }
+
             if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_ENABLED, ParameterReferenceType.ORGANIZATION)) {
                 auditService.createApiAuditLog(
                     executionContext,
@@ -225,6 +232,10 @@ public class LogsServiceImpl implements LogsService {
                     .root("application", application)
                     .build()
             );
+
+            if (response == null) {
+                return new SearchLogResponse<>(0);
+            }
 
             SearchLogResponse<ApplicationRequestItem> logResponse = new SearchLogResponse<>(response.getSize());
 
@@ -275,6 +286,10 @@ public class LogsServiceImpl implements LogsService {
                     .build()
             );
 
+            if (response == null) {
+                return new SearchLogResponse<>(0);
+            }
+
             SearchLogResponse<PlatformRequestItem> logResponse = new SearchLogResponse<>(response.getSize());
 
             // Transform repository logs
@@ -315,7 +330,12 @@ public class LogsServiceImpl implements LogsService {
     @Override
     public ApplicationRequest findApplicationLog(ExecutionContext executionContext, String id, Long timestamp) {
         try {
-            return toApplicationRequest(executionContext, logRepository.findById(id, timestamp));
+            ExtendedLog log = logRepository.findById(id, timestamp);
+            if (log == null) {
+                return null;
+            }
+
+            return toApplicationRequest(executionContext, log);
         } catch (AnalyticsException ae) {
             logger.error("Unable to retrieve log: " + id, ae);
             if (ae.getMessage().equals("Request [" + id + "] does not exist")) {

@@ -42,7 +42,7 @@ public class MonitoringServiceImpl implements MonitoringService {
     public MonitoringData findMonitoring(final String gatewayId) {
         LOGGER.debug("Running monitoring query for Gateway instance '{}'", gatewayId);
         final MonitoringResponse monitoringResponse = monitoringRepository.query(gatewayId);
-        return convert(monitoringResponse);
+        return monitoringResponse != null ? convert(monitoringResponse) : null;
     }
 
     private MonitoringData convert(final MonitoringResponse monitoringResponse) {

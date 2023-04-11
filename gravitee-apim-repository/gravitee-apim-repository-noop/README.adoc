@@ -1,0 +1,11 @@
+
+= APIM NoOp Repository
+
+This repository is just a dummy implementation of the following APIs from gravitee-apim-repository-api module
+
+- AnalyticsRepository
+- HealthCheckRepository
+- LogRepository
+- MonitoringRepository
+
+The return value is always NULL
