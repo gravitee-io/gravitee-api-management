@@ -227,9 +227,10 @@ services:
 
 
 # Analytics repository is used to store all reporting, metrics, health-checks stored by gateway instances
-# This is the default configuration using Elasticsearch
+# This is the default configuration using Elasticsearch. If you want to disable it completely, you can set
+# the type as "none"
 analytics:
-  type: elasticsearch
+  type: elasticsearch # or none
   elasticsearch:
     endpoints:
       - http://${ds.elastic.host}:${ds.elastic.port}

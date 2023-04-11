@@ -108,7 +108,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                     );
             }
 
-            return convert(healthCheckRepository.query(queryBuilder.build()));
+            DateHistogramResponse response = healthCheckRepository.query(queryBuilder.build());
+            return response != null ? convert(response) : null;
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -187,7 +188,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 QueryBuilders.availability().api(api).field(AvailabilityQuery.Field.valueOf(field)).build()
             );
 
-            return convert(executionContext, apiEntity, response.getEndpointAvailabilities(), field);
+            return response != null ? convert(executionContext, apiEntity, response.getEndpointAvailabilities(), field) : null;
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while searching for health data.", ex);
             return null;
@@ -205,7 +206,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 QueryBuilders.responseTime().api(api).field(AverageResponseTimeQuery.Field.valueOf(field)).build()
             );
 
-            return convert(executionContext, apiEntity, response.getEndpointResponseTimes(), field);
+            return response != null ? convert(executionContext, apiEntity, response.getEndpointResponseTimes(), field) : null;
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while searching for health data.", ex);
             return null;
@@ -230,7 +231,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                     .build()
             );
 
-            return convert(executionContext, response);
+            return response != null ? convert(executionContext, response) : null;
         } catch (Exception ex) {
             logger.error("An unexpected error occurs while searching for health data.", ex);
             return null;
@@ -241,7 +242,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     public Log findLog(String id) {
         try {
             ExtendedLog log = healthCheckRepository.findById(id);
-            return toLog(log);
+            return log != null ? toLog(log) : null;
         } catch (AnalyticsException ae) {
             logger.error("An unexpected error occurs while searching for health data.", ae);
             return null;
@@ -409,7 +410,6 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
     private Map<String, String> getEndpointMetadata(GenericApiEntity api, String endpointName) {
         Map<String, String> metadata = new HashMap<>();
-
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             Optional<io.gravitee.definition.model.v4.endpointgroup.Endpoint> endpointOpt =
                 ((io.gravitee.rest.api.model.v4.api.ApiEntity) api).getEndpointGroups()

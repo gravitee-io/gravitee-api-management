@@ -135,7 +135,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     .build()
             );
 
-            return convert(response, query);
+            return response != null ? convert(response, query) : null;
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -154,7 +154,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     .build()
             );
 
-            return convert(response);
+            return response != null ? convert(response) : null;
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -180,7 +180,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
 
             DateHistogramResponse response = analyticsRepository.query(queryBuilder.build());
-            return convert(executionContext, response);
+            return response != null ? convert(executionContext, response) : null;
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
@@ -213,7 +213,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
 
             GroupByResponse response = analyticsRepository.query(queryBuilder.build());
-            return convert(executionContext, response);
+            return response != null ? convert(executionContext, response) : null;
         } catch (AnalyticsException ae) {
             logger.error("Unable to calculate analytics: ", ae);
             throw new AnalyticsCalculateException("Unable to calculate analytics");
