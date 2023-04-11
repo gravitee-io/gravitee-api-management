@@ -271,6 +271,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected WorkflowService workflowService;
 
     @Autowired
+    protected LogsService logsService;
+
+    @Autowired
     protected ApiEntrypointService apiEntrypointService;
 
     @Autowired
@@ -658,6 +661,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public WorkflowService workflowService() {
             return mock(WorkflowService.class);
+        }
+
+        @Bean
+        public LogsService logsService() {
+            return mock(LogsService.class);
         }
 
         @Bean
