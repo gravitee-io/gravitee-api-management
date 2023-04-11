@@ -148,6 +148,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
                     HttpProvider provider = new HttpProvider(dynamicPropertyService);
                     provider.setHttpClientService(httpClientService);
                     provider.setNode(node);
+                    provider.setExecutor(executor);
 
                     updater.setProvider(provider);
                     updater.setApiService(apiService);

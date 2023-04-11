@@ -40,6 +40,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-rx-java2</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- Json transformer (jolt) -->
         <dependency>
             <groupId>com.bazaarvoice.jolt</groupId>
@@ -84,6 +89,12 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
