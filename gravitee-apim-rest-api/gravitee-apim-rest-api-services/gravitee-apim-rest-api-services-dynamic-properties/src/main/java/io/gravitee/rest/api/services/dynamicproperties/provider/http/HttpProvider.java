@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.services.dynamicproperties.provider.http;
 
-import io.gravitee.common.http.HttpHeaders;
+import static io.gravitee.gateway.api.http.HttpHeaderNames.USER_AGENT;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
@@ -26,16 +27,15 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper.JoltMapper;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.reactivex.Maybe;
+import io.reactivex.schedulers.Schedulers;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
+import java.util.concurrent.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -46,6 +46,8 @@ import org.springframework.util.StringUtils;
  */
 public class HttpProvider implements Provider {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpProvider.class);
+
     private static final String HTTPS_SCHEME = "https";
 
     private final HttpDynamicPropertyProviderConfiguration dpConfiguration;
@@ -55,6 +57,7 @@ public class HttpProvider implements Provider {
     private HttpClientService httpClientService;
 
     private Node node;
+    private Executor executor;
 
     public HttpProvider(final DynamicPropertyService dpService) {
         Objects.requireNonNull(dpService, "Service must not be null");
@@ -64,129 +67,62 @@ public class HttpProvider implements Provider {
     }
 
     @Override
-    public CompletableFuture<Collection<DynamicProperty>> get() {
-        Promise<Buffer> promise = Promise.promise();
-
+    public Maybe<Collection<DynamicProperty>> get() {
+        URL requestUrl = null;
         try {
-            URL requestUrl = new URL(dpConfiguration.getUrl());
-
-            final HttpClient httpClient = httpClientService.createHttpClient(requestUrl.getProtocol(), dpConfiguration.isUseSystemProxy());
-
-            final int port = requestUrl.getPort() != -1 ? requestUrl.getPort() : (HTTPS_SCHEME.equals(requestUrl.getProtocol()) ? 443 : 80);
-
-            String relativeUri = (requestUrl.getQuery() == null)
-                ? requestUrl.getPath()
-                : requestUrl.getPath() + '?' + requestUrl.getQuery();
-
-            RequestOptions options = new RequestOptions()
-                .setMethod(HttpMethod.valueOf(dpConfiguration.getMethod().name()))
-                .setHost(requestUrl.getHost())
-                .setPort(port)
-                .setURI(relativeUri);
-
-            //headers
-            options.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
-            options.putHeader("X-Gravitee-Request-Id", UuidString.generateRandom());
-
-            if (dpConfiguration.getHeaders() != null) {
-                dpConfiguration.getHeaders().forEach(httpHeader -> options.putHeader(httpHeader.getName(), httpHeader.getValue()));
-            }
-
-            httpClient
-                .request(options)
-                .onFailure(
-                    new Handler<Throwable>() {
-                        @Override
-                        public void handle(Throwable event) {
-                            promise.fail(event);
-
-                            // Close client
-                            httpClient.close();
-                        }
-                    }
-                )
-                .onSuccess(
-                    new Handler<HttpClientRequest>() {
-                        @Override
-                        public void handle(HttpClientRequest request) {
-                            request
-                                .response(
-                                    new Handler<AsyncResult<HttpClientResponse>>() {
-                                        @Override
-                                        public void handle(AsyncResult<HttpClientResponse> asyncResponse) {
-                                            if (asyncResponse.failed()) {
-                                                promise.fail(asyncResponse.cause());
-
-                                                // Close client
-                                                httpClient.close();
-                                            } else {
-                                                final HttpClientResponse response = asyncResponse.result();
-
-                                                if (response.statusCode() == HttpStatusCode.OK_200) {
-                                                    response.bodyHandler(buffer -> {
-                                                        promise.complete(buffer);
-
-                                                        // Close client
-                                                        httpClient.close();
-                                                    });
-                                                } else {
-                                                    promise.complete(null);
-
-                                                    // Close client
-                                                    httpClient.close();
-                                                }
-                                            }
-                                        }
-                                    }
-                                )
-                                .exceptionHandler(
-                                    new Handler<Throwable>() {
-                                        @Override
-                                        public void handle(Throwable throwable) {
-                                            promise.fail(throwable);
-
-                                            // Close client
-                                            httpClient.close();
-                                        }
-                                    }
-                                );
-
-                            if (!StringUtils.isEmpty(dpConfiguration.getBody())) {
-                                request.end(dpConfiguration.getBody());
-                            } else {
-                                request.end();
-                            }
-                        }
-                    }
-                );
-        } catch (Exception e) {
-            promise.fail(e);
+            requestUrl = new URL(dpConfiguration.getUrl());
+        } catch (MalformedURLException ex) {
+            LOGGER.error("Unable to parse URL: {}", dpConfiguration.getUrl(), ex);
+            return Maybe.empty();
         }
 
-        return promise
-            .future()
-            .map(
-                new Function<Buffer, Collection<DynamicProperty>>() {
-                    @Override
-                    public Collection<DynamicProperty> apply(Buffer buffer) {
-                        if (buffer == null) {
-                            return null;
-                        }
-                        return mapper.map(buffer.toString());
-                    }
+        final io.vertx.reactivex.core.http.HttpClient httpClient = new io.vertx.reactivex.core.http.HttpClient(
+            httpClientService.createHttpClient(requestUrl.getProtocol(), dpConfiguration.isUseSystemProxy())
+        );
+
+        final int port = requestUrl.getPort() != -1 ? requestUrl.getPort() : (HTTPS_SCHEME.equals(requestUrl.getProtocol()) ? 443 : 80);
+
+        String relativeUri = (requestUrl.getQuery() == null) ? requestUrl.getPath() : requestUrl.getPath() + '?' + requestUrl.getQuery();
+
+        RequestOptions options = new RequestOptions()
+            .setMethod(HttpMethod.valueOf(dpConfiguration.getMethod().name()))
+            .setHost(requestUrl.getHost())
+            .setPort(port)
+            .setURI(relativeUri);
+
+        //headers
+        options.putHeader(USER_AGENT, NodeUtils.userAgent(node));
+        options.putHeader("X-Gravitee-Request-Id", UuidString.generateRandom());
+
+        if (dpConfiguration.getHeaders() != null) {
+            dpConfiguration.getHeaders().forEach(httpHeader -> options.putHeader(httpHeader.getName(), httpHeader.getValue()));
+        }
+
+        return httpClient
+            .rxRequest(options)
+            .flatMap(request -> {
+                LOGGER.debug(
+                    "Dynamic properties will be fetched with the following request: {} {}",
+                    request.getMethod(),
+                    request.absoluteURI()
+                );
+                if (StringUtils.hasText(dpConfiguration.getBody())) {
+                    return request.rxSend(dpConfiguration.getBody());
+                } else {
+                    return request.rxSend();
                 }
-            )
-            .toCompletionStage()
-            .toCompletableFuture();
+            })
+            .filter(response -> response.statusCode() == HttpStatusCode.OK_200)
+            .flatMap(response -> response.rxBody().toMaybe())
+            .doFinally(httpClient::close)
+            // Move to a specific executor to avoid blocking the event loop as the Jolt transformation can be long
+            .observeOn(Schedulers.from(executor))
+            .map(buffer -> mapper.map(buffer.toString()));
     }
 
     @Override
     public String name() {
         return "custom";
-    }
-
-    public void setMapper(JoltMapper mapper) {
-        this.mapper = mapper;
     }
 
     public void setHttpClientService(HttpClientService httpClientService) {
@@ -195,5 +131,9 @@ public class HttpProvider implements Provider {
 
     public void setNode(Node node) {
         this.node = node;
+    }
+
+    public void setExecutor(Executor executor) {
+        this.executor = executor;
     }
 }

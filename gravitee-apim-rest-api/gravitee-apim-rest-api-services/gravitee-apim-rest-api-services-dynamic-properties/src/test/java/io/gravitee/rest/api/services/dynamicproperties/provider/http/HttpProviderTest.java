@@ -16,141 +16,119 @@
 package io.gravitee.rest.api.services.dynamicproperties.provider.http;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
-import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
-import io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper.JoltMapper;
 import io.vertx.core.Vertx;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
+import java.util.List;
+import java.util.concurrent.Executors;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class HttpProviderTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
-    @Mock
-    private DynamicPropertyService dynamicPropertyService;
-
-    @Mock
     private HttpDynamicPropertyProviderConfiguration providerConfiguration;
-
-    @Mock
-    private JoltMapper mapper;
-
-    @Mock
-    private Node node;
+    private HttpProvider provider;
 
     @Mock
     private HttpClientService httpClientService;
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
+
         when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
     }
 
     @Test
     public void shouldGetProperties() throws IOException {
-        when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
-        when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
-        when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
+        providerConfiguration.setUrl("http://localhost:" + wireMockRule.port() + "/success");
+        providerConfiguration.setSpecification(getSimpleJoltSpecification());
+        providerConfiguration.setMethod(HttpMethod.GET);
+        setUpProvider();
 
-        HttpProvider provider = new HttpProvider(dynamicPropertyService);
-        provider.setMapper(mapper);
-        provider.setHttpClientService(httpClientService);
+        Collection<DynamicProperty> dynamicProperties = provider.get().blockingGet();
 
-        CompletableFuture<Collection<DynamicProperty>> future = provider.get();
-        Collection<DynamicProperty> dynamicProperties = future.join();
-
-        assertNotNull(dynamicProperties);
-
-        verify(mapper, times(1)).map(anyString());
+        assertThat(dynamicProperties).contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
     }
 
     @Test
     public void shouldGetPropertiesFromPOST() throws IOException {
-        when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
-        when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success_post");
-        when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
-        when(providerConfiguration.getBody()).thenReturn("{}");
+        providerConfiguration.setUrl("http://localhost:" + wireMockRule.port() + "/success_post");
+        providerConfiguration.setSpecification(getSimpleJoltSpecification());
+        providerConfiguration.setMethod(HttpMethod.POST);
+        providerConfiguration.setBody("{}");
+        providerConfiguration.setHeaders(
+            List.of(new HttpHeader("Content-Type", "application/json"), new HttpHeader("X-Gravitee-Header", "value"))
+        );
+        setUpProvider();
 
-        HttpProvider provider = new HttpProvider(dynamicPropertyService);
-        provider.setMapper(mapper);
-        provider.setHttpClientService(httpClientService);
+        Collection<DynamicProperty> dynamicProperties = provider.get().blockingGet();
 
-        CompletableFuture<Collection<DynamicProperty>> future = provider.get();
-        Collection<DynamicProperty> dynamicProperties = future.join();
-
-        assertNotNull(dynamicProperties);
-
-        verify(mapper, times(1)).map(anyString());
+        assertThat(dynamicProperties).contains(new DynamicProperty("name", "Elysee"), new DynamicProperty("country", "FRANCE"));
     }
 
     @Test
     public void shouldGetNullPropertiesBecauseHttpError() throws IOException {
-        when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
-        when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/error");
-        when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
+        providerConfiguration.setUrl("http://localhost:" + wireMockRule.port() + "/error");
+        providerConfiguration.setSpecification(getSimpleJoltSpecification());
+        providerConfiguration.setMethod(HttpMethod.GET);
+        setUpProvider();
 
-        HttpProvider provider = new HttpProvider(dynamicPropertyService);
-        provider.setMapper(mapper);
-        provider.setHttpClientService(httpClientService);
+        Collection<DynamicProperty> dynamicProperties = provider.get().blockingGet();
 
-        CompletableFuture<Collection<DynamicProperty>> future = provider.get();
-        Collection<DynamicProperty> dynamicProperties = future.join();
-
-        assertNull(dynamicProperties);
-
-        verify(mapper, never()).map(anyString());
+        assertThat(dynamicProperties).isNull();
     }
 
-    @Test(expected = CompletionException.class)
-    public void shouldCallUnknownUri() throws IOException {
-        when(dynamicPropertyService.getConfiguration()).thenReturn(providerConfiguration);
-        when(providerConfiguration.getUrl()).thenReturn("http://unknown_host:" + wireMockRule.port());
-        when(providerConfiguration.getSpecification())
-            .thenReturn(IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset()));
-        when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
+    @Test(expected = RuntimeException.class)
+    public void shouldThrowAnErrorWhenCallingUnknownUri() throws IOException {
+        providerConfiguration.setUrl("http://unknown_host:" + wireMockRule.port());
+        providerConfiguration.setSpecification(getSimpleJoltSpecification());
+        providerConfiguration.setMethod(HttpMethod.GET);
+        setUpProvider();
 
-        HttpProvider provider = new HttpProvider(dynamicPropertyService);
-        provider.setMapper(mapper);
-        provider.setHttpClientService(httpClientService);
+        Collection<DynamicProperty> dynamicProperties = provider.get().blockingGet();
 
-        CompletableFuture<Collection<DynamicProperty>> future = provider.get();
-        future.join();
+        assertThat(dynamicProperties).isNull();
     }
 
-    private InputStream read(String resource) throws IOException {
-        return this.getClass().getResourceAsStream(resource);
+    private String getSimpleJoltSpecification() throws IOException {
+        return IOUtils.toString(this.getClass().getResourceAsStream("/jolt/specification-key-value-simple.json"), Charset.defaultCharset());
+    }
+
+    private void setUpProvider() {
+        DynamicPropertyService dynamicPropertyService = new DynamicPropertyService();
+        dynamicPropertyService.setProvider(DynamicPropertyProvider.HTTP);
+        dynamicPropertyService.setConfiguration(providerConfiguration);
+
+        provider = new HttpProvider(dynamicPropertyService);
+        provider.setHttpClientService(httpClientService);
+        provider.setExecutor(Executors.newSingleThreadExecutor());
     }
 }
