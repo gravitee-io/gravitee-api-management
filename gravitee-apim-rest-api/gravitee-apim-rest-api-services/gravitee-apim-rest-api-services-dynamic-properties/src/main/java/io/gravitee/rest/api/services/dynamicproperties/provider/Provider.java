@@ -16,15 +16,15 @@
 package io.gravitee.rest.api.services.dynamicproperties.provider;
 
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface Provider {
-    CompletableFuture<Collection<DynamicProperty>> get();
+    Maybe<Collection<DynamicProperty>> get();
 
     String name();
 }
