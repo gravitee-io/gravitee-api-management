@@ -49,7 +49,7 @@
     "jdenticon": "3.1.1",
     "js-yaml": "4.1.0",
     "marked": "4.0.12",
-    "messageformat": "2.3.0",
+    "@messageformat/core": "3.0.0",
     "ngx-cookie-service": "13.1.2",
     "ngx-translate-messageformat-compiler": "5.0.1",
     "redoc": "2.0.0",
