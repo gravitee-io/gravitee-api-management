@@ -22,10 +22,13 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
@@ -233,6 +236,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected MediaService mediaService;
+
+    @Autowired
+    protected LogsService logsService;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -542,11 +548,17 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public AuditService auditService() {
             return mock(AuditService.class);
         }
+
+        @Bean
+        public LogsService logsService() {
+            return mock(LogsService.class);
+        }
     }
 
     @Before
     public void setUp() throws Exception {
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        when(permissionService.hasPermission(any(ExecutionContext.class), any(RolePermission.class), anyString(), anyVararg()))
+            .thenReturn(true);
     }
 
     @Priority(50)
