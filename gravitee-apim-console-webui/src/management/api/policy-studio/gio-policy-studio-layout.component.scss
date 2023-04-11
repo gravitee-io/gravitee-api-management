@@ -14,14 +14,6 @@
       display: flex;
       background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
 
-      &__title {
-        align-items: center;
-        color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
-        display: flex;
-        padding: 14px;
-        position: absolute;
-      }
-
       &__nav {
         flex: 1;
       }
