@@ -1,17 +1,36 @@
 {
   "request": {
-    "method": "GET",
+    "method": "POST",
     "url": "/success_post",
     "bodyPatterns": [
       {
-        "equalToJson" : "{}"
+        "equalToJson": "{}"
       }
-    ]
+    ],
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/json"
+      },
+      "X-Gravitee-Header" : {
+        "equalTo": "value"
+      }
+    }
   },
   "response": {
     "status": 200,
     "jsonBody": {
-      "key": "value"
+      "content": {
+        "name": "Elysee",
+        "country": "FRANCE",
+        "address": "Avenue des Champs-Élysées",
+        "city": "PARIS",
+        "stores_id": 1,
+        "zip_code": "75000",
+        "gps_x": "48.869729",
+        "gps_y": "2.307784",
+        "phone_number": "01 00 00 00 00",
+        "backend_url": "https://north-europe.company.com/"
+      }
     }
   }
 }
