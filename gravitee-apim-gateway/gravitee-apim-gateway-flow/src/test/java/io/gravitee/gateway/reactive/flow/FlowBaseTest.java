@@ -149,12 +149,7 @@ public abstract class FlowBaseTest {
                     "/path/:id/:id2",
                     "/path/5555/5559/5553",
                 },
-                {
-                    List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2"),
-                    Operator.EQUALS,
-                    "/path/:id/:id2",
-                    "/path/5555/5559/5553",
-                },
+                { List.of("/path/:id", "/path/:id/secondId"), Operator.EQUALS, "/path/:id/secondId", "/path/5555/secondId" },
                 {
                     List.of("/path/:id", "/path/staticId", "/path/:id/secondId", "/path/:id/:id2", "/path/:id/subResource/:id2"),
                     Operator.STARTS_WITH,
