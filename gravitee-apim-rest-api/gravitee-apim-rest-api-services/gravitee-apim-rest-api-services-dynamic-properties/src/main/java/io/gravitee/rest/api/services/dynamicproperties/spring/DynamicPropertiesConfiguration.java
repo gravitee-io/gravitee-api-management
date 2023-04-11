@@ -28,9 +28,11 @@ public class DynamicPropertiesConfiguration {
 
     @Bean(name = "dynamicPropertiesExecutor")
     public Executor dynamicPropertiesExecutor() {
+        int maxPoolSize = Runtime.getRuntime().availableProcessors() * 2;
+
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
             0,
-            2, // maximumPoolSize
+            maxPoolSize, // maximumPoolSize
             5, // keepAliveTime
             TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(),
