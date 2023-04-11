@@ -122,7 +122,7 @@ public class HttpProvider implements Provider {
 
     @Override
     public String name() {
-        return "custom";
+        return "http-provider";
     }
 
     public void setHttpClientService(HttpClientService httpClientService) {
