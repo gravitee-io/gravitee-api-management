@@ -18,34 +18,37 @@ package io.gravitee.rest.api.services.dynamicproperties;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Property;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.*;
+import io.reactivex.Maybe;
+import java.util.List;
+import java.util.concurrent.Executors;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class DynamicPropertyUpdaterTest {
 
-    private static final DynamicProperty property = new DynamicProperty("my-key", "my-value");
+    private DynamicPropertyUpdater dynamicPropertyUpdater;
+    private final List<DynamicProperty> dynamicProperties = List.of(new DynamicProperty("my-key", "my-value"));
+    private final List<Property> propertiesList = List.of(new Property("my-key", "my-value"));
+    private final Properties properties = new Properties();
 
-    private DynamicPropertyUpdater poller;
-
-    @Mock
-    private ApiEntity apiEntity;
+    private ApiEntity existingApi;
 
     @Mock
     private Provider provider;
@@ -58,65 +61,75 @@ public class DynamicPropertyUpdaterTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        poller = new DynamicPropertyUpdater(apiEntity, Executors.newSingleThreadExecutor());
+        properties.setProperties(propertiesList);
+
+        existingApi = new ApiEntity();
+        existingApi.setId("api-id");
+        Properties apiProperties = new Properties();
+        apiProperties.setProperties(List.of());
+        existingApi.setProperties(apiProperties);
+
+        dynamicPropertyUpdater = new DynamicPropertyUpdater(existingApi, Executors.newSingleThreadExecutor());
         when(provider.name()).thenReturn("mock");
-        reset(provider, apiService, apiConverter);
-        poller.setProvider(provider);
-        poller.setApiService(apiService);
-        poller.setApiConverter(apiConverter);
+        dynamicPropertyUpdater.setProvider(provider);
+        dynamicPropertyUpdater.setApiService(apiService);
+        dynamicPropertyUpdater.setApiConverter(apiConverter);
     }
 
     @Test
     public void shouldNotUpdatePropertiesBecauseOfProviderException() {
-        when(provider.get())
-            .thenReturn(
-                CompletableFuture
-                    .completedFuture((Collection<DynamicProperty>) Collections.<DynamicProperty>emptyList())
-                    .whenCompleteAsync((dynamicProperties, throwable) -> {
-                        throw new IllegalStateException();
-                    })
-            );
+        when(provider.get()).thenReturn(Maybe.error(new IllegalStateException()));
 
-        poller.handle(1L);
+        dynamicPropertyUpdater.handle().blockingGet();
         verifyNoInteractions(apiService);
     }
 
     @Test
-    public void shouldUpdateProperties() throws ExecutionException, InterruptedException {
-        when(provider.get()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(property)));
+    public void shouldUpdatePropertiesWithoutDeploymentIfManualChange() {
+        when(apiService.findById(any(), any())).thenReturn(existingApi);
+        // Simulate a manual change
+        when(apiService.isSynchronized(any(), any())).thenReturn(false);
 
-        ApiEntity api = new ApiEntity();
-        apiEntity.setId("api-id");
-        apiEntity.setProperties(new Properties());
+        when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
+        dynamicPropertyUpdater.handle().blockingGet();
 
-        when(apiService.findById(any(), any())).thenReturn(api);
-        when(apiService.isSynchronized(any(), any())).thenReturn(true);
-        when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq("api-id"), any(UpdateApiEntity.class))).thenReturn(api);
-
-        poller.handle().get();
-
-        verify(apiService, times(1)).update(any(), any(), any(), eq(false), eq(false));
-        verify(apiService, times(1)).deploy(any(), any(), eq("dynamic-property-updater"), any(), any());
+        verify(apiService, times(1))
+            .update(eq(GraviteeContext.getExecutionContext()), eq(existingApi.getId()), any(), eq(false), eq(false));
+        verify(apiService, never()).deploy(any(), any(), any(), any(), any());
     }
 
     @Test
-    public void shouldNotUpdatePropertyOnUpdateError() throws ExecutionException, InterruptedException {
-        DynamicProperty property = new DynamicProperty("my-key", "my-value");
-        when(provider.get()).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(property)));
+    public void shouldUpdatePropertiesAndDeployApi() {
+        when(apiService.findById(any(), any())).thenReturn(existingApi);
+        when(apiService.isSynchronized(any(), any())).thenReturn(true);
 
-        ApiEntity api = new ApiEntity();
-        apiEntity.setId("api-id");
-        apiEntity.setProperties(new Properties());
+        when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
+        dynamicPropertyUpdater.handle().blockingGet();
 
-        when(apiService.findById(any(), any())).thenReturn(api);
-        when(apiService.isSynchronized(GraviteeContext.getExecutionContext(), "api-id")).thenReturn(true);
-        when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq("api-id"), any()))
-            .thenThrow(new TechnicalManagementException());
+        verify(apiService, times(1))
+            .update(eq(GraviteeContext.getExecutionContext()), eq(existingApi.getId()), any(), eq(false), eq(false));
+        verify(apiService, times(1))
+            .deploy(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(existingApi.getId()),
+                eq("dynamic-property-updater"),
+                eq(EventType.PUBLISH_API),
+                any()
+            );
+    }
 
-        poller.handle().get();
+    @Test
+    public void shouldNotDeployAPIOnUpdateError() {
+        when(apiService.findById(any(), any())).thenReturn(existingApi);
+        when(apiService.isSynchronized(any(), any())).thenReturn(true);
+
+        when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(existingApi.getId()), any(), eq(false), eq(false)))
+            .thenThrow(new TechnicalManagementException("Unable to update the API"));
+
+        when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
+        dynamicPropertyUpdater.handle().blockingGet();
 
         verify(apiService, times(1)).update(any(), any(), any(), eq(false), eq(false));
-        verify(apiService, never()).deploy(eq(GraviteeContext.getExecutionContext()), eq("api-id"), eq(null), any(), any());
+        verify(apiService, never()).deploy(any(), any(), any(), any(), any());
     }
 }

@@ -20,7 +20,6 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.node.api.Node;
@@ -143,6 +142,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
                     HttpProvider provider = new HttpProvider(dynamicPropertyService);
                     provider.setHttpClientService(httpClientService);
                     provider.setNode(node);
+                    provider.setExecutor(executor);
 
                     updater.setProvider(provider);
                     updater.setApiService(apiService);
