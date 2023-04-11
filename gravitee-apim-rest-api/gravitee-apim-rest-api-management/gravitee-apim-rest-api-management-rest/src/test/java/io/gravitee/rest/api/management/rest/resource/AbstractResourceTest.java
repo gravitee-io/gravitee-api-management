@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -24,6 +25,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
@@ -48,6 +50,7 @@ import io.gravitee.rest.api.service.FetcherService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.JsonPatchService;
+import io.gravitee.rest.api.service.LogsService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.MessageService;
@@ -72,6 +75,7 @@ import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
@@ -312,9 +316,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected MediaService mediaService;
 
+    @Autowired
+    protected LogsService logsService;
+
     @Before
     public void setUp() throws Exception {
-        when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        when(permissionService.hasPermission(any(ExecutionContext.class), any(RolePermission.class), anyString(), any())).thenReturn(true);
     }
 
     @Configuration
@@ -669,6 +676,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public WorkflowService workflowService() {
             return mock(WorkflowService.class);
+        }
+
+        @Bean
+        public LogsService logsService() {
+            return mock(LogsService.class);
         }
     }
 
