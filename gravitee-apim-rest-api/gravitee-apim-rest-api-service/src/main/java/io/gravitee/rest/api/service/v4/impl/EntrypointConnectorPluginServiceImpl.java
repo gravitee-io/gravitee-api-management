@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static java.util.Optional.ofNullable;
+
 import io.gravitee.gateway.reactive.api.connector.ConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -64,6 +66,6 @@ public class EntrypointConnectorPluginServiceImpl
     public String validateEntrypointSubscriptionConfiguration(String entrypointId, String configuration) {
         // Only to check if plugin exists
         findById(entrypointId);
-        return validatePluginConfigurationAgainstSchema(entrypointId, configuration, this::getSubscriptionSchema);
+        return validatePluginConfigurationAgainstSchema(entrypointId, ofNullable(configuration).orElse("{}"), this::getSubscriptionSchema);
     }
 }

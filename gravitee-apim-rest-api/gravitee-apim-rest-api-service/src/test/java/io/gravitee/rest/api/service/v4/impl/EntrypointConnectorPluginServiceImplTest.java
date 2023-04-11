@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.api.ApiType;
@@ -93,11 +95,23 @@ public class EntrypointConnectorPluginServiceImplTest {
     }
 
     @Test
-    public void shouldReturnNullWhenConfigurationNull() throws IOException {
+    public void shouldReturnNullWhenSchemaAndConfigurationAreNull() throws IOException {
         when(pluginManager.get(CONNECTOR_ID)).thenReturn(new FakePlugin());
         when(pluginManager.getFactoryById(CONNECTOR_ID)).thenReturn(new FakeConnectorFactory());
 
         assertThat(cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, null)).isNull();
+    }
+
+    @Test
+    public void shouldReturnAConfigWhenSchemaNotNullAndConfigurationIsNull() throws IOException {
+        final String expectedConfiguration = "validated_and_sanitized";
+        when(pluginManager.get(CONNECTOR_ID)).thenReturn(new FakePlugin());
+        when(pluginManager.getFactoryById(CONNECTOR_ID)).thenReturn(new FakeConnectorFactory());
+        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID)).thenReturn("subscriptionConfiguration");
+        when(jsonSchemaService.validate(eq("subscriptionConfiguration"), eq("{}"))).thenReturn(expectedConfiguration);
+
+        final String result = cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, null);
+        assertThat(result).isEqualTo(expectedConfiguration);
     }
 
     @Test

@@ -219,6 +219,7 @@ function apisPortalRouterConfig($stateProvider) {
         docs: {
           page: 'management-api-members',
         },
+        useAngularMaterial: true,
       },
     })
     .state('management.apis.detail.portal.groups', {

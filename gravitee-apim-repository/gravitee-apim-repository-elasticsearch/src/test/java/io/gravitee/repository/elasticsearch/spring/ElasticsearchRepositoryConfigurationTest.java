@@ -23,11 +23,13 @@ import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.vertx.core.Vertx;
 import java.util.Collections;
+import org.opensearch.testcontainers.OpensearchContainer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 /**
@@ -41,11 +43,21 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 @Import(ElasticsearchRepositoryConfiguration.class)
 public class ElasticsearchRepositoryConfigurationTest {
 
-    public static final String DEFAULT_ELASTICSEARCH_VERSION = "8.5.2";
+    public static final String DEFAULT_ELASTICSEARCH_VERSION = "8.7.0";
+    public static final String DEFAULT_OPENSEARCH_VERSION = "2.6.0";
+    private static final String DEFAULT_SEARCH_TYPE = "elasticsearch";
+
     public static final String CLUSTER_NAME = "gravitee_test";
+    private boolean isElasticsearch = true;
+
+    @Value("${search.type:" + DEFAULT_SEARCH_TYPE + "}")
+    private String searchType;
 
     @Value("${elasticsearch.version:" + DEFAULT_ELASTICSEARCH_VERSION + "}")
     private String elasticsearchVersion;
+
+    @Value("${opensearch.version:" + DEFAULT_OPENSEARCH_VERSION + "}")
+    private String opensearchVersion;
 
     @Bean
     public Vertx vertx() {
@@ -58,7 +70,7 @@ public class ElasticsearchRepositoryConfigurationTest {
     }
 
     @Bean
-    public Client client(RepositoryConfiguration repositoryConfiguration) throws InterruptedException {
+    public Client client(RepositoryConfiguration repositoryConfiguration) {
         HttpClientConfiguration clientConfiguration = new HttpClientConfiguration();
         clientConfiguration.setEndpoints(repositoryConfiguration.getEndpoints());
         clientConfiguration.setUsername(repositoryConfiguration.getUsername());
@@ -68,31 +80,40 @@ public class ElasticsearchRepositoryConfigurationTest {
     }
 
     @Bean
-    public RepositoryConfiguration repositoryConfiguration(
-        ElasticsearchContainer elasticSearchContainer,
-        ConfigurableEnvironment environment
-    ) {
-        RepositoryConfiguration elasticConfiguration = new RepositoryConfiguration();
-        elasticConfiguration.setEndpoints(Collections.singletonList(new Endpoint("http://" + elasticSearchContainer.getHttpHostAddress())));
-        elasticConfiguration.setUsername("elastic");
-        elasticConfiguration.setPassword(ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
-        if (elasticsearchVersion.startsWith("5")) {
+    public RepositoryConfiguration repositoryConfiguration(GenericContainer<?> container, ConfigurableEnvironment environment) {
+        RepositoryConfiguration configuration = new RepositoryConfiguration();
+        configuration.setEndpoints(
+            Collections.singletonList(new Endpoint("http://" + container.getHost() + ":" + container.getMappedPort(9200)))
+        );
+        configuration.setUsername(isElasticsearch ? "elastic" : "admin");
+        configuration.setPassword(isElasticsearch ? ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD : "admin");
+        if (isElasticsearch && elasticsearchVersion.startsWith("5")) {
             environment.getSystemProperties().put("analytics.elasticsearch.index_per_type", "true");
         }
-        return elasticConfiguration;
+        return configuration;
     }
 
     @Bean(destroyMethod = "close")
-    public ElasticsearchContainer elasticSearchContainer() {
-        final ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer(
-            "docker.elastic.co/elasticsearch/elasticsearch:" + elasticsearchVersion
-        );
-        elasticsearchContainer.withEnv("cluster.name", CLUSTER_NAME);
-        elasticsearchContainer.withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
+    public GenericContainer<?> elasticSearchContainer() {
+        isElasticsearch = DEFAULT_SEARCH_TYPE.equals(searchType);
+        var container = isElasticsearch ? generateElasticsearchContainer() : generateOpenSearchContainer();
+        container.withEnv("cluster.name", CLUSTER_NAME);
+        container.withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
+        container.start();
+        return container;
+    }
+
+    private ElasticsearchContainer generateElasticsearchContainer() {
+        final String dockerImage = "docker.elastic.co/elasticsearch/elasticsearch:" + elasticsearchVersion;
+        final ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer(dockerImage);
         if (elasticsearchVersion.startsWith("8")) {
             elasticsearchContainer.withEnv("xpack.security.enabled", "false");
         }
-        elasticsearchContainer.start();
         return elasticsearchContainer;
+    }
+
+    private OpensearchContainer generateOpenSearchContainer() {
+        final String dockerImage = "opensearchproject/opensearch:" + opensearchVersion;
+        return new OpensearchContainer(dockerImage);
     }
 }

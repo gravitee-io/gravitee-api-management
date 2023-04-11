@@ -1214,8 +1214,8 @@ jobs:
                       sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
 
                       # UI
-                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"/" gravitee-apim-console-webui/build.json
-                      sed -i -E "s/\"version\": \"(.*)\"/\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"/" gravitee-apim-portal-webui/build.json
+                      sed -i "s#\"version\": \".*\"#\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"#" gravitee-apim-console-webui/build.json
+                      sed -i "s#\"version\": \".*\"#\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"#" gravitee-apim-portal-webui/build.json
 
                       git add --update
                       git commit -m "${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
@@ -1239,18 +1239,26 @@ jobs:
                         git checkout ${CIRCLE_BRANCH}
                       fi
 
+                      # Set the version to the next version (bump patch version + '-SNAPSHOT')
                       if [ "${CIRCLE_BRANCH}" = "master" ]; then
-                        sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.$((${GRAVITEEIO_VERSION_MINOR}+1)).0</revision>#" pom.xml
-                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+                        export MVN_PRJ_NEXT_VERSION="${MVN_PRJ_VERSION_MAJOR}.$((${MVN_PRJ_VERSION_MINOR}+1)).0"
+                        export MVN_PRJ_NEXT_QUALIFIER=""
                       elif [ "${GRAVITEEIO_QUALIFIER}" = "" ]; then
-                        sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.$((${GRAVITEEIO_VERSION_PATCH}+1))</revision>#" pom.xml
-                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+                        export MVN_PRJ_NEXT_VERSION="${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.$((${GRAVITEEIO_VERSION_PATCH}+1))"
+                        export MVN_PRJ_NEXT_QUALIFIER=""
                       else
-                        sed -i "s#<revision>.*</revision>#<revision>${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.${GRAVITEEIO_VERSION_PATCH}</revision>#" pom.xml
-                        sed -i "s#<sha1>.*</sha1>#<sha1>-${GRAVITEEIO_QUALIFIER_NAME}.$((${GRAVITEEIO_QUALIFIER_VERSION}+1))</sha1>#" pom.xml
-                        sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+                        export MVN_PRJ_NEXT_VERSION="${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}.${GRAVITEEIO_VERSION_PATCH}"
+                        export MVN_PRJ_NEXT_QUALIFIER="-${GRAVITEEIO_QUALIFIER_NAME}.$((${GRAVITEEIO_QUALIFIER_VERSION}+1))"
                       fi;
-
+                    
+                      sed -i "s#<revision>.*</revision>#<revision>${MVN_PRJ_NEXT_VERSION}</revision>#" pom.xml                   
+                      sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+                      sed -i "s#<sha1>.*</sha1>#<sha1>${MVN_PRJ_NEXT_QUALIFIER}</sha1>#" pom.xml
+    
+                      sed -i "s#version: \".*\"#version: \"${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT\"#" gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
+                      sed -i "s#\"version\": \".*\"#\"version\": \"${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT\"#" gravitee-apim-console-webui/build.json
+                      sed -i "s#\"version\": \".*\"#\"version\": \"${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT\"#" gravitee-apim-portal-webui/build.json
+                      
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
 
@@ -1476,6 +1484,10 @@ jobs:
                 type: string
                 description: version of elasticsearch to test
                 default: ""
+            engineType:
+              type: string
+              description: type of the search engine
+              default: "elasticsearch"
         executor:
             name: ubuntu
         steps:
@@ -1492,7 +1504,7 @@ jobs:
                             name: Run Elasticsearch repository tests with version << parameters.version >>
                             command: |
                                 cd gravitee-apim-repository
-                                mvn -pl 'gravitee-apim-repository-elasticsearch' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -Delasticsearch.version=<< parameters.version>> -T 2C
+                                mvn -pl 'gravitee-apim-repository-elasticsearch' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -D<< parameters.engineType >>.version=<< parameters.version >> -Dsearch.type=<< parameters.engineType >> -T 2C
                       - run:
                             name: Save test results
                             command: |
@@ -1770,7 +1782,7 @@ jobs:
                                       "type": "section",
                                       "text": {
                                         "type": "mrkdwn",
-                                        "text": ":memo: APIM Changelog << pipeline.parameters.graviteeio_version >> can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
+                                        "text": ":memo: Changelog for APIM << pipeline.parameters.graviteeio_version >> has been generated and can be reviewed <${RELEASE_NOTES_PR_URL}|here>"
                                       }
                                     }
                                   ]
@@ -2204,12 +2216,23 @@ workflows:
                       parameters:
                           version: ["4", "5", "6.0"]
             - elastic-test-container:
+                  name: Run ElasticSearch repositories tests << matrix.version >>
                   context: cicd-orchestrator
                   requires:
                       - setup
                   matrix:
                       parameters:
-                          version: ["5.6.16", "6.8.23", "7.17.8"]
+                          engineType: ["elasticsearch"]
+                          version: ["5.6.16", "6.8.23", "7.17.8", "8.7.0"]
+            - elastic-test-container:
+                  name: Run Opensearch repositories tests << matrix.version >>
+                  context: cicd-orchestrator
+                  requires:
+                      - setup
+                  matrix:
+                      parameters:
+                          engineType: ["opensearch"]
+                          version: ["2.6.0", "1.3.9"]
 
     release_notes_apim:
         when:
