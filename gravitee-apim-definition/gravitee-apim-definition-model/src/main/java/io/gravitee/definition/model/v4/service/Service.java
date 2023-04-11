@@ -40,8 +40,10 @@ public class Service implements Serializable {
 
     private static final long serialVersionUID = 8224459863963093009L;
 
+    @Builder.Default
     private boolean overrideConfiguration = false;
 
+    @Builder.Default
     private boolean enabled = true;
 
     @JsonProperty(required = true)
