@@ -46,7 +46,7 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
     /**
      * Logger.
      */
-    private final Logger logger = LoggerFactory.getLogger(ElasticsearchAnalyticsRepository.class);
+    private final Logger logger = LoggerFactory.getLogger(ElasticsearchMonitoringRepository.class);
 
     /**
      * Name of the FreeMarker template used to query monitoring document types.
