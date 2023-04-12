@@ -16,14 +16,13 @@
 package io.gravitee.gateway.services.sync.kubernetes.fetcher;
 
 import static io.gravitee.gateway.services.sync.kubernetes.fetcher.ConfigMapEventFetcher.DATA_DEFINITION;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Api;
-import io.gravitee.gateway.services.sync.process.synchronizer.api.ApiSynchronizer;
 import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.kubernetes.client.config.KubernetesConfig;
 import io.gravitee.kubernetes.client.model.v1.ConfigMap;
@@ -69,7 +68,16 @@ class ConfigMapEventFetcherTest {
     void should_watch_all_namespaces() {
         cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "ALL" }, objectMapper);
 
-        when(kubernetesClient.watch(any())).thenReturn(mockFlowableEvents());
+        when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null))).thenReturn(mockFlowableEvents());
+
+        cut.fetchLatest().test().assertComplete().assertValueCount(3);
+    }
+
+    @Test
+    void should_watch_all_namespaces_with_all_at_any_position() {
+        cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "default", "ALL" }, objectMapper);
+
+        when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null))).thenReturn(mockFlowableEvents());
 
         cut.fetchLatest().test().assertComplete().assertValueCount(3);
     }
@@ -78,7 +86,13 @@ class ConfigMapEventFetcherTest {
     void should_watch_given_namespaces() {
         cut = new ConfigMapEventFetcher(kubernetesClient, new String[] { "default", "dev" }, objectMapper);
 
-        when(kubernetesClient.watch(any())).thenReturn(mockFlowableEvents());
+        doReturn(Flowable.just(createEvent(createConfigMap("service1", "default"))))
+            .when(kubernetesClient)
+            .watch(argThat(query -> query.getNamespace().equals("default")));
+
+        doReturn(Flowable.just(createEvent(createConfigMap("service2", "dev"))))
+            .when(kubernetesClient)
+            .watch(argThat(query -> query.getNamespace().equals("dev")));
 
         cut.fetchLatest().test().assertComplete().assertValueCount(2);
     }
@@ -88,6 +102,7 @@ class ConfigMapEventFetcherTest {
         cut = new ConfigMapEventFetcher(kubernetesClient, null, objectMapper);
         KubernetesConfig.getInstance().setCurrentNamespace("current");
         ConfigMap configMap = createConfigMap("service1", "default");
+
         when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
             .thenReturn(Flowable.just(createEvent(configMap)));
 
