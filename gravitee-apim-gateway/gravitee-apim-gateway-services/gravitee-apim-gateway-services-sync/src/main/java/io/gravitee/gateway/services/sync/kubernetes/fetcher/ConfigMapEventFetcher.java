@@ -34,9 +34,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -67,17 +65,11 @@ public class ConfigMapEventFetcher {
     }
 
     private Flowable<Event<ConfigMap>> watchConfigMaps() {
-        if (namespaces == null) {
-            // By default we will only watch configmaps in the current namespace that the Gateway is running inside it
-            return watchConfigMaps(KubernetesConfig.getInstance().getCurrentNamespace());
-        } else if (namespaces.length == 1 && "ALL".equalsIgnoreCase(namespaces[0])) {
+        List<String> namespacesAsList = getNamespacesAsList();
+        if (namespacesAsList.contains("ALL")) {
             return watchConfigMaps(null);
-        } else {
-            return watchConfigMaps(null)
-                .filter(configMapEvent ->
-                    Arrays.stream(namespaces).anyMatch(ns -> ns.trim().equals(configMapEvent.getObject().getMetadata().getNamespace()))
-                );
         }
+        return Flowable.fromIterable(namespacesAsList).flatMap(this::watchConfigMaps);
     }
 
     private Flowable<io.gravitee.kubernetes.client.model.v1.Event<ConfigMap>> watchConfigMaps(final String namespace) {
@@ -133,5 +125,13 @@ public class ConfigMapEventFetcher {
             log.error("Unable to extract api definition from config map.", ex);
         }
         return Maybe.empty();
+    }
+
+    private List<String> getNamespacesAsList() {
+        if (namespaces == null || namespaces.length == 0) {
+            // By default, we will only watch configmaps in the current namespace
+            return List.of(KubernetesConfig.getInstance().getCurrentNamespace());
+        }
+        return Arrays.asList(namespaces);
     }
 }
