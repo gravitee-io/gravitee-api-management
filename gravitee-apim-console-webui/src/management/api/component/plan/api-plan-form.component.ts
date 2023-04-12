@@ -28,8 +28,8 @@ import {
   ViewChild,
 } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, FormGroup, NgControl, ValidationErrors, Validator } from '@angular/forms';
-import { merge, Subject } from 'rxjs';
-import { distinctUntilChanged, map, startWith, takeUntil } from 'rxjs/operators';
+import { asyncScheduler, Subject } from 'rxjs';
+import { distinctUntilChanged, map, observeOn, startWith, takeUntil, tap } from 'rxjs/operators';
 import { MatStepper } from '@angular/material/stepper';
 import { GIO_FORM_FOCUS_INVALID_IGNORE_SELECTOR } from '@gravitee/ui-particles-angular';
 import { isEmpty, isEqual } from 'lodash';
@@ -221,6 +221,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     if (this.planForm.invalid) {
       return { planFormError: 'planForm is invalid' };
     }
+    this.changeDetectorRef.markForCheck();
 
     return null;
   }
@@ -292,15 +293,20 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
         !this.isDisabled && this.planForm.get('general').get('validation').enable();
       });
 
-    merge(this.planForm.statusChanges, this.planForm.valueChanges)
+    // After init internal planForm. Subscribe to it and emit changes when needed
+    this.planForm.valueChanges
       .pipe(
         takeUntil(this.unsubscribe$),
         map(() => this.getPlan()),
         distinctUntilChanged(isEqual),
+        tap((plan) => {
+          this._onChange(plan);
+          this._onTouched();
+        }),
+        observeOn(asyncScheduler),
       )
-      .subscribe((plan) => {
-        this._onChange(plan);
-        this._onTouched();
+      .subscribe(() => {
+        this.ngControl?.control?.updateValueAndValidity();
       });
   }
 

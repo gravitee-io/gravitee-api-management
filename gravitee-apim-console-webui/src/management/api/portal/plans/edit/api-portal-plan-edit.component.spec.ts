@@ -100,7 +100,6 @@ describe('ApiPortalPlanEditComponent', () => {
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
 
       await planForm.fillRequiredFields({
         name: 'My plan',
@@ -168,7 +167,6 @@ describe('ApiPortalPlanEditComponent', () => {
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
 
       const nameInput = await planForm.getNameInput();
       await nameInput.setValue('My plan edited');
@@ -222,7 +220,6 @@ describe('ApiPortalPlanEditComponent', () => {
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
 
       const nameInput = await planForm.getNameInput();
       expect(await nameInput.isDisabled()).toEqual(true);

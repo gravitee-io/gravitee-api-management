@@ -26,15 +26,12 @@
   <ng-container *ngIf="securityConfigSchema$ | async as securityConfigSchema">
     <h2>Authentication configuration</h2>
 
-    <gv-schema-form-group
+    <gio-form-json-schema
+      *ngIf="securityConfigSchema"
       class="securityConfigSchema-form"
-      ngDefaultControl
       formControlName="securityConfig"
-      [schema]="securityConfigSchema"
-      [attr.readonly]="secureForm.get('securityConfig').enabled ? null : true"
-      (:gv-schema-form-group:error)="onSecurityConfigError($event)"
-      (:gv-schema-form-group:fetch-resources)="onFetchResources($event)"
-    ></gv-schema-form-group>
+      [jsonSchema]="securityConfigSchema"
+    ></gio-form-json-schema>
 
     <h2>Additional selection rule</h2>
 

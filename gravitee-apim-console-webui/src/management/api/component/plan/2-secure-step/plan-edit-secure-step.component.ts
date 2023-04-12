@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { camelCase } from 'lodash';
 import { EMPTY, ReplaySubject, Subject } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
-import { catchError, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, map, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
 
+import { PlanResourceTypeService } from './plan-resource-type/plan-resource-type.service';
+
 import { Constants } from '../../../../../entities/Constants';
-import { PlanSecurityType } from '../../../../../entities/plan/plan';
+import { PlanSecurityType } from '../../../../../entities/plan';
 import { PolicyService } from '../../../../../services-ngx/policy.service';
 import { ResourceService } from '../../../../../services-ngx/resource.service';
 import { ResourceListItem } from '../../../../../entities/resource/resourceListItem';
@@ -80,6 +82,8 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
     private readonly policyService: PolicyService,
     private readonly resourceService: ResourceService,
     private readonly snackBarService: SnackBarService,
+    private readonly planOauth2ResourceTypeService: PlanResourceTypeService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -95,69 +99,59 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         distinctUntilChanged(),
         tap(() => {
-          this.securityConfigSchema$.next(undefined);
           // Only reset security config if security type has changed
           if (this.currentSecurityType !== this.secureForm.get('securityType').value) {
-            this.secureForm.get('securityConfig').reset({});
+            this.secureForm.get('securityConfig').reset({}, { emitEvent: false });
             this.currentSecurityType = this.secureForm.get('securityType').value;
           }
+
+          this.securityConfigSchema$.next(undefined);
+          this.changeDetectorRef.detectChanges();
         }),
         filter((securityType) => securityType && securityType !== PlanSecurityType.KEY_LESS),
         map((securityType) => this.securityTypes.find((type) => type.id === securityType).policy),
-        switchMap((securityTypePolicy) => this.policyService.getSchema(securityTypePolicy)),
-        catchError((error) => {
-          this.snackBarService.error(error.error?.message ?? 'An error occurs while loading security schema.');
-          return EMPTY;
-        }),
+        switchMap((securityTypePolicy) =>
+          this.policyService.getSchema(securityTypePolicy).pipe(
+            catchError((error) => {
+              this.snackBarService.error(error.error?.message ?? 'An error occurs while loading security schema.');
+              return EMPTY;
+            }),
+          ),
+        ),
       )
       .subscribe((schema) => {
         this.securityConfigSchema$.next(schema);
+        this.changeDetectorRef.detectChanges();
       });
 
-    this.resourceService
-      .list({ expandSchema: false, expandIcon: true })
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        catchError((error) => {
-          this.snackBarService.error(error.error?.message ?? 'An error occurs while loading resources.');
-          return EMPTY;
-        }),
-      )
-      .subscribe((resources) => {
-        this.resourceTypes = resources;
-      });
+    if (this.api?.resources) {
+      // Load resources only if API has resources and when user select OAuth2 security type once
+      this.secureForm
+        .get('securityType')
+        .valueChanges.pipe(
+          takeUntil(this.unsubscribe$),
+          filter((securityType) => {
+            return securityType && securityType === PlanSecurityType.OAUTH2;
+          }),
+          take(1),
+          switchMap(() =>
+            this.resourceService.list({ expandSchema: false, expandIcon: true }).pipe(
+              catchError((error) => {
+                this.snackBarService.error(error.error?.message ?? 'An error occurs while loading resources.');
+                return EMPTY;
+              }),
+            ),
+          ),
+        )
+        .subscribe((resourceTypes) => {
+          this.resourceTypes = resourceTypes;
+          this.planOauth2ResourceTypeService.setResources(this.api.resources ?? [], resourceTypes);
+        });
+    }
   }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  onSecurityConfigError($event) {
-    // Set error at the end of js task. Otherwise it will be reset on value change
-    setTimeout(() => {
-      this.secureForm.get('securityConfig').setErrors($event.detail ? { error: true } : null);
-    }, 0);
-  }
-
-  onFetchResources(event) {
-    if (this.resourceTypes && this.api?.resources) {
-      const { currentTarget, regexTypes } = event.detail;
-      const options = [...this.api.resources]
-        .filter((resource) => regexTypes == null || new RegExp(regexTypes).test(resource.type))
-        .map((resource) => {
-          const resourceType = this.resourceTypes.find((type) => type.id === resource.type);
-          const row = document.createElement('gv-row');
-          const picture = resourceType.icon ? resourceType.icon : null;
-          (row as any).item = { picture, name: resource.name };
-          return {
-            element: row,
-            value: resource.name,
-            id: resource.type,
-          };
-        });
-
-      currentTarget.options = options;
-    }
   }
 }
