@@ -21,9 +21,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
-import { By } from '@angular/platform-browser';
 import { Component, ViewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { ApiPlanFormModule } from './api-plan-form.module';
 import { ApiPlanFormHarness } from './api-plan-form.harness';
@@ -52,6 +52,18 @@ class TestComponent {
   api?: ApiV3 | ApiV4;
   plan?: Plan;
 }
+
+const fakeApiKeySchema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  properties: {
+    propagateApiKey: {
+      title: 'Propagate API Key to upstream API',
+      type: 'boolean',
+    },
+  },
+  additionalProperties: false,
+};
 
 describe('ApiPlanFormComponent', () => {
   const currentUser = new User();
@@ -99,6 +111,14 @@ describe('ApiPlanFormComponent', () => {
     const TAG_1_ID = 'tag-1';
     const API = fakeApiV3({
       tags: [TAG_1_ID],
+      resources: [
+        {
+          name: 'OAuth2 AM Resource',
+          enabled: true,
+          type: 'oauth2-am',
+          configuration: {},
+        },
+      ],
     });
     beforeEach(async () => {
       configureTestingModule('create', API);
@@ -115,7 +135,6 @@ describe('ApiPlanFormComponent', () => {
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
       fixture.detectChanges();
 
       expect(testComponent.planControl.touched).toEqual(false);
@@ -234,6 +253,62 @@ describe('ApiPlanFormComponent', () => {
         ],
       });
     });
+
+    it('should add new  OAuth2 plan', async () => {
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, []);
+      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+      planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
+      fixture.detectChanges();
+
+      expect(testComponent.planControl.touched).toEqual(false);
+      expect(testComponent.planControl.dirty).toEqual(false);
+      expect(testComponent.planControl.valid).toEqual(false);
+
+      // 1- General Step
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('🗺');
+
+      // 2- Secure Step
+      const securityTypeInput = await planForm.getSecurityTypeInput();
+      await securityTypeInput.clickOptions({ text: /OAuth2/ });
+      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('oauth2', {});
+      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
+
+      // 3- Restriction Step
+      // Skip
+
+      expect(testComponent.planControl.touched).toEqual(true);
+      expect(testComponent.planControl.dirty).toEqual(true);
+      expect(testComponent.planControl.valid).toEqual(true);
+      expect(testComponent.planControl.value).toEqual({
+        name: '🗺',
+        description: '',
+        characteristics: [],
+        comment_message: '',
+        comment_required: false,
+        excluded_groups: [],
+        general_conditions: '',
+        tags: [],
+        security: 'OAUTH2',
+        securityDefinition: '{}',
+        selection_rule: null,
+        validation: 'MANUAL',
+        flows: [
+          {
+            enabled: true,
+            'path-operator': {
+              operator: 'STARTS_WITH',
+              path: '/',
+            },
+            post: [],
+            pre: [],
+          },
+        ],
+      });
+    });
   });
 
   describe('Create mode V4 without API', () => {
@@ -246,7 +321,6 @@ describe('ApiPlanFormComponent', () => {
       const planForm = await loader.getHarness(ApiPlanFormHarness);
 
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
       fixture.detectChanges();
 
       expect(testComponent.planControl.touched).toEqual(false);
@@ -380,7 +454,6 @@ describe('ApiPlanFormComponent', () => {
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
       fixture.detectChanges();
 
       expect(testComponent.planControl.touched).toEqual(false);
@@ -458,8 +531,7 @@ describe('ApiPlanFormComponent', () => {
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', {});
+      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', fakeApiKeySchema);
       fixture.detectChanges();
 
       expect(testComponent.planControl.touched).toEqual(false);
@@ -482,9 +554,8 @@ describe('ApiPlanFormComponent', () => {
       expect(await securityTypeInput.getValueText()).toEqual('API Key');
 
       // Expect the security config value to be completed correctly
-      expect(fixture.debugElement.query(By.css('.securityConfigSchema-form')).componentInstance.secureForm.value.securityConfig).toEqual({
-        propagateApiKey: true,
-      });
+      const jsonSchemaPropagateApiKeyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[id*="propagateApiKey"]' }));
+      expect(await jsonSchemaPropagateApiKeyToggle.isChecked()).toEqual(true);
 
       const selectionRuleInput = await planForm.getSelectionRuleInput();
       expect(selectionRuleInput).toBeDefined();
@@ -519,7 +590,6 @@ describe('ApiPlanFormComponent', () => {
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
       fixture.detectChanges();
 
       expect(testComponent.planControl.touched).toEqual(false);
@@ -581,7 +651,6 @@ describe('ApiPlanFormComponent', () => {
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
       fixture.detectChanges();
 
       expect(testComponent.planControl.touched).toEqual(false);
@@ -662,8 +731,7 @@ describe('ApiPlanFormComponent', () => {
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', {});
+      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', fakeApiKeySchema);
       fixture.detectChanges();
 
       expect(testComponent.planControl.touched).toEqual(false);
@@ -686,9 +754,8 @@ describe('ApiPlanFormComponent', () => {
       expect(await securityTypeInput.getValueText()).toEqual('API Key');
 
       // Expect the security config value to be completed correctly
-      expect(fixture.debugElement.query(By.css('.securityConfigSchema-form')).componentInstance.secureForm.value.securityConfig).toEqual({
-        propagateApiKey: true,
-      });
+      const jsonSchemaPropagateApiKeyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[id*="propagateApiKey"]' }));
+      expect(await jsonSchemaPropagateApiKeyToggle.isChecked()).toEqual(true);
 
       const selectionRuleInput = await planForm.getSelectionRuleInput();
       expect(selectionRuleInput).toBeDefined();

@@ -34,14 +34,26 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
+import { FormlyModule } from '@ngx-formly/core';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 import { ApiPlanFormComponent } from './api-plan-form.component';
+import { PlanResourceTypeComponent } from './2-secure-step/plan-resource-type/plan-resource-type.component';
+import { PlanResourceTypeService } from './2-secure-step/plan-resource-type/plan-resource-type.service';
+
+import { GioSafePipeModule } from '../../../../shared/utils/gio.pipe.module';
 
 @NgModule({
-  declarations: [ApiPlanFormComponent, PlanEditGeneralStepComponent, PlanEditSecureStepComponent, PlanEditRestrictionStepComponent],
+  declarations: [
+    ApiPlanFormComponent,
+    PlanEditGeneralStepComponent,
+    PlanEditSecureStepComponent,
+    PlanEditRestrictionStepComponent,
+    PlanResourceTypeComponent,
+  ],
   exports: [ApiPlanFormComponent],
   imports: [
     CommonModule,
@@ -58,12 +70,38 @@ import { ApiPlanFormComponent } from './api-plan-form.component';
     MatSnackBarModule,
     MatDividerModule,
     MatSnackBarModule,
+    MatAutocompleteModule,
+    FormlyModule.forChild({
+      types: [
+        {
+          name: 'plan-oauth2-resource',
+          component: PlanResourceTypeComponent,
+          defaultOptions: {
+            props: {
+              resourceType: 'oauth2',
+            },
+          },
+        },
+
+        {
+          name: 'plan-cache-resource',
+          component: PlanResourceTypeComponent,
+          defaultOptions: {
+            props: {
+              resourceType: 'cache',
+            },
+          },
+        },
+      ],
+    }),
 
     GioFormSlideToggleModule,
     GioFormTagsInputModule,
     GioIconsModule,
     GioBannerModule,
     GioFormJsonSchemaModule,
+    GioSafePipeModule,
   ],
+  providers: [PlanResourceTypeService],
 })
 export class ApiPlanFormModule {}

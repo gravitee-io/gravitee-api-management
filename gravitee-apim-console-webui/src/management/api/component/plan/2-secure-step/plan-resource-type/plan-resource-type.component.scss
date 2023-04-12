@@ -1,0 +1,14 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.plan-oauth2-resource-type {
+  &__field {
+    width: 100%;
+  }
+
+  &__option-img {
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+}

@@ -94,6 +94,10 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    if (this.planForm.invalid) {
+      return;
+    }
+
     const planToSave: NewPlan | Plan = {
       ...this.planForm.get('plan').value,
     };
