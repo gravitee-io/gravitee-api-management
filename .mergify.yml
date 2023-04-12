@@ -3,7 +3,7 @@ pull_request_rules:
       conditions:
           - label=apply-on-master
       actions:
-          copy:
+          backport:
               branches:
                   - master
               assignees:
@@ -22,7 +22,7 @@ pull_request_rules:
       conditions:
           - label=apply-on-3-21-x
       actions:
-          copy:
+          backport:
               branches:
                   - 3.21.x
               assignees:
@@ -41,7 +41,7 @@ pull_request_rules:
       conditions:
           - label=apply-on-3-20-x
       actions:
-          copy:
+          backport:
               branches:
                   - 3.20.x
               assignees:
@@ -60,7 +60,7 @@ pull_request_rules:
       conditions:
           - label=apply-on-3-19-x
       actions:
-          copy:
+          backport:
               branches:
                   - 3.19.x
               assignees:
@@ -79,7 +79,7 @@ pull_request_rules:
       conditions:
           - label=apply-on-3-18-x
       actions:
-          copy:
+          backport:
               branches:
                   - 3.18.x
               assignees:
