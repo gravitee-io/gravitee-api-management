@@ -268,6 +268,15 @@ function apisPortalRouterConfig($stateProvider) {
         },
       },
     })
+    .state('management.apis.detail.portal.metadata-new', {
+      url: '/metadata-new',
+      component: 'ngApiPortalDocumentationMetadata',
+      data: {
+        perms: {
+          only: ['api-metadata-r'],
+        },
+      },
+    })
     .state('management.apis.detail.portal.documentation', {
       url: '/documentation?:parent',
       component: 'documentationManagement',
