@@ -25,7 +25,8 @@ describe('API List feature', () => {
 
   it(`Visit Home board`, () => {
     cy.visit(Cypress.env('managementUI'), { timeout: 10000 });
-    cy.contains('Home board');
+    cy.wait(1000);
+    cy.contains('Home board').should('be.visible');
   });
 
   it(`Visit Search Apis`, () => {
