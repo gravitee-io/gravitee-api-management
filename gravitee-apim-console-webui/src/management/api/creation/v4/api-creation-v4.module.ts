@@ -55,11 +55,11 @@ import { Step4Security1PlansAddComponent } from './steps/step-4-security/step-4-
 import { Step4Security1PlansComponent } from './steps/step-4-security/step-4-security-1-plans.component';
 
 import { GioSelectionListModule } from '../../../../shared/components/gio-selection-list-option/gio-selection-list.module';
-import { GioFormListenersContextPathModule } from '../../../../components/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
-import { GioFormListenersVirtualHostModule } from '../../../../components/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 import { GioConnectorDialogModule } from '../../../../components/gio-connector-dialog/gio-connector-dialog.module';
 import { ApiPlanFormModule } from '../../component/plan/api-plan-form.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioFormListenersContextPathModule } from '../../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
+import { GioFormListenersVirtualHostModule } from '../../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 
 @NgModule({
   imports: [

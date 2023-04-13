@@ -18,7 +18,7 @@ import { AsyncFactoryFn, BaseHarnessFilters, ComponentHarness, HarnessPredicate 
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 
-import { HttpListenerPath } from '../../../entities/api-v4';
+import { HttpListenerPath } from '../../../../../entities/api-v4';
 
 export class GioFormListenersContextPathHarness extends ComponentHarness {
   public static hostSelector = 'gio-form-listeners-context-path';

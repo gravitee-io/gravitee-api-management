@@ -32,9 +32,9 @@ import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/op
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { asyncScheduler, Observable, of, Subject, zip } from 'rxjs';
 
-import { HttpListenerPath } from '../../../entities/api-v4';
-import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
-import { ApiService } from '../../../services-ngx/api.service';
+import { HttpListenerPath } from '../../../../../entities/api-v4';
+import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
+import { ApiService } from '../../../../../services-ngx/api.service';
 
 const PATH_PATTERN_REGEX = new RegExp(/^\/[/.a-zA-Z0-9-_]*$/);
 

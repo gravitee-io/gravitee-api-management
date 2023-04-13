@@ -18,7 +18,7 @@ import { AbstractControl, FormControl, FormGroup, NG_ASYNC_VALIDATORS, NG_VALUE_
 import { escapeRegExp, isEmpty } from 'lodash';
 
 import { GioFormListenersContextPathComponent } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.component';
-import { HttpListenerPath } from '../../../entities/api-v4';
+import { HttpListenerPath } from '../../../../../entities/api-v4';
 
 interface InternalHttpListenerPath extends HttpListenerPath {
   _hostSubDomain?: string;

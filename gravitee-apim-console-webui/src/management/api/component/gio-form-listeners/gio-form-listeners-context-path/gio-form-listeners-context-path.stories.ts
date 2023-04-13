@@ -23,8 +23,8 @@ import { of } from 'rxjs';
 import { GioFormListenersContextPathComponent } from './gio-form-listeners-context-path.component';
 import { GioFormListenersContextPathModule } from './gio-form-listeners-context-path.module';
 
-import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
-import { ApiService } from '../../../services-ngx/api.service';
+import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
+import { ApiService } from '../../../../../services-ngx/api.service';
 
 export default {
   title: 'Shared / Form listeners context path',

@@ -23,8 +23,8 @@ import { of } from 'rxjs';
 import { GioFormListenersVirtualHostComponent } from './gio-form-listeners-virtual-host.component';
 import { GioFormListenersVirtualHostModule } from './gio-form-listeners-virtual-host.module';
 
-import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
-import { ApiService } from '../../../services-ngx/api.service';
+import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
+import { ApiService } from '../../../../../services-ngx/api.service';
 export default {
   title: 'Shared / Form listeners virtual host',
   component: GioFormListenersVirtualHostComponent,
