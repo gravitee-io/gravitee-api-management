@@ -1,0 +1,44 @@
+.gio-metadata {
+  padding: 24px 18px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    h2 {
+      margin-bottom: 0;
+    }
+  }
+
+  &__description {
+    margin-bottom: 22px;
+  }
+  &__table {
+    margin-bottom: 0;
+    &__key {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+
+  &__actions {
+    display: flex;
+  }
+
+  &__global {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.mat-column-global {
+  width: 1%;
+  padding: 0 24px;
+}
+.mat-column-actions {
+  width: 1%;
+  padding: 0 4px;
+}

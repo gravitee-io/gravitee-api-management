@@ -532,6 +532,7 @@ import { ApiPortalTransferOwnershipComponent } from './api/portal/user-group-acc
 import AlertTabsController from '../components/alerts/alertTabs/alert-tabs-component';
 import AlertsActivityController from '../components/alerts/activity/alerts-activity.controller';
 import { ApiPortalPlanEditComponent } from './api/portal/plans/edit/api-portal-plan-edit.component';
+import { ApiPortalDocumentationMetadataComponent } from './api/portal/documentation/metadata/api-portal-documentation-metadata.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -691,6 +692,10 @@ graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusD
 graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
 graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiPortalDetailsComponent }));
 graviteeManagementModule.directive('ngApiPortalPlanList', downgradeComponent({ component: ApiPortalPlanListComponent }));
+graviteeManagementModule.directive(
+  'ngApiPortalDocumentationMetadata',
+  downgradeComponent({ component: ApiPortalDocumentationMetadataComponent }),
+);
 
 graviteeManagementModule.controller('ApiPortalController', ApiPortalController);
 graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);

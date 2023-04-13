@@ -22,6 +22,7 @@ import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiPortalPlansModule } from './portal/plans/api-portal-plans.module';
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 import { ApiPortalUserGroupModule } from './portal/user-group-access/api-portal-user-group.module';
+import { ApiPortalDocumentationModule } from './portal/documentation/api-portal-documentation.module';
 
 @NgModule({
   imports: [
@@ -29,6 +30,7 @@ import { ApiPortalUserGroupModule } from './portal/user-group-access/api-portal-
     ApiListModule,
     ApiNavigationModule,
     ApiPortalDetailsModule,
+    ApiPortalDocumentationModule,
     ApiPortalPlansModule,
     ApiProxyModule,
     ApiPortalUserGroupModule,

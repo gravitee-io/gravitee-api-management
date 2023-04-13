@@ -1,0 +1,110 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card>
+  <div class="gio-metadata">
+    <div class="gio-metadata__header">
+      <h2>{{ referenceType }} metadata</h2>
+      <button
+        *gioPermission="{ anyOf: [permissionPrefix + '-metadata-c'] }"
+        (click)="onAddMetadataClick()"
+        mat-raised-button
+        color="primary"
+        aria-label="add-metadata"
+      >
+        <mat-icon>add</mat-icon> Add {{ referenceType }} Metadata
+      </button>
+    </div>
+    <div class="mat-body gio-metadata__description">{{ description }}</div>
+    <div class="gio-metadata__table">
+      <table mat-table [dataSource]="dataSource" matSort class="gio-metadata__table">
+        <caption style="display: none">
+          {{
+            referenceType
+          }}
+          metadata table
+        </caption>
+        <ng-container matColumnDef="global">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let element">
+            <div class="gio-metadata__global">
+              <mat-icon *ngIf="element.defaultValue" svgIcon="gio:language" matTooltip="Inherited global metadata"></mat-icon>
+            </div>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="key">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by key">Key</th>
+          <td mat-cell *matCellDef="let element">{{ element.key }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by name">Name</th>
+          <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="format">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by format">Format</th>
+          <td mat-cell *matCellDef="let element">{{ element.format?.toLowerCase() }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="value">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by value">Value</th>
+          <td mat-cell *matCellDef="let element">{{ element.value }}</td>
+        </ng-container>
+
+        <ng-container *ngIf="referenceType === 'API'" matColumnDef="defaultValue">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by default value">Default value</th>
+          <td mat-cell *matCellDef="let element">{{ element.defaultValue }}</td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let element">
+            <div class="gio-metadata__actions">
+              <div>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="update-metadata"
+                  (click)="updateMetadata(element)"
+                  *gioPermission="{ anyOf: [permissionPrefix + '-metadata-u'] }"
+                  matTooltip="{{ element.defaultValue ? 'Override global metadata' : 'Update ' + referenceType + ' metadata' }}"
+                >
+                  <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+                </button>
+              </div>
+              <div *ngIf="element.isDeletable">
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="delete-metadata"
+                  (click)="deleteMetadata(element)"
+                  *gioPermission="{ anyOf: [permissionPrefix + '-metadata-d'] }"
+                  matTooltip="{{ element.defaultValue ? 'Remove metadata override' : 'Delete ' + referenceType + ' metadata' }}"
+                >
+                  <mat-icon *ngIf="element.defaultValue" svgIcon="gio:cancel"></mat-icon>
+                  <mat-icon *ngIf="!element.defaultValue" svgIcon="gio:trash"></mat-icon>
+                </button>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </div>
+  </div>
+</mat-card>
