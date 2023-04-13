@@ -28,6 +28,8 @@ class ApplicationGeneralController {
   private application: any;
   private initialApplication: any;
 
+  private readonly = false;
+
   /* @ngInject */
   constructor(
     private ApplicationService: ApplicationService,
@@ -135,6 +137,10 @@ class ApplicationGeneralController {
   onCopyClientSecretSuccess(e) {
     this.NotificationService.show('ClientSecret has been copied to clipboard');
     e.clearSelection();
+  }
+
+  onUnauthorized() {
+    this.readonly = true;
   }
 }
 
