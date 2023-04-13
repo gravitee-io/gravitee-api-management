@@ -15,6 +15,13 @@
     limitations under the License.
 
 -->
+<div class="gio-form-listeners__header">
+  <span class="mat-body-strong">Entrypoints context</span>
+
+  <button class="gio-form-listeners__header__add-button" type="button" mat-stroked-button (click)="addEmptyListener()">
+    Add context-path
+  </button>
+</div>
 
 <table class="gio-table-light gio-form-listeners__table" [formGroup]="mainForm">
   <thead>
@@ -87,9 +94,9 @@
       <td class="gio-form-listeners__table__row__td">
         <button
           mat-icon-button
+          type="button"
           aria-label="Delete"
-          [disabled]="listenerFormArray.controls.length - 1 === controlIndex"
-          [ngClass]="{ 'gio-form-listeners__table__row__td__button__hide': listenerFormArray.controls.length - 1 === controlIndex }"
+          [class.gio-form-listeners__table__row__td__button__hide]="listenerFormArray.controls.length <= 1"
           (click)="onDelete(controlIndex)"
           class="gio-form-listeners__table__row__td__button"
         >

@@ -59,12 +59,15 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
     });
   }
 
-  public onChange(listeners: InternalHttpListenerPath[]): InternalHttpListenerPath[] {
-    const changedListeners = super.onChange(listeners) as InternalHttpListenerPath[];
-    return changedListeners.map((listener) => ({
-      ...listener,
-      host: combineSubDomainWithDomain(listener._hostSubDomain, listener._hostDomain),
-    }));
+  // From ControlValueAccessor interface
+  public registerOnChange(fn: (listeners: HttpListenerPath[] | null) => void): void {
+    this._onChange = (listeners: InternalHttpListenerPath[]) =>
+      fn(
+        listeners.map((listener) => ({
+          ...listener,
+          host: combineSubDomainWithDomain(listener._hostSubDomain, listener._hostDomain),
+        })),
+      );
   }
 
   validateListenerControl(

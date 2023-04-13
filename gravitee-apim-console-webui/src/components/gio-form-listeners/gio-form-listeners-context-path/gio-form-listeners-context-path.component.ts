@@ -27,7 +27,7 @@ import {
   ValidationErrors,
   ValidatorFn,
 } from '@angular/forms';
-import { dropRight, isEmpty } from 'lodash';
+import { isEmpty } from 'lodash';
 import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { asyncScheduler, Observable, of, Subject, zip } from 'rxjs';
@@ -37,6 +37,10 @@ import { PortalSettingsService } from '../../../services-ngx/portal-settings.ser
 import { ApiService } from '../../../services-ngx/api.service';
 
 const PATH_PATTERN_REGEX = new RegExp(/^\/[/.a-zA-Z0-9-_]*$/);
+
+const DEFAULT_LISTENER: HttpListenerPath = {
+  path: '/',
+};
 
 @Component({
   selector: 'gio-form-listeners-context-path',
@@ -56,9 +60,13 @@ const PATH_PATTERN_REGEX = new RegExp(/^\/[/.a-zA-Z0-9-_]*$/);
   ],
 })
 export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, ControlValueAccessor, AsyncValidator {
-  public listeners: HttpListenerPath[] = [];
+  public listeners: HttpListenerPath[] = [DEFAULT_LISTENER];
   public mainForm: FormGroup;
-  public listenerFormArray = new FormArray([this.newListenerFormGroup({})], [this.listenersValidator()], [this.listenersAsyncValidator()]);
+  public listenerFormArray = new FormArray(
+    [this.newListenerFormGroup(DEFAULT_LISTENER)],
+    [this.listenersValidator()],
+    [this.listenersAsyncValidator()],
+  );
   public contextPathPrefix: string;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
@@ -71,9 +79,9 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     this._onTouched();
   }
 
-  private _onChange: (_listeners: HttpListenerPath[] | null) => void = () => ({});
+  protected _onChange: (_listeners: HttpListenerPath[] | null) => void = () => ({});
 
-  private _onTouched: () => void = () => ({});
+  protected _onTouched: () => void = () => ({});
 
   constructor(
     private readonly fm: FocusMonitor,
@@ -96,16 +104,10 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
           : settings.portal.entrypoint;
       });
 
-    // When user start to complete last listener add new empty one at the end
     this.listenerFormArray?.valueChanges
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap((listeners) => listeners.length > 0 && this._onChange(this.onChange(listeners))),
-        tap((listeners: HttpListenerPath[]) => {
-          if (listeners.length > 0 && !this.isEmpty(listeners[listeners.length - 1])) {
-            this.addEmptyListener();
-          }
-        }),
+        tap((listeners) => listeners.length > 0 && this._onChange(listeners)),
       )
       .subscribe();
 
@@ -124,11 +126,11 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   // From ControlValueAccessor interface
   public writeValue(listeners: HttpListenerPath[] | null): void {
-    if (!listeners) {
+    if (!listeners || isEmpty(listeners)) {
       return;
     }
 
-    this.listeners = listeners ?? [];
+    this.listeners = listeners;
     this.initForm();
   }
 
@@ -152,9 +154,6 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
         emitEvent: false,
       });
     });
-
-    // add one empty path at the end
-    this.addEmptyListener();
   }
 
   public addEmptyListener() {
@@ -163,20 +162,8 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   public newListenerFormGroup(listener: HttpListenerPath) {
     return new FormGroup({
-      path: new FormControl(listener.path || ''),
+      path: new FormControl(listener.path || '/'),
     });
-  }
-
-  public onChange(listeners: HttpListenerPath[]) {
-    const lastListener = listeners[listeners.length - 1];
-    if (lastListener && this.isEmpty(lastListener)) {
-      return dropRight(listeners);
-    }
-    return listeners;
-  }
-
-  public isEmpty(lastListener: HttpListenerPath) {
-    return isEmpty(lastListener.path);
   }
 
   public validate(): Observable<ValidationErrors | null> {
@@ -195,30 +182,18 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
         return null;
       }
       const listenerFormArrayControls = listenerFormArrayControl.controls;
-      const ignoreLast = this.mustIgnoreLast(listenerFormArrayControls);
       const listenerValues = listenerFormArrayControls.map((listener) => listener.value);
 
       const errors = listenerFormArrayControls.reduce((acc, listenerControl, index) => {
-        if (!(ignoreLast && index === listenerFormArrayControls.length - 1)) {
-          const validationError = this.validateListenerControl(listenerControl, listenerValues, index);
-          if (validationError) {
-            acc[`${index}`] = validationError;
-          }
+        const validationError = this.validateListenerControl(listenerControl, listenerValues, index);
+        if (validationError) {
+          acc[`${index}`] = validationError;
         }
         return acc;
       }, {});
 
       return isEmpty(errors) ? null : errors;
     };
-  }
-
-  private mustIgnoreLast(listenerFormArrayControls: AbstractControl[]) {
-    if (listenerFormArrayControls.length > 1) {
-      // Remove last if is empty
-      const lastFormArrayControl = listenerFormArrayControls.at(listenerFormArrayControls.length - 1);
-      return isEmpty(lastFormArrayControl.get('path').value);
-    }
-    return false;
   }
 
   public validateListenerControl(
@@ -251,12 +226,8 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
         return of(null);
       }
       const listenerFormArrayControls = listenerFormArrayControl.controls;
-      const ignoreLast = this.mustIgnoreLast(listenerFormArrayControls);
 
-      const foobar: Observable<ValidationErrors | null>[] = listenerFormArrayControls.map((listenerControl, index) => {
-        if (ignoreLast && index === listenerFormArrayControls.length - 1) {
-          return of(null);
-        }
+      const foobar: Observable<ValidationErrors | null>[] = listenerFormArrayControls.map((listenerControl) => {
         const listenerPathControl = listenerControl.get('path');
         return this.apiService.verify(listenerPathControl.value);
       });

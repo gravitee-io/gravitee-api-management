@@ -67,10 +67,16 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
   async fillPaths(...paths: string[]) {
     const formPaths = await this.locatorFor(GioFormListenersContextPathHarness.with())();
 
-    // Add path on last path row
+    // Add first path on existing ContextPathRow
+    const firstPath = paths.shift();
+    const existingContextPathRow = await formPaths.getLastListenerRow();
+    await existingContextPathRow.pathInput.setValue(firstPath);
+
+    // Add others paths
     for (const path of paths) {
-      const emptyLastContextPathRow = await formPaths.getLastListenerRow();
-      await emptyLastContextPathRow.pathInput.setValue(path);
+      await formPaths.addListener({
+        path,
+      });
     }
   }
 
@@ -82,10 +88,13 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
   async fillVirtualHostsAndValidate(...virtualHosts: { path: string; host: string }[]) {
     const formVirtualHosts = await this.locatorFor(GioFormListenersVirtualHostHarness.with())();
 
+    const fistVirtualHost = virtualHosts.shift();
+    const existingContextPathRow = await formVirtualHosts.getLastListenerRow();
+    await existingContextPathRow.hostInput.setValue(fistVirtualHost.host);
+    await existingContextPathRow.pathInput.setValue(fistVirtualHost.path);
+
     for (const virtualHost of virtualHosts) {
-      const lastListenerRow = await formVirtualHosts.getLastListenerRow();
-      await lastListenerRow.hostInput.setValue(virtualHost.host);
-      await lastListenerRow.pathInput.setValue(virtualHost.path);
+      await formVirtualHosts.addListener(virtualHost);
     }
 
     await this.clickValidate();

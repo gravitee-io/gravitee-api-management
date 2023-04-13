@@ -25,7 +25,6 @@
   <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
     <div id="listeners" class="api-creation-v4__form-container" *ngIf="hasListeners">
       <h3>Configure common entrypoints fields</h3>
-      <h4 class="api-creation-v4__form-container__subTitle">Entrypoints context</h4>
       <gio-form-listeners-context-path *ngIf="!this.enableVirtualHost" formControlName="paths"></gio-form-listeners-context-path>
       <gio-form-listeners-virtual-host
         *ngIf="this.enableVirtualHost"
