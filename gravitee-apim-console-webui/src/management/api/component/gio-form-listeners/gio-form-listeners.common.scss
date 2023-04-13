@@ -5,13 +5,6 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .gio-form-listeners {
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
   &__table {
     border-radius: 4px;
     border-collapse: inherit;
@@ -76,6 +69,10 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__row__td {
+      &:has(.gio-form-listeners__table__field) {
+        padding: 0 8px 8px 8px;
+      }
+
       &__button__hide {
         visibility: hidden;
       }
@@ -92,12 +89,25 @@ $typography: map.get(gio.$mat-theme, typography);
       border-right: none;
     }
   }
+
+  &__add-button {
+    margin-top: 8px;
+  }
 }
 
 ::ng-deep {
-  .gio-form-listeners__table__field {
+  .gio-form-listeners__table {
     .mat-form-field-flex {
       padding-top: 0 !important;
+    }
+
+    .mat-form-field.mat-form-field-appearance-standard:not(::ng-deep :has(mat-hint), ::ng-deep :has(mat-error)) {
+      padding-bottom: 0;
+
+      .mat-form-field-wrapper {
+        // stylelint-disable-next-line number-max-precision
+        margin-bottom: -1.34375em;
+      }
     }
   }
 }
