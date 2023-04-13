@@ -25,19 +25,22 @@
   <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
     <div id="listeners" class="api-creation-v4__form-container" *ngIf="hasListeners">
       <h3>Configure common entrypoints fields</h3>
+
+      <div class="step-2-entrypoints-2-config__listeners-context__title">
+        <span class="mat-body-strong">Entrypoints context</span>
+
+        <button id="switchListenerType" mat-button type="button" (click)="this.enableVirtualHost = !this.enableVirtualHost">
+          <ng-container *ngIf="!this.enableVirtualHost"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
+          <ng-container *ngIf="this.enableVirtualHost"> <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts </ng-container>
+        </button>
+      </div>
+
       <gio-form-listeners-context-path *ngIf="!this.enableVirtualHost" formControlName="paths"></gio-form-listeners-context-path>
       <gio-form-listeners-virtual-host
         *ngIf="this.enableVirtualHost"
         formControlName="paths"
         [domainRestrictions]="domainRestrictions"
       ></gio-form-listeners-virtual-host>
-
-      <div class="step-2-entrypoints-2-config__actions">
-        <button id="switchListenerType" mat-button type="button" (click)="this.enableVirtualHost = !this.enableVirtualHost">
-          <ng-container *ngIf="!this.enableVirtualHost"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
-          <ng-container *ngIf="this.enableVirtualHost"> <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts </ng-container>
-        </button>
-      </div>
     </div>
 
     <ng-container *ngFor="let entrypoint of selectedEntrypoints">
