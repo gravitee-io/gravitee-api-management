@@ -60,7 +60,7 @@ export class ApiPortalMembersComponent implements OnInit {
   isReadOnly = false;
 
   dataSource: MemberDataSource[];
-  displayedColumns = ['picture', 'displayName', 'role', 'delete'];
+  displayedColumns = ['picture', 'displayName', 'role'];
 
   private apiId: string;
 
@@ -80,8 +80,10 @@ export class ApiPortalMembersComponent implements OnInit {
     this.apiId = this.ajsStateParams.apiId;
 
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']);
-    if (this.isReadOnly) {
-      this.displayedColumns = ['picture', 'displayName', 'role'];
+
+    // Display the trash icon if the user is allowed to delete a member
+    if (this.permissionService.hasAnyMatching(['api-member-d'])) {
+      this.displayedColumns.push('delete');
     }
 
     combineLatest([this.apiService.get(this.apiId), this.apiMembersService.getMembers(this.apiId), this.roleService.list('API')])
