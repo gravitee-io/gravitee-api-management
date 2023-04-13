@@ -84,14 +84,7 @@ describe('GioFormListenersVirtualHostModule', () => {
       })),
     );
 
-    expect(listeners).toEqual([
-      ...LISTENERS,
-      {
-        host: '',
-        path: '',
-        overrideAccess: false,
-      },
-    ]);
+    expect(listeners).toEqual([...LISTENERS]);
   });
 
   it('should add new virtual host', async () => {
@@ -105,7 +98,7 @@ describe('GioFormListenersVirtualHostModule', () => {
     await emptyLastContextPathRow.pathInput.setValue('/api/my-api-3');
 
     // Expect new row was added
-    expect((await formVirtualHosts.getListenerRows()).length).toEqual(2);
+    expect((await formVirtualHosts.getListenerRows()).length).toEqual(1);
 
     await emptyLastContextPathRow.hostInput.setValue('localhost');
     await emptyLastContextPathRow.pathInput.setValue('/api/my-api-4');
@@ -210,16 +203,16 @@ describe('GioFormListenersVirtualHostModule', () => {
     const formContextPaths = await loader.getHarness(GioFormListenersVirtualHostHarness);
 
     const initialContextPathRows = await formContextPaths.getListenerRows();
-    expect(initialContextPathRows.length).toEqual(3);
+    expect(initialContextPathRows.length).toEqual(2);
 
     const contextPathRowToRemove = initialContextPathRows[1];
     await contextPathRowToRemove.removeButton?.click();
 
     const newContextPathRows = await formContextPaths.getListenerRows();
-    expect(newContextPathRows.length).toEqual(2);
+    expect(newContextPathRows.length).toEqual(1);
 
     // Check last row does have disabled button
-    expect(newContextPathRows[1].removeButton.isDisabled()).toBeTruthy();
+    expect(newContextPathRows[0].removeButton.isDisabled()).toBeTruthy();
 
     expect(testComponent.formControl.value).toEqual([{ ...LISTENERS[0], _hostDomain: '', _hostSubDomain: 'api.gravitee.io' }]);
   });

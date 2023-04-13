@@ -78,12 +78,7 @@ describe('GioFormListenersContextPathModule', () => {
       })),
     );
 
-    expect(paths).toEqual([
-      ...LISTENERS,
-      {
-        path: '',
-      },
-    ]);
+    expect(paths).toEqual([...LISTENERS]);
   });
 
   it('should add new context path', async () => {
@@ -91,27 +86,13 @@ describe('GioFormListenersContextPathModule', () => {
 
     expect((await formPaths.getListenerRows()).length).toEqual(1);
 
-    // Add path on last path row
-    const emptyLastContextPathRow = await formPaths.getLastListenerRow();
-    await emptyLastContextPathRow.pathInput.setValue('/api/my-api-3');
-
     // Expect new row was added
-    expect((await formPaths.getListenerRows()).length).toEqual(2);
-
-    await emptyLastContextPathRow.pathInput.setValue('/api/my-api-4');
-
-    let addedContextPathRow = (await formPaths.getListenerRows())[0];
-    expect({ path: await addedContextPathRow.pathInput.getValue() }).toEqual({
-      path: '/api/my-api-4',
-    });
+    const contextPathRowAdded = await formPaths.getLastListenerRow();
+    await contextPathRowAdded.pathInput.setValue('/api/my-api-4');
 
     // Expect new row was added
     await formPaths.addListener({ path: '/api/my-api-5' });
-
-    addedContextPathRow = (await formPaths.getListenerRows())[1];
-    expect({ path: await addedContextPathRow.pathInput.getValue() }).toEqual({
-      path: '/api/my-api-5',
-    });
+    expect((await formPaths.getListenerRows()).length).toEqual(2);
 
     expect(testComponent.formControl.value).toEqual([{ path: '/api/my-api-4' }, { path: '/api/my-api-5' }]);
   });
@@ -125,21 +106,28 @@ describe('GioFormListenersContextPathModule', () => {
     const emptyLastContextPathRow = await formPaths.getLastListenerRow();
     const pathInputHost = await emptyLastContextPathRow.pathInput.host();
 
+    // Invalid start with /
     await emptyLastContextPathRow.pathInput.setValue('bad-path');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
 
+    // Invalid format
     await emptyLastContextPathRow.pathInput.setValue('/abc yeh');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
 
+    // Invalid min size 3
     await emptyLastContextPathRow.pathInput.setValue('/b');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
 
+    // Valid
     await emptyLastContextPathRow.pathInput.setValue('/ba');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(false);
 
+    // Valid
     await emptyLastContextPathRow.pathInput.setValue('/good-path');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(false);
 
+    // Invalid same path
+    await formPaths.addListenerRow();
     const secondLine = await formPaths.getLastListenerRow();
     await secondLine.pathInput.setValue('/good-path');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
@@ -172,16 +160,16 @@ describe('GioFormListenersContextPathModule', () => {
     const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
 
     const initialContextPathRows = await formPaths.getListenerRows();
-    expect(initialContextPathRows.length).toEqual(3);
+    expect(initialContextPathRows.length).toEqual(2);
 
     const contextPathRowToRemove = initialContextPathRows[1];
     await contextPathRowToRemove.removeButton?.click();
 
     const newContextPathRows = await formPaths.getListenerRows();
-    expect(newContextPathRows.length).toEqual(2);
+    expect(newContextPathRows.length).toEqual(1);
 
     // Check last row does have disabled remove button
-    expect(newContextPathRows[1].removeButton.isDisabled()).toBeTruthy();
+    expect(newContextPathRows[0].removeButton.isDisabled()).toBeTruthy();
 
     expect(testComponent.formControl.value).toEqual([LISTENERS[0]]);
   });

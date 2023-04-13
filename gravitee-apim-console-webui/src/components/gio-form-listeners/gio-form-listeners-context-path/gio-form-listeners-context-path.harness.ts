@@ -35,6 +35,7 @@ export class GioFormListenersContextPathHarness extends ComponentHarness {
   }
 
   protected getListenerRowsElement = this.locatorForAll('tr.gio-form-listeners__table__row');
+  protected addButton = this.locatorFor(MatButtonHarness.with({ text: 'Add context-path' }));
 
   protected getListenerRowInputPath = (rowIndex: number): AsyncFactoryFn<MatInputHarness> =>
     this.locatorFor(MatInputHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '[formControlName=path]' }));
@@ -66,15 +67,15 @@ export class GioFormListenersContextPathHarness extends ComponentHarness {
     };
   }
 
-  public async getLastListenerRowValue(): Promise<{ path: string }> {
-    const rows = await this.getListenerRowsElement();
-    const matInputHarness = await this.getListenerRowInputPath(rows.length - 1)();
-    return {
-      path: await matInputHarness.getValue(),
-    };
+  public async addListenerRow(): Promise<void> {
+    const addButton = await this.addButton();
+
+    await addButton.click();
   }
 
   public async addListener({ path }: HttpListenerPath): Promise<void> {
+    await this.addListenerRow();
+
     const { pathInput } = await this.getLastListenerRow();
 
     await pathInput.setValue(path);

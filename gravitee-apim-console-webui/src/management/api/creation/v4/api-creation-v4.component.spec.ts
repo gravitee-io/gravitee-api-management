@@ -1087,7 +1087,7 @@ describe('ApiCreationV4Component', () => {
       step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
       const step2Summary = await step6Harness.getStepSummaryTextContent(2);
 
-      expect(step2Summary).toContain('EntrypointsPath:/api/my-api-3, /my-api/v4Type:httpEntrypoints: new entrypointChange');
+      expect(step2Summary).toContain('EntrypointsPath:/my-api/v4Type:httpEntrypoints: new entrypointChange');
     });
 
     it('should go back to step 3 after clicking Change button', async () => {

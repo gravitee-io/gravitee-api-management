@@ -78,16 +78,9 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
     };
   }
 
-  public async getLastListenerRowValue(): Promise<{ host: string; path: string; overrideAccess: boolean }> {
-    const { hostInput, pathInput, overrideAccessInput } = await this.getLastListenerRow();
-    return {
-      host: await hostInput.getValue(),
-      path: await pathInput.getValue(),
-      overrideAccess: await overrideAccessInput.isChecked(),
-    };
-  }
-
   public async addListener({ host, path, overrideAccess }: HttpListenerPath): Promise<void> {
+    await this.addListenerRow();
+
     const { hostInput, pathInput, overrideAccessInput } = await this.getLastListenerRow();
 
     await hostInput.setValue(host);

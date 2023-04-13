@@ -33,7 +33,7 @@ export default {
       imports: [BrowserAnimationsModule, GioFormListenersVirtualHostModule, FormsModule, ReactiveFormsModule],
       providers: [
         { provide: PortalSettingsService, useValue: { get: () => of({ portal: { entrypoint: '' } }) } },
-        { provide: ApiService, useValue: { contextPathValidator: () => () => of() } },
+        { provide: ApiService, useValue: { verify: () => of() } },
       ],
     }),
   ],
