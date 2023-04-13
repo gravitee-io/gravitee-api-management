@@ -20,7 +20,8 @@
   layout="column"
   permission
   permission-only="['api-notification-u', 'application-notification-u', 'environment-notification-u']"
-  permission-on-unauthorized="$ctrl.onUnauthorized()"
+  permission-on-authorized="$ctrl.onAuthorized"
+  permission-on-unauthorized="$ctrl.onUnauthorized"
 >
   <div class="gv-forms" layout="column">
     <form name="$ctrl.formNotification" novalidate>
@@ -38,7 +39,11 @@
               <md-input-container flex>
                 <label ng-if="$ctrl.selectedNotifier.type === 'EMAIL'">Email list (use space, ',' or ';' to separate emails)</label>
                 <label ng-if="$ctrl.selectedNotifier.type === 'WEBHOOK'">URL (Gravitee will POST datas to this url)</label>
-                <input ng-model="$ctrl.selectedNotificationSetting.config" aria-label="Notifier configuration" readonly="$ctrl.readonly" />
+                <input
+                  ng-model="$ctrl.selectedNotificationSetting.config"
+                  aria-label="Notifier configuration"
+                  ng-readonly="$ctrl.readonly"
+                />
               </md-input-container>
               <md-input-container flex ng-if="$ctrl.selectedNotifier.type === 'WEBHOOK'">
                 <md-checkbox
@@ -56,7 +61,7 @@
               <h6>{{category}}</h6>
               <div layout="row" layout-wrap>
                 <div flex="35" ng-repeat="hook in $ctrl.hooksByCategory[category]">
-                  <md-checkbox ng-model="$ctrl.hookStatus[hook.id]" aria-label="Notification Hook" disabled="$ctrl.readonly">
+                  <md-checkbox ng-model="$ctrl.hookStatus[hook.id]" aria-label="Notification Hook" ng-disabled="$ctrl.readonly">
                     <b>{{hook.label}}</b>
                     <br />
                     {{hook.description}}
