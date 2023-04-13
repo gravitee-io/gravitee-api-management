@@ -133,8 +133,12 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
       });
     };
 
-    this.onUnauthorized = function () {
+    this.onUnauthorized = () => {
       this.readonly = true;
+    };
+
+    this.onAuthorized = () => {
+      this.readonly = false;
     };
 
     this.addDialog = () => {
