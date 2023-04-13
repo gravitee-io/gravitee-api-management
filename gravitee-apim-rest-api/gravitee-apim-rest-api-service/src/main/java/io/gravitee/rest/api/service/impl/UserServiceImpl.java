@@ -29,6 +29,7 @@ import static io.gravitee.rest.api.service.notification.NotificationParamsBuilde
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -1620,7 +1621,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             String field = entry.getKey();
             String mapping = entry.getValue();
 
-            if (mapping != null) {
+            if (!isEmpty(mapping)) {
                 try {
                     if (mapping.contains("{#")) {
                         map.put(field, templateEngine.getValue(mapping, String.class));
@@ -1628,7 +1629,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         map.put(field, userInfoPath.read(mapping, String.class));
                     }
                 } catch (Exception e) {
-                    LOGGER.error("Using mapping: \"{}\", no fields are located in {}", mapping, userInfo);
+                    LOGGER.warn("Using mapping: \"{}\" (on field:\"{}\"), no fields are located in {}", mapping, field, userInfo);
                 }
             }
         }
