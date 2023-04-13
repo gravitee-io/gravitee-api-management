@@ -23,7 +23,8 @@ describe('Get Gateway instance information as admin', () => {
   });
 
   it('should display all important UI elements', function () {
-    cy.get('h1').contains('API Gateway');
+    cy.wait(1000);
+    cy.get('h1').contains('API Gateway').should('be.visible');
     cy.getByDataTestId('instances_show-history-switch').should((historySwitch) => {
       expect(historySwitch).to.have.class('ng-empty');
       expect(historySwitch).to.contain.text('Show history');
@@ -90,6 +91,7 @@ describe('Get Gateway instance information as non-admin', () => {
 
   it('should not be able to call gateway instances', function () {
     cy.visit(`${Cypress.env('managementUI')}/#!/environments/DEFAULT/instances/`);
+    cy.wait(1000);
     cy.url().should('not.contain', 'instances');
   });
 });
