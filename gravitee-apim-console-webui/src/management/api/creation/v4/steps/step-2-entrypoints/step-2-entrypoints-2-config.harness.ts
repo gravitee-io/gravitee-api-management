@@ -16,8 +16,8 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { GioFormListenersContextPathHarness } from '../../../../../../components/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
-import { GioFormListenersVirtualHostHarness } from '../../../../../../components/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
+import { GioFormListenersContextPathHarness } from '../../../../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
+import { GioFormListenersVirtualHostHarness } from '../../../../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
 
 export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
   static hostSelector = 'step-2-entrypoints-2-config';

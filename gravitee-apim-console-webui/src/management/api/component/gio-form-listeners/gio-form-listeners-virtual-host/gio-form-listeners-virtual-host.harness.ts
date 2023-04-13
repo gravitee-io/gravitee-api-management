@@ -20,7 +20,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { GioFormListenersContextPathHarness } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
-import { HttpListenerPath } from '../../../entities/api-v4';
+import { HttpListenerPath } from '../../../../../entities/api-v4';
 
 export class GioFormListenersVirtualHostHarness extends GioFormListenersContextPathHarness {
   public static hostSelector = 'gio-form-listeners-virtual-host';

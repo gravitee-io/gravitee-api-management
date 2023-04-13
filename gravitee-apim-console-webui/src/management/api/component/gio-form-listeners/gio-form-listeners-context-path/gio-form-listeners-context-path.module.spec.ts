@@ -24,8 +24,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { GioFormListenersContextPathModule } from './gio-form-listeners-context-path.module';
 import { GioFormListenersContextPathHarness } from './gio-form-listeners-context-path.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { AjsRootScope } from '../../../ajs-upgraded-providers';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { AjsRootScope } from '../../../../../ajs-upgraded-providers';
 
 @Component({
   template: ` <gio-form-listeners-context-path [formControl]="formControl"></gio-form-listeners-context-path> `,
