@@ -28,6 +28,7 @@ import { PagedResult } from '../entities/pagedResult';
 import { AjsRootScope } from '../ajs-upgraded-providers';
 import { GroupMember } from '../entities/group/groupMember';
 import { ApiHealthAverage } from '../entities/api/ApiHealthAverage';
+import { Metadata, NewMetadata, UpdateMetadata } from '../entities/metadata/metadata';
 
 @Injectable({
   providedIn: 'root',
@@ -322,5 +323,21 @@ export class ApiService {
     const paramsStr = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
 
     return this.http.get<ApiHealthAverage>(`${this.constants.env.baseURL}/apis/${apiId}/health/average${paramsStr}`);
+  }
+
+  listMetadata(apiId: string): Observable<Metadata[]> {
+    return this.http.get<Metadata[]>(`${this.constants.env.baseURL}/apis/${apiId}/metadata/`);
+  }
+
+  createMetadata(apiId: string, metadata: NewMetadata): Observable<Metadata> {
+    return this.http.post<Metadata>(`${this.constants.env.baseURL}/apis/${apiId}/metadata/`, metadata);
+  }
+
+  updateMetadata(apiId: string, metadata: UpdateMetadata): Observable<Metadata> {
+    return this.http.put<Metadata>(`${this.constants.env.baseURL}/apis/${apiId}/metadata/${metadata.key}`, metadata);
+  }
+
+  deleteMetadata(apiId: string, metadataKey: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.baseURL}/apis/${apiId}/metadata/${metadataKey}`);
   }
 }

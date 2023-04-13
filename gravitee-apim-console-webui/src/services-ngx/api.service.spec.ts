@@ -27,6 +27,7 @@ import { fakeFlowSchema } from '../entities/flow/flowSchema.fixture';
 import { fakeUpdateApi } from '../entities/api/UpdateApi.fixture';
 import { AjsRootScope } from '../ajs-upgraded-providers';
 import { fakeGroupMember } from '../entities/group/groupMember.fixture';
+import { fakeMetadata, fakeNewMetadata, fakeUpdateMetadata } from '../entities/metadata/metadata.fixture';
 
 describe('ApiService', () => {
   let httpTestingController: HttpTestingController;
@@ -504,6 +505,88 @@ describe('ApiService', () => {
         method: 'GET',
       });
       req.flush(fakeGroupsMember);
+    });
+  });
+
+  /**
+   * Metadata
+   */
+  describe('list API metadata', () => {
+    it('should call the list endpoint', (done) => {
+      const apiId = 'my-api';
+      const metadata = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })];
+
+      apiService.listMetadata(apiId).subscribe((metadataList) => {
+        expect(metadataList.length).toEqual(2);
+        expect(metadataList[0].key).toEqual('key1');
+        expect(metadataList[1].key).toEqual('key2');
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/metadata/`,
+        method: 'GET',
+      });
+
+      req.flush(metadata);
+    });
+  });
+
+  describe('create API metadata', () => {
+    it('should call the create endpoint', (done) => {
+      const apiId = 'my-api';
+      const metadata = fakeMetadata({ key: 'created-key' });
+      const newMetadata = fakeNewMetadata();
+
+      apiService.createMetadata(apiId, newMetadata).subscribe((m) => {
+        expect(m.key).toEqual('created-key');
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/metadata/`,
+        method: 'POST',
+      });
+
+      req.flush(metadata);
+    });
+  });
+
+  describe('update API metadata', () => {
+    it('should call the update endpoint', (done) => {
+      const apiId = 'my-api';
+      const metadata = fakeMetadata({ key: 'update-key', value: 'new value' });
+      const updateMetadata = fakeUpdateMetadata({ key: 'update-key', value: 'new value' });
+
+      apiService.updateMetadata(apiId, updateMetadata).subscribe((m) => {
+        expect(m.key).toEqual('update-key');
+        expect(m.value).toEqual('new value');
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/metadata/update-key`,
+        method: 'PUT',
+      });
+
+      req.flush(metadata);
+    });
+  });
+
+  describe('delete API metadata', () => {
+    it('should call the delete endpoint', (done) => {
+      const apiId = 'my-api';
+
+      apiService.deleteMetadata(apiId, 'metadata-key').subscribe(() => {
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/metadata/metadata-key`,
+          method: 'DELETE',
+        })
+        .flush({});
     });
   });
 });
