@@ -45,7 +45,7 @@ describe('ApiPortalMembersComponent', () => {
   let harness: ApiPortalMembersHarness;
 
   const currentUser = new User();
-  currentUser.userPermissions = ['api-member-u', 'api-member-c'];
+  currentUser.userPermissions = ['api-member-u', 'api-member-c', 'api-member-d'];
   const apiId = 'apiId';
   const roles: Role[] = [
     fakeRole({ name: 'PRIMARY_OWNER', default: false }),
