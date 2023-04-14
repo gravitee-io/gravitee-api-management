@@ -114,9 +114,7 @@ export class ApiGeneralComponent implements OnInit {
 
   ngOnInit() {
     const apiId = this.route.snapshot.params.apiId;
-    this.permissions = this.route.snapshot.data.permissions;
-    this.apiHomepage = this.route.snapshot.data.apiHomepage;
-    this.apiInformations = this.route.snapshot.data.apiInformations;
+
     if (this.apiHomepage == null) {
       this.apiHomepageLoaded = true;
     }
@@ -177,6 +175,9 @@ export class ApiGeneralComponent implements OnInit {
             .catch(() => []);
         }
 
+        this.apiHomepage = this.route.snapshot.data.apiHomepage;
+        this.permissions = this.route.snapshot.data.permissions;
+        this.apiInformations = this.route.snapshot.data.apiInformations;
         this.description = this.currentApi.description;
         this.computeBackButton();
         return this.currentApi;
