@@ -18,8 +18,10 @@ package io.gravitee.gateway.reactive.flow;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpRequest;
+import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,9 +41,11 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
     @Mock
     public HttpRequest request;
 
+    private AbstractBestMatchFlowSelector bestMatchFlowSelector = new BestMatchFlowSelector();
+
     @Test
     public void shouldResolveBestMatchFlowApiResolver() {
-        BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver);
+        BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver, bestMatchFlowSelector);
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
 

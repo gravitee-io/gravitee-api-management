@@ -32,6 +32,7 @@ import io.gravitee.gateway.services.sync.kubernetes.fetcher.ConfigMapEventFetche
 import io.gravitee.gateway.services.sync.kubernetes.synchronizer.KubernetesApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.DefaultSyncManager;
 import io.gravitee.gateway.services.sync.process.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.deployer.NoOpSubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.process.fetcher.ApiKeyFetcher;
 import io.gravitee.gateway.services.sync.process.fetcher.DebugEventFetcher;
 import io.gravitee.gateway.services.sync.process.fetcher.LatestEventFetcher;
@@ -66,16 +67,18 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.vertx.ext.web.Router;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -226,7 +229,7 @@ public class SyncConfiguration {
         ApiKeyService apiKeyService,
         SubscriptionService subscriptionService,
         PlanService planCache,
-        SubscriptionDispatcher subscriptionDispatcher,
+        @Lazy SubscriptionDispatcher subscriptionDispatcher,
         CommandRepository commandRepository,
         Node node,
         ObjectMapper objectMapper,
@@ -235,11 +238,12 @@ public class SyncConfiguration {
         OrganizationManager organizationManager,
         EventManager eventManager
     ) {
+        Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
         return new DeployerFactory(
             apiKeyService,
             subscriptionService,
             planCache,
-            subscriptionDispatcher,
+            subscriptionDispatcherSupplier,
             commandRepository,
             node,
             objectMapper,
@@ -248,6 +252,25 @@ public class SyncConfiguration {
             organizationManager,
             eventManager
         );
+    }
+
+    /**
+     * When no SubscriptionDispatcher available in the context, use a no-op one
+     * @param subscriptionDispatcher
+     * @return a supplier of SubscriptionDispatcher
+     */
+    protected Supplier<SubscriptionDispatcher> provideSubscriptionDispatcher(SubscriptionDispatcher subscriptionDispatcher) {
+        return () -> {
+            SubscriptionDispatcher dispatcher = subscriptionDispatcher;
+            try {
+                // try to use the subscriptionDispatcher bean to check if it is present in spring context
+                subscriptionDispatcher.lifecycleState();
+            } catch (NoSuchBeanDefinitionException e) {
+                // If absent, use a no-op subscription dispatcher
+                dispatcher = new NoOpSubscriptionDispatcher();
+            }
+            return dispatcher;
+        };
     }
 
     @Bean

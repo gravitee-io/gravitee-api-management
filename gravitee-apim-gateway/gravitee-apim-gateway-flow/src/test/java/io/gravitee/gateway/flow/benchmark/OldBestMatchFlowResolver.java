@@ -18,6 +18,7 @@ package io.gravitee.gateway.flow.benchmark;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.flow.BestMatchFlowResolver;
+import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.flow.FlowResolver;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public class OldBestMatchFlowResolver extends BestMatchFlowResolver {
     private final FlowResolver flowResolver;
 
     public OldBestMatchFlowResolver(FlowResolver flowResolver) {
-        super(flowResolver);
+        super(flowResolver, new BestMatchFlowSelector());
         this.flowResolver = flowResolver;
     }
 

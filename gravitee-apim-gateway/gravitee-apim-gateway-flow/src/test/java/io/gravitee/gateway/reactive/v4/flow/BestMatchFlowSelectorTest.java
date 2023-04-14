@@ -16,72 +16,42 @@
 package io.gravitee.gateway.reactive.v4.flow;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.selector.Selector;
-import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.api.context.Request;
 import java.util.List;
-import java.util.Optional;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.mockito.Mock;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(Parameterized.class)
-public class BestMatchFlowSelectorTest extends BestMatchFlowBaseTest {
+public class BestMatchFlowSelectorTest {
 
-    @Mock
-    public ExecutionContext executionContext;
+    private BestMatchFlowSelector cut;
 
-    @Mock
-    public Request request;
-
-    @Test
-    public void should_select_bestMatchFlow_with_api_sync() {
-        when(executionContext.request()).thenReturn(request);
-        when(request.pathInfo()).thenReturn(requestPath);
-
-        List<Flow> flows = flowResolver.resolve(executionContext).toList().blockingGet();
-        final Flow bestMatchFlow = BestMatchFlowSelector.forPath(ApiType.PROXY, flows, requestPath);
-
-        if (expectedBestMatchResult == null) {
-            assertThat(bestMatchFlow).isNull();
-        } else {
-            assertThat(bestMatchFlow).isNotNull();
-            Optional<Selector> selector = bestMatchFlow.selectorByType(SelectorType.HTTP);
-            assertThat(selector).isPresent();
-            HttpSelector httpSelector = (HttpSelector) selector.get();
-            assertThat(httpSelector.getPath()).isEqualTo(expectedBestMatchResult);
-        }
+    @Before
+    public void setUp() {
+        cut = new BestMatchFlowSelector();
     }
 
     @Test
-    public void should_select_bestMatchFlow_with_api_async() {
-        when(executionContext.request()).thenReturn(request);
-        when(request.pathInfo()).thenReturn(requestPath);
+    public void should_return_empty_when_flow_null() {
+        assertThat(cut.providePath(null)).isEmpty();
+    }
 
-        List<Flow> flows = flowResolver.resolve(executionContext).toList().blockingGet();
-        final Flow bestMatchFlow = BestMatchFlowSelector.forPath(ApiType.MESSAGE, flows, requestPath);
+    @Test
+    public void should_return_empty_string_when_flow_has_no_path() {
+        assertThat(cut.providePath(new Flow())).isEmpty();
+    }
 
-        if (expectedBestMatchResult == null) {
-            assertThat(bestMatchFlow).isNull();
-        } else {
-            assertThat(bestMatchFlow).isNotNull();
-            Optional<Selector> selector = bestMatchFlow.selectorByType(SelectorType.CHANNEL);
-            assertThat(selector).isPresent();
-            ChannelSelector channelSelector = (ChannelSelector) selector.get();
-            assertThat(channelSelector.getChannel()).isEqualTo(expectedBestMatchResult);
-        }
+    @Test
+    public void should_return_flow_path_when_http_selector() {
+        final Flow flow = new Flow();
+        final HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("path");
+        flow.setSelectors(List.of(httpSelector));
+        assertThat(cut.providePath(flow)).isNotEmpty().containsSame("path");
     }
 }

@@ -20,8 +20,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
-import io.gravitee.gateway.reactive.reactor.v4.subscription.DefaultSubscriptionAcceptor;
-import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionAcceptor;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import java.util.ArrayList;
@@ -597,10 +595,10 @@ public class ReactorHandlerRegistryTest {
     }
 
     @Test
-    public void shouldHaveOneHttpAcceptorAndOneSubscriptionAcceptor_singleReactable() {
+    public void shouldHaveOneHttpAcceptorAndOneDummyAcceptor_singleReactable() {
         Reactable reactable = createReactable("reactable1");
 
-        ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultSubscriptionAcceptor("api1"));
+        ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultDummyAcceptor("api1"));
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
 
         reactorHandlerRegistry.create(reactable);
@@ -609,16 +607,16 @@ public class ReactorHandlerRegistryTest {
         final Iterator<HttpAcceptor> httpAcceptorsIterator = httpAcceptors.iterator();
         Assert.assertEquals(1, httpAcceptors.size());
         assertEntryPoint(null, "/products/v1/", httpAcceptorsIterator.next());
-        final Collection<SubscriptionAcceptor> subscriptionAcceptors = reactorHandlerRegistry.getAcceptors(SubscriptionAcceptor.class);
-        final Iterator<SubscriptionAcceptor> subscriptionAcceptorsIterator = subscriptionAcceptors.iterator();
+        final Collection<DummyAcceptor> dummyAcceptors = reactorHandlerRegistry.getAcceptors(DummyAcceptor.class);
+        final Iterator<DummyAcceptor> dummyAcceptorsIterator = dummyAcceptors.iterator();
         Assert.assertEquals(1, httpAcceptors.size());
-        Assert.assertEquals("api1", subscriptionAcceptorsIterator.next().apiId());
+        Assert.assertEquals("api1", dummyAcceptorsIterator.next().apiId());
     }
 
     @Test
-    public void shouldHaveNoEntrypoints_removeSameReactableWithHttpAndSubscriptionAcceptors() {
+    public void shouldHaveNoEntrypoints_removeSameReactableWithHttpAndDummyAcceptors() {
         DummyReactable reactable = createReactable("reactable1");
-        ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultSubscriptionAcceptor("api1"));
+        ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/products/v1"), new DefaultDummyAcceptor("api1"));
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
         reactorHandlerRegistry.create(reactable);
 
@@ -626,7 +624,7 @@ public class ReactorHandlerRegistryTest {
         reactorHandlerRegistry.remove(updateReactable);
 
         Assert.assertEquals(0, reactorHandlerRegistry.getAcceptors(HttpAcceptor.class).size());
-        Assert.assertEquals(0, reactorHandlerRegistry.getAcceptors(SubscriptionAcceptor.class).size());
+        Assert.assertEquals(0, reactorHandlerRegistry.getAcceptors(DummyAcceptor.class).size());
     }
 
     private void assertEntryPoint(String host, String path, HttpAcceptor httpAcceptor) {
@@ -654,8 +652,8 @@ public class ReactorHandlerRegistryTest {
             .peek(acceptor -> {
                 if (acceptor instanceof DefaultHttpAcceptor) {
                     ((DefaultHttpAcceptor) acceptor).reactor(handler);
-                } else if (acceptor instanceof DefaultSubscriptionAcceptor) {
-                    ((DefaultSubscriptionAcceptor) acceptor).reactor(handler);
+                } else if (acceptor instanceof DefaultDummyAcceptor) {
+                    ((DefaultDummyAcceptor) acceptor).reactor(handler);
                 }
             })
             .collect(Collectors.toList());
@@ -663,6 +661,44 @@ public class ReactorHandlerRegistryTest {
         when(handler.acceptors()).thenReturn(acceptors);
 
         return handler;
+    }
+
+    private static class DefaultDummyAcceptor implements DummyAcceptor {
+
+        private final String apiId;
+        private ReactorHandler reactor;
+
+        public DefaultDummyAcceptor(final ReactorHandler reactor, final String apiId) {
+            this.reactor = reactor;
+            this.apiId = apiId;
+        }
+
+        public DefaultDummyAcceptor(final String apiId) {
+            this(null, apiId);
+        }
+
+        public void reactor(ReactorHandler reactor) {
+            this.reactor = reactor;
+        }
+
+        @Override
+        public String apiId() {
+            return apiId;
+        }
+
+        @Override
+        public ReactorHandler reactor() {
+            return reactor;
+        }
+
+        @Override
+        public int compareTo(DummyAcceptor o) {
+            return 0;
+        }
+    }
+
+    private interface DummyAcceptor extends Acceptor<DummyAcceptor> {
+        String apiId();
     }
 
     private class DummyReactable implements Reactable {

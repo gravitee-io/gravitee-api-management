@@ -39,14 +39,11 @@ import io.gravitee.gateway.reactive.handlers.api.processor.transaction.Transacti
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.SimpleFailureMessageProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -300,35 +297,6 @@ class ApiProcessorChainFactoryTest {
             .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor)
             .assertValueAt(2, processor -> processor instanceof PathMappingProcessor)
             .assertValueAt(3, processor -> processor instanceof SimpleFailureProcessor);
-    }
-
-    @Test
-    void shouldReturnSimpleFailureProcessorChainWithResponseTemplate() {
-        io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
-        Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecutionMessage(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-execution-message");
-        Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors
-            .test()
-            .assertComplete()
-            .assertValueCount(1)
-            .assertValueAt(0, processor -> processor instanceof SimpleFailureMessageProcessor);
-    }
-
-    @Test
-    void shouldReturnResponseTemplateFailureProcessorChainWithResponseTemplate() {
-        io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
-        apiModel.setResponseTemplates(Map.of("test", Map.of("test", new ResponseTemplate())));
-        Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecutionMessage(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-execution-message");
-        Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors
-            .test()
-            .assertComplete()
-            .assertValueCount(1)
-            .assertValueAt(0, processor -> processor instanceof ResponseTemplateBasedFailureMessageProcessor);
     }
 
     @Test

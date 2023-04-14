@@ -29,7 +29,6 @@ import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
-import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageMessageConditionFilter;
 import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
 import io.gravitee.plugin.policy.internal.PolicyMethodResolver;
 import io.gravitee.policy.api.PolicyConfiguration;
@@ -70,12 +69,7 @@ class DefaultPolicyFactoryTest {
 
     @BeforeEach
     void init() {
-        cut =
-            new DefaultPolicyFactory(
-                policyPluginFactory,
-                new ExpressionLanguageConditionFilter<>(),
-                new ExpressionLanguageMessageConditionFilter<>()
-            );
+        cut = new DefaultPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
         policyConfiguration = new DummyPolicyConfiguration();
         ((DummyPolicyConfiguration) policyConfiguration).setValue(1);
         policyMetadata = new PolicyMetadata("dummy-reactive", "{\"value\": 1}");

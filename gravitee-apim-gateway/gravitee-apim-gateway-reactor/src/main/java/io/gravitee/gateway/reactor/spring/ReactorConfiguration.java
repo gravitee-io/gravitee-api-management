@@ -31,15 +31,9 @@ import io.gravitee.gateway.reactive.reactor.handler.DefaultHttpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
-import io.gravitee.gateway.reactive.reactor.processor.SubscriptionPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
-import io.gravitee.gateway.reactive.reactor.v4.subscription.DefaultSubscriptionAcceptorResolver;
-import io.gravitee.gateway.reactive.reactor.v4.subscription.DefaultSubscriptionDispatcher;
-import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionAcceptorResolver;
-import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
-import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionExecutionContextFactory;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
@@ -143,27 +137,6 @@ public class ReactorConfiguration {
     }
 
     @Bean
-    public SubscriptionPlatformProcessorChainFactory subscriptionPlatformProcessorChainFactory(
-        TransactionPreProcessorFactory transactionHandlerFactory,
-        ReporterService reporterService,
-        AlertEventProducer eventProducer,
-        Node node,
-        @Value("${http.port:8082}") String httpPort,
-        @Value("${services.tracing.enabled:false}") boolean tracing,
-        GatewayConfiguration gatewayConfiguration
-    ) {
-        return new SubscriptionPlatformProcessorChainFactory(
-            transactionHandlerFactory,
-            reporterService,
-            eventProducer,
-            node,
-            httpPort,
-            tracing,
-            gatewayConfiguration
-        );
-    }
-
-    @Bean
     public HttpRequestDispatcher httpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
         HttpAcceptorResolver httpAcceptorResolver,
@@ -188,33 +161,6 @@ public class ReactorConfiguration {
             notFoundProcessorChainFactory,
             tracingEnabled,
             requestTimeoutConfiguration,
-            vertx
-        );
-    }
-
-    @Bean
-    public SubscriptionAcceptorResolver subscriptionAcceptorResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
-        return new DefaultSubscriptionAcceptorResolver(reactorHandlerRegistry);
-    }
-
-    @Bean
-    public SubscriptionExecutionContextFactory subscriptionExecutionRequestFactory(final IdGenerator idGenerator) {
-        return new SubscriptionExecutionContextFactory(idGenerator);
-    }
-
-    @Bean
-    public SubscriptionDispatcher subscriptionDispatcher(
-        SubscriptionAcceptorResolver subscriptionAcceptorResolver,
-        SubscriptionExecutionContextFactory subscriptionExecutionContextFactory,
-        SubscriptionPlatformProcessorChainFactory platformProcessorChainFactory,
-        @Value("${services.tracing.enabled:false}") boolean tracingEnabled,
-        Vertx vertx
-    ) {
-        return new DefaultSubscriptionDispatcher(
-            subscriptionAcceptorResolver,
-            subscriptionExecutionContextFactory,
-            platformProcessorChainFactory,
-            tracingEnabled,
             vertx
         );
     }

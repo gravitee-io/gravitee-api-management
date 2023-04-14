@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,17 +42,17 @@ class FlowResolverFactoryTest {
     protected static final String ORGANIZATION_ID = "ORGANIZATION_ID";
 
     @Mock
-    private ConditionFilter<Flow> syncFilter;
+    private ConditionFilter<Flow> conditionFilter;
 
     @Mock
-    private ConditionFilter<Flow> asyncFilter;
+    private AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
 
     private FlowResolverFactory cut;
     private Api api;
 
     @BeforeEach
     void init() {
-        cut = new FlowResolverFactory(syncFilter, asyncFilter);
+        cut = new FlowResolverFactory(conditionFilter, bestMatchFlowSelector);
         final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
         definition.setType(ApiType.PROXY);
         api = new Api(definition);

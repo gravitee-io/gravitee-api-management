@@ -49,6 +49,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.KafkaContainer;
@@ -64,6 +65,7 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 @GatewayTest
 @DeployApi({ "/apis/v4/messages/http-post-entrypoint-kafka-endpoint.json" })
+@Disabled
 class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Container

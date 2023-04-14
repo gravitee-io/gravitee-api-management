@@ -28,6 +28,7 @@ import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
+import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,11 +47,14 @@ class FlowResolverFactoryTest {
     @Mock
     private ConditionFilter<Flow> filter;
 
+    @Mock
+    private AbstractBestMatchFlowSelector bestMatchFlowSelector;
+
     private FlowResolverFactory cut;
 
     @BeforeEach
     void init() {
-        cut = new FlowResolverFactory(filter);
+        cut = new FlowResolverFactory(filter, bestMatchFlowSelector);
     }
 
     @Test

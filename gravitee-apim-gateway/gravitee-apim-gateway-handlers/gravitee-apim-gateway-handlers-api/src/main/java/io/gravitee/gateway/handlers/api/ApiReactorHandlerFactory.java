@@ -38,6 +38,7 @@ import io.gravitee.gateway.core.endpoint.resolver.ProxyEndpointResolver;
 import io.gravitee.gateway.core.invoker.InvokerFactory;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.context.ApiTemplateVariableProvider;
@@ -227,6 +228,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                         configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)
                     );
 
+                    final BestMatchFlowSelector bestMatchFlowSelector = new BestMatchFlowSelector();
+
                     final RequestProcessorChainFactory requestProcessorChainFactory = requestProcessorChainFactory(
                         api,
                         policyChainFactory,
@@ -235,12 +238,19 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                         authenticationHandlerSelector(
                             authenticationHandlerManager(securityProviderLoader(), authenticationHandlerEnhancer(api), apiComponentProvider)
                         ),
-                        v3FlowPolicyResolverFactory
+                        v3FlowPolicyResolverFactory,
+                        bestMatchFlowSelector
                     );
 
                     v3ApiReactor.setRequestProcessorChain(requestProcessorChainFactory);
                     v3ApiReactor.setResponseProcessorChain(
-                        responseProcessorChainFactory(api, policyChainFactory, policyChainProviderLoader, v3FlowPolicyResolverFactory)
+                        responseProcessorChainFactory(
+                            api,
+                            policyChainFactory,
+                            policyChainProviderLoader,
+                            v3FlowPolicyResolverFactory,
+                            bestMatchFlowSelector
+                        )
                     );
                     v3ApiReactor.setErrorProcessorChain(errorProcessorChainFactory(api, policyChainFactory));
 
@@ -548,7 +558,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         PolicyManager policyManager,
         PolicyChainProviderLoader policyChainProviderLoader,
         AuthenticationHandlerSelector authenticationHandlerSelector,
-        FlowPolicyResolverFactory flowPolicyResolverFactory
+        FlowPolicyResolverFactory flowPolicyResolverFactory,
+        BestMatchFlowSelector bestMatchFlowSelector
     ) {
         RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options =
             new RequestProcessorChainFactory.RequestProcessorChainFactoryOptions();
@@ -566,7 +577,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
             authenticationHandlerSelector,
             flowPolicyResolverFactory,
             options,
-            new SecurityPolicyResolver(policyManager, authenticationHandlerSelector)
+            new SecurityPolicyResolver(policyManager, authenticationHandlerSelector),
+            bestMatchFlowSelector
         );
     }
 
@@ -578,7 +590,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         AuthenticationHandlerSelector authenticationHandlerSelector,
         FlowPolicyResolverFactory flowPolicyResolverFactory,
         RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options,
-        SecurityPolicyResolver securityPolicyResolver
+        SecurityPolicyResolver securityPolicyResolver,
+        BestMatchFlowSelector bestMatchFlowSelector
     ) {
         return new RequestProcessorChainFactory(
             api,
@@ -588,7 +601,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
             policyChainProviderLoader,
             authenticationHandlerSelector,
             flowPolicyResolverFactory,
-            securityPolicyResolver
+            securityPolicyResolver,
+            bestMatchFlowSelector
         );
     }
 
@@ -596,7 +610,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         Api api,
         PolicyChainFactory policyChainFactory,
         PolicyChainProviderLoader policyChainProviderLoader,
-        FlowPolicyResolverFactory flowPolicyResolverFactory
+        FlowPolicyResolverFactory flowPolicyResolverFactory,
+        BestMatchFlowSelector bestMatchFlowSelector
     ) {
         return new ResponseProcessorChainFactory(
             api,
@@ -604,7 +619,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
             policyChainProviderLoader,
             node,
             flowPolicyResolverFactory,
-            new TransactionResponseProcessorConfiguration(configuration)
+            new TransactionResponseProcessorConfiguration(configuration),
+            bestMatchFlowSelector
         );
     }
 

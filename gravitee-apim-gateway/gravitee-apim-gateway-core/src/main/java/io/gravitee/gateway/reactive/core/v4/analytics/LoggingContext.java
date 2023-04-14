@@ -28,12 +28,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class LoggingContext implements ConditionSupplier, MessageConditionSupplier {
+public class LoggingContext implements ConditionSupplier {
 
     private static final String DEFAULT_EXCLUDED_CONTENT_TYPES =
         "video.*|audio.*|image.*|application\\/octet-stream|application\\/pdf|text\\/event-stream";
 
-    private final Logging logging;
+    protected final Logging logging;
     private int maxSizeLogMessage = -1;
     private String excludedResponseTypes;
     private Pattern excludedContentTypesPattern;
@@ -41,11 +41,6 @@ public class LoggingContext implements ConditionSupplier, MessageConditionSuppli
     @Override
     public String getCondition() {
         return logging.getCondition();
-    }
-
-    @Override
-    public String getMessageCondition() {
-        return logging.getMessageCondition();
     }
 
     public boolean entrypointRequest() {
@@ -72,36 +67,12 @@ public class LoggingContext implements ConditionSupplier, MessageConditionSuppli
         return logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isPayload();
     }
 
-    public boolean entrypointRequestMessageHeaders() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isMessageHeaders();
-    }
-
-    public boolean entrypointRequestMessagePayload() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isMessagePayload();
-    }
-
-    public boolean entrypointRequestMessageMetadata() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isMessageMetadata();
-    }
-
     public boolean endpointRequestHeaders() {
         return logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isHeaders();
     }
 
     public boolean endpointRequestPayload() {
         return logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isPayload();
-    }
-
-    public boolean endpointRequestMessageHeaders() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isMessageHeaders();
-    }
-
-    public boolean endpointRequestMessagePayload() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isMessagePayload();
-    }
-
-    public boolean endpointRequestMessageMetadata() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isRequest() && logging.getContent().isMessageMetadata();
     }
 
     public boolean entrypointResponseHeaders() {
@@ -112,36 +83,12 @@ public class LoggingContext implements ConditionSupplier, MessageConditionSuppli
         return logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isPayload();
     }
 
-    public boolean entrypointResponseMessageHeaders() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isMessageHeaders();
-    }
-
-    public boolean entrypointResponseMessagePayload() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isMessagePayload();
-    }
-
-    public boolean entrypointResponseMessageMetadata() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isMessageMetadata();
-    }
-
     public boolean endpointResponseHeaders() {
         return logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isHeaders();
     }
 
     public boolean endpointResponsePayload() {
         return logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isPayload();
-    }
-
-    public boolean endpointResponseMessageHeaders() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isMessageHeaders();
-    }
-
-    public boolean endpointResponseMessagePayload() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isMessagePayload();
-    }
-
-    public boolean endpointResponseMessageMetadata() {
-        return logging.getMode().isEndpoint() && logging.getPhase().isResponse() && logging.getContent().isMessageMetadata();
     }
 
     public int getMaxSizeLogMessage() {

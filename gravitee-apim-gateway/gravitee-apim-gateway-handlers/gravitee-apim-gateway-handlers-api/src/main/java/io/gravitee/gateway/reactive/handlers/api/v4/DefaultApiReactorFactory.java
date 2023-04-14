@@ -24,12 +24,11 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
-import io.gravitee.gateway.handlers.api.services.dlq.DefaultDlqServiceFactory;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
-import io.gravitee.gateway.reactive.api.service.dlq.DlqServiceFactory;
+import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultEndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
@@ -44,6 +43,9 @@ import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
+import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowSelector;
+import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorConditionFilter;
+import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
@@ -68,7 +70,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ResolvableType;
 
 /**
@@ -79,18 +83,18 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
     protected final ApplicationContext applicationContext;
     protected final Configuration configuration;
-    private final Node node;
+    protected final Node node;
     protected final PolicyFactory policyFactory;
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
-    private final ApiServicePluginManager apiServicePluginManager;
+    protected final ApiServicePluginManager apiServicePluginManager;
     protected final PolicyChainFactory platformPolicyChainFactory;
     protected final OrganizationManager organizationManager;
     protected final ApiProcessorChainFactory apiProcessorChainFactory;
     protected final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
     protected final FlowResolverFactory v4FlowResolverFactory;
-    private final RequestTimeoutConfiguration requestTimeoutConfiguration;
-    private final ReporterService reporterService;
+    protected final RequestTimeoutConfiguration requestTimeoutConfiguration;
+    protected final ReporterService reporterService;
     private final Logger logger = LoggerFactory.getLogger(DefaultApiReactorFactory.class);
 
     public DefaultApiReactorFactory(
@@ -103,9 +107,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         final ApiServicePluginManager apiServicePluginManager,
         final PolicyChainFactory platformPolicyChainFactory,
         final OrganizationManager organizationManager,
-        final ApiProcessorChainFactory apiProcessorChainFactory,
         final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        final FlowResolverFactory v4FlowResolverFactory,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final ReporterService reporterService
     ) {
@@ -118,11 +120,19 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         this.apiServicePluginManager = apiServicePluginManager;
         this.platformPolicyChainFactory = platformPolicyChainFactory;
         this.organizationManager = organizationManager;
-        this.apiProcessorChainFactory = apiProcessorChainFactory;
+        this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
         this.flowResolverFactory = flowResolverFactory;
-        this.v4FlowResolverFactory = v4FlowResolverFactory;
+        this.v4FlowResolverFactory = flowResolverFactory();
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.reporterService = reporterService;
+    }
+
+    @SuppressWarnings("java:S1845")
+    protected FlowResolverFactory flowResolverFactory() {
+        return new FlowResolverFactory(
+            new CompositeConditionFilter<>(new HttpSelectorConditionFilter(), new ConditionSelectorConditionFilter()),
+            new BestMatchFlowSelector()
+        );
     }
 
     @Override
@@ -135,11 +145,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         // Check that the API contains at least one subscription listener.
         return (
             api.getDefinitionVersion() == DefinitionVersion.V4 &&
-            api
-                .getDefinition()
-                .getListeners()
-                .stream()
-                .anyMatch(listener -> listener.getType() == ListenerType.HTTP || listener.getType() == ListenerType.SUBSCRIPTION)
+            api.getDefinition().getType() == ApiType.PROXY &&
+            api.getDefinition().getListeners().stream().anyMatch(listener -> listener.getType() == ListenerType.HTTP)
         );
     }
 
@@ -181,8 +188,10 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
                 final PolicyChainFactory policyChainFactory = new DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
 
-                final io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory v4PolicyChainFactory =
-                    new io.gravitee.gateway.reactive.v4.policy.DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
+                final io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory v4PolicyChainFactory = policyChainFactory(
+                    api,
+                    policyManager
+                );
 
                 final FlowChainFactory flowChainFactory = new FlowChainFactory(
                     platformPolicyChainFactory,
@@ -207,35 +216,76 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                         v4FlowResolverFactory
                     );
 
-                final DefaultDlqServiceFactory dlqServiceFactory = new DefaultDlqServiceFactory(api.getDefinition(), endpointManager);
-                customComponentProvider.add(DlqServiceFactory.class, dlqServiceFactory);
+                customComponents(api, customComponentProvider);
 
                 final List<TemplateVariableProvider> ctxTemplateVariableProviders = ctxTemplateVariableProviders(api);
                 ctxTemplateVariableProviders.add(endpointManager);
 
-                return new DefaultApiReactor(
+                return buildApiReactor(
                     api,
-                    deploymentContext,
                     componentProvider,
-                    ctxTemplateVariableProviders,
-                    policyManager,
-                    entrypointConnectorPluginManager,
-                    apiServicePluginManager,
-                    endpointManager,
+                    deploymentContext,
                     resourceLifecycleManager,
-                    apiProcessorChainFactory,
+                    policyManager,
                     flowChainFactory,
+                    endpointManager,
                     v4FlowChainFactory,
-                    configuration,
-                    node,
-                    requestTimeoutConfiguration,
-                    reporterService
+                    ctxTemplateVariableProviders
                 );
             }
         } catch (Exception ex) {
             logger.error("Unexpected error while creating AsyncApiReactor", ex);
         }
         return null;
+    }
+
+    protected DefaultApiReactor buildApiReactor(
+        Api api,
+        CompositeComponentProvider componentProvider,
+        DefaultDeploymentContext deploymentContext,
+        ResourceLifecycleManager resourceLifecycleManager,
+        PolicyManager policyManager,
+        FlowChainFactory flowChainFactory,
+        DefaultEndpointManager endpointManager,
+        io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory,
+        List<TemplateVariableProvider> ctxTemplateVariableProviders
+    ) {
+        return new DefaultApiReactor(
+            api,
+            deploymentContext,
+            componentProvider,
+            ctxTemplateVariableProviders,
+            policyManager,
+            entrypointConnectorPluginManager,
+            apiServicePluginManager,
+            endpointManager,
+            resourceLifecycleManager,
+            apiProcessorChainFactory,
+            flowChainFactory,
+            v4FlowChainFactory,
+            configuration,
+            node,
+            requestTimeoutConfiguration,
+            reporterService
+        );
+    }
+
+    protected void customComponents(Api api, CustomComponentProvider customComponentProvider) {}
+
+    protected io.gravitee.gateway.reactive.v4.policy.DefaultPolicyChainFactory policyChainFactory(Api api, PolicyManager policyManager) {
+        return new io.gravitee.gateway.reactive.v4.policy.DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
+    }
+
+    /**
+     * Search across tree of BeanFactory in order to find bean in a parent application context.
+     * @param resolvableType
+     * @return
+     */
+    private String[] getBeanNamesForType(ResolvableType resolvableType) {
+        return BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
+            ((ConfigurableApplicationContext) applicationContext).getBeanFactory(),
+            resolvableType
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -246,7 +296,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         ApplicationContext applicationContext,
         DeploymentContext deploymentContext
     ) {
-        String[] beanNamesForType = applicationContext.getBeanNamesForType(
+        String[] beanNamesForType = getBeanNamesForType(
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
         );
 
@@ -273,7 +323,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         PolicyClassLoaderFactory policyClassLoaderFactory,
         ComponentProvider componentProvider
     ) {
-        String[] beanNamesForType = applicationContext.getBeanNamesForType(
+        String[] beanNamesForType = getBeanNamesForType(
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
         );
 

@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.endpoint.ref.impl.DefaultReferenceRegister;
 import io.gravitee.gateway.debug.reactor.handler.context.DebugExecutionContextFactory;
 import io.gravitee.gateway.debug.security.core.DebugSecurityPolicyResolver;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.ApiReactorHandler;
@@ -100,7 +101,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
         AuthenticationHandlerSelector authenticationHandlerSelector,
         FlowPolicyResolverFactory flowPolicyResolverFactory,
         RequestProcessorChainFactory.RequestProcessorChainFactoryOptions options,
-        SecurityPolicyResolver securityPolicyResolver
+        SecurityPolicyResolver securityPolicyResolver,
+        BestMatchFlowSelector bestMatchFlowSelector
     ) {
         return super.getRequestProcessorChainFactory(
             api,
@@ -110,7 +112,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
             authenticationHandlerSelector,
             flowPolicyResolverFactory,
             options,
-            new DebugSecurityPolicyResolver(policyManager, authenticationHandlerSelector)
+            new DebugSecurityPolicyResolver(policyManager, authenticationHandlerSelector),
+            bestMatchFlowSelector
         );
     }
 

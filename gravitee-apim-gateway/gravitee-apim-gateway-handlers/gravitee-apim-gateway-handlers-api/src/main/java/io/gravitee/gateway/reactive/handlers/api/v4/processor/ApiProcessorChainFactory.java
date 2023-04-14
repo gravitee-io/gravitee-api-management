@@ -40,11 +40,6 @@ import io.gravitee.gateway.reactive.handlers.api.processor.transaction.Transacti
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.SimpleFailureMessageProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.reporter.EntrypointRequestReporterMessageProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.reporter.EntrypointResponseReporterMessageProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.reporter.EventNativeReporterProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -64,7 +59,7 @@ public class ApiProcessorChainFactory {
     private final String clientIdentifierHeader;
     private final Node node;
     private final Configuration configuration;
-    private final ReporterService reporterService;
+    protected final ReporterService reporterService;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
 
     public ApiProcessorChainFactory(final Configuration configuration, final Node node, final ReporterService reporterService) {
@@ -163,41 +158,6 @@ public class ApiProcessorChainFactory {
         return processors;
     }
 
-    public ProcessorChain afterEntrypointRequest(final Api api) {
-        List<Processor> processors = new ArrayList<>();
-
-        io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
-        Analytics analytics = apiDefinition.getAnalytics();
-        if (analytics != null && analytics.isEnabled() && api.getDefinition().getType() == ApiType.MESSAGE) {
-            processors.add(new EntrypointRequestReporterMessageProcessor(reporterService));
-        }
-
-        return new ProcessorChain("processor-chain-after-entrypoint-request-message", processors);
-    }
-
-    public ProcessorChain beforeEntrypointResponse(final Api api) {
-        List<Processor> processors = new ArrayList<>();
-        io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
-        Analytics analytics = apiDefinition.getAnalytics();
-        if (analytics != null && analytics.isEnabled() && api.getDefinition().getType() == ApiType.MESSAGE) {
-            processors.add(new EntrypointResponseReporterMessageProcessor(reporterService));
-        }
-
-        return new ProcessorChain("processor-chain-before-entrypoint-response-message", processors);
-    }
-
-    public ProcessorChain afterApiExecutionMessage(final Api api) {
-        List<Processor> processors = new ArrayList<>();
-
-        if (api.getDefinition().getResponseTemplates() != null && !api.getDefinition().getResponseTemplates().isEmpty()) {
-            processors.add(ResponseTemplateBasedFailureMessageProcessor.instance());
-        } else {
-            processors.add(SimpleFailureMessageProcessor.instance());
-        }
-
-        return new ProcessorChain("processor-chain-after-api-execution-message", processors);
-    }
-
     /**
      * Return the chain of processors to execute in case of error during the api execution.
      *
@@ -234,12 +194,20 @@ public class ApiProcessorChainFactory {
             if (AnalyticsUtils.isLoggingEnabled(analytics)) {
                 processors.add(LogResponseProcessor.instance());
             }
-            if (apiDefinition.getType() == ApiType.MESSAGE && analytics.isEnabled()) {
-                processors.add(new EventNativeReporterProcessor(reporterService));
-            }
         }
 
         return new ProcessorChain("processor-chain-after-api-handle", processors, processorHooks);
+    }
+
+    protected List<Processor> afterHandleProcessors(Api api) {
+        final List<Processor> processors = new ArrayList<>();
+
+        final io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
+        final Analytics analytics = apiDefinition.getAnalytics();
+        if (AnalyticsUtils.isLoggingEnabled(analytics)) {
+            processors.add(LogResponseProcessor.instance());
+        }
+        return processors;
     }
 
     private Optional<HttpListener> getHttpListener(final Api api) {

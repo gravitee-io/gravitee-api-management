@@ -50,12 +50,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ConditionalPolicyTest {
 
     protected static final String CONDITION = "{#context.attributes != null}";
-    protected static final String MESSAGE_CONDITION = "{#message.content != null}";
-    protected static final String MESSAGE_CONTENT = "test";
-    protected static final String TRANSFORMED_MESSAGE_CONTENT = "Transformed test";
-    protected static final Flowable<Message> MESSAGES = Flowable.just(new DefaultMessage(MESSAGE_CONTENT));
-    protected static final FlowableTransformer<Message, Message> ON_MESSAGES = upstream ->
-        upstream.map(message -> new DefaultMessage(TRANSFORMED_MESSAGE_CONTENT));
     protected static final String POLICY_ID = "policyId";
 
     @Mock
@@ -63,9 +57,6 @@ class ConditionalPolicyTest {
 
     @Mock
     private ConditionFilter<ConditionalPolicy> conditionFilter;
-
-    @Mock
-    private MessageConditionFilter<ConditionalPolicy> messageConditionFilter;
 
     @Mock(extraInterfaces = MutableExecutionContext.class)
     private ExecutionContext ctx;
@@ -93,7 +84,7 @@ class ConditionalPolicyTest {
     @ParameterizedTest
     @NullAndEmptySource
     void shouldNotExecuteConditionOnRequestWhenNoCondition(String condition) {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, null, conditionFilter, messageConditionFilter);
+        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, conditionFilter);
 
         cut.onRequest(ctx).test().assertComplete();
 
@@ -106,7 +97,7 @@ class ConditionalPolicyTest {
     @ParameterizedTest
     @NullAndEmptySource
     void shouldNotExecuteConditionOnResponseWhenNoCondition(String condition) {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, null, conditionFilter, messageConditionFilter);
+        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, conditionFilter);
 
         cut.onResponse(ctx).test().assertComplete();
 
@@ -119,12 +110,11 @@ class ConditionalPolicyTest {
     @ParameterizedTest
     @NullAndEmptySource
     void shouldExecuteConditionOnMessageRequestWhenNoCondition(String condition) {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, null, conditionFilter, messageConditionFilter);
+        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, conditionFilter);
 
         cut.onMessageRequest(ctx).test().assertComplete();
 
-        verify(policy).onMessageRequest(ctx);
-        verify(spyCompletable).subscribe(any(CompletableObserver.class));
+        verify(policy, never()).onMessageRequest(ctx);
         verifyNoMoreInteractions(policy);
         verifyNoInteractions(conditionFilter);
     }
@@ -132,19 +122,18 @@ class ConditionalPolicyTest {
     @ParameterizedTest
     @NullAndEmptySource
     void shouldExecuteConditionOnMessageResponseWhenNoCondition(String condition) {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, null, conditionFilter, messageConditionFilter);
+        final ConditionalPolicy cut = new ConditionalPolicy(policy, condition, conditionFilter);
 
         cut.onMessageResponse(ctx).test().assertComplete();
 
-        verify(policy).onMessageResponse(ctx);
-        verify(spyCompletable).subscribe(any(CompletableObserver.class));
+        verify(policy, never()).onMessageResponse(ctx);
         verifyNoMoreInteractions(policy);
         verifyNoInteractions(conditionFilter);
     }
 
     @Test
     void shouldExecuteConditionAndPolicyOnRequest() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, null, conditionFilter, messageConditionFilter);
+        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
 
@@ -157,7 +146,7 @@ class ConditionalPolicyTest {
 
     @Test
     void shouldNotExecutePolicyOnRequestWhenConditionIsNotMet() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, null, conditionFilter, messageConditionFilter);
+        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.empty());
 
@@ -170,7 +159,7 @@ class ConditionalPolicyTest {
 
     @Test
     void shouldExecuteConditionAndPolicyOnResponse() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, null, conditionFilter, messageConditionFilter);
+        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.just(cut));
 
@@ -183,7 +172,7 @@ class ConditionalPolicyTest {
 
     @Test
     void shouldNotExecutePolicyOnResponseWhenConditionIsNotMet() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, null, conditionFilter, messageConditionFilter);
+        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, conditionFilter);
 
         when(conditionFilter.filter(ctx, cut)).thenReturn(Maybe.empty());
 
@@ -195,124 +184,8 @@ class ConditionalPolicyTest {
     }
 
     @Test
-    void shouldExecuteMessageConditionOnMessageRequest() {
-        final Flowable<Message> messages = Flowable.just(new DefaultMessage(MESSAGE_CONTENT));
-        final FlowableTransformer<Message, Message> onMessages = upstream ->
-            upstream.map(message -> new DefaultMessage(TRANSFORMED_MESSAGE_CONTENT));
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, null, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
-        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor =
-            ArgumentCaptor.forClass(Function.class);
-
-        doNothing().when(((MutableRequest) request)).setMessagesInterceptor(onMessagesInterceptor.capture());
-        when(messageConditionFilter.filter(eq(ctx), eq(cut), any(Message.class))).thenReturn(Maybe.just(cut));
-
-        cut.onMessageRequest(ctx).test().assertComplete();
-
-        verify(policy).onMessageRequest(ctx);
-        verify(spyCompletable).subscribe(any(CompletableObserver.class));
-        verifyNoMoreInteractions(policy);
-
-        final TestSubscriber<Message> obs = messages.compose(onMessagesInterceptor.getValue().apply(onMessages)).test();
-        obs.assertComplete();
-
-        // Message content has changed because the condition was evaluated to true.
-        obs.assertValue(message -> message.content().toString().equals(TRANSFORMED_MESSAGE_CONTENT));
-    }
-
-    @Test
-    void shouldNotExecutePolicyOnMessageRequestWhenConditionIsNotMet() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, null, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
-        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor =
-            ArgumentCaptor.forClass(Function.class);
-
-        doNothing().when(((MutableRequest) request)).setMessagesInterceptor(onMessagesInterceptor.capture());
-        when(messageConditionFilter.filter(eq(ctx), eq(cut), any(Message.class))).thenReturn(Maybe.empty());
-
-        cut.onMessageRequest(ctx).test().assertComplete();
-
-        verify(policy).onMessageRequest(ctx);
-        verify(spyCompletable).subscribe(any(CompletableObserver.class));
-        verifyNoMoreInteractions(policy);
-
-        final TestSubscriber<Message> obs = MESSAGES.compose(onMessagesInterceptor.getValue().apply(ON_MESSAGES)).test();
-        obs.assertComplete();
-
-        // Message content hasn't changed because the condition was evaluated to false.
-        obs.assertValue(message -> message.content().toString().equals(MESSAGE_CONTENT));
-    }
-
-    @Test
-    void shouldExecutePolicyOnMessageRequestWithoutInterceptorWhenNoMessageCondition() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, null, null, conditionFilter, messageConditionFilter);
-
-        cut.onMessageRequest(ctx).test().assertComplete();
-
-        verify(policy).onMessageRequest(ctx);
-        verify(spyCompletable).subscribe(any(CompletableObserver.class));
-        verifyNoMoreInteractions(policy);
-    }
-
-    @Test
-    void shouldExecuteMessageConditionOnMessageResponse() {
-        final Flowable<Message> messages = Flowable.just(new DefaultMessage(MESSAGE_CONTENT));
-        final FlowableTransformer<Message, Message> onMessages = upstream ->
-            upstream.map(message -> new DefaultMessage(TRANSFORMED_MESSAGE_CONTENT));
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, null, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
-        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor =
-            ArgumentCaptor.forClass(Function.class);
-
-        doNothing().when(((MutableResponse) response)).setMessagesInterceptor(onMessagesInterceptor.capture());
-        when(messageConditionFilter.filter(eq(ctx), eq(cut), any(Message.class))).thenReturn(Maybe.just(cut));
-
-        cut.onMessageResponse(ctx).test().assertComplete();
-
-        verify(policy).onMessageResponse(ctx);
-        verify(spyCompletable).subscribe(any(CompletableObserver.class));
-        verifyNoMoreInteractions(policy);
-
-        final TestSubscriber<Message> obs = messages.compose(onMessagesInterceptor.getValue().apply(onMessages)).test();
-        obs.assertComplete();
-
-        // Message content has changed because the condition was evaluated to true.
-        obs.assertValue(message -> message.content().toString().equals(TRANSFORMED_MESSAGE_CONTENT));
-    }
-
-    @Test
-    void shouldNotExecutePolicyOnMessageResponseWhenConditionIsNotMet() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, null, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
-        final ArgumentCaptor<Function<FlowableTransformer<Message, Message>, FlowableTransformer<Message, Message>>> onMessagesInterceptor =
-            ArgumentCaptor.forClass(Function.class);
-
-        doNothing().when(((MutableResponse) response)).setMessagesInterceptor(onMessagesInterceptor.capture());
-        when(messageConditionFilter.filter(eq(ctx), eq(cut), any(Message.class))).thenReturn(Maybe.empty());
-
-        cut.onMessageResponse(ctx).test().assertComplete();
-
-        verify(policy).onMessageResponse(ctx);
-        verify(spyCompletable).subscribe(any(CompletableObserver.class));
-        verifyNoMoreInteractions(policy);
-
-        final TestSubscriber<Message> obs = MESSAGES.compose(onMessagesInterceptor.getValue().apply(ON_MESSAGES)).test();
-        obs.assertComplete();
-
-        // Message content hasn't changed because the condition was evaluated to false.
-        obs.assertValue(message -> message.content().toString().equals(MESSAGE_CONTENT));
-    }
-
-    @Test
-    void shouldExecutePolicyOnMessageResponseWithoutInterceptorWhenNoMessageCondition() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, null, null, conditionFilter, messageConditionFilter);
-
-        cut.onMessageResponse(ctx).test().assertComplete();
-
-        verify(policy).onMessageResponse(ctx);
-        verify(spyCompletable).subscribe(any(CompletableObserver.class));
-        verifyNoMoreInteractions(policy);
-    }
-
-    @Test
     void shouldGetOriginalPolicyId() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, null, null, conditionFilter, messageConditionFilter);
+        final ConditionalPolicy cut = new ConditionalPolicy(policy, null, conditionFilter);
 
         when(policy.id()).thenReturn(POLICY_ID);
         assertEquals(POLICY_ID, cut.id());
@@ -320,15 +193,8 @@ class ConditionalPolicyTest {
 
     @Test
     void shouldGetCondition() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
+        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, conditionFilter);
 
         assertEquals(CONDITION, cut.getCondition());
-    }
-
-    @Test
-    void shouldGetMessageCondition() {
-        final ConditionalPolicy cut = new ConditionalPolicy(policy, CONDITION, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
-
-        assertEquals(MESSAGE_CONDITION, cut.getMessageCondition());
     }
 }

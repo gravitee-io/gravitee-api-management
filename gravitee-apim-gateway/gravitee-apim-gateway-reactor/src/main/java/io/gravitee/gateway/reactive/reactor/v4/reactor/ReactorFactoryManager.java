@@ -19,17 +19,28 @@ import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ReactorFactoryManager {
 
     private final List<ReactorFactory> reactorFactories;
 
+    // Inject embedded factories via spring configuration
     public ReactorFactoryManager(final List<ReactorFactory> reactorFactories) {
         this.reactorFactories = reactorFactories;
+    }
+
+    /**
+     * Registers a {@link ReactorFactory}. Useful for Reactor plugins.
+     * @param reactorFactory to register
+     */
+    public void register(ReactorFactory<?> reactorFactory) {
+        reactorFactories.add(reactorFactory);
     }
 
     public List<ReactorHandler> create(final Reactable reactable) {

@@ -74,7 +74,6 @@ import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
-import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionAcceptor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.report.ReporterService;
@@ -122,37 +121,19 @@ class DefaultApiReactorTest {
     Completable spyRequestPlatformFlowChain = Completable.complete();
 
     @Spy
-    Completable spyMessageRequestPlatformFlowChain = Completable.complete();
-
-    @Spy
     Completable spyResponsePlatformFlowChain = Completable.complete();
-
-    @Spy
-    Completable spyMessageResponsePlatformFlowChain = Completable.complete();
 
     @Spy
     Completable spyRequestPlanFlowChain = Completable.complete();
 
     @Spy
-    Completable spyMessageRequestPlanFlowChain = Completable.complete();
-
-    @Spy
     Completable spyResponsePlanFlowChain = Completable.complete();
-
-    @Spy
-    Completable spyMessageResponsePlanFlowChain = Completable.complete();
 
     @Spy
     Completable spyRequestApiFlowChain = Completable.complete();
 
     @Spy
-    Completable spyMessageRequestApiFlowChain = Completable.complete();
-
-    @Spy
     Completable spyResponseApiFlowChain = Completable.complete();
-
-    @Spy
-    Completable spyMessageResponseApiFlowChain = Completable.complete();
 
     @Spy
     Completable spyEntrypointRequest = Completable.complete();
@@ -174,15 +155,6 @@ class DefaultApiReactorTest {
 
     @Spy
     Completable spyOnErrorProcessors = Completable.complete();
-
-    @Spy
-    Completable spyAfterApiExecutionMessageProcessors = Completable.complete();
-
-    @Spy
-    Completable spyAfterEntrypointRequestProcessors = Completable.complete();
-
-    @Spy
-    Completable spyBeforeEntrypointResponseProcessors = Completable.complete();
 
     @Spy
     Completable spyInvokerChain = Completable.complete();
@@ -266,9 +238,6 @@ class DefaultApiReactorTest {
     private ProcessorChain onErrorProcessors;
 
     @Mock
-    private ProcessorChain afterApiExecutionMessageProcessors;
-
-    @Mock
     private ProcessorChain afterEntrypointRequestProcessors;
 
     @Mock
@@ -331,49 +300,36 @@ class DefaultApiReactorTest {
         lenient().when(api.getDeployedAt()).thenReturn(new Date());
         lenient().when(api.getOrganizationId()).thenReturn(ORGANIZATION_ID);
         lenient().when(api.getEnvironmentId()).thenReturn(ENVIRONMENT_ID);
-        lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.MESSAGE);
+        lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
         lenient().when(apiDefinition.getAnalytics()).thenReturn(new Analytics());
         lenient().when(apiProcessorChainFactory.beforeHandle(api)).thenReturn(beforeHandleProcessors);
         lenient().when(apiProcessorChainFactory.afterHandle(api)).thenReturn(afterHandleProcessors);
         lenient().when(apiProcessorChainFactory.beforeApiExecution(api)).thenReturn(beforeApiExecutionProcessors);
         lenient().when(apiProcessorChainFactory.afterApiExecution(api)).thenReturn(afterApiExecutionProcessors);
-        lenient().when(apiProcessorChainFactory.afterApiExecutionMessage(api)).thenReturn(afterApiExecutionMessageProcessors);
-        lenient().when(apiProcessorChainFactory.afterEntrypointRequest(api)).thenReturn(afterEntrypointRequestProcessors);
-        lenient().when(apiProcessorChainFactory.beforeEntrypointResponse(api)).thenReturn(beforeEntrypointResponseProcessors);
         lenient().when(apiProcessorChainFactory.onError(api)).thenReturn(onErrorProcessors);
 
         lenient().when(flowChainFactory.createPlatformFlow(api)).thenReturn(platformFlowChain);
         lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlatformFlowChain);
-        lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.MESSAGE_REQUEST)).thenReturn(spyMessageRequestPlatformFlowChain);
         lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlatformFlowChain);
-        lenient().when(platformFlowChain.execute(ctx, ExecutionPhase.MESSAGE_RESPONSE)).thenReturn(spyMessageResponsePlatformFlowChain);
         lenient().when(securityChain.execute(any())).thenReturn(spySecurityChain);
         lenient().when(v4FlowChainFactory.createPlanFlow(api)).thenReturn(apiPlanFlowChain);
         lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestPlanFlowChain);
-        lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.MESSAGE_REQUEST)).thenReturn(spyMessageRequestPlanFlowChain);
         lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponsePlanFlowChain);
-        lenient().when(apiPlanFlowChain.execute(ctx, ExecutionPhase.MESSAGE_RESPONSE)).thenReturn(spyMessageResponsePlanFlowChain);
         lenient().when(v4FlowChainFactory.createApiFlow(api)).thenReturn(apiFlowChain);
         lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
-        lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.MESSAGE_REQUEST)).thenReturn(spyMessageRequestApiFlowChain);
         lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
-        lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.MESSAGE_RESPONSE)).thenReturn(spyMessageResponseApiFlowChain);
 
         lenient().when(beforeHandleProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeHandleProcessors);
         lenient().when(afterHandleProcessors.execute(ctx, RESPONSE)).thenReturn(spyAfterHandleProcessors);
         lenient().when(beforeApiExecutionProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeApiExecutionProcessors);
         lenient().when(afterApiExecutionProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyAfterApiExecutionProcessors);
         lenient().when(onErrorProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyOnErrorProcessors);
-        lenient().when(afterApiExecutionMessageProcessors.execute(ctx, MESSAGE_RESPONSE)).thenReturn(spyAfterApiExecutionMessageProcessors);
-        lenient().when(afterEntrypointRequestProcessors.execute(ctx, MESSAGE_REQUEST)).thenReturn(spyAfterEntrypointRequestProcessors);
-        lenient().when(beforeEntrypointResponseProcessors.execute(ctx, MESSAGE_RESPONSE)).thenReturn(spyBeforeEntrypointResponseProcessors);
 
         lenient().when(beforeHandleProcessors.getId()).thenReturn("mockBeforeHandleProcessors");
         lenient().when(afterHandleProcessors.getId()).thenReturn("mockBeforeHandleProcessors");
         lenient().when(beforeApiExecutionProcessors.getId()).thenReturn("mockBeforeApiFlowsProcessors");
         lenient().when(afterApiExecutionProcessors.getId()).thenReturn("mockAfterApiFlowsProcessors");
         lenient().when(onErrorProcessors.getId()).thenReturn("mockOnErrorProcessors");
-        lenient().when(afterApiExecutionMessageProcessors.getId()).thenReturn("mockOnMessageProcessors");
 
         lenient().when(defaultInvoker.invoke(any(ExecutionContext.class))).thenReturn(spyInvokerChain);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(defaultInvoker);
@@ -385,7 +341,7 @@ class DefaultApiReactorTest {
         lenient()
             .when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR))
             .thenReturn(entrypointConnector);
-        lenient().when(entrypointConnector.supportedApi()).thenReturn(ApiType.MESSAGE);
+        lenient().when(entrypointConnector.supportedApi()).thenReturn(ApiType.PROXY);
 
         when(configuration.getProperty(SERVICES_TRACING_ENABLED_PROPERTY, Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
@@ -481,17 +437,6 @@ class DefaultApiReactorTest {
         // Verify flow chain has been executed in the right order
         InOrder inOrder = getInOrder();
 
-        // Message request and response phase must NOT be invoked with sync entrypoint.
-        inOrder.verify(spyMessageRequestPlatformFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlanFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlanFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestApiFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponseApiFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionMessageProcessors, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterEntrypointRequestProcessors, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyBeforeEntrypointResponseProcessors, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlatformFlowChain, never()).subscribe(any(CompletableObserver.class));
-
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
@@ -504,39 +449,6 @@ class DefaultApiReactorTest {
         inOrder.verify(spyResponseApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
-    }
-
-    @Test
-    void shouldExecuteAllPhasesWhenUsingAsyncEntrypoint() {
-        when(entrypointConnectorResolver.resolve(ctx)).thenReturn(entrypointConnector);
-
-        cut.handle(ctx).test().assertComplete();
-
-        // Verify flow chain has been executed in the right order
-        InOrder inOrder = getInOrder();
-        inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterEntrypointRequestProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyResponseApiFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponseApiFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionMessageProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyBeforeEntrypointResponseProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
@@ -589,26 +501,18 @@ class DefaultApiReactorTest {
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterEntrypointRequestProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
 
         // Response phases at api level must NOT be invoked if an unexpected error occurred during invocation.
         inOrder.verify(spyResponsePlanFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlanFlowChain, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseApiFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponseApiFlowChain, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterApiExecutionProcessors, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionMessageProcessors, never()).subscribe(any(CompletableObserver.class));
 
         // But the rest of the response chains must be called (error chain, platform).
         inOrder.verify(spyOnErrorProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyBeforeEntrypointResponseProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
@@ -628,26 +532,18 @@ class DefaultApiReactorTest {
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterEntrypointRequestProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
 
         // Response phases at api level must NOT be invoked if an unexpected error occurred during invocation.
         inOrder.verify(spyResponsePlanFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlanFlowChain, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseApiFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponseApiFlowChain, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterApiExecutionProcessors, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionMessageProcessors, never()).subscribe(any(CompletableObserver.class));
 
         // But the rest of the response chains must be called (error chain, platform).
         inOrder.verify(spyOnErrorProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyBeforeEntrypointResponseProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
@@ -667,26 +563,18 @@ class DefaultApiReactorTest {
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterEntrypointRequestProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
 
         // Response phases at api level must NOT be invoked if an unexpected error occurred during invocation.
         inOrder.verify(spyResponsePlanFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlanFlowChain, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseApiFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponseApiFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionMessageProcessors, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyOnErrorProcessors, never()).subscribe(any(CompletableObserver.class));
 
         // But the rest of the response chains must be called (post processor chain, platform).
         inOrder.verify(spyAfterApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyBeforeEntrypointResponseProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
@@ -705,25 +593,15 @@ class DefaultApiReactorTest {
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterEntrypointRequestProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseApiFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponseApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterApiExecutionProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionMessageProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
 
-        // Skip because platform response failed.
-        inOrder.verify(spyMessageResponsePlatformFlowChain, never()).subscribe(any(CompletableObserver.class));
-
         // In case of error we do not expect entrypoint.handleResponse to be called
-        inOrder.verify(spyBeforeEntrypointResponseProcessors, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointResponse, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
@@ -745,21 +623,13 @@ class DefaultApiReactorTest {
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterEntrypointRequestProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseApiFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponseApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterApiExecutionProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionMessageProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyBeforeEntrypointResponseProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
@@ -789,25 +659,17 @@ class DefaultApiReactorTest {
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterEntrypointRequestProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
 
         // The next steps must not be executed because of timeout.
         inOrder.verify(spyResponsePlanFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlanFlowChain, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseApiFlowChain, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponseApiFlowChain, never()).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterApiExecutionProcessors, never()).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionMessageProcessors, never()).subscribe(any(CompletableObserver.class));
 
         inOrder.verify(spyOnErrorProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyBeforeEntrypointResponseProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
@@ -855,27 +717,17 @@ class DefaultApiReactorTest {
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterEntrypointRequestProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseApiFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponseApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterApiExecutionProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionMessageProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-
-        // Platform message response flow isn't executed because timeout occurs during platform response.
-        inOrder.verify(spyMessageResponsePlatformFlowChain, never()).subscribe(any(CompletableObserver.class));
 
         // Error flow must have been executed.
         inOrder.verify(spyOnErrorProcessors).subscribe(any(CompletableObserver.class));
 
-        inOrder.verify(spyBeforeEntrypointResponseProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
@@ -922,25 +774,16 @@ class DefaultApiReactorTest {
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterEntrypointRequestProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageRequestPlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlanFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseApiFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponseApiFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterApiExecutionProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyAfterApiExecutionMessageProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyMessageResponsePlatformFlowChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
-
-        inOrder.verify(spyBeforeEntrypointResponseProcessors, never()).subscribe(any(CompletableObserver.class));
 
         inOrder.verify(spyOnErrorProcessors, never()).subscribe(any(CompletableObserver.class));
 
@@ -1012,16 +855,12 @@ class DefaultApiReactorTest {
         when(apiDefinition.getListeners()).thenReturn(List.of(httpListener, subscriptionListener));
 
         List<Acceptor<?>> acceptors = cut.acceptors();
-        assertThat(acceptors).hasSize(2);
+        assertThat(acceptors).hasSize(1);
         Acceptor<?> acceptor1 = acceptors.get(0);
         assertThat(acceptor1).isInstanceOf(HttpAcceptor.class);
         HttpAcceptor httpAcceptor = (HttpAcceptor) acceptor1;
         assertThat(httpAcceptor.path()).isEqualTo("path/");
         assertThat(httpAcceptor.host()).isEqualTo(path.getHost());
-        Acceptor<?> acceptor2 = acceptors.get(1);
-        assertThat(acceptor2).isInstanceOf(SubscriptionAcceptor.class);
-        SubscriptionAcceptor subscriptionAcceptor = (SubscriptionAcceptor) acceptor2;
-        assertThat(subscriptionAcceptor.apiId()).isEqualTo(api.getId());
     }
 
     @Test
@@ -1130,22 +969,13 @@ class DefaultApiReactorTest {
             spyAfterHandleProcessors,
             spyBeforeApiExecutionProcessors,
             spyEntrypointRequest,
-            spyAfterEntrypointRequestProcessors,
             spyRequestPlanFlowChain,
             spyRequestApiFlowChain,
-            spyMessageRequestPlatformFlowChain,
-            spyMessageRequestPlanFlowChain,
-            spyMessageRequestApiFlowChain,
             spyInvokerChain,
             spyResponsePlanFlowChain,
             spyResponseApiFlowChain,
-            spyMessageResponsePlanFlowChain,
-            spyMessageResponseApiFlowChain,
             spyResponsePlatformFlowChain,
-            spyMessageResponsePlatformFlowChain,
             spyAfterApiExecutionProcessors,
-            spyAfterApiExecutionMessageProcessors,
-            spyBeforeEntrypointResponseProcessors,
             spyOnErrorProcessors,
             spyEntrypointResponse,
             spyResponseEnd

@@ -16,11 +16,7 @@
 package io.gravitee.gateway.reactive.core.v4.analytics;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
-import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
-import io.gravitee.gateway.reactive.core.v4.analytics.sampling.CountMessageSamplingStrategy;
-import io.gravitee.gateway.reactive.core.v4.analytics.sampling.MessageSamplingStrategy;
-import io.gravitee.gateway.reactive.core.v4.analytics.sampling.ProbabilityMessageStrategy;
-import io.gravitee.gateway.reactive.core.v4.analytics.sampling.TemporalMessageSamplingStrategy;
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,54 +28,26 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AnalyticsContext {
 
-    private Analytics analytics;
-    private LoggingContext loggingContext;
-    private MessageSamplingStrategy messageSamplingStrategy;
+    protected Analytics analytics;
+    protected LoggingContext loggingContext;
 
-    public AnalyticsContext(
-        final Analytics analytics,
-        final boolean isEventNative,
-        final String loggingMaxsize,
-        final String loggingExcludedResponseType
-    ) {
+    public AnalyticsContext(final Analytics analytics, final String loggingMaxsize, final String loggingExcludedResponseType) {
         this.analytics = analytics;
         if (analytics != null && analytics.isEnabled()) {
-            initMessageSampling(isEventNative);
             initLoggingContext(loggingMaxsize, loggingExcludedResponseType);
-        }
-    }
-
-    private void initMessageSampling(final boolean isEventNative) {
-        if (isEventNative) {
-            Sampling messageSampling = this.analytics.getMessageSampling();
-            if (messageSampling != null) {
-                switch (messageSampling.getType()) {
-                    case PROBABILITY:
-                        messageSamplingStrategy = new ProbabilityMessageStrategy(messageSampling.getValue());
-                        break;
-                    case TEMPORAL:
-                        messageSamplingStrategy = new TemporalMessageSamplingStrategy(messageSampling.getValue());
-                        break;
-                    case COUNT:
-                        messageSamplingStrategy = new CountMessageSamplingStrategy(messageSampling.getValue());
-                        break;
-                    default:
-                        log.warn("Message sampling type is invalid, using probability strategy by default.");
-                        messageSamplingStrategy = new ProbabilityMessageStrategy(null);
-                }
-            } else {
-                log.warn("Message sampling is null, using probability strategy by default.");
-                messageSamplingStrategy = new ProbabilityMessageStrategy(null);
-            }
         }
     }
 
     private void initLoggingContext(final String loggingMaxsize, final String loggingExcludedResponseType) {
         if (AnalyticsUtils.isLoggingEnabled(analytics)) {
-            this.loggingContext = new LoggingContext(analytics.getLogging());
+            this.loggingContext = loggingContext(analytics.getLogging());
             this.loggingContext.setMaxSizeLogMessage(loggingMaxsize);
             this.loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
         }
+    }
+
+    protected LoggingContext loggingContext(Logging logging) {
+        return new LoggingContext(logging);
     }
 
     public boolean isEnabled() {

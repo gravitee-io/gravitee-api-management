@@ -23,6 +23,7 @@ import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -39,19 +40,14 @@ import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
-import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageMessageConditionFilter;
 import io.gravitee.gateway.reactive.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.reactive.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactorFactory;
-import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.gateway.reactive.v4.flow.selection.ChannelSelectorConditionFilter;
-import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorConditionFilter;
-import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
@@ -121,11 +117,7 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public PolicyFactory policyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new DefaultPolicyFactory(
-            policyPluginFactory,
-            new ExpressionLanguageConditionFilter<>(),
-            new ExpressionLanguageMessageConditionFilter<>()
-        );
+        return new DefaultPolicyFactory(policyPluginFactory, new ExpressionLanguageConditionFilter<>());
     }
 
     @Bean
@@ -155,15 +147,8 @@ public class ApiHandlerConfiguration {
                 new HttpMethodConditionFilter(),
                 new PathBasedConditionFilter(),
                 new ExpressionLanguageConditionFilter<>()
-            )
-        );
-    }
-
-    @Bean
-    public FlowResolverFactory v4FlowResolverFactory() {
-        return new FlowResolverFactory(
-            new CompositeConditionFilter<>(new HttpSelectorConditionFilter(), new ConditionSelectorConditionFilter()),
-            new CompositeConditionFilter<>(new ChannelSelectorConditionFilter(), new ConditionSelectorConditionFilter())
+            ),
+            new BestMatchFlowSelector()
         );
     }
 
@@ -218,9 +203,7 @@ public class ApiHandlerConfiguration {
         ApiServicePluginManager apiServicePluginManager,
         @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
         OrganizationManager organizationManager,
-        io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory,
         io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        FlowResolverFactory v4FlowResolverFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         ReporterService reporterService
     ) {
@@ -234,9 +217,7 @@ public class ApiHandlerConfiguration {
             apiServicePluginManager,
             platformPolicyChainFactory,
             organizationManager,
-            v4ApiProcessorChainFactory,
             flowResolverFactory,
-            v4FlowResolverFactory,
             requestTimeoutConfiguration,
             reporterService
         );
