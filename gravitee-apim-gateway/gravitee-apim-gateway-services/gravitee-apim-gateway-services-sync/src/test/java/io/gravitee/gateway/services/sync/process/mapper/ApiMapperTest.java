@@ -68,7 +68,7 @@ class ApiMapperTest {
 
     @BeforeEach
     public void beforeEach() throws JsonProcessingException {
-        cut = new ApiMapper(objectMapper, environmentRepository, organizationRepository);
+        cut = new ApiMapper(objectMapper, environmentRepository, organizationRepository, true);
         apiV2 = new io.gravitee.definition.model.Api();
         apiV2.setId("id");
         apiV2.setDefinitionVersion(DefinitionVersion.V2);

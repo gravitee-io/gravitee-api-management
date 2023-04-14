@@ -38,6 +38,7 @@ public class ApiMapper {
     private final ObjectMapper objectMapper;
     private final EnvironmentRepository environmentRepository;
     private final OrganizationRepository organizationRepository;
+    private final boolean jupiterMode;
 
     private final Map<String, Environment> environmentMap = new ConcurrentHashMap<>();
     private final Map<String, io.gravitee.repository.management.model.Organization> organizationMap = new ConcurrentHashMap<>();
@@ -70,6 +71,10 @@ public class ApiMapper {
                     // Update definition with required information for deployment phase
                     reactableApi = new io.gravitee.gateway.handlers.api.definition.Api(eventApiDefinition);
                 } else {
+                    if (!jupiterMode) {
+                        return null;
+                    }
+
                     var eventApiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
 
                     // Update definition with required information for deployment phase

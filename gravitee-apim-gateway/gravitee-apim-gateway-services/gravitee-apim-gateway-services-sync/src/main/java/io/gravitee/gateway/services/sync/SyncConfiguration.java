@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.services.sync;
 
+import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_BY_DEFAULT;
+import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.service.ApiKeyService;
@@ -143,9 +146,10 @@ public class SyncConfiguration {
     public ApiMapper apiMapper(
         ObjectMapper objectMapper,
         EnvironmentRepository environmentRepository,
-        OrganizationRepository organizationRepository
+        OrganizationRepository organizationRepository,
+        @Value("${" + JUPITER_MODE_ENABLED_KEY + ":" + JUPITER_MODE_ENABLED_BY_DEFAULT + "}") boolean jupiterMode
     ) {
-        return new ApiMapper(objectMapper, environmentRepository, organizationRepository);
+        return new ApiMapper(objectMapper, environmentRepository, organizationRepository, jupiterMode);
     }
 
     @Bean

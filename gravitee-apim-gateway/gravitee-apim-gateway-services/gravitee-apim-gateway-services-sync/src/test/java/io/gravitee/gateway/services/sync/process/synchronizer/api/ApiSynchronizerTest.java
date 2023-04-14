@@ -127,7 +127,7 @@ class ApiSynchronizerTest {
             new ApiSynchronizer(
                 eventsFetcher,
                 apiManager,
-                new ApiMapper(objectMapper, environmentRepository, organizationRepository),
+                new ApiMapper(objectMapper, environmentRepository, organizationRepository, true),
                 new PlanAppender(objectMapper, planRepository, gatewayConfiguration),
                 new SubscriptionAppender(subscriptionRepository, new SubscriptionMapper(objectMapper)),
                 new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper()),
@@ -329,6 +329,34 @@ class ApiSynchronizerTest {
             verify(apiDeployer).undeploy(any());
             verify(subscriptionDeployer).undeploy(any());
             verify(apiKeyDeployer).undeploy(any());
+        }
+
+        @Test
+        void should_not_register_api_when_jupiterMode_is_disabled() throws InterruptedException, JsonProcessingException {
+            cut =
+                new ApiSynchronizer(
+                    eventsFetcher,
+                    apiManager,
+                    new ApiMapper(objectMapper, environmentRepository, organizationRepository, false),
+                    new PlanAppender(objectMapper, planRepository, gatewayConfiguration),
+                    new SubscriptionAppender(subscriptionRepository, new SubscriptionMapper(objectMapper)),
+                    new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper()),
+                    deployerFactory,
+                    new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                    new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
+                );
+
+            Event event = new Event();
+            event.setId("api");
+            event.setPayload(objectMapper.writeValueAsString(repoApi));
+            event.setType(PUBLISH_API);
+
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), List.of()).test().await().assertComplete();
+
+            verifyNoInteractions(apiDeployer);
+            verifyNoInteractions(subscriptionDeployer);
+            verifyNoInteractions(apiKeyDeployer);
         }
     }
 }
