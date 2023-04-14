@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.kubernetes;
 
+import static io.gravitee.gateway.services.sync.kubernetes.KubernetesSyncService.DATA_DEFINITION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -47,6 +48,8 @@ import org.mockito.stubbing.Answer;
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesSyncServiceTest {
 
+    private static final Api api = new Api();
+
     @InjectMocks
     private KubernetesSyncService cut;
 
@@ -63,6 +66,9 @@ public class KubernetesSyncServiceTest {
     public void setUp() throws Exception {
         cut = new KubernetesSyncService(kubernetesClient, apiSynchronizer);
         cut.setMapper(mapper);
+
+        api.setId(UUID.randomUUID().toString());
+        when(mapper.readValue(anyString(), eq(Api.class))).thenReturn(api);
     }
 
     @Test
@@ -70,11 +76,29 @@ public class KubernetesSyncServiceTest {
         cut.setNamespaces(new String[] { "ALL" });
 
         CountDownLatch latch = new CountDownLatch(3);
-        when(kubernetesClient.watch(any())).thenReturn(mockFlowableEvents());
+        when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null))).thenReturn(mockFlowableEvents());
 
-        Api api = new Api();
-        api.setId(UUID.randomUUID().toString());
-        when(mapper.readValue("test", Api.class)).thenReturn(api);
+        when(apiSynchronizer.processApiEvents(any()))
+            .then(
+                (Answer<Flowable<String>>) invocation -> {
+                    latch.countDown();
+                    return Flowable.just(api.getId());
+                }
+            );
+
+        cut.doStart();
+
+        latch.await();
+        verify(apiSynchronizer, times(3)).processApiEvents(any());
+    }
+
+    @Test
+    public void watchAllNamespacesWithAllAtAnyPosition() throws Exception {
+        cut.setNamespaces(new String[] { "default", "ALL" });
+
+        CountDownLatch latch = new CountDownLatch(3);
+        when(kubernetesClient.watch(argThat(query -> query.getNamespace() == null))).thenReturn(mockFlowableEvents());
+
         when(apiSynchronizer.processApiEvents(any()))
             .then(
                 (Answer<Flowable<String>>) invocation -> {
@@ -94,11 +118,15 @@ public class KubernetesSyncServiceTest {
         cut.setNamespaces(new String[] { "default", "dev" });
 
         CountDownLatch latch = new CountDownLatch(3);
-        when(kubernetesClient.watch(any())).thenReturn(mockFlowableEvents());
 
-        Api api = new Api();
-        api.setId(UUID.randomUUID().toString());
-        when(mapper.readValue("test", Api.class)).thenReturn(api);
+        doReturn(Flowable.just(createEvent(createConfigMap("service1", "default"))))
+            .when(kubernetesClient)
+            .watch(argThat(query -> query.getNamespace().equals("default")));
+
+        doReturn(Flowable.just(createEvent(createConfigMap("service2", "dev"))))
+            .when(kubernetesClient)
+            .watch(argThat(query -> query.getNamespace().equals("dev")));
+
         when(apiSynchronizer.processApiEvents(any()))
             .then(
                 (Answer<Flowable<String>>) invocation -> {
@@ -125,7 +153,7 @@ public class KubernetesSyncServiceTest {
         objectMeta3.setNamespace("test");
 
         Map<String, String> data = new HashMap<>();
-        data.put(KubernetesSyncService.DATA_DEFINITION, "test");
+        data.put(DATA_DEFINITION, "test");
 
         ConfigMap configMap1 = new ConfigMap("v1", null, data, true, "ConfigMap", objectMeta1);
         ConfigMap configMap2 = new ConfigMap("v1", null, data, true, "ConfigMap", objectMeta2);
@@ -137,6 +165,23 @@ public class KubernetesSyncServiceTest {
     private Event<ConfigMap> mockEvent(ConfigMap configMap) {
         Event<ConfigMap> event = new Event<>();
         event.setType("ADD");
+        event.setObject(configMap);
+
+        return event;
+    }
+
+    private ConfigMap createConfigMap(final String name, final String namespace) {
+        ObjectMeta objectMeta = new ObjectMeta();
+        objectMeta.setName(name);
+        objectMeta.setNamespace(namespace);
+        Map<String, String> data = new HashMap<>();
+        data.put(DATA_DEFINITION, "api");
+        return new ConfigMap("v1", null, data, true, "ConfigMap", objectMeta);
+    }
+
+    private Event<ConfigMap> createEvent(ConfigMap configMap) {
+        Event<ConfigMap> event = new Event<>();
+        event.setType("ADDED");
         event.setObject(configMap);
 
         return event;
