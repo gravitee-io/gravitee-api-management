@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.handlers.api.spring;
 
+import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_BY_DEFAULT;
+import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
@@ -62,6 +65,7 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.repository.management.api.CommandRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -208,9 +212,18 @@ public class ApiHandlerConfiguration {
         SubscriptionDispatcher subscriptionDispatcher,
         @Lazy CommandRepository commandRepository,
         Node node,
-        ObjectMapper objectMapper
+        ObjectMapper objectMapper,
+        @Value("${" + JUPITER_MODE_ENABLED_KEY + ":" + JUPITER_MODE_ENABLED_BY_DEFAULT + "}") boolean jupiterMode
     ) {
-        return new SubscriptionService(cacheManager, apiKeyService, subscriptionDispatcher, commandRepository, node, objectMapper);
+        return new SubscriptionService(
+            cacheManager,
+            apiKeyService,
+            subscriptionDispatcher,
+            commandRepository,
+            node,
+            objectMapper,
+            jupiterMode
+        );
     }
 
     @Bean

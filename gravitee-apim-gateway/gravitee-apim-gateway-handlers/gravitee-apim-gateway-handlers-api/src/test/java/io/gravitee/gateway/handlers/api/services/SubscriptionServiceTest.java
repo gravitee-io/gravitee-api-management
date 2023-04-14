@@ -42,6 +42,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -77,7 +78,7 @@ class SubscriptionServiceTest {
      * - {@link this#SAVE_OR_DISPATCH_STRATEGY} Subscriptions are directly dispatched.
      * @return a stream of dispatching strategies
      */
-    private static Stream<Arguments> provideDispatchingStrategies() {
+    static Stream<Arguments> provideDispatchingStrategies() {
         return Stream.of(
             Arguments.of(SAVE_THEN_DISPATCH_STRATEGY, "Save subscription first, then dispatch it for the related api"),
             Arguments.of(SAVE_OR_DISPATCH_STRATEGY, "Dispatch a subscription directly")
@@ -124,7 +125,8 @@ class SubscriptionServiceTest {
                 subscriptionDispatcher,
                 commandRepository,
                 node,
-                objectMapper
+                objectMapper,
+                true
             );
     }
 
@@ -425,6 +427,38 @@ class SubscriptionServiceTest {
         foundSubscription = subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID);
         assertTrue(foundSubscription.isPresent());
         assertEquals(subscription2.getId(), foundSubscription.get().getId());
+    }
+
+    @Nested
+    class JupiterModeDisabled {
+
+        @BeforeEach
+        public void setup() {
+            subscriptionService =
+                new SubscriptionService(
+                    new StandaloneCacheManager(),
+                    apiKeyService,
+                    subscriptionDispatcher,
+                    commandRepository,
+                    node,
+                    objectMapper,
+                    false
+                );
+        }
+
+        @ParameterizedTest(name = "[{index}] - {1}.")
+        @MethodSource("io.gravitee.gateway.handlers.api.services.SubscriptionServiceTest#provideDispatchingStrategies")
+        @DisplayName("Should not dispatch subscription")
+        void should_not_dispatch_subscription_to_dispatcher(
+            BiConsumer<SubscriptionService, Subscription> dispatchingStrategy,
+            String testName
+        ) {
+            Subscription subscription = fakeSubscription("sub-id", API_ID);
+
+            dispatchingStrategy.accept(subscriptionService, subscription);
+
+            verifyNoInteractions(subscriptionDispatcher);
+        }
     }
 
     private static Subscription fakeSubscription(String id, String apiId) {

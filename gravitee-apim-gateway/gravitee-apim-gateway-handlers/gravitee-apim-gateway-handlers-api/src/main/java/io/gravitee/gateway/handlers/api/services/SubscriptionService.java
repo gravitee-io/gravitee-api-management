@@ -47,7 +47,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-@Component
 public class SubscriptionService implements io.gravitee.gateway.api.service.SubscriptionService {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionService.class);
@@ -68,6 +67,7 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
     private final Node node;
 
     private ObjectMapper objectMapper;
+    private final boolean jupiterMode;
 
     public SubscriptionService(
         CacheManager cacheManager,
@@ -75,7 +75,8 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
         SubscriptionDispatcher subscriptionDispatcher,
         CommandRepository commandRepository,
         Node node,
-        ObjectMapper objectMapper
+        ObjectMapper objectMapper,
+        boolean jupiterMode
     ) {
         cacheByApiClientId = cacheManager.getOrCreateCache(CACHE_NAME_BY_API_AND_CLIENT_ID);
         cacheBySubscriptionId = cacheManager.getOrCreateCache(CACHE_NAME_BY_SUBSCRIPTION_ID);
@@ -85,6 +86,7 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
         this.commandRepository = commandRepository;
         this.node = node;
         this.objectMapper = objectMapper;
+        this.jupiterMode = jupiterMode;
     }
 
     @Override
@@ -112,7 +114,7 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
     public void save(Subscription subscription) {
         if (Subscription.Type.STANDARD == subscription.getType()) {
             cacheStandardSubscription(subscription);
-        } else if (Subscription.Type.SUBSCRIPTION == subscription.getType()) {
+        } else if (Subscription.Type.SUBSCRIPTION == subscription.getType() && jupiterMode) {
             cacheDispatchableSubscription(subscription);
         }
     }
@@ -121,7 +123,7 @@ public class SubscriptionService implements io.gravitee.gateway.api.service.Subs
     public void saveOrDispatch(Subscription subscription) {
         if (Subscription.Type.STANDARD == subscription.getType()) {
             cacheStandardSubscription(subscription);
-        } else if (Subscription.Type.SUBSCRIPTION == subscription.getType()) {
+        } else if (Subscription.Type.SUBSCRIPTION == subscription.getType() && jupiterMode) {
             dispatch(subscription);
         }
     }
