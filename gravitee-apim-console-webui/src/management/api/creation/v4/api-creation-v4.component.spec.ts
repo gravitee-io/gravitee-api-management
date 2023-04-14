@@ -548,13 +548,14 @@ describe('ApiCreationV4Component', () => {
 
         const step22Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
         expect(step22Harness).toBeDefined();
-
+        expect(component.currentStep.payload.paths).toEqual([{ path: '/api/my-api-3' }]);
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
           { id: 'http-post', name: 'HTTP POST', supportedListenerType: 'http', icon: undefined, configuration: {} },
         ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest(entrypoints);
         expectApiGetPortalSettings();
+        expectVerifyContextPathGetRequest();
       });
     });
 

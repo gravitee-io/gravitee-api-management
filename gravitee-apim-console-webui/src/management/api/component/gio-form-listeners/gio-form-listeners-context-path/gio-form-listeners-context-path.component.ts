@@ -30,7 +30,7 @@ import {
 import { isEmpty } from 'lodash';
 import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
-import { asyncScheduler, Observable, of, Subject, zip } from 'rxjs';
+import { asyncScheduler, Observable, Subject, zip } from 'rxjs';
 
 import { HttpListenerPath } from '../../../../../entities/api-v4';
 import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
@@ -154,10 +154,11 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
         emitEvent: false,
       });
     });
+    this.listenerFormArray.updateValueAndValidity();
   }
 
   public addEmptyListener() {
-    this.listenerFormArray.push(this.newListenerFormGroup({}), { emitEvent: false });
+    this.listenerFormArray.push(this.newListenerFormGroup({}), { emitEvent: true });
   }
 
   public newListenerFormGroup(listener: HttpListenerPath) {
@@ -178,9 +179,6 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   private listenersValidator(): ValidatorFn {
     return (listenerFormArrayControl: FormArray): ValidationErrors | null => {
-      if (!listenerFormArrayControl.dirty) {
-        return null;
-      }
       const listenerFormArrayControls = listenerFormArrayControl.controls;
       const listenerValues = listenerFormArrayControls.map((listener) => listener.value);
 
@@ -222,9 +220,6 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   private listenersAsyncValidator(): AsyncValidatorFn {
     return (listenerFormArrayControl: FormArray): Observable<ValidationErrors | null> => {
-      if (!listenerFormArrayControl.dirty) {
-        return of(null);
-      }
       const listenerFormArrayControls = listenerFormArrayControl.controls;
 
       const foobar: Observable<ValidationErrors | null>[] = listenerFormArrayControls.map((listenerControl) => {
