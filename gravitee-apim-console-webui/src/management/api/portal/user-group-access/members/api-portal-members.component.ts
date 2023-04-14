@@ -82,7 +82,7 @@ export class ApiPortalMembersComponent implements OnInit {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']);
 
     // Display the trash icon if the user is allowed to delete a member
-    if (this.permissionService.hasAnyMatching(['api-member-d'])) {
+    if (this.permissionService.hasAnyMatching(['api-member-d']) && !this.displayedColumns.includes('delete')) {
       this.displayedColumns.push('delete');
     }
 
