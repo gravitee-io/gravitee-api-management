@@ -17,24 +17,52 @@ package io.gravitee.gateway.jupiter.reactor.v4.reactor;
 
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
+import io.gravitee.plugin.core.api.PluginClassLoader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ReactorFactoryManager {
 
-    private final List<ReactorFactory> reactorFactories;
+    private final ReactorClassLoaderFactory classLoaderFactory;
+    private final Map<String, ReactorFactory> factories = new ConcurrentHashMap<>();
+    private final ApplicationContext context;
 
-    public ReactorFactoryManager(final List<ReactorFactory> reactorFactories) {
-        this.reactorFactories = reactorFactories;
+    public ReactorFactoryManager(ApplicationContext context) {
+        this.context = context;
+        this.classLoaderFactory = new ReactorClassLoaderFactory();
+    }
+
+    public void register(final ReactorPlugin<?> plugin) {
+        // Create endpoint
+        PluginClassLoader pluginClassLoader = classLoaderFactory.getOrCreateClassLoader(plugin);
+        try {
+            final Class<ReactorFactory<?>> connectorFactoryClass = (Class<ReactorFactory<?>>) pluginClassLoader.loadClass(plugin.clazz());
+            ReactorFactory<?> factory = createFactory(connectorFactoryClass);
+            factories.put(plugin.id(), factory);
+        } catch (Exception ex) {
+            log.error("Unexpected error while loading endpoint plugin: {}", plugin.clazz(), ex);
+        }
+    }
+
+    private ReactorFactory<?> createFactory(final Class<ReactorFactory<?>> factoryClass)
+        throws InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+       return context.getAutowireCapableBeanFactory().createBean(factoryClass);
     }
 
     public List<ReactorHandler> create(final Reactable reactable) {
         if (reactable != null) {
-            return reactorFactories
+            return factories
+                .values()
                 .stream()
                 .filter(reactorFactory -> reactorFactory.support(reactable.getClass()))
                 .filter(reactorFactory -> reactorFactory.canCreate(reactable))

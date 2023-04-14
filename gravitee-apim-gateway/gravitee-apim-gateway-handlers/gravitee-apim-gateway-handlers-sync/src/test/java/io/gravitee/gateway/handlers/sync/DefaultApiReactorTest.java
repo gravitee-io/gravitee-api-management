@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.v4;
+package io.gravitee.gateway.handlers.sync;
 
 import static io.gravitee.common.component.Lifecycle.State.STOPPED;
 import static io.gravitee.common.http.HttpStatusCode.GATEWAY_TIMEOUT_504;
+import static io.gravitee.gateway.handlers.sync.DefaultApiReactor.*;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_REQUEST;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
 import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
-import static io.gravitee.gateway.jupiter.handlers.api.v4.DefaultApiReactor.PENDING_REQUESTS_TIMEOUT_PROPERTY;
-import static io.gravitee.gateway.jupiter.handlers.api.v4.DefaultApiReactor.REQUEST_TIMEOUT_KEY;
-import static io.gravitee.gateway.jupiter.handlers.api.v4.DefaultApiReactor.SERVICES_TRACING_ENABLED_PROPERTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -70,6 +68,7 @@ import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.ConnectionHandlerAdapter;
+import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.security.SecurityChain;
@@ -413,25 +412,25 @@ class DefaultApiReactorTest {
     private DefaultApiReactor buildApiReactor() {
         DefaultApiReactor defaultApiReactor = null;
         try {
-            defaultApiReactor =
-                new DefaultApiReactor(
-                    api,
-                    new DefaultDeploymentContext(),
-                    apiComponentProvider,
-                    new ArrayList<>(),
-                    policyManager,
-                    entrypointConnectorPluginManager,
-                    apiServicePluginManager,
-                    endpointManager,
-                    resourceLifecycleManager,
-                    apiProcessorChainFactory,
-                    flowChainFactory,
-                    v4FlowChainFactory,
-                    configuration,
-                    node,
-                    requestTimeoutConfiguration,
-                    reporterService
-                );
+//            defaultApiReactor =
+//                new DefaultApiReactor(
+//                    api,
+//                    new DefaultDeploymentContext(),
+//                    apiComponentProvider,
+//                    new ArrayList<>(),
+//                    policyManager,
+//                    entrypointConnectorPluginManager,
+//                    apiServicePluginManager,
+//                    endpointManager,
+//                    resourceLifecycleManager,
+//                    apiProcessorChainFactory,
+//                    flowChainFactory,
+//                    v4FlowChainFactory,
+//                    configuration,
+//                    node,
+//                    requestTimeoutConfiguration,
+//                    reporterService
+//                );
             ReflectionTestUtils.setField(defaultApiReactor, "entrypointConnectorResolver", entrypointConnectorResolver);
             ReflectionTestUtils.setField(defaultApiReactor, "defaultInvoker", defaultInvoker);
             defaultApiReactor.doStart();

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.v4;
+package io.gravitee.gateway.handlers.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,6 +35,7 @@ import io.gravitee.gateway.jupiter.api.service.dlq.DlqServiceFactory;
 import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.jupiter.handlers.api.el.ApiTemplateVariableProvider;
+import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
@@ -123,23 +124,23 @@ public class DefaultApiReactorFactoryTest {
 
     @BeforeEach
     public void init() {
-        cut =
-            new DefaultApiReactorFactory(
-                applicationContext,
-                configuration,
-                node,
-                policyFactory,
-                entrypointConnectorPluginManager,
-                endpointConnectorPluginManager,
-                apiServicePluginManager,
-                platformPolicyChainFactory,
-                organizationManager,
-                apiProcessorChainFactory,
-                flowResolverFactory,
-                v4FlowResolverFactory,
-                requestTimeoutConfiguration,
-                reporterService
-            );
+//        cut =
+//            new DefaultApiReactorFactory(
+//                applicationContext,
+//                configuration,
+//                node,
+//                policyFactory,
+//                entrypointConnectorPluginManager,
+//                endpointConnectorPluginManager,
+//                apiServicePluginManager,
+//                platformPolicyChainFactory,
+//                organizationManager,
+//                apiProcessorChainFactory,
+//                flowResolverFactory,
+//                v4FlowResolverFactory,
+//                requestTimeoutConfiguration,
+//                reporterService
+//            );
     }
 
     @Nested

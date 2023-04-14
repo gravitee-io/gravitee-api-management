@@ -37,7 +37,6 @@ import io.gravitee.gateway.jupiter.core.condition.ExpressionLanguageMessageCondi
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.jupiter.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.jupiter.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.jupiter.handlers.api.v4.DefaultApiReactorFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.jupiter.policy.PolicyChainFactory;
@@ -218,37 +217,5 @@ public class ApiHandlerConfiguration {
         final ReporterService reporterService
     ) {
         return new io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory(configuration, node, reporterService);
-    }
-
-    @Bean
-    public ReactorFactory<io.gravitee.gateway.jupiter.handlers.api.v4.Api> asyncApiReactorFactory(
-        PolicyFactory policyFactory,
-        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        EndpointConnectorPluginManager endpointConnectorPluginManager,
-        ApiServicePluginManager apiServicePluginManager,
-        @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
-        OrganizationManager organizationManager,
-        io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory,
-        io.gravitee.gateway.jupiter.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        FlowResolverFactory v4FlowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        ReporterService reporterService
-    ) {
-        return new DefaultApiReactorFactory(
-            applicationContext,
-            configuration,
-            node,
-            policyFactory,
-            entrypointConnectorPluginManager,
-            endpointConnectorPluginManager,
-            apiServicePluginManager,
-            platformPolicyChainFactory,
-            organizationManager,
-            v4ApiProcessorChainFactory,
-            flowResolverFactory,
-            v4FlowResolverFactory,
-            requestTimeoutConfiguration,
-            reporterService
-        );
     }
 }

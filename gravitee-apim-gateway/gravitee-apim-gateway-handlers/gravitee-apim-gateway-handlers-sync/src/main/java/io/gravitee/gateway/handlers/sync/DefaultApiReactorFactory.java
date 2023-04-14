@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.v4;
+package io.gravitee.gateway.handlers.sync;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -34,6 +34,7 @@ import io.gravitee.gateway.jupiter.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.jupiter.handlers.api.el.ApiTemplateVariableProvider;
 import io.gravitee.gateway.jupiter.handlers.api.el.ContentTemplateVariableProvider;
 import io.gravitee.gateway.jupiter.handlers.api.flow.FlowChainFactory;
+import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.jupiter.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.jupiter.policy.DefaultPolicyChainFactory;
@@ -55,7 +56,6 @@ import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
 import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -82,7 +82,6 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     protected final PolicyFactory policyFactory;
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
-    private final ApiServicePluginManager apiServicePluginManager;
     protected final PolicyChainFactory platformPolicyChainFactory;
     protected final OrganizationManager organizationManager;
     protected final ApiProcessorChainFactory apiProcessorChainFactory;
@@ -100,7 +99,6 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         final PolicyFactory policyFactory,
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         final EndpointConnectorPluginManager endpointConnectorPluginManager,
-        final ApiServicePluginManager apiServicePluginManager,
         final PolicyChainFactory platformPolicyChainFactory,
         final OrganizationManager organizationManager,
         final ApiProcessorChainFactory apiProcessorChainFactory,
@@ -115,7 +113,6 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         this.policyFactory = policyFactory;
         this.entrypointConnectorPluginManager = entrypointConnectorPluginManager;
         this.endpointConnectorPluginManager = endpointConnectorPluginManager;
-        this.apiServicePluginManager = apiServicePluginManager;
         this.platformPolicyChainFactory = platformPolicyChainFactory;
         this.organizationManager = organizationManager;
         this.apiProcessorChainFactory = apiProcessorChainFactory;
@@ -135,11 +132,8 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
         // Check that the API contains at least one subscription listener.
         return (
             api.getDefinitionVersion() == DefinitionVersion.V4 &&
-            api
-                .getDefinition()
-                .getListeners()
-                .stream()
-                .anyMatch(listener -> listener.getType() == ListenerType.HTTP || listener.getType() == ListenerType.SUBSCRIPTION)
+            api.getDefinition().getType() == ApiType.SYNC &&
+            api.getDefinition().getListeners().stream().anyMatch(listener -> listener.getType() == ListenerType.HTTP)
         );
     }
 
@@ -222,7 +216,6 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
                     ctxTemplateVariableProviders,
                     policyManager,
                     entrypointConnectorPluginManager,
-                    apiServicePluginManager,
                     endpointManager,
                     resourceLifecycleManager,
                     apiProcessorChainFactory,

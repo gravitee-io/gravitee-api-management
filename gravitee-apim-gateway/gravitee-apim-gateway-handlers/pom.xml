@@ -34,5 +34,6 @@
 
     <modules>
         <module>gravitee-apim-gateway-handlers-api</module>
+        <module>gravitee-apim-gateway-handlers-sync</module>
     </modules>
 </project>

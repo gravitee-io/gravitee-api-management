@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.v4;
+package io.gravitee.gateway.handlers.sync;
 
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_REQUEST;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.MESSAGE_RESPONSE;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.REQUEST;
-import static io.gravitee.gateway.jupiter.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
-import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
+import static io.gravitee.gateway.jupiter.api.ExecutionPhase.*;
+import static io.gravitee.gateway.jupiter.api.context.InternalContextAttributes.*;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
 import static java.lang.Boolean.TRUE;
@@ -32,7 +26,6 @@ import static java.lang.Boolean.TRUE;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -41,7 +34,6 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.ExecutionPhase;
-import io.gravitee.gateway.jupiter.api.apiservice.ApiService;
 import io.gravitee.gateway.jupiter.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.jupiter.api.context.*;
 import io.gravitee.gateway.jupiter.api.hook.ChainHook;
@@ -57,6 +49,7 @@ import io.gravitee.gateway.jupiter.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.jupiter.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.jupiter.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.jupiter.handlers.api.adapter.invoker.InvokerAdapter;
+import io.gravitee.gateway.jupiter.handlers.api.v4.Api;
 import io.gravitee.gateway.jupiter.handlers.api.v4.analytics.AnalyticsMessageHook;
 import io.gravitee.gateway.jupiter.handlers.api.v4.analytics.logging.LoggingHook;
 import io.gravitee.gateway.jupiter.handlers.api.v4.flow.FlowChain;
@@ -73,7 +66,6 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -113,9 +105,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
 
     private final PolicyManager policyManager;
     private final DefaultEntrypointConnectorResolver entrypointConnectorResolver;
-    private final ApiServicePluginManager apiServicePluginManager;
     private final EndpointManager endpointManager;
-    private final ReporterService reporterService;
     private final EndpointInvoker defaultInvoker;
     private final ResourceLifecycleManager resourceLifecycleManager;
     private final ProcessorChain beforeHandleProcessors;
@@ -123,9 +113,6 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     private final ProcessorChain beforeApiExecutionProcessors;
     private final ProcessorChain afterApiExecutionProcessors;
     private final ProcessorChain onErrorProcessors;
-    private final ProcessorChain afterEntrypointRequestProcessors;
-    private final ProcessorChain beforeEntrypointResponseProcessors;
-    private final ProcessorChain afterApiExecutionMessageProcessors;
     private final io.gravitee.gateway.jupiter.handlers.api.flow.FlowChain platformFlowChain;
     private final FlowChain apiPlanFlowChain;
     private final FlowChain apiFlowChain;
@@ -136,12 +123,9 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final long pendingRequestsTimeout;
     private final AtomicLong pendingRequests = new AtomicLong(0);
-    private final boolean isEventNative;
-    private final DeploymentContext deploymentContext;
     private SecurityChain securityChain;
     private Lifecycle.State lifecycleState;
     private AnalyticsContext analyticsContext;
-    private List<ApiService> services;
 
     public DefaultApiReactor(
         final Api api,
@@ -150,7 +134,6 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         final List<TemplateVariableProvider> ctxTemplateVariableProviders,
         final PolicyManager policyManager,
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        final ApiServicePluginManager apiServicePluginManager,
         final EndpointManager endpointManager,
         final ResourceLifecycleManager resourceLifecycleManager,
         final ApiProcessorChainFactory apiProcessorChainFactory,
@@ -162,13 +145,10 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         final ReporterService reporterService
     ) {
         this.api = api;
-        this.deploymentContext = deploymentContext;
         this.componentProvider = componentProvider;
         this.ctxTemplateVariableProviders = ctxTemplateVariableProviders;
         this.policyManager = policyManager;
-        this.apiServicePluginManager = apiServicePluginManager;
         this.endpointManager = endpointManager;
-        this.reporterService = reporterService;
         this.entrypointConnectorResolver =
             new DefaultEntrypointConnectorResolver(api.getDefinition(), deploymentContext, entrypointConnectorPluginManager);
         this.defaultInvoker = new EndpointInvoker(endpointManager);
@@ -179,9 +159,6 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api);
         this.beforeApiExecutionProcessors = apiProcessorChainFactory.beforeApiExecution(api);
         this.afterApiExecutionProcessors = apiProcessorChainFactory.afterApiExecution(api);
-        this.afterApiExecutionMessageProcessors = apiProcessorChainFactory.afterApiExecutionMessage(api);
-        this.afterEntrypointRequestProcessors = apiProcessorChainFactory.afterEntrypointRequest(api);
-        this.beforeEntrypointResponseProcessors = apiProcessorChainFactory.beforeEntrypointResponse(api);
         this.onErrorProcessors = apiProcessorChainFactory.onError(api);
 
         this.platformFlowChain = flowChainFactory.createPlatformFlow(api);
@@ -199,7 +176,6 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
 
         this.processorChainHooks = new ArrayList<>();
         this.invokerHooks = new ArrayList<>();
-        this.isEventNative = this.api.getDefinition().getType() == ApiType.ASYNC;
     }
 
     @Override
@@ -249,34 +225,21 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
             .chainWith(executeProcessorChain(ctx, beforeApiExecutionProcessors, REQUEST))
             // Resolve entrypoint and prepare request to be handled.
             .chainWith(handleEntrypointRequest(ctx))
-            // After entrypoint response
-            .chainWithIf(executeProcessorChain(ctx, afterEntrypointRequestProcessors, MESSAGE_REQUEST), isEventNative)
-            .chainWithIf(platformFlowChain.execute(ctx, MESSAGE_REQUEST), isEventNative)
             // Execute all flows for request and message request phases.
             .chainWith(apiPlanFlowChain.execute(ctx, REQUEST))
-            .chainWithIf(apiPlanFlowChain.execute(ctx, MESSAGE_REQUEST), isEventNative)
             .chainWith(apiFlowChain.execute(ctx, REQUEST))
-            .chainWithIf(apiFlowChain.execute(ctx, MESSAGE_REQUEST), isEventNative)
             // Invoke the backend.
             .chainWith(invokeBackend(ctx))
             // Execute all flows for response and message response phases.
             .chainWith(apiPlanFlowChain.execute(ctx, RESPONSE))
-            .chainWithIf(apiPlanFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
             .chainWith(apiFlowChain.execute(ctx, RESPONSE))
-            .chainWithIf(apiFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
             // After flows processors.
             .chainWith(executeProcessorChain(ctx, afterApiExecutionProcessors, RESPONSE))
-            .chainWithIf(executeProcessorChain(ctx, afterApiExecutionMessageProcessors, MESSAGE_RESPONSE), isEventNative)
             .chainWithOnError(error -> processThrowable(ctx, error))
             .chainWith(upstream -> timeout(upstream, ctx))
             // Platform post flows must always be executed (whatever timeout or error).
-            .chainWith(
-                new CompletableReactorChain(platformFlowChain.execute(ctx, RESPONSE))
-                    .chainWithIf(platformFlowChain.execute(ctx, MESSAGE_RESPONSE), isEventNative)
-                    .chainWith(upstream -> timeout(upstream, ctx))
-            )
+            .chainWith(new CompletableReactorChain(platformFlowChain.execute(ctx, RESPONSE)).chainWith(upstream -> timeout(upstream, ctx)))
             // Before entrypoint response
-            .chainWithIf(executeProcessorChain(ctx, beforeEntrypointResponseProcessors, MESSAGE_RESPONSE), isEventNative)
             // Handle entrypoint response.
             .chainWith(handleEntrypointResponse(ctx))
             // Catch possible unexpected errors before executing after Handle Processors
@@ -291,36 +254,32 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     }
 
     private Completable handleEntrypointRequest(final MutableExecutionContext ctx) {
-        return Completable.defer(
-            () -> {
-                final EntrypointConnector entrypointConnector = entrypointConnectorResolver.resolve(ctx);
-                if (entrypointConnector == null) {
-                    return ctx.interruptWith(
-                        new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).message("No entrypoint matches the incoming request")
-                    );
-                }
-
-                // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
-                ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
-
-                return entrypointConnector.handleRequest(ctx);
+        return Completable.defer(() -> {
+            final EntrypointConnector entrypointConnector = entrypointConnectorResolver.resolve(ctx);
+            if (entrypointConnector == null) {
+                return ctx.interruptWith(
+                    new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).message("No entrypoint matches the incoming request")
+                );
             }
-        );
+
+            // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
+            ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
+
+            return entrypointConnector.handleRequest(ctx);
+        });
     }
 
     private Completable handleEntrypointResponse(final MutableExecutionContext ctx) {
         return Completable
-            .defer(
-                () -> {
-                    if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
-                        final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
-                        if (entrypointConnector != null) {
-                            return entrypointConnector.handleResponse(ctx);
-                        }
+            .defer(() -> {
+                if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
+                    final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+                    if (entrypointConnector != null) {
+                        return entrypointConnector.handleResponse(ctx);
                     }
-                    return Completable.complete();
                 }
-            )
+                return Completable.complete();
+            })
             .compose(upstream -> timeout(upstream, ctx));
     }
 
@@ -333,18 +292,16 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     }
 
     private Completable invokeBackend(final MutableExecutionContext ctx) {
-        return defer(
-                () -> {
-                    if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
-                        Invoker invoker = getInvoker(ctx);
+        return defer(() -> {
+                if (!TRUE.equals(ctx.<Boolean>getInternalAttribute(ATTR_INTERNAL_INVOKER_SKIP))) {
+                    Invoker invoker = getInvoker(ctx);
 
-                        if (invoker != null) {
-                            return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
-                        }
+                    if (invoker != null) {
+                        return HookHelper.hook(() -> invoker.invoke(ctx), invoker.getId(), invokerHooks, ctx, null);
                     }
-                    return Completable.complete();
                 }
-            )
+                return Completable.complete();
+            })
             .doOnSubscribe(disposable -> initEndpointResponseTimeMetric(ctx))
             .doFinally(() -> computeEndpointResponseTimeMetric(ctx));
     }
@@ -387,29 +344,25 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     }
 
     private Completable handleUnexpectedError(final ExecutionContext ctx, final Throwable throwable) {
-        return Completable.fromRunnable(
-            () -> {
-                log.error("Unexpected error while handling request", throwable);
-                computeEndpointResponseTimeMetric(ctx);
+        return Completable.fromRunnable(() -> {
+            log.error("Unexpected error while handling request", throwable);
+            computeEndpointResponseTimeMetric(ctx);
 
-                ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-                ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
-            }
-        );
+            ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+            ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
+        });
     }
 
     private void initEndpointResponseTimeMetric(ExecutionContext ctx) {
         Metrics metrics = ctx.metrics();
-        if (!isEventNative) {
-            // Initialize the response time with current time millis which is higher than Integer.MAX_VALUE
-            metrics.setEndpointResponseTimeMs(System.currentTimeMillis());
-        }
+        // Initialize the response time with current time millis which is higher than Integer.MAX_VALUE
+        metrics.setEndpointResponseTimeMs(System.currentTimeMillis());
     }
 
     private void computeEndpointResponseTimeMetric(ExecutionContext ctx) {
         Metrics metrics = ctx.metrics();
         // If the response time is higher than Integer.MAX_VALUE, that means it has not been already computed (see init method)
-        if (!isEventNative && metrics.getEndpointResponseTimeMs() > Integer.MAX_VALUE) {
+        if (metrics.getEndpointResponseTimeMs() > Integer.MAX_VALUE) {
             metrics.setEndpointResponseTimeMs(System.currentTimeMillis() - metrics.getEndpointResponseTimeMs());
         }
     }
@@ -420,20 +373,19 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
             return upstream;
         }
 
-        return Completable.defer(
-            () ->
-                upstream.timeout(
-                    Math.max(
-                        requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
-                        requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
-                    ),
-                    TimeUnit.MILLISECONDS,
-                    ctx
-                        .interruptWith(
-                            new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT_KEY).message("Request timeout")
-                        )
-                        .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
-                )
+        return Completable.defer(() ->
+            upstream.timeout(
+                Math.max(
+                    requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
+                    requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
+                ),
+                TimeUnit.MILLISECONDS,
+                ctx
+                    .interruptWith(
+                        new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT_KEY).message("Request timeout")
+                    )
+                    .onErrorResumeNext(error -> executeProcessorChain(ctx, onErrorProcessors, RESPONSE))
+            )
         );
     }
 
@@ -481,33 +433,19 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         }
 
         analyticsContext =
-            new AnalyticsContext(api.getDefinition().getAnalytics(), isEventNative, loggingMaxSize, loggingExcludedResponseType);
+            new AnalyticsContext(api.getDefinition().getAnalytics(), false, loggingMaxSize, loggingExcludedResponseType);
         if (analyticsContext.isEnabled()) {
             if (analyticsContext.isLoggingEnabled()) {
                 invokerHooks.add(new LoggingHook());
             }
-            if (isEventNative) {
-                invokerHooks.add(new AnalyticsMessageHook(reporterService));
-            }
         }
-
-        endpointManager.start();
-
-        services =
-            apiServicePluginManager
-                .getAllFactories()
-                .stream()
-                .map(apiServiceFactory -> apiServiceFactory.createService(deploymentContext))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        Completable.concat(services.stream().map(ApiService::start).collect(Collectors.toList())).blockingAwait();
-
-        this.lifecycleState = Lifecycle.State.STARTED;
 
         long endTime = System.currentTimeMillis(); // Get the end Time
         log.debug("API reactor started in {} ms", (endTime - startTime));
 
+        endpointManager.start();
+
+        this.lifecycleState = Lifecycle.State.STARTED;
         dumpAcceptors();
     }
 
@@ -516,8 +454,6 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         this.lifecycleState = Lifecycle.State.STOPPING;
 
         try {
-            Completable.concat(services.stream().map(ApiService::stop).collect(Collectors.toList())).blockingAwait();
-
             entrypointConnectorResolver.preStop();
             endpointManager.preStop();
 

@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.v4;
+package io.gravitee.gateway.handlers.sync;
 
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.CompletableTransformer;
-import java.util.function.Function;
-import org.reactivestreams.Publisher;
 
 /**
  * Handy class allowing to chain reactor steps easily.
@@ -28,7 +26,7 @@ import org.reactivestreams.Publisher;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class CompletableReactorChain extends Completable {
+public class CompletableReactorChain extends Completable {
 
     private Completable completable;
 

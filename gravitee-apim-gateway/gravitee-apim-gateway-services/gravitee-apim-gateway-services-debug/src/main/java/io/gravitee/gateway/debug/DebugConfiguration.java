@@ -361,10 +361,8 @@ public class DebugConfiguration {
     }
 
     @Bean
-    public ReactorFactoryManager debugReactorHandlerFactoryManager(
-        @Qualifier("debugReactorHandlerFactory") List<ReactorFactory> reactorFactories
-    ) {
-        return new ReactorFactoryManager(reactorFactories);
+    public ReactorFactoryManager debugReactorHandlerFactoryManager(ApplicationContext context) {
+        return new ReactorFactoryManager(context);
     }
 
     @Bean
