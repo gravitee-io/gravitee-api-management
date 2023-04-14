@@ -35,8 +35,10 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,29 +88,19 @@ public class KubernetesSyncService extends AbstractService<KubernetesSyncService
     }
 
     private Flowable<Event<ConfigMap>> watchConfigMaps() {
-        if (namespaces == null) {
-            // By default we will only watch configmaps in the current namespace that the Gateway is running inside it
-            return watchConfigMaps(KubernetesConfig.getInstance().getCurrentNamespace());
+        List<String> namespacesAsList = getNamespacesAsList();
+        if (namespacesAsList.contains("ALL")) {
+            return watchConfigMaps(null);
         }
+        return Flowable.fromIterable(namespacesAsList).flatMap(this::watchConfigMaps);
+    }
 
-        if (namespaces.length == 1) {
-            if ("ALL".equalsIgnoreCase(namespaces[0])) {
-                return watchConfigMaps(null);
-            } else {
-                return watchConfigMaps(namespaces[0]);
-            }
-        } else {
-            // Just create one Websocket connection and filter the results
-            return watchConfigMaps(null)
-                .filter(configMapEvent -> {
-                    for (String ns : namespaces) {
-                        if (ns.trim().equals(configMapEvent.getObject().getMetadata().getNamespace())) {
-                            return true;
-                        }
-                    }
-                    return false;
-                });
+    private List<String> getNamespacesAsList() {
+        if (namespaces == null || namespaces.length == 0) {
+            // By default, we will only watch configmaps in the current namespace
+            return List.of(KubernetesConfig.getInstance().getCurrentNamespace());
         }
+        return Arrays.asList(namespaces);
     }
 
     private Flowable<Event<ConfigMap>> watchConfigMaps(String namespace) {
