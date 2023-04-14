@@ -104,6 +104,7 @@ public class ApiSynchronizerTest {
     private SubscriptionsCacheService subscriptionsCacheService;
 
     private ObjectMapper objectMapper;
+    private PlanFetcher planFetcher;
 
     @Mock
     private SubscriptionService subscriptionService;
@@ -116,9 +117,9 @@ public class ApiSynchronizerTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
+        planFetcher = new PlanFetcher(objectMapper, planRepository);
 
-        var planFetcher = new PlanFetcher(objectMapper, planRepository);
-        var eventToReactableApiAdapter = new EventToReactableApiAdapter(objectMapper, environmentRepository, organizationRepository);
+        var eventToReactableApiAdapter = new EventToReactableApiAdapter(objectMapper, environmentRepository, organizationRepository, true);
 
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
         apiSynchronizer =
@@ -619,6 +620,40 @@ public class ApiSynchronizerTest {
                     softly.assertThat(verifyApi.getOrganizationId()).isNull();
                     softly.assertThat(verifyApi.getOrganizationHrid()).isNull();
                 });
+            }
+
+            @ParameterizedTest
+            @ArgumentsSource(ApiRegisterEventsProcessingProvider.class)
+            void should_do_nothing_when_jupiterMode_disabled(Boolean initialSync) throws Exception {
+                apiSynchronizer =
+                    new ApiSynchronizer(
+                        eventRepository,
+                        executor,
+                        BULK_SIZE,
+                        apiKeysCacheService,
+                        subscriptionsCacheService,
+                        subscriptionService,
+                        apiManager,
+                        new EventToReactableApiAdapter(objectMapper, environmentRepository, organizationRepository, false),
+                        planFetcher,
+                        gatewayConfiguration
+                    );
+
+                var apiDefinition = aSyncApiV4()
+                    .id(API_ID)
+                    .plans(List.of(io.gravitee.definition.model.v4.plan.Plan.builder().status(PlanStatus.PUBLISHED).build()))
+                    .build();
+                final Event publishEvent = anEvent(apiDefinition, EventType.PUBLISH_API);
+
+                givenEvents(List.of(publishEvent));
+
+                long lastRefreshAt = initialSync ? -1L : System.currentTimeMillis() - 5000;
+                apiSynchronizer.synchronize(lastRefreshAt, System.currentTimeMillis(), ENVIRONMENTS);
+
+                verify(apiManager, never()).register(any());
+                verify(apiManager, never()).unregister(any());
+                verify(apiKeysCacheService, never()).register(anyList());
+                verify(subscriptionsCacheService, never()).register(anyList());
             }
 
             @ParameterizedTest

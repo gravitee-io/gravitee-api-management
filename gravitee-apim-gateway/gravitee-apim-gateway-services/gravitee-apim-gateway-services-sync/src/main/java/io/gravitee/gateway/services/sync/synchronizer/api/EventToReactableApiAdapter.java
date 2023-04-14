@@ -36,6 +36,7 @@ public class EventToReactableApiAdapter {
     private final ObjectMapper objectMapper;
     private final EnvironmentRepository environmentRepository;
     private final OrganizationRepository organizationRepository;
+    private final boolean jupiterMode;
 
     private final Map<String, Environment> environmentMap = new ConcurrentHashMap<>();
     private final Map<String, io.gravitee.repository.management.model.Organization> organizationMap = new ConcurrentHashMap<>();
@@ -43,11 +44,13 @@ public class EventToReactableApiAdapter {
     public EventToReactableApiAdapter(
         ObjectMapper objectMapper,
         EnvironmentRepository environmentRepository,
-        OrganizationRepository organizationRepository
+        OrganizationRepository organizationRepository,
+        boolean jupiterMode
     ) {
         this.objectMapper = objectMapper;
         this.environmentRepository = environmentRepository;
         this.organizationRepository = organizationRepository;
+        this.jupiterMode = jupiterMode;
     }
 
     public Maybe<ReactableApi<?>> toReactableApi(Event apiEvent) {
@@ -74,6 +77,10 @@ public class EventToReactableApiAdapter {
                 // Update definition with required information for deployment phase
                 api = new io.gravitee.gateway.handlers.api.definition.Api(eventApiDefinition);
             } else {
+                if (!jupiterMode) {
+                    return Maybe.empty();
+                }
+
                 io.gravitee.definition.model.v4.Api eventApiDefinition = objectMapper.readValue(
                     eventPayload.getDefinition(),
                     io.gravitee.definition.model.v4.Api.class
