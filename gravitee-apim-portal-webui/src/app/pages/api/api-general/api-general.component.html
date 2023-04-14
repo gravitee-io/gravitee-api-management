@@ -17,15 +17,17 @@
 -->
 <div *ngIf="currentApi" class="page__content page__content-with-aside">
   <div class="main">
-    <gv-button
-      link
-      icon="navigation:angle-left"
-      class="page__content-back-button"
-      *ngIf="this.backButton.label !== null"
-      (:gv-button:click)="goBack()"
-    >
-      {{ backButton.label }}
-    </gv-button>
+    <div *ngIf="this.backButton.url">
+      <gv-button
+        link
+        icon="navigation:angle-left"
+        class="page__content-back-button"
+        *ngIf="this.backButton.label !== null"
+        (:gv-button:click)="goBack()"
+      >
+        {{ backButton.label }}
+      </gv-button>
+    </div>
     <div *ngIf="description && !apiHomepage" class="page__box">
       <div class="page__box-title">
         <h3 class="title">{{ 'apiGeneral.description' | translate }}</h3>
