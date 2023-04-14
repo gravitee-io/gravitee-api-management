@@ -22,7 +22,6 @@ import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
-import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageMessageConditionFilter;
 import io.gravitee.gateway.reactive.policy.adapter.policy.PolicyAdapter;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Objects;
@@ -39,16 +38,13 @@ public class DefaultPolicyFactory implements PolicyFactory {
     private final PolicyPluginFactory policyPluginFactory;
     private final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
     private final ExpressionLanguageConditionFilter<ConditionalPolicy> filter;
-    private final ExpressionLanguageMessageConditionFilter<ConditionalPolicy> messageFilter;
 
     public DefaultPolicyFactory(
         final PolicyPluginFactory policyPluginFactory,
-        final ExpressionLanguageConditionFilter<ConditionalPolicy> filter,
-        final ExpressionLanguageMessageConditionFilter<ConditionalPolicy> messageFilter
+        final ExpressionLanguageConditionFilter<ConditionalPolicy> filter
     ) {
         this.policyPluginFactory = policyPluginFactory;
         this.filter = filter;
-        this.messageFilter = messageFilter;
         // V3 policy factory doesn't need condition evaluator anymore as condition is directly handled by jupiter.
         this.v3PolicyFactory = new io.gravitee.gateway.policy.impl.PolicyFactoryImpl(policyPluginFactory);
     }
@@ -101,11 +97,10 @@ public class DefaultPolicyFactory implements PolicyFactory {
 
         if (policy != null) {
             final String condition = policyMetadata.getCondition();
-            final String messageCondition = policyMetadata.getMessageCondition();
 
             // Avoid creating a conditional policy if no condition or message condition is defined.
-            if (isNotBlank(condition) || isNotBlank(messageCondition)) {
-                policy = new ConditionalPolicy(policy, condition, messageCondition, filter, messageFilter);
+            if (isNotBlank(condition)) {
+                policy = new ConditionalPolicy(policy, condition, filter);
             }
         }
 

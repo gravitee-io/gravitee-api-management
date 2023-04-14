@@ -61,7 +61,7 @@ public class AnalyticsUtils {
             loggingContext.setMaxSizeLogMessage(loggingMaxsize);
             loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
         }
-        return new AnalyticsContext(analytics, false, loggingMaxsize, loggingExcludedResponseType);
+        return new AnalyticsContext(analytics, loggingMaxsize, loggingExcludedResponseType);
     }
 
     public static boolean isLoggingEnabled(final Analytics analytics) {

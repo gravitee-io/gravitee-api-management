@@ -18,12 +18,8 @@ package io.gravitee.gateway.reactive.core.v4.invoker;
 import static io.gravitee.gateway.api.ExecutionContext.ATTR_REQUEST_METHOD;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
-import static io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker.INCOMPATIBLE_QOS_CAPABILITIES_KEY;
-import static io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker.INCOMPATIBLE_QOS_KEY;
 import static io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker.NO_ENDPOINT_FOUND_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -31,16 +27,11 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.TemplateEngine;
-import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
-import io.gravitee.gateway.reactive.api.qos.Qos;
-import io.gravitee.gateway.reactive.api.qos.QosCapability;
-import io.gravitee.gateway.reactive.api.qos.QosRequirement;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointCriteria;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
@@ -48,11 +39,9 @@ import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactory;
-import org.assertj.core.api.ObjectAssertFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -206,123 +195,6 @@ class EndpointInvokerTest {
                 .extracting(InterruptionFailureException::getExecutionFailure)
                 .isEqualTo(new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503).key(NO_ENDPOINT_FOUND_KEY));
 
-            return true;
-        });
-    }
-
-    @Test
-    void shouldConnectToEndpointConnectorWhenEntrypointAndEndpointQosAreCompatible() {
-        EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
-        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.MESSAGE);
-        when(endpointAsyncConnector.supportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE));
-        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
-        when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
-
-        EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(entrypointAsyncConnector.qosRequirement()).thenReturn(QosRequirement.builder().qos(Qos.AT_LEAST_ONCE).build());
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
-
-        when(endpointAsyncConnector.connect(ctx)).thenReturn(Completable.complete());
-
-        final TestObserver<Void> obs = cut.invoke(ctx).test();
-
-        obs.assertNoValues();
-    }
-
-    @Test
-    void shouldFailWith400WhenEntrypointAndEndpointQosAreIncompatibleBecauseOfMissingRequirements() {
-        EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
-        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.MESSAGE);
-        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
-        when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
-        EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
-        when(ctx.interruptWith(any(ExecutionFailure.class)))
-            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
-
-        final TestObserver<Void> obs = cut.invoke(ctx).test();
-
-        obs.assertError(e -> {
-            assertTrue(e instanceof InterruptionFailureException);
-            final InterruptionFailureException failureException = (InterruptionFailureException) e;
-            assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, failureException.getExecutionFailure().statusCode());
-            assertNotNull(failureException.getExecutionFailure().message());
-            return true;
-        });
-    }
-
-    @Test
-    void shouldFailWith400WhenEntrypointAndEndpointQosAreIncompatible() {
-        EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
-        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.MESSAGE);
-        when(endpointAsyncConnector.supportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE));
-        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
-        when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
-        EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(entrypointAsyncConnector.qosRequirement()).thenReturn(QosRequirement.builder().qos(Qos.AUTO).build());
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
-        when(ctx.interruptWith(any(ExecutionFailure.class)))
-            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
-
-        final TestObserver<Void> obs = cut.invoke(ctx).test();
-
-        obs.assertError(e -> {
-            assertTrue(e instanceof InterruptionFailureException);
-            final InterruptionFailureException failureException = (InterruptionFailureException) e;
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, failureException.getExecutionFailure().statusCode());
-            assertEquals(INCOMPATIBLE_QOS_KEY, failureException.getExecutionFailure().key());
-            assertNotNull(failureException.getExecutionFailure().message());
-            return true;
-        });
-    }
-
-    @Test
-    void shouldFailWith400WhenEntrypointAndEndpointQosAreIncompatibleBecauseOfMissingCapabilities() {
-        EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
-        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.MESSAGE);
-        when(endpointAsyncConnector.supportedQos()).thenReturn(Set.of(Qos.AT_LEAST_ONCE));
-        when(endpointAsyncConnector.supportedQosCapabilities()).thenReturn(Set.of());
-        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
-        when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
-        EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(entrypointAsyncConnector.qosRequirement())
-            .thenReturn(QosRequirement.builder().qos(Qos.AT_LEAST_ONCE).capabilities(Set.of(QosCapability.AUTO_ACK)).build());
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
-        when(ctx.interruptWith(any(ExecutionFailure.class)))
-            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
-
-        final TestObserver<Void> obs = cut.invoke(ctx).test();
-
-        obs.assertError(e -> {
-            assertTrue(e instanceof InterruptionFailureException);
-            final InterruptionFailureException failureException = (InterruptionFailureException) e;
-            assertEquals(HttpStatusCode.BAD_REQUEST_400, failureException.getExecutionFailure().statusCode());
-            assertEquals(INCOMPATIBLE_QOS_CAPABILITIES_KEY, failureException.getExecutionFailure().key());
-            assertNotNull(failureException.getExecutionFailure().message());
-            return true;
-        });
-    }
-
-    @Test
-    void shouldFailWith400WhenEntrypointAndEndpointQosAreIncompatibleBecauseOfEndpointQosNull() {
-        EndpointAsyncConnector endpointAsyncConnector = mock(EndpointAsyncConnector.class);
-        when(endpointAsyncConnector.supportedApi()).thenReturn(ApiType.MESSAGE);
-        when(endpointAsyncConnector.supportedQos()).thenReturn(null);
-        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
-        when(managedEndpoint.getConnector()).thenReturn(endpointAsyncConnector);
-        EntrypointAsyncConnector entrypointAsyncConnector = mock(EntrypointAsyncConnector.class);
-        when(entrypointAsyncConnector.qosRequirement()).thenReturn(QosRequirement.builder().qos(Qos.AUTO).build());
-        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(entrypointAsyncConnector);
-        when(ctx.interruptWith(any(ExecutionFailure.class)))
-            .thenAnswer(i -> Completable.error(new InterruptionFailureException(i.getArgument(0))));
-
-        final TestObserver<Void> obs = cut.invoke(ctx).test();
-
-        obs.assertError(e -> {
-            assertTrue(e instanceof InterruptionFailureException);
-            final InterruptionFailureException failureException = (InterruptionFailureException) e;
-            assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, failureException.getExecutionFailure().statusCode());
-            assertNotNull(failureException.getExecutionFailure().message());
             return true;
         });
     }

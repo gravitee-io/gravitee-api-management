@@ -47,7 +47,6 @@ import io.gravitee.gateway.policy.impl.PolicyFactoryCreatorImpl;
 import io.gravitee.gateway.reactive.debug.DebugReactorEventListener;
 import io.gravitee.gateway.reactive.debug.policy.DebugPolicyChainFactory;
 import io.gravitee.gateway.reactive.debug.policy.condition.DebugExpressionLanguageConditionFilter;
-import io.gravitee.gateway.reactive.debug.policy.condition.DebugExpressionLanguageMessageConditionFilter;
 import io.gravitee.gateway.reactive.debug.reactor.DebugHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.debug.reactor.processor.DebugPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
@@ -255,11 +254,7 @@ public class DebugConfiguration {
 
     @Bean
     public PolicyFactory debugPolicyFactory(final PolicyPluginFactory policyPluginFactory) {
-        return new DefaultPolicyFactory(
-            policyPluginFactory,
-            new DebugExpressionLanguageConditionFilter(),
-            new DebugExpressionLanguageMessageConditionFilter()
-        );
+        return new DefaultPolicyFactory(policyPluginFactory, new DebugExpressionLanguageConditionFilter());
     }
 
     @Bean

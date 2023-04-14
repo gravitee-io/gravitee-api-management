@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
@@ -33,7 +34,6 @@ import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.policy.impl.PolicyLoader;
-import io.gravitee.gateway.reactive.api.service.dlq.DlqServiceFactory;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
@@ -64,7 +64,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.env.StandardEnvironment;
 
@@ -76,7 +77,10 @@ import org.springframework.core.env.StandardEnvironment;
 public class DefaultApiReactorFactoryTest {
 
     @Mock
-    ApplicationContext applicationContext;
+    ConfigurableApplicationContext applicationContext;
+
+    @Mock
+    ConfigurableListableBeanFactory applicationContextListable;
 
     Configuration configuration = new SpringEnvironmentConfiguration(new StandardEnvironment());
 
@@ -123,6 +127,7 @@ public class DefaultApiReactorFactoryTest {
 
     @BeforeEach
     public void init() {
+        lenient().when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
         cut =
             new DefaultApiReactorFactory(
                 applicationContext,
@@ -134,9 +139,7 @@ public class DefaultApiReactorFactoryTest {
                 apiServicePluginManager,
                 platformPolicyChainFactory,
                 organizationManager,
-                apiProcessorChainFactory,
                 flowResolverFactory,
-                v4FlowResolverFactory,
                 requestTimeoutConfiguration,
                 reporterService
             );
@@ -144,6 +147,11 @@ public class DefaultApiReactorFactoryTest {
 
     @Nested
     class CanCreate {
+
+        @BeforeEach
+        void setUp() {
+            lenient().when(definition.getType()).thenReturn(ApiType.PROXY);
+        }
 
         @Test
         public void should_create_api_with_http_listener() {
@@ -154,11 +162,11 @@ public class DefaultApiReactorFactoryTest {
         }
 
         @Test
-        public void should_create_api_with_subscription_listener() {
+        public void should_not_create_api_with_subscription_listener() {
             when(definition.getListeners()).thenReturn(Collections.singletonList(new SubscriptionListener()));
 
             boolean create = cut.canCreate(anApi());
-            assertTrue(create);
+            assertFalse(create);
         }
 
         @Test
@@ -237,7 +245,6 @@ public class DefaultApiReactorFactoryTest {
             assertThat(componentProvider.getComponent(io.gravitee.definition.model.v4.Api.class)).isSameAs(definition);
             assertThat(componentProvider.getComponent(ResourceManager.class)).isNotNull();
             assertThat(componentProvider.getComponent(EndpointManager.class)).isNotNull();
-            assertThat(componentProvider.getComponent(DlqServiceFactory.class)).isNotNull();
         }
 
         @Test
@@ -302,7 +309,7 @@ public class DefaultApiReactorFactoryTest {
             var resourcePluginManager = mock(ConfigurablePluginManager.class);
             lenient()
                 .when(
-                    applicationContext.getBeanNamesForType(
+                    applicationContextListable.getBeanNamesForType(
                         ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
                     )
                 )
@@ -315,7 +322,7 @@ public class DefaultApiReactorFactoryTest {
             var policyPluginManager = mock(ConfigurablePluginManager.class);
             lenient()
                 .when(
-                    applicationContext.getBeanNamesForType(
+                    applicationContextListable.getBeanNamesForType(
                         ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
                     )
                 )

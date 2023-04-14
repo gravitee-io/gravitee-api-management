@@ -22,22 +22,15 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.URIUtils;
-import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
-import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.async.EntrypointAsyncConnector;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
-import io.gravitee.gateway.reactive.api.qos.Qos;
-import io.gravitee.gateway.reactive.api.qos.QosCapability;
-import io.gravitee.gateway.reactive.api.qos.QosRequirement;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointCriteria;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import io.reactivex.rxjava3.core.Completable;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,8 +47,6 @@ public class EndpointInvoker implements Invoker {
     );
 
     public static final String NO_ENDPOINT_FOUND_KEY = "NO_ENDPOINT_FOUND";
-    public static final String INCOMPATIBLE_QOS_KEY = "INCOMPATIBLE_QOS";
-    public static final String INCOMPATIBLE_QOS_CAPABILITIES_KEY = "INCOMPATIBLE_QOS_CAPABILITIES";
     public static final String INVALID_HTTP_METHOD = "INVALID_HTTP_METHOD";
 
     private final EndpointManager endpointManager;
@@ -76,11 +67,7 @@ public class EndpointInvoker implements Invoker {
             return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503).key(NO_ENDPOINT_FOUND_KEY));
         }
 
-        if (endpointConnector.supportedApi() == ApiType.MESSAGE) {
-            return validateQoSAndConnect((EndpointAsyncConnector) endpointConnector, ctx);
-        } else {
-            return connect(endpointConnector, ctx);
-        }
+        return connect(endpointConnector, ctx);
     }
 
     private <T extends EndpointConnector> T resolveConnector(final ExecutionContext ctx) {
@@ -121,45 +108,7 @@ public class EndpointInvoker implements Invoker {
         return null;
     }
 
-    private Completable validateQoSAndConnect(final EndpointAsyncConnector endpointConnector, final ExecutionContext ctx) {
-        final EntrypointAsyncConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
-        final QosRequirement qosRequirement = entrypointConnector.qosRequirement();
-
-        if (qosRequirement == null) {
-            return ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                    .message("Invalid entrypoint QoS implementation: qosRequirement cannot be null")
-            );
-        }
-
-        final Qos requiredQos = qosRequirement.getQos();
-        final Set<QosCapability> requiredQosCapabilities = qosRequirement.getCapabilities();
-        final Set<QosCapability> qosCapabilities = endpointConnector.supportedQosCapabilities();
-        final Set<Qos> supportedQos = endpointConnector.supportedQos();
-
-        if (supportedQos == null || qosCapabilities == null) {
-            return ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                    .message("Invalid endpoint QoS implementation: supportedQos or qosCapabilities cannot be null")
-            );
-        } else if (!supportedQos.contains(requiredQos)) {
-            return ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
-                    .key(INCOMPATIBLE_QOS_KEY)
-                    .message("Incompatible Qos between entrypoint and endpoint")
-            );
-        } else if (!qosCapabilities.containsAll(requiredQosCapabilities)) {
-            return ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
-                    .key(INCOMPATIBLE_QOS_CAPABILITIES_KEY)
-                    .message("Incompatible Qos capabilities between entrypoint requirements and endpoint supports")
-            );
-        }
-
-        return connect(endpointConnector, ctx);
-    }
-
-    private Completable connect(final EndpointConnector endpointConnector, final ExecutionContext ctx) {
+    protected Completable connect(final EndpointConnector endpointConnector, final ExecutionContext ctx) {
         return computeRequest(ctx).andThen(endpointConnector.connect(ctx));
     }
 

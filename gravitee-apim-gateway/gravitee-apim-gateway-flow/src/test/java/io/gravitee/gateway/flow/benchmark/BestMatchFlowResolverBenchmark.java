@@ -33,6 +33,7 @@ import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.BestMatchFlowResolver;
+import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
@@ -83,7 +84,7 @@ public class BestMatchFlowResolverBenchmark {
 
     @Benchmark
     public void benchBestMatch() {
-        new BestMatchFlowResolver(flowResolver).resolve(executionContext);
+        new BestMatchFlowResolver(flowResolver, new BestMatchFlowSelector()).resolve(executionContext);
     }
 
     private List<Flow> buildFlows() {

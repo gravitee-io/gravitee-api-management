@@ -23,6 +23,7 @@ import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.reactive.flow.FlowResolver;
+import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import io.gravitee.gateway.reactor.ReactableApi;
 
 /**
@@ -34,16 +35,18 @@ import io.gravitee.gateway.reactor.ReactableApi;
 public class FlowResolverFactory {
 
     private final ConditionFilter<Flow> flowFilter;
+    private final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
 
-    public FlowResolverFactory(ConditionFilter<Flow> flowFilter) {
+    public FlowResolverFactory(ConditionFilter<Flow> flowFilter, AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector) {
         this.flowFilter = flowFilter;
+        this.bestMatchFlowSelector = bestMatchFlowSelector;
     }
 
     public FlowResolver forApi(Api api) {
         ApiFlowResolver flowResolver = new ApiFlowResolver(api.getDefinition(), flowFilter);
 
         if (isBestMatchFlowMode(api.getDefinition().getFlowMode())) {
-            return new BestMatchFlowResolver(flowResolver);
+            return new BestMatchFlowResolver(flowResolver, bestMatchFlowSelector);
         }
 
         return flowResolver;
@@ -53,7 +56,7 @@ public class FlowResolverFactory {
         ApiPlanFlowResolver flowResolver = new ApiPlanFlowResolver(api.getDefinition(), flowFilter);
 
         if (isBestMatchFlowMode(api.getDefinition().getFlowMode())) {
-            return new BestMatchFlowResolver(flowResolver);
+            return new BestMatchFlowResolver(flowResolver, bestMatchFlowSelector);
         }
 
         return flowResolver;
@@ -64,7 +67,7 @@ public class FlowResolverFactory {
         final Organization organization = organizationManager.getCurrentOrganization();
 
         if (organization != null && isBestMatchFlowMode(organization.getFlowMode())) {
-            return new BestMatchFlowResolver(flowResolver);
+            return new BestMatchFlowResolver(flowResolver, bestMatchFlowSelector);
         }
 
         return flowResolver;

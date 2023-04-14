@@ -17,7 +17,7 @@ package io.gravitee.gateway.flow;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowSelector;
+import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,14 +32,16 @@ import java.util.List;
 public class BestMatchFlowResolver implements FlowResolver {
 
     private final FlowResolver flowResolver;
+    private AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
 
-    public BestMatchFlowResolver(final FlowResolver flowResolver) {
+    public BestMatchFlowResolver(final FlowResolver flowResolver, AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector) {
         this.flowResolver = flowResolver;
+        this.bestMatchFlowSelector = bestMatchFlowSelector;
     }
 
     @Override
     public List<Flow> resolve(ExecutionContext context) {
-        final Flow bestMatch = BestMatchFlowSelector.forPath(flowResolver.resolve(context), context.request().pathInfo());
+        final Flow bestMatch = bestMatchFlowSelector.forPath(flowResolver.resolve(context), context.request().pathInfo());
         return bestMatch == null ? Collections.emptyList() : List.of(bestMatch);
     }
 }

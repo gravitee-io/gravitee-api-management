@@ -43,7 +43,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
 
     @Test
     public void shouldResolveBestMatchFlowApiResolver() {
-        BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver);
+        BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver, new BestMatchFlowSelector());
 
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);

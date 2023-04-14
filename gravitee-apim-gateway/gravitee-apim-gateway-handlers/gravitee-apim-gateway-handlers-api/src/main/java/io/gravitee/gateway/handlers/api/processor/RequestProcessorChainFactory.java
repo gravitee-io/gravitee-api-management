@@ -25,6 +25,7 @@ import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
 import io.gravitee.gateway.flow.BestMatchFlowResolver;
+import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
 import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowConditionEvaluator;
@@ -66,6 +67,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
     private final PolicyManager policyManager;
     private final FlowPolicyResolverFactory flowPolicyResolverFactory;
     private final SecurityPolicyResolver securityPolicyResolver;
+    private final BestMatchFlowSelector bestMatchFlowSelector;
 
     public RequestProcessorChainFactory(
         final Api api,
@@ -75,7 +77,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         final PolicyChainProviderLoader policyChainProviderLoader,
         final AuthenticationHandlerSelector authenticationHandlerSelector,
         final FlowPolicyResolverFactory flowPolicyResolverFactory,
-        SecurityPolicyResolver securityPolicyResolver
+        SecurityPolicyResolver securityPolicyResolver,
+        BestMatchFlowSelector bestMatchFlowSelector
     ) {
         super(api, policyChainFactory);
         this.policyManager = policyManager;
@@ -84,6 +87,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         this.authenticationHandlerSelector = authenticationHandlerSelector;
         this.flowPolicyResolverFactory = flowPolicyResolverFactory;
         this.securityPolicyResolver = securityPolicyResolver;
+        this.bestMatchFlowSelector = bestMatchFlowSelector;
 
         this.initialize();
     }
@@ -154,7 +158,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                 add(
                     new PlanFlowPolicyChainProvider(
                         StreamType.ON_REQUEST,
-                        new BestMatchFlowResolver(new PlanFlowResolver(api.getDefinition(), evaluator)),
+                        new BestMatchFlowResolver(new PlanFlowResolver(api.getDefinition(), evaluator), bestMatchFlowSelector),
                         policyChainFactory,
                         flowPolicyResolverFactory
                     )
@@ -162,7 +166,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                 add(
                     new SimpleFlowPolicyChainProvider(
                         StreamType.ON_REQUEST,
-                        new BestMatchFlowResolver(new ApiFlowResolver(api.getDefinition(), evaluator)),
+                        new BestMatchFlowResolver(new ApiFlowResolver(api.getDefinition(), evaluator), bestMatchFlowSelector),
                         policyChainFactory,
                         flowPolicyResolverFactory
                     )

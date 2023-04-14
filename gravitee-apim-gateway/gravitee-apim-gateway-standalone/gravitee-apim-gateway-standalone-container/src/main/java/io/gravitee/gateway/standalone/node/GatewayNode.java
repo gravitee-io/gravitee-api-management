@@ -16,7 +16,6 @@
 package io.gravitee.gateway.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.reactor.handler.ReactorEventListener;
 import io.gravitee.gateway.report.impl.NodeMonitoringReporterService;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
@@ -67,7 +66,6 @@ public class GatewayNode extends AbstractNode {
         components.addAll(super.components());
 
         components.add(AlertEventProducerManager.class);
-        components.add(SubscriptionDispatcher.class);
         return components;
     }
 }

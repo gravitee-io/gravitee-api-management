@@ -38,35 +38,20 @@ import org.slf4j.LoggerFactory;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ConditionalPolicy implements Policy, ConditionSupplier, MessageConditionSupplier {
+public class ConditionalPolicy implements Policy, ConditionSupplier {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(ConditionalPolicy.class);
-    protected static final String ATTR_SKIP_MESSAGE_POLICY = "skipMessagePolicy";
 
     protected final Policy policy;
     protected final String condition;
-    protected final String messageCondition;
-    private final ConditionFilter<ConditionalPolicy> conditionFilter;
-    private final MessageConditionFilter<ConditionalPolicy> messageConditionFilter;
+    protected final ConditionFilter<ConditionalPolicy> conditionFilter;
+    protected final boolean conditionDefined;
 
-    private final boolean conditionDefined;
-    private final boolean messageConditionDefined;
-
-    public ConditionalPolicy(
-        Policy policy,
-        String condition,
-        String messageCondition,
-        ConditionFilter<ConditionalPolicy> conditionFilter,
-        MessageConditionFilter<ConditionalPolicy> messageConditionFilter
-    ) {
+    public ConditionalPolicy(Policy policy, String condition, ConditionFilter<ConditionalPolicy> conditionFilter) {
         this.policy = policy;
         this.condition = condition;
-        this.messageCondition = messageCondition;
         this.conditionFilter = conditionFilter;
-        this.messageConditionFilter = messageConditionFilter;
-
         this.conditionDefined = condition != null && !condition.isBlank();
-        this.messageConditionDefined = messageCondition != null && !messageCondition.isBlank();
     }
 
     @Override
@@ -86,26 +71,17 @@ public class ConditionalPolicy implements Policy, ConditionSupplier, MessageCond
 
     @Override
     public Completable onMessageRequest(final MessageExecutionContext ctx) {
-        final MutableRequest request = ((MutableExecutionContext) ctx).request();
-
-        return onCondition(ctx, onMessagesCondition(ctx, request, policy.onMessageRequest(ctx)));
+        return Completable.complete();
     }
 
     @Override
     public Completable onMessageResponse(final MessageExecutionContext ctx) {
-        final MutableResponse response = ((MutableExecutionContext) ctx).response();
-
-        return onCondition(ctx, onMessagesCondition(ctx, response, policy.onMessageResponse(ctx)));
+        return Completable.complete();
     }
 
     @Override
     public String getCondition() {
         return condition;
-    }
-
-    @Override
-    public String getMessageCondition() {
-        return messageCondition;
     }
 
     private Completable onCondition(GenericExecutionContext ctx, Completable toExecute) {
@@ -114,42 +90,5 @@ public class ConditionalPolicy implements Policy, ConditionSupplier, MessageCond
         }
 
         return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> toExecute);
-    }
-
-    private Completable onMessagesCondition(MessageExecutionContext ctx, OnMessagesInterceptor interceptor, Completable toExecute) {
-        if (!messageConditionDefined) {
-            return toExecute;
-        }
-
-        return toExecute
-            .doFinally(interceptor::unsetMessagesInterceptor)
-            .doOnSubscribe(disposable -> interceptor.setMessagesInterceptor(onMessages -> messagesInterceptor(ctx, onMessages)));
-    }
-
-    private Single<Message> onMessageCondition(MessageExecutionContext ctx, Message message) {
-        return messageConditionFilter
-            .filter(ctx, this, message)
-            .isEmpty()
-            .map(skipMessagePolicy -> {
-                message.attribute(ATTR_SKIP_MESSAGE_POLICY, skipMessagePolicy);
-                return message;
-            });
-    }
-
-    private FlowableTransformer<Message, Message> messagesInterceptor(
-        MessageExecutionContext ctx,
-        FlowableTransformer<Message, Message> onMessages
-    ) {
-        return upstream ->
-            upstream
-                .flatMapSingle(message -> onMessageCondition(ctx, message))
-                .groupBy(message -> message.attribute(ATTR_SKIP_MESSAGE_POLICY))
-                .flatMap(messages -> {
-                    final boolean skipPolicy = Boolean.TRUE.equals(messages.getKey());
-                    if (skipPolicy) {
-                        return messages;
-                    }
-                    return messages.compose(onMessages);
-                });
     }
 }

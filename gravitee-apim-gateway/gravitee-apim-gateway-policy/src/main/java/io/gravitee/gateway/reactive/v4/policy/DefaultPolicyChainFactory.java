@@ -26,7 +26,6 @@ import io.gravitee.gateway.reactive.api.hook.Hook;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
-import io.gravitee.gateway.reactive.policy.tracing.TracingMessageHook;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
@@ -34,7 +33,6 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import io.netty.util.internal.StringUtil;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -70,11 +68,10 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
         initPolicyHooks(configuration);
     }
 
-    private void initPolicyHooks(final Configuration configuration) {
+    protected void initPolicyHooks(final Configuration configuration) {
         boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
         if (tracing) {
             policyHooks.add(new TracingPolicyHook());
-            policyHooks.add(new TracingMessageHook());
         }
     }
 
@@ -103,39 +100,28 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
         return policyChain;
     }
 
-    private PolicyMetadata buildPolicyMetadata(Step step) {
-        final PolicyMetadata policyMetadata = new PolicyMetadata(
-            step.getPolicy(),
-            step.getConfiguration(),
-            step.getCondition(),
-            step.getMessageCondition()
-        );
+    protected PolicyMetadata buildPolicyMetadata(Step step) {
+        final PolicyMetadata policyMetadata = new PolicyMetadata(step.getPolicy(), step.getConfiguration(), step.getCondition());
         policyMetadata.metadata().put(PolicyMetadata.MetadataKeys.EXECUTION_MODE, ExecutionMode.JUPITER);
 
         return policyMetadata;
     }
 
-    private List<Step> getSteps(Flow flow, ExecutionPhase phase) {
+    protected List<Step> getSteps(Flow flow, ExecutionPhase phase) {
         final List<Step> steps;
 
         switch (phase) {
             case REQUEST:
                 steps = flow.getRequest();
                 break;
-            case MESSAGE_REQUEST:
-                steps = flow.getPublish();
-                break;
             case RESPONSE:
                 steps = flow.getResponse();
                 break;
-            case MESSAGE_RESPONSE:
-                steps = flow.getSubscribe();
-                break;
             default:
-                steps = Collections.emptyList();
+                steps = new ArrayList<>();
         }
 
-        return steps != null ? steps : Collections.emptyList();
+        return steps != null ? steps : new ArrayList<>();
     }
 
     private String getFlowKey(Flow flow, ExecutionPhase phase) {

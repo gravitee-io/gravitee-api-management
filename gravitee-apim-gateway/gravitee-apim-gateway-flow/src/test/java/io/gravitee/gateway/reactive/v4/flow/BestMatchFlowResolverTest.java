@@ -52,9 +52,11 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
     @Mock
     public ReactableApi reactableApi;
 
+    public AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector = new BestMatchFlowSelector();
+
     @Test
     public void should_resolve_bestMatchFlow_with_api_sync() {
-        BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver);
+        BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver, bestMatchFlowSelector);
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
         Api api = new Api();
@@ -80,7 +82,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
 
     @Test
     public void should_resolve_bestMatchFlow_with_api_async() {
-        BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver);
+        BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver, bestMatchFlowSelector);
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
         Api api = new Api();

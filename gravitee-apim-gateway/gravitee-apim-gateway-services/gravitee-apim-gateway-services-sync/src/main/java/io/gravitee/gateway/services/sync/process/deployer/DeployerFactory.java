@@ -16,8 +16,10 @@
 package io.gravitee.gateway.services.sync.process.deployer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.service.ApiKeyService;
+import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
@@ -26,8 +28,12 @@ import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatch
 import io.gravitee.gateway.services.sync.process.service.PlanService;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.CommandRepository;
+import io.reactivex.rxjava3.core.Completable;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -40,7 +46,7 @@ public class DeployerFactory {
     private final ApiKeyService apiKeyService;
     private final SubscriptionService subscriptionService;
     private final PlanService planCache;
-    private final SubscriptionDispatcher subscriptionDispatcher;
+    private final Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier;
     private final CommandRepository commandRepository;
     private final Node node;
     private final ObjectMapper objectMapper;
@@ -53,7 +59,7 @@ public class DeployerFactory {
     private final EventManager eventManager;
 
     public SubscriptionDeployer createSubscriptionDeployer() {
-        return new SubscriptionDeployer(subscriptionService, subscriptionDispatcher, commandRepository, node, objectMapper);
+        return new SubscriptionDeployer(subscriptionService, subscriptionDispatcherSupplier.get(), commandRepository, node, objectMapper);
     }
 
     public ApiKeyDeployer createApiKeyDeployer() {

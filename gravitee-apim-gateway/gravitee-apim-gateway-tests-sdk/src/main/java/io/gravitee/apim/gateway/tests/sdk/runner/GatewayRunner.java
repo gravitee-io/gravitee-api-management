@@ -33,6 +33,8 @@ import io.gravitee.apim.gateway.tests.sdk.policy.KeylessPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.protocolhandlers.grpc.Handler;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
+import io.gravitee.apim.plugin.reactor.ReactorPlugin;
+import io.gravitee.apim.plugin.reactor.ReactorPluginManager;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.connector.http.HttpConnectorFactory;
@@ -42,6 +44,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import io.gravitee.node.reporter.ReporterManager;
@@ -159,6 +162,8 @@ public class GatewayRunner {
             final ApplicationContext applicationContext = gatewayContainer.applicationContext();
 
             testInstance.setApplicationContext(applicationContext);
+
+            registerReactors(gatewayContainer);
 
             registerReporters(gatewayContainer);
 
@@ -435,6 +440,12 @@ public class GatewayRunner {
 
     private void ensureMinimalRequirementForApi(ReactableApi<?> reactableApi) {
         apiDeploymentPreparers.get(reactableApi.getDefinitionVersion()).ensureMinimalRequirementForApi(reactableApi.getDefinition());
+    }
+
+    private void registerReactors(GatewayTestContainer container) {
+        final ReactorPluginManager reactorPluginManager = container.applicationContext().getBean(ReactorPluginManager.class);
+        Map<String, ReactorPlugin<? extends ReactorFactory<?>>> reactorFactoriesMap = new HashMap<>();
+        reactorFactoriesMap.forEach((key, value) -> reactorPluginManager.register(value));
     }
 
     private void registerReporters(GatewayTestContainer container) {

@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 
@@ -33,37 +33,28 @@ import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 @SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 public class FlowResolverFactory {
 
-    private final ConditionFilter<Flow> syncApiFlowFilter;
-    private final ConditionFilter<Flow> asyncApiFlowFilter;
+    private final ConditionFilter<Flow> apiFlowFilter;
+    private final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
 
-    public FlowResolverFactory(final ConditionFilter<Flow> syncApiFilter, final ConditionFilter<Flow> asyncApiFilter) {
-        this.syncApiFlowFilter = syncApiFilter;
-        this.asyncApiFlowFilter = asyncApiFilter;
+    public FlowResolverFactory(final ConditionFilter<Flow> apiFlowFilter, final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector) {
+        this.apiFlowFilter = apiFlowFilter;
+        this.bestMatchFlowSelector = bestMatchFlowSelector;
     }
 
     public FlowResolver forApi(Api api) {
-        ApiFlowResolver apiFlowResolver = new ApiFlowResolver(api.getDefinition(), getConditionFilter(api));
+        ApiFlowResolver apiFlowResolver = new ApiFlowResolver(api.getDefinition(), apiFlowFilter);
         if (isBestMatchFlowMode(api.getDefinition().getFlowExecution())) {
-            return new BestMatchFlowResolver(apiFlowResolver);
+            return new BestMatchFlowResolver(apiFlowResolver, bestMatchFlowSelector);
         }
         return apiFlowResolver;
     }
 
     public FlowResolver forApiPlan(Api api) {
-        ApiPlanFlowResolver apiPlanFlowResolver = new ApiPlanFlowResolver(api.getDefinition(), getConditionFilter(api));
+        ApiPlanFlowResolver apiPlanFlowResolver = new ApiPlanFlowResolver(api.getDefinition(), apiFlowFilter);
         if (isBestMatchFlowMode(api.getDefinition().getFlowExecution())) {
-            return new BestMatchFlowResolver(apiPlanFlowResolver);
+            return new BestMatchFlowResolver(apiPlanFlowResolver, bestMatchFlowSelector);
         }
         return apiPlanFlowResolver;
-    }
-
-    private ConditionFilter<Flow> getConditionFilter(final Api api) {
-        if (ApiType.PROXY == api.getDefinition().getType()) {
-            return syncApiFlowFilter;
-        } else if (ApiType.MESSAGE == api.getDefinition().getType()) {
-            return asyncApiFlowFilter;
-        }
-        throw new IllegalArgumentException("Api type unsupported");
     }
 
     private static boolean isBestMatchFlowMode(final FlowExecution flowExecution) {

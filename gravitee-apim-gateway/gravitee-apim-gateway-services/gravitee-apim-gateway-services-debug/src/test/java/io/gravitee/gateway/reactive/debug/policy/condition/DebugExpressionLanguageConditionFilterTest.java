@@ -55,9 +55,7 @@ class DebugExpressionLanguageConditionFilterTest {
     @BeforeEach
     public void beforeEach() {
         conditionFilter = new DebugExpressionLanguageConditionFilter();
-        DebugExpressionLanguageMessageConditionFilter messageConditionFilter = new DebugExpressionLanguageMessageConditionFilter();
-        conditionalPolicy =
-            new ConditionalPolicy(mock(Policy.class), CONDITION, MESSAGE_CONDITION, conditionFilter, messageConditionFilter);
+        conditionalPolicy = new ConditionalPolicy(mock(Policy.class), CONDITION, conditionFilter);
         when(debugCtx.getTemplateEngine()).thenReturn(templateEngine);
         policyRequestStep = new PolicyRequestStep("policyId", ExecutionPhase.REQUEST, "flowPhase");
         doReturn(policyRequestStep).when(debugCtx).getCurrentDebugStep();

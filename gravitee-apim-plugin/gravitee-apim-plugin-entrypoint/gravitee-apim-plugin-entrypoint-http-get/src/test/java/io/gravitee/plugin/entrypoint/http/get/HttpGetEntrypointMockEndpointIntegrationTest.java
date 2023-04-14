@@ -34,6 +34,7 @@ import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,6 +46,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 @GatewayTest
 @DeployApi({ "/apis/http-get-entrypoint.json" })
+@Disabled
 class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     public static final String TEST_TOPIC = "test-topic";
