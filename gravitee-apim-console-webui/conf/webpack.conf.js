@@ -134,6 +134,10 @@ module.exports = {
           to: 'assets',
         },
         {
+          from: './node_modules/monaco-editor',
+          to: 'assets/monaco-editor',
+        },
+        {
           from: './src/assets',
           to: 'assets',
         },

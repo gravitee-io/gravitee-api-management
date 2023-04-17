@@ -140,6 +140,10 @@ module.exports = {
           from: './node_modules/@gravitee/ui-particles-angular/assets',
           to: 'assets',
         },
+        {
+          from: './node_modules/monaco-editor',
+          to: 'assets/monaco-editor',
+        },
         { from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html' },
         {
           from: './src/assets',
