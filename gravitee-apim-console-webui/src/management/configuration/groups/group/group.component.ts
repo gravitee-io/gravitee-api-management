@@ -23,6 +23,7 @@ import { Member, MembershipState, MemberState, RoleName, RoleScope } from './mem
 import GroupService from '../../../../services/group.service';
 import NotificationService from '../../../../services/notification.service';
 import UserService from '../../../../services/user.service';
+import ApiPrimaryOwnerModeService from '../../../../services/apiPrimaryOwnerMode.service';
 
 interface IGroupDetailComponentScope extends ng.IScope {
   groupApis: any[];
@@ -50,6 +51,7 @@ const GroupComponent: ng.IComponentOptions = {
   controller: function (
     GroupService: GroupService,
     NotificationService: NotificationService,
+    ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService,
     $mdDialog: angular.material.IDialogService,
     $state: StateService,
     $scope: IGroupDetailComponentScope,
@@ -465,7 +467,12 @@ const GroupComponent: ng.IComponentOptions = {
       return hasGroupAdmin;
     };
 
-    this.isApiRoleDisabled = (role) => role.system && role.name !== 'PRIMARY_OWNER';
+    this.isApiRoleDisabled = (role) => {
+      if (ApiPrimaryOwnerModeService.isUserOnly()) {
+        return role.name === 'PRIMARY_OWNER';
+      }
+      return role.system && role.name !== 'PRIMARY_OWNER';
+    };
   },
 };
 
