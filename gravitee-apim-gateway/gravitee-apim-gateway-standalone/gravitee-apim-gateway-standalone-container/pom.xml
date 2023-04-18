@@ -31,7 +31,7 @@
     <name>Gravitee.io APIM - Gateway - Standalone - Container</name>
 
     <properties>
-        <jetty94.wiremock.version>9.4.44.v20210927</jetty94.wiremock.version>
+        <jetty94.wiremock.version>10.0.14</jetty94.wiremock.version>
         <gravitee-connector-http.version>3.0.1</gravitee-connector-http.version>
     </properties>
 
