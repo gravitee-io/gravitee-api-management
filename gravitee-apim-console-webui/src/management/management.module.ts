@@ -30,6 +30,7 @@ import { InstanceDetailsModule } from './instances/instance-details/instance-det
 import { ApiCreationV4Module } from './api/creation/v4/api-creation-v4.module';
 import { MessagesModule } from './messages/messages.module';
 import { HomeModule } from './home/home.module';
+import { TasksModule } from './tasks/tasks.module';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 
@@ -51,6 +52,7 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     SettingsNavigationModule,
     InstanceDetailsModule.withRouting({ stateNamePrefix: 'management.instances.detail' }),
     MessagesModule,
+    TasksModule,
   ],
   declarations: [],
   entryComponents: [],

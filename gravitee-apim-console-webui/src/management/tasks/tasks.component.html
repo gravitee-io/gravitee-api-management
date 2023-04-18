@@ -1,0 +1,59 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div *ngIf="!loading; else loader">
+  <div *ngIf="data && data.length > 0; else emptyBlock">
+    <h2>My tasks ({{ tasks.page.total_elements }})</h2>
+    <ng-container *ngFor="let task of data">
+      <mat-card class="task">
+        <div class="task__header">
+          <div class="task__header__title">
+            <mat-icon [svgIcon]="task.icon"></mat-icon>
+            {{ task.title }}
+          </div>
+          <div>
+            {{ task.createdAt | date }}
+          </div>
+        </div>
+        <div class="task__content">
+          <div class="task__content__description" [innerHTML]="task.message"></div>
+          <div class="task__content__details" [innerHTML]="task.details"></div>
+          <div class="task__content__actions" *ngIf="task.type !== 'PROMOTION_APPROVAL'; else actionPromotion">
+            <button mat-stroked-button (click)="go(task)">{{ task.action }}</button>
+          </div>
+          <ng-template #actionPromotion>
+            <div class="task__content__actions">
+              <button mat-stroked-button (click)="openAcceptDialog(task)"><mat-icon svgIcon="gio:check"></mat-icon>Accept</button>
+              <button mat-flat-button (click)="openRejectDialog(task)"><mat-icon svgIcon="gio:cancel"></mat-icon>Reject</button>
+            </div>
+          </ng-template>
+        </div>
+      </mat-card>
+    </ng-container>
+  </div>
+</div>
+<ng-template #loader>
+  <div class="loader">
+    <gio-loader></gio-loader>
+  </div>
+</ng-template>
+<ng-template #emptyBlock>
+  <div class="empty">
+    <mat-icon svgIcon="gio:sun"></mat-icon>
+    <div class="mat-h5">Congratulations, you did all your tasks!</div>
+  </div>
+</ng-template>
