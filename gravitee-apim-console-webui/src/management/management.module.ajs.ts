@@ -210,7 +210,6 @@ import UserService from '../services/user.service';
 import UserController from '../user/user.controller';
 import UserComponent from '../user/user.component';
 import { TasksComponent } from './tasks/tasks.component';
-import { PromotionTaskComponent } from './tasks/promotion/promotion-task.component';
 // Notification Settings
 import NotificationsComponent from '../components/notifications/notifications.component';
 import NotificationSettingsComponent from '../components/notifications/notificationsettings/notificationsettings.component';
@@ -517,7 +516,6 @@ import { ApplicationNavigationComponent } from './application/details/applicatio
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
 import { ApiPortalPlanListComponent } from './api/portal/plans/list/api-portal-plan-list.component';
-import { TaskService } from '../services-ngx/task.service';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import ApiPortalController from './api/portal/general/apiPortal.controller';
 import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
@@ -932,9 +930,7 @@ graviteeManagementModule.controller('DialogTransferApplicationController', Dialo
 
 graviteeManagementModule.component('user', UserComponent);
 
-graviteeManagementModule.component('tasks', TasksComponent);
-graviteeManagementModule.factory('ngTaskService', downgradeInjectable(TaskService));
-graviteeManagementModule.component('promotionTask', PromotionTaskComponent);
+graviteeManagementModule.directive('tasks', downgradeComponent({ component: TasksComponent }));
 
 graviteeManagementModule.service('NotificationSettingsService', NotificationSettingsService);
 graviteeManagementModule.service('NotificationTemplatesService', NotificationTemplatesService);

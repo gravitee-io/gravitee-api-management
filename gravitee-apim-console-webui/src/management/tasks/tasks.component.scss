@@ -1,0 +1,74 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+
+  mat-icon {
+    height: 50px;
+    width: 50px;
+  }
+
+  * {
+    padding-bottom: 8px;
+  }
+}
+
+.loader {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+
+  gio-loader {
+    height: 50px;
+    width: 50px;
+    align-self: center;
+  }
+}
+
+.task {
+  margin: 16px 0;
+
+  &__header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
+
+    &__title {
+      display: flex;
+      align-items: center;
+
+      * {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  &__content {
+    &__details {
+      margin-top: 2px;
+      font-size: 12px;
+      color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker50');
+    }
+
+    &__actions {
+      margin-top: 16px;
+
+      * {
+        margin-right: 8px;
+      }
+    }
+  }
+}
