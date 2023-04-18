@@ -79,6 +79,7 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
 
     protected final ApplicationContext applicationContext;
     protected final Configuration configuration;
+    private final Node node;
     protected final PolicyFactory policyFactory;
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
@@ -90,7 +91,6 @@ public class DefaultApiReactorFactory implements ReactorFactory<Api> {
     protected final FlowResolverFactory v4FlowResolverFactory;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final ReporterService reporterService;
-    private final Node node;
     private final Logger logger = LoggerFactory.getLogger(DefaultApiReactorFactory.class);
 
     public DefaultApiReactorFactory(

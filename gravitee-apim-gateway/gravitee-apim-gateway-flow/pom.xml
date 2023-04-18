@@ -37,6 +37,10 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-cache-common</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
@@ -53,11 +57,6 @@
             <artifactId>jmh-generator-annprocess</artifactId>
             <version>${jmh.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.node</groupId>
-            <artifactId>gravitee-node-cache</artifactId>
         </dependency>
 
         <dependency>

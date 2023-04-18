@@ -11,7 +11,7 @@
            xsi:schemaLocation="http://www.hazelcast.com/schema/config
            http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
 
-    <cluster-name>gio-apim-gateway</cluster-name>
+    <cluster-name>gio-apim-distributed-cache</cluster-name>
     <network>
         <port auto-increment="true" port-count="100">5701</port>
         <join>

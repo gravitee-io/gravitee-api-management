@@ -20,8 +20,10 @@ import static org.mockito.Mockito.mock;
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.gateway.standalone.reporter.FakeReporter;
 import io.gravitee.gateway.standalone.tracer.NoOpTracer;
+import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.container.NodeFactory;
+import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.gravitee.node.plugin.cluster.standalone.StandaloneClusterManager;
 import io.gravitee.reporter.api.Reporter;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -62,6 +64,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public ClusterManager clusterManager(final Vertx vertx) {
             return new StandaloneClusterManager(vertx);
+        }
+
+        @Bean
+        public CacheManager cacheManager() {
+            return new StandaloneCacheManager();
         }
 
         @Bean
