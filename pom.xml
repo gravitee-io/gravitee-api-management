@@ -58,14 +58,14 @@
         <gravitee-cockpit-api.version>2.0.0</gravitee-cockpit-api.version>
         <gravitee-common.version>2.1.0</gravitee-common.version>
         <gravitee-connector-api.version>1.1.4</gravitee-connector-api.version>
-        <gravitee-expression-language.version>2.1.0</gravitee-expression-language.version>
+        <gravitee-expression-language.version>2.2.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>3.0.0-alpha.1</gravitee-gateway-api.version>
         <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
-        <gravitee-node.version>3.1.0-alpha.4</gravitee-node.version>
+        <gravitee-node.version>3.1.0-alpha.5</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
-        <gravitee-plugin.version>1.27.0-alpha.1</gravitee-plugin.version>
-        <gravitee-platform-repository-api.version>1.2.0</gravitee-platform-repository-api.version>
+        <gravitee-plugin.version>1.27.0-alpha.2</gravitee-plugin.version>
+        <gravitee-platform-repository-api.version>1.2.1</gravitee-platform-repository-api.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
         <gravitee-reporter-api.version>1.25.0</gravitee-reporter-api.version>
         <gravitee-resource-auth-provider-api.version>1.3.0</gravitee-resource-auth-provider-api.version>
@@ -212,6 +212,18 @@
 
             <dependency>
                 <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-cache-common</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-cache-plugin-handler</artifactId>
+                <version>${gravitee-node.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
                 <artifactId>gravitee-node-container</artifactId>
                 <version>${gravitee-node.version}</version>
             </dependency>
@@ -219,18 +231,6 @@
             <dependency>
                 <groupId>io.gravitee.node</groupId>
                 <artifactId>gravitee-node-management</artifactId>
-                <version>${gravitee-node.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.node</groupId>
-                <artifactId>gravitee-node-cluster</artifactId>
-                <version>${gravitee-node.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.node</groupId>
-                <artifactId>gravitee-node-cache</artifactId>
                 <version>${gravitee-node.version}</version>
             </dependency>
 

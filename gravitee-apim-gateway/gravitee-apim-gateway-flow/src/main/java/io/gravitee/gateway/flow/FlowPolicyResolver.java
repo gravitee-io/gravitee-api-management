@@ -24,7 +24,7 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
-import io.gravitee.node.cache.standalone.StandaloneCache;
+import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,20 +36,22 @@ import java.util.stream.Collectors;
 public class FlowPolicyResolver implements PolicyResolver {
 
     public static final long CACHE_MAX_SIZE = 15;
-    public static final long CACHE_TIME_TO_IDLE = 3600;
+    public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;
 
     private final Flow flow;
 
     @VisibleForTesting
     final Cache<Step, PolicyMetadata> cache;
 
-    public FlowPolicyResolver(Flow flow) {
+    public FlowPolicyResolver(final Flow flow) {
         this.flow = flow;
 
-        final CacheConfiguration cacheConfiguration = new CacheConfiguration();
-        cacheConfiguration.setMaxSize(CACHE_MAX_SIZE);
-        cacheConfiguration.setTimeToIdleSeconds(CACHE_TIME_TO_IDLE);
-        cache = new StandaloneCache<>("flowPolicyResolverCache", cacheConfiguration);
+        final CacheConfiguration cacheConfiguration = CacheConfiguration
+            .builder()
+            .maxSize(CACHE_MAX_SIZE)
+            .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
+            .build();
+        cache = new InMemoryCache<>("flowPolicyResolverCache", cacheConfiguration);
     }
 
     @Override

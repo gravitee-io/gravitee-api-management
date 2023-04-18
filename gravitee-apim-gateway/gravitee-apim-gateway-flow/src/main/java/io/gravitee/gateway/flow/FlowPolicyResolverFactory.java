@@ -19,7 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
-import io.gravitee.node.cache.standalone.StandaloneCache;
+import io.gravitee.node.plugin.cache.common.InMemoryCache;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -28,16 +28,19 @@ import io.gravitee.node.cache.standalone.StandaloneCache;
 public class FlowPolicyResolverFactory {
 
     public static final long CACHE_MAX_SIZE = 15;
-    public static final long CACHE_TIME_TO_IDLE = 3600;
+    public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;
 
     @VisibleForTesting
     final Cache<Flow, FlowPolicyResolver> cache;
 
     public FlowPolicyResolverFactory() {
-        final CacheConfiguration cacheConfiguration = new CacheConfiguration();
-        cacheConfiguration.setMaxSize(CACHE_MAX_SIZE);
-        cacheConfiguration.setTimeToIdleSeconds(CACHE_TIME_TO_IDLE);
-        cache = new StandaloneCache<>("flowPolicyResolverFactoryCache", cacheConfiguration);
+        final CacheConfiguration cacheConfiguration = CacheConfiguration
+            .builder()
+            .distributed(false)
+            .maxSize(CACHE_MAX_SIZE)
+            .timeToIdleInMs(CACHE_TIME_TO_IDLE_IN_MS)
+            .build();
+        cache = new InMemoryCache<>("flowPolicyResolverFactoryCache", cacheConfiguration);
     }
 
     public FlowPolicyResolver create(Flow flow) {

@@ -15,7 +15,8 @@
  */
 package io.gravitee.gateway.reactive.policy;
 
-import static io.gravitee.gateway.reactive.api.ExecutionPhase.*;
+import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
+import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
 
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.flow.Flow;
@@ -29,9 +30,13 @@ import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.node.cache.standalone.StandaloneCache;
+import io.gravitee.node.plugin.cache.common.InMemoryCache;
 import io.netty.util.internal.StringUtil;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +50,7 @@ import java.util.stream.Collectors;
 public class DefaultPolicyChainFactory implements PolicyChainFactory {
 
     public static final long CACHE_MAX_SIZE = 15;
-    public static final long CACHE_TIME_TO_IDLE = 3600;
+    public static final long CACHE_TIME_TO_IDLE_MS = 3_600_000;
     private static final String ID_SEPARATOR = "-";
     protected final List<Hook> policyHooks = new ArrayList<>();
     private final PolicyManager policyManager;
@@ -54,11 +59,13 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
     public DefaultPolicyChainFactory(final String id, final PolicyManager policyManager, final Configuration configuration) {
         this.policyManager = policyManager;
 
-        final CacheConfiguration cacheConfiguration = new CacheConfiguration();
-        cacheConfiguration.setMaxSize(CACHE_MAX_SIZE);
-        cacheConfiguration.setTimeToIdleSeconds(CACHE_TIME_TO_IDLE);
+        final CacheConfiguration cacheConfiguration = CacheConfiguration
+            .builder()
+            .maxSize(CACHE_MAX_SIZE)
+            .timeToIdleInMs(CACHE_TIME_TO_IDLE_MS)
+            .build();
 
-        this.policyChains = new StandaloneCache<>(id + "-policyChainFactory", cacheConfiguration);
+        this.policyChains = new InMemoryCache<>(id + "-policyChainFactory", cacheConfiguration);
         initPolicyHooks(configuration);
     }
 

@@ -15,7 +15,9 @@
  */
 package io.gravitee.repository.mongodb;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.mongodb.management.ManagementRepositoryConfiguration;
@@ -50,7 +52,7 @@ public class MongoRepositoryProviderTest {
 
     @Test
     public void shouldReturnNullClass() {
-        Class<?> configClass = provider.configuration(Scope.CACHE);
+        Class<?> configClass = provider.configuration(Scope.ANALYTICS);
         assertNull(configClass);
     }
 }

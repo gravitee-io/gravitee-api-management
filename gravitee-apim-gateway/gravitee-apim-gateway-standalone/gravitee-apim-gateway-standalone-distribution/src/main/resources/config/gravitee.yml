@@ -193,8 +193,11 @@ ratelimit:
 #      password: secret
 #      alias:
 
-cache:
-  type: ehcache
+# You can change the cache type to use Hazelcast Distributed cache and file to configure the Hz network
+#cache:
+#  type: hazelcast
+#  hazelcast:
+#    config-path: ${gravitee.home}/config/hazelcast.xml
 
 # Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
 # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
@@ -466,9 +469,9 @@ ds:
 #   - Distributed sync process
 #   - Distributed rate-limiting / quota counters
 #cluster:
+#  type: hazelcast
 #  hazelcast:
-#    config:
-#      path: ${gravitee.home}/config/hazelcast.xml
+#    config-path: ${gravitee.home}/config/hazelcast.xml
 
 # Configuration of geoip (requires geoip-plugin)
 #geoip:
