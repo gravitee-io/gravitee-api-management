@@ -248,7 +248,9 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         // NOTE: Explicitly set the page size to MAX
         // If we want to improve performance, we need to change the way we retrieve tasks
         // ex: use a dedicated repository & collection to retrieve tasks
-        apiIds.addAll(apiRepository.searchIds(apiCriteriaList, convert(new PageableImpl(1, Integer.MAX_VALUE)), null).getContent());
+        if (!apiCriteriaList.isEmpty()) {
+            apiIds.addAll(apiRepository.searchIds(apiCriteriaList, convert(new PageableImpl(1, Integer.MAX_VALUE)), null).getContent());
+        }
 
         return apiIds;
     }
