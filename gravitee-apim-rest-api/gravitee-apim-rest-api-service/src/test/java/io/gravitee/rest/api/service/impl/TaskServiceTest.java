@@ -162,8 +162,6 @@ public class TaskServiceTest {
         final Authentication authentication = mock(Authentication.class);
 
         SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
-        when(apiRepository.searchIds(emptyList(), new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build(), null))
-            .thenReturn(new Page<String>(emptyList(), 1, 0, 0));
 
         taskService.findAll(GraviteeContext.getExecutionContext(), "user");
 
@@ -171,6 +169,20 @@ public class TaskServiceTest {
             .search(eq(GraviteeContext.getExecutionContext()), argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2));
         verify(promotionTasksService, times(1)).getPromotionTasks(GraviteeContext.getExecutionContext());
         verify(userService, times(0)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
+    }
+
+    @Test
+    public void shouldNotFindAnythingWhenUserHasNoMembership() {
+        final Authentication authentication = mock(Authentication.class);
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Collections.emptySet());
+
+        taskService.findAll(GraviteeContext.getExecutionContext(), "user");
+
+        verify(userService, times(0)).search(eq(GraviteeContext.getExecutionContext()), any(UserCriteria.class), any());
+        verify(subscriptionService, times(0))
+            .search(eq(GraviteeContext.getExecutionContext()), argThat(subscriptionQuery -> subscriptionQuery.getApis().size() == 2));
+        verify(apiRepository, times(0)).searchIds(any(), any(), any());
     }
 
     @Test
