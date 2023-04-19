@@ -56,15 +56,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.GroupEvent;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.NotificationReferenceType;
-import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.repository.management.model.Workflow;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.ApiModelEntity;
@@ -111,6 +103,7 @@ import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -204,6 +197,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1171,14 +1165,36 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
             if (portal) {
-                final Set<String> applications = applicationService
-                    .findByUser(executionContext, userId)
-                    .stream()
-                    .map(ApplicationListItem::getId)
-                    .collect(toSet());
-                if (!applications.isEmpty()) {
+                var currentTime = Instant.now();
+
+                Set<String> userApplicationIds = membershipService.getReferenceIdsByMemberAndReference(
+                    MembershipMemberType.USER,
+                    userId,
+                    MembershipReferenceType.APPLICATION
+                );
+
+                Set<String> applicationIds = new HashSet<>(userApplicationIds);
+
+                Set<String> userGroupIds = membershipService.getReferenceIdsByMemberAndReference(
+                    MembershipMemberType.USER,
+                    userId,
+                    MembershipReferenceType.GROUP
+                );
+
+                ApplicationQuery appQuery = new ApplicationQuery();
+                appQuery.setGroups(userGroupIds);
+                appQuery.setStatus(ApplicationStatus.ACTIVE.name());
+
+                Set<String> userGroupApplicationIds = applicationService.searchIds(executionContext, appQuery, null);
+
+                applicationIds.addAll(userGroupApplicationIds);
+
+                var elapsed = Duration.between(currentTime, Instant.now());
+                LOGGER.error("Elapsed time for a find applications by user: {} ms", elapsed.toMillis());
+                if (!applicationIds.isEmpty()) {
+                    currentTime = Instant.now();
                     final SubscriptionQuery query = new SubscriptionQuery();
-                    query.setApplications(applications);
+                    query.setApplications(applicationIds);
                     final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, query);
                     if (subscriptions != null && !subscriptions.isEmpty()) {
                         apiCriteriaList.add(
@@ -1187,6 +1203,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                 .build()
                         );
                     }
+                    elapsed = Duration.between(currentTime, Instant.now());
+                    LOGGER.error("Elapsed time for a find subscriptions: {} ms", elapsed.toMillis());
                 }
             }
         }

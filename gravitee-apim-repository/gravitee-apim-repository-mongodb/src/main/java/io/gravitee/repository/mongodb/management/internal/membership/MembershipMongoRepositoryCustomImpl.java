@@ -37,7 +37,6 @@ public class MembershipMongoRepositoryCustomImpl implements MembershipMongoRepos
         query.addCriteria(where("memberId").is(memberId));
         query.addCriteria(where("memberType").is(memberType));
         query.addCriteria(where("referenceType").is(referenceType));
-
-        return mongoTemplate.find(query, MembershipMongo.class).parallelStream().map(MembershipMongo::getReferenceId);
+        return mongoTemplate.findDistinct(query, "referenceId", MembershipMongo.class, String.class).parallelStream();
     }
 }
