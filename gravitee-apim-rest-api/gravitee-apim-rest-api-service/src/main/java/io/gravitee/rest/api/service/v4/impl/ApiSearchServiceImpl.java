@@ -21,23 +21,23 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiLifecycleState;
-import io.gravitee.repository.management.model.LifecycleState;
-import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -45,6 +45,7 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
@@ -79,6 +80,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     private final PrimaryOwnerService primaryOwnerService;
     private final CategoryService categoryService;
     private final SearchEngineService searchEngineService;
+    private final ApiAuthorizationService apiAuthorizationService;
 
     public ApiSearchServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -86,7 +88,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final GenericApiMapper genericApiMapper,
         @Lazy final PrimaryOwnerService primaryOwnerService,
         @Lazy final CategoryService categoryService,
-        final SearchEngineService searchEngineService
+        final SearchEngineService searchEngineService,
+        final ApiAuthorizationService apiAuthorizationService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -94,6 +97,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         this.primaryOwnerService = primaryOwnerService;
         this.categoryService = categoryService;
         this.searchEngineService = searchEngineService;
+        this.apiAuthorizationService = apiAuthorizationService;
     }
 
     @Override
@@ -209,10 +213,57 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             allowedDefinitionVersion.add(DefinitionVersion.V2);
             queryToCriteria.definitionVersion(allowedDefinitionVersion);
         }
-        List<Api> apis = apiRepository
-            .search(queryToCriteria(executionContext, query).build(), null, ApiFieldFilter.allFields())
-            .collect(toList());
+        List<Api> apis = apiRepository.search(queryToCriteria.build(), null, ApiFieldFilter.allFields()).collect(toList());
         return this.toGenericApis(executionContext, apis);
+    }
+
+    @Override
+    public Page<GenericApiEntity> search(
+        final ExecutionContext executionContext,
+        final String userId,
+        final boolean isAdmin,
+        final QueryBuilder<ApiEntity> apiQueryBuilder,
+        final Pageable pageable,
+        final Sortable sortable
+    ) {
+        // Step 1 : find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
+        SearchResult apiIdsResult = searchEngineService.search(GraviteeContext.getExecutionContext(), apiQueryBuilder.build());
+
+        if (!apiIdsResult.hasResults() && apiIdsResult.getDocuments().isEmpty()) {
+            return new Page<>(List.of(), 0, 0, 0);
+        }
+
+        Set<String> apiIds = apiIdsResult.getDocuments().stream().collect(toSet());
+
+        // Step 2 : if user is not admin, get list of apiIds in their scope and join with Lucene results
+        if (!isAdmin) {
+            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(GraviteeContext.getExecutionContext(), userId, null);
+
+            // User has no associated apis
+            if (userApiIds.isEmpty()) {
+                return new Page<>(List.of(), 0, 0, 0);
+            }
+
+            apiIds.retainAll(userApiIds);
+        }
+
+        ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder()
+            .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+            .ids(apiIds);
+
+        // Step 3: get APIs page from repository by ids and add pagination and sorting
+        Page<Api> apis = apiRepository.search(apiCriteriaBuilder.build(), convert(sortable), convert(pageable), ApiFieldFilter.allFields());
+
+        return apis
+            .getContent()
+            .stream()
+            .map(api -> genericApiMapper.toGenericApi(api, null))
+            .collect(
+                Collectors.collectingAndThen(
+                    Collectors.toList(),
+                    apiEntityList -> new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
+                )
+            );
     }
 
     /**

@@ -21,11 +21,15 @@ import io.gravitee.rest.api.model.search.Indexable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 public class Query<T extends Indexable> {
 
     private String query;
@@ -44,57 +48,5 @@ public class Query<T extends Indexable> {
 
     Query(final Class<T> root) {
         this.root = root;
-    }
-
-    public String getQuery() {
-        return query;
-    }
-
-    public void setQuery(String query) {
-        this.query = query;
-    }
-
-    public Map<String, Object> getFilters() {
-        return filters;
-    }
-
-    public void setFilters(Map<String, Object> filters) {
-        this.filters = filters;
-    }
-
-    public void setExcludedFilters(Map<String, Collection<String>> excludedFilters) {
-        this.excludedFilters = excludedFilters;
-    }
-
-    public Map<String, Collection<String>> getExcludedFilters() {
-        return excludedFilters;
-    }
-
-    public Class<T> getRoot() {
-        return root;
-    }
-
-    public Pageable getPage() {
-        return page;
-    }
-
-    public void setPage(Pageable page) {
-        this.page = page;
-    }
-
-    public Sortable getSort() {
-        return sort;
-    }
-
-    public void setSort(Sortable sort) {
-        this.sort = sort;
-    }
-
-    public void setIds(Collection<String> ids) {
-        this.ids = ids;
-    }
-
-    public Collection<String> getIds() {
-        return ids;
     }
 }

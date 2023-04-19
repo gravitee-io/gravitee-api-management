@@ -74,7 +74,6 @@ import javax.ws.rs.core.UriBuilder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/environments/{envId}/apis/{apiId}")
 public class ApiResource extends AbstractResource {
 
     @Context

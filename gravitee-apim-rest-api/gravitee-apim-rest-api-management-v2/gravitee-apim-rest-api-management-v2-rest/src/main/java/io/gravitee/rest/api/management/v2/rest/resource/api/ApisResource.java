@@ -15,21 +15,27 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import com.google.common.base.Strings;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.search.query.QueryBuilder;
+
 import javax.validation.*;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -37,6 +43,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import java.util.Objects;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -76,5 +83,51 @@ public class ApisResource extends AbstractResource {
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )
             .links(computePaginationLinks(Math.toIntExact(apis.getTotalElements()), paginationParam));
+    }
+
+    @POST
+    @Path("_search")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    public ApisResponse searchApis(@BeanParam @Valid PaginationParam paginationParam, @QueryParam("orderBy") String apiOrderBy, final @Valid @NotNull ApiSearchQuery apiSearchQuery) {
+        QueryBuilder<ApiEntity> apiQueryBuilder = QueryBuilder.create(ApiEntity.class);
+
+        if (!Strings.isNullOrEmpty(apiSearchQuery.getQuery())) {
+            apiQueryBuilder.setQuery(apiSearchQuery.getQuery());
+        }
+
+        if (Objects.nonNull(apiSearchQuery.getIds()) && !apiSearchQuery.getIds().isEmpty()) {
+            apiQueryBuilder.addFilter("api", apiSearchQuery.getIds());
+        }
+
+        Sortable sortable = null;
+        if (Objects.nonNull(apiOrderBy)) {
+            boolean isAsc = !apiOrderBy.startsWith("-");
+            String field = apiOrderBy.replace("-", "");
+
+            sortable = new SortableImpl(field, isAsc);
+        }
+
+        Page<GenericApiEntity> apis = apiSearchService.search(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUser(),
+            isAdmin(),
+            apiQueryBuilder,
+            paginationParam.toPageable(),
+            sortable
+        );
+
+        return new ApisResponse()
+            .data(ApiMapper.INSTANCE.convert(apis.getContent()))
+            .pagination(
+                computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
+            )
+            .links(computePaginationLinks(Math.toIntExact(apis.getTotalElements()), paginationParam));
+    }
+
+    @Path("{apiId}")
+    public ApiResource getApiResource() {
+        return resourceContext.getResource(ApiResource.class);
     }
 }

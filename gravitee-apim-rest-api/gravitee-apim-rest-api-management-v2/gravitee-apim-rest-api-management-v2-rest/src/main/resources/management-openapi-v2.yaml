@@ -125,6 +125,32 @@ paths:
                                 $ref: "#/components/schemas/Api"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/_search:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/apiOrderByParam"
+            tags:
+                - APIs
+            summary: Search APIs
+            description: |-
+                Search APIs for a specific environment.
+                User must have the ENVIRONMENT_API[READ] permission.
+            operationId: searchApis
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApiSearchQuery"
+                required: true
+            responses:
+                "200":
+                    $ref: "#/components/responses/ApisResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1056,6 +1082,19 @@ components:
             properties:
                 dynamicProperty:
                     $ref: "#/components/schemas/ServiceV4"
+        ApiSearchQuery:
+            type: object
+            properties:
+                query:
+                    type: string
+                    description: The query to search for.
+                    example: my api
+                ids:
+                    type: array
+                    items:
+                        type: string
+                    description: List of ids to find
+                    example: apiId-1, apiId-2
         ApiType:
             type: string
             description: API's type.
@@ -2793,6 +2832,22 @@ components:
             schema:
                 type: integer
                 default: 10
+        apiOrderByParam:
+            name: orderBy
+            in: query
+            required: false
+            description: |-
+               Possibility to sort results by field.
+               Can be ASC (default) or DESC with minus '-' prefix.
+            schema:
+                type: string
+                example: name
+                enum:
+                    - name
+                    - -name
+                    - createdAt
+                    - -createdAt
+
     responses:
         EnvironmentsResponse:
             description: Page of environments
