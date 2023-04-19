@@ -43,7 +43,6 @@ import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageMessageCond
 import io.gravitee.gateway.reactive.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.reactive.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactorFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
@@ -55,9 +54,6 @@ import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilte
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
-import io.gravitee.plugin.apiservice.ApiServicePluginManager;
-import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
-import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -208,37 +204,5 @@ public class ApiHandlerConfiguration {
         final ReporterService reporterService
     ) {
         return new io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory(configuration, node, reporterService);
-    }
-
-    @Bean
-    public ReactorFactory<io.gravitee.gateway.reactive.handlers.api.v4.Api> asyncApiReactorFactory(
-        PolicyFactory policyFactory,
-        EntrypointConnectorPluginManager entrypointConnectorPluginManager,
-        EndpointConnectorPluginManager endpointConnectorPluginManager,
-        ApiServicePluginManager apiServicePluginManager,
-        @Qualifier("platformPolicyChainFactory") PolicyChainFactory platformPolicyChainFactory,
-        OrganizationManager organizationManager,
-        io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory,
-        io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        FlowResolverFactory v4FlowResolverFactory,
-        RequestTimeoutConfiguration requestTimeoutConfiguration,
-        ReporterService reporterService
-    ) {
-        return new DefaultApiReactorFactory(
-            applicationContext,
-            configuration,
-            node,
-            policyFactory,
-            entrypointConnectorPluginManager,
-            endpointConnectorPluginManager,
-            apiServicePluginManager,
-            platformPolicyChainFactory,
-            organizationManager,
-            v4ApiProcessorChainFactory,
-            flowResolverFactory,
-            v4FlowResolverFactory,
-            requestTimeoutConfiguration,
-            reporterService
-        );
     }
 }

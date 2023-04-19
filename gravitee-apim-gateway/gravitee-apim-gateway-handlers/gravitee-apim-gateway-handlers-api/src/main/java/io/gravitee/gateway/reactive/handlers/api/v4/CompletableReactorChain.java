@@ -29,7 +29,7 @@ import org.reactivestreams.Publisher;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-class CompletableReactorChain extends Completable {
+public class CompletableReactorChain extends Completable {
 
     private Completable completable;
 
