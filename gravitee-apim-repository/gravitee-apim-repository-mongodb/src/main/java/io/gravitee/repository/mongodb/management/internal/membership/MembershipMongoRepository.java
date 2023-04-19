@@ -28,7 +28,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface MembershipMongoRepository extends MongoRepository<MembershipMongo, String> {
+public interface MembershipMongoRepository extends MongoRepository<MembershipMongo, String>, MembershipMongoRepositoryCustom {
     @Query("{ 'id': {$in: ?0} }")
     Set<MembershipMongo> findByIds(Set<String> membershipIds);
 

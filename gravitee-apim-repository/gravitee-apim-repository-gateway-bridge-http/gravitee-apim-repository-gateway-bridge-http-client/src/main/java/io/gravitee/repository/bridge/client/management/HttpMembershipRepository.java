@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 
 /**
@@ -83,6 +84,15 @@ public class HttpMembershipRepository extends AbstractRepository implements Memb
         MembershipMemberType memberType,
         MembershipReferenceType referenceType
     ) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Stream<String> findRefIdsByMemberIdAndMemberTypeAndReferenceType(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType
+    ) throws TechnicalException {
         throw new IllegalStateException();
     }
 

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,6 +168,15 @@ public class MongoMembershipRepository implements MembershipRepository {
             .collect(Collectors.toSet());
         logger.debug("Find membership by user and referenceType [{}, {}, {}] = {}", memberId, memberType, referenceType, memberships);
         return memberships;
+    }
+
+    @Override
+    public Stream<String> findRefIdsByMemberIdAndMemberTypeAndReferenceType(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType
+    ) throws TechnicalException {
+        return internalMembershipRepo.findRefIdsByMemberIdAndMemberTypeAndReferenceType(memberId, memberType.name(), referenceType.name());
     }
 
     @Override

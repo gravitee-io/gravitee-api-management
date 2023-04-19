@@ -51,6 +51,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -1038,11 +1040,27 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipReferenceType referenceType
     ) {
         try {
-            return membershipRepository
-                .findByMemberIdAndMemberTypeAndReferenceType(memberId, convert(memberType), convert(referenceType))
-                .stream()
-                .map(io.gravitee.repository.management.model.Membership::getReferenceId)
-                .collect(Collectors.toSet());
+            //            var currentTime = Instant.now();
+            //            membershipRepository
+            //                .findByMemberIdAndMemberTypeAndReferenceType(memberId, convert(memberType), convert(referenceType))
+            //                .stream()
+            //                .map(io.gravitee.repository.management.model.Membership::getReferenceId)
+            //                .collect(toSet());
+            //
+            //            var elapsed = Duration.between(currentTime, Instant.now());
+            //
+            //            LOGGER.error("Elapsed time for a search with all the data: {} ms", elapsed.toMillis());
+
+            var currentTime = Instant.now();
+
+            Set<String> refIdsByMemberIdAndMemberTypeAndReferenceType = membershipRepository
+                .findRefIdsByMemberIdAndMemberTypeAndReferenceType(memberId, convert(memberType), convert(referenceType))
+                .collect(toSet());
+
+            var elapsed = Duration.between(currentTime, Instant.now());
+            LOGGER.error("Elapsed time for a search with only the ref ids: {} ms", elapsed.toMillis());
+
+            return refIdsByMemberIdAndMemberTypeAndReferenceType;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
             throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);
