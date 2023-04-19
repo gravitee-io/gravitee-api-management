@@ -323,7 +323,15 @@ public class ApiServiceImplTest {
                 apiAuthorizationService
             );
         apiSearchService =
-            new ApiSearchServiceImpl(apiRepository, apiMapper, genericApiMapper, primaryOwnerService, categoryService, searchEngineService);
+            new ApiSearchServiceImpl(
+                apiRepository,
+                apiMapper,
+                genericApiMapper,
+                primaryOwnerService,
+                categoryService,
+                searchEngineService,
+                apiAuthorizationService
+            );
         apiStateService =
             new ApiStateServiceImpl(
                 apiSearchService,

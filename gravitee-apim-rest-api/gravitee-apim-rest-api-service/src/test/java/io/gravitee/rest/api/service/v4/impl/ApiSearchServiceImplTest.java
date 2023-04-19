@@ -68,10 +68,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.FlowService;
-import io.gravitee.rest.api.service.v4.PlanService;
-import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.*;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
@@ -147,6 +144,9 @@ public class ApiSearchServiceImplTest {
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
+    @Mock
+    private ApiAuthorizationService apiAuthorizationService;
+
     private ApiSearchService apiSearchService;
     private Api api;
 
@@ -183,7 +183,8 @@ public class ApiSearchServiceImplTest {
                 new GenericApiMapper(apiMapper, apiConverter),
                 primaryOwnerService,
                 categoryService,
-                searchEngineService
+                searchEngineService,
+                apiAuthorizationService
             );
 
         reset(searchEngineService);
@@ -407,7 +408,18 @@ public class ApiSearchServiceImplTest {
         api2.setId("api2");
         api2.setName("api2");
 
-        when(apiRepository.search(eq(new ApiCriteria.Builder().environmentId("DEFAULT").build()), isNull(), eq(ApiFieldFilter.allFields())))
+        var definitionList = new ArrayList<DefinitionVersion>();
+        definitionList.add(null);
+        definitionList.add(DefinitionVersion.V1);
+        definitionList.add(DefinitionVersion.V2);
+
+        when(
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().environmentId("DEFAULT").definitionVersion(definitionList).build()),
+                isNull(),
+                eq(ApiFieldFilter.allFields())
+            )
+        )
             .thenReturn(Stream.of(api1));
 
         UserEntity admin = new UserEntity();
@@ -437,6 +449,11 @@ public class ApiSearchServiceImplTest {
         api2.setId("api2");
         api2.setName("api2");
 
+        var definitionList = new ArrayList<DefinitionVersion>();
+        definitionList.add(null);
+        definitionList.add(DefinitionVersion.V1);
+        definitionList.add(DefinitionVersion.V2);
+
         when(
             apiRepository.search(
                 eq(
@@ -449,6 +466,7 @@ public class ApiSearchServiceImplTest {
                         .lifecycleStates(new ArrayList<>(List.of(ApiLifecycleState.CREATED)))
                         .ids(Set.of("api1"))
                         .crossId("api1")
+                        .definitionVersion(definitionList)
                         .build()
                 ),
                 isNull(),
