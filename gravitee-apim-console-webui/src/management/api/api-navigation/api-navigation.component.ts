@@ -189,13 +189,6 @@ export class ApiNavigationComponent implements OnInit {
         baseRoute: 'management.apis.detail.portal.metadata',
       });
     }
-    if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
-      documentationMenuItem.tabs.push({
-        displayName: 'Metadata WIP',
-        targetRoute: 'management.apis.detail.portal.metadata-new',
-        baseRoute: 'management.apis.detail.portal.metadata-new',
-      });
-    }
     if (documentationMenuItem.tabs.length > 0) {
       portalGroup.items.push(documentationMenuItem);
     }
