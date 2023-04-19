@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.management.v4.rest.resource.param;
 
-import javax.ws.rs.BadRequestException;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import javax.validation.constraints.Min;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.QueryParam;
 
@@ -29,10 +30,12 @@ public class PaginationParam {
 
     @DefaultValue(PAGE_QUERY_PARAM_DEFAULT)
     @QueryParam(PAGE_QUERY_PARAM_NAME)
+    @Min(value = 1, message = "Pagination page param must be >= 1")
     Integer page;
 
     @DefaultValue(PER_PAGE_QUERY_PARAM_DEFAULT)
     @QueryParam(PER_PAGE_QUERY_PARAM_NAME)
+    @Min(value = 1, message = "Pagination perPage param must be >= 1")
     Integer perPage;
 
     public Integer getPage() {
@@ -51,13 +54,7 @@ public class PaginationParam {
         this.perPage = perPage;
     }
 
-    public void validate() {
-        if (this.getPerPage() < 1) {
-            throw new BadRequestException("Pagination perPage param must be >= 1");
-        }
-
-        if (this.getPage() < 1) {
-            throw new BadRequestException("Pagination page param must be >= 1");
-        }
+    public io.gravitee.rest.api.model.common.Pageable toPageable() {
+        return new PageableImpl(this.getPage(), this.getPerPage());
     }
 }

@@ -15,11 +15,8 @@
  */
 package io.gravitee.rest.api.management.v4.rest.resource.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v4.rest.mapper.ApiMapper;
-import io.gravitee.rest.api.management.v4.rest.model.Api;
 import io.gravitee.rest.api.management.v4.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v4.rest.security.Permission;
