@@ -165,6 +165,10 @@ export class FilteredCatalogComponent implements OnInit {
         category: this.currentCategory,
       });
     }
+
+    if (this.computeFilterApiQuery() === 'ALL') {
+      return this._loadCards();
+    }
     return Promise.all([this._loadRandomList(), this._loadCards()]);
   }
 
