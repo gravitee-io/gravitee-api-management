@@ -31,6 +31,8 @@ public class SubscriptionCriteria {
 
     private final Collection<String> ids;
 
+    private final Collection<String> excludedApis;
+
     private final Collection<String> apis;
 
     private final Collection<String> plans;
@@ -59,6 +61,7 @@ public class SubscriptionCriteria {
         this.endingAtAfter = builder.endingAtAfter;
         this.endingAtBefore = builder.endingAtBefore;
         this.planSecurityTypes = builder.planSecurityTypes;
+        this.excludedApis = builder.excludedApis;
     }
 
     public Collection<String> getIds() {
@@ -67,6 +70,10 @@ public class SubscriptionCriteria {
 
     public Collection<String> getApis() {
         return apis;
+    }
+
+    public Collection<String> getExcludedApis() {
+        return excludedApis;
     }
 
     public Collection<String> getPlans() {
@@ -135,6 +142,8 @@ public class SubscriptionCriteria {
 
         private Collection<String> ids;
 
+        private Collection<String> excludedApis;
+
         private Collection<String> apis;
 
         private Collection<String> applications;
@@ -168,6 +177,11 @@ public class SubscriptionCriteria {
 
         public SubscriptionCriteria.Builder apis(Collection<String> apis) {
             this.apis = apis;
+            return this;
+        }
+
+        public SubscriptionCriteria.Builder excludedApis(Collection<String> excludedApis) {
+            this.excludedApis = excludedApis;
             return this;
         }
 

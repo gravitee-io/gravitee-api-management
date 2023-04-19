@@ -28,6 +28,8 @@ public class SubscriptionQuery {
 
     private Collection<String> apis;
 
+    private Collection<String> excludedApis;
+
     private Collection<String> plans;
 
     private Collection<SubscriptionStatus> statuses;
@@ -53,6 +55,20 @@ public class SubscriptionQuery {
     public void setApi(String api) {
         if (api != null) {
             this.apis = Collections.singleton(api);
+        }
+    }
+
+    public Collection<String> getExcludedApis() {
+        return excludedApis;
+    }
+
+    public void setExcludedApis(Collection<String> excludedApis) {
+        this.excludedApis = excludedApis;
+    }
+
+    public void setExcludedApis(String api) {
+        if (api != null) {
+            this.excludedApis = Collections.singleton(api);
         }
     }
 

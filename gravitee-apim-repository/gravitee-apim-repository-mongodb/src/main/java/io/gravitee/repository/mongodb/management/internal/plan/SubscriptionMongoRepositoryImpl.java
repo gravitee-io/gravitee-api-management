@@ -122,6 +122,10 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             dataPipeline.add(match(in("subscribedPlan.security", criteria.getPlanSecurityTypes())));
         }
 
+        if (!isEmpty(criteria.getExcludedApis())) {
+            dataPipeline.add(match(nin("api", criteria.getExcludedApis())));
+        }
+
         // set sort by created at
         dataPipeline.add(sort(Sorts.descending("createdAt")));
 
