@@ -197,7 +197,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1165,8 +1164,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
             if (portal) {
-                var currentTime = Instant.now();
-
                 Set<String> userApplicationIds = membershipService.getReferenceIdsByMemberAndReference(
                     MembershipMemberType.USER,
                     userId,
@@ -1189,12 +1186,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
                 applicationIds.addAll(userGroupApplicationIds);
 
-                var elapsed = Duration.between(currentTime, Instant.now());
-                LOGGER.error("Elapsed time for a find applications by user: {} ms", elapsed.toMillis());
                 if (!applicationIds.isEmpty()) {
-                    currentTime = Instant.now();
                     final SubscriptionQuery query = new SubscriptionQuery();
                     query.setApplications(applicationIds);
+                    query.setExcludedApis(
+                        apiCriteriaList
+                            .stream()
+                            .map(ApiCriteria::getIds)
+                            .filter(Objects::nonNull)
+                            .flatMap(Collection::stream)
+                            .collect(toSet())
+                    );
+
                     final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, query);
                     if (subscriptions != null && !subscriptions.isEmpty()) {
                         apiCriteriaList.add(
@@ -1203,8 +1206,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                                 .build()
                         );
                     }
-                    elapsed = Duration.between(currentTime, Instant.now());
-                    LOGGER.error("Elapsed time for a find subscriptions: {} ms", elapsed.toMillis());
                 }
             }
         }
