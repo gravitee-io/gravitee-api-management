@@ -27,6 +27,7 @@ import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -48,14 +49,13 @@ public class EndpointsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public EndpointsResponse getEndpoints(@BeanParam PaginationParam paginationParam) {
-        paginationParam.validate();
+    public EndpointsResponse getEndpoints(@BeanParam @Valid PaginationParam paginationParam) {
         Set<ConnectorPlugin> connectorPlugins = ConnectorPluginMapper.INSTANCE.convertSet(endpointService.findAll());
         List paginationData = computePaginationData(connectorPlugins, paginationParam);
         return new EndpointsResponse()
             .data(paginationData)
             .pagination(computePaginationInfo(connectorPlugins.size(), paginationData.size(), paginationParam))
-            .links(computePaginationLinks(connectorPlugins, paginationParam));
+            .links(computePaginationLinks(connectorPlugins.size(), paginationParam));
     }
 
     @Path("/{endpointId}")

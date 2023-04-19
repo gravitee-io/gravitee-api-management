@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Comparator;
 import java.util.stream.Collectors;
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
@@ -46,9 +47,7 @@ public class ApiMembersResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = { RolePermissionAction.READ }) })
-    public MembersResponse getApiMembers(@BeanParam PaginationParam paginationParam) {
-        paginationParam.validate();
-
+    public MembersResponse getApiMembers(@BeanParam @Valid PaginationParam paginationParam) {
         var members = membershipService
             .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
             .stream()
@@ -59,6 +58,6 @@ public class ApiMembersResource extends AbstractResource {
         return new MembersResponse()
             .data(computePaginationData(members, paginationParam))
             .pagination(computePaginationInfo(members.size(), 1, paginationParam))
-            .links(computePaginationLinks(members, paginationParam));
+            .links(computePaginationLinks(members.size(), paginationParam));
     }
 }

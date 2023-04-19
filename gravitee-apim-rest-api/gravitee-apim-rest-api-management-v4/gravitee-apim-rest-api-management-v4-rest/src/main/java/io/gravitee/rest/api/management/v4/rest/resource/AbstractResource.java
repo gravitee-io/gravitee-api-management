@@ -287,12 +287,11 @@ public abstract class AbstractResource {
         return pagination;
     }
 
-    protected Links computePaginationLinks(Collection list, PaginationParam paginationParam) {
+    protected Links computePaginationLinks(int totalElements, PaginationParam paginationParam) {
         if (paginationParam.getPerPage() == 0) {
             return null;
         }
-
-        int totalPages = (int) Math.ceil((double) list.size() / paginationParam.getPerPage());
+        int totalPages = (int) Math.ceil((double) totalElements / paginationParam.getPerPage());
 
         if (paginationParam.getPage() <= 0 || paginationParam.getPage() > totalPages) {
             return null;
@@ -334,7 +333,7 @@ public abstract class AbstractResource {
 
         Integer firstPage = 1;
         Integer lastPage = totalPages;
-        Integer nextPage = Math.min(paginationParam.getPerPage() + 1, lastPage);
+        Integer nextPage = Math.min(paginationParam.getPage() + 1, lastPage);
         Integer prevPage = Math.max(firstPage, paginationParam.getPage() - 1);
         String perPageAsString = String.valueOf(paginationParam.getPerPage());
         Links paginatedLinks = new Links()
