@@ -20,7 +20,6 @@ import CategoryService from '../../../services/category.service';
 import { DocumentationQuery, DocumentationService } from '../../../services/documentation.service';
 import FetcherService from '../../../services/fetcher.service';
 import GroupService from '../../../services/group.service';
-import MetadataService from '../../../services/metadata.service';
 import QualityRuleService from '../../../services/qualityRule.service';
 import '@gravitee/ui-components/wc/gv-icon';
 
@@ -250,28 +249,9 @@ function apisPortalRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.portal.metadata', {
       url: '/metadata',
-      component: 'metadata',
-      resolve: {
-        metadataFormats: (MetadataService: MetadataService) => MetadataService.listFormats(),
-        metadata: function ($stateParams, ApiService) {
-          return ApiService.listApiMetadata($stateParams.apiId).then((response) => {
-            return response.data;
-          });
-        },
-      },
-      data: {
-        perms: {
-          only: ['api-metadata-r'],
-        },
-        docs: {
-          page: 'management-api-metadata',
-        },
-      },
-    })
-    .state('management.apis.detail.portal.metadata-new', {
-      url: '/metadata-new',
       component: 'ngApiPortalDocumentationMetadata',
       data: {
+        useAngularMaterial: true,
         perms: {
           only: ['api-metadata-r'],
         },
