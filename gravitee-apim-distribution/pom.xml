@@ -725,6 +725,13 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.reactor</groupId>
+            <artifactId>gravitee-apim-plugin-reactor-v4</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- Tracers -->
         <dependency>
