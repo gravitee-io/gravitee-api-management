@@ -21,12 +21,9 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
-import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.HealthCheckService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -38,7 +35,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -80,6 +76,7 @@ public class ApiMetricsResource extends AbstractResource {
 
             return Response.ok(metrics).build();
         }
+
         throw new ApiNotFoundException(apiId);
     }
 
