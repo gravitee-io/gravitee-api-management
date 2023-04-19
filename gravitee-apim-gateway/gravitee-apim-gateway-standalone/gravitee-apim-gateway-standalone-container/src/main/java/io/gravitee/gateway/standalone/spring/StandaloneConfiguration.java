@@ -17,6 +17,7 @@ package io.gravitee.gateway.standalone.spring;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.plugin.reactor.spring.ReactorPluginConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -79,6 +80,7 @@ import org.springframework.context.annotation.Import;
         EntrypointConnectorPluginConfiguration.class,
         ApiServicePluginConfiguration.class,
         EndpointConnectorPluginConfiguration.class,
+        ReactorPluginConfiguration.class,
         TimeoutConfiguration.class,
     }
 )
