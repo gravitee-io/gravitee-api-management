@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor.logging;
+package io.gravitee.gateway.reactive.handlers.api.processor.logging;
 
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_API;
 

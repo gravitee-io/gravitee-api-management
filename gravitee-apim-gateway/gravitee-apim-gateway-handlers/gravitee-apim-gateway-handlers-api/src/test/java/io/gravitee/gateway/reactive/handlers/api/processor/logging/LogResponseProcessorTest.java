@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor.logging;
+package io.gravitee.gateway.reactive.handlers.api.processor.logging;
 
-import static io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor.ID;
+import static io.gravitee.gateway.reactive.handlers.api.processor.logging.LogResponseProcessor.ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.reactivex.rxjava3.observers.TestObserver;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class LogResponseProcessorTest extends AbstractV4ProcessorTest {
+class LogResponseProcessorTest extends AbstractProcessorTest {
 
     private final LogResponseProcessor cut = LogResponseProcessor.instance();
 
@@ -56,16 +52,17 @@ class LogResponseProcessorTest extends AbstractV4ProcessorTest {
     public void beforeEach() {
         lenient().when(analyticsContext.isEnabled()).thenReturn(true);
         lenient().when(analyticsContext.getLoggingContext()).thenReturn(loggingContext);
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
+        spyCtx.metrics(mockMetrics);
     }
 
     @Test
     void shouldNotLogWhenNoLog() {
-        ctx.metrics().setLog(null);
+        spyCtx.metrics().setLog(null);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
-        assertThat(ctx.metrics().getLog()).isNull();
+        assertThat(spyCtx.metrics().getLog()).isNull();
     }
 
     @Test
@@ -74,7 +71,7 @@ class LogResponseProcessorTest extends AbstractV4ProcessorTest {
         when(mockMetrics.getLog()).thenReturn(log);
         when(loggingContext.entrypointResponse()).thenReturn(false);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
 
         assertNull(log.getEntrypointResponse());
@@ -86,7 +83,7 @@ class LogResponseProcessorTest extends AbstractV4ProcessorTest {
         when(mockMetrics.getLog()).thenReturn(log);
         when(loggingContext.entrypointResponse()).thenReturn(true);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
 
         assertNotNull(log.getEntrypointResponse());

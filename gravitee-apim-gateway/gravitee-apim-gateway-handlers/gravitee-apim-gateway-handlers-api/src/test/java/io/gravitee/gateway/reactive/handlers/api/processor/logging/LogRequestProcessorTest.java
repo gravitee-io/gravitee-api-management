@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor.logging;
+package io.gravitee.gateway.reactive.handlers.api.processor.logging;
 
-import static io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor.ID;
+import static io.gravitee.gateway.reactive.handlers.api.processor.logging.LogRequestProcessor.ID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
+import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
 import io.gravitee.reporter.api.v4.log.Log;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-class LogRequestProcessorTest extends AbstractV4ProcessorTest {
+class LogRequestProcessorTest extends AbstractProcessorTest {
 
     protected static final String REQUEST_ID = "requestId";
     private final LogRequestProcessor cut = LogRequestProcessor.instance();
@@ -53,14 +54,15 @@ class LogRequestProcessorTest extends AbstractV4ProcessorTest {
         lenient().when(analyticsContext.isEnabled()).thenReturn(true);
         lenient().when(analyticsContext.getLoggingContext()).thenReturn(loggingContext);
         lenient().when(analyticsContext.isLoggingEnabled()).thenReturn(true);
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
+        spyCtx.metrics(mockMetrics);
     }
 
     @Test
     void shouldNotLogWhenLoggingDisabled() {
         when(analyticsContext.isLoggingEnabled()).thenReturn(false);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
 
         verifyNoInteractions(mockMetrics);
@@ -71,7 +73,7 @@ class LogRequestProcessorTest extends AbstractV4ProcessorTest {
     void shouldNotLogWhenLoggingConditionIsEvaluatedToFalse() {
         when(loggingContext.getCondition()).thenReturn("false");
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
         verifyNoInteractions(mockMetrics);
         verifyNoInteractions(mockRequest);
@@ -86,7 +88,7 @@ class LogRequestProcessorTest extends AbstractV4ProcessorTest {
         when(mockRequest.timestamp()).thenReturn(timestamp);
         when(mockRequest.id()).thenReturn(REQUEST_ID);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
 
         ArgumentCaptor<Log> logCaptor = ArgumentCaptor.forClass(Log.class);
@@ -104,7 +106,7 @@ class LogRequestProcessorTest extends AbstractV4ProcessorTest {
         when(loggingContext.getCondition()).thenReturn(null);
         when(loggingContext.entrypointRequest()).thenReturn(false);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
 
         verify(mockMetrics).setLog(any(Log.class));
@@ -115,7 +117,7 @@ class LogRequestProcessorTest extends AbstractV4ProcessorTest {
         when(loggingContext.getCondition()).thenReturn("");
         when(loggingContext.entrypointRequest()).thenReturn(false);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
 
         verify(mockMetrics).setLog(any(Log.class));
@@ -125,7 +127,7 @@ class LogRequestProcessorTest extends AbstractV4ProcessorTest {
     void shouldSetClientRequestWhenEntrypointRequestLogEnabled() {
         when(loggingContext.entrypointRequest()).thenReturn(true);
 
-        final TestObserver<Void> obs = cut.execute(ctx).test();
+        final TestObserver<Void> obs = cut.execute(spyCtx).test();
         obs.assertComplete();
 
         ArgumentCaptor<Log> logCaptor = ArgumentCaptor.forClass(Log.class);

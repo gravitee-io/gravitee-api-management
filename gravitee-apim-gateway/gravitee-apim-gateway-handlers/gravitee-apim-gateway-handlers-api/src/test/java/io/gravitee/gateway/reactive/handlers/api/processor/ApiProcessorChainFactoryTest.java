@@ -30,12 +30,12 @@ import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsPreflightReq
 import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPrefixProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.logging.LogRequestProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.rxjava3.core.Flowable;

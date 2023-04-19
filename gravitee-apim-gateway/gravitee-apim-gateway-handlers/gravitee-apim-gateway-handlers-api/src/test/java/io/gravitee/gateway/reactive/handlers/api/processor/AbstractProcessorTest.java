@@ -44,6 +44,9 @@ public class AbstractProcessorTest {
     @Mock
     protected MutableRequest mockRequest;
 
+    @Mock
+    protected Metrics mockMetrics;
+
     protected HttpHeaders spyRequestHeaders;
 
     @Spy
