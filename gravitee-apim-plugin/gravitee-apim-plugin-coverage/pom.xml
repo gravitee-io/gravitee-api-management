@@ -119,10 +119,14 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Engine -->
         <dependency>
-            <groupId>io.gravitee.apim.plugin.engine</groupId>
-            <artifactId>gravitee-apim-plugin-engine-handler</artifactId>
+            <groupId>io.gravitee.apim.plugin.reactor</groupId>
+            <artifactId>gravitee-apim-plugin-reactor-handler</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.reactor</groupId>
+            <artifactId>gravitee-apim-plugin-reactor-v4</artifactId>
             <version>${project.version}</version>
         </dependency>
 
