@@ -29,9 +29,11 @@ import io.gravitee.repository.management.model.MembershipReferenceType;
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.*;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
@@ -335,27 +337,52 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
     ) {
         final List<Membership> memberships = jdbcTemplate.query(
             stringQuery,
-            (PreparedStatement ps) -> {
-                int idx = 1;
-                if (memberId != null) {
-                    ps.setString(idx++, memberId);
-                }
-                if (memberType != null) {
-                    ps.setString(idx++, memberType.name());
-                }
-                if (referenceId != null) {
-                    ps.setString(idx++, referenceId);
-                }
-                if (referenceType != null) {
-                    ps.setString(idx++, referenceType.name());
-                }
-                if (roleId != null) {
-                    ps.setString(idx++, roleId);
-                }
-            },
+            preparedStatement(memberId, memberType, referenceId, referenceType, roleId),
             getOrm().getRowMapper()
         );
         return new HashSet<>(memberships);
+    }
+
+    private Stream<Membership> queryForStream(
+        final String memberId,
+        final MembershipMemberType memberType,
+        final String referenceId,
+        final MembershipReferenceType referenceType,
+        final String roleId,
+        final String stringQuery
+    ) {
+        return jdbcTemplate.queryForStream(
+            stringQuery,
+            preparedStatement(memberId, memberType, referenceId, referenceType, roleId),
+            getOrm().getRowMapper()
+        );
+    }
+
+    private static PreparedStatementSetter preparedStatement(
+        String memberId,
+        MembershipMemberType memberType,
+        String referenceId,
+        MembershipReferenceType referenceType,
+        String roleId
+    ) {
+        return (PreparedStatement ps) -> {
+            int idx = 1;
+            if (memberId != null) {
+                ps.setString(idx++, memberId);
+            }
+            if (memberType != null) {
+                ps.setString(idx++, memberType.name());
+            }
+            if (referenceId != null) {
+                ps.setString(idx++, referenceId);
+            }
+            if (referenceType != null) {
+                ps.setString(idx++, referenceType.name());
+            }
+            if (roleId != null) {
+                ps.setString(idx++, roleId);
+            }
+        };
     }
 
     @Override
@@ -376,6 +403,22 @@ public class JdbcMembershipRepository extends JdbcAbstractCrudRepository<Members
         } catch (final Exception ex) {
             LOGGER.error("Failed to find membership by user and membership type", ex);
             throw new TechnicalException("Failed to find membership by user and membership type", ex);
+        }
+    }
+
+    @Override
+    public Stream<String> findRefIdsByMemberIdAndMemberTypeAndReferenceType(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType
+    ) throws TechnicalException {
+        try {
+            final String query =
+                "select reference_id from " + getOrm().getTableName() + " where member_id = ? and member_type = ? and reference_type = ? ";
+            return queryForStream(memberId, memberType, null, referenceType, null, query).map(Membership::getReferenceId);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find reference ids by member and reference type", ex);
+            throw new TechnicalException("Failed to find reference ids by member and reference type", ex);
         }
     }
 
