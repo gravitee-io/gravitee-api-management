@@ -23,6 +23,7 @@ import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -30,6 +31,8 @@ import java.util.Set;
  */
 public interface ApplicationMongoRepositoryCustom {
     Page<ApplicationMongo> search(ApplicationCriteria applicationCriteria, final Pageable pageable, final Sortable sortable);
+
+    Stream<String> searchIds(ApplicationCriteria applicationCriteria);
 
     Set<ApplicationMongo> findByIds(Collection<String> ids, Sortable sortable);
 }
