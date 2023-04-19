@@ -159,5 +159,5 @@ db.getCollection(`${prefix}custom_user_fields`).reIndex();
 
 // "clientRegistrationProviders" collection
 db.getCollection(`${prefix}client_registration_providers`).dropIndexes();
-clientRegistrationProviders.createIndex({ environmentId: 1 }, { name: "e1" });
+db.getCollection(`${prefix}client_registration_providers`).createIndex({ environmentId: 1 }, { name: "e1" });
 db.getCollection(`${prefix}client_registration_providers`).reIndex();
