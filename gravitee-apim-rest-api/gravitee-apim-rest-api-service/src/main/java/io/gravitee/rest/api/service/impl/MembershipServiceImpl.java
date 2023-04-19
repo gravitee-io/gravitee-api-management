@@ -64,6 +64,8 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -1058,10 +1060,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     ) {
         try {
             return membershipRepository
-                .findByMemberIdAndMemberTypeAndReferenceType(memberId, convert(memberType), convert(referenceType))
-                .stream()
-                .map(io.gravitee.repository.management.model.Membership::getReferenceId)
-                .collect(Collectors.toSet());
+                .findRefIdsByMemberIdAndMemberTypeAndReferenceType(memberId, convert(memberType), convert(referenceType))
+                .collect(toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to get memberships for {} ", memberId, ex);
             throw new TechnicalManagementException("An error occurs while trying to get memberships for " + memberId, ex);

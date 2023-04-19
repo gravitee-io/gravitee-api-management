@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -89,6 +90,12 @@ public interface MembershipRepository extends FindAllRepository<Membership> {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType
+    ) throws TechnicalException;
+
+    Stream<String> findRefIdsByMemberIdAndMemberTypeAndReferenceType(
         String memberId,
         MembershipMemberType memberType,
         MembershipReferenceType referenceType
