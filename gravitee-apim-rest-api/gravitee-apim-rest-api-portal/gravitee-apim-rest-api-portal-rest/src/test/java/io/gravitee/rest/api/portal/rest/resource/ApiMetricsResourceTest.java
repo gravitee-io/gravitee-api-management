@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
