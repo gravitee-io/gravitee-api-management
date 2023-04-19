@@ -52,7 +52,6 @@ import io.gravitee.gateway.reactive.v4.flow.selection.ChannelSelectorConditionFi
 import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorConditionFilter;
 import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
-import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -197,12 +196,5 @@ public class ApiHandlerConfiguration {
     @Bean
     public SubscriptionCacheService subscriptionService(ApiKeyCacheService apiKeyService) {
         return new SubscriptionCacheService(apiKeyService);
-    }
-
-    @Bean
-    public io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory v4ApiProcessorChainFactory(
-        final ReporterService reporterService
-    ) {
-        return new io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory(configuration, node, reporterService);
     }
 }

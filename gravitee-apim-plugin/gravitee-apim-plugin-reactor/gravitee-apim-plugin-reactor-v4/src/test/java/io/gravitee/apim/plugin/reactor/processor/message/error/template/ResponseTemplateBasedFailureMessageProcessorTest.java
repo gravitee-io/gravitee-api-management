@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.template;
+package io.gravitee.apim.plugin.reactor.processor.message.error.template;
 
 import static io.gravitee.gateway.api.http.HttpHeaderNames.ACCEPT;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import io.gravitee.apim.plugin.reactor.processor.AbstractV4ProcessorTest;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
@@ -27,7 +28,6 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;

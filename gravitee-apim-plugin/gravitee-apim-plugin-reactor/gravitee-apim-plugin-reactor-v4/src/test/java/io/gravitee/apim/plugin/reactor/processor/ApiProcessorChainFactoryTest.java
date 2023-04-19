@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor;
+package io.gravitee.apim.plugin.reactor.processor;
 
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.processor.message.error.SimpleFailureMessageProcessor;
+import io.gravitee.apim.plugin.reactor.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -39,8 +41,6 @@ import io.gravitee.gateway.reactive.handlers.api.processor.transaction.Transacti
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.SimpleFailureMessageProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;

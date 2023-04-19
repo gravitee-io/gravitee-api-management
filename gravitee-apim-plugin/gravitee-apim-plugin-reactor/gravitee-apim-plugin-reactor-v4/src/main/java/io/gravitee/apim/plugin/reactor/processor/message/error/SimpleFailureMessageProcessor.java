@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error;
+package io.gravitee.apim.plugin.reactor.processor.message.error;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

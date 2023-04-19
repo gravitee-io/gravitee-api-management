@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.template;
+package io.gravitee.apim.plugin.reactor.processor.message.error.template;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 
+import io.gravitee.apim.plugin.reactor.processor.message.error.AbstractFailureMessageProcessor;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.el.TemplateEngine;
@@ -28,8 +29,6 @@ import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.handlers.api.processor.error.template.EvaluableExecutionFailure;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.AbstractFailureMessageProcessor;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import java.util.List;

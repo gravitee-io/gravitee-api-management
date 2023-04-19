@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error;
+package io.gravitee.apim.plugin.reactor.processor.message.error;
 
 import static io.gravitee.gateway.api.http.HttpHeaderNames.ACCEPT;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.plugin.reactor.processor.AbstractV4ProcessorTest;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
@@ -29,7 +30,6 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.handlers.api.processor.error.ExecutionFailureAsJson;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;

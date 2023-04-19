@@ -13,37 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor.message.reporter;
+package io.gravitee.apim.plugin.reactor.processor.message.reporter;
 
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.MessageProcessor;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
-import io.gravitee.gateway.reactive.core.v4.analytics.sampling.MessageSamplingStrategy;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.MessageAnalyticsHelper;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.MessageCounters;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.MessageReporter;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request.message.MessageLogEntrypointRequest;
+import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.message.MessageLogEntrypointResponse;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.v4.common.MessageConnectorType;
 import io.gravitee.reporter.api.v4.common.MessageOperation;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EntrypointRequestReporterMessageProcessor implements MessageProcessor {
+public class EntrypointResponseReporterMessageProcessor implements MessageProcessor {
 
     public static final String ID = "message-processor-entrypoint-request-reporter";
 
     private final MessageReporter messageReporter;
 
-    public EntrypointRequestReporterMessageProcessor(final ReporterService reporterService) {
+    public EntrypointResponseReporterMessageProcessor(final ReporterService reporterService) {
         this.messageReporter = new MessageReporter(reporterService);
     }
 
@@ -64,37 +62,30 @@ public class EntrypointRequestReporterMessageProcessor implements MessageProcess
                 return Completable.complete();
             }
 
-            MessageSamplingStrategy messageSamplingStrategy = analyticsContext.getMessageSamplingStrategy();
             MessageCounters atomicCounters = new MessageCounters();
-            AtomicLong lastMessageTimestamp = new AtomicLong(-1);
             return ctx
-                .request()
+                .response()
                 .onMessage(message -> {
                     MessageCounters.Counters counters = atomicCounters.increment(message);
-                    if (
-                        MessageAnalyticsHelper.computeRecordable(
-                            message,
-                            messageSamplingStrategy,
-                            counters.messageCount(),
-                            lastMessageTimestamp.get()
-                        )
-                    ) {
-                        lastMessageTimestamp.set(message.timestamp());
-                        MessageMetrics metrics = messageReporter.reportMessageMetrics(
+                    if (MessageAnalyticsHelper.isRecordable(message)) {
+                        MessageMetrics messageMetrics = messageReporter.reportMessageMetricsWithLatency(
                             ctx,
-                            MessageOperation.PUBLISH,
+                            MessageOperation.SUBSCRIBE,
                             MessageConnectorType.ENTRYPOINT,
                             message,
                             counters
                         );
+
                         final LoggingContext loggingContext = analyticsContext.getLoggingContext();
-                        if (loggingContext != null && loggingContext.entrypointRequest()) {
-                            return messageReporter.reportConditionalMessageLog(
-                                ctx,
-                                metrics,
-                                loggingContext,
+                        if (
+                            loggingContext != null &&
+                            loggingContext.entrypointResponse() &&
+                            MessageAnalyticsHelper.isRecordableWithLogging(message)
+                        ) {
+                            return messageReporter.reportMessageLog(
+                                messageMetrics,
                                 message,
-                                new MessageLogEntrypointRequest(loggingContext, message)
+                                new MessageLogEntrypointResponse(loggingContext, message)
                             );
                         }
                     }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error;
+package io.gravitee.apim.plugin.reactor.processor.message.error;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
 
@@ -59,15 +59,15 @@ public abstract class AbstractFailureMessageProcessor implements MessageProcesso
             return ctx
                 .request()
                 .onMessages(upstream ->
-                    upstream.onErrorResumeNext(throwable -> {
-                        return toMessageFlowable(ctx, throwable)
+                    upstream.onErrorResumeNext(throwable ->
+                        toMessageFlowable(ctx, throwable)
                             .doOnNext(message -> {
                                 errorEmitter.onNext(message);
                                 errorEmitter.onComplete();
                             })
                             .ignoreElements()
-                            .andThen(Flowable.empty());
-                    })
+                            .andThen(Flowable.empty())
+                    )
                 )
                 .andThen(
                     ctx
@@ -75,13 +75,7 @@ public abstract class AbstractFailureMessageProcessor implements MessageProcesso
                         .onMessages(upstream ->
                             errorEmitter
                                 .materialize()
-                                .mergeWith(
-                                    upstream
-                                        .onErrorResumeNext(throwable -> {
-                                            return toMessageFlowable(ctx, throwable);
-                                        })
-                                        .materialize()
-                                )
+                                .mergeWith(upstream.onErrorResumeNext(throwable -> toMessageFlowable(ctx, throwable)).materialize())
                                 .dematerialize(bufferNotification -> bufferNotification)
                         )
                 );

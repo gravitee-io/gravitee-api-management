@@ -23,6 +23,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.processor.ApiProcessorChainFactory;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
@@ -39,7 +40,6 @@ import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -135,7 +135,6 @@ class V4ApiReactorFactoryTest {
                 apiServicePluginManager,
                 platformPolicyChainFactory,
                 organizationManager,
-                apiProcessorChainFactory,
                 flowResolverFactory,
                 v4FlowResolverFactory,
                 requestTimeoutConfiguration,

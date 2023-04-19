@@ -1,4 +1,4 @@
-/**
+package io.gravitee.apim.plugin.reactor.processor.message.reporter;/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor.message.reporter;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_MESSAGE_RECORDABLE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_MESSAGE_RECORDABLE_WITH_LOGGING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
@@ -24,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.processor.AbstractV4ProcessorTest;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
@@ -36,8 +35,7 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.message.MessageLogEntrypointResponse;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
+import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request.message.MessageLogEntrypointRequest;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.v4.common.MessageConnectorType;
@@ -46,7 +44,6 @@ import io.gravitee.reporter.api.v4.log.MessageLog;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -63,7 +60,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class EntrypointResponseReporterMessageProcessorTest extends AbstractV4ProcessorTest {
+class EntrypointRequestReporterMessageProcessorTest extends AbstractV4ProcessorTest {
 
     @Mock
     private EntrypointConnector entrypointConnector;
@@ -71,12 +68,12 @@ class EntrypointResponseReporterMessageProcessorTest extends AbstractV4Processor
     @Mock
     private ReporterService reporterService;
 
-    private EntrypointResponseReporterMessageProcessor reporterMessageProcessor;
+    private EntrypointRequestReporterMessageProcessor reporterMessageProcessor;
     private Analytics analytics;
 
     @BeforeEach
     public void beforeEach() {
-        reporterMessageProcessor = new EntrypointResponseReporterMessageProcessor(reporterService);
+        reporterMessageProcessor = new EntrypointRequestReporterMessageProcessor(reporterService);
 
         when(mockMetrics.isEnabled()).thenReturn(true);
         analytics = prepareAnalytics();
@@ -101,40 +98,17 @@ class EntrypointResponseReporterMessageProcessorTest extends AbstractV4Processor
     }
 
     @Test
-    void should_not_report_metrics_when_message_is_not_recordable() {
+    void should_report_metrics_when_analytics_is_enabled() {
         reporterMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<Function<Message, Maybe<Message>>> requestMessagesCaptor = ArgumentCaptor.forClass(Function.class);
-        verify(mockResponse, times(2)).onMessage(requestMessagesCaptor.capture());
+        verify(mockRequest).onMessage(requestMessagesCaptor.capture());
 
         Function<Message, Maybe<Message>> requestMessages = requestMessagesCaptor.getValue();
-        DefaultMessage message = DefaultMessage
-            .builder()
-            .id("id")
-            .content(Buffer.buffer())
-            .attributes(Map.of(ATTR_INTERNAL_MESSAGE_RECORDABLE, false))
-            .build();
+        DefaultMessage message = new DefaultMessage("1");
         Message returnMessage = requestMessages.apply(message).blockingGet();
         assertThat(message).isSameAs(returnMessage);
-        verifyNoInteractions(reporterService);
-    }
-
-    @Test
-    void should_report_metrics_when_message_is_recordable() {
-        reporterMessageProcessor.execute(ctx).test().assertResult();
-
-        ArgumentCaptor<Function<Message, Maybe<Message>>> requestMessagesCaptor = ArgumentCaptor.forClass(Function.class);
-        verify(mockResponse, times(2)).onMessage(requestMessagesCaptor.capture());
-
-        Function<Message, Maybe<Message>> requestMessages = requestMessagesCaptor.getValue();
-        DefaultMessage message = DefaultMessage
-            .builder()
-            .id("id")
-            .content(Buffer.buffer())
-            .attributes(Map.of(ATTR_INTERNAL_MESSAGE_RECORDABLE, true))
-            .build();
-        Message returnMessage = requestMessages.apply(message).blockingGet();
-        assertThat(message).isSameAs(returnMessage);
+        assertThat(message.<Boolean>attribute(ATTR_INTERNAL_MESSAGE_RECORDABLE)).isTrue();
         ArgumentCaptor<MessageMetrics> metricsCaptor = ArgumentCaptor.forClass(MessageMetrics.class);
         verify(reporterService, times(1)).report(metricsCaptor.capture());
 
@@ -144,37 +118,20 @@ class EntrypointResponseReporterMessageProcessorTest extends AbstractV4Processor
         assertThat(metrics.getCorrelationId()).isNotNull();
         assertThat(metrics.getParentCorrelationId()).isNull();
         assertThat(metrics.getCount()).isEqualTo(1);
-        assertThat(metrics.getOperation()).isEqualTo(MessageOperation.SUBSCRIBE);
+        assertThat(metrics.getOperation()).isEqualTo(MessageOperation.PUBLISH);
         assertThat(metrics.getConnectorType()).isEqualTo(MessageConnectorType.ENTRYPOINT);
         assertThat(metrics.getConnectorId()).isEqualTo("entrypointId");
     }
 
-    private static Analytics prepareAnalytics() {
-        Analytics analytics = new Analytics();
-        Sampling messageSampling = new Sampling();
-        messageSampling.setType(SamplingType.COUNT);
-        analytics.setMessageSampling(messageSampling);
-        Logging logging = new Logging();
-        LoggingMode mode = new LoggingMode();
-        mode.setEntrypoint(true);
-        logging.setMode(mode);
-        LoggingPhase loggingPhase = new LoggingPhase();
-        loggingPhase.setResponse(true);
-        logging.setPhase(loggingPhase);
-        analytics.setLogging(logging);
-        return analytics;
-    }
-
     @Test
-    void should_report_metrics_and_logs_when_message_is_recordable_with_log() {
+    void should_report_metrics_and_logs_when_logging_is_enabled() {
         Logging logging = new Logging();
         LoggingMode mode = new LoggingMode();
         mode.setEntrypoint(true);
         logging.setMode(mode);
         LoggingPhase loggingPhase = new LoggingPhase();
-        loggingPhase.setResponse(true);
+        loggingPhase.setRequest(true);
         logging.setPhase(loggingPhase);
-        logging.setMessageCondition("{#message.id == '1'}");
         analytics.setLogging(logging);
         AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
@@ -182,17 +139,13 @@ class EntrypointResponseReporterMessageProcessorTest extends AbstractV4Processor
         reporterMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<Function<Message, Maybe<Message>>> requestMessagesCaptor = ArgumentCaptor.forClass(Function.class);
-        verify(mockResponse, times(2)).onMessage(requestMessagesCaptor.capture());
+        verify(mockRequest).onMessage(requestMessagesCaptor.capture());
 
         Function<Message, Maybe<Message>> requestMessages = requestMessagesCaptor.getValue();
-        DefaultMessage message = DefaultMessage
-            .builder()
-            .id("id")
-            .content(Buffer.buffer())
-            .attributes(Map.of(ATTR_INTERNAL_MESSAGE_RECORDABLE, true, ATTR_INTERNAL_MESSAGE_RECORDABLE_WITH_LOGGING, true))
-            .build();
+        DefaultMessage message = new DefaultMessage("1");
         Message returnMessage = requestMessages.apply(message).blockingGet();
         assertThat(message).isSameAs(returnMessage);
+        assertThat(message.<Boolean>attribute(ATTR_INTERNAL_MESSAGE_RECORDABLE)).isTrue();
         ArgumentCaptor<Reportable> reportableArgumentCaptor = ArgumentCaptor.forClass(Reportable.class);
         verify(reporterService, times(2)).report(reportableArgumentCaptor.capture());
 
@@ -203,7 +156,7 @@ class EntrypointResponseReporterMessageProcessorTest extends AbstractV4Processor
         assertThat(metrics.getCorrelationId()).isNotNull();
         assertThat(metrics.getParentCorrelationId()).isNull();
         assertThat(metrics.getCount()).isEqualTo(1);
-        assertThat(metrics.getOperation()).isEqualTo(MessageOperation.SUBSCRIBE);
+        assertThat(metrics.getOperation()).isEqualTo(MessageOperation.PUBLISH);
         assertThat(metrics.getConnectorType()).isEqualTo(MessageConnectorType.ENTRYPOINT);
         assertThat(metrics.getConnectorId()).isEqualTo("entrypointId");
 
@@ -212,20 +165,69 @@ class EntrypointResponseReporterMessageProcessorTest extends AbstractV4Processor
         assertThat(messageLog.getClientIdentifier()).isEqualTo("clientIdentifier");
         assertThat(messageLog.getCorrelationId()).isNotNull();
         assertThat(messageLog.getParentCorrelationId()).isNull();
-        assertThat(messageLog.getOperation()).isEqualTo(MessageOperation.SUBSCRIBE);
+        assertThat(messageLog.getOperation()).isEqualTo(MessageOperation.PUBLISH);
         assertThat(messageLog.getConnectorType()).isEqualTo(MessageConnectorType.ENTRYPOINT);
         assertThat(messageLog.getConnectorId()).isEqualTo("entrypointId");
-        assertThat(messageLog.getMessage()).isInstanceOf(MessageLogEntrypointResponse.class);
+        assertThat(messageLog.getMessage()).isInstanceOf(MessageLogEntrypointRequest.class);
     }
 
     @Test
-    void should_report_metrics_but_not_logs_when_message_is_recordable_without_log() {
+    void should_report_metrics_and_logs_when_message_condition_is_true() {
         Logging logging = new Logging();
         LoggingMode mode = new LoggingMode();
         mode.setEntrypoint(true);
         logging.setMode(mode);
         LoggingPhase loggingPhase = new LoggingPhase();
-        loggingPhase.setResponse(true);
+        loggingPhase.setRequest(true);
+        logging.setPhase(loggingPhase);
+        logging.setMessageCondition("{#message.id == '1'}");
+        analytics.setLogging(logging);
+        AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
+
+        reporterMessageProcessor.execute(ctx).test().assertResult();
+
+        ArgumentCaptor<Function<Message, Maybe<Message>>> requestMessagesCaptor = ArgumentCaptor.forClass(Function.class);
+        verify(mockRequest).onMessage(requestMessagesCaptor.capture());
+
+        Function<Message, Maybe<Message>> requestMessages = requestMessagesCaptor.getValue();
+        DefaultMessage message = DefaultMessage.builder().id("1").content(Buffer.buffer("content")).build();
+        Message returnMessage = requestMessages.apply(message).blockingGet();
+        assertThat(message).isSameAs(returnMessage);
+        assertThat(message.<Boolean>attribute(ATTR_INTERNAL_MESSAGE_RECORDABLE)).isTrue();
+        ArgumentCaptor<Reportable> reportableArgumentCaptor = ArgumentCaptor.forClass(Reportable.class);
+        verify(reporterService, times(2)).report(reportableArgumentCaptor.capture());
+
+        List<Reportable> reportables = reportableArgumentCaptor.getAllValues();
+        MessageMetrics metrics = (MessageMetrics) reportables.get(0);
+        assertThat(metrics.getRequestId()).isEqualTo("requestId");
+        assertThat(metrics.getClientIdentifier()).isEqualTo("clientIdentifier");
+        assertThat(metrics.getCorrelationId()).isNotNull();
+        assertThat(metrics.getParentCorrelationId()).isNull();
+        assertThat(metrics.getCount()).isEqualTo(1);
+        assertThat(metrics.getOperation()).isEqualTo(MessageOperation.PUBLISH);
+        assertThat(metrics.getConnectorType()).isEqualTo(MessageConnectorType.ENTRYPOINT);
+        assertThat(metrics.getConnectorId()).isEqualTo("entrypointId");
+
+        MessageLog messageLog = (MessageLog) reportables.get(1);
+        assertThat(messageLog.getRequestId()).isEqualTo("requestId");
+        assertThat(messageLog.getClientIdentifier()).isEqualTo("clientIdentifier");
+        assertThat(messageLog.getCorrelationId()).isNotNull();
+        assertThat(messageLog.getParentCorrelationId()).isNull();
+        assertThat(messageLog.getOperation()).isEqualTo(MessageOperation.PUBLISH);
+        assertThat(messageLog.getConnectorType()).isEqualTo(MessageConnectorType.ENTRYPOINT);
+        assertThat(messageLog.getConnectorId()).isEqualTo("entrypointId");
+        assertThat(messageLog.getMessage()).isInstanceOf(MessageLogEntrypointRequest.class);
+    }
+
+    @Test
+    void should_report_metrics_but_not_logs_when_message_condition_is_false() {
+        Logging logging = new Logging();
+        LoggingMode mode = new LoggingMode();
+        mode.setEntrypoint(true);
+        logging.setMode(mode);
+        LoggingPhase loggingPhase = new LoggingPhase();
+        loggingPhase.setRequest(true);
         logging.setPhase(loggingPhase);
         logging.setMessageCondition("{#message.id == 'bad'}");
         analytics.setLogging(logging);
@@ -235,29 +237,33 @@ class EntrypointResponseReporterMessageProcessorTest extends AbstractV4Processor
         reporterMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<Function<Message, Maybe<Message>>> requestMessagesCaptor = ArgumentCaptor.forClass(Function.class);
-        verify(mockResponse, times(2)).onMessage(requestMessagesCaptor.capture());
+        verify(mockRequest).onMessage(requestMessagesCaptor.capture());
 
         Function<Message, Maybe<Message>> requestMessages = requestMessagesCaptor.getValue();
-        DefaultMessage message = DefaultMessage
-            .builder()
-            .id("id")
-            .content(Buffer.buffer())
-            .attributes(Map.of(ATTR_INTERNAL_MESSAGE_RECORDABLE, true, ATTR_INTERNAL_MESSAGE_RECORDABLE_WITH_LOGGING, false))
-            .build();
+        DefaultMessage message = DefaultMessage.builder().id("1").content(Buffer.buffer("content")).build();
         Message returnMessage = requestMessages.apply(message).blockingGet();
         assertThat(message).isSameAs(returnMessage);
         assertThat(message.<Boolean>attribute(ATTR_INTERNAL_MESSAGE_RECORDABLE)).isTrue();
-        ArgumentCaptor<MessageMetrics> argumentCaptor = ArgumentCaptor.forClass(MessageMetrics.class);
-        verify(reporterService, times(1)).report(argumentCaptor.capture());
+        ArgumentCaptor<Reportable> reportableArgumentCaptor = ArgumentCaptor.forClass(Reportable.class);
+        verify(reporterService, times(1)).report(reportableArgumentCaptor.capture());
 
-        MessageMetrics metrics = argumentCaptor.getValue();
+        Reportable reportable = reportableArgumentCaptor.getValue();
+        MessageMetrics metrics = (MessageMetrics) reportable;
         assertThat(metrics.getRequestId()).isEqualTo("requestId");
         assertThat(metrics.getClientIdentifier()).isEqualTo("clientIdentifier");
         assertThat(metrics.getCorrelationId()).isNotNull();
         assertThat(metrics.getParentCorrelationId()).isNull();
         assertThat(metrics.getCount()).isEqualTo(1);
-        assertThat(metrics.getOperation()).isEqualTo(MessageOperation.SUBSCRIBE);
+        assertThat(metrics.getOperation()).isEqualTo(MessageOperation.PUBLISH);
         assertThat(metrics.getConnectorType()).isEqualTo(MessageConnectorType.ENTRYPOINT);
         assertThat(metrics.getConnectorId()).isEqualTo("entrypointId");
+    }
+
+    private static Analytics prepareAnalytics() {
+        Analytics analytics = new Analytics();
+        Sampling messageSampling = new Sampling();
+        messageSampling.setType(SamplingType.COUNT);
+        analytics.setMessageSampling(messageSampling);
+        return analytics;
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.plugin.reactor;
 
+import io.gravitee.apim.plugin.reactor.processor.ApiProcessorChainFactory;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -39,7 +40,6 @@ import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvi
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
@@ -106,7 +106,6 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
         final ApiServicePluginManager apiServicePluginManager,
         @Qualifier("platformPolicyChainFactory") final PolicyChainFactory platformPolicyChainFactory,
         final OrganizationManager organizationManager,
-        final ApiProcessorChainFactory apiProcessorChainFactory,
         final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         final FlowResolverFactory v4FlowResolverFactory,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
@@ -121,7 +120,7 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
         this.apiServicePluginManager = apiServicePluginManager;
         this.platformPolicyChainFactory = platformPolicyChainFactory;
         this.organizationManager = organizationManager;
-        this.apiProcessorChainFactory = apiProcessorChainFactory;
+        this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
         this.flowResolverFactory = flowResolverFactory;
         this.v4FlowResolverFactory = v4FlowResolverFactory;
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;

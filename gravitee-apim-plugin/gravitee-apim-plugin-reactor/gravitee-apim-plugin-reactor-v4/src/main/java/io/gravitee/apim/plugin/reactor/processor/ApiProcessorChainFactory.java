@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.processor;
+package io.gravitee.apim.plugin.reactor.processor;
 
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 
+import io.gravitee.apim.plugin.reactor.processor.message.error.SimpleFailureMessageProcessor;
+import io.gravitee.apim.plugin.reactor.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
+import io.gravitee.apim.plugin.reactor.processor.message.reporter.EntrypointRequestReporterMessageProcessor;
+import io.gravitee.apim.plugin.reactor.processor.message.reporter.EntrypointResponseReporterMessageProcessor;
+import io.gravitee.apim.plugin.reactor.processor.reporter.EventNativeReporterProcessor;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -40,11 +45,6 @@ import io.gravitee.gateway.reactive.handlers.api.processor.transaction.Transacti
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.SimpleFailureMessageProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.error.template.ResponseTemplateBasedFailureMessageProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.reporter.EntrypointRequestReporterMessageProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.message.reporter.EntrypointResponseReporterMessageProcessor;
-import io.gravitee.gateway.reactive.handlers.api.v4.processor.reporter.EventNativeReporterProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -163,6 +163,7 @@ public class ApiProcessorChainFactory {
         return processors;
     }
 
+    // TODO: override for message reactor plugin
     public ProcessorChain afterEntrypointRequest(final Api api) {
         List<Processor> processors = new ArrayList<>();
 
@@ -175,6 +176,7 @@ public class ApiProcessorChainFactory {
         return new ProcessorChain("processor-chain-after-entrypoint-request-message", processors);
     }
 
+    // TODO: override for message reactor plugin
     public ProcessorChain beforeEntrypointResponse(final Api api) {
         List<Processor> processors = new ArrayList<>();
         io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
@@ -186,6 +188,7 @@ public class ApiProcessorChainFactory {
         return new ProcessorChain("processor-chain-before-entrypoint-response-message", processors);
     }
 
+    // TODO: override for message reactor plugin
     public ProcessorChain afterApiExecutionMessage(final Api api) {
         List<Processor> processors = new ArrayList<>();
 
@@ -225,6 +228,7 @@ public class ApiProcessorChainFactory {
      *
      * @return the chain of processors.
      */
+    // TODO: override for message reactor plugin
     public ProcessorChain afterHandle(final Api api) {
         final List<Processor> processors = new ArrayList<>();
 
