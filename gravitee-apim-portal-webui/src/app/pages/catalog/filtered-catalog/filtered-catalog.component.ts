@@ -189,14 +189,17 @@ export class FilteredCatalogComponent implements OnInit {
       });
   }
 
-  async _loadPromotedApi(requestParams) {
+  _loadPromotedApi(requestParams) {
     return this.apiService
       .getApis(requestParams)
       .toPromise()
-      .then(async response => {
+      .then(response => {
         const promoted = response.data[0];
         if (promoted) {
-          this.promotedMetrics = await this.apiService.getApiMetricsByApiId({ apiId: promoted.id }).toPromise();
+          this.apiService
+            .getApiMetricsByApiId({ apiId: promoted.id })
+            .toPromise()
+            .then(metrics => (this.promotedMetrics = metrics));
           this.promotedApiPath = `/catalog/api/${promoted.id}`;
           this.empty = false;
         }
@@ -228,17 +231,12 @@ export class FilteredCatalogComponent implements OnInit {
         this.paginationData = metadata.pagination;
 
         this.allApis = data.map(api => {
-          const metrics = this.apiService.getApiMetricsByApiId({ apiId: api.id }).toPromise();
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          api.states = this.apiStates.transform(api);
+          api.labels = this.apiLabels.transform(api);
 
-          const item = metrics.then(() => {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            api.states = this.apiStates.transform(api);
-            api.labels = this.apiLabels.transform(api);
-            return api;
-          });
-
-          return { item, metrics };
+          return { item: Promise.resolve(api), metrics: this.apiService.getApiMetricsByApiId({ apiId: api.id }).toPromise() };
         });
 
         if (this.hasCategoryMode() && this.categories == null) {
