@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -48,28 +49,10 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
     @Override
     public Page<ApplicationMongo> search(final ApplicationCriteria criteria, final Pageable pageable, Sortable sortable) {
-        final Query query = new Query();
+        final Query query = buildSearchCriteria(criteria);
 
         query.fields().exclude("background");
         query.fields().exclude("picture");
-
-        if (criteria != null) {
-            if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
-                query.addCriteria(where("id").in(criteria.getIds()));
-            }
-            if (criteria.getEnvironmentIds() != null) {
-                query.addCriteria(where("environmentId").in(criteria.getEnvironmentIds()));
-            }
-            if (criteria.getName() != null && !criteria.getName().isEmpty()) {
-                query.addCriteria(where("name").regex(criteria.getName(), "i"));
-            }
-            if (criteria.getStatus() != null) {
-                query.addCriteria(where("status").is(criteria.getStatus()));
-            }
-            if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
-                query.addCriteria(where("groups").in(criteria.getGroups()));
-            }
-        }
 
         Sort.Direction direction = toSortDirection(sortable);
         Sort.Order order;
@@ -90,6 +73,37 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
         List<ApplicationMongo> apps = mongoTemplate.find(query, ApplicationMongo.class);
 
         return new Page<>(apps, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
+    }
+
+    @Override
+    public Stream<String> searchIds(ApplicationCriteria criteria) {
+        final Query query = buildSearchCriteria(criteria);
+        query.fields().include("id");
+        return mongoTemplate.stream(query, ApplicationMongo.class).stream().map(ApplicationMongo::getId);
+    }
+
+    private Query buildSearchCriteria(ApplicationCriteria criteria) {
+        Query query = new Query();
+
+        if (criteria != null) {
+            if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
+                query.addCriteria(where("id").in(criteria.getIds()));
+            }
+            if (criteria.getEnvironmentIds() != null) {
+                query.addCriteria(where("environmentId").in(criteria.getEnvironmentIds()));
+            }
+            if (criteria.getName() != null && !criteria.getName().isEmpty()) {
+                query.addCriteria(where("name").regex(criteria.getName(), "i"));
+            }
+            if (criteria.getStatus() != null) {
+                query.addCriteria(where("status").is(criteria.getStatus()));
+            }
+            if (criteria.getGroups() != null && !criteria.getGroups().isEmpty()) {
+                query.addCriteria(where("groups").in(criteria.getGroups()));
+            }
+        }
+
+        return query;
     }
 
     private Sort.Direction toSortDirection(Sortable sortable) {

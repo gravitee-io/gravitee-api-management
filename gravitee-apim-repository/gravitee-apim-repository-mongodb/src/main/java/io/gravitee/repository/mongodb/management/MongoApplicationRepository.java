@@ -141,6 +141,9 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
     @Override
     public Set<String> searchIds(ApplicationCriteria applicationCriteria, Sortable sortable) {
+        if (sortable == null) {
+            return internalApplicationRepo.searchIds(applicationCriteria).collect(Collectors.toSet());
+        }
         final Page<ApplicationMongo> applicationsMongo = internalApplicationRepo.search(applicationCriteria, null, sortable);
         return applicationsMongo
             .getContent()
