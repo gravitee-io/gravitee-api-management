@@ -80,9 +80,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         // init
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
-        doReturn(emptySet())
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
+        doReturn(userApi).when(apiService).findById(eq(GraviteeContext.getExecutionContext()), eq(API));
 
         // test
         final Response response = target(API).path("metrics").request().get();
