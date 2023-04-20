@@ -52,6 +52,7 @@ public class ApiConverter {
 
         apiEntity.setId(api.getId());
         apiEntity.setCrossId(api.getCrossId());
+        apiEntity.setEnvironmentId(api.getEnvironmentId());
         apiEntity.setName(api.getName());
         apiEntity.setDeployedAt(api.getDeployedAt());
         apiEntity.setCreatedAt(api.getCreatedAt());
