@@ -3,13 +3,21 @@ const prefix = "";
 // "apis" collection
 db.getCollection(`${prefix}apis`).dropIndexes();
 db.getCollection(`${prefix}apis`).createIndex({ visibility: 1 }, { name: "v1" });
+<<<<<<< HEAD
 db.getCollection(`${prefix}apis`).createIndex({ group: 1 }, { name: "g1" });
+=======
+db.getCollection(`${prefix}apis`).createIndex({ groups: 1 }, { name: "g1" });
+>>>>>>> 9af17f3e46 (fix: index apis and applications groups using proper field name)
 db.getCollection(`${prefix}apis`).createIndex({ name: 1 }, { name: "n1" });
 db.getCollection(`${prefix}apis`).reIndex();
 
 // "applications" collection
 db.getCollection(`${prefix}applications`).dropIndexes();
+<<<<<<< HEAD
 db.getCollection(`${prefix}applications`).createIndex({ group: 1 }, { name: "g1" });
+=======
+db.getCollection(`${prefix}applications`).createIndex({ groups: 1 }, { name: "g1" });
+>>>>>>> 9af17f3e46 (fix: index apis and applications groups using proper field name)
 db.getCollection(`${prefix}applications`).createIndex({ name: 1 }, { name: "n1" });
 db.getCollection(`${prefix}applications`).createIndex({ status: 1 }, { name: "s1" });
 db.getCollection(`${prefix}applications`).reIndex();
