@@ -23,8 +23,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.core.analytics.sampling.MessageSamplingStrategy;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
-import io.gravitee.gateway.reactive.core.v4.analytics.sampling.MessageSamplingStrategy;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;

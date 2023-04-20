@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.core.analytics.V4AnalyticsContext;
 import io.gravitee.apim.plugin.reactor.handlers.api.analytics.logging.request.message.MessageLogEndpointRequest;
 import io.gravitee.apim.plugin.reactor.handlers.api.analytics.logging.response.message.MessageLogEndpointResponse;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -38,11 +39,11 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.core.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
-import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.v4.common.MessageConnectorType;
@@ -100,7 +101,7 @@ class AnalyticsMessageHookTest {
         ctx = new DefaultExecutionContext(mockRequest, mockResponse);
         ctx.metrics(mockMetrics);
         analytics = prepareAnalytics();
-        AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
+        AnalyticsContext analyticsContext = new V4AnalyticsContext(analytics, true, null, null);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID, "endpointId");
         cut = new AnalyticsMessageHook(reporterService);
@@ -182,7 +183,7 @@ class AnalyticsMessageHookTest {
             loggingPhase.setRequest(true);
             logging.setPhase(loggingPhase);
             analytics.setLogging(logging);
-            AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
+            AnalyticsContext analyticsContext = new V4AnalyticsContext(analytics, true, null, null);
             ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
 
             cut.pre("id", ctx, ExecutionPhase.MESSAGE_REQUEST).test().assertResult();
@@ -235,7 +236,7 @@ class AnalyticsMessageHookTest {
             logging.setPhase(loggingPhase);
             logging.setMessageCondition("{#message.id == 'bad'}");
             analytics.setLogging(logging);
-            AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
+            AnalyticsContext analyticsContext = new V4AnalyticsContext(analytics, true, null, null);
             ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
 
             cut.pre("id", ctx, ExecutionPhase.MESSAGE_REQUEST).test().assertResult();
@@ -321,7 +322,7 @@ class AnalyticsMessageHookTest {
             loggingPhase.setResponse(true);
             logging.setPhase(loggingPhase);
             analytics.setLogging(logging);
-            AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
+            AnalyticsContext analyticsContext = new V4AnalyticsContext(analytics, true, null, null);
             ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
 
             cut.post("id", ctx, ExecutionPhase.MESSAGE_RESPONSE).test().assertResult();
@@ -370,7 +371,7 @@ class AnalyticsMessageHookTest {
             logging.setPhase(loggingPhase);
             logging.setMessageCondition("{#message.id == '1'}");
             analytics.setLogging(logging);
-            AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
+            AnalyticsContext analyticsContext = new V4AnalyticsContext(analytics, true, null, null);
             ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
 
             cut.post("id", ctx, ExecutionPhase.MESSAGE_RESPONSE).test().assertResult();
@@ -419,7 +420,7 @@ class AnalyticsMessageHookTest {
             logging.setPhase(loggingPhase);
             logging.setMessageCondition("{#message.id == 'bad'}");
             analytics.setLogging(logging);
-            AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
+            AnalyticsContext analyticsContext = new V4AnalyticsContext(analytics, true, null, null);
             ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
 
             cut.post("id", ctx, ExecutionPhase.MESSAGE_RESPONSE).test().assertResult();

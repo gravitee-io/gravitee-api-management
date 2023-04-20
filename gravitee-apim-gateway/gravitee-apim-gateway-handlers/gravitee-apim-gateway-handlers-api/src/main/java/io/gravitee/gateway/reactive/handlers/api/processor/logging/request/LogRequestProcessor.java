@@ -20,11 +20,11 @@ import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_AP
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.core.analytics.AnalyticsContext;
+import io.gravitee.gateway.reactive.core.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
-import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
-import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.analytics.logging.request.LogEntrypointRequest;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.reactivex.rxjava3.core.Completable;

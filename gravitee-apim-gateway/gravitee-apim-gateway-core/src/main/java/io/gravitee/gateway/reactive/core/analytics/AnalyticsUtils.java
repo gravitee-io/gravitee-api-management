@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.core.v4.analytics;
+package io.gravitee.gateway.reactive.core.analytics;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -61,7 +60,7 @@ public class AnalyticsUtils {
             loggingContext.setMaxSizeLogMessage(loggingMaxsize);
             loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
         }
-        return new AnalyticsContext(analytics, false, loggingMaxsize, loggingExcludedResponseType);
+        return new AnalyticsContext(analytics, loggingMaxsize, loggingExcludedResponseType);
     }
 
     public static boolean isLoggingEnabled(final Analytics analytics) {

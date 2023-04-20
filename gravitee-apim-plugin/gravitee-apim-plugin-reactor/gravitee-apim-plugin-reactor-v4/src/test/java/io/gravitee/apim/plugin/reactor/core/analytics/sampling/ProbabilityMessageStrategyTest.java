@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.core.v4.analytics.sampling;
+package io.gravitee.apim.plugin.reactor.core.analytics.sampling;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import org.junit.jupiter.api.DisplayNameGeneration;

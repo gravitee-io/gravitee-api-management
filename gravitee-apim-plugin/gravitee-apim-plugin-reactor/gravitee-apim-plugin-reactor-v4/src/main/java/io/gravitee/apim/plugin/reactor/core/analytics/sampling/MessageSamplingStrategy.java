@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.core.v4.analytics.sampling;
+package io.gravitee.apim.plugin.reactor.core.analytics.sampling;
 
 import io.gravitee.gateway.reactive.api.message.Message;
 

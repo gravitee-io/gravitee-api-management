@@ -16,7 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.analytics.logging.request;
 
 import io.gravitee.gateway.reactive.api.context.HttpRequest;
-import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import io.gravitee.gateway.reactive.core.analytics.LoggingContext;
 
 /**
  * Allows to log the response status, headers and body sent by the client depending on what is configured on the {@link LoggingContext}.

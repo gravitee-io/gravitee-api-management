@@ -23,8 +23,8 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.message.Message;
+import io.gravitee.gateway.reactive.core.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageMessageConditionFilter;
-import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.v4.common.MessageConnectorType;
 import io.gravitee.reporter.api.v4.common.MessageOperation;

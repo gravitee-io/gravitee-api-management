@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.core.v4.analytics;
+package io.gravitee.gateway.reactive.core.analytics;
 
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.definition.model.MessageConditionSupplier;

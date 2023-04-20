@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.core.v4.analytics;
+package io.gravitee.gateway.reactive.core.analytics;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import lombok.AccessLevel;

@@ -17,7 +17,7 @@ package io.gravitee.apim.plugin.reactor.handlers.api.analytics.logging.request.m
 
 import io.gravitee.apim.plugin.reactor.handlers.api.analytics.logging.MessageLog;
 import io.gravitee.gateway.reactive.api.message.Message;
-import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import io.gravitee.gateway.reactive.core.analytics.LoggingContext;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

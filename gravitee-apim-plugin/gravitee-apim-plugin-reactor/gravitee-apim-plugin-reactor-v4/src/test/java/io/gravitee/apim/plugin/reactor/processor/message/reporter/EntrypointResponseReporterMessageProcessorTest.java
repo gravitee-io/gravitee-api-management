@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.core.analytics.V4AnalyticsContext;
 import io.gravitee.apim.plugin.reactor.handlers.api.analytics.logging.response.message.MessageLogEntrypointResponse;
 import io.gravitee.apim.plugin.reactor.processor.AbstractV4ProcessorTest;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -37,7 +38,7 @@ import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
-import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
+import io.gravitee.gateway.reactive.core.analytics.AnalyticsContext;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.v4.common.MessageConnectorType;
@@ -80,7 +81,7 @@ class EntrypointResponseReporterMessageProcessorTest extends AbstractV4Processor
 
         when(mockMetrics.isEnabled()).thenReturn(true);
         analytics = prepareAnalytics();
-        AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
+        AnalyticsContext analyticsContext = new V4AnalyticsContext(analytics, true, null, null);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
         lenient().when(entrypointConnector.id()).thenReturn("entrypointId");
@@ -176,7 +177,7 @@ class EntrypointResponseReporterMessageProcessorTest extends AbstractV4Processor
         logging.setPhase(loggingPhase);
         logging.setMessageCondition("{#message.id == '1'}");
         analytics.setLogging(logging);
-        AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
+        AnalyticsContext analyticsContext = new V4AnalyticsContext(analytics, true, null, null);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
 
         reporterMessageProcessor.execute(ctx).test().assertResult();
@@ -229,7 +230,7 @@ class EntrypointResponseReporterMessageProcessorTest extends AbstractV4Processor
         logging.setPhase(loggingPhase);
         logging.setMessageCondition("{#message.id == 'bad'}");
         analytics.setLogging(logging);
-        AnalyticsContext analyticsContext = new AnalyticsContext(analytics, true, null, null);
+        AnalyticsContext analyticsContext = new V4AnalyticsContext(analytics, true, null, null);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
 
         reporterMessageProcessor.execute(ctx).test().assertResult();

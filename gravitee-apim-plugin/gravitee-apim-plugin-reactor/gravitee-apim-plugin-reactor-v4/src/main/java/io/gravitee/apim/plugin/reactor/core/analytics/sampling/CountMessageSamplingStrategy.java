@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.core.v4.analytics.sampling;
+package io.gravitee.apim.plugin.reactor.core.analytics.sampling;
 
 import io.gravitee.gateway.reactive.api.message.Message;
-import java.util.SplittableRandom;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -27,36 +26,31 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Getter(AccessLevel.PROTECTED)
-public class ProbabilityMessageStrategy implements MessageSamplingStrategy {
+public class CountMessageSamplingStrategy implements MessageSamplingStrategy {
 
-    private static final Double DEFAULT_PROBABILITY = 0.01;
-    private static final Double DEFAULT_MAX_PROBABILITY = 0.5;
-    private final SplittableRandom random = new SplittableRandom();
-    private double probability;
+    private static final int DEFAULT_COUNT = 100;
+    private static final int DEFAULT_MIN_COUNT = 10;
+    private int count;
 
-    public ProbabilityMessageStrategy(final String value) {
+    public CountMessageSamplingStrategy(final String value) {
         try {
-            this.probability = Double.parseDouble(value);
-            if (this.probability > DEFAULT_MAX_PROBABILITY) {
+            this.count = Integer.parseInt(value);
+            if (this.count < DEFAULT_MIN_COUNT) {
                 log.warn(
-                    "Probability sampling value '{}' is higher than maximum allowed '{}', using max value instead.",
+                    "Probability sampling value '{}' is lower than minimum allowed '{}', using min value instead.",
                     value,
-                    DEFAULT_MAX_PROBABILITY
+                    DEFAULT_MIN_COUNT
                 );
-                this.probability = DEFAULT_MAX_PROBABILITY;
+                this.count = DEFAULT_MIN_COUNT;
             }
         } catch (Exception e) {
-            log.warn("Probability sampling value '{}' cannot be parsed as Double, using default value '{}'", value, DEFAULT_PROBABILITY);
-            this.probability = DEFAULT_PROBABILITY;
+            log.warn("Count sampling value '{}' cannot be parsed as Integer, using default value '{}'", value, DEFAULT_COUNT);
+            this.count = DEFAULT_COUNT;
         }
     }
 
     @Override
     public boolean isRecordable(final Message message, final int messageCount, final long lastMessageTimestamp) {
-        return messageCount == 1 || matchesProbability(random.nextDouble());
-    }
-
-    protected boolean matchesProbability(final Double random) {
-        return random < probability;
+        return messageCount == 1 || messageCount % count == 1;
     }
 }

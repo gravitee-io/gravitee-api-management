@@ -19,8 +19,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.context.HttpResponse;
-import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
-import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import io.gravitee.gateway.reactive.core.analytics.BufferUtils;
+import io.gravitee.gateway.reactive.core.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.analytics.logging.LogHeadersCaptor;
 
 /**

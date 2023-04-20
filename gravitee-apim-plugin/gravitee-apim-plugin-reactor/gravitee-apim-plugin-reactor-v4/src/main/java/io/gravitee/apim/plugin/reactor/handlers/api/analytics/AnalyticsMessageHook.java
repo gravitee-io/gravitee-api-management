@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.plugin.reactor.handlers.api.analytics;
 
+import io.gravitee.apim.plugin.reactor.core.analytics.V4AnalyticsContext;
+import io.gravitee.apim.plugin.reactor.core.analytics.sampling.MessageSamplingStrategy;
 import io.gravitee.apim.plugin.reactor.handlers.api.analytics.logging.request.message.MessageLogEndpointRequest;
 import io.gravitee.apim.plugin.reactor.handlers.api.analytics.logging.response.message.MessageLogEndpointResponse;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
@@ -22,9 +24,7 @@ import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
-import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
-import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
-import io.gravitee.gateway.reactive.core.v4.analytics.sampling.MessageSamplingStrategy;
+import io.gravitee.gateway.reactive.core.analytics.LoggingContext;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.v4.common.MessageConnectorType;
 import io.gravitee.reporter.api.v4.common.MessageOperation;
@@ -57,7 +57,7 @@ public class AnalyticsMessageHook implements InvokerHook {
             return Completable.complete();
         }
         return Completable.defer(() -> {
-            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
+            final V4AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
 
             if (analyticsContext == null || !analyticsContext.isEnabled()) {
                 return Completable.complete();
@@ -101,7 +101,7 @@ public class AnalyticsMessageHook implements InvokerHook {
             return Completable.complete();
         }
         return Completable.defer(() -> {
-            final AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
+            final V4AnalyticsContext analyticsContext = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT);
 
             if (analyticsContext == null || !analyticsContext.isEnabled()) {
                 return Completable.complete();

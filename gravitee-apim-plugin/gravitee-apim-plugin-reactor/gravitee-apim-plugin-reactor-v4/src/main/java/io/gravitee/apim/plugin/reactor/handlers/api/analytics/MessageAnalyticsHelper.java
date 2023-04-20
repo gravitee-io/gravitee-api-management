@@ -18,14 +18,16 @@ package io.gravitee.apim.plugin.reactor.handlers.api.analytics;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_MESSAGE_RECORDABLE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_MESSAGE_RECORDABLE_WITH_LOGGING;
 
+import io.gravitee.apim.plugin.reactor.core.analytics.sampling.MessageSamplingStrategy;
 import io.gravitee.gateway.reactive.api.message.Message;
-import io.gravitee.gateway.reactive.core.v4.analytics.sampling.MessageSamplingStrategy;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class MessageAnalyticsHelper {
+
+    private MessageAnalyticsHelper() {}
 
     public static boolean isRecordable(final Message message) {
         Boolean isRecordable = message.attribute(ATTR_INTERNAL_MESSAGE_RECORDABLE);

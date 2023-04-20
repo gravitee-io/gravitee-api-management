@@ -29,6 +29,7 @@ import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
 import static java.lang.Boolean.TRUE;
 
+import io.gravitee.apim.plugin.reactor.core.analytics.V4AnalyticsContext;
 import io.gravitee.apim.plugin.reactor.handlers.api.analytics.AnalyticsMessageHook;
 import io.gravitee.apim.plugin.reactor.handlers.api.flow.FlowChain;
 import io.gravitee.apim.plugin.reactor.handlers.api.flow.FlowChainFactory;
@@ -56,13 +57,13 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
+import io.gravitee.gateway.reactive.core.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
-import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
@@ -482,7 +483,7 @@ public class V4ApiReactor extends AbstractLifecycleComponent<ReactorHandler> imp
         }
 
         analyticsContext =
-            new AnalyticsContext(api.getDefinition().getAnalytics(), isEventNative, loggingMaxSize, loggingExcludedResponseType);
+            new V4AnalyticsContext(api.getDefinition().getAnalytics(), isEventNative, loggingMaxSize, loggingExcludedResponseType);
         if (analyticsContext.isEnabled()) {
             if (analyticsContext.isLoggingEnabled()) {
                 invokerHooks.add(new LoggingHook());

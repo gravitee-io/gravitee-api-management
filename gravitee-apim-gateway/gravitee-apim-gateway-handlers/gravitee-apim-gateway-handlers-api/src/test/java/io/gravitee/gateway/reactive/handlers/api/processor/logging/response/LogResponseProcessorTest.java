@@ -22,10 +22,9 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
-import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
-import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import io.gravitee.gateway.reactive.core.analytics.AnalyticsContext;
+import io.gravitee.gateway.reactive.core.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
-import io.gravitee.gateway.reactive.handlers.api.processor.logging.response.LogResponseProcessor;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;

@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.core.v4.analytics.sampling;
+package io.gravitee.apim.plugin.reactor.core.analytics.sampling;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
-import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
