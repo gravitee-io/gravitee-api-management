@@ -26,13 +26,12 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
 import io.reactivex.Maybe;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import io.vertx.core.Handler;
 import java.util.*;
@@ -54,11 +53,15 @@ public class DynamicPropertyUpdater implements Handler<Long> {
 
     private Provider provider;
     private ApiService apiService;
+
+    private final ExecutionContext executionContext;
+
     private ApiConverter apiConverter;
 
-    public DynamicPropertyUpdater(final ApiEntity api, final Executor executor) {
+    public DynamicPropertyUpdater(final ApiEntity api, final Executor executor, ExecutionContext executionContext) {
         this.api = api;
         this.executor = executor;
+        this.executionContext = executionContext;
     }
 
     private void authenticateAsAdmin() {
@@ -98,7 +101,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
 
     private void update(Collection<DynamicProperty> dynamicProperties) {
         // Get latest changes
-        ApiEntity latestApi = apiService.findById(GraviteeContext.getExecutionContext(), api.getId());
+        ApiEntity latestApi = apiService.findById(executionContext, api.getId());
 
         List<Property> properties = (latestApi.getProperties() != null)
             ? latestApi.getProperties().getProperties()
@@ -138,18 +141,12 @@ public class DynamicPropertyUpdater implements Handler<Long> {
             }
             latestApi.setProperties(apiProperties);
 
-            boolean isSync = apiService.isSynchronized(GraviteeContext.getExecutionContext(), api.getId());
+            boolean isSync = apiService.isSynchronized(executionContext, api.getId());
 
             // Update API
             try {
                 LOGGER.debug("[{}] Updating API", latestApi.getId());
-                apiService.update(
-                    GraviteeContext.getExecutionContext(),
-                    latestApi.getId(),
-                    apiConverter.toUpdateApiEntity(latestApi),
-                    false,
-                    false
-                );
+                apiService.update(executionContext, latestApi.getId(), apiConverter.toUpdateApiEntity(latestApi), false, false);
                 LOGGER.debug("[{}] API has been updated", latestApi.getId());
             } catch (TechnicalManagementException e) {
                 LOGGER.error(
@@ -166,13 +163,7 @@ public class DynamicPropertyUpdater implements Handler<Long> {
                     LOGGER.debug("[{}] Property change detected, API is about to be deployed", api.getId());
                     ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
                     deployEntity.setDeploymentLabel("Dynamic properties sync");
-                    apiService.deploy(
-                        GraviteeContext.getExecutionContext(),
-                        latestApi.getId(),
-                        "dynamic-property-updater",
-                        EventType.PUBLISH_API,
-                        deployEntity
-                    );
+                    apiService.deploy(executionContext, latestApi.getId(), "dynamic-property-updater", EventType.PUBLISH_API, deployEntity);
                     LOGGER.debug("[{}] API as been deployed", api.getId());
                 }
             }
