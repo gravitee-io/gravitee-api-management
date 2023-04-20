@@ -52,7 +52,7 @@ public class HttpProvider implements Provider {
 
     private final HttpDynamicPropertyProviderConfiguration dpConfiguration;
 
-    private JoltMapper mapper;
+    private final JoltMapper mapper;
 
     private HttpClientService httpClientService;
 
