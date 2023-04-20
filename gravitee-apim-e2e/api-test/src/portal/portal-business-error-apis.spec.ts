@@ -158,7 +158,6 @@ describe('Portal: Business Error - apis', () => {
           apiPortalApiAsAppUser.getPageContentByApiIdAndPageIdRaw({ apiId, pageId: 'pageId' }),
           apiPortalApiAsAppUser.getPictureByApiIdRaw({ apiId }),
           apiPortalApiAsAppUser.getApiPlansByApiIdRaw({ apiId }),
-          apiPortalApiAsAppUser.getApiMetricsByApiIdRaw({ apiId }),
           apiPortalApiAsAppUser.getApiRatingsByApiIdRaw({ apiId }),
           apiPortalApiAsAppUser.getSubscriberApplicationsByApiIdRaw({ apiId }),
         ].map((p: Promise<ApiResponse<unknown>>) => notFound(p)),
