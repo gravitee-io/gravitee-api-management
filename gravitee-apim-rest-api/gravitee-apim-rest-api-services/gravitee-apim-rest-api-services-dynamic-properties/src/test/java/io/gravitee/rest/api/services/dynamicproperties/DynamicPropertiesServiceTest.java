@@ -31,8 +31,10 @@ import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProv
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.node.api.Node;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import io.vertx.core.Vertx;
@@ -41,6 +43,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 import org.apache.commons.io.IOUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,6 +68,9 @@ public class DynamicPropertiesServiceTest {
     private ApiService apiService;
 
     @Mock
+    private EnvironmentService environmentService;
+
+    @Mock
     private HttpClientService httpClientService;
 
     @Mock
@@ -82,8 +88,12 @@ public class DynamicPropertiesServiceTest {
     @InjectMocks
     private DynamicPropertiesService cut;
 
+    @Before
     public void before() {
-        cut.handlers.clear();
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("DEFAULT");
+        environment.setOrganizationId("DEFAULT");
+        when(environmentService.findById(eq(environment.getId()))).thenReturn(environment);
     }
 
     @Test
@@ -149,7 +159,6 @@ public class DynamicPropertiesServiceTest {
     @Test
     public void shouldJustStartWhenUpdateApiAndNoTimerRunning() throws Exception {
         final ApiEntity apiEntity = createApiEntity();
-
         when(providerConfiguration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
         when(providerConfiguration.getMethod()).thenReturn(HttpMethod.GET);
         when(providerConfiguration.getSpecification())
@@ -192,6 +201,7 @@ public class DynamicPropertiesServiceTest {
 
     private ApiEntity createApiEntity() {
         final ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setEnvironmentId("DEFAULT");
         final Services services = new Services();
         final DynamicPropertyService dynamicPropertyService = new DynamicPropertyService();
 
