@@ -22,6 +22,7 @@ import io.gravitee.definition.model.Property;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -50,6 +51,8 @@ public class DynamicPropertyUpdaterTest {
 
     private ApiEntity existingApi;
 
+    private final ExecutionContext executionContext = new ExecutionContext("DEFAULT", "DEFAULT");
+
     @Mock
     private Provider provider;
 
@@ -69,7 +72,7 @@ public class DynamicPropertyUpdaterTest {
         apiProperties.setProperties(List.of());
         existingApi.setProperties(apiProperties);
 
-        dynamicPropertyUpdater = new DynamicPropertyUpdater(existingApi, Executors.newSingleThreadExecutor());
+        dynamicPropertyUpdater = new DynamicPropertyUpdater(existingApi, Executors.newSingleThreadExecutor(), executionContext);
         when(provider.name()).thenReturn("mock");
         dynamicPropertyUpdater.setProvider(provider);
         dynamicPropertyUpdater.setApiService(apiService);
@@ -86,44 +89,36 @@ public class DynamicPropertyUpdaterTest {
 
     @Test
     public void shouldUpdatePropertiesWithoutDeploymentIfManualChange() {
-        when(apiService.findById(any(), any())).thenReturn(existingApi);
+        when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
         // Simulate a manual change
-        when(apiService.isSynchronized(any(), any())).thenReturn(false);
+        when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(false);
 
         when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
         dynamicPropertyUpdater.handle().blockingGet();
 
-        verify(apiService, times(1))
-            .update(eq(GraviteeContext.getExecutionContext()), eq(existingApi.getId()), any(), eq(false), eq(false));
+        verify(apiService, times(1)).update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false));
         verify(apiService, never()).deploy(any(), any(), any(), any(), any());
     }
 
     @Test
     public void shouldUpdatePropertiesAndDeployApi() {
-        when(apiService.findById(any(), any())).thenReturn(existingApi);
-        when(apiService.isSynchronized(any(), any())).thenReturn(true);
+        when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
+        when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(true);
 
         when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
         dynamicPropertyUpdater.handle().blockingGet();
 
+        verify(apiService, times(1)).update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false));
         verify(apiService, times(1))
-            .update(eq(GraviteeContext.getExecutionContext()), eq(existingApi.getId()), any(), eq(false), eq(false));
-        verify(apiService, times(1))
-            .deploy(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(existingApi.getId()),
-                eq("dynamic-property-updater"),
-                eq(EventType.PUBLISH_API),
-                any()
-            );
+            .deploy(eq(executionContext), eq(existingApi.getId()), eq("dynamic-property-updater"), eq(EventType.PUBLISH_API), any());
     }
 
     @Test
     public void shouldNotDeployAPIOnUpdateError() {
-        when(apiService.findById(any(), any())).thenReturn(existingApi);
-        when(apiService.isSynchronized(any(), any())).thenReturn(true);
+        when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
+        when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(true);
 
-        when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(existingApi.getId()), any(), eq(false), eq(false)))
+        when(apiService.update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false)))
             .thenThrow(new TechnicalManagementException("Unable to update the API"));
 
         when(provider.get()).thenReturn(Maybe.just(dynamicProperties));
