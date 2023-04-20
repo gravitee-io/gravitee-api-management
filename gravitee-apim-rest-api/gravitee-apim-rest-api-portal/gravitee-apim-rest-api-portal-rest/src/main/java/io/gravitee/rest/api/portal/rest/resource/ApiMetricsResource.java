@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
@@ -70,24 +71,22 @@ public class ApiMetricsResource extends AbstractResource {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
 
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(
-            GraviteeContext.getExecutionContext(),
-            getAuthenticatedUserOrNull(),
-            apiQuery
-        );
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            Number healthRatio = getHealthRatio(apiId);
-            Number nbHits = getNbHits(apiId);
-            Number subscribers = getApiNbSubscribers(apiId);
+        ApiEntity api = apiService.findById(GraviteeContext.getExecutionContext(), apiId);
 
-            ApiMetrics metrics = new ApiMetrics();
-            metrics.setHealth(healthRatio);
-            metrics.setHits(nbHits);
-            metrics.setSubscribers(subscribers);
-
-            return Response.ok(metrics).build();
+        if (api.getLifecycleState() != ApiLifecycleState.PUBLISHED) {
+            throw new ApiNotFoundException(apiId);
         }
-        throw new ApiNotFoundException(apiId);
+
+        Number healthRatio = getHealthRatio(apiId);
+        Number nbHits = getNbHits(apiId);
+        Number subscribers = getApiNbSubscribers(apiId);
+
+        ApiMetrics metrics = new ApiMetrics();
+        metrics.setHealth(healthRatio);
+        metrics.setHits(nbHits);
+        metrics.setSubscribers(subscribers);
+
+        return Response.ok(metrics).build();
     }
 
     private Number getHealthRatio(String apiId) {
