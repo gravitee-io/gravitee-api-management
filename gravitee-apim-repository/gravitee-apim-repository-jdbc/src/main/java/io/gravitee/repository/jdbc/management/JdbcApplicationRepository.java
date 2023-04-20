@@ -18,6 +18,8 @@ package io.gravitee.repository.jdbc.management;
 import static java.lang.String.format;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static java.util.function.Function.*;
+import static java.util.stream.Collectors.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
@@ -38,6 +40,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +62,16 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     private static final String STATUS_FIELD = "status";
     private final String APPLICATION_GROUPS;
     private final String APPLICATION_METADATA;
+
+    private static class GroupRowMapper implements RowMapper<List<String>> {
+
+        @Override
+        public List<String> mapRow(ResultSet rs, int i) throws SQLException {
+            return List.of(rs.getString("application_id"), rs.getString("group_id"));
+        }
+    }
+
+    private static final GroupRowMapper GROUP_MAPPER = new GroupRowMapper();
 
     JdbcApplicationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "applications");
@@ -108,6 +121,35 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     private void addGroups(Application parent) {
         List<String> groups = getGroups(parent.getId());
         parent.setGroups(new HashSet<>(groups));
+    }
+
+    private void addGroups(Collection<Application> applications) {
+        Map<String, Application> applicationById = applications.stream().collect(toMap(Application::getId, identity()));
+        Set<String> applicationIds = applicationById.keySet();
+
+        if (applicationIds.isEmpty()) {
+            return;
+        }
+
+        List<List<String>> rows = jdbcTemplate.query(
+            "select application_id, group_id from " +
+            APPLICATION_GROUPS +
+            " where application_id in (" +
+            getOrm().buildInClause(applicationIds) +
+            ")",
+            (PreparedStatement ps) -> {
+                getOrm().setArguments(ps, applicationIds, 1);
+            },
+            GROUP_MAPPER
+        );
+
+        for (List<String> row : rows) {
+            Application application = applicationById.get(row.get(0));
+            if (application.getGroups() == null) {
+                application.setGroups(new HashSet<>());
+            }
+            application.getGroups().add(row.get(1));
+        }
     }
 
     private List<String> getGroups(String apiId) {
@@ -254,10 +296,11 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             }
 
             jdbcTemplate.query(query, (PreparedStatement ps) -> getOrm().setArguments(ps, ids, 1), rowMapper);
-            for (Application application : rowMapper.getRows()) {
-                addGroups(application);
-            }
-            return new LinkedHashSet<>(rowMapper.getRows());
+            List<Application> applications = rowMapper.getRows();
+
+            addGroups(applications);
+
+            return new LinkedHashSet<>(applications);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find applications by ids:", ex);
             throw new TechnicalException("Failed to find  applications by ids", ex);
@@ -290,11 +333,13 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
 
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(query.toString(), (PreparedStatement ps) -> getOrm().setArguments(ps, statuses, 1), rowMapper);
-            for (Application application : rowMapper.getRows()) {
-                addGroups(application);
-            }
-            LOGGER.debug("Found {} applications: {}", rowMapper.getRows().size(), rowMapper.getRows());
-            return new HashSet<>(rowMapper.getRows());
+
+            List<Application> applications = rowMapper.getRows();
+
+            addGroups(applications);
+
+            LOGGER.debug("Found {} applications: {}", applications.size(), applications);
+            return new HashSet<>(applications);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find applications:", ex);
             throw new TechnicalException("Failed to find applications", ex);
@@ -333,10 +378,12 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
                 },
                 rowMapper
             );
-            for (Application application : rowMapper.getRows()) {
-                addGroups(application);
-            }
-            return new HashSet<>(rowMapper.getRows());
+
+            List<Application> applications = rowMapper.getRows();
+
+            addGroups(applications);
+
+            return new HashSet<>(applications);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find applications by groups", ex);
             throw new TechnicalException("Failed to find applications by groups", ex);
@@ -368,10 +415,12 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
                 },
                 rowMapper
             );
-            for (Application application : rowMapper.getRows()) {
-                addGroups(application);
-            }
-            return new HashSet<>(rowMapper.getRows());
+
+            List<Application> applications = rowMapper.getRows();
+
+            addGroups(applications);
+
+            return new HashSet<>(applications);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find applications by name", ex);
             throw new TechnicalException("Failed to find applications by name", ex);
@@ -382,9 +431,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable) {
         List<Application> apps = search(applicationCriteria, sortable);
 
-        for (final Application application : apps) {
-            addGroups(application);
-        }
+        addGroups(apps);
 
         return getResultAsPage(pageable, apps);
     }
@@ -471,7 +518,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
     @Override
     public Set<String> searchIds(ApplicationCriteria applicationCriteria, Sortable sortable) throws TechnicalException {
         List<Application> search = search(applicationCriteria, sortable);
-        return search.parallelStream().map(Application::getId).collect(Collectors.toCollection(LinkedHashSet::new));
+        return search.parallelStream().map(Application::getId).collect(toCollection(LinkedHashSet::new));
     }
 
     @Override
@@ -502,11 +549,12 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
                 },
                 rowMapper
             );
-            for (Application application : rowMapper.getRows()) {
-                addGroups(application);
-            }
-            LOGGER.debug("Found {} applications: {}", rowMapper.getRows().size(), rowMapper.getRows());
-            return new HashSet<>(rowMapper.getRows());
+            List<Application> applications = rowMapper.getRows();
+
+            addGroups(applications);
+
+            LOGGER.debug("Found {} applications: {}", applications.size(), applications);
+            return new HashSet<>(applications);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find applications by environment:", ex);
             throw new TechnicalException("Failed to find applications by environment", ex);
