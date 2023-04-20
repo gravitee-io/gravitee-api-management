@@ -81,10 +81,13 @@ public class ApiEntity implements GenericApiEntity {
     @Schema(description = "API's crossId. Identifies API across environments.", example = "df83b2a4-cc3e-3f80-9f0d-c138c106c076")
     private String crossId;
 
+    @Schema(description = "ID of the environment where the API is in.", example = "DEFAULT", accessMode = Schema.AccessMode.READ_ONLY)
+    private String environmentId;
+
     @Schema(description = "API's name. Duplicate names can exists.", example = "My Api")
     private String name;
 
-    @Schema(description = "Api's version. It's a simple string only used in the portal.", example = "v1.0")
+    @Schema(description = "API's version. It's a simple string only used in the portal.", example = "v1.0")
     @EqualsAndHashCode.Include
     private String version;
 
@@ -94,7 +97,7 @@ public class ApiEntity implements GenericApiEntity {
     )
     private String description;
 
-    @Schema(description = "Api's execution mode. Define if the execution mode should use v3 or jupiter mode.", example = "v3")
+    @Schema(description = "API's execution mode. Define if the execution mode should use v3 or jupiter mode.", example = "v3")
     @DeploymentRequired
     @JsonProperty(value = "execution_mode")
     private ExecutionMode executionMode;
