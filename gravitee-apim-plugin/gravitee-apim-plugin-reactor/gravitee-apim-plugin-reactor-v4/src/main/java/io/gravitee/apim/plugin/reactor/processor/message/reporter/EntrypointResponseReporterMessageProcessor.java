@@ -15,15 +15,15 @@
  */
 package io.gravitee.apim.plugin.reactor.processor.message.reporter;
 
+import io.gravitee.apim.plugin.reactor.handlers.api.analytics.MessageAnalyticsHelper;
+import io.gravitee.apim.plugin.reactor.handlers.api.analytics.MessageCounters;
+import io.gravitee.apim.plugin.reactor.handlers.api.analytics.MessageReporter;
+import io.gravitee.apim.plugin.reactor.handlers.api.analytics.logging.response.message.MessageLogEntrypointResponse;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.MessageProcessor;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.MessageAnalyticsHelper;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.MessageCounters;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.MessageReporter;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.message.MessageLogEntrypointResponse;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.v4.common.MessageConnectorType;
 import io.gravitee.reporter.api.v4.common.MessageOperation;

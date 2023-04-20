@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.handlers.api.analytics.logging.response.message.MessageLogEntrypointResponse;
 import io.gravitee.apim.plugin.reactor.processor.AbstractV4ProcessorTest;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
@@ -37,7 +38,6 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.message.DefaultMessage;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
-import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.message.MessageLogEntrypointResponse;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.v4.common.MessageConnectorType;
