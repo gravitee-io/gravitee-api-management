@@ -31,13 +31,8 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
-<<<<<<< HEAD
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-=======
-import io.reactivex.Maybe;
-import io.reactivex.schedulers.Schedulers;
->>>>>>> a57184417b (fix: handle Dynamic Properties for API not in DEFAULT environment)
 import io.vertx.core.Handler;
 import java.util.*;
 import java.util.concurrent.Executor;
