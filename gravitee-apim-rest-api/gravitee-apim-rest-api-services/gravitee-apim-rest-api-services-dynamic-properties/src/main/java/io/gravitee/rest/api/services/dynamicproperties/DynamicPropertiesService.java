@@ -47,10 +47,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  */
 public class DynamicPropertiesService extends AbstractService implements EventListener<ApiEvent, ApiEntity> {
 
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(DynamicPropertiesService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicPropertiesService.class);
 
     @Autowired
     private EventManager eventManager;
@@ -89,11 +86,6 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
         super.doStart();
 
         eventManager.subscribeForEvents(this, ApiEvent.class);
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-        super.doStop();
     }
 
     @Override
@@ -139,40 +131,44 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
     }
 
     private void startDynamicProperties(ApiEntity api) {
-        if (api.getState() == Lifecycle.State.STARTED) {
-            DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
-            if (dynamicPropertyService != null && dynamicPropertyService.isEnabled()) {
-                EnvironmentEntity environment = environmentService.findById(api.getEnvironmentId());
-                ExecutionContext executionContext = new ExecutionContext(environment.getId(), environment.getOrganizationId());
-                DynamicPropertyUpdater updater = new DynamicPropertyUpdater(api, this.executor, executionContext);
+        if (api.getState() != Lifecycle.State.STARTED) {
+            // API is not started so do not start dynamic properties
+            return;
+        }
 
-                if (dynamicPropertyService.getProvider() == DynamicPropertyProvider.HTTP) {
-                    HttpProvider provider = new HttpProvider(dynamicPropertyService);
-                    provider.setHttpClientService(httpClientService);
-                    provider.setNode(node);
-                    provider.setExecutor(executor);
+        DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
+        if (dynamicPropertyService == null || !dynamicPropertyService.isEnabled()) {
+            LOGGER.info("{} Dynamic properties service is disabled for API: {} [{}]", api.getId(), api.getName(), api.getVersion());
+            return;
+        }
 
-                    updater.setProvider(provider);
-                    updater.setApiService(apiService);
-                    updater.setApiConverter(apiConverter);
-                    logger.info("Add a scheduled task to poll dynamic properties each {}", dynamicPropertyService.getSchedule());
+        EnvironmentEntity environment = environmentService.findById(api.getEnvironmentId());
+        ExecutionContext executionContext = new ExecutionContext(environment.getId(), environment.getOrganizationId());
+        DynamicPropertyUpdater updater = new DynamicPropertyUpdater(api, this.executor, executionContext);
 
-                    // Force the first refresh, and then run it periodically
-                    updater.handle(null);
-                    CronHandler cronHandler = new CronHandler(vertx, dynamicPropertyService.getSchedule());
-                    cronHandler.schedule(updater);
-                    handlers.put(api, cronHandler);
-                }
-            } else {
-                logger.info("Dynamic properties service is disabled for: {} [{}]", api.getName(), api.getVersion());
-            }
+        if (dynamicPropertyService.getProvider() == DynamicPropertyProvider.HTTP) {
+            HttpProvider provider = new HttpProvider(dynamicPropertyService);
+            provider.setHttpClientService(httpClientService);
+            provider.setNode(node);
+            provider.setExecutor(executor);
+
+            updater.setProvider(provider);
+            updater.setApiService(apiService);
+            updater.setApiConverter(apiConverter);
+            LOGGER.info("{} Add a scheduled task to poll dynamic properties each {}", api.getId(), dynamicPropertyService.getSchedule());
+
+            // Force the first refresh, and then run it periodically
+            updater.handle(null);
+            CronHandler cronHandler = new CronHandler(vertx, dynamicPropertyService.getSchedule());
+            cronHandler.schedule(updater);
+            handlers.put(api, cronHandler);
         }
     }
 
     private void stopDynamicProperties(ApiEntity api) {
         CronHandler handler = handlers.remove(api);
         if (handler != null) {
-            logger.info("Stop Dynamic properties service for API id[{}] name[{}]", api.getId(), api.getName());
+            LOGGER.info("{} Stopping dynamic properties service for API: {} [{}]", api.getId(), api.getName(), api.getVersion());
             handler.cancel();
         }
     }
