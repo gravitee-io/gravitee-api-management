@@ -26,7 +26,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>20.3</version>
+        <version>21.0.0</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
@@ -64,7 +64,7 @@
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-apim-gateway-standalone-container -->
         <vertx.version>4.2.7</vertx.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>2.8</gravitee-bom.version>
+        <gravitee-bom.version>3.0.9</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.12.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.27.0</gravitee-common.version>
@@ -128,7 +128,7 @@
         <protobuf-java.version>3.19.3</protobuf-java.version>
         <powermock.version>2.0.9</powermock.version>
         <reactor-adapter.version>3.4.6</reactor-adapter.version>
-        <snakeyaml.version>1.32</snakeyaml.version>
+        <snakeyaml.version>2.0</snakeyaml.version>
         <swagger-jaxrs2.version>2.2.8</swagger-jaxrs2.version>
         <swagger-core.version>2.2.8</swagger-core.version>
         <swagger-parser.version>2.1.11</swagger-parser.version>

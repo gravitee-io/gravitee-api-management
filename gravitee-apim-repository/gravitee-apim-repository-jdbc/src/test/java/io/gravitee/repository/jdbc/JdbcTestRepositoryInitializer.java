@@ -178,7 +178,6 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
                 new ClassLoaderResourceAccessor(this.getClass().getClassLoader()),
                 new JdbcConnection(conn)
             );
-            liquibase.setIgnoreClasspathPrefix(true);
             liquibase.update((Contexts) null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to set up database: ", ex);
