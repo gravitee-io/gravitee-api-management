@@ -23,9 +23,12 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.node.api.Node;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.HttpProvider;
@@ -54,6 +57,9 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
     @Autowired
     private ApiService apiService;
+
+    @Autowired
+    private EnvironmentService environmentService;
 
     @Autowired
     private ApiConverter apiConverter;
@@ -136,7 +142,9 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
         if (api.getState() == Lifecycle.State.STARTED) {
             DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
             if (dynamicPropertyService != null && dynamicPropertyService.isEnabled()) {
-                DynamicPropertyUpdater updater = new DynamicPropertyUpdater(api, this.executor);
+                EnvironmentEntity environment = environmentService.findById(api.getEnvironmentId());
+                ExecutionContext executionContext = new ExecutionContext(environment.getId(), environment.getOrganizationId());
+                DynamicPropertyUpdater updater = new DynamicPropertyUpdater(api, this.executor, executionContext);
 
                 if (dynamicPropertyService.getProvider() == DynamicPropertyProvider.HTTP) {
                     HttpProvider provider = new HttpProvider(dynamicPropertyService);
