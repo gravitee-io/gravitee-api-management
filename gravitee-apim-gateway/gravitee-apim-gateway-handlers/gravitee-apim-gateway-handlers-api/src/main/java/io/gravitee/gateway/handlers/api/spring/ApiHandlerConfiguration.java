@@ -43,14 +43,10 @@ import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageMessageCond
 import io.gravitee.gateway.reactive.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.reactive.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
-import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.gateway.reactive.v4.flow.selection.ChannelSelectorConditionFilter;
-import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorConditionFilter;
-import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.node.api.Node;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,14 +147,6 @@ public class ApiHandlerConfiguration {
                 new PathBasedConditionFilter(),
                 new ExpressionLanguageConditionFilter<>()
             )
-        );
-    }
-
-    @Bean
-    public FlowResolverFactory v4FlowResolverFactory() {
-        return new FlowResolverFactory(
-            new CompositeConditionFilter<>(new HttpSelectorConditionFilter(), new ConditionSelectorConditionFilter()),
-            new CompositeConditionFilter<>(new ChannelSelectorConditionFilter(), new ConditionSelectorConditionFilter())
         );
     }
 

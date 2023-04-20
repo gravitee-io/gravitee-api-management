@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.flow;
+package io.gravitee.apim.plugin.reactor.handlers.api.flow;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_FLOW_STAGE;
 
+import io.gravitee.apim.plugin.reactor.policy.PolicyChainFactory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
@@ -28,7 +29,6 @@ import io.gravitee.gateway.reactive.api.hook.Hookable;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
-import io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.ArrayList;

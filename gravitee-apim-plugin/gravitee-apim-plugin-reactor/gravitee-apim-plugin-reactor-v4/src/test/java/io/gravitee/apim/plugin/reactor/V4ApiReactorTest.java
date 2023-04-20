@@ -40,6 +40,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.handlers.api.flow.FlowChain;
+import io.gravitee.apim.plugin.reactor.handlers.api.flow.FlowChainFactory;
 import io.gravitee.apim.plugin.reactor.processor.ApiProcessorChainFactory;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -72,7 +74,6 @@ import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnecto
 import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.ConnectionHandlerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionAcceptor;
@@ -295,10 +296,10 @@ class V4ApiReactorTest {
     private io.gravitee.gateway.reactive.handlers.api.flow.FlowChain platformFlowChain;
 
     @Mock
-    private io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain apiPlanFlowChain;
+    private FlowChain apiPlanFlowChain;
 
     @Mock
-    private io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain apiFlowChain;
+    private FlowChain apiFlowChain;
 
     @Mock
     private SecurityChain securityChain;

@@ -30,6 +30,8 @@ import static io.reactivex.rxjava3.core.Observable.interval;
 import static java.lang.Boolean.TRUE;
 
 import io.gravitee.apim.plugin.reactor.handlers.api.analytics.AnalyticsMessageHook;
+import io.gravitee.apim.plugin.reactor.handlers.api.flow.FlowChain;
+import io.gravitee.apim.plugin.reactor.handlers.api.flow.FlowChainFactory;
 import io.gravitee.apim.plugin.reactor.processor.ApiProcessorChainFactory;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
@@ -66,10 +68,8 @@ import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnecto
 import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter;
 import io.gravitee.gateway.reactive.handlers.api.analytics.logging.LoggingHook;
-import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.CompletableReactorChain;
-import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.SecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
@@ -161,8 +161,8 @@ public class V4ApiReactor extends AbstractLifecycleComponent<ReactorHandler> imp
         EndpointManager endpointManager,
         ResourceLifecycleManager resourceLifecycleManager,
         ApiProcessorChainFactory apiProcessorChainFactory,
-        FlowChainFactory flowChainFactory,
-        io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory,
+        io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory flowChainFactory,
+        FlowChainFactory v4FlowChainFactory,
         Configuration configuration,
         Node node,
         RequestTimeoutConfiguration requestTimeoutConfiguration,

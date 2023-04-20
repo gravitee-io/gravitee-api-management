@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.plugin.reactor;
 
+import io.gravitee.apim.plugin.reactor.handlers.api.flow.FlowChainFactory;
+import io.gravitee.apim.plugin.reactor.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.apim.plugin.reactor.processor.ApiProcessorChainFactory;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -31,20 +33,22 @@ import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.service.dlq.DlqServiceFactory;
+import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultEndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider;
-import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
+import io.gravitee.gateway.reactive.v4.flow.selection.ChannelSelectorConditionFilter;
+import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorConditionFilter;
+import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
@@ -107,7 +111,6 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
         @Qualifier("platformPolicyChainFactory") final PolicyChainFactory platformPolicyChainFactory,
         final OrganizationManager organizationManager,
         final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
-        final FlowResolverFactory v4FlowResolverFactory,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
         final ReporterService reporterService
     ) {
@@ -122,7 +125,11 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
         this.organizationManager = organizationManager;
         this.apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
         this.flowResolverFactory = flowResolverFactory;
-        this.v4FlowResolverFactory = v4FlowResolverFactory;
+        this.v4FlowResolverFactory =
+            new FlowResolverFactory(
+                new CompositeConditionFilter<>(new HttpSelectorConditionFilter(), new ConditionSelectorConditionFilter()),
+                new CompositeConditionFilter<>(new ChannelSelectorConditionFilter(), new ConditionSelectorConditionFilter())
+            );
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.reporterService = reporterService;
     }
@@ -184,16 +191,17 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
 
                 final PolicyChainFactory policyChainFactory = new DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
 
-                final io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory v4PolicyChainFactory =
-                    new io.gravitee.gateway.reactive.v4.policy.DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
+                final io.gravitee.apim.plugin.reactor.policy.PolicyChainFactory v4PolicyChainFactory =
+                    new io.gravitee.apim.plugin.reactor.policy.DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
 
-                final FlowChainFactory flowChainFactory = new FlowChainFactory(
-                    platformPolicyChainFactory,
-                    policyChainFactory,
-                    organizationManager,
-                    configuration,
-                    flowResolverFactory
-                );
+                final io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory flowChainFactory =
+                    new io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory(
+                        platformPolicyChainFactory,
+                        policyChainFactory,
+                        organizationManager,
+                        configuration,
+                        flowResolverFactory
+                    );
 
                 final DefaultEndpointManager endpointManager = new DefaultEndpointManager(
                     api.getDefinition(),
@@ -203,12 +211,11 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
 
                 customComponentProvider.add(EndpointManager.class, endpointManager);
 
-                final io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory =
-                    new io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory(
-                        v4PolicyChainFactory,
-                        configuration,
-                        v4FlowResolverFactory
-                    );
+                final FlowChainFactory v4FlowChainFactory = new FlowChainFactory(
+                    v4PolicyChainFactory,
+                    configuration,
+                    v4FlowResolverFactory
+                );
 
                 final DefaultDlqServiceFactory dlqServiceFactory = new DefaultDlqServiceFactory(api.getDefinition(), endpointManager);
                 customComponentProvider.add(DlqServiceFactory.class, dlqServiceFactory);

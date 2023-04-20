@@ -25,7 +25,6 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.hook.Hook;
 import io.gravitee.gateway.reactive.api.policy.Policy;
-import io.gravitee.gateway.reactive.policy.tracing.TracingMessageHook;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
@@ -73,7 +72,6 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
         boolean tracing = configuration.getProperty("services.tracing.enabled", Boolean.class, false);
         if (tracing) {
             policyHooks.add(new TracingPolicyHook());
-            policyHooks.add(new TracingMessageHook());
         }
     }
 

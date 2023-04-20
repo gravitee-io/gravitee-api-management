@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
+package io.gravitee.apim.plugin.reactor.handlers.api.flow.resolver;
 
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.Flow;

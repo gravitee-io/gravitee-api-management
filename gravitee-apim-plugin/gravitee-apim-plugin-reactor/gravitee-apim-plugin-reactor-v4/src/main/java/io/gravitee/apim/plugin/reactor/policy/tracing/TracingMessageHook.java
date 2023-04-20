@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.policy.tracing;
+package io.gravitee.apim.plugin.reactor.policy.tracing;
 
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.MessageHook;
+import io.gravitee.gateway.reactive.policy.tracing.AbstractTracingPolicyHook;
 import io.gravitee.tracing.api.Span;
 
 /**
@@ -26,7 +27,7 @@ import io.gravitee.tracing.api.Span;
  */
 public class TracingMessageHook extends AbstractTracingPolicyHook implements MessageHook {
 
-    private static final String SPAN_MESSAGE_ATTR = "message";
+    static final String SPAN_MESSAGE_ATTR = "message";
 
     @Override
     public String id() {

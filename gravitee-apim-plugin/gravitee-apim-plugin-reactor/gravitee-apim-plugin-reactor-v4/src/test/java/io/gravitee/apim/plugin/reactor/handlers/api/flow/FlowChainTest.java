@@ -13,20 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.flow;
+package io.gravitee.apim.plugin.reactor.handlers.api.flow;
 
-import static io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChain.INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED;
+import static io.gravitee.apim.plugin.reactor.handlers.api.flow.FlowChain.INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.policy.PolicyChainFactory;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
-import io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;

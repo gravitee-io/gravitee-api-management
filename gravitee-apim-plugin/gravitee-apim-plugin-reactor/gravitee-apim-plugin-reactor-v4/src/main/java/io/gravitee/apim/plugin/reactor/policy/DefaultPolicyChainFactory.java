@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.v4.policy;
+package io.gravitee.apim.plugin.reactor.policy;
 
+import io.gravitee.apim.plugin.reactor.policy.tracing.TracingMessageHook;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -26,7 +27,6 @@ import io.gravitee.gateway.reactive.api.hook.Hook;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
-import io.gravitee.gateway.reactive.policy.tracing.TracingMessageHook;
 import io.gravitee.gateway.reactive.policy.tracing.TracingPolicyHook;
 import io.gravitee.node.api.cache.Cache;
 import io.gravitee.node.api.cache.CacheConfiguration;
@@ -41,7 +41,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * {@link PolicyChainFactory} that can be instantiated per-api or per-organization, and optimized to maximize the reuse of created {@link PolicyChain} thanks to a cache.
+ * {@link io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory} that can be instantiated per-api or per-organization, and optimized to maximize the reuse of created {@link PolicyChain} thanks to a cache.
  *
  * <b>WARNING</b>: this factory must absolutely be created per api to ensure proper cache destruction when deploying / un-deploying the api.
  *

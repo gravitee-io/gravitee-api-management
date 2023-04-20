@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
+package io.gravitee.apim.plugin.reactor.handlers.api.flow.resolver;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;

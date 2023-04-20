@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.handlers.api.v4.flow;
+package io.gravitee.apim.plugin.reactor.handlers.api.flow;
 
+import io.gravitee.apim.plugin.reactor.handlers.api.flow.resolver.FlowResolverFactory;
+import io.gravitee.apim.plugin.reactor.policy.PolicyChainFactory;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
-import io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
 import java.util.List;

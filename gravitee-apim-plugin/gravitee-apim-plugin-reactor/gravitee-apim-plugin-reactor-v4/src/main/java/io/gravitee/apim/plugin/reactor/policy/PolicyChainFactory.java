@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.v4.policy;
+package io.gravitee.apim.plugin.reactor.policy;
 
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;

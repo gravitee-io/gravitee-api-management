@@ -23,8 +23,10 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.apim.plugin.reactor.processor.ApiProcessorChainFactory;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
@@ -38,8 +40,8 @@ import io.gravitee.gateway.reactive.api.service.dlq.DlqServiceFactory;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
+import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -106,9 +108,6 @@ class V4ApiReactorFactoryTest {
     io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
 
     @Mock
-    FlowResolverFactory v4FlowResolverFactory;
-
-    @Mock
     RequestTimeoutConfiguration requestTimeoutConfiguration;
 
     @Mock
@@ -124,6 +123,7 @@ class V4ApiReactorFactoryTest {
 
     @BeforeEach
     public void init() {
+        lenient().when(definition.getType()).thenReturn(ApiType.PROXY);
         cut =
             new V4ApiReactorFactory(
                 applicationContext,
@@ -136,7 +136,6 @@ class V4ApiReactorFactoryTest {
                 platformPolicyChainFactory,
                 organizationManager,
                 flowResolverFactory,
-                v4FlowResolverFactory,
                 requestTimeoutConfiguration,
                 reporterService
             );
@@ -267,7 +266,26 @@ class V4ApiReactorFactoryTest {
         }
 
         @Test
-        void should_create_api_reactor_with_TemplateVariableProviders() {
+        void should_create_api_reactor_with_TemplateVariableProviders_for_proxy_api() {
+            var api = anApi();
+            var reactor = cut.create(api);
+
+            assertThat(reactor).isInstanceOf(V4ApiReactor.class);
+            var templateVariableProviders = ((V4ApiReactor) reactor).getCtxTemplateVariableProviders();
+
+            assertThat(templateVariableProviders)
+                .hasSize(3 + registeredApiTemplateVariableProvider.size())
+                .satisfies(list -> {
+                    assertThat(list.stream().filter(p -> p instanceof ApiTemplateVariableProvider).findFirst()).isPresent();
+                    assertThat(list.stream().filter(p -> registeredApiTemplateVariableProvider.contains(p)).findFirst()).isPresent();
+                    assertThat(list.stream().filter(p -> p instanceof EndpointManager).findFirst()).isPresent();
+                    assertThat(list.stream().filter(p -> p instanceof ContentTemplateVariableProvider).findFirst()).isPresent();
+                });
+        }
+
+        @Test
+        void should_create_api_reactor_with_TemplateVariableProviders_for_message_api() {
+            when(definition.getType()).thenReturn(ApiType.MESSAGE);
             var api = anApi();
             var reactor = cut.create(api);
 
