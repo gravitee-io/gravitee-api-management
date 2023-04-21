@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.v4.flow;
+package io.gravitee.apim.plugin.reactor.flow;
 
+import io.gravitee.apim.plugin.reactor.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
-import io.gravitee.gateway.reactive.flow.FlowBaseTest;
-import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -16,8 +16,8 @@
 package io.gravitee.gateway.reactive.flow;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
-import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowSelector;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 
@@ -41,7 +41,7 @@ public class BestMatchFlowResolver implements FlowResolver {
     public Flowable<Flow> resolve(final GenericExecutionContext ctx) {
         return provideFlows(ctx)
             .toList()
-            .flatMapMaybe(flows -> Maybe.fromCallable(() -> BestMatchFlowSelector.forPath(flows, ctx.request().pathInfo())))
+            .flatMapMaybe(flows -> Maybe.fromCallable(() -> BestMatchFlowSelector.instance().forPath(flows, ctx.request().pathInfo())))
             .toFlowable();
     }
 

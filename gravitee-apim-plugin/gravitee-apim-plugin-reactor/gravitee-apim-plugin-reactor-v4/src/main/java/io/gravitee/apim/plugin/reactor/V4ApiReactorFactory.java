@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.plugin.reactor;
 
+import io.gravitee.apim.plugin.reactor.flow.selection.ChannelSelectorConditionFilter;
+import io.gravitee.apim.plugin.reactor.flow.selection.ConditionSelectorConditionFilter;
+import io.gravitee.apim.plugin.reactor.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.apim.plugin.reactor.handlers.api.flow.FlowChainFactory;
 import io.gravitee.apim.plugin.reactor.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.apim.plugin.reactor.processor.ApiProcessorChainFactory;
@@ -46,9 +49,6 @@ import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.gateway.reactive.v4.flow.selection.ChannelSelectorConditionFilter;
-import io.gravitee.gateway.reactive.v4.flow.selection.ConditionSelectorConditionFilter;
-import io.gravitee.gateway.reactive.v4.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.v4.flow;
+package io.gravitee.apim.plugin.reactor.flow;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -53,7 +53,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
     public ReactableApi reactableApi;
 
     @Test
-    public void should_resolve_bestMatchFlow_with_api_sync() {
+    public void should_resolve_bestMatchFlow_with_api_proxy() {
         BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver);
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
@@ -79,7 +79,7 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
     }
 
     @Test
-    public void should_resolve_bestMatchFlow_with_api_async() {
+    public void should_resolve_bestMatchFlow_with_api_message() {
         BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver);
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);

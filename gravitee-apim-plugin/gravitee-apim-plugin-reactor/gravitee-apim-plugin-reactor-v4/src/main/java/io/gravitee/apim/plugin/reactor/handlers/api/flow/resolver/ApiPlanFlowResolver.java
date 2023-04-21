@@ -15,13 +15,13 @@
  */
 package io.gravitee.apim.plugin.reactor.handlers.api.flow.resolver;
 
+import io.gravitee.apim.plugin.reactor.flow.AbstractFlowResolver;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
-import io.gravitee.gateway.reactive.v4.flow.AbstractFlowResolver;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
 import java.util.Map;

@@ -27,13 +27,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.plugin.reactor.flow.FlowResolver;
 import io.gravitee.apim.plugin.reactor.policy.PolicyChainFactory;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.policy.PolicyChain;
-import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;

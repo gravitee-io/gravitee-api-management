@@ -15,14 +15,14 @@
  */
 package io.gravitee.apim.plugin.reactor.handlers.api.flow.resolver;
 
+import io.gravitee.apim.plugin.reactor.flow.BestMatchFlowResolver;
+import io.gravitee.apim.plugin.reactor.flow.FlowResolver;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowResolver;
-import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 
 /**
  * Factory allowing to create a {@link FlowResolver} to be used to resolve flows to execute at api plan level, api level or platform level.

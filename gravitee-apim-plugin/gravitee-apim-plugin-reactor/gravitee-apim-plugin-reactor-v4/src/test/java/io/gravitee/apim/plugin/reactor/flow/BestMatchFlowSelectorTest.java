@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.v4.flow;
+package io.gravitee.apim.plugin.reactor.flow;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -53,7 +53,7 @@ public class BestMatchFlowSelectorTest extends BestMatchFlowBaseTest {
         when(request.pathInfo()).thenReturn(requestPath);
 
         List<Flow> flows = flowResolver.resolve(executionContext).toList().blockingGet();
-        final Flow bestMatchFlow = BestMatchFlowSelector.forPath(ApiType.PROXY, flows, requestPath);
+        final Flow bestMatchFlow = BestMatchFlowSelector.instance().forPath(flows, requestPath);
 
         if (expectedBestMatchResult == null) {
             assertThat(bestMatchFlow).isNull();
@@ -72,7 +72,7 @@ public class BestMatchFlowSelectorTest extends BestMatchFlowBaseTest {
         when(request.pathInfo()).thenReturn(requestPath);
 
         List<Flow> flows = flowResolver.resolve(executionContext).toList().blockingGet();
-        final Flow bestMatchFlow = BestMatchFlowSelector.forPath(ApiType.MESSAGE, flows, requestPath);
+        final Flow bestMatchFlow = BestMatchFlowSelector.instance().forPath(ApiType.MESSAGE, flows, requestPath);
 
         if (expectedBestMatchResult == null) {
             assertThat(bestMatchFlow).isNull();
@@ -83,5 +83,33 @@ public class BestMatchFlowSelectorTest extends BestMatchFlowBaseTest {
             ChannelSelector channelSelector = (ChannelSelector) selector.get();
             assertThat(channelSelector.getChannel()).isEqualTo(expectedBestMatchResult);
         }
+    }
+
+    @Test
+    public void should_return_empty_when_flow_null() {
+        assertThat(BestMatchFlowSelector.instance().providePath(null, null)).isEmpty();
+    }
+
+    @Test
+    public void should_return_empty_when_flow_has_no_path() {
+        assertThat(BestMatchFlowSelector.instance().providePath(ApiType.PROXY, new Flow())).isEmpty();
+    }
+
+    @Test
+    public void should_return_flow_path_when_http_selector() {
+        final Flow flow = new Flow();
+        final HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("path");
+        flow.setSelectors(List.of(httpSelector));
+        assertThat(BestMatchFlowSelector.instance().providePath(ApiType.PROXY, flow)).isNotEmpty().containsSame("path");
+    }
+
+    @Test
+    public void should_return_flow_path_when_channel_selector() {
+        final Flow flow = new Flow();
+        final ChannelSelector httpSelector = new ChannelSelector();
+        httpSelector.setChannel("channel");
+        flow.setSelectors(List.of(httpSelector));
+        assertThat(BestMatchFlowSelector.instance().providePath(ApiType.MESSAGE, flow)).isNotEmpty().containsSame("channel");
     }
 }

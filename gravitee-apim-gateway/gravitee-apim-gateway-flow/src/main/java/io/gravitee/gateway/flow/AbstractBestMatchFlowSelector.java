@@ -13,30 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.v4.flow;
+package io.gravitee.gateway.flow;
 
-import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
-import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
-import io.gravitee.definition.model.v4.flow.selector.Selector;
-import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BestMatchFlowSelector {
+public abstract class AbstractBestMatchFlowSelector<T> {
 
     private static final String PATH_PARAM_PREFIX = ":";
     private static final Pattern SEPARATOR_SPLITTER = Pattern.compile("/");
 
-    public static <T> T forPath(List<T> flows, String path) {
+    public T forPath(List<T> flows, String path) {
         return forPath(ApiType.PROXY, flows, path);
     }
 
@@ -110,7 +103,7 @@ public class BestMatchFlowSelector {
      *
      * @return a list containing the best matching flow.
      */
-    public static <T> T forPath(final ApiType apiType, final List<T> flows, final String path) {
+    public T forPath(final ApiType apiType, final List<T> flows, final String path) {
         // Do not process empty flows
         if (flows == null || flows.isEmpty()) {
             return null;
@@ -156,26 +149,10 @@ public class BestMatchFlowSelector {
         return selectedFlow;
     }
 
-    private static <T> String[] splitPath(final ApiType apiType, T flow) {
-        if (flow instanceof io.gravitee.definition.model.flow.Flow) {
-            return splitPath(((Flow) flow).getPath());
-        } else if (flow instanceof io.gravitee.definition.model.v4.flow.Flow) {
-            io.gravitee.definition.model.v4.flow.Flow flowV4 = (io.gravitee.definition.model.v4.flow.Flow) flow;
-            if (apiType == ApiType.PROXY) {
-                Optional<Selector> selectorOpt = flowV4.selectorByType(SelectorType.HTTP);
-                if (selectorOpt.isPresent()) {
-                    HttpSelector httpSelector = (HttpSelector) selectorOpt.get();
-                    return splitPath(httpSelector.getPath());
-                }
-            } else if (apiType == ApiType.MESSAGE) {
-                Optional<Selector> selectorOpt = flowV4.selectorByType(SelectorType.CHANNEL);
-                if (selectorOpt.isPresent()) {
-                    ChannelSelector channelSelector = (ChannelSelector) selectorOpt.get();
-                    return splitPath(channelSelector.getChannel());
-                }
-            }
-        }
-        return new String[0];
+    protected abstract Optional<String> providePath(ApiType apiType, T flow);
+
+    private String[] splitPath(final ApiType apiType, T flow) {
+        return providePath(apiType, flow).map(this::splitPath).orElse(new String[0]);
     }
 
     /**
@@ -191,7 +168,7 @@ public class BestMatchFlowSelector {
      * @param path to split
      * @return The array of strings computed by splitting the input path
      */
-    private static String[] splitPath(String path) {
+    private String[] splitPath(String path) {
         return SEPARATOR_SPLITTER.split(path, -1);
     }
 }

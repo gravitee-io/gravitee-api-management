@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactive.v4.flow;
+package io.gravitee.apim.plugin.reactor.flow;
 
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -47,7 +47,7 @@ public class BestMatchFlowResolver implements FlowResolver {
                 Maybe.fromCallable(() -> {
                     ReactableApi<?> reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
                     Api definition = (Api) reactableApi.getDefinition();
-                    return BestMatchFlowSelector.forPath(definition.getType(), flows, ctx.request().pathInfo());
+                    return BestMatchFlowSelector.instance().forPath(definition.getType(), flows, ctx.request().pathInfo());
                 })
             )
             .toFlowable();
