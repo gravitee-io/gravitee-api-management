@@ -20,6 +20,8 @@ import io.gravitee.apim.plugin.reactor.flow.selection.ConditionSelectorCondition
 import io.gravitee.apim.plugin.reactor.flow.selection.HttpSelectorConditionFilter;
 import io.gravitee.apim.plugin.reactor.handlers.api.flow.FlowChainFactory;
 import io.gravitee.apim.plugin.reactor.handlers.api.flow.resolver.FlowResolverFactory;
+import io.gravitee.apim.plugin.reactor.policy.DefaultPolicyChainFactory;
+import io.gravitee.apim.plugin.reactor.policy.PolicyChainFactory;
 import io.gravitee.apim.plugin.reactor.processor.ApiProcessorChainFactory;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -44,8 +46,6 @@ import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory;
-import io.gravitee.gateway.reactive.policy.PolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
@@ -91,7 +91,7 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
     protected final EndpointConnectorPluginManager endpointConnectorPluginManager;
     private final ApiServicePluginManager apiServicePluginManager;
-    protected final PolicyChainFactory platformPolicyChainFactory;
+    protected final io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory;
     protected final OrganizationManager organizationManager;
     protected final ApiProcessorChainFactory apiProcessorChainFactory;
     protected final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory;
@@ -108,7 +108,7 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
         final EntrypointConnectorPluginManager entrypointConnectorPluginManager,
         final EndpointConnectorPluginManager endpointConnectorPluginManager,
         final ApiServicePluginManager apiServicePluginManager,
-        @Qualifier("platformPolicyChainFactory") final PolicyChainFactory platformPolicyChainFactory,
+        @Qualifier("platformPolicyChainFactory") final io.gravitee.gateway.reactive.policy.PolicyChainFactory platformPolicyChainFactory,
         final OrganizationManager organizationManager,
         final io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory flowResolverFactory,
         final RequestTimeoutConfiguration requestTimeoutConfiguration,
@@ -137,7 +137,7 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
     @Override
     public boolean support(Class<? extends Reactable> clazz) {
         // TODO: when splitting proxy and event-native, test should have more criteria
-        return io.gravitee.gateway.reactive.handlers.api.v4.Api.class.isAssignableFrom(clazz);
+        return Api.class.isAssignableFrom(clazz);
     }
 
     @Override
@@ -159,7 +159,7 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
             if (api.isEnabled()) {
                 final ComponentProvider globalComponentProvider = applicationContext.getBean(ComponentProvider.class);
                 final CustomComponentProvider customComponentProvider = new CustomComponentProvider();
-                customComponentProvider.add(io.gravitee.gateway.reactive.handlers.api.v4.Api.class, api);
+                customComponentProvider.add(Api.class, api);
                 customComponentProvider.add(ReactableApi.class, api);
                 customComponentProvider.add(io.gravitee.definition.model.v4.Api.class, api.getDefinition());
 
@@ -189,10 +189,10 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
                     componentProvider
                 );
 
-                final PolicyChainFactory policyChainFactory = new DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
+                final io.gravitee.gateway.reactive.policy.PolicyChainFactory policyChainFactory =
+                    new io.gravitee.gateway.reactive.policy.DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
 
-                final io.gravitee.apim.plugin.reactor.policy.PolicyChainFactory v4PolicyChainFactory =
-                    new io.gravitee.apim.plugin.reactor.policy.DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
+                final PolicyChainFactory v4PolicyChainFactory = new DefaultPolicyChainFactory(api.getId(), policyManager, configuration);
 
                 final io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory flowChainFactory =
                     new io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory(
@@ -249,7 +249,7 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
     }
 
     public ResourceLifecycleManager resourceLifecycleManager(
-        io.gravitee.gateway.reactive.handlers.api.v4.Api api,
+        Api api,
         ResourceClassLoaderFactory resourceClassLoaderFactory,
         ResourceConfigurationFactory resourceConfigurationFactory,
         ApplicationContext applicationContext,
@@ -276,7 +276,7 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
 
     @SuppressWarnings("unchecked")
     public PolicyManager policyManager(
-        io.gravitee.gateway.reactive.handlers.api.v4.Api api,
+        Api api,
         PolicyFactory factory,
         PolicyConfigurationFactory policyConfigurationFactory,
         PolicyClassLoaderFactory policyClassLoaderFactory,
@@ -301,7 +301,7 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
         );
     }
 
-    protected List<TemplateVariableProvider> commonTemplateVariableProviders(io.gravitee.gateway.reactive.handlers.api.v4.Api api) {
+    protected List<TemplateVariableProvider> commonTemplateVariableProviders(Api api) {
         final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
         templateVariableProviders.add(new ApiTemplateVariableProvider(api));
         templateVariableProviders.addAll(
@@ -311,7 +311,7 @@ public class V4ApiReactorFactory implements ReactorFactory<Api> {
         return templateVariableProviders;
     }
 
-    protected List<TemplateVariableProvider> ctxTemplateVariableProviders(io.gravitee.gateway.reactive.handlers.api.v4.Api api) {
+    protected List<TemplateVariableProvider> ctxTemplateVariableProviders(Api api) {
         final List<TemplateVariableProvider> requestTemplateVariableProviders = commonTemplateVariableProviders(api);
         if (api.getDefinition().getType() == ApiType.PROXY) {
             requestTemplateVariableProviders.add(new ContentTemplateVariableProvider());
