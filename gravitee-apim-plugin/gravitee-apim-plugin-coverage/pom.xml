@@ -136,6 +136,12 @@
             <artifactId>gravitee-apim-plugin-tests-integration</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.integration.tests</groupId>
+            <artifactId>gravitee-apim-integration-tests</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

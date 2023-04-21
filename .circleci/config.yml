@@ -689,7 +689,7 @@ jobs:
         - persist_to_workspace:
             root: .
             paths:
-              - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
+              - gravitee-apim-integration-tests/target/site/jacoco-aggregate/
 
     test-repository:
         executor:
@@ -1876,12 +1876,18 @@ workflows:
                       parameters:
                           working_directory:
                               - gravitee-apim-rest-api
-                              - gravitee-apim-gateway
                               - gravitee-apim-definition
                   context: cicd-orchestrator
                   component: << matrix.working_directory >>
                   requires:
                       - test
+            - sonarcloud-analysis:
+                name: Sonar - gravitee-apim-gateway
+                context: cicd-orchestrator
+                component: gravitee-apim-gateway
+                requires:
+                  - test
+                  - integration-tests
             - test-plugin:
                   context: cicd-orchestrator
                   requires:
