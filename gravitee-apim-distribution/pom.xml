@@ -71,7 +71,7 @@
         <gravitee-policy-metrics-reporter.version>2.0.0</gravitee-policy-metrics-reporter.version>
         <gravitee-policy-message-filtering.version>1.1.0</gravitee-policy-message-filtering.version>
         <gravitee-policy-mock.version>1.13.0</gravitee-policy-mock.version>
-	    <gravitee-policy-oauth2.version>2.1.0</gravitee-policy-oauth2.version>
+        <gravitee-policy-oauth2.version>2.1.0</gravitee-policy-oauth2.version>
         <gravitee-policy-openid-connect-userinfo.version>1.5.2</gravitee-policy-openid-connect-userinfo.version>
         <gravitee-policy-override-http-method.version>2.0.0</gravitee-policy-override-http-method.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
@@ -777,6 +777,7 @@
                 </property>
             </activation>
             <properties>
+                <ee-plugin-classifier/>
                 <!-- Versions of the plugins for the full distribution on dev environment-->
                 <!-- Management API & Gateway -->
                 <!-- Community plugins -->
@@ -798,7 +799,7 @@
 
                 <!-- Enterprise plugins -->
                 <gravitee-policy-assign-metrics.version>2.0.1</gravitee-policy-assign-metrics.version>
-                <gravitee-policy-transform-avro-json.version>1.0.0-alpha.5</gravitee-policy-transform-avro-json.version>
+                <gravitee-policy-transform-avro-json.version>1.1.0</gravitee-policy-transform-avro-json.version>
                 <gravitee-policy-data-logging-masking.version>2.0.3</gravitee-policy-data-logging-masking.version>
                 <gravitee-policy-interrupt.version>1.1.0</gravitee-policy-interrupt.version>
                 <gravitee-entrypoint-sse-advanced.version>3.0.0-alpha.6</gravitee-entrypoint-sse-advanced.version>
@@ -861,6 +862,7 @@
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-transform-avro-json</artifactId>
                     <version>${gravitee-policy-transform-avro-json.version}</version>
+                    <classifier>${ee-plugin-classifier}</classifier>
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
@@ -966,6 +968,7 @@
                     <groupId>com.graviteesource.resource</groupId>
                     <artifactId>gravitee-resource-schema-registry-confluent</artifactId>
                     <version>${gravitee-resource-schema-registry-confluent.version}</version>
+                    <classifier>${ee-plugin-classifier}</classifier>
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
