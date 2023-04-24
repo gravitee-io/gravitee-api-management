@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMO
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.any;
@@ -59,6 +60,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.BridgeOperationException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
@@ -390,12 +392,8 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         when(promotionRepository.create(any())).thenReturn(getAPromotion());
-        when(cockpitPromotionService.requestPromotion(eq(GraviteeContext.getExecutionContext()), any()))
-            .thenReturn(new CockpitReply<>(getAPromotionEntity(), CockpitReplyStatus.SUCCEEDED));
 
-        when(promotionRepository.update(any())).thenReturn(mock(Promotion.class));
-
-        final PromotionEntity promotionEntity = promotionService.promote(
+        final PromotionEntity promotionEntity = promotionService.create(
             GraviteeContext.getExecutionContext(),
             GraviteeContext.getCurrentEnvironment(),
             "api#1",
@@ -440,7 +438,7 @@ public class PromotionServiceTest {
 
         PromotionRequestEntity promotionRequestEntity = getAPromotionRequestEntity();
         promotionRequestEntity.setTargetEnvCockpitId(targetEnvCockpitId);
-        promotionService.promote(
+        promotionService.create(
             GraviteeContext.getExecutionContext(),
             GraviteeContext.getCurrentEnvironment(),
             "api#1",
@@ -551,6 +549,28 @@ public class PromotionServiceTest {
         );
 
         assertNull(resultApiId);
+    }
+
+    @Test(expected = PromotionNotFoundException.class)
+    public void shouldThrowExceptionWhenPromotionIsNotFound() throws TechnicalException {
+        when(promotionRepository.findById("id")).thenReturn(Optional.empty());
+        promotionService.promote(GraviteeContext.getExecutionContext(), "id");
+    }
+
+    @Test
+    public void shouldSendCommandToCockpit() throws TechnicalException {
+        Promotion promotion = getAPromotion();
+        when(promotionRepository.findById("id")).thenReturn(Optional.of(promotion));
+        when(cockpitPromotionService.requestPromotion(eq(GraviteeContext.getExecutionContext()), any()))
+            .thenReturn(new CockpitReply<>(getAPromotionEntity(), CockpitReplyStatus.SUCCEEDED));
+
+        PromotionEntity result = promotionService.promote(GraviteeContext.getExecutionContext(), "id");
+
+        verify(cockpitPromotionService).requestPromotion(any(ExecutionContext.class), any(PromotionEntity.class));
+
+        // verify that the promotion has been updated with a promotion containing the status PromotionEntityStatus.TO_BE_VALIDATED
+        verify(promotionRepository).update(argThat(p -> PromotionStatus.TO_BE_VALIDATED.equals(p.getStatus())));
+        assertNotNull(result);
     }
 
     private UserEntity getAUserEntity() {
