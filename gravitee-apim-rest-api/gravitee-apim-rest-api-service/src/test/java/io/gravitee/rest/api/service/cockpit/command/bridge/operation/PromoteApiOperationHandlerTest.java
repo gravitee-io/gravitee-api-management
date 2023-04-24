@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.reactivex.observers.TestObserver;
 import org.assertj.core.api.Assertions;
@@ -96,12 +97,9 @@ public class PromoteApiOperationHandlerTest {
         InstallationEntity installationEntity = new InstallationEntity();
         installationEntity.setId(INSTALLATION_ID);
         when(installationService.get()).thenReturn(installationEntity);
+        when(promotionService.createOrUpdate(any(PromotionEntity.class))).thenReturn(getAPromotionEntity());
 
         TestObserver<BridgeReply> obs = cut.handle(command).test();
-
-        verify(promotionService, times(1)).createOrUpdate(argument.capture());
-
-        Assertions.assertThat(argument.getValue().getStatus()).isEqualTo(PromotionEntityStatus.TO_BE_VALIDATED);
 
         obs.awaitTerminalEvent();
         obs.assertValue(reply -> {
@@ -114,6 +112,9 @@ public class PromoteApiOperationHandlerTest {
                 simpleReply.getCommandId().equals(COMMAND_ID)
             );
         });
+
+        verify(promotionService, times(1)).createOrUpdate(argument.capture());
+        Assertions.assertThat(argument.getValue().getStatus()).isEqualTo(PromotionEntityStatus.TO_BE_VALIDATED);
     }
 
     @Test
@@ -173,6 +174,26 @@ public class PromoteApiOperationHandlerTest {
             reply.getCommandStatus().equals(CommandStatus.ERROR) &&
             reply.getMessage().equals("Problem while serializing promotion request for environment [" + ENVIRONMENT_ID + "]")
         );
+    }
+
+    @Test
+    public void shouldReturnErrorCommand() throws JsonProcessingException {
+        when(promotionService.createOrUpdate(any())).thenThrow(new TechnicalManagementException("error"));
+
+        BridgeCommand command = new BridgeCommand();
+        command.setId(COMMAND_ID);
+        command.setPayload(new BridgePayload());
+        command.setInstallationId(INSTALLATION_ID);
+        command.setOrganizationId(ORGANIZATION_ID);
+        command.setEnvironmentId(ENVIRONMENT_ID);
+
+        when(objectMapper.readValue(command.getPayload().getContent(), PromotionEntity.class)).thenReturn(getAPromotionEntity());
+
+        TestObserver<BridgeReply> obs = cut.handle(command).test();
+
+        obs.awaitTerminalEvent();
+        obs.assertNoErrors();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 
     private PromotionEntity getAPromotionEntity() {

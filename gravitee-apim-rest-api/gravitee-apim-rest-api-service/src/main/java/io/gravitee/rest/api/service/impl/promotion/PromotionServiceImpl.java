@@ -27,10 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
-import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.PromotionCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.management.model.PromotionAuthor;
 import io.gravitee.repository.management.model.PromotionStatus;
@@ -126,7 +123,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     }
 
     @Override
-    public PromotionEntity promote(
+    public PromotionEntity create(
         ExecutionContext executionContext,
         final String sourceEnvironmentId,
         String apiId,
@@ -180,7 +177,13 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             );
         }
 
-        PromotionEntity promotionEntity = convert(createdPromotion);
+        return convert(createdPromotion);
+    }
+
+    @Override
+    public PromotionEntity promote(ExecutionContext executionContext, String id) throws TechnicalException {
+        PromotionEntity promotionEntity = convert(promotionRepository.findById(id).orElseThrow(() -> new PromotionNotFoundException(id)));
+
         CockpitReply<PromotionEntity> cockpitReply = cockpitPromotionService.requestPromotion(executionContext, promotionEntity);
 
         promotionEntity.setStatus(
