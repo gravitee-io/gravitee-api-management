@@ -58,6 +58,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class DynamicPropertiesServiceTest {
 
+    private static final String ORGANIZATION_ID = "d7794b03-cda5-47c3-a9d4-3960380edb3a";
+    private static final String ENVIRONMENT_ID = "a445364b-9573-44dd-a89e-6920d41b1dcd";
+
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
@@ -91,9 +94,9 @@ public class DynamicPropertiesServiceTest {
     @Before
     public void before() {
         EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId("DEFAULT");
-        environment.setOrganizationId("DEFAULT");
-        when(environmentService.findById(eq(environment.getId()))).thenReturn(environment);
+        environment.setId(ENVIRONMENT_ID);
+        environment.setOrganizationId(ORGANIZATION_ID);
+        when(environmentService.findById(environment.getId())).thenReturn(environment);
     }
 
     @Test
@@ -201,7 +204,7 @@ public class DynamicPropertiesServiceTest {
 
     private ApiEntity createApiEntity() {
         final ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setEnvironmentId("DEFAULT");
+        apiEntity.setEnvironmentId(ENVIRONMENT_ID);
         final Services services = new Services();
         final DynamicPropertyService dynamicPropertyService = new DynamicPropertyService();
 
