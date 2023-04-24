@@ -92,6 +92,11 @@ public class UserServiceTest {
     private static final String ORGANIZATION = "DEFAULT";
     private static final Set<UserRoleEntity> ROLES = Collections.singleton(new UserRoleEntity());
 
+    private static ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(
+        "46f4732e-f76b-4f8f-8042-99fbefb01b39",
+        "21a6f466-3521-46d7-912b-83d8f1f1f7e5"
+    );
+
     private static final ParameterReferenceType REFERENCE_TYPE = ParameterReferenceType.ORGANIZATION;
 
     static {
@@ -225,7 +230,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void shouldComputeRolesToAddToUserFromRoleMapping() throws TechnicalException, IOException {
+    public void shouldComputeRolesToAddToUserFromRoleMapping() throws IOException {
         List<RoleMappingEntity> roleMappingEntities = getRoleMappingEntities();
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
 
@@ -241,16 +246,18 @@ public class UserServiceTest {
         when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "USER", GraviteeContext.getCurrentOrganization()))
             .thenReturn(Optional.of(envUserRole));
 
-        Set<RoleEntity> roleEntitiesForOrganization = new HashSet<>();
-        Map<String, Set<RoleEntity>> roleEntitiesForEnvironments = new HashMap<>();
-
-        userService.computeRolesToAddUser(
+        Set<RoleEntity> roleEntitiesForOrganization = userService.computeOrganizationRoles(
             GraviteeContext.getExecutionContext(),
-            USER_NAME,
             roleMappingEntities,
-            userInfo,
-            roleEntitiesForOrganization,
-            roleEntitiesForEnvironments
+            USER_NAME,
+            userInfo
+        );
+
+        Map<String, Set<RoleEntity>> roleEntitiesForEnvironments = userService.computeEnvironmentRoles(
+            GraviteeContext.getExecutionContext(),
+            roleMappingEntities,
+            USER_NAME,
+            userInfo
         );
 
         assertEquals(2, roleEntitiesForOrganization.size());
@@ -260,6 +267,53 @@ public class UserServiceTest {
         assertEquals(1, roleEntitiesForEnvironments.size());
         assertEquals(1, roleEntitiesForEnvironments.get("DEFAULT").size());
         assertTrue(roleEntitiesForEnvironments.get("DEFAULT").contains(envUserRole));
+    }
+
+    @Test
+    public void setDefaultRolesIfRoleMappingIsNotMatching() throws IOException {
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        RoleMappingEntity role1 = new RoleMappingEntity();
+        role1.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_4'}");
+        role1.setOrganizations(Collections.singletonList("ADMIN"));
+
+        RoleMappingEntity role2 = new RoleMappingEntity();
+        role2.setCondition("{#jsonPath(#profile, '$.identity_provider_id') == 'idp_6'}");
+        role2.setEnvironments(Collections.singletonMap("DEFAULT", Collections.singletonList("USER")));
+
+        RoleMappingEntity role3 = new RoleMappingEntity();
+        role3.setCondition("{#jsonPath(#profile, '$.job_id') == 'API_BREAKER'}");
+        role3.setOrganizations(Collections.singletonList("USER"));
+        role3.setEnvironments(Collections.singletonMap("DEFAULT", Collections.singletonList("USER")));
+        final List<RoleMappingEntity> rolesMapping = Arrays.asList(role1, role2, role3);
+
+        RoleEntity orgAdminRole = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        when(roleService.findDefaultRoleByScopes(EXECUTION_CONTEXT.getOrganizationId(), RoleScope.ORGANIZATION))
+            .thenReturn(List.of(orgAdminRole));
+
+        RoleEntity envUserRole = mockRoleEntity(RoleScope.ENVIRONMENT, "USER");
+        when(roleService.findDefaultRoleByScopes(EXECUTION_CONTEXT.getOrganizationId(), RoleScope.ENVIRONMENT))
+            .thenReturn(List.of(envUserRole));
+
+        Set<RoleEntity> roleEntitiesForOrganization = userService.computeOrganizationRoles(
+            EXECUTION_CONTEXT,
+            rolesMapping,
+            USER_NAME,
+            userInfo
+        );
+
+        Map<String, Set<RoleEntity>> roleEntitiesForEnvironments = userService.computeEnvironmentRoles(
+            EXECUTION_CONTEXT,
+            rolesMapping,
+            USER_NAME,
+            userInfo
+        );
+
+        assertEquals(1, roleEntitiesForOrganization.size());
+        assertTrue(roleEntitiesForOrganization.contains(orgAdminRole));
+
+        assertEquals(1, roleEntitiesForEnvironments.size());
+        assertEquals(1, roleEntitiesForEnvironments.get(EXECUTION_CONTEXT.getEnvironmentId()).size());
+        assertTrue(roleEntitiesForEnvironments.get(EXECUTION_CONTEXT.getEnvironmentId()).contains(envUserRole));
     }
 
     @Test
@@ -1852,8 +1906,8 @@ public class UserServiceTest {
                 any(MembershipService.MembershipRole.class)
             );
 
-        verify(roleService, times(1))
-            .findDefaultRoleByScopes(eq(GraviteeContext.getCurrentOrganization()), eq(RoleScope.ENVIRONMENT), eq(RoleScope.ORGANIZATION));
+        verify(roleService, times(1)).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.ORGANIZATION);
+        verify(roleService, times(1)).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.ENVIRONMENT);
     }
 
     private void mockDefaultEnvironment() {
