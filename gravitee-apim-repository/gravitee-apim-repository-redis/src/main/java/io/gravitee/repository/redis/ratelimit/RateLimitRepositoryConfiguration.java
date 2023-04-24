@@ -19,24 +19,33 @@ import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.redis.common.RedisConnectionFactory;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.vertx.core.Vertx;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
 public class RateLimitRepositoryConfiguration {
 
-    @Bean
-    public RedisConnectionFactory redisConnectionFactory(Environment environment, Vertx vertx) {
-        return new RedisConnectionFactory(environment, vertx, Scope.RATE_LIMIT.getName());
+    public static final String SCRIPT_RATELIMIT_KEY = "ratelimit";
+    public static final String SCRIPTS_RATELIMIT_LUA = "scripts/ratelimit/ratelimit.lua";
+
+    @Bean("redisRateLimitClient")
+    public RedisClient redisRedisClient(Environment environment, Vertx vertx) {
+        return new RedisConnectionFactory(
+            environment,
+            vertx,
+            Scope.RATE_LIMIT.getName(),
+            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
+        )
+            .createRedisClient();
     }
 
     @Bean
-    public RedisRateLimitRepository redisRateLimitRepository(RedisClient redisClient) {
+    public RedisRateLimitRepository redisRateLimitRepository(@Qualifier("redisRateLimitClient") RedisClient redisClient) {
         return new RedisRateLimitRepository(redisClient);
     }
 }

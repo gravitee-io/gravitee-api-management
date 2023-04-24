@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.handlers.api.definition;
 
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.JWT;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
@@ -25,7 +27,11 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.ReactableApi;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +39,10 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public class Api extends ReactableApi<io.gravitee.definition.model.Api> {
+
+    public Api() {
+        super();
+    }
 
     public Api(io.gravitee.definition.model.Api api) {
         super(api);

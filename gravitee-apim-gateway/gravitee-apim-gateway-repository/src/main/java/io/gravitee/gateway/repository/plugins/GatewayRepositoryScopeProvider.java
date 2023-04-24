@@ -28,4 +28,9 @@ public class GatewayRepositoryScopeProvider implements RepositoryScopeProvider {
     public Scope[] getHandledScopes() {
         return new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT };
     }
+
+    @Override
+    public Scope[] getOptionalHandledScopes() {
+        return new Scope[] { Scope.DISTRIBUTED_SYNC };
+    }
 }

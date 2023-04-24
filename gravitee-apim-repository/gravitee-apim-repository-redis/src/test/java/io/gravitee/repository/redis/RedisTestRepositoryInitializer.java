@@ -18,6 +18,8 @@ package io.gravitee.repository.redis;
 import io.gravitee.repository.config.TestRepositoryInitializer;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.vertx.redis.client.Command;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,40 +30,53 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class RedisTestRepositoryInitializer implements TestRepositoryInitializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisTestRepositoryInitializer.class);
-    private final RedisClient redisClient;
+    private final List<RedisClient> redisClients;
 
     @Autowired
-    public RedisTestRepositoryInitializer(RedisClient redisClient) {
-        this.redisClient = redisClient;
+    public RedisTestRepositoryInitializer(List<RedisClient> redisClients) {
+        this.redisClients = redisClients;
     }
 
     @Override
     public void setUp() {
-        // Wait for RedisApi to be ready
-        try {
-            Thread.sleep(500L);
-        } catch (InterruptedException e) {
-            LOGGER.error("Error while waiting for RedisApi to be ready", e);
-            Thread.currentThread().interrupt();
-        }
+        // Wait for all RedisApi to be ready
+        redisClients.forEach(redisClient -> {
+            try {
+                redisClient.redisApi().toCompletionStage().toCompletableFuture().get(500, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                LOGGER.error("Error while waiting for RedisApi to be ready", e);
+                Thread.currentThread().interrupt();
+            }
+        });
     }
 
     @Override
     public void tearDown() {
-        redisClient
-            .getRedisApi()
-            .send(Command.KEYS, "*")
-            .onSuccess(event ->
-                event
-                    .iterator()
-                    .forEachRemaining(key ->
-                        redisClient
-                            .getRedisApi()
-                            .send(Command.DEL, key.toString())
-                            .onFailure(t -> LOGGER.error("unable to delete key {}.", key, t))
-                            .result()
+        redisClients.forEach(redisClient -> {
+            try {
+                redisClient
+                    .redisApi()
+                    .flatMap(redisAPI ->
+                        redisAPI
+                            .send(Command.KEYS, "*")
+                            .onSuccess(event ->
+                                event
+                                    .iterator()
+                                    .forEachRemaining(key ->
+                                        redisAPI
+                                            .send(Command.DEL, key.toString())
+                                            .onFailure(t -> LOGGER.error("unable to delete key {}.", key, t))
+                                            .result()
+                                    )
+                            )
                     )
-            )
-            .result();
+                    .toCompletionStage()
+                    .toCompletableFuture()
+                    .get(500, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                LOGGER.error("Error while waiting for RedisApi to be cleaned", e);
+                Thread.currentThread().interrupt();
+            }
+        });
     }
 }

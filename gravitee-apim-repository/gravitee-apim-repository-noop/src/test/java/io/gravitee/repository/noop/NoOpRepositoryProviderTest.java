@@ -15,7 +15,9 @@
  */
 package io.gravitee.repository.noop;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import io.gravitee.platform.repository.api.Scope;
 import org.junit.Test;

@@ -1,0 +1,33 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Repository - DistributedSync - Redis" type="JUnit" factoryName="JUnit" folderName="Repository" repeat_count="10">
+    <classpathModifications>
+      <entry exclude="true" path="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-test/target/test-classes" />
+    </classpathModifications>
+    <module name="gravitee-apim-repository-redis" />
+    <extension name="net.ashald.envfile">
+      <option name="IS_ENABLED" value="false" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+      </ENTRIES>
+    </extension>
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="11" />
+    <option name="PACKAGE_NAME" value="io.gravitee.repository.distributedsync" />
+    <option name="MAIN_CLASS_NAME" value="" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="package" />
+    <dir value="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-mongodb/target/test-classes/io/gravitee/repository" />
+    <patterns>
+      <pattern testClass="io\.gravitee\.repository\..*RepositoryTest" />
+    </patterns>
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-test/pom.xml" goal="clean install -DskipTests=true -Dskip.validation" />
+      <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/gravitee-apim-repository/gravitee-apim-repository-redis/pom.xml" goal="clean test-compile -Dskip.validation" />
+    </method>
+  </configuration>
+</component>

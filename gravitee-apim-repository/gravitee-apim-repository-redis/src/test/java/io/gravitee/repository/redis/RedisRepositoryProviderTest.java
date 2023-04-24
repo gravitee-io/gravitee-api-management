@@ -15,7 +15,9 @@
  */
 package io.gravitee.repository.redis;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
@@ -32,7 +34,7 @@ public class RedisRepositoryProviderTest {
 
     @Test
     public void shouldReturnCacheScope() {
-        assertArrayEquals(new Scope[] { Scope.RATE_LIMIT }, provider.scopes());
+        assertArrayEquals(new Scope[] { Scope.RATE_LIMIT, Scope.DISTRIBUTED_SYNC }, provider.scopes());
     }
 
     @Test

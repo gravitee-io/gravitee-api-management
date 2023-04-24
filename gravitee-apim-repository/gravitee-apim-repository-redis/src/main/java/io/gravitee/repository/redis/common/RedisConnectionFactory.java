@@ -16,7 +16,7 @@
 package io.gravitee.repository.redis.common;
 
 import io.gravitee.repository.redis.vertx.RedisClient;
-import io.vertx.core.*;
+import io.vertx.core.Vertx;
 import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.NetClientOptions;
 import io.vertx.core.net.OpenSSLEngineOptions;
@@ -28,9 +28,8 @@ import io.vertx.redis.client.RedisOptions;
 import io.vertx.redis.client.RedisRole;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.FactoryBean;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
@@ -38,15 +37,13 @@ import org.springframework.util.StringUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RedisConnectionFactory implements FactoryBean<RedisClient> {
+@Slf4j
+public class RedisConnectionFactory {
 
-    private final Logger logger = LoggerFactory.getLogger(RedisConnectionFactory.class);
-
-    private Environment environment;
-
-    private final String propertyPrefix;
-
+    private final Environment environment;
     private final Vertx vertx;
+    private final String propertyPrefix;
+    private final Map<String, String> scripts;
 
     private static final String SENTINEL_PARAMETER_PREFIX = "sentinel.";
 
@@ -56,15 +53,20 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
     private static final String STORE_FORMAT_PEM = "PEM";
     private static final String STORE_FORMAT_PKCS12 = "PKCS12";
 
-    public RedisConnectionFactory(Environment environment, Vertx vertx, String propertyPrefix) {
+    public RedisConnectionFactory(
+        final Environment environment,
+        final Vertx vertx,
+        final String propertyPrefix,
+        final Map<String, String> scripts
+    ) {
         this.environment = environment;
         this.vertx = vertx;
         this.propertyPrefix = propertyPrefix + ".redis.";
+        this.scripts = scripts;
     }
 
-    @Override
-    public RedisClient getObject() {
-        return new RedisClient(vertx, buildRedisOptions());
+    public RedisClient createRedisClient() {
+        return new RedisClient(vertx, buildRedisOptions(), scripts);
     }
 
     protected RedisOptions buildRedisOptions() {
@@ -74,7 +76,7 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
 
         if (isSentinelEnabled()) {
             // Sentinels + Redis master / replicas
-            logger.debug("Redis repository configured to use Sentinel connection");
+            log.debug("Redis repository configured to use Sentinel connection");
 
             options.setType(RedisClientType.SENTINEL);
             List<HostAndPort> sentinelNodes = getSentinelNodes();
@@ -102,7 +104,7 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
             options.setPassword(sentinelPassword);
         } else {
             // Standalone Redis
-            logger.debug("Redis repository configured to use standalone connection");
+            log.debug("Redis repository configured to use standalone connection");
 
             options.setType(RedisClientType.STANDALONE);
 
@@ -119,7 +121,7 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
 
         // SSL
         if (ssl) {
-            logger.debug("Redis repository configured with ssl enabled");
+            log.debug("Redis repository configured with ssl enabled");
 
             boolean trustAll = readPropertyValue(propertyPrefix + "trustAll", boolean.class, true);
             options.getNetClientOptions().setSsl(true);
@@ -149,7 +151,7 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
                 // Client truststore configuration (trust server certificate).
                 configureTrustStore(options.getNetClientOptions());
             } else {
-                logger.warn("Redis repository configured with ssl and trustAll which is not a good practice for security");
+                log.warn("Redis repository configured with ssl and trustAll which is not a good practice for security");
             }
 
             // Client keystore configuration (client certificate for mtls).
@@ -209,7 +211,7 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
                     netClientOptions.setTrustStoreOptions(jksOptions);
                     break;
                 default:
-                    logger.error("Unknown type of Truststore provided {}", truststoreType);
+                    log.error("Unknown type of Truststore provided {}", truststoreType);
                     break;
             }
         }
@@ -276,20 +278,10 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
                     netClientOptions.setKeyStoreOptions(jksOptions);
                     break;
                 default:
-                    logger.error("Unknown type of Keystore provided {}", keystoreType);
+                    log.error("Unknown type of Keystore provided {}", keystoreType);
                     break;
             }
         }
-    }
-
-    @Override
-    public Class<?> getObjectType() {
-        return RedisClient.class;
-    }
-
-    @Override
-    public boolean isSingleton() {
-        return true;
     }
 
     private <T> T readPropertyValue(String propertyName, Class<T> propertyType) {
@@ -298,7 +290,7 @@ public class RedisConnectionFactory implements FactoryBean<RedisClient> {
 
     private <T> T readPropertyValue(String propertyName, Class<T> propertyType, T defaultValue) {
         T value = environment.getProperty(propertyName, propertyType, defaultValue);
-        logger.debug("Read property {}: {}", propertyName, value);
+        log.debug("Read property {}: {}", propertyName, value);
         return value;
     }
 

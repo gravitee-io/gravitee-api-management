@@ -15,14 +15,15 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.JWT;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2;
+import static io.gravitee.repository.management.model.Plan.PlanSecurityType.SUBSCRIPTION;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
-import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -38,6 +39,10 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
+
+    public Api() {
+        super();
+    }
 
     public Api(io.gravitee.definition.model.v4.Api api) {
         super(api);

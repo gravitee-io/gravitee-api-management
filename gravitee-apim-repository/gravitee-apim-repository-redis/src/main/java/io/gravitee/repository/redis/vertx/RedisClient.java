@@ -16,99 +16,66 @@
 package io.gravitee.repository.redis.vertx;
 
 import io.gravitee.repository.redis.ratelimit.RedisRateLimitRepository;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisAPI;
-import io.vertx.redis.client.RedisConnection;
 import io.vertx.redis.client.RedisOptions;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class RedisClient {
 
-    private final Logger logger = LoggerFactory.getLogger(RedisClient.class);
-
     private static final String SCRIPT_LOAD_COMMAND = "LOAD";
-    private static final String SCRIPT = "scripts/ratelimit.lua";
 
-    private String scriptSha1;
     private final Vertx vertx;
     private final RedisOptions options;
-    private RedisAPI redisAPI;
+    private final Map<String, String> scripts;
+    private final Map<String, String> scriptsSha = new HashMap<>();
+    private Future<RedisAPI> redisAPIFuture;
 
-    public RedisClient(Vertx vertx, RedisOptions options) {
+    public RedisClient(final Vertx vertx, final RedisOptions options, final Map<String, String> scripts) {
         this.vertx = vertx;
         this.options = options;
-
-        createRedisClient().onFailure(t -> attemptReconnect(0));
+        this.scripts = scripts;
+        this.connect(0);
     }
 
-    public RedisAPI getRedisApi() {
-        return redisAPI;
-    }
-
-    public String getScriptSha1() {
-        return scriptSha1;
-    }
-
-    private Future<RedisConnection> createRedisClient() {
-        Promise<RedisConnection> promise = Promise.promise();
-
-        Redis
-            .createClient(vertx, options)
-            .connect()
-            .onSuccess(conn -> {
-                // make sure to invalidate old connection if present
-                if (redisAPI != null) {
-                    redisAPI.close();
-                }
-
-                this.redisAPI = RedisAPI.api(conn);
-
-                loadScript();
-
-                // make sure the client is reconnected on error
-                conn.exceptionHandler(e ->
-                    // attempt to reconnect,
-                    // if there is an unrecoverable error
-                    attemptReconnect(0)
-                );
-                // make sure the client is reconnected on connection close
-                conn.endHandler(endEvent -> attemptReconnect(0));
-
-                // allow further processing
-                promise.complete(conn);
-            })
-            .onFailure(t -> {
-                logger.error("Unable to connect to Redis", t);
-                promise.fail(t);
-            });
-
-        return promise.future();
-    }
-
-    private void loadScript() {
-        try (InputStream stream = RedisRateLimitRepository.class.getClassLoader().getResourceAsStream(SCRIPT)) {
-            this.redisAPI.script(
-                    Arrays.asList(SCRIPT_LOAD_COMMAND, new String(stream.readAllBytes(), StandardCharsets.UTF_8)),
-                    event -> {
-                        if (event.succeeded()) {
-                            scriptSha1 = event.result().toString();
-                        }
-                    }
-                );
-        } catch (Exception ex) {
-            logger.error("Unexpected error while loading lua script to Redis", ex);
-        }
+    private void connect(final int retry) {
+        this.redisAPIFuture =
+            Redis
+                .createClient(vertx, options)
+                .connect()
+                .onSuccess(conn -> {
+                    log.debug("Connected to Redis");
+                    // make sure the client is reconnected on error
+                    conn.exceptionHandler(e ->
+                        // attempt to reconnect,
+                        // if there is an unrecoverable error
+                        attemptReconnect(0)
+                    );
+                    // make sure the client is reconnected on connection close
+                    conn.endHandler(v -> attemptReconnect(0));
+                })
+                .flatMap(redisConnection -> {
+                    RedisAPI redisAPI = RedisAPI.api(redisConnection);
+                    return loadScripts(redisAPI);
+                })
+                .onFailure(t -> {
+                    log.error("Unable to connect to Redis", t);
+                    attemptReconnect(retry);
+                });
     }
 
     /**
@@ -117,6 +84,43 @@ public class RedisClient {
     private void attemptReconnect(int retry) {
         // retry with backoff up to 10240 ms
         long backoff = (long) (Math.pow(2, Math.min(retry, 10)) * 10);
-        vertx.setTimer(backoff, timer -> createRedisClient().onFailure(t -> attemptReconnect(retry + 1)));
+        vertx.setTimer(backoff, timer -> connect(retry + 1));
+    }
+
+    private Future<RedisAPI> loadScripts(final RedisAPI redisAPI) {
+        if (scripts != null) {
+            return CompositeFuture
+                .all(
+                    scripts
+                        .entrySet()
+                        .stream()
+                        .map(entry -> {
+                            String key = entry.getKey();
+                            String script = entry.getValue();
+                            try (InputStream stream = RedisRateLimitRepository.class.getClassLoader().getResourceAsStream(script)) {
+                                return redisAPI
+                                    .script(Arrays.asList(SCRIPT_LOAD_COMMAND, new String(stream.readAllBytes(), StandardCharsets.UTF_8)))
+                                    .onSuccess(response -> {
+                                        log.debug("Lua script '{}' registered to Redis", script);
+                                        scriptsSha.put(key, response.toString());
+                                    })
+                                    .mapEmpty();
+                            } catch (Exception ex) {
+                                return Future.failedFuture("Unexpected error while loading lua script");
+                            }
+                        })
+                        .collect(Collectors.toList())
+                )
+                .map(v -> redisAPI);
+        }
+        return Future.succeededFuture();
+    }
+
+    public Future<RedisAPI> redisApi() {
+        return redisAPIFuture;
+    }
+
+    public String scriptSha1(final String key) {
+        return scriptsSha.get(key);
     }
 }
