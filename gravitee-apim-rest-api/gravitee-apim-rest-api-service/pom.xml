@@ -145,6 +145,11 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>io.gravitee.json</groupId>
+			<artifactId>gravitee-json-validation</artifactId>
+		</dependency>
+
 		<!-- Lucene -->
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
