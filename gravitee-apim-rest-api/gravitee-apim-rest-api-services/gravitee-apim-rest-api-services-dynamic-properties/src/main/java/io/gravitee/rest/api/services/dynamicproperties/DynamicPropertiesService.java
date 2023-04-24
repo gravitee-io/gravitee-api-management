@@ -150,7 +150,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
         }
 
         EnvironmentEntity environment = environmentService.findById(api.getEnvironmentId());
-        ExecutionContext executionContext = new ExecutionContext(environment.getId(), environment.getOrganizationId());
+        ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
         DynamicPropertyUpdater updater = new DynamicPropertyUpdater(api, this.executor, executionContext);
 
         if (dynamicPropertyService.getProvider() == DynamicPropertyProvider.HTTP) {
