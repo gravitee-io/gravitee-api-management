@@ -21,6 +21,8 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
@@ -64,20 +66,22 @@ public class ApiMetricsResource extends AbstractResource {
     @Produces({ MediaType.APPLICATION_JSON })
     @RequirePortalAuth
     public Response getApiMetricsByApiId(@Context Request request, @PathParam("apiId") String apiId) {
-        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
-            Number healthRatio = getHealthRatio(apiId);
-            Number nbHits = getNbHits(apiId);
-            Number subscribers = getApiNbSubscribers(apiId);
+        ApiEntity api = apiService.findById(GraviteeContext.getExecutionContext(), apiId);
 
-            ApiMetrics metrics = new ApiMetrics();
-            metrics.setHealth(healthRatio);
-            metrics.setHits(nbHits);
-            metrics.setSubscribers(subscribers);
-
-            return Response.ok(metrics).build();
+        if (api.getLifecycleState() != ApiLifecycleState.PUBLISHED) {
+            throw new ApiNotFoundException(apiId);
         }
 
-        throw new ApiNotFoundException(apiId);
+        Number healthRatio = getHealthRatio(apiId);
+        Number nbHits = getNbHits(apiId);
+        Number subscribers = getApiNbSubscribers(apiId);
+
+        ApiMetrics metrics = new ApiMetrics();
+        metrics.setHealth(healthRatio);
+        metrics.setHits(nbHits);
+        metrics.setSubscribers(subscribers);
+
+        return Response.ok(metrics).build();
     }
 
     private Number getHealthRatio(String apiId) {
