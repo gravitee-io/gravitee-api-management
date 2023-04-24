@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.redis.ratelimit;
 
+import static io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration.SCRIPT_RATELIMIT_KEY;
+
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.gravitee.repository.redis.vertx.RedisClient;
@@ -37,7 +39,7 @@ import org.slf4j.LoggerFactory;
 public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisRateLimitRepository.class);
-    private static final String KEY_PREFIX = "ratelimit:";
+    private static final String REDIS_KEY_PREFIX = "ratelimit:";
 
     private final RedisClient redisClient;
 
@@ -53,9 +55,13 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
             .toSingle(
                 (Consumer<Handler<AsyncResult<Response>>>) asyncResultHandler ->
                     redisClient
-                        .getRedisApi()
-                        .evalsha(convertToList(redisClient.getScriptSha1(), KEY_PREFIX + key, weight, newRate))
-                        .onFailure(t -> LOGGER.error("Failed to run script on Redis {}", t.getMessage()))
+                        .redisApi()
+                        .flatMap(redisAPI ->
+                            redisAPI.evalsha(
+                                convertToList(this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY), REDIS_KEY_PREFIX + key, weight, newRate)
+                            )
+                        )
+                        .onFailure(t -> LOGGER.error("Failed to run rate-limit script on Redis {}", t.getMessage()))
                         .onComplete(asyncResultHandler)
             )
             .map(response -> {

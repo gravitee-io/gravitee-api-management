@@ -17,6 +17,7 @@ package io.gravitee.repository.redis;
 
 import io.gravitee.platform.repository.api.RepositoryProvider;
 import io.gravitee.platform.repository.api.Scope;
+import io.gravitee.repository.redis.distributedsync.RedisDistributedSyncRepositoryConfiguration;
 import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,13 +37,15 @@ public class RedisRepositoryProvider implements RepositoryProvider {
 
     @Override
     public Scope[] scopes() {
-        return new Scope[] { Scope.RATE_LIMIT };
+        return new Scope[] { Scope.RATE_LIMIT, Scope.DISTRIBUTED_SYNC };
     }
 
     @Override
     public Class<?> configuration(Scope scope) {
         if (scope == Scope.RATE_LIMIT) {
             return RateLimitRepositoryConfiguration.class;
+        } else if (scope == Scope.DISTRIBUTED_SYNC) {
+            return RedisDistributedSyncRepositoryConfiguration.class;
         }
         LOGGER.debug("Skipping unhandled repository scope {}", scope);
         return null;

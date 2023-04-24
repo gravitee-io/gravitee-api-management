@@ -26,6 +26,7 @@ import io.vertx.core.net.PfxOptions;
 import io.vertx.redis.client.RedisOptions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,7 +47,7 @@ public class RedisConnectionFactoryTest {
     @BeforeEach
     void setUp() {
         environment = new MockEnvironment();
-        redisConnectionFactory = new RedisConnectionFactory(environment, null, PROPERTY_PREFIX);
+        redisConnectionFactory = new RedisConnectionFactory(environment, null, PROPERTY_PREFIX, Map.of());
     }
 
     @Test

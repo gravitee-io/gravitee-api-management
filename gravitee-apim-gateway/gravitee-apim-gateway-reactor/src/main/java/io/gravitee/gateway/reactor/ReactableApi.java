@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactor;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import java.io.Serializable;
@@ -28,7 +29,7 @@ import java.util.Set;
  */
 public abstract class ReactableApi<T> implements Reactable, Serializable {
 
-    protected final T definition;
+    protected T definition;
 
     private boolean enabled = true;
 
@@ -44,10 +45,13 @@ public abstract class ReactableApi<T> implements Reactable, Serializable {
 
     private DefinitionContext definitionContext = new DefinitionContext();
 
+    protected ReactableApi() {}
+
     protected ReactableApi(T definition) {
         this.definition = definition;
     }
 
+    @JsonIgnore
     public abstract String getApiVersion();
 
     public boolean isEnabled() {
@@ -115,16 +119,22 @@ public abstract class ReactableApi<T> implements Reactable, Serializable {
         return this.definition;
     }
 
+    @JsonIgnore
     public abstract DefinitionVersion getDefinitionVersion();
 
+    @JsonIgnore
     public abstract Set<String> getTags();
 
+    @JsonIgnore
     public abstract String getId();
 
+    @JsonIgnore
     public abstract String getName();
 
+    @JsonIgnore
     public abstract Set<String> getSubscribablePlans();
 
+    @JsonIgnore
     public abstract Set<String> getApiKeyPlans();
 
     @Override

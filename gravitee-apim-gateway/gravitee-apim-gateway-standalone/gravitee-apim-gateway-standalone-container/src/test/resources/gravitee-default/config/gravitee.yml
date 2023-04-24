@@ -19,6 +19,5 @@ cache:
 sync:
   enabled: false
   cron: '*/5 * * * * *'
-
 tracing:
   enabled: false

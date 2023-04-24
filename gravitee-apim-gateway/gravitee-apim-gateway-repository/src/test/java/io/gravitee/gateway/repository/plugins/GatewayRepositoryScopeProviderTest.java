@@ -17,17 +17,29 @@ package io.gravitee.gateway.repository.plugins;
 
 import io.gravitee.platform.repository.api.Scope;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author GraviteeSource Team
  */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
 public class GatewayRepositoryScopeProviderTest {
 
     private final GatewayRepositoryScopeProvider provider = new GatewayRepositoryScopeProvider();
 
     @Test
-    public void shouldReturnManagementAndAnalyticsScopes() {
-        Assert.assertArrayEquals(new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT }, provider.getHandledScopes());
+    void should_return_handled_scopes() {
+        Assertions.assertArrayEquals(new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT }, provider.getHandledScopes());
+    }
+
+    @Test
+    void should_return_optional_handled_scopes() {
+        Assertions.assertArrayEquals(new Scope[] { Scope.DISTRIBUTED_SYNC }, provider.getOptionalHandledScopes());
     }
 }

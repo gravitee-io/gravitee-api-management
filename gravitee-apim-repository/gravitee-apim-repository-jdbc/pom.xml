@@ -216,6 +216,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <argLine>@{argLine} -Xmx1024m</argLine>
+                    <excludes>
+                        <exclude>**/distributedsync/*.java</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>

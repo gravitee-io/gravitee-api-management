@@ -193,6 +193,49 @@ ratelimit:
 #      password: secret
 #      alias:
 
+# You must define the type of repository to use, when enabling distributed sync in clustering mode
+# because the gateway has to store data to share with other gateway instances.
+# Only Redis is available at the moment.
+#distributed-sync:
+  # type: redis
+  #redis:
+  #  # Redis Standalone settings
+  #  host: localhost
+  #  port: 6379
+  #  password:
+  #    # Redis Sentinel settings
+  #    sentinel:
+  #      master: redis-master
+  #      nodes:
+  #        - host: sentinel1
+  #          port: 26379
+  #        - host: sentinel2
+  #          port: 26379
+  #    # SSL settings
+  #    ssl: false
+  #    trustAll: true # default value is true to keep backward compatibility but you should set it to false and configure a truststore for security concerns
+  #    tlsProtocols: # List of TLS protocols to allow comma separated i.e: TLSv1.2, TLSv1.3
+  #    tlsCiphers: # List of TLS ciphers to allow comma separated i.e: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+  #    alpn: false
+  #    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+  #    # Keystore for redis mTLS (client certificate)
+  #    keystore:
+  #      type: pem # Supports jks, pem, pkcs12
+  #      path: ${gravitee.home}/security/redis-keystore.jks # A path is required if certificate's type is jks or pkcs12
+  #      password: secret
+  #      keyPassword:
+  #      alias:
+  #      certificates: # Certificates are required if keystore's type is pem
+  #        - cert: ${gravitee.home}/security/redis-mycompany.org.pem
+  #          key: ${gravitee.home}/security/redis-mycompany.org.key
+  #        - cert: ${gravitee.home}/security/redis-mycompany.com.pem
+  #          key: ${gravitee.home}/security/redis-mycompany.com.key
+  #    truststore:
+  #      type: pem # Supports jks, pem, pkcs12
+  #      path: ${gravitee.home}/security/redis-truststore.jks
+  #      password: secret
+  #      alias:
+
 # You can change the cache type to use Hazelcast Distributed cache and file to configure the Hz network
 #cache:
 #  type: hazelcast
@@ -296,7 +339,10 @@ services:
     # Synchronization is done each 5 seconds
     delay: 5000
     unit: MILLISECONDS
-    distributed: false # By enabling this mode, data synchronization process is distributed over clustered API gateways.
+    repository:
+      enabled : true
+    distributed:
+      enabled : false # By enabling this mode, data synchronization process is distributed over clustered API gateways. You must configure distributed-sync repository.
     bulk_items: 100 # Defines the number of items to retrieve during synchronization (events, plans, api keys, ...).
 
      # [Alpha] Enable Kubernetes Synchronization

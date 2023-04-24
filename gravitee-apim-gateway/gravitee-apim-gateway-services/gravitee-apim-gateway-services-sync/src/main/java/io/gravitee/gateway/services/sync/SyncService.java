@@ -35,13 +35,10 @@ public class SyncService extends AbstractService {
     @Value("${services.sync.enabled:true}")
     private boolean enabled;
 
-    @Value("${services.local.enabled:false}")
-    private boolean localRegistryEnabled;
-
     @Autowired
     private ApiManager apiManager;
 
-    @Autowired
+    @Autowired(required = false)
     private List<SyncManager> syncManagers;
 
     @Autowired
@@ -52,31 +49,27 @@ public class SyncService extends AbstractService {
 
     @Override
     protected void doStart() throws Exception {
-        if (!localRegistryEnabled) {
-            if (enabled) {
-                super.doStart();
+        if (enabled) {
+            super.doStart();
 
-                // Register sync prob
-                probeManager.register(syncProcessProbe);
+            // Register sync prob
+            probeManager.register(syncProcessProbe);
 
-                // Force refresh based on internal state of the api manager (useful if apis definitions are maintained across the cluster).
-                apiManager.refresh();
+            // Force refresh based on internal state of the api manager (useful if apis definitions are maintained across the cluster).
+            apiManager.refresh();
 
-                // Initialize the sync managers.
-                if (syncManagers != null) {
-                    syncManagers.forEach(syncManager -> {
-                        try {
-                            syncManager.start();
-                        } catch (Exception e) {
-                            log.error("Unable to start sync manager {}", syncManager.getClass().getSimpleName(), e);
-                        }
-                    });
-                }
-            } else {
-                log.warn("Sync service is disabled");
+            // Initialize the sync managers.
+            if (syncManagers != null) {
+                syncManagers.forEach(syncManager -> {
+                    try {
+                        syncManager.start();
+                    } catch (Exception e) {
+                        log.error("Unable to start sync manager {}", syncManager.getClass().getSimpleName(), e);
+                    }
+                });
             }
         } else {
-            log.warn("Sync service is disabled because local registry mode is enabled");
+            log.warn("Sync service is disabled");
         }
     }
 

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "1",
+    "payload": "payload",
+    "type": "API",
+    "syncAction": "DEPLOY",
+    "updatedAt": "2023-04-24T15:24:34.051Z"
+  },
+  {
+    "id": "2",
+    "payload": "payload",
+    "type": "API",
+    "syncAction": "UNDEPLOY",
+    "updatedAt": "2023-04-25T15:24:54.051Z"
+  },
+  {
+    "id": "3",
+    "payload": "payload",
+    "type": "DICTIONARY",
+    "syncAction": "DEPLOY",
+    "updatedAt": "2023-04-26T15:25:14.051Z"
+  },
+  {
+    "id": "4",
+    "payload": "payload",
+    "type": "API_KEY",
+    "syncAction": "DEPLOY",
+    "updatedAt": "2023-06-24T15:24:34.051Z",
+    "refId" : "1",
+    "refType" : "API"
+  },
+  {
+    "id": "5",
+    "payload": "payload",
+    "type": "SUBSCRIPTION",
+    "syncAction": "DEPLOY",
+    "updatedAt": "2023-06-24T15:25:34.051Z",
+    "refId" : "1",
+    "refType" : "API"
+  }
+]

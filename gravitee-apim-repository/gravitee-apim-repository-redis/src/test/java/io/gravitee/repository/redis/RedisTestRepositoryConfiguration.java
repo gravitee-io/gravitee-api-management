@@ -15,13 +15,20 @@
  */
 package io.gravitee.repository.redis;
 
+import static io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration.SCRIPTS_RATELIMIT_LUA;
+import static io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration.SCRIPT_RATELIMIT_KEY;
+
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.redis.common.RedisConnectionFactory;
+import io.gravitee.repository.redis.distributedsync.RedisDistributedEventRepository;
+import io.gravitee.repository.redis.distributedsync.RedisDistributedSyncStateRepository;
 import io.gravitee.repository.redis.ratelimit.RedisRateLimitRepository;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.vertx.core.Vertx;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -37,22 +44,22 @@ public class RedisTestRepositoryConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedisTestRepositoryConfiguration.class);
 
-    @Value("${redisVersion:7.0.10}")
-    private String redisVersion;
+    @Value("${redisStackVersion:6.2.6-v7}")
+    private String redisStackVersion;
 
     @Bean(destroyMethod = "stop")
     public GenericContainer<?> redisContainer() {
-        var redis = new GenericContainer<>(DockerImageName.parse("redis:" + redisVersion)).withExposedPorts(6379);
+        var redis = new GenericContainer<>(DockerImageName.parse("redis/redis-stack:" + redisStackVersion)).withExposedPorts(6379);
 
         redis.start();
 
-        LOG.info("Running tests with redis version: {}", redisVersion);
+        LOG.info("Running tests with redis version: {}", redisStackVersion);
 
         return redis;
     }
 
     @Bean
-    public RedisClient redisConnectionFactory(GenericContainer<?> redisContainer) {
+    public RedisClient redisRateLimitClient(GenericContainer<?> redisContainer) {
         String propertyPrefix = Scope.RATE_LIMIT.getName() + ".redis.";
 
         MockEnvironment mockEnvironment = new MockEnvironment();
@@ -62,14 +69,47 @@ public class RedisTestRepositoryConfiguration {
         RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(
             mockEnvironment,
             Vertx.vertx(),
-            Scope.RATE_LIMIT.getName()
+            Scope.RATE_LIMIT.getName(),
+            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
         );
 
-        return redisConnectionFactory.getObject();
+        return redisConnectionFactory.createRedisClient();
     }
 
     @Bean
-    public RedisRateLimitRepository redisRateLimitRepository(RedisClient redisClient) {
-        return new RedisRateLimitRepository(redisClient);
+    public RedisRateLimitRepository redisRateLimitRepository(@Qualifier("redisRateLimitClient") RedisClient redisRateLimitClient) {
+        return new RedisRateLimitRepository(redisRateLimitClient);
+    }
+
+    @Bean
+    public RedisClient redisDistributedSyncClient(GenericContainer<?> redisContainer) {
+        String propertyPrefix = Scope.DISTRIBUTED_SYNC.getName() + ".redis.";
+
+        MockEnvironment mockEnvironment = new MockEnvironment();
+        mockEnvironment.setProperty(propertyPrefix + "host", redisContainer.getHost());
+        mockEnvironment.setProperty(propertyPrefix + "port", redisContainer.getFirstMappedPort().toString());
+
+        RedisConnectionFactory redisConnectionFactory = new RedisConnectionFactory(
+            mockEnvironment,
+            Vertx.vertx(),
+            Scope.DISTRIBUTED_SYNC.getName(),
+            Map.of()
+        );
+
+        return redisConnectionFactory.createRedisClient();
+    }
+
+    @Bean
+    public RedisDistributedEventRepository redisDistributedEventRepository(
+        @Qualifier("redisDistributedSyncClient") RedisClient redisDistributedSyncClient
+    ) {
+        return new RedisDistributedEventRepository(redisDistributedSyncClient);
+    }
+
+    @Bean
+    public RedisDistributedSyncStateRepository redisDistributedSyncStateRepository(
+        @Qualifier("redisDistributedSyncClient") RedisClient redisDistributedSyncClient
+    ) {
+        return new RedisDistributedSyncStateRepository(redisDistributedSyncClient);
     }
 }
