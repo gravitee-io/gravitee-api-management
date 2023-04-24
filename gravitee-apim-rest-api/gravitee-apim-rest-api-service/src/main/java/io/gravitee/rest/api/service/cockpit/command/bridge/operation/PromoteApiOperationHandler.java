@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,22 +77,32 @@ public class PromoteApiOperationHandler implements BridgeOperationHandler {
         }
 
         promotionEntity.setStatus(PromotionEntityStatus.TO_BE_VALIDATED);
-        PromotionEntity promotion = promotionService.createOrUpdate(promotionEntity);
 
-        reply.setCommandStatus(CommandStatus.SUCCEEDED);
-        reply.setOrganizationId(bridgeCommand.getOrganizationId());
-        reply.setEnvironmentId(bridgeCommand.getTarget().getEnvironmentId());
-        reply.setInstallationId(installationService.get().getId());
+        return Single
+            .fromCallable(() -> promotionService.createOrUpdate(promotionEntity))
+            .subscribeOn(Schedulers.io())
+            .map(promotion -> {
+                reply.setCommandStatus(CommandStatus.SUCCEEDED);
+                reply.setOrganizationId(bridgeCommand.getOrganizationId());
+                reply.setEnvironmentId(bridgeCommand.getTarget().getEnvironmentId());
+                reply.setInstallationId(installationService.get().getId());
 
-        try {
-            reply.setPayload(objectMapper.writeValueAsString(promotion));
-        } catch (JsonProcessingException e) {
-            logger.warn("Problem while serializing promotion request for environment {}", promotion.getId());
-            reply.setCommandStatus(CommandStatus.ERROR);
-            reply.setMessage("Problem while serializing promotion request for environment [" + bridgeCommand.getEnvironmentId() + "]");
-            return Single.just(reply);
-        }
-
-        return Single.just(reply);
+                try {
+                    reply.setPayload(objectMapper.writeValueAsString(promotion));
+                } catch (JsonProcessingException e) {
+                    logger.warn("Problem while serializing promotion request for environment {}", promotion.getId());
+                    reply.setCommandStatus(CommandStatus.ERROR);
+                    reply.setMessage(
+                        "Problem while serializing promotion request for environment [" + bridgeCommand.getEnvironmentId() + "]"
+                    );
+                }
+                return (BridgeReply) reply;
+            })
+            .onErrorReturn(throwable -> {
+                logger.warn("Problem while creating or updating promotion for environment {}", bridgeCommand.getEnvironmentId());
+                reply.setCommandStatus(CommandStatus.ERROR);
+                reply.setMessage("Problem while creating or updating promotion for environment [" + bridgeCommand.getEnvironmentId() + "]");
+                return reply;
+            });
     }
 }

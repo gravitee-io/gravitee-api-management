@@ -139,7 +139,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     }
 
     @Override
-    public PromotionEntity promote(
+    public PromotionEntity create(
         ExecutionContext executionContext,
         final String sourceEnvironmentId,
         String apiId,
@@ -193,7 +193,13 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             );
         }
 
-        PromotionEntity promotionEntity = convert(createdPromotion);
+        return convert(createdPromotion);
+    }
+
+    @Override
+    public PromotionEntity promote(ExecutionContext executionContext, String id) throws TechnicalException {
+        PromotionEntity promotionEntity = convert(promotionRepository.findById(id).orElseThrow(() -> new PromotionNotFoundException(id)));
+
         CockpitReply<PromotionEntity> cockpitReply = cockpitPromotionService.requestPromotion(executionContext, promotionEntity);
 
         promotionEntity.setStatus(
