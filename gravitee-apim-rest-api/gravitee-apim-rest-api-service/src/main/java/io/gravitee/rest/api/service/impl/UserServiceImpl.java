@@ -26,6 +26,7 @@ import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAUL
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.DEFAULT_MANAGEMENT_URL;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -392,7 +393,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                                 executionContext,
                                 u,
                                 false,
-                                withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : Collections.emptyList()
+                                withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : emptyList()
                             )
                     )
                     .collect(toSet());
@@ -1197,7 +1198,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             return new Page<>(users, pageable.getPageNumber(), pageable.getPageSize(), results.getHits());
         }
-        return new Page<>(Collections.emptyList(), 1, 0, 0);
+        return new Page<>(emptyList(), 1, 0, 0);
     }
 
     private void populateUserFlags(ExecutionContext executionContext, final List<UserEntity> users) {
@@ -1449,7 +1450,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private UserEntity convert(ExecutionContext executionContext, User user, boolean loadRoles) {
-        return convert(executionContext, user, loadRoles, Collections.emptyList());
+        return convert(executionContext, user, loadRoles, emptyList());
     }
 
     private UserEntity convert(ExecutionContext executionContext, User user, boolean loadRoles, List<UserMetadataEntity> customUserFields) {
@@ -1534,16 +1535,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         // This is done BEFORE updating or creating the user account to ensure this one is properly created with correct
         // information (ie. mappings)
         Set<GroupEntity> userGroups = computeUserGroupsFromProfile(email, socialProvider.getGroupMappings(), userInfo, executionContext);
-        Set<RoleEntity> userOrganizationRoles = new HashSet<>();
-        Map<String, Set<RoleEntity>> userEnvironmentRoles = new HashMap<>();
-        this.computeRolesToAddUser(
-                executionContext,
-                email,
-                socialProvider.getRoleMappings(),
-                userInfo,
-                userOrganizationRoles,
-                userEnvironmentRoles
-            );
+
+        List<RoleMappingEntity> rolesMapping = socialProvider.getRoleMappings().isEmpty() ? emptyList() : socialProvider.getRoleMappings();
+
+        Set<RoleEntity> userOrganizationRoles = this.computeOrganizationRoles(executionContext, rolesMapping, email, userInfo);
+        Map<String, Set<RoleEntity>> userEnvironmentRoles = this.computeEnvironmentRoles(executionContext, rolesMapping, email, userInfo);
+
         UserEntity user = null;
         boolean created = false;
         try {
@@ -1553,7 +1550,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user = createNewExternalUser(executionContext, socialProvider, userInfo, attrs, email);
         }
 
-        // Memberships must be refresh only when it is a user creation context or mappings should be synced during
+        // Memberships must be refreshed only when it is a user creation context or mappings should be synced during
         // later authentication
         List<MembershipService.Membership> groupMemberships = refreshUserGroups(
             executionContext,
@@ -1688,44 +1685,18 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         return this.update(executionContext, userId, user);
     }
 
-    @Override
-    public void computeRolesToAddUser(
+    protected Set<RoleEntity> computeOrganizationRoles(
         ExecutionContext executionContext,
+        @NotNull List<RoleMappingEntity> rolesMapping,
         String username,
-        List<RoleMappingEntity> mappings,
-        String userInfo,
-        Set<RoleEntity> rolesToAddToOrganization,
-        Map<String, Set<RoleEntity>> rolesToAddToEnvironments
+        String userInfo
     ) {
-        if (mappings == null || mappings.isEmpty()) {
-            // provide default roles in this case otherwise user will not have roles if the RoleMapping isn't provided and if the
-            // option to refresh user profile on each connection is enabled
-            roleService
-                .findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.ENVIRONMENT, RoleScope.ORGANIZATION)
-                .stream()
-                .forEach(roleEntity -> {
-                    if (roleEntity.getScope().equals(RoleScope.ENVIRONMENT)) {
-                        Set<RoleEntity> envRoles = rolesToAddToEnvironments.get(
-                            executionContext.hasEnvironmentId()
-                                ? executionContext.getEnvironmentId()
-                                : GraviteeContext.getDefaultEnvironment()
-                        );
-                        if (envRoles == null) {
-                            envRoles = new HashSet<>();
-                            rolesToAddToEnvironments.put(
-                                executionContext.hasEnvironmentId()
-                                    ? executionContext.getEnvironmentId()
-                                    : GraviteeContext.getDefaultEnvironment(),
-                                envRoles
-                            );
-                        }
-                        envRoles.add(roleEntity);
-                    } else if (roleEntity.getScope().equals(RoleScope.ORGANIZATION)) {
-                        rolesToAddToOrganization.add(roleEntity);
-                    }
-                });
-        } else {
-            for (RoleMappingEntity mapping : mappings) {
+        // First get all org roles based on the mappings
+        Set<RoleEntity> orgRoles = rolesMapping
+            .stream()
+            .filter(mapping -> mapping.getOrganizations() != null && !mapping.getOrganizations().isEmpty())
+            // Filter mappings that match the user profile
+            .filter(mapping -> {
                 TemplateEngine templateEngine = TemplateEngine.templateEngine();
                 templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
 
@@ -1733,48 +1704,71 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
                 trace(username, match, mapping.getCondition());
 
-                // Get roles
-                if (match) {
-                    if (mapping.getEnvironments() != null) {
-                        try {
-                            mapping
-                                .getEnvironments()
-                                .forEach((environmentName, environmentRoles) -> {
-                                    Set<RoleEntity> envRoles = rolesToAddToEnvironments.computeIfAbsent(
-                                        environmentName,
-                                        k -> new HashSet<>()
-                                    );
-                                    for (String environmentRoleName : environmentRoles) {
-                                        roleService
-                                            .findByScopeAndName(
-                                                RoleScope.ENVIRONMENT,
-                                                environmentRoleName,
-                                                executionContext.getOrganizationId()
-                                            )
-                                            .ifPresent(envRoles::add);
-                                    }
-                                });
-                        } catch (RoleNotFoundException rnfe) {
-                            LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getEnvironments());
-                        }
-                    }
+                return match;
+            })
+            // Get all organization included in this mapping
+            .flatMap(mapping -> mapping.getOrganizations().stream())
+            // Get all roles for each organization
+            .flatMap(org -> roleService.findByScopeAndName(RoleScope.ORGANIZATION, org, executionContext.getOrganizationId()).stream())
+            .collect(toSet());
 
-                    if (mapping.getOrganizations() != null) {
-                        try {
-                            mapping
-                                .getOrganizations()
-                                .forEach(org ->
-                                    roleService
-                                        .findByScopeAndName(RoleScope.ORGANIZATION, org, executionContext.getOrganizationId())
-                                        .ifPresent(rolesToAddToOrganization::add)
-                                );
-                        } catch (RoleNotFoundException rnfe) {
-                            LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getOrganizations());
+        // If no org roles are found, get the default ones
+        if (orgRoles.isEmpty()) {
+            orgRoles.addAll(roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.ORGANIZATION));
+        }
+
+        return orgRoles;
+    }
+
+    protected Map<String, Set<RoleEntity>> computeEnvironmentRoles(
+        ExecutionContext executionContext,
+        @NotNull List<RoleMappingEntity> rolesMapping,
+        String username,
+        String userInfo
+    ) {
+        Map<String, Set<RoleEntity>> environmentRoles = new HashMap<>();
+
+        List<RoleMappingEntity> envRolesMapping = rolesMapping
+            .stream()
+            .filter(mapping -> mapping.getEnvironments() != null && !mapping.getEnvironments().isEmpty())
+            .collect(toList());
+
+        for (RoleMappingEntity mapping : envRolesMapping) {
+            TemplateEngine templateEngine = TemplateEngine.templateEngine();
+            templateEngine.getTemplateContext().setVariable(TEMPLATE_ENGINE_PROFILE_ATTRIBUTE, userInfo);
+
+            boolean match = templateEngine.getValue(mapping.getCondition(), boolean.class);
+
+            trace(username, match, mapping.getCondition());
+
+            // Get roles
+            if (match) {
+                mapping
+                    .getEnvironments()
+                    .forEach((environmentName, roles) -> {
+                        Set<RoleEntity> envRoles = environmentRoles.computeIfAbsent(environmentName, k -> new HashSet<>());
+                        for (String environmentRoleName : roles) {
+                            roleService
+                                .findByScopeAndName(RoleScope.ENVIRONMENT, environmentRoleName, executionContext.getOrganizationId())
+                                .ifPresent(envRoles::add);
                         }
-                    }
-                }
+                    });
             }
         }
+
+        // If no env roles are found, get the default ones
+        if (environmentRoles.isEmpty()) {
+            String environmentId = executionContext.hasEnvironmentId()
+                ? executionContext.getEnvironmentId()
+                : GraviteeContext.getDefaultEnvironment();
+            List<RoleEntity> defaultRoles = roleService.findDefaultRoleByScopes(
+                executionContext.getOrganizationId(),
+                RoleScope.ENVIRONMENT
+            );
+            environmentRoles.computeIfAbsent(environmentId, k -> new HashSet<>()).addAll(defaultRoles);
+        }
+
+        return environmentRoles;
     }
 
     private void addRolesToUser(
