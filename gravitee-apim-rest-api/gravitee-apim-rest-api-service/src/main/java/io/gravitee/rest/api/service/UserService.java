@@ -108,13 +108,4 @@ public interface UserService {
         String referenceId,
         List<String> roleIds
     );
-
-    void computeRolesToAddUser(
-        ExecutionContext executionContext,
-        String username,
-        List<RoleMappingEntity> mappings,
-        String userInfo,
-        Set<RoleEntity> rolesToAddToOrganization,
-        Map<String, Set<RoleEntity>> rolesToAddToEnvironments
-    );
 }
