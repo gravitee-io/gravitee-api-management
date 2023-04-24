@@ -23,6 +23,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
@@ -874,18 +875,15 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response promoteAPI(@RequestBody @Valid @NotNull final PromotionRequestEntity promotionRequest) {
-        return Response
-            .ok(
-                promotionService.promote(
-                    GraviteeContext.getExecutionContext(),
-                    GraviteeContext.getCurrentEnvironment(),
-                    this.api,
-                    promotionRequest,
-                    getAuthenticatedUser()
-                )
-            )
-            .build();
+    public Response promoteAPI(@RequestBody @Valid @NotNull final PromotionRequestEntity promotionRequest) throws TechnicalException {
+        PromotionEntity promotion = promotionService.create(
+            GraviteeContext.getExecutionContext(),
+            GraviteeContext.getCurrentEnvironment(),
+            this.api,
+            promotionRequest,
+            getAuthenticatedUser()
+        );
+        return Response.ok(promotionService.promote(GraviteeContext.getExecutionContext(), promotion.getId())).build();
     }
 
     @Path("members")
