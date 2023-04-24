@@ -30,5 +30,9 @@ export class HomeLayoutComponent {
       label: 'API Health-check',
       uiSref: 'home.apiHealthCheck',
     },
+    {
+      label: 'Tasks',
+      uiSref: 'home.tasks',
+    },
   ];
 }
