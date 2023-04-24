@@ -25,6 +25,8 @@ import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.jupiter.api.connector.ConnectorHelper;
+import io.gravitee.json.validation.JsonSchemaValidator;
+import io.gravitee.json.validation.JsonSchemaValidatorImpl;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.connector.spring.ConnectorPluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
@@ -139,6 +141,11 @@ public class ServiceConfiguration {
     @Bean
     public DataEncryptor apiPropertiesEncryptor() {
         return new DataEncryptor(environment, "api.properties.encryption.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
+    }
+
+    @Bean
+    public JsonSchemaValidator jsonSchemaValidator() {
+        return new JsonSchemaValidatorImpl();
     }
 
     @Bean(name = "indexerThreadPoolTaskExecutor")
