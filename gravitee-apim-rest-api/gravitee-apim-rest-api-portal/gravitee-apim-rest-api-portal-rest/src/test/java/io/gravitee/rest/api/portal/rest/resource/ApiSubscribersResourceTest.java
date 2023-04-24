@@ -17,15 +17,12 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -76,8 +73,7 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFoundApiWhileGettingApiSubscribers() {
         // init
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
-
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(new ApiEntity());
         // test
         final Response response = target(API).path("metrics").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());

@@ -17,8 +17,6 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
@@ -33,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import javax.ws.rs.core.Response;
@@ -60,16 +59,15 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
+        mockApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
         when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(mockApi);
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
     }
 
     @Test
     public void shouldNotFoundApiWhileGettingApiMetrics() {
-        // init
-        when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(false);
+        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
 
-        // test
         final Response response = target(API).path("metrics").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
 
