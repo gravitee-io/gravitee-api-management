@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.promotion;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
@@ -39,13 +40,15 @@ public interface PromotionService {
      */
     List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId);
 
-    PromotionEntity promote(
+    PromotionEntity create(
         ExecutionContext executionContext,
         final String sourceEnvironmentId,
         String api,
         PromotionRequestEntity promotionRequest,
         String userId
     );
+
+    PromotionEntity promote(ExecutionContext executionContext, String id) throws TechnicalException;
 
     PromotionEntity createOrUpdate(PromotionEntity promotionEntity);
 
