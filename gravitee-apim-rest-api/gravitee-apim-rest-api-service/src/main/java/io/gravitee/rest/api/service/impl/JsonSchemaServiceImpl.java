@@ -15,21 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.service.validator.JsonHelper.clearNullValues;
-
+import io.gravitee.json.validation.InvalidJsonException;
+import io.gravitee.json.validation.JsonSchemaValidator;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.everit.json.schema.ObjectSchema;
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.SchemaLocation;
-import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.internal.RegexFormatValidator;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,105 +28,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class JsonSchemaServiceImpl implements JsonSchemaService {
 
-    private final Pattern errorFieldNamePattern = Pattern.compile("\\[(.*?)\\]");
+    private final JsonSchemaValidator validator;
+
+    public JsonSchemaServiceImpl(JsonSchemaValidator validator) {
+        this.validator = validator;
+    }
 
     @Override
     public String validate(String schema, String configuration) {
-        // At least, validate json.
-        String safeConfiguration = clearNullValues(configuration);
-
-        if (schema != null && !schema.equals("")) {
-            JSONObject schemaJson = new JSONObject(schema);
-            JSONObject safeConfigurationJson = new JSONObject(safeConfiguration);
-            Schema schemaValidator = SchemaLoader
-                .builder()
-                .useDefaults(true)
-                .addFormatValidator(new JavaRegexValidator())
-                .schemaJson(schemaJson)
-                .draftV7Support()
-                .build()
-                .load()
-                .build();
-            // Validate json against schema when defined.
-            try {
-                schemaValidator.validate(safeConfigurationJson);
-            } catch (ValidationException e) {
-                if (e.getCausingExceptions().isEmpty()) {
-                    checkAndUpdate(safeConfigurationJson, e);
-                } else {
-                    e
-                        .getCausingExceptions()
-                        .forEach(cause -> {
-                            checkAndUpdate(safeConfigurationJson, cause);
-                        });
-                }
-            }
-            return safeConfigurationJson.toString();
-        }
-        return safeConfiguration;
-    }
-
-    private JSONObject checkAndUpdate(JSONObject safeConfigurationJson, ValidationException validationException) {
-        if ("required".equalsIgnoreCase(validationException.getKeyword())) {
-            Optional<String> errorField = getField(validationException);
-            if (errorField.isPresent()) {
-                ObjectSchema violatedSchema = (ObjectSchema) validationException.getViolatedSchema();
-                Schema schemaField = violatedSchema.getPropertySchemas().get(errorField.get());
-                if (schemaField.hasDefaultValue()) {
-                    SchemaLocation location = violatedSchema.getLocation();
-                    updateProperty(location, errorField.get(), schemaField.getDefaultValue(), safeConfigurationJson);
-                } else {
-                    throw new InvalidDataException(getAllMessages(validationException));
-                }
-            }
-        } else if ("additionalProperties".equalsIgnoreCase(validationException.getKeyword())) {
-            Optional<String> errorField = getField(validationException);
-            if (errorField.isPresent()) {
-                safeConfigurationJson.remove(errorField.get());
-            } else {
-                throw new InvalidDataException(getAllMessages(validationException));
-            }
-        } else {
-            throw new InvalidDataException(getAllMessages(validationException));
-        }
-        return safeConfigurationJson;
-    }
-
-    private void updateProperty(SchemaLocation location, String key, Object value, JSONObject target) {
-        Arrays
-            .stream(location.toString().split("/"))
-            .filter(token -> !token.equals("properties") && !token.isEmpty())
-            .map(property -> {
-                if (!property.equals("#")) {
-                    if (!target.has(property)) {
-                        target.put(property, new JSONObject());
-                    }
-                    return target.getJSONObject(property);
-                }
-                return target;
-            })
-            .reduce((toForgot, toKeep) -> toKeep)
-            .ifPresent(propertyToUpdate -> propertyToUpdate.put(key, value));
-    }
-
-    private String getAllMessages(ValidationException validationException) {
-        return String.join("\n", validationException.getAllMessages());
-    }
-
-    private Optional<String> getField(ValidationException validationException) {
-        Matcher matcher = errorFieldNamePattern.matcher(validationException.getErrorMessage());
-        if (matcher.find()) {
-            return Optional.of(matcher.group(1));
-        }
-        return Optional.empty();
-    }
-
-    private class JavaRegexValidator extends RegexFormatValidator {
-
-        // Just for retro-compatibility with old validator
-        @Override
-        public String formatName() {
-            return "java-regex";
+        try {
+            return validator.validate(schema, configuration);
+        } catch (InvalidJsonException e) {
+            throw new InvalidDataException(e.getMessage());
         }
     }
 }
