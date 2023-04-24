@@ -489,21 +489,6 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         when(groupService.findById(GraviteeContext.getExecutionContext(), "Api consumer"))
             .thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
 
-        // mock role to add from roleMapping
-        doAnswer(invocation -> {
-                ((Set) invocation.getArguments()[3]).add(mockRoleEntity(RoleScope.ORGANIZATION, "USER"));
-                return null;
-            })
-            .when(userService)
-            .computeRolesToAddUser(
-                eq(GraviteeContext.getExecutionContext()),
-                eq("janedoe@example.com"),
-                eq(identityProvider.getRoleMappings()),
-                eq(userInfoBody),
-                any(Set.class),
-                any(Map.class)
-            );
-
         RoleEntity roleApiUser = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER");
         RoleEntity roleApplicationAdmin = mockRoleEntity(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "ADMIN");
 
