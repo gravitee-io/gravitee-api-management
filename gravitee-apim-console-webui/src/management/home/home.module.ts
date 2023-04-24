@@ -36,6 +36,7 @@ import { GioRequestStatsModule } from './widgets/gio-request-stats/gio-request-s
 
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { TasksComponent } from '../tasks/tasks.component';
 
 export const states: Ng2StateDeclaration[] = [
   {
@@ -80,6 +81,15 @@ export const states: Ng2StateDeclaration[] = [
       },
     },
     component: HomeApiHealthCheckComponent,
+  },
+  {
+    name: 'home.tasks',
+    url: '/tasks',
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+    },
+    component: TasksComponent,
   },
 ];
 
