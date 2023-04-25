@@ -265,6 +265,54 @@ paths:
                     $ref: "#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
+        post:
+            tags:
+                - APIs
+                - API Members
+            summary: Add a member to an API.
+            description: |
+                Add a new member to an API.
+                User must have the API_MEMBER[CREATE] permissions.
+            operationId: createApiMembership
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateApiMembership"
+                required: true
+            responses:
+                "201":
+                    description: Member successfully added
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Member"
+                default:
+                    $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - APIs
+                - API Members
+            summary: Updates a membership for an API.
+            description: |
+                Edit a membership for an API.
+                User must have the API_MEMBER[UPDATE] permissions.
+            operationId: updateApiMembership
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateApiMembership"
+                required: true
+            responses:
+                "200":
+                    description: Membership successfully edited.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Member"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/plans:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1757,6 +1805,33 @@ components:
                     type: string
                     description: Role's name.
                     example: OWNER
+        CreateApiMembership:
+            type: object
+            description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
+            properties:
+                userId:
+                    type: string
+                    description: Technical identifier for existing user.
+                externalReference:
+                    type: string
+                    description: User's reference for user provided from an identity provider.
+                roleName:
+                    type: string
+                    description: The name of the role
+                    minLength: 1
+            required: [roleName]
+        UpdateApiMembership:
+            type: object
+            properties:
+                memberId:
+                    type: string
+                    description: Technical identifier for existing user.
+                    minLength: 1
+                roleName:
+                    type: string
+                    description: The name of the role
+                    minLength: 1
+            required: [memberId, roleName]
         PlatformPlugin:
             type: object
             properties:
