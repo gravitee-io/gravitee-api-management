@@ -122,7 +122,7 @@ paths:
                                 $ref: "#/components/schemas/Api"
                 default:
                     $ref: "#/components/responses/Error"
-    /apis/{apiId}:
+    /environments/{envId}/apis/{apiId}:
         parameters:
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -182,7 +182,7 @@ paths:
                     description: API successfully deleted
                 default:
                     $ref: "#/components/responses/Error"
-    /apis/{apiId}/_start:
+    /environments/{envId}/apis/{apiId}/_start:
         parameters:
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -197,7 +197,7 @@ paths:
                     description: API successfully started
                 default:
                     $ref: "#/components/responses/Error"
-    /apis/{apiId}/_stop:
+    /environments/{envId}/apis/{apiId}/_stop:
         parameters:
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -212,7 +212,7 @@ paths:
                     description: API successfully stopped
                 default:
                     $ref: "#/components/responses/Error"
-    /apis/{apiId}/deployments:
+    /environments/{envId}/apis/{apiId}/deployments:
         parameters:
             - $ref: "#/components/parameters/apiIdParam"
         post:
@@ -236,7 +236,7 @@ paths:
                                 $ref: "#/components/schemas/ApiDeployment"
                 default:
                     $ref: "#/components/responses/Error"
-    /apis/{apiId}/plans:
+    /environments/{envId}/apis/{apiId}/plans:
         parameters:
             - $ref: "#/components/parameters/apiIdParam"
         get:
@@ -298,8 +298,7 @@ paths:
                                 $ref: "#/components/schemas/Api"
                 default:
                     $ref: "#/components/responses/Error"
-
-    /apis/{apiId}/plans/{planId}:
+    /environments/{envId}/apis/{apiId}/plans/{planId}:
         parameters:
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
@@ -350,8 +349,7 @@ paths:
                     description: API's plan successfully deleted
                 default:
                     $ref: "#/components/responses/Error"
-
-    /apis/{apiId}/plans/{planId}/_close:
+    /environments/{envId}/apis/{apiId}/plans/{planId}/_close:
         parameters:
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
@@ -372,7 +370,7 @@ paths:
                                 $ref: "#/components/schemas/Plan"
                 default:
                     $ref: "#/components/responses/Error"
-    /apis/{apiId}/plans/{planId}/_publish:
+    /environments/{envId}/apis/{apiId}/plans/{planId}/_publish:
         parameters:
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
@@ -393,7 +391,7 @@ paths:
                                 $ref: "#/components/schemas/Plan"
                 default:
                     $ref: "#/components/responses/Error"
-    /apis/{apiId}/plans/{planId}/_deprecate:
+    /environments/{envId}/apis/{apiId}/plans/{planId}/_deprecate:
         parameters:
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
