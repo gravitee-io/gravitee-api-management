@@ -182,6 +182,10 @@ public class APIV1toAPIV2Converter {
                                         break;
                                     }
                             }
+                        } else if (isSecurityPolicy(policy)) {
+                            // Workaround for security policies, which do not have a scope defined in their configuration
+                            final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
+                            flow.getPre().add(step);
                         }
                     } catch (IOException e) {
                         throw new InvalidDataException("Unable to validate policy configuration", e);
@@ -194,6 +198,10 @@ public class APIV1toAPIV2Converter {
                     flow.getPost().add(step);
                 }
             });
+    }
+
+    private static boolean isSecurityPolicy(PolicyEntity policy) {
+        return List.of("api-key", "jwt", "oauth2", "key-less").contains(policy.getId());
     }
 
     @NotNull
