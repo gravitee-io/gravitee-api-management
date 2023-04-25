@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -47,6 +47,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -125,7 +126,10 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         return apiQuery;
     }
 
-    private Optional<BooleanQuery> buildIdsQuery(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query query) {
+    private Optional<BooleanQuery> buildIdsQuery(
+        ExecutionContext executionContext,
+        io.gravitee.rest.api.service.search.query.Query<?> query
+    ) {
         if (!isBlank(query.getQuery()) && query.getIds() != null && !query.getIds().isEmpty()) {
             increaseMaxClauseCountIfNecessary(query.getIds().size());
 
@@ -139,7 +143,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                     if (executionContext.hasEnvironmentId()) {
                         idQuery.add(buildEnvCriteria(executionContext), BooleanClause.Occur.FILTER);
                     }
-                    idQuery.add(new TermQuery(new Term(FIELD_ID, (String) id)), BooleanClause.Occur.FILTER);
+                    idQuery.add(new TermQuery(new Term(FIELD_ID, id)), BooleanClause.Occur.FILTER);
 
                     mainQuery.add(idQuery.build(), BooleanClause.Occur.SHOULD);
                 });
@@ -151,7 +155,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private Optional<BooleanQuery> buildExactMatchQuery(
         ExecutionContext executionContext,
-        io.gravitee.rest.api.service.search.query.Query query,
+        io.gravitee.rest.api.service.search.query.Query<?> query,
         Optional<Query> filterQuery
     ) throws ParseException {
         if (!isBlank(query.getQuery())) {
@@ -167,7 +171,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private Optional<BooleanQuery> buildWildcardQuery(
         ExecutionContext executionContext,
-        io.gravitee.rest.api.service.search.query.Query query,
+        io.gravitee.rest.api.service.search.query.Query<?> query,
         Optional<Query> baseFilterQuery
     ) throws ParseException {
         if (!isBlank(query.getQuery())) {
@@ -179,14 +183,14 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             String queryEscaped = QueryParserBase.escape(query.getQuery());
             Query queryParsed = apiParser.parse(queryEscaped);
             mainQuery.add(queryParsed, BooleanClause.Occur.SHOULD);
-            mainQuery.add(buildApiFields(query.getQuery(), BooleanClause.Occur.SHOULD), BooleanClause.Occur.MUST);
+            mainQuery.add(buildApiFields(query.getQuery()), BooleanClause.Occur.MUST);
             return Optional.of(mainQuery.build());
         }
         return Optional.empty();
     }
 
     @Override
-    public SearchResult search(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query query)
+    public SearchResult search(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query<?> query)
         throws TechnicalException {
         try {
             final Optional<Query> baseFilterQuery = this.buildFilterQuery(FIELD_ID, query.getFilters());
@@ -208,7 +212,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private Optional<BooleanQuery> buildExplicitQuery(
         ExecutionContext executionContext,
-        io.gravitee.rest.api.service.search.query.Query query,
+        io.gravitee.rest.api.service.search.query.Query<?> query,
         Optional<Query> baseFilterQuery
     ) {
         BooleanQuery.Builder filtersQuery = buildApiQuery(executionContext, baseFilterQuery);
@@ -220,7 +224,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         return Optional.empty();
     }
 
-    protected String completeQueryWithFilters(io.gravitee.rest.api.service.search.query.Query query, BooleanQuery.Builder mainQuery) {
+    protected String completeQueryWithFilters(io.gravitee.rest.api.service.search.query.Query<?> query, BooleanQuery.Builder mainQuery) {
         if (isBlank(query.getQuery())) {
             return "";
         }
@@ -228,16 +232,16 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             BooleanQuery.Builder restQuery = new BooleanQuery.Builder();
             Set<String> rest = appendExplicitFilters(query.getQuery(), mainQuery, restQuery);
             BooleanQuery build = restQuery.build();
-            if (build.clauses().size() > 0) {
+            if (!build.clauses().isEmpty()) {
                 mainQuery.add(build, build.clauses().get(0).getOccur());
             }
-            if (rest != null) {
-                return rest.stream().collect(Collectors.joining(" "));
+            if (!CollectionUtils.isEmpty(rest)) {
+                return String.join(" ", rest);
             } else {
                 return "";
             }
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error("Unable to parse query", e);
             return query.getQuery();
         }
     }
@@ -246,14 +250,18 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         throws ParseException {
         QueryParser parser = new QueryParser("", new KeywordAnalyzer());
         parser.setAllowLeadingWildcard(true);
-        org.apache.lucene.search.Query parse = parser.parse(query);
+        String escapedQuery = query;
+        if (escapedQuery.startsWith("/")) { // escape if we are looking for a path
+            escapedQuery = QueryParserBase.escape(query);
+        }
+        org.apache.lucene.search.Query parse = parser.parse(escapedQuery);
         if (hasExplicitFilter(query)) {
             return appendExplicitFilters(parse, mainQuery, restQuery, null);
         }
         return Collections.singleton(query);
     }
 
-    private Set<String> appendExplicitFilters(
+    private @Nullable Set<String> appendExplicitFilters(
         org.apache.lucene.search.Query query,
         BooleanQuery.Builder mainQuery,
         BooleanQuery.Builder restQuery,
@@ -262,43 +270,70 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         Set<String> rest = new HashSet<>();
         BooleanClause.Occur currentOccur = clause != null ? clause.getOccur() : BooleanClause.Occur.FILTER;
         if (query instanceof TermQuery) {
-            TermQuery tQuery = (TermQuery) query;
-            Term term = tQuery.getTerm();
-            if (Arrays.stream(AUTHORIZED_EXPLICIT_FILTER).anyMatch(field -> field.equals(term.field()))) {
-                mainQuery.add(buildQueryFilter(term), currentOccur);
-            } else if (clause != null) {
-                restQuery.add(buildApiFields(term.text(), BooleanClause.Occur.SHOULD), clause.getOccur());
-            } else {
-                rest.add(term.text());
-            }
+            appendTermFilters((TermQuery) query, mainQuery, restQuery, clause, rest, currentOccur);
         } else if (query instanceof BooleanQuery) {
-            BooleanQuery bQuery = (BooleanQuery) query;
-            List<BooleanClause> clauses = bQuery.clauses();
-            if (!clauses.isEmpty()) {
-                BooleanQuery.Builder subQuery = new BooleanQuery.Builder();
-                for (BooleanClause _clause : clauses) {
-                    Query innerQuery = _clause.getQuery();
-                    Set<String> innerRest = appendExplicitFilters(innerQuery, subQuery, restQuery, _clause);
-                    if (innerRest == null) {
-                        return null;
-                    } else {
-                        rest.addAll(innerRest);
-                    }
-                }
-                mainQuery.add(subQuery.build(), BooleanClause.Occur.FILTER);
+            if (appendBoolFilters((BooleanQuery) query, mainQuery, restQuery, rest)) {
+                return null;
             }
         } else if (query instanceof WildcardQuery) {
-            WildcardQuery wQuery = (WildcardQuery) query;
-            Term term = wQuery.getTerm();
-            if (Arrays.stream(AUTHORIZED_EXPLICIT_FILTER).anyMatch(field -> field.equals(term.field()))) {
-                mainQuery.add(wQuery, currentOccur);
-            } else {
-                rest.add(term.text());
-            }
-        } else { //TODO support more lucene query types
-            return null;
+            appendWildcardFilters((WildcardQuery) query, mainQuery, rest, currentOccur);
         }
         return rest;
+    }
+
+    private void appendWildcardFilters(
+        WildcardQuery query,
+        BooleanQuery.Builder mainQuery,
+        Set<String> rest,
+        BooleanClause.Occur currentOccur
+    ) {
+        Term term = query.getTerm();
+        if (Arrays.stream(AUTHORIZED_EXPLICIT_FILTER).anyMatch(field -> field.equals(term.field()))) {
+            mainQuery.add(query, currentOccur);
+        } else {
+            rest.add(term.text());
+        }
+    }
+
+    private boolean appendBoolFilters(
+        BooleanQuery query,
+        BooleanQuery.Builder mainQuery,
+        BooleanQuery.Builder restQuery,
+        Set<String> rest
+    ) {
+        List<BooleanClause> clauses = query.clauses();
+        if (!clauses.isEmpty()) {
+            BooleanQuery.Builder subQuery = new BooleanQuery.Builder();
+            for (BooleanClause _clause : clauses) {
+                Query innerQuery = _clause.getQuery();
+                Set<String> innerRest = appendExplicitFilters(innerQuery, subQuery, restQuery, _clause);
+                if (innerRest == null) {
+                    return true;
+                } else {
+                    rest.addAll(innerRest);
+                }
+            }
+            mainQuery.add(subQuery.build(), BooleanClause.Occur.FILTER);
+        }
+        return false;
+    }
+
+    private void appendTermFilters(
+        TermQuery query,
+        BooleanQuery.Builder mainQuery,
+        BooleanQuery.Builder restQuery,
+        BooleanClause clause,
+        Set<String> rest,
+        BooleanClause.Occur currentOccur
+    ) {
+        Term term = query.getTerm();
+        if (Arrays.stream(AUTHORIZED_EXPLICIT_FILTER).anyMatch(field -> field.equals(term.field()))) {
+            mainQuery.add(buildQueryFilter(term), currentOccur);
+        } else if (clause != null) {
+            restQuery.add(buildApiFields(term.text()), clause.getOccur());
+        } else {
+            rest.add(term.text());
+        }
     }
 
     private Query buildQueryFilter(Term term) {
@@ -319,34 +354,34 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     public static String formatCategoryField(String category) {
         // Actually we index hrid categories...
-        return category.toLowerCase().replaceAll(" ", "-");
+        return category.toLowerCase().replace(" ", "-");
     }
 
     private Query toWildcard(String field, String query) {
         return new WildcardQuery(new Term(field, '*' + query + '*'));
     }
 
-    private BooleanQuery buildApiFields(String query, BooleanClause.Occur occur, Query... queries) {
+    private BooleanQuery buildApiFields(String query, Query... queries) {
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         if (queries != null) {
             for (Query q : queries) {
-                builder.add(q, occur);
+                builder.add(q, BooleanClause.Occur.SHOULD);
             }
         }
 
         String[] tokens = query.split(" ");
         for (String token : tokens) {
             builder
-                .add(new BoostQuery(toWildcard(FIELD_NAME, token), 12.0f), occur)
-                .add(new BoostQuery(toWildcard(FIELD_NAME_LOWERCASE, token.toLowerCase()), 10.0f), occur)
-                .add(new BoostQuery(toWildcard(FIELD_PATHS, token), 8.0f), occur)
-                .add(toWildcard(FIELD_DESCRIPTION, token), occur)
-                .add(toWildcard(FIELD_DESCRIPTION_LOWERCASE, token.toLowerCase()), occur)
-                .add(toWildcard(FIELD_HOSTS, token), occur)
-                .add(toWildcard(FIELD_LABELS, token), occur)
-                .add(toWildcard(FIELD_CATEGORIES, token), occur)
-                .add(toWildcard(FIELD_TAGS, token), occur)
-                .add(toWildcard(FIELD_METADATA, token), occur);
+                .add(new BoostQuery(toWildcard(FIELD_NAME, token), 12.0f), BooleanClause.Occur.SHOULD)
+                .add(new BoostQuery(toWildcard(FIELD_NAME_LOWERCASE, token.toLowerCase()), 10.0f), BooleanClause.Occur.SHOULD)
+                .add(new BoostQuery(toWildcard(FIELD_PATHS, token), 8.0f), BooleanClause.Occur.SHOULD)
+                .add(toWildcard(FIELD_DESCRIPTION, token), BooleanClause.Occur.SHOULD)
+                .add(toWildcard(FIELD_DESCRIPTION_LOWERCASE, token.toLowerCase()), BooleanClause.Occur.SHOULD)
+                .add(toWildcard(FIELD_HOSTS, token), BooleanClause.Occur.SHOULD)
+                .add(toWildcard(FIELD_LABELS, token), BooleanClause.Occur.SHOULD)
+                .add(toWildcard(FIELD_CATEGORIES, token), BooleanClause.Occur.SHOULD)
+                .add(toWildcard(FIELD_TAGS, token), BooleanClause.Occur.SHOULD)
+                .add(toWildcard(FIELD_METADATA, token), BooleanClause.Occur.SHOULD);
         }
         return builder.build();
     }
@@ -363,7 +398,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private boolean hasExplicitFilter(String query) {
         if (query != null) {
-            return Arrays.asList(AUTHORIZED_EXPLICIT_FILTER).stream().anyMatch(field -> query.contains(field + ":"));
+            return Arrays.stream(AUTHORIZED_EXPLICIT_FILTER).anyMatch(field -> query.contains(field + ":"));
         }
         return false;
     }
