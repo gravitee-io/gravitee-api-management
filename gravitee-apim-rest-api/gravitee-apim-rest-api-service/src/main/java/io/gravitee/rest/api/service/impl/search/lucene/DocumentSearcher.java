@@ -35,9 +35,9 @@ public interface DocumentSearcher extends TypedHandler {
      * @param query
      * @return Returns the ID field value of the matching documents.
      */
-    SearchResult search(ExecutionContext executionContext, Query query) throws TechnicalException;
+    SearchResult search(ExecutionContext executionContext, Query<?> query) throws TechnicalException;
 
-    default SearchResult searchReference(ExecutionContext executionContext, Query query) throws TechnicalException {
+    default SearchResult searchReference(ExecutionContext executionContext, Query<?> query) throws TechnicalException {
         return search(executionContext, query);
     }
 }
