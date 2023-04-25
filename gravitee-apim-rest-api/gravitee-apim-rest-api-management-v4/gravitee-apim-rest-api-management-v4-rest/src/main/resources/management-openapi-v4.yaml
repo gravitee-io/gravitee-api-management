@@ -418,7 +418,7 @@ paths:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:
-                - Connectors
+                - Installation
                 - Endpoints
             summary: Get available endpoints on the platform
             description: |
@@ -435,7 +435,7 @@ paths:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
-                - Connectors
+                - Installation
                 - Endpoints
             summary: Get an endpoint
             description: |
@@ -456,7 +456,7 @@ paths:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
-                - Connectors
+                - Installation
                 - Endpoints
             summary: Get an endpoint schema
             description: |
@@ -473,7 +473,7 @@ paths:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
-                - Connectors
+                - Installation
                 - Endpoints
             summary: Get an endpoint documentation
             description: |
@@ -494,7 +494,7 @@ paths:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
-                - Connectors
+                - Installation
                 - Endpoints
             summary: Get more information about how to use a given endpoint
             description: |
@@ -510,12 +510,12 @@ paths:
                                 $ref: "#/components/schemas/MoreInformation"
                 default:
                     $ref: "#/components/responses/Error"
-    /endpoints/{endpointId}/shared-configuration-schema:
+    /plugins/endpoints/{endpointId}/shared-configuration-schema:
         parameters:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
-                - Connectors
+                - Installation
                 - Endpoints
             summary: Get an endpoint shared configuration schema
             description: |
@@ -527,14 +527,13 @@ paths:
                     $ref: "#/components/responses/SchemaFormResponse"
                 default:
                     $ref: "#/components/responses/Error"
-
     /plugins/entrypoints:
         get:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:
-                - Connectors
+                - Installation
                 - Entrypoints
             summary: Get available entrypoints on the platform
             description: |
@@ -551,7 +550,7 @@ paths:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
-                - Connectors
+                - Installation
                 - Entrypoints
             summary: Get an entrypoint
             description: |
@@ -572,7 +571,7 @@ paths:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
-                - Connectors
+                - Installation
                 - Entrypoints
             summary: Get an entrypoint schema
             description: |
@@ -589,7 +588,7 @@ paths:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
-                - Connectors
+                - Installation
                 - Entrypoints
             summary: Get an entrypoint subscription schema
             description: |
@@ -606,7 +605,7 @@ paths:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
-                - Connectors
+                - Installation
                 - Entrypoints
             summary: Get an entrypoint documentation
             description: |
@@ -627,7 +626,7 @@ paths:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
-                - Connectors
+                - Installation
                 - Entrypoints
             summary: Get more information about how to use a given entrypoint
             description: |
