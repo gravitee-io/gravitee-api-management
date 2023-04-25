@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanQuery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +35,7 @@ public class ApiDocumentSearcherTest {
 
     @Test
     public void shouldCompleteQueryWithFilters() {
-        Query query = QueryBuilder.create(ApiEntity.class).setQuery("name: Foobar AND name: \"Foo Foo\"").build();
+        Query<ApiEntity> query = QueryBuilder.create(ApiEntity.class).setQuery("name: Foobar AND name: \"Foo Foo\"").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertEquals("", searcher.completeQueryWithFilters(query, builder));
         assertEquals(
@@ -47,15 +46,15 @@ public class ApiDocumentSearcherTest {
 
     @Test
     public void shouldCompleteQueryWithFiltersAndWildcard() {
-        Query query = QueryBuilder.create(ApiEntity.class).setQuery("name: *").build();
+        Query<ApiEntity> query = QueryBuilder.create(ApiEntity.class).setQuery("name: *").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertEquals("", searcher.completeQueryWithFilters(query, builder));
         assertEquals("#name:*", builder.build().toString());
     }
 
     @Test
-    public void shouldCompleteQueryWithFiltersAndText() throws ParseException {
-        Query query = QueryBuilder.create(ApiEntity.class).setQuery("categories:Sports AND Cycling").build();
+    public void shouldCompleteQueryWithFiltersAndText() {
+        Query<ApiEntity> query = QueryBuilder.create(ApiEntity.class).setQuery("categories:Sports AND Cycling").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertEquals("", searcher.completeQueryWithFilters(query, builder));
         assertEquals(
