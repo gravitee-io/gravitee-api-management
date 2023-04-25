@@ -16,6 +16,8 @@ tags:
       description: Everything about v4 APIs
     - name: API Plans
       description: Everything about v4 Plans
+    - name: API Members
+      description: Everything about API members
     - name: Endpoints
       description: Everything about v4 Endpoints
     - name: Entrypoints
@@ -234,6 +236,26 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ApiDeployment"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/members:
+        parameters:
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - APIs
+                - API Members
+            summary: Get the API's members
+            description: |
+                Get the list of members for a specific API.
+                User must have the API_MEMBER[READ] permission.
+            operationId: getApiMembers
+            responses:
+                "200":
+                    $ref: "#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/plans:
@@ -1392,6 +1414,30 @@ components:
             enum:
                 - auto
                 - manual
+        Member:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Member's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                displayName:
+                    type: string
+                    description: Member's name.
+                    example: John Doe
+                    minLength: 1
+                roles:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Role"
+                    description: The list of roles for this Member.
+        Role:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Role's name.
+                    example: OWNER
         PlatformPlugin:
             type: object
             properties:
@@ -1641,6 +1687,22 @@ components:
                                     $ref: "#/components/schemas/Plan"
                             metadata:
                                 $ref: "#/components/schemas/MetadataResponse"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        MembersResponse:
+            description: Page of API members
+            content:
+                application/json:
+                    schema:
+                        title: "MembersResponse"
+                        properties:
+                            data:
+                                description: List of API members.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Member"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
         SchemaFormResponse:

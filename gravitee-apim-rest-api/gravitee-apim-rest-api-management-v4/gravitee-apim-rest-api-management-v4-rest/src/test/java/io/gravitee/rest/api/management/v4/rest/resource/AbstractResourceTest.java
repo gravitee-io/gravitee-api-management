@@ -23,16 +23,11 @@ import io.gravitee.rest.api.management.v4.rest.JerseySpringTest;
 import io.gravitee.rest.api.management.v4.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanService;
-import java.io.IOException;
-import java.security.Principal;
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.SecurityContext;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +65,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected EnvironmentService environmentService;
+
+    @Autowired
+    protected MembershipService membershipService;
 
     @Autowired
     protected EntrypointConnectorPluginService entrypointConnectorPluginService;
