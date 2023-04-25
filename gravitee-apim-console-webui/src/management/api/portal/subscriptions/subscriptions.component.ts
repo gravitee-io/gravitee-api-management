@@ -121,35 +121,42 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       this.doSearch();
     }
 
-    buildQuery() {
-      let query = '?page=' + this.query.page + '&size=' + this.query.size + '&';
-      const parameters: any = {};
+    buildQuery(subscriptionQuery: SubscriptionQuery) {
+      const parameters: {
+        page: string;
+        size: string;
+        status?: string;
+        application?: string;
+        plan?: string;
+        api_key?: string;
+      } = {
+        page: subscriptionQuery.page.toString(),
+        size: subscriptionQuery.size.toString(),
+      };
 
-      if (this.query.status !== undefined) {
-        parameters.status = this.query.status.join(',');
+      if (subscriptionQuery.status !== undefined) {
+        parameters.status = subscriptionQuery.status.join(',');
       }
 
-      if (this.query.applications !== undefined) {
-        parameters.application = this.query.applications.join(',');
+      if (subscriptionQuery.applications !== undefined) {
+        parameters.application = subscriptionQuery.applications.join(',');
       }
 
-      if (this.query.plans !== undefined) {
-        parameters.plan = this.query.plans.join(',');
+      if (subscriptionQuery.plans !== undefined) {
+        parameters.plan = subscriptionQuery.plans.join(',');
       }
 
-      if (this.query.api_key !== undefined) {
-        parameters.api_key = this.query.api_key;
+      if (subscriptionQuery.api_key !== undefined) {
+        parameters.api_key = subscriptionQuery.api_key;
       }
 
-      _.mapKeys(parameters, (value, key) => {
-        return (query += key + '=' + value + '&');
-      });
-
-      return query;
+      return Object.entries(parameters).reduce((acc, [key, value]) => {
+        return (acc += `${key}=${value}&`);
+      }, '?');
     }
 
     doSearch() {
-      const query = this.buildQuery();
+      const query = this.buildQuery(this.query);
       this.$state.transitionTo(
         this.$state.current,
         _.merge(this.$state.params, {
@@ -239,21 +246,28 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       });
     }
 
-    exportAsCSV() {
-      this.ApiService.exportSubscriptionsAsCSV(this.api.id, this.buildQuery()).then((response) => {
-        const hiddenElement = document.createElement('a');
-        hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response.data);
-        hiddenElement.target = '_self';
-        let fileName = 'subscriptions-' + this.api.name + '-' + this.api.version + '-' + _.now();
-        fileName = fileName.replace(/[\s]/gi, '-');
-        fileName = fileName.replace(/[^\w]/gi, '-');
-        hiddenElement.download = fileName + '.csv';
-        document.getElementById('hidden-export-container').appendChild(hiddenElement);
-        this.$timeout(() => {
-          hiddenElement.click();
-        });
-        document.getElementById('hidden-export-container').removeChild(hiddenElement);
+    async exportAsCSV() {
+      const exportCSVQuery = new SubscriptionQuery();
+      exportCSVQuery.page = 1;
+      exportCSVQuery.size = this.subscriptions.page.total_elements;
+      exportCSVQuery.status = this.query.status;
+      exportCSVQuery.applications = this.query.applications;
+      exportCSVQuery.plans = this.query.plans;
+      exportCSVQuery.api_key = this.query.api_key;
+
+      const responseData = await this.ApiService.exportSubscriptionsAsCSV(this.api.id, this.buildQuery(exportCSVQuery));
+
+      const hiddenElement = document.createElement('a');
+      hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(responseData);
+      hiddenElement.target = '_self';
+      let fileName = 'subscriptions-' + this.api.name + '-' + this.api.version + '-' + _.now();
+      fileName = fileName.replace(/[\s]/gi, '-').replace(/[^\w]/gi, '-');
+      hiddenElement.download = fileName + '.csv';
+      document.getElementById('hidden-export-container').appendChild(hiddenElement);
+      this.$timeout(() => {
+        hiddenElement.click();
       });
+      document.getElementById('hidden-export-container').removeChild(hiddenElement);
     }
 
     hasFilter() {
