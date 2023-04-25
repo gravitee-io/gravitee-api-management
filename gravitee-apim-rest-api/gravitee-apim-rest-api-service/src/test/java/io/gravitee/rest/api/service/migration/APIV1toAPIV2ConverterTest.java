@@ -17,9 +17,12 @@ package io.gravitee.rest.api.service.migration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -30,6 +33,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.Before;
@@ -109,8 +113,16 @@ public class APIV1toAPIV2ConverterTest {
         assertThat(expected.getFlowMode()).isEqualTo(FlowMode.BEST_MATCH);
         assertThat(actual.getPaths()).isEmpty();
         assertThat(actual.getFlows()).hasSameSizeAs(expected.getFlows());
+
         for (int i = 0; i < actual.getFlows().size(); i++) {
-            assertThat(actual.getFlows().get(i)).isEqualToComparingFieldByFieldRecursively(expected.getFlows().get(i));
+            Flow currentflow = actual.getFlows().get(i);
+            Optional<Flow> equivalentFlowInExpectedList = expected
+                .getFlows()
+                .stream()
+                .filter(flow -> flow.getPathOperator().getPath().equals(currentflow.getPathOperator().getPath()))
+                .findFirst();
+            assertThat(equivalentFlowInExpectedList).isPresent();
+            assertThat(equivalentFlowInExpectedList.get()).isEqualToComparingFieldByFieldRecursively(currentflow);
         }
         assertThat(actual.getPlans()).hasSameSizeAs(expected.getPlans());
 
@@ -145,9 +157,17 @@ public class APIV1toAPIV2ConverterTest {
             assertThat(actualPlans.get(i).getPaths()).isEmpty();
 
             assertThat(actualPlans.get(i).getFlows()).hasSameSizeAs(expectedPlans.get(i).getFlows());
+
             for (int j = 0; j < actualPlans.get(i).getFlows().size(); j++) {
-                assertThat(actualPlans.get(i).getFlows().get(j))
-                    .isEqualToComparingFieldByFieldRecursively(expectedPlans.get(i).getFlows().get(j));
+                Flow currentflow = actualPlans.get(i).getFlows().get(j);
+                Optional<Flow> equivalentFlowInExpectedList = expectedPlans
+                    .get(i)
+                    .getFlows()
+                    .stream()
+                    .filter(flow -> flow.getPathOperator().getPath().equals(currentflow.getPathOperator().getPath()))
+                    .findFirst();
+                assertThat(equivalentFlowInExpectedList).isPresent();
+                assertThat(equivalentFlowInExpectedList.get()).isEqualToComparingFieldByFieldRecursively(currentflow);
             }
         }
     }

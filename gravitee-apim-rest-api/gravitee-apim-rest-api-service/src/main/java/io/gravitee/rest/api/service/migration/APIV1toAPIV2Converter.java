@@ -75,40 +75,14 @@ public class APIV1toAPIV2Converter {
         List<Flow> flows = new ArrayList<>();
         if (!CollectionUtils.isEmpty(paths)) {
             paths.forEach((pathKey, pathValue) -> {
-                // if all rules for a path have the same set of HttpMethods, then we have a unique flow for this path.
-                // else, we have a flow per rule in the path.
-                boolean oneFlowPerPathMode =
-                    pathValue
-                        .stream()
-                        .map(rule -> {
-                            Set<HttpMethod> methods = new HashSet<>(rule.getMethods());
-                            methods.retainAll(HTTP_METHODS);
-                            return methods;
-                        })
-                        .distinct()
-                        .count() ==
-                    1;
-
-                if (oneFlowPerPathMode) {
-                    // since, all HttpMethods are the same in this case, we can use `pathValue.getRules().get(0).getMethods()`
-                    final Flow flow = createFlow(pathKey, pathValue.get(0).getMethods());
-                    pathValue.forEach(rule -> {
-                        configurePolicies(policies, rule, flow);
-                    });
-
-                    // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
-                    Collections.reverse(flow.getPost());
-                    flows.add(flow);
-                } else {
-                    pathValue.forEach(rule -> {
-                        final Flow flow = createFlow(pathKey, rule.getMethods());
-                        configurePolicies(policies, rule, flow);
-
-                        // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
-                        Collections.reverse(flow.getPost());
-                        flows.add(flow);
-                    });
-                }
+                Set<HttpMethod> flowMethods = pathValue.stream().flatMap(rule -> rule.getMethods().stream()).collect(Collectors.toSet());
+                final Flow flow = createFlow(pathKey, flowMethods);
+                pathValue.forEach(rule -> {
+                    configurePolicies(policies, rule, flow);
+                });
+                // reverse policies of the Post steps otherwise, flow are displayed in the wrong order into the policy studio
+                Collections.reverse(flow.getPost());
+                flows.add(flow);
             });
         }
 
@@ -119,7 +93,7 @@ public class APIV1toAPIV2Converter {
      * Convert all plans related to Api to Plans with Flows.
      * @param plans, the collection of plan related to Api.
      * @param policies, the list of available policies, containing available scopes
-     * @return the list of Plans
+     * @return the set of Plans
      */
     private Set<PlanEntity> migratePlans(Set<PlanEntity> plans, Set<PolicyEntity> policies) {
         return plans
@@ -170,31 +144,31 @@ public class APIV1toAPIV2Converter {
                                 case "REQUEST":
                                 case "REQUEST_CONTENT":
                                     {
-                                        final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
+                                        final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
                                         flow.getPre().add(step);
                                         break;
                                     }
                                 case "RESPONSE":
                                 case "RESPONSE_CONTENT":
                                     {
-                                        final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
+                                        final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
                                         flow.getPost().add(step);
                                         break;
                                     }
                             }
                         } else if (isSecurityPolicy(policy)) {
                             // Workaround for security policies, which do not have a scope defined in their configuration
-                            final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
+                            final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
                             flow.getPre().add(step);
                         }
                     } catch (IOException e) {
                         throw new InvalidDataException("Unable to validate policy configuration", e);
                     }
                 } else if (policy.getDevelopment().getOnRequestMethod() != null) {
-                    final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
+                    final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
                     flow.getPre().add(step);
                 } else if (policy.getDevelopment().getOnResponseMethod() != null) {
-                    final Step step = createStep(rule, policy, safeRulePolicyConfiguration);
+                    final Step step = createStep(rule, policy, safeRulePolicyConfiguration, flow.getMethods());
                     flow.getPost().add(step);
                 }
             });
@@ -205,13 +179,25 @@ public class APIV1toAPIV2Converter {
     }
 
     @NotNull
-    private Step createStep(Rule rule, PolicyEntity policy, String safeRulePolicyConfiguration) {
+    private Step createStep(Rule rule, PolicyEntity policy, String safeRulePolicyConfiguration, Set<HttpMethod> flowMethods) {
         final Step step = new Step();
         step.setName(policy.getName());
         step.setEnabled(rule.isEnabled());
         step.setDescription(rule.getDescription() != null ? rule.getDescription() : policy.getDescription());
         step.setPolicy(policy.getId());
         step.setConfiguration(safeRulePolicyConfiguration);
+
+        if (!rule.getMethods().equals(flowMethods) && !rule.getMethods().containsAll(HTTP_METHODS)) {
+            step.setCondition(
+                rule
+                    .getMethods()
+                    .stream()
+                    .map(HttpMethod::name)
+                    .sorted()
+                    .collect(Collectors.joining("' || #request.method == '", "{#request.method == '", "'}"))
+            );
+        }
+
         return step;
     }
 
