@@ -34,7 +34,7 @@ import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ApiMembersResourceTest extends AbstractResourceTest {
+public class ApiMembersResource_GetTest extends AbstractResourceTest {
 
     private static final String apiId = "my-api";
     private static final String ENVIRONMENT = "my-env";

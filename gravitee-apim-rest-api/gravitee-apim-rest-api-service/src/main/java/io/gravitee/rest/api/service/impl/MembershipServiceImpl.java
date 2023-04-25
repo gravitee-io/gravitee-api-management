@@ -38,7 +38,6 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
@@ -58,6 +57,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -1724,6 +1724,56 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             .stream()
             .map(role -> _addRoleToMemberOnReference(executionContext, reference, member, role, source, false, true))
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public MemberEntity createNewMembershipForApi(
+        ExecutionContext executionContext,
+        String apiId,
+        String userId,
+        String externalReference,
+        String roleName
+    ) {
+        MembershipService.MembershipReference reference = new MembershipService.MembershipReference(MembershipReferenceType.API, apiId);
+        MembershipService.MembershipMember member = new MembershipService.MembershipMember(
+            userId,
+            externalReference,
+            MembershipMemberType.USER
+        );
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.API, roleName);
+
+        if (member.getMemberId() != null) {
+            MemberEntity userMember = getUserMember(
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                apiId,
+                member.getMemberId()
+            );
+            if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
+                throw new MembershipAlreadyExistsException(
+                    member.getMemberId(),
+                    MembershipMemberType.USER,
+                    apiId,
+                    MembershipReferenceType.API
+                );
+            }
+        }
+        return addRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
+    }
+
+    @Override
+    public MemberEntity updateMembershipForApi(ExecutionContext executionContext, String apiId, String memberId, String roleName) {
+        MemberEntity membership = null;
+        MemberEntity userMember = getUserMember(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId, memberId);
+
+        MembershipService.MembershipReference reference = new MembershipService.MembershipReference(MembershipReferenceType.API, apiId);
+        MembershipService.MembershipMember member = new MembershipService.MembershipMember(memberId, null, MembershipMemberType.USER);
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.API, roleName);
+
+        if (userMember != null && userMember.getRoles() != null && !userMember.getRoles().isEmpty()) {
+            membership = updateRoleToMemberOnReference(GraviteeContext.getExecutionContext(), reference, member, role);
+        }
+        return membership;
     }
 
     private boolean hasApiPrimaryOwnerMemberInGroup(ExecutionContext executionContext, String groupId) {

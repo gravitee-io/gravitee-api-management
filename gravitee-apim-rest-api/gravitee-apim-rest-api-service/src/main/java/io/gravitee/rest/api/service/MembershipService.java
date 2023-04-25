@@ -220,6 +220,16 @@ public interface MembershipService {
         String source
     );
 
+    MemberEntity createNewMembershipForApi(
+        ExecutionContext executionContext,
+        String apiId,
+        String userId,
+        String externalReference,
+        String roleName
+    );
+
+    MemberEntity updateMembershipForApi(ExecutionContext executionContext, String apiId, String memberId, String roleName);
+
     class MembershipReference {
 
         private final MembershipReferenceType type;
