@@ -489,13 +489,13 @@ export class ApiService {
     return this.$http.get(req);
   }
 
-  exportSubscriptionsAsCSV(apiId: string, query?: string): IHttpPromise<any> {
+  exportSubscriptionsAsCSV(apiId: string, query?: string): IPromise<string> {
     let req = `${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/export`;
     if (query !== undefined) {
       req += query;
     }
 
-    return this.$http.get(req, { timeout: 30000 });
+    return this.$http.get<string>(req, { timeout: 30000 }).then((response) => response.data);
   }
 
   getSubscribers(apiId: string, query?: string, page?: number, size?: number, exclude: ApplicationExcludeFilter[] = []): IHttpPromise<any> {
