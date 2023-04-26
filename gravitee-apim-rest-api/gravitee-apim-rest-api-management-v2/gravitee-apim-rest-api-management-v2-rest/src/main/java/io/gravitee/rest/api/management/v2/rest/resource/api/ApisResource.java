@@ -23,6 +23,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
@@ -90,7 +91,13 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
-    public ApisResponse searchApis(@BeanParam @Valid PaginationParam paginationParam, @QueryParam("orderBy") String apiOrderBy, final @Valid @NotNull ApiSearchQuery apiSearchQuery) {
+    public ApisResponse searchApis(
+        @BeanParam @Valid PaginationParam paginationParam,
+        @BeanParam ApiSortByParam apiSortByParam,
+        final @Valid @NotNull ApiSearchQuery apiSearchQuery
+    ) {
+        apiSortByParam.validate();
+
         QueryBuilder<ApiEntity> apiQueryBuilder = QueryBuilder.create(ApiEntity.class);
 
         if (!Strings.isNullOrEmpty(apiSearchQuery.getQuery())) {
@@ -101,21 +108,13 @@ public class ApisResource extends AbstractResource {
             apiQueryBuilder.addFilter("api", apiSearchQuery.getIds());
         }
 
-        Sortable sortable = null;
-        if (Objects.nonNull(apiOrderBy)) {
-            boolean isAsc = !apiOrderBy.startsWith("-");
-            String field = apiOrderBy.replace("-", "");
-
-            sortable = new SortableImpl(field, isAsc);
-        }
-
         Page<GenericApiEntity> apis = apiSearchService.search(
             GraviteeContext.getExecutionContext(),
             getAuthenticatedUser(),
             isAdmin(),
             apiQueryBuilder,
             paginationParam.toPageable(),
-            sortable
+            apiSortByParam.toSortable()
         );
 
         return new ApisResponse()

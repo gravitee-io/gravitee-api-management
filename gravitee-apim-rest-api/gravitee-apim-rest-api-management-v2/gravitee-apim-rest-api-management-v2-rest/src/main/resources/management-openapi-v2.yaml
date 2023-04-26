@@ -132,7 +132,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
-                - $ref: "#/components/parameters/apiOrderByParam"
+                - $ref: "#/components/parameters/apiSortByParam"
             tags:
                 - APIs
             summary: Search APIs
@@ -153,7 +153,6 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}:
         parameters:
-            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
             tags:
@@ -2815,6 +2814,21 @@ components:
         ###############################
         # Pagination Query Parameters #
         ###############################
+        apiSortByParam:
+            name: sortBy
+            in: query
+            required: false
+            description: |-
+                Possibility to sort APIs results by field.
+                Can be ASC (default) or DESC with minus '-' prefix.
+            schema:
+                type: string
+                example: name
+                enum:
+                    - name
+                    - -name
+                    - createdAt
+                    - -createdAt
         pageParam:
             name: page
             in: query
@@ -2832,22 +2846,6 @@ components:
             schema:
                 type: integer
                 default: 10
-        apiOrderByParam:
-            name: orderBy
-            in: query
-            required: false
-            description: |-
-               Possibility to sort results by field.
-               Can be ASC (default) or DESC with minus '-' prefix.
-            schema:
-                type: string
-                example: name
-                enum:
-                    - name
-                    - -name
-                    - createdAt
-                    - -createdAt
-
     responses:
         EnvironmentsResponse:
             description: Page of environments
