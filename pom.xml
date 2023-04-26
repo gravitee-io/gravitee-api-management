@@ -148,6 +148,7 @@
         <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
         <maven-plugin-prettier.prettierjava.version>2.1.0</maven-plugin-prettier.prettierjava.version>
         <skip.validation>false</skip.validation>
+        <junit-pioneer.version>2.0.1</junit-pioneer.version>
     </properties>
 
     <dependencyManagement>

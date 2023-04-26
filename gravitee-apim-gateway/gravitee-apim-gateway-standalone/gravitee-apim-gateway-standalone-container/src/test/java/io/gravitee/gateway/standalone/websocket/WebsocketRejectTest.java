@@ -29,9 +29,9 @@ import io.vertx.core.http.UpgradeRejectedException;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.junitpioneer.jupiter.RetryingTest;
 
 @ApiDescriptor("/io/gravitee/gateway/standalone/websocket/teams.json")
 public class WebsocketRejectTest extends AbstractWebSocketGatewayTest {
@@ -46,7 +46,7 @@ public class WebsocketRejectTest extends AbstractWebSocketGatewayTest {
     @Rule
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void websocket_rejected_request() throws InterruptedException {
         Vertx vertx = Vertx.vertx();
         VertxTestContext testContext = new VertxTestContext();

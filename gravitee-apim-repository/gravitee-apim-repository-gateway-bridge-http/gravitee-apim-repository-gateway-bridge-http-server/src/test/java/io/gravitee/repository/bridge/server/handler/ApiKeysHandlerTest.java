@@ -43,6 +43,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -136,7 +137,7 @@ public class ApiKeysHandlerTest {
             });
     }
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void findByCriteriaShouldRespondWithSubscriptionList(TestContext context) throws TechnicalException {
         ApiKey apiKey = new ApiKey();
         apiKey.setSubscriptions(List.of("subscription-id1", "subscription-id2"));

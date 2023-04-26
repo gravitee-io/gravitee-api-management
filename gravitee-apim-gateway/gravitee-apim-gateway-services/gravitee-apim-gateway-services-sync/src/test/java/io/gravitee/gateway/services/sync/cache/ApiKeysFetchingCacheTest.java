@@ -34,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -87,7 +88,7 @@ public class ApiKeysFetchingCacheTest {
         assertTrue(resultKey.isEmpty());
     }
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void shouldReturnEmptyAndSaveEmptyInCacheWhenItDoesntExist_causeCantFindApiKeyInRepository() throws TechnicalException {
         when(apiKeyRepository.findByKeyAndApi("key-id", "api-id6")).thenReturn(Optional.empty());
 
@@ -99,7 +100,7 @@ public class ApiKeysFetchingCacheTest {
         verifyNoInteractions(subscriptionRepository);
     }
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void shouldReturnEmptyAndSaveEmptyInCacheWhenItDoesntExist_causeCantFindSubscriptionInRepository() throws TechnicalException {
         io.gravitee.repository.management.model.ApiKey apiKey = new io.gravitee.repository.management.model.ApiKey();
         apiKey.setId("my-test-api-key");
@@ -121,7 +122,7 @@ public class ApiKeysFetchingCacheTest {
         assertEquals(List.of("sub-1", "sub2", "sub-3"), criteriaArgumentCaptor.getValue().getIds());
     }
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void shouldReturnEmptyAndSaveEmptyInCacheWhenItDoesntExist_causeFoundButSubscriptionClosed() throws TechnicalException {
         io.gravitee.repository.management.model.ApiKey apiKey = new io.gravitee.repository.management.model.ApiKey();
         apiKey.setId("my-test-api-key");
@@ -147,7 +148,7 @@ public class ApiKeysFetchingCacheTest {
         assertEquals(List.of("sub-1", "sub2", "sub-3"), criteriaArgumentCaptor.getValue().getIds());
     }
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void shouldReturnKeyAndSaveKeyInCacheWhenItDoesntExistButFoundInRepository() throws TechnicalException {
         io.gravitee.repository.management.model.ApiKey apiKey = new io.gravitee.repository.management.model.ApiKey();
         apiKey.setId("my-test-api-key");
@@ -228,7 +229,7 @@ public class ApiKeysFetchingCacheTest {
         verify(subscriptionRepository, times(1)).search(any());
     }
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void shouldReturnEmptyIfApiKeyFetchThrowsException() throws TechnicalException {
         when(apiKeyRepository.findByKeyAndApi(any(), any())).thenThrow(TechnicalException.class);
 

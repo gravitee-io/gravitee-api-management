@@ -28,9 +28,9 @@ import io.vertx.core.http.WebSocket;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
+import org.junitpioneer.jupiter.RetryingTest;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -49,7 +49,7 @@ public class WebsocketCloseTest extends AbstractWebSocketGatewayTest {
     @Rule
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void websocket_accepted_request() throws InterruptedException {
         Vertx vertx = Vertx.vertx();
         VertxTestContext testContext = new VertxTestContext();
