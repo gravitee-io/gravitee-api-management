@@ -107,6 +107,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
         assertNull(apiQuery.getQuery());
+        assertEquals(0, apiQuery.getFilters().size());
     }
 
     @Test
@@ -145,6 +146,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
         assertEquals("api-name", apiQuery.getQuery());
+        assertEquals(0, apiQuery.getFilters().size());
     }
 
     @Test
@@ -225,6 +227,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         List<String> ids = (List<String>) apiQuery.getFilters().get("api");
         assertEquals(2, ids.size());
         assertEquals("id-2", ids.get(1));
+
+        assert (!apiQuery.getFilters().containsKey("definition_version"));
     }
 
     @Test
@@ -247,6 +251,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         var apiEntity = new ApiEntity();
         apiEntity.setId("api-id");
         apiEntity.setState(Lifecycle.State.INITIALIZED);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
         ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
 
@@ -274,6 +279,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
         assertEquals("api-name", apiQuery.getQuery());
+        assertEquals(0, apiQuery.getFilters().size());
     }
 
     @Test
@@ -312,5 +318,47 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
         assertEquals("api-name", apiQuery.getQuery());
+        assertEquals(0, apiQuery.getFilters().size());
+    }
+
+    @Test
+    public void should_search_with_definition_version_param() {
+        var apiSearchQuery = new ApiSearchQuery();
+        apiSearchQuery.setDefinitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4);
+
+        var apiEntity = new ApiEntity();
+        apiEntity.setId("id-1");
+        apiEntity.setState(Lifecycle.State.INITIALIZED);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
+        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
+
+        when(
+            apiSearchServiceV4.search(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                apiQueryBuilderCaptor.capture(),
+                eq(new PageableImpl(1, 10)),
+                isNull()
+            )
+        )
+            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+
+        final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        var page = response.readEntity(ApisResponse.class);
+        var data = page.getData();
+        assertNotNull(data);
+        assertEquals(1, data.size());
+        assertEquals("id-1", data.get(0).getApiV4().getId());
+
+        var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
+        var apiQuery = apiQueryBuilder.build();
+        assertNotNull(apiQuery.getFilters());
+        assertNotNull(apiQuery.getFilters().get("definition_version"));
+        String definitionVersion = (String) apiQuery.getFilters().get("definition_version");
+        assertEquals("4.0.0", definitionVersion);
     }
 }

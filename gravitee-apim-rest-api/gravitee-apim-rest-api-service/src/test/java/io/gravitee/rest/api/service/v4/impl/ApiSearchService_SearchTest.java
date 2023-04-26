@@ -223,6 +223,7 @@ public class ApiSearchService_SearchTest {
 
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
+        filters.put("definition_version", "4.0.0");
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build())))
             .thenReturn(new SearchResult(ids));
@@ -237,7 +238,13 @@ public class ApiSearchService_SearchTest {
 
         when(
             apiRepository.search(
-                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).ids(ids).build()),
+                eq(
+                    new ApiCriteria.Builder()
+                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                        .ids(ids)
+                        .definitionVersion(List.of(DefinitionVersion.V4))
+                        .build()
+                ),
                 eq(new SortableBuilder().field("createdAt").setAsc(false).build()),
                 eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
                 eq(ApiFieldFilter.allFields())

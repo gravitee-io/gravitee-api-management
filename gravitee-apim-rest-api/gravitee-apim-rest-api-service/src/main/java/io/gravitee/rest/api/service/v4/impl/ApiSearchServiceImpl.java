@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
@@ -50,16 +51,7 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -226,8 +218,9 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final Pageable pageable,
         final Sortable sortable
     ) {
-        // Step 1 : find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
-        SearchResult apiIdsResult = searchEngineService.search(GraviteeContext.getExecutionContext(), apiQueryBuilder.build());
+        // Step 1: find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
+        var apiQuery = apiQueryBuilder.build();
+        SearchResult apiIdsResult = searchEngineService.search(GraviteeContext.getExecutionContext(), apiQuery);
 
         if (!apiIdsResult.hasResults() && apiIdsResult.getDocuments().isEmpty()) {
             return new Page<>(List.of(), 0, 0, 0);
@@ -235,7 +228,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
         Set<String> apiIds = apiIdsResult.getDocuments().stream().collect(toSet());
 
-        // Step 2 : if user is not admin, get list of apiIds in their scope and join with Lucene results
+        // Step 2: if user is not admin, get list of apiIds in their scope and join with Lucene results
         if (!isAdmin) {
             Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(GraviteeContext.getExecutionContext(), userId, null);
 
@@ -247,11 +240,18 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             apiIds.retainAll(userApiIds);
         }
 
+        // Step 3: add filters to ApiCriteria to be used by the repository search
         ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder()
             .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
             .ids(apiIds);
 
-        // Step 3: get APIs page from repository by ids and add pagination and sorting
+        if (Objects.nonNull(apiQuery.getFilters()) && apiQuery.getFilters().containsKey(FIELD_DEFINITION_VERSION)) {
+            apiCriteriaBuilder.definitionVersion(
+                List.of(DefinitionVersion.valueOfLabel((String) apiQuery.getFilters().get(FIELD_DEFINITION_VERSION)))
+            );
+        }
+
+        // Step 4: get APIs page from repository by ids and add pagination and sorting
         Page<Api> apis = apiRepository.search(apiCriteriaBuilder.build(), convert(sortable), convert(pageable), ApiFieldFilter.allFields());
 
         return apis
