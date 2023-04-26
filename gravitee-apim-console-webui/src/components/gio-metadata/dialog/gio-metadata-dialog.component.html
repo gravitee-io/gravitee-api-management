@@ -29,19 +29,19 @@
   <form [formGroup]="form" (ngSubmit)="save()" class="gio-metadata-dialog__form">
     <div class="gio-metadata-dialog__form__row">
       <mat-form-field appearance="outline" *ngIf="metadata.action === 'Update'">
-        <input id="key" type="text" matInput formControlName="key" />
+        <input id="key" type="text" matInput formControlName="key" data-testid="api_metadata_dialog_key" />
         <mat-label>Key</mat-label>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
-        <input id="name" type="text" matInput formControlName="name" required="true" />
+        <input id="name" type="text" matInput formControlName="name" required="true" data-testid="api_metadata_dialog_name" />
         <mat-label>Name</mat-label>
       </mat-form-field>
     </div>
 
     <mat-form-field appearance="outline">
       <mat-label>Format</mat-label>
-      <mat-select formControlName="format">
+      <mat-select formControlName="format" data-testid="api_metadata_dialog_format">
         <mat-option *ngFor="let format of formats" [value]="format">{{ format.toLowerCase() }}</mat-option>
       </mat-select>
     </mat-form-field>
@@ -50,7 +50,7 @@
       <ng-container *ngSwitchCase="'BOOLEAN'">
         <mat-form-field appearance="outline">
           <mat-label>Value</mat-label>
-          <mat-select id="value-boolean" formControlName="value">
+          <mat-select id="value-boolean" formControlName="value" data-testid="api_metadata_dialog_boolean">
             <mat-option [value]="true">true</mat-option>
             <mat-option [value]="false">false</mat-option>
           </mat-select>
@@ -61,7 +61,7 @@
         <mat-form-field appearance="outline" class="datepicker">
           <mat-label>Choose a date</mat-label>
           <div class="gio-metadata-dialog__datepicker">
-            <input id="value-date" matInput [matDatepicker]="picker" formControlName="value" />
+            <input id="value-date" matInput [matDatepicker]="picker" formControlName="value" data-testid="api_metadata_dialog_date_value" />
             <mat-datepicker-toggle matIconSuffix [for]="picker">
               <mat-icon matDatepickerToggleIcon>keyboard_arrow_down</mat-icon>
             </mat-datepicker-toggle>
@@ -75,7 +75,14 @@
       <ng-container *ngSwitchCase="'NUMERIC'">
         <mat-form-field appearance="outline">
           <mat-label>Value</mat-label>
-          <input id="value-numeric" type="number" matInput formControlName="value" required="true" />
+          <input
+            id="value-numeric"
+            type="number"
+            matInput
+            formControlName="value"
+            required="true"
+            data-testid="api_metadata_dialog_numeric_value"
+          />
           <mat-hint>Ex: 123000.92</mat-hint>
           <mat-error>Invalid number</mat-error>
         </mat-form-field>
@@ -84,7 +91,15 @@
       <ng-container *ngSwitchCase="'MAIL'">
         <mat-form-field appearance="outline">
           <mat-label>Value</mat-label>
-          <input [pattern]="mailPattern" id="value-mail" type="email" matInput formControlName="value" required="true" />
+          <input
+            [pattern]="mailPattern"
+            id="value-mail"
+            type="email"
+            matInput
+            formControlName="value"
+            required="true"
+            data-testid="api_metadata_dialog_mail_value"
+          />
           <mat-hint>Ex: john@doe.com</mat-hint>
           <mat-error>Invalid email</mat-error>
         </mat-form-field>
@@ -93,7 +108,15 @@
       <ng-container *ngSwitchCase="'URL'">
         <mat-form-field appearance="outline">
           <mat-label>Value</mat-label>
-          <input [pattern]="urlPattern" id="value-url" type="url" matInput formControlName="value" required="true" />
+          <input
+            [pattern]="urlPattern"
+            id="value-url"
+            type="url"
+            matInput
+            formControlName="value"
+            required="true"
+            data-testid="api_metadata_dialog_url_value"
+          />
           <mat-hint>Ex: https://gravitee.io</mat-hint>
           <mat-error>Invalid URL</mat-error>
         </mat-form-field>
@@ -102,7 +125,14 @@
       <ng-container *ngSwitchDefault>
         <mat-form-field appearance="outline">
           <mat-label>Value</mat-label>
-          <input id="value-string" type="text" matInput formControlName="value" required="true" />
+          <input
+            id="value-string"
+            type="text"
+            matInput
+            formControlName="value"
+            required="true"
+            data-testid="api_metadata_dialog_default_value"
+          />
         </mat-form-field>
       </ng-container>
 
@@ -113,8 +143,16 @@
     </div>
 
     <div class="gio-metadata-dialog__form__footer">
-      <button mat-stroked-button type="button" [attr.aria-label]="'Cancel'" (click)="onClose()">Cancel</button>
-      <button [disabled]="this.form.invalid || this.form.pristine || !hasChange" mat-raised-button type="submit" color="primary">
+      <button mat-stroked-button type="button" [attr.aria-label]="'Cancel'" (click)="onClose()" data-testid="api_metadata_dialog_cancel">
+        Cancel
+      </button>
+      <button
+        [disabled]="this.form.invalid || this.form.pristine || !hasChange"
+        mat-raised-button
+        type="submit"
+        color="primary"
+        data-testid="api_metadata_dialog_save"
+      >
         Save
       </button>
     </div>
