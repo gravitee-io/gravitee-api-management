@@ -16,11 +16,13 @@
 package io.gravitee.definition.model;
 
 import java.io.Serializable;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@EqualsAndHashCode
 public class DefinitionContext implements Serializable {
 
     private static final long serialVersionUID = -8942499479175567992L;
