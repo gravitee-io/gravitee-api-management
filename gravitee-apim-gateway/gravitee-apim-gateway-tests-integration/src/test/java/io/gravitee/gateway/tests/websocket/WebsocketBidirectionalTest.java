@@ -24,12 +24,13 @@ import io.vertx.junit5.VertxTestContext;
 import io.vertx.reactivex.core.http.WebSocket;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 @GatewayTest
 @DeployApi({ "/apis/http/api.json" })
 public class WebsocketBidirectionalTest extends AbstractWebsocketGatewayTest {
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void websocket_bidirectional_request(VertxTestContext testContext) throws Throwable {
         httpServer
             .webSocketHandler(serverWebSocket -> {

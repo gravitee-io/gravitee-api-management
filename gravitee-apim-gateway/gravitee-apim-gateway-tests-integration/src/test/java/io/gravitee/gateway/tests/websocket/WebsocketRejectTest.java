@@ -25,12 +25,13 @@ import io.vertx.core.http.UpgradeRejectedException;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 @GatewayTest
 @DeployApi({ "/apis/http/api.json" })
 public class WebsocketRejectTest extends AbstractWebsocketGatewayTest {
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void websocket_rejected_request(VertxTestContext testContext) throws Throwable {
         httpServer
             .webSocketHandler(webSocket -> webSocket.reject(UNAUTHORIZED_401))

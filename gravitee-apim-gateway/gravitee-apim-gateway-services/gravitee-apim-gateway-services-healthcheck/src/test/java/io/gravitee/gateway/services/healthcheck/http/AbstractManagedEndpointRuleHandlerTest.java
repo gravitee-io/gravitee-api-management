@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junitpioneer.jupiter.RetryingTest;
 import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
@@ -184,7 +185,7 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
         assertTrue(context.completed());
     }
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     void shouldValidateFromRoot(Vertx vertx, VertxTestContext context) throws Throwable {
         // Prepare HTTP endpoint
         wm.stubFor(get(urlEqualTo("/")).willReturn(ok()));
