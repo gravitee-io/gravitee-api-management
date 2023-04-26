@@ -386,6 +386,8 @@ public class ApiServiceImplTest {
         assertThat(apiEntity.getApiVersion()).isEqualTo("v1");
         assertThat(apiEntity.getType()).isEqualTo(ApiType.PROXY);
         assertThat(apiEntity.getDescription()).isEqualTo("Ma description");
+        assertThat(apiEntity.getDefinitionContext().getOrigin()).isEqualTo("management");
+        assertThat(apiEntity.getDefinitionContext().getMode()).isEqualTo("fully_managed");
         assertThat(apiEntity.getListeners()).isNotNull();
         assertThat(apiEntity.getListeners().size()).isEqualTo(1);
         assertThat(apiEntity.getListeners().get(0)).isInstanceOf(HttpListener.class);
