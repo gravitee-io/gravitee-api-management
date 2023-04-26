@@ -349,6 +349,11 @@ class LogsFiltersController {
   }
 
   async searchApplications(term) {
+    if (this.context === 'api') {
+      const { id: apiId } = this.api;
+      const { data } = await this.ApiService.getSubscribers(apiId, term, 1, 10);
+      return data;
+    }
     const { data: searchResult } = await this.ApplicationService.searchPage(term, 1, 10);
     return searchResult.data;
   }
