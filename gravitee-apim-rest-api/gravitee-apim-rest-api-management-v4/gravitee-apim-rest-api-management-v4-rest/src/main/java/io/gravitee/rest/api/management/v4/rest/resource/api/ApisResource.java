@@ -15,8 +15,12 @@
  */
 package io.gravitee.rest.api.management.v4.rest.resource.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v4.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.management.v4.rest.model.Api;
+import io.gravitee.rest.api.management.v4.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v4.rest.security.Permission;
 import io.gravitee.rest.api.management.v4.rest.security.Permissions;
@@ -25,7 +29,8 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import javax.validation.Valid;
+import java.util.Set;
+import javax.validation.*;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -49,8 +54,9 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
-    public Response createApi(@Valid @NotNull final NewApiEntity newApiEntity) {
-        // FIXME: use new API model in signature
+    public Response createApi(@Valid @NotNull final CreateApiV4 api) {
+        // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
+        NewApiEntity newApiEntity = ApiMapper.INSTANCE.convert(api);
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
         return Response.created(this.getLocationHeader(newApi.getId())).entity(ApiMapper.INSTANCE.convert(newApi)).build();
     }

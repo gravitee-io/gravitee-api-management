@@ -22,15 +22,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import javax.validation.constraints.NotEmpty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  */
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
@@ -52,7 +50,7 @@ public class Step implements Serializable {
 
     @Schema(implementation = Object.class)
     @JsonRawValue
-    private String configuration;
+    private Object configuration;
 
     private String condition;
 
@@ -67,5 +65,9 @@ public class Step implements Serializable {
 
     public void setConfiguration(final String configuration) {
         this.configuration = configuration;
+    }
+
+    public String getConfiguration() {
+        return (String) this.configuration;
     }
 }

@@ -229,6 +229,7 @@
 							<typeMappings>
 								<typeMapping>BigDecimal=Number</typeMapping>
 							</typeMappings>
+							<additionalProperties>removeEnumValuePrefix=false</additionalProperties>
 						</configuration>
 					</execution>
 				</executions>
