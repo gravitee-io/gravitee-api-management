@@ -18,8 +18,8 @@ package io.gravitee.rest.api.standalone.jetty;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
-import io.gravitee.rest.api.management.v4.rest.GraviteeManagementV4Application;
-import io.gravitee.rest.api.management.v4.security.SecurityManagementV4Configuration;
+import io.gravitee.rest.api.management.v2.rest.GraviteeManagementV2Application;
+import io.gravitee.rest.api.management.v2.security.SecurityManagementV2Configuration;
 import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
 import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
 import io.gravitee.rest.api.standalone.jetty.handler.NoContentOutputErrorHandler;
@@ -60,9 +60,6 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Value("${http.api.management.enabled:true}")
     private boolean startManagementAPI;
 
-    @Value("${http.api.management.v4.enabled:true}")
-    private boolean startManagementAPIv4;
-
     @Value("${http.api.management.entrypoint:${http.api.entrypoint:/}management}")
     private String managementEntrypoint;
 
@@ -102,16 +99,14 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
                 SecurityManagementConfiguration.class
             );
             contexts.add(managementContextHandler);
-        }
 
-        if (startManagementAPIv4) {
-            // REST configuration for Management API - V4
-            ServletContextHandler managementv4ContextHandler = configureAPI(
-                managementEntrypoint + "/v4",
-                GraviteeManagementV4Application.class.getName(),
-                SecurityManagementV4Configuration.class
+            // REST configuration for Management API - V2
+            ServletContextHandler managementV2ContextHandler = configureAPI(
+                managementEntrypoint + "/v2",
+                GraviteeManagementV2Application.class.getName(),
+                SecurityManagementV2Configuration.class
             );
-            contexts.add(managementv4ContextHandler);
+            contexts.add(managementV2ContextHandler);
         }
 
         if (contexts.isEmpty()) {
