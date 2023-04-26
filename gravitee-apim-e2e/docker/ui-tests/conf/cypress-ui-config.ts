@@ -20,6 +20,8 @@ export default defineConfig({
     e2e: {
         projectId: "ui-test",
         specPattern: "./ui-test/integration/**/*.spec.ts",
+        viewportWidth: 1920,
+        viewportHeight: 1080,
         fixturesFolder: "./ui-test/fixtures",
         screenshotsFolder: "./ui-test/screenshots",
         supportFile: "./ui-test/support/e2e.ts",

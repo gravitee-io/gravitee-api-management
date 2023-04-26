@@ -25,6 +25,7 @@
         mat-raised-button
         color="primary"
         aria-label="add-metadata"
+        data-testid="api_add_metadata_button"
       >
         <mat-icon>add</mat-icon> Add {{ referenceType }} Metadata
       </button>
@@ -42,36 +43,55 @@
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let element">
             <div class="gio-metadata__global">
-              <mat-icon *ngIf="element.defaultValue" svgIcon="gio:language" matTooltip="Inherited global metadata"></mat-icon>
+              <mat-icon
+                *ngIf="element.defaultValue"
+                svgIcon="gio:language"
+                matTooltip="Inherited global metadata"
+                data-testid="api_metadata_globalIcon"
+              ></mat-icon>
             </div>
           </td>
         </ng-container>
         <ng-container matColumnDef="key">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by key">Key</th>
-          <td mat-cell *matCellDef="let element">{{ element.key }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by key" data-testid="api_metadata_key">Key</th>
+          <td mat-cell *matCellDef="let element" data-testid="api_metadata_key_cell">{{ element.key }}</td>
         </ng-container>
 
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by name">Name</th>
-          <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by name" data-testid="api_metadata_name">
+            Name
+          </th>
+          <td mat-cell *matCellDef="let element" data-testid="api_metadata_name_cell">{{ element.name }}</td>
         </ng-container>
 
         <ng-container matColumnDef="format">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by format">Format</th>
-          <td mat-cell *matCellDef="let element">{{ element.format?.toLowerCase() }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by format" data-testid="api_metadata_format">
+            Format
+          </th>
+          <td mat-cell *matCellDef="let element" data-testid="api_metadata_format_cell">{{ element.format?.toLowerCase() }}</td>
         </ng-container>
 
         <ng-container matColumnDef="value">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by value">Value</th>
-          <td mat-cell *matCellDef="let element">{{ element.value }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by value" data-testid="api_metadata_value">
+            Value
+          </th>
+          <td mat-cell *matCellDef="let element" data-testid="api_metadata_value_cell">{{ element.value }}</td>
         </ng-container>
 
         <ng-container *ngIf="referenceType === 'API'" matColumnDef="defaultValue">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by default value">Default value</th>
-          <td mat-cell *matCellDef="let element">{{ element.defaultValue }}</td>
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            sortActionDescription="Sort by default value"
+            data-testid="api_metadata_defaultValue"
+          >
+            Default value
+          </th>
+          <td mat-cell *matCellDef="let element" data-testid="api_metadata_defaultValue_cell">{{ element.defaultValue }}</td>
         </ng-container>
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef data-testid="api_metadata_actions">Actions</th>
           <td mat-cell *matCellDef="let element">
             <div class="gio-metadata__actions">
               <div>
@@ -82,6 +102,7 @@
                   (click)="updateMetadata(element)"
                   *gioPermission="{ anyOf: [permissionPrefix + '-metadata-u'] }"
                   matTooltip="{{ element.defaultValue ? 'Override global metadata' : 'Update ' + referenceType + ' metadata' }}"
+                  data-testid="api_metadata_edit_button"
                 >
                   <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
                 </button>
@@ -94,6 +115,7 @@
                   (click)="deleteMetadata(element)"
                   *gioPermission="{ anyOf: [permissionPrefix + '-metadata-d'] }"
                   matTooltip="{{ element.defaultValue ? 'Remove metadata override' : 'Delete ' + referenceType + ' metadata' }}"
+                  data-testid="api_metadata_delete_button"
                 >
                   <mat-icon *ngIf="element.defaultValue" svgIcon="gio:cancel"></mat-icon>
                   <mat-icon *ngIf="!element.defaultValue" svgIcon="gio:trash"></mat-icon>
@@ -103,7 +125,7 @@
           </td>
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="api_metadata_table_row"></tr>
       </table>
     </div>
   </div>
