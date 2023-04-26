@@ -28,6 +28,8 @@ import lombok.*;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
@@ -46,7 +48,7 @@ public class Entrypoint implements Serializable {
 
     @Schema(implementation = Object.class)
     @JsonRawValue
-    private String configuration;
+    private Object configuration;
 
     @JsonSetter
     public void setConfiguration(final JsonNode configuration) {
@@ -55,7 +57,11 @@ public class Entrypoint implements Serializable {
         }
     }
 
-    public void setConfiguration(final String configuration) {
+    public void setConfiguration(final Object configuration) {
         this.configuration = configuration;
+    }
+
+    public String getConfiguration() {
+        return (String) configuration;
     }
 }

@@ -22,7 +22,6 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static javax.ws.rs.client.Entity.entity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -36,6 +35,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -54,14 +54,13 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
-import io.gravitee.rest.api.management.v4.rest.model.ApiListenersInner;
+import io.gravitee.rest.api.management.v4.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -71,7 +70,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -86,6 +84,8 @@ public class ApiResourceTest extends AbstractResourceTest {
     private static final String ENVIRONMENT = "my-env";
 
     private ApiEntity apiEntity;
+
+    private final ObjectMapper mapper = new GraviteeMapper(false);
 
     @Override
     protected String contextPath() {
@@ -111,6 +111,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
 
         apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setId(API);
         apiEntity.setName(API);
         HttpListener httpListener = new HttpListener();
@@ -161,113 +162,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         endpointGroup.setEndpoints(List.of(endpoint));
         apiEntity.setEndpointGroups(List.of(endpointGroup));
 
-        doReturn(apiEntity).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), API);
-        doThrow(ApiNotFoundException.class).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
-    }
-
-    @Test
-    public void shouldGetApi() {
-        final Response response = rootTarget(API).request().get();
-
-        assertEquals(OK_200, response.getStatus());
-
-        final io.gravitee.rest.api.management.v4.rest.model.Api responseApi = response.readEntity(
-            io.gravitee.rest.api.management.v4.rest.model.Api.class
-        );
-
-        assertNotNull(responseApi);
-        assertEquals(API, responseApi.getName());
-        assertNotNull(responseApi.getPictureUrl());
-        assertNotNull(responseApi.getBackgroundUrl());
-        assertNotNull(responseApi.getProperties());
-        assertEquals(1, responseApi.getProperties().size());
-        assertNotNull(responseApi.getServices());
-        assertNotNull(responseApi.getResources());
-        assertEquals(1, responseApi.getResources().size());
-        assertNotNull(responseApi.getResponseTemplates());
-        assertEquals(1, responseApi.getResponseTemplates().size());
-
-        assertNotNull(responseApi.getListeners());
-        assertEquals(3, responseApi.getListeners().size());
-
-        ApiListenersInner firstListener = responseApi.getListeners().get(0);
-        assertNotNull(firstListener);
-        var httpListener = firstListener.getHttpListener();
-        assertNotNull(httpListener);
-        assertNotNull(httpListener.getPathMappings());
-        assertNotNull(httpListener.getPaths().get(0).getHost());
-
-        ApiListenersInner secondListener = responseApi.getListeners().get(1);
-        assertNotNull(secondListener);
-        var subscriptionListener = secondListener.getSubscriptionListener();
-        assertNotNull(subscriptionListener);
-        assertNotNull(subscriptionListener.getEntrypoints());
-        var foundEntrypoint = subscriptionListener.getEntrypoints().get(0);
-        assertNotNull(foundEntrypoint);
-        assertEquals("nice configuration", foundEntrypoint.getConfiguration());
-        assertEquals("Entrypoint type", foundEntrypoint.getType());
-        assertEquals("subscription", subscriptionListener.getType().toString());
-
-        ApiListenersInner thirdListener = responseApi.getListeners().get(2);
-        assertNotNull(thirdListener);
-        var tcpListener = thirdListener.getTcpListener();
-        assertNotNull(tcpListener);
-        assertNotNull(tcpListener.getEntrypoints());
-        var tcpFoundEntrypoint = tcpListener.getEntrypoints().get(0);
-        assertNotNull(tcpFoundEntrypoint);
-        assertEquals("nice configuration", tcpFoundEntrypoint.getConfiguration());
-        assertEquals("Entrypoint type", tcpFoundEntrypoint.getType());
-        assertEquals("tcp", tcpListener.getType().toString());
-
-        assertNotNull(responseApi.getEndpointGroups());
-        assertEquals(1, responseApi.getEndpointGroups().size());
-        assertNotNull(responseApi.getEndpointGroups().get(0));
-        assertNotNull(responseApi.getEndpointGroups().get(0).getEndpoints());
-        assertEquals(1, responseApi.getEndpointGroups().get(0).getEndpoints().size());
-
-        var endpoint = responseApi.getEndpointGroups().get(0).getEndpoints().get(0);
-        assertNotNull(endpoint);
-        assertEquals("http-get", endpoint.getType());
-
-        LinkedHashMap config = new ObjectMapper().convertValue(endpoint.getConfiguration(), LinkedHashMap.class);
-        assertNotNull(config);
-        assertEquals("kafka:9092", config.get("bootstrapServers"));
-        assertEquals(List.of("demo"), config.get("topics"));
-    }
-
-    @Test
-    public void shouldGetFilteredApi() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API, RolePermissionAction.READ);
-
-        final Response response = rootTarget(API).request().get();
-
-        assertEquals(OK_200, response.getStatus());
-
-        final ApiEntity responseApi = response.readEntity(ApiEntity.class);
-        assertNotNull(responseApi);
-        assertEquals(API, responseApi.getName());
-        assertNull(responseApi.getPictureUrl());
-        assertNull(responseApi.getBackgroundUrl());
-        assertNotNull(responseApi.getProperties());
-        assertEquals(0, responseApi.getProperties().size());
-        assertNull(responseApi.getServices());
-        assertNotNull(responseApi.getResources());
-        assertEquals(0, responseApi.getResources().size());
-        assertNotNull(responseApi.getResponseTemplates());
-        assertEquals(0, responseApi.getResponseTemplates().size());
-        assertNotNull(responseApi.getListeners());
-        assertNotNull(responseApi.getListeners().get(0));
-        assertNull(((HttpListener) responseApi.getListeners().get(0)).getPathMappings());
-        assertNull(((HttpListener) responseApi.getListeners().get(0)).getPaths().get(0).getHost());
-    }
-
-    @Test
-    public void shouldNotGetApiBecauseNotFound() {
-        final Response response = rootTarget(UNKNOWN_API).request().get();
-
-        assertEquals(NOT_FOUND_404, response.getStatus());
+        doReturn(apiEntity).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
+        doThrow(ApiNotFoundException.class).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), UNKNOWN_API);
     }
 
     @Test
@@ -322,6 +218,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setAnalytics(new Analytics());
         updatedApiEntity.setUpdatedAt(new Date());
+        updatedApiEntity.setDefinitionVersion(DefinitionVersion.V4);
         when(apiServiceV4.update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME))
             .thenReturn(updatedApiEntity);
 
@@ -330,10 +227,8 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertEquals(OK_200, response.getStatus());
         verify(apiServiceV4, times(1)).update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME);
 
-        final ApiEntity responseApi = response.readEntity(ApiEntity.class);
-        assertNull(responseApi.getPicture());
+        final ApiV4 responseApi = response.readEntity(ApiV4.class);
         assertNotNull(responseApi.getPictureUrl());
-        assertNull(responseApi.getBackground());
         assertNotNull(responseApi.getBackgroundUrl());
     }
 

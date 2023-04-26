@@ -101,11 +101,11 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals("id", pluginEntity.getId());
         assertEquals("name", pluginEntity.getName());
         assertEquals("1.0", pluginEntity.getVersion());
-        assertEquals(ApiType.MESSAGE.getLabel(), pluginEntity.getSupportedApiType().getValue());
+        assertEquals(ApiType.MESSAGE.toString(), pluginEntity.getSupportedApiType().getValue());
         assertEquals(1, pluginEntity.getSupportedModes().size());
         assertEquals(ConnectorMode.SUBSCRIBE.getLabel(), pluginEntity.getSupportedModes().iterator().next().getValue());
         assertEquals(1, pluginEntity.getSupportedQos().size());
-        assertEquals(Qos.AUTO.getLabel(), pluginEntity.getSupportedQos().iterator().next().getValue());
+        assertEquals(Qos.AUTO.name(), pluginEntity.getSupportedQos().iterator().next().name());
 
         // Check pagination
         Pagination pagination = endpointsResponse.getPagination();
@@ -155,11 +155,11 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         assertEquals("id-1", pluginEntity.getId());
         assertEquals("name", pluginEntity.getName());
         assertEquals("1.0", pluginEntity.getVersion());
-        assertEquals(ApiType.MESSAGE.getLabel(), pluginEntity.getSupportedApiType().getValue());
+        assertEquals(ApiType.MESSAGE.toString(), pluginEntity.getSupportedApiType().getValue());
         assertEquals(1, pluginEntity.getSupportedModes().size());
         assertEquals(ConnectorMode.SUBSCRIBE.getLabel(), pluginEntity.getSupportedModes().iterator().next().getValue());
         assertEquals(1, pluginEntity.getSupportedQos().size());
-        assertEquals(Qos.AUTO.getLabel(), pluginEntity.getSupportedQos().iterator().next().getValue());
+        assertEquals(Qos.AUTO.name(), pluginEntity.getSupportedQos().iterator().next().name());
 
         // Check pagination
         Pagination pagination = endpointsResponse.getPagination();

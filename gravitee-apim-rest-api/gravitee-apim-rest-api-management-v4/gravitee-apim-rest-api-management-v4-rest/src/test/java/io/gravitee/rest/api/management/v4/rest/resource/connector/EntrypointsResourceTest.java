@@ -106,8 +106,8 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         assertEquals("id-1", pluginEntity.getId());
         assertEquals("name", pluginEntity.getName());
         assertEquals("1.0", pluginEntity.getVersion());
-        assertEquals(ApiType.MESSAGE.getLabel(), pluginEntity.getSupportedApiType().getValue());
-        assertEquals(ListenerType.HTTP.getLabel(), pluginEntity.getSupportedListenerType().getValue());
+        assertEquals(ApiType.MESSAGE.toString(), pluginEntity.getSupportedApiType().getValue());
+        assertEquals(ListenerType.HTTP.toString(), pluginEntity.getSupportedListenerType().getValue());
         assertEquals(1, pluginEntity.getSupportedModes().size());
         assertEquals(ConnectorMode.SUBSCRIBE.getLabel(), pluginEntity.getSupportedModes().iterator().next().getValue());
 
@@ -158,8 +158,8 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         assertEquals("id-3", pluginEntity.getId());
         assertEquals("name", pluginEntity.getName());
         assertEquals("1.0", pluginEntity.getVersion());
-        assertEquals(ApiType.MESSAGE.getLabel(), pluginEntity.getSupportedApiType().getValue());
-        assertEquals(ListenerType.HTTP.getLabel(), pluginEntity.getSupportedListenerType().getValue());
+        assertEquals(ApiType.MESSAGE.toString(), pluginEntity.getSupportedApiType().getValue());
+        assertEquals(ListenerType.HTTP.toString(), pluginEntity.getSupportedListenerType().getValue());
         LinkedHashSet<String> supportedModes = new LinkedHashSet<>();
         supportedModes.add(ConnectorMode.SUBSCRIBE.getLabel());
         assertEquals(1, pluginEntity.getSupportedModes().size());
