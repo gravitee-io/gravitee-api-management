@@ -28,9 +28,11 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.*;
@@ -140,12 +142,7 @@ public class ApiSearchService_SearchTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
 
-        when(
-            searchEngineService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(apiEntityQueryBuilder.setFilters(filters).build())
-            )
-        )
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build())))
             .thenReturn(new SearchResult(List.of()));
 
         final Page<GenericApiEntity> apis = apiSearchService.search(
@@ -177,12 +174,7 @@ public class ApiSearchService_SearchTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
 
-        when(
-            searchEngineService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(apiEntityQueryBuilder.setFilters(filters).build())
-            )
-        )
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build())))
             .thenReturn(new SearchResult(ids));
 
         var apiEntity1 = new Api();
@@ -195,12 +187,7 @@ public class ApiSearchService_SearchTest {
 
         when(
             apiRepository.search(
-                eq(
-                    new ApiCriteria.Builder()
-                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                        .ids(ids)
-                        .build()
-                ),
+                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).ids(ids).build()),
                 isNull(),
                 eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
                 eq(ApiFieldFilter.allFields())
@@ -237,12 +224,7 @@ public class ApiSearchService_SearchTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
 
-        when(
-            searchEngineService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(apiEntityQueryBuilder.setFilters(filters).build())
-            )
-        )
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build())))
             .thenReturn(new SearchResult(ids));
 
         var apiEntity1 = new Api();
@@ -255,13 +237,8 @@ public class ApiSearchService_SearchTest {
 
         when(
             apiRepository.search(
-                eq(
-                    new ApiCriteria.Builder()
-                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                        .ids(ids)
-                        .build()
-                ),
-                isNull(),
+                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).ids(ids).build()),
+                eq(new SortableBuilder().field("createdAt").setAsc(false).build()),
                 eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
                 eq(ApiFieldFilter.allFields())
             )
@@ -274,7 +251,7 @@ public class ApiSearchService_SearchTest {
             true,
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
-            null
+            new SortableImpl("createdAt", false)
         );
 
         assertThat(apis).isNotNull();
@@ -297,12 +274,7 @@ public class ApiSearchService_SearchTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
 
-        when(
-            searchEngineService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(apiEntityQueryBuilder.setFilters(filters).build())
-            )
-        )
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build())))
             .thenReturn(new SearchResult(ids));
 
         var apiEntity1 = new Api();
@@ -324,7 +296,7 @@ public class ApiSearchService_SearchTest {
                         .ids(Set.of("id-1"))
                         .build()
                 ),
-                isNull(),
+                eq(new SortableBuilder().field("name").setAsc(true).build()),
                 eq(new PageableBuilder().pageNumber(0).pageSize(10).build()),
                 eq(ApiFieldFilter.allFields())
             )
@@ -337,7 +309,7 @@ public class ApiSearchService_SearchTest {
             false,
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
-            null
+            new SortableImpl("name", true)
         );
 
         assertThat(apis).isNotNull();
@@ -360,12 +332,7 @@ public class ApiSearchService_SearchTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
 
-        when(
-            searchEngineService.search(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(apiEntityQueryBuilder.setFilters(filters).build())
-            )
-        )
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build())))
             .thenReturn(new SearchResult(ids));
 
         var apiEntity1 = new Api();

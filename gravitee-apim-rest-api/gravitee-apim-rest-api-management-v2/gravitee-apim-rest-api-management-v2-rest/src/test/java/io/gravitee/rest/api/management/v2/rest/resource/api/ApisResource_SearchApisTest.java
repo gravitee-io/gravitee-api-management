@@ -28,14 +28,18 @@ import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import java.util.List;
+import java.util.Map;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.mockito.ArgumentCaptor;
 
 public class ApisResource_SearchApisTest extends AbstractResourceTest {
@@ -221,5 +225,92 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         List<String> ids = (List<String>) apiQuery.getFilters().get("api");
         assertEquals(2, ids.size());
         assertEquals("id-2", ids.get(1));
+    }
+
+    @Test
+    public void should_return_error_with_wrong_value_for_sort_by_param() {
+        var apiSearchQuery = new ApiSearchQuery();
+        apiSearchQuery.setIds(List.of("id-1", "id-2"));
+
+        final Response response = rootTarget().queryParam("sortBy", "wrong_value").request().post(Entity.json(apiSearchQuery));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+
+        Map<String, Object> body = response.readEntity(Map.class);
+        assert (String.valueOf(body.get("message")).endsWith("wrong_value"));
+    }
+
+    @Test
+    public void should_sort_results_with_sort_by_param_asc() {
+        var apiSearchQuery = new ApiSearchQuery();
+        apiSearchQuery.setQuery("api-name");
+
+        var apiEntity = new ApiEntity();
+        apiEntity.setId("api-id");
+        apiEntity.setState(Lifecycle.State.INITIALIZED);
+
+        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
+
+        when(
+            apiSearchServiceV4.search(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                apiQueryBuilderCaptor.capture(),
+                eq(new PageableImpl(1, 10)),
+                eq(new SortableImpl("name", true))
+            )
+        )
+            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+
+        final Response response = rootTarget().queryParam("sortBy", "name").request().post(Entity.json(apiSearchQuery));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        var page = response.readEntity(ApisResponse.class);
+        var data = page.getData();
+        assertNotNull(data);
+        assertEquals(1, data.size());
+        assertEquals("api-id", data.get(0).getApiV4().getId());
+
+        var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
+        var apiQuery = apiQueryBuilder.build();
+        assertEquals("api-name", apiQuery.getQuery());
+    }
+
+    @Test
+    public void should_sort_results_with_sort_by_param_desc() {
+        var apiSearchQuery = new ApiSearchQuery();
+        apiSearchQuery.setQuery("api-name");
+
+        var apiEntity = new ApiEntity();
+        apiEntity.setId("api-id");
+        apiEntity.setState(Lifecycle.State.INITIALIZED);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
+        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
+
+        when(
+            apiSearchServiceV4.search(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                apiQueryBuilderCaptor.capture(),
+                eq(new PageableImpl(1, 10)),
+                eq(new SortableImpl("createdAt", false))
+            )
+        )
+            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+
+        final Response response = rootTarget().queryParam("sortBy", "-createdAt").request().post(Entity.json(apiSearchQuery));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        var page = response.readEntity(ApisResponse.class);
+        var data = page.getData();
+        assertNotNull(data);
+        assertEquals(1, data.size());
+        assertEquals("api-id", data.get(0).getApiV4().getId());
+
+        var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
+        var apiQuery = apiQueryBuilder.build();
+        assertEquals("api-name", apiQuery.getQuery());
     }
 }
