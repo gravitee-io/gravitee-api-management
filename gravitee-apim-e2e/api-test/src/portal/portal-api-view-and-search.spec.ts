@@ -81,6 +81,7 @@ describe('Portal - View and search APIs', () => {
     await apisManagementApiAsAdmin.deleteApi({ orgId, envId, api: apiWith2Labels.id });
     await apisManagementApiAsAdmin.deleteApi({ orgId, envId, api: apiFeatured.id });
     await apisManagementApiAsAdmin.deleteApi({ orgId, envId, api: apiWithCategory.id });
+    await configurationApiAsAdmin.deleteTopApiRaw({ orgId, envId, topAPI: apiFeatured.id });
     await configurationApiAsAdmin.deleteCategory({ orgId, envId, categoryId: createdCategory.id });
   });
 
