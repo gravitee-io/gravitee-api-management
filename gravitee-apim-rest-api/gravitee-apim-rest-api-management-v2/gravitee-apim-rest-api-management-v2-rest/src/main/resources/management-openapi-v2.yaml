@@ -1094,6 +1094,8 @@ components:
                         type: string
                     description: List of ids to find
                     example: apiId-1, apiId-2
+                definitionVersion:
+                    $ref: "#/components/schemas/DefinitionVersion"
         ApiType:
             type: string
             description: API's type.
@@ -1278,7 +1280,6 @@ components:
             type: string
             description: API's gravitee definition version.
             example: V4
-            default: V4
             enum:
                 - V1
                 - V2

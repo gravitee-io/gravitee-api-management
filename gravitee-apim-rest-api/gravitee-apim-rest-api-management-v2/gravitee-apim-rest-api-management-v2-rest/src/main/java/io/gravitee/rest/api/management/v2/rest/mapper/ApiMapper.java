@@ -68,6 +68,9 @@ public interface ApiMapper {
     @Mapping(target = "selectors", qualifiedByName = "toSelectors")
     io.gravitee.definition.model.v4.flow.Flow map(FlowV4 flow);
 
+    // DefinitionVersion
+    io.gravitee.definition.model.DefinitionVersion map(DefinitionVersion definitionVersion);
+
     // DefinitionContext
     default DefinitionContext map(io.gravitee.definition.model.DefinitionContext definitionContext) {
         if (definitionContext == null) {
@@ -217,20 +220,6 @@ public interface ApiMapper {
             })
             .collect(Collectors.toList());
     }
-
-    // EndpointGroups
-    //    @Mapping(target = "sharedConfiguration", qualifiedByName = "toConfiguration")
-    //    EndpointGroup map(EndpointGroupV4 endpointGroup);
-    //
-    //
-    //    // Configuration
-    //    @Named("toConfiguration")
-    //    default String toConfiguration(Object value) {
-    //        if (Objects.isNull(value)) {
-    //            return null;
-    //        }
-    //        return value.toString();
-    //    }
 
     // DateTime
     default OffsetDateTime map(Date value) {
