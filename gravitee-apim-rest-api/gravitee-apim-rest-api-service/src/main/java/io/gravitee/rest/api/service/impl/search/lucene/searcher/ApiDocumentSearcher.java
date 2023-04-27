@@ -115,6 +115,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_TAGS,
         FIELD_ORIGIN,
         FIELD_HAS_HEALTH_CHECK,
+        FIELD_DEFINITION_VERSION,
     };
 
     private BooleanQuery.Builder buildApiQuery(ExecutionContext executionContext, Optional<Query> filterQuery) {
@@ -371,7 +372,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             !FIELD_PATHS.equals(term.field()) &&
             !FIELD_TAGS.equals(term.field()) &&
             !FIELD_ORIGIN.equals(term.field()) &&
-            !FIELD_HAS_HEALTH_CHECK.equals(term.field())
+            !FIELD_HAS_HEALTH_CHECK.equals(term.field()) &&
+            !FIELD_DEFINITION_VERSION.equals(term.field())
         ) {
             text = text.toLowerCase();
             field = field.concat("_lowercase");
