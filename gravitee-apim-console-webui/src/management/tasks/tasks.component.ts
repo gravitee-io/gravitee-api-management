@@ -93,10 +93,10 @@ export class TasksComponent implements OnInit, OnDestroy {
   go(task: TaskData): void {
     switch (task.type) {
       case 'SUBSCRIPTION_APPROVAL': {
-        const { apiId, subscriptionId } = task.data as any;
+        const { api, id } = task.data as any;
         this.ajsState.go('management.apis.detail.portal.subscriptions.subscription', {
-          apiId,
-          subscriptionId,
+          apiId: api,
+          subscriptionId: id,
         });
         break;
       }

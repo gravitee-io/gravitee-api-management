@@ -205,5 +205,18 @@ describe('TasksComponent', () => {
       expect(await buttons[0].getText()).toEqual('Accept');
       expect(await buttons[1].getText()).toEqual('Reject');
     });
+
+    it('should send apiId and subscriptionId after validating subscription', async () => {
+      const tasks = await harness.getTasks();
+      expect(tasks.length).toEqual(5);
+
+      expect(await tasks[0].getText()).toContain('Subscription');
+      const validateButton = await tasks[0].getHarness(MatButtonHarness);
+      await validateButton.click();
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.detail.portal.subscriptions.subscription', {
+        apiId: responseData.data[0].data.api,
+        subscriptionId: responseData.data[0].data.id,
+      });
+    });
   });
 });
