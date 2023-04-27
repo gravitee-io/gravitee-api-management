@@ -174,21 +174,21 @@ commands:
                       .
                   working_directory: << parameters.apim-ui-project >>
             - when:
-                condition:
-                  matches: { pattern: "^(\\d+\\.\\d+\\.x)|master$", value: << pipeline.git.branch >> }
-                steps:
-                  - keeper/env-export:
-                      secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-                      var-name: SNYK_API_TOKEN
-                  - keeper/env-export:
-                      secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
-                      var-name: SNYK_ORG_ID
-                  - keeper/env-export:
-                      secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
-                      var-name: SNYK_INTEGRATION_ID
-                  - add-docker-image-in-snyk:
-                      docker-image-name: << parameters.docker-image-name >>
-                      version: $TAG
+                  condition:
+                      matches: { pattern: "^(\\d+\\.\\d+\\.x)|master$", value: << pipeline.git.branch >> }
+                  steps:
+                      - keeper/env-export:
+                            secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
+                            var-name: SNYK_API_TOKEN
+                      - keeper/env-export:
+                            secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
+                            var-name: SNYK_ORG_ID
+                      - keeper/env-export:
+                            secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
+                            var-name: SNYK_INTEGRATION_ID
+                      - add-docker-image-in-snyk:
+                            docker-image-name: << parameters.docker-image-name >>
+                            version: $TAG
             - docker-azure-logout
 
     add-docker-image-in-snyk:
@@ -453,24 +453,24 @@ jobs:
                       -t graviteeio.azurecr.io/apim-gateway:$TAG \
                       gateway-docker-context
             - when:
-                condition:
-                  matches: { pattern: "^(\\d+\\.\\d+\\.x)|master$", value: << pipeline.git.branch >> }
-                steps:
-                  - keeper/env-export:
-                      secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
-                      var-name: SNYK_API_TOKEN
-                  - keeper/env-export:
-                      secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
-                      var-name: SNYK_ORG_ID
-                  - keeper/env-export:
-                      secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
-                      var-name: SNYK_INTEGRATION_ID
-                  - add-docker-image-in-snyk:
-                      docker-image-name: apim-management-api
-                      version: $TAG
-                  - add-docker-image-in-snyk:
-                      docker-image-name: apim-gateway
-                      version: $TAG
+                  condition:
+                      matches: { pattern: "^(\\d+\\.\\d+\\.x)|master$", value: << pipeline.git.branch >> }
+                  steps:
+                      - keeper/env-export:
+                            secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
+                            var-name: SNYK_API_TOKEN
+                      - keeper/env-export:
+                            secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_id
+                            var-name: SNYK_ORG_ID
+                      - keeper/env-export:
+                            secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_acr_integration_id
+                            var-name: SNYK_INTEGRATION_ID
+                      - add-docker-image-in-snyk:
+                            docker-image-name: apim-management-api
+                            version: $TAG
+                      - add-docker-image-in-snyk:
+                            docker-image-name: apim-gateway
+                            version: $TAG
             - docker-azure-logout
 
     test:
@@ -1401,52 +1401,51 @@ jobs:
                                 }
 
     publish-pr-env-urls:
-      executor:
-        name: node-lts
-        class: small
-      steps:
-        - checkout
-        - keeper/env-export:
-            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-            var-name: GITHUB_TOKEN
-        - gh/setup
-        - compute-sanitize-circleci-branch
-        - run:
-            name: Edit Pull Request Description
-            command: |
-              # First check there is an associated pull request, otherwise just stop the job here
-              if ! gh pr view --json title;
-              then
-                echo "No PR found for this branch, stopping the job here."
-                exit 0
-              fi
-              
-              # If PR state is different from OPEN
-              if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
-              then
-                echo "PR is not opened, stopping the job here."
-                exit 0
-              fi
-              export PR_NUMBER=$(gh pr view --json number --jq .number)
-              export PR_BODY_ENV_SECTION="
-              <!-- Environment placeholder -->
-              
-              🏗️ Your changes can be tested here and will be available soon:
-                    Console: [https://$PR_NUMBER.team-apim.gravitee.dev/console](https://$PR_NUMBER.team-apim.gravitee.dev/console)
-                    Portal: [https://$PR_NUMBER.team-apim.gravitee.dev/portal](https://$PR_NUMBER.team-apim.gravitee.dev/portal)
-                    Management-api: [https://$PR_NUMBER.team-apim.gravitee.dev/api/management](https://$PR_NUMBER.team-apim.gravitee.dev/api/management)
-                    Gateway v4: [https://$PR_NUMBER.team-apim.gravitee.dev](https://$PR_NUMBER.team-apim.gravitee.dev)
-                    Gateway v3: [https://$PR_NUMBER.gateway-v3.team-apim.gravitee.dev](https://$PR_NUMBER.gateway-v3.team-apim.gravitee.dev)
-              
-              <!-- Environment placeholder end -->
-              "
-              
-              export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Environment placeholder -->/,/Environment placeholder end -->/d')
-              
-              gh pr edit --body "$CLEAN_BODY$PR_BODY_ENV_SECTION"
+        executor:
+            name: node-lts
+            class: small
+        steps:
+            - checkout
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
+            - gh/setup
+            - compute-sanitize-circleci-branch
+            - run:
+                  name: Edit Pull Request Description
+                  command: |
+                      # First check there is an associated pull request, otherwise just stop the job here
+                      if ! gh pr view --json title;
+                      then
+                        echo "No PR found for this branch, stopping the job here."
+                        exit 0
+                      fi
 
-        - notify-on-failure
+                      # If PR state is different from OPEN
+                      if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
+                      then
+                        echo "PR is not opened, stopping the job here."
+                        exit 0
+                      fi
+                      export PR_NUMBER=$(gh pr view --json number --jq .number)
+                      export PR_BODY_ENV_SECTION="
+                      <!-- Environment placeholder -->
 
+                      🏗️ Your changes can be tested here and will be available soon:
+                            Console: [https://$PR_NUMBER.team-apim.gravitee.dev/console](https://$PR_NUMBER.team-apim.gravitee.dev/console)
+                            Portal: [https://$PR_NUMBER.team-apim.gravitee.dev/portal](https://$PR_NUMBER.team-apim.gravitee.dev/portal)
+                            Management-api: [https://$PR_NUMBER.team-apim.gravitee.dev/api/management](https://$PR_NUMBER.team-apim.gravitee.dev/api/management)
+                            Gateway v4: [https://$PR_NUMBER.team-apim.gravitee.dev](https://$PR_NUMBER.team-apim.gravitee.dev)
+                            Gateway v3: [https://$PR_NUMBER.gateway-v3.team-apim.gravitee.dev](https://$PR_NUMBER.gateway-v3.team-apim.gravitee.dev)
+
+                      <!-- Environment placeholder end -->
+                      "
+
+                      export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Environment placeholder -->/,/Environment placeholder end -->/d')
+
+                      gh pr edit --body "$CLEAN_BODY$PR_BODY_ENV_SECTION"
+
+            - notify-on-failure
 
 workflows:
     pull_requests:
@@ -1792,36 +1791,36 @@ workflows:
     publish_docker_images:
         when:
             and:
-              - equal: [publish_docker_images, << pipeline.parameters.gio_action >>]
+                - equal: [publish_docker_images, << pipeline.parameters.gio_action >>]
         jobs:
             - setup:
-                context: cicd-orchestrator
+                  context: cicd-orchestrator
             - build:
-                context: cicd-orchestrator
-                requires:
-                    - setup
+                  context: cicd-orchestrator
+                  requires:
+                      - setup
             - build-images:
-                context: cicd-orchestrator
-                requires:
-                    - build
+                  context: cicd-orchestrator
+                  requires:
+                      - build
             - webui-build:
-                name: Build APIM Console
-                context: cicd-orchestrator
-                apim-ui-project: gravitee-apim-console-webui
-                docker-image-name: apim-management-ui
-                requires:
-                    - setup
+                  name: Build APIM Console
+                  context: cicd-orchestrator
+                  apim-ui-project: gravitee-apim-console-webui
+                  docker-image-name: apim-management-ui
+                  requires:
+                      - setup
             - webui-build:
-                name: Build APIM Portal
-                context: cicd-orchestrator
-                apim-ui-project: gravitee-apim-portal-webui
-                docker-image-name: apim-portal-ui
-                requires:
-                    - setup
+                  name: Build APIM Portal
+                  context: cicd-orchestrator
+                  apim-ui-project: gravitee-apim-portal-webui
+                  docker-image-name: apim-portal-ui
+                  requires:
+                      - setup
             - publish-pr-env-urls:
-                name: Publish environment URLs in Github PR
-                context: cicd-orchestrator
-                requires:
-                    - build-images
-                    - Build APIM Console
-                    - Build APIM Portal
+                  name: Publish environment URLs in Github PR
+                  context: cicd-orchestrator
+                  requires:
+                      - build-images
+                      - Build APIM Console
+                      - Build APIM Portal
