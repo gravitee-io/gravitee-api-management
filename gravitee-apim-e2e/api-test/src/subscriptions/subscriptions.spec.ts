@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 import { APIsApi } from '@management-apis/APIsApi';
-import { forManagementAsAdminUser, forManagementAsApiUser, forManagementAsAppUser, forPortalAsAppUser } from '@client-conf/*';
+import {
+  forManagementAsAdminUser,
+  forManagementAsApiUser,
+  forManagementAsAppUser,
+  forPortalAsAdminUser,
+  forPortalAsAppUser,
+} from '@client-conf/*';
 import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { ApisFaker } from '@management-fakers/ApisFaker';
 import { ApiEntity } from '@management-models/ApiEntity';
@@ -45,6 +51,7 @@ const envId = 'DEFAULT';
 // Portal resources
 const apisAsAppUser = new ApiApi(forPortalAsAppUser());
 const portalApplicationsAsAppUser = new PortalApplicationApi(forPortalAsAppUser());
+const portalApplicationsAsAdmin = new PortalApplicationApi(forPortalAsAdminUser());
 const subscriptionAsAppUser = new SubscriptionApi(forPortalAsAppUser());
 
 // Management resources
@@ -209,6 +216,19 @@ describe.each([PlanValidationType.AUTO, PlanValidationType.MANUAL])('Subscriptio
       expect(subscription).toBeTruthy();
       expect(subscription.keys).toBeUndefined();
     });
+  });
+
+  test('should get application subscribers', async () => {
+    const applicationSubscribers = await succeed(
+      portalApplicationsAsAppUser.getSubscriberApisByApplicationIdRaw({
+        applicationId: createdApplication.id,
+      }),
+    );
+
+    expect(applicationSubscribers).toBeTruthy();
+    expect(applicationSubscribers.data).toHaveLength(1);
+    expect(applicationSubscribers.data[0]._links).toBeTruthy();
+    expect(applicationSubscribers.data[0]._links.picture).toBeTruthy();
   });
 
   afterAll(async () => {
