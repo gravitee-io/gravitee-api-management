@@ -101,6 +101,6 @@ export class Step4Security1PlansHarness extends ComponentHarness {
 
     await (await this.getButtonByText('Next')).click();
     await (await this.getButtonByText('Next')).click();
-    await (await this.getButtonByText('Edit plan')).click();
+    await (await this.getButtonByText('Save changes')).click();
   }
 }
