@@ -129,6 +129,7 @@
                             <descriptors>
                                 <descriptor>src/main/assembly/plugin-assembly-distribution.xml</descriptor>
                             </descriptors>
+                            <skipAssembly>${skipDistribution}</skipAssembly>
                         </configuration>
                     </execution>
                 </executions>
