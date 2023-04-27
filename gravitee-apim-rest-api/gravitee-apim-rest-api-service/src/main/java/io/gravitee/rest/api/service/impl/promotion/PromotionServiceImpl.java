@@ -157,7 +157,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
         Promotion promotionToSave = convert(apiId, apiDefinition, currentEnvironmentEntity, promotionRequest, author);
         promotionToSave.setId(UuidString.generateRandom());
-        Promotion createdPromotion = null;
+        Promotion createdPromotion;
         try {
             createdPromotion = promotionRepository.create(promotionToSave);
 
@@ -322,7 +322,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         promotionAuthor.setUserId(author.getId());
         promotionAuthor.setDisplayName(author.getDisplayName());
         promotionAuthor.setEmail(author.getEmail());
-        promotionAuthor.setPicture(author.getPicture());
         promotionAuthor.setSource(author.getSource());
         promotionAuthor.setSourceId(author.getSourceId());
 
@@ -348,7 +347,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         promotionEntityAuthor.setUserId(promotion.getAuthor().getUserId());
         promotionEntityAuthor.setDisplayName(promotion.getAuthor().getDisplayName());
         promotionEntityAuthor.setEmail(promotion.getAuthor().getEmail());
-        promotionEntityAuthor.setPicture(promotion.getAuthor().getPicture());
         promotionEntityAuthor.setSource(promotion.getAuthor().getSource());
         promotionEntityAuthor.setSourceId(promotion.getAuthor().getSourceId());
 
@@ -375,7 +373,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         promotionAuthor.setUserId(promotionEntity.getAuthor().getUserId());
         promotionAuthor.setDisplayName(promotionEntity.getAuthor().getDisplayName());
         promotionAuthor.setEmail(promotionEntity.getAuthor().getEmail());
-        promotionAuthor.setPicture(promotionEntity.getAuthor().getPicture());
         promotionAuthor.setSource(promotionEntity.getAuthor().getSource());
         promotionAuthor.setSourceId(promotionEntity.getAuthor().getSourceId());
 
