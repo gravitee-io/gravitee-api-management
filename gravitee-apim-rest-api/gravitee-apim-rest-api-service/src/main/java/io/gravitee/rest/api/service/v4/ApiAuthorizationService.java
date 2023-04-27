@@ -67,5 +67,7 @@ public interface ApiAuthorizationService {
         final boolean portal
     );
 
+    Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
+
     List<ApiCriteria> computeApiCriteriaForUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal);
 }

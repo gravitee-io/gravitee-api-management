@@ -25,19 +25,22 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -48,6 +51,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -84,27 +88,12 @@ import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInit
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.ApiNotificationService;
-import io.gravitee.rest.api.service.v4.ApiService;
-import io.gravitee.rest.api.service.v4.FlowService;
-import io.gravitee.rest.api.service.v4.PlanSearchService;
-import io.gravitee.rest.api.service.v4.PlanService;
-import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import io.gravitee.rest.api.service.v4.PropertiesService;
+import io.gravitee.rest.api.service.v4.*;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -120,6 +109,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private final ApiRepository apiRepository;
     private final ApiMapper apiMapper;
+    private final GenericApiMapper genericApiMapper;
     private final PrimaryOwnerService primaryOwnerService;
     private final ApiValidationService apiValidationService;
     private final ParameterService parameterService;
@@ -143,10 +133,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final PropertiesService propertiesService;
     private final ApiNotificationService apiNotificationService;
     private final TagsValidationService tagsValidationService;
+    private final ApiAuthorizationService apiAuthorizationService;
 
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
+        final GenericApiMapper genericApiMapper,
         final PrimaryOwnerService primaryOwnerService,
         final ApiValidationService apiValidationService,
         final ParameterService parameterService,
@@ -169,10 +161,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final MediaService mediaService,
         final PropertiesService propertiesService,
         final ApiNotificationService apiNotificationService,
-        final TagsValidationService tagsValidationService
+        final TagsValidationService tagsValidationService,
+        final ApiAuthorizationService apiAuthorizationService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
+        this.genericApiMapper = genericApiMapper;
         this.primaryOwnerService = primaryOwnerService;
         this.apiValidationService = apiValidationService;
         this.parameterService = parameterService;
@@ -196,6 +190,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.propertiesService = propertiesService;
         this.apiNotificationService = apiNotificationService;
         this.tagsValidationService = tagsValidationService;
+        this.apiAuthorizationService = apiAuthorizationService;
     }
 
     @Override
@@ -532,6 +527,45 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiId, ex);
         }
+    }
+
+    @Override
+    public Page<GenericApiEntity> findAll(
+        final ExecutionContext executionContext,
+        final String userId,
+        final boolean isAdmin,
+        final Pageable pageable
+    ) {
+        ApiCriteria.Builder criteria = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
+
+        // If user is not admin, get list of apiIds in their scope and add it to the criteria
+        if (!isAdmin) {
+            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null);
+
+            // User has no associated apis
+            if (userApiIds.isEmpty()) {
+                return new Page<>(List.of(), 0, 0, 0);
+            }
+            criteria.ids(userApiIds);
+        }
+
+        Page<Api> apis = apiRepository.search(
+            criteria.build(),
+            null,
+            convert(pageable),
+            new ApiFieldFilter.Builder().excludePicture().build()
+        );
+
+        return apis
+            .getContent()
+            .stream()
+            .map(api -> genericApiMapper.toGenericApi(api, null))
+            .collect(
+                Collectors.collectingAndThen(
+                    Collectors.toList(),
+                    apiEntityList -> new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
+                )
+            );
     }
 
     private void auditApiLogging(ExecutionContext executionContext, String apiId, Logging existingLogging, Logging updatedLogging) {

@@ -52,6 +52,8 @@ public interface ApiMapper {
         return null;
     }
 
+    List<Api> convert(List<GenericApiEntity> apiEntities);
+
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
     ApiV4 convert(ApiEntity apiEntity);
 

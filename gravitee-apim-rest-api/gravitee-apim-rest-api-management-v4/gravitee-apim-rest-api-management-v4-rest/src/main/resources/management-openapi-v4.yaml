@@ -94,7 +94,8 @@ paths:
                 - APIs
             summary: List APIs
             description: |-
-                # FIXME add a description
+                Get the list of APIs for a specific environment.
+                User must have the ENVIRONMENT_API[READ] permission.
             operationId: getApis
             responses:
                 "200":
@@ -2738,14 +2739,15 @@ components:
             content:
                 application/json:
                     schema:
+                        title: "ApisResponse"
                         properties:
                             data:
                                 description: List of Apis.
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/Api"
-                            metadata:
-                                $ref: "#/components/schemas/MetadataResponse"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
         EndpointsResponse:

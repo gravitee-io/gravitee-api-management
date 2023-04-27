@@ -235,19 +235,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         // for others, user must be authenticated
         if (userId != null) {
             // get user apis
-            final Set<String> userApiIds = membershipService
-                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
-                .stream()
-                .filter(membership -> membership.getRoleId() != null)
-                .filter(membership -> {
-                    final RoleEntity role = roleService.findById(membership.getRoleId());
-                    if (!portal) {
-                        return canManageApi(role);
-                    }
-                    return role.getScope().equals(RoleScope.API);
-                })
-                .map(MembershipEntity::getReferenceId)
-                .collect(toSet());
+            final Set<String> userApiIds = this.findUserApiIdsFromMemberships(userId, portal);
             // add dedicated criteria for user apis
             if (!userApiIds.isEmpty()) {
                 apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).ids(userApiIds).build());
@@ -300,6 +288,44 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             }
         }
         return apiCriteriaList;
+    }
+
+    public Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery) {
+        if (Objects.isNull(userId)) {
+            return new HashSet<>();
+        }
+
+        Set<String> apiIds = new HashSet<>();
+
+        if (Objects.isNull(apiQuery)) {
+            apiQuery = new ApiQuery();
+        }
+
+        // get user apis
+        final Set<String> userApiIds = this.findUserApiIdsFromMemberships(userId, false);
+        apiIds.addAll(userApiIds);
+
+        // get user groups apis
+        final Set<String> userGroupApiIds = this.findApiIdsByUserGroups(executionContext, userId, apiQuery, false);
+        apiIds.addAll(userGroupApiIds);
+
+        return apiIds;
+    }
+
+    private Set<String> findUserApiIdsFromMemberships(String userId, boolean portal) {
+        return membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+            .stream()
+            .filter(membership -> membership.getRoleId() != null)
+            .filter(membership -> {
+                final RoleEntity role = roleService.findById(membership.getRoleId());
+                if (!portal) {
+                    return canManageApi(role);
+                }
+                return role.getScope().equals(RoleScope.API);
+            })
+            .map(MembershipEntity::getReferenceId)
+            .collect(toSet());
     }
 
     private Set<String> findApiIdsByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {

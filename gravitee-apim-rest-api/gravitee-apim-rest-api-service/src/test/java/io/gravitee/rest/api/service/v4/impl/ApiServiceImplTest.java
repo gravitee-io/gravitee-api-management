@@ -118,15 +118,7 @@ import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.ApiNotificationService;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
-import io.gravitee.rest.api.service.v4.ApiStateService;
-import io.gravitee.rest.api.service.v4.FlowService;
-import io.gravitee.rest.api.service.v4.PlanSearchService;
-import io.gravitee.rest.api.service.v4.PlanService;
-import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import io.gravitee.rest.api.service.v4.PropertiesService;
+import io.gravitee.rest.api.service.v4.*;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
@@ -261,6 +253,9 @@ public class ApiServiceImplTest {
     private ApiNotificationService apiNotificationService;
 
     @Mock
+    private ApiAuthorizationService apiAuthorizationService;
+
+    @Mock
     private TagsValidationService tagsValidationService;
 
     private ApiService apiService;
@@ -301,6 +296,7 @@ public class ApiServiceImplTest {
             new ApiServiceImpl(
                 apiRepository,
                 apiMapper,
+                genericApiMapper,
                 primaryOwnerService,
                 apiValidationService,
                 parameterService,
@@ -323,7 +319,8 @@ public class ApiServiceImplTest {
                 mediaService,
                 propertiesService,
                 apiNotificationService,
-                tagsValidationService
+                tagsValidationService,
+                apiAuthorizationService
             );
         apiSearchService =
             new ApiSearchServiceImpl(apiRepository, apiMapper, genericApiMapper, primaryOwnerService, categoryService, searchEngineService);
