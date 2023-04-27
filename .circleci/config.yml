@@ -406,13 +406,35 @@ jobs:
             - restore-maven-job-cache:
                   jobName: build
             - prepare-env-var
-            - run:
-                  name: "Build project"
-                  command: |
-                      mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
-                      mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
-                      mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
-
+            - when:
+                  condition:
+                      matches: { pattern: "^(\\d+\\.\\d+\\.x)|master|(.*-run-e2e.*)$", value: << pipeline.git.branch >> }
+                  steps:
+                      - run:
+                            name: "Build project"
+                            command: |
+                                mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -P distribution-dev
+                                mkdir -p ./rest-api-docker-context/distribution && cp -r ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./rest-api-docker-context/.
+                                mkdir -p ./gateway-docker-context/distribution && cp -r ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./gateway-docker-context/.
+                      - persist_to_workspace:
+                            root: ./
+                            paths:
+                                - ./gravitee-*/*/target/*
+                                - ./rest-api-docker-context
+                                - ./gateway-docker-context
+            - when:
+                  condition:
+                      not:
+                          matches: { pattern: "^(\\d+\\.\\d+\\.x)|master|(.*-run-e2e.*)$", value: << pipeline.git.branch >> }
+                  steps:
+                      - run:
+                            name: "Build project"
+                            command: |
+                                mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -DskipDistribution -T 2C -P distribution-dev
+                      - persist_to_workspace:
+                            root: ./
+                            paths:
+                                - ./gravitee-*/*/target/*
             - notify-on-failure
             - save_cache:
                   paths:
@@ -421,12 +443,6 @@ jobs:
                   when: on_success
             - save-maven-job-cache:
                   jobName: build
-            - persist_to_workspace:
-                  root: ./
-                  paths:
-                      - ./gravitee-*/*/target/*
-                      - ./rest-api-docker-context
-                      - ./gateway-docker-context
 
     build-images:
         docker:
