@@ -126,6 +126,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
             tags:
@@ -186,6 +187,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_start:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
             tags:
@@ -201,6 +203,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_stop:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
             tags:
@@ -216,6 +219,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/deployments:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         post:
             tags:
@@ -240,6 +244,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/members:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
             parameters:
@@ -260,6 +265,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/plans:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
             parameters:
@@ -322,6 +328,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/plans/{planId}:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
         get:
@@ -373,6 +380,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/plans/{planId}/_close:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
         post:
@@ -394,6 +402,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/plans/{planId}/_publish:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
         post:
@@ -415,6 +424,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/plans/{planId}/_deprecate:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
             - $ref: "#/components/parameters/planIdParam"
         post:
