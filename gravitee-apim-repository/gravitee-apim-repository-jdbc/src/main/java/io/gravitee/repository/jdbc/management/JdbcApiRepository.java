@@ -24,6 +24,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.jdbc.utils.FieldUtils;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -439,11 +440,12 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     private void applySortable(Sortable sortable, StringBuilder query) {
         if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
+            String field = FieldUtils.toSnakeCase(sortable.field());
             query.append("order by ");
-            if ("created_at".equals(sortable.field()) || "updated_at".equals(sortable.field())) {
-                query.append("a.").append(sortable.field());
+            if ("created_at".equals(field) || "updated_at".equals(field)) {
+                query.append("a.").append(field);
             } else {
-                query.append(" lower(a.").append(sortable.field()).append(") ");
+                query.append(" lower(a.").append(field).append(") ");
             }
 
             query.append(sortable.order() == null || sortable.order().equals(Order.ASC) ? " asc " : " desc ");

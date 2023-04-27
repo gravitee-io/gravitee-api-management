@@ -51,21 +51,18 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
     public Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
         final Query query = buildQuery(apiFieldFilter, criteria == null ? emptyList() : List.of(criteria));
 
-        if (sortable != null) {
-            query.with(
-                Sort.by(
-                    sortable.order().equals(Order.ASC) ? Sort.Direction.ASC : Sort.Direction.DESC,
-                    FieldUtils.toCamelCase(sortable.field())
-                )
-            );
+        Sort sort;
+        if (sortable == null) {
+            sort = Sort.by(ASC, "name");
         } else {
-            query.with(Sort.by(ASC, "name"));
+            Sort.Direction sortOrder = sortable.order().equals(Order.ASC) ? ASC : Sort.Direction.DESC;
+            sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
         }
 
         long total = mongoTemplate.count(query, ApiMongo.class);
 
         if (pageable != null) {
-            query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
+            query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sort));
         }
 
         List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
@@ -116,7 +113,6 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
         fillQuery(query, orApiCriteria);
 
-        query.with(Sort.by(ASC, "name"));
         return query;
     }
 
