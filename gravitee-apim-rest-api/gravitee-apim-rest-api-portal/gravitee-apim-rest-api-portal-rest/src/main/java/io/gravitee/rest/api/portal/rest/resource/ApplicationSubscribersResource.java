@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -34,6 +35,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -100,8 +102,16 @@ public class ApplicationSubscribersResource extends AbstractResource {
                 .distinct()
                 .map(api -> apiSearchService.findGenericById(executionContext, api))
                 .map(api1 -> apiMapper.convert(executionContext, api1))
+                .peek(api -> {
+                    String apisURL = PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId());
+                    OffsetDateTime updatedAt = api.getUpdatedAt();
+                    if (updatedAt != null) {
+                        api.setLinks(apiMapper.computeApiLinks(apisURL, Date.from(updatedAt.toInstant())));
+                    }
+                })
                 .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
                 .collect(Collectors.toList());
+
             return createListResponse(executionContext, subscribersApis, paginationParam);
         }
         throw new ApplicationNotFoundException(applicationId);
