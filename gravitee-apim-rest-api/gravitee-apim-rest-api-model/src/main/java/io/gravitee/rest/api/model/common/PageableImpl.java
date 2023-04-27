@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.model.common;
 
+import lombok.EqualsAndHashCode;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@EqualsAndHashCode
 public class PageableImpl implements Pageable {
 
     // must be > 0;

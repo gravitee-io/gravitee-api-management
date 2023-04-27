@@ -41,7 +41,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class ApisResourceTest extends AbstractResourceTest {
+public class ApisResource_CreateApiTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "fake-env";
 

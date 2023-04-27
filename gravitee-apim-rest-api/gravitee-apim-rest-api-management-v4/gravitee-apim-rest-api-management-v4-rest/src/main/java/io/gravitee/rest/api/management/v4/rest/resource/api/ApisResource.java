@@ -15,24 +15,25 @@
  */
 package io.gravitee.rest.api.management.v4.rest.resource.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v4.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.management.v4.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v4.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v4.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v4.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v4.rest.security.Permission;
 import io.gravitee.rest.api.management.v4.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.Set;
 import javax.validation.*;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
+import javax.ws.rs.*;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -56,5 +57,24 @@ public class ApisResource extends AbstractResource {
         NewApiEntity newApiEntity = ApiMapper.INSTANCE.convert(api);
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
         return Response.created(this.getLocationHeader(newApi.getId())).entity(ApiMapper.INSTANCE.convert(newApi)).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    public ApisResponse getApis(@BeanParam @Valid PaginationParam paginationParam) {
+        Page<GenericApiEntity> apis = apiServiceV4.findAll(
+            GraviteeContext.getExecutionContext(),
+            getAuthenticatedUser(),
+            isAdmin(),
+            paginationParam.toPageable()
+        );
+
+        return new ApisResponse()
+            .data(ApiMapper.INSTANCE.convert(apis.getContent()))
+            .pagination(
+                computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
+            )
+            .links(computePaginationLinks(Math.toIntExact(apis.getTotalElements()), paginationParam));
     }
 }
