@@ -103,4 +103,29 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     await (await this.getButtonByText('Next')).click();
     await (await this.getButtonByText('Save changes')).click();
   }
+
+  async addRateLimitToPlan(httpTestingController: HttpTestingController): Promise<void> {
+    const tableDefaultKeylessActionsCell = await this.matTable()
+      .then((t) => t.getRows())
+      .then((row) => row[0])
+      .then((row) => row.getCells({ columnName: 'actions' }))
+      .then((cell) => cell[0]);
+
+    // Click on Edit plan button
+    await tableDefaultKeylessActionsCell.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit plan"]' })).then((b) => b.click());
+
+    const apiPlanFormHarness = await this.locatorFor(ApiPlanFormHarness)();
+
+    apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+
+    await (await this.getButtonByText('Next')).click();
+    await (await this.getButtonByText('Next')).click();
+
+    const rateLimitToggle = await apiPlanFormHarness.getRateLimitEnabledInput();
+    await rateLimitToggle.toggle();
+
+    apiPlanFormHarness.httpRequest(httpTestingController).expectPolicySchemaGetRequest('rate-limit', {});
+
+    await (await this.getButtonByText('Save changes')).click();
+  }
 }
