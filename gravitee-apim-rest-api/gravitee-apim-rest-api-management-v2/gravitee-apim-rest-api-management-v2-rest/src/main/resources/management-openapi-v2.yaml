@@ -253,7 +253,7 @@ paths:
                 - APIs
             summary: Request a deployment to gateway instances
             description: |-
-                # FIXME add a description
+                Request a deployment for a given API. An optional deployment label can be given to the requested deployment.
             operationId: createAPIDeployment
             requestBody:
                 content:
@@ -261,12 +261,8 @@ paths:
                         schema:
                             $ref: "#/components/schemas/ApiDeployment"
             responses:
-                "201":
-                    description: API deployment successfully deployed
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ApiDeployment"
+                "202":
+                    description: API deployment request received
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/members:
@@ -1080,12 +1076,6 @@ components:
                     description: Label for an Api deployment. Duplicate names can exists.
                     example: My deployment
                     maxLength: 32
-                createdAt:
-                    type: string
-                    format: date-time
-                    description: The date (as timestamp) when the deployment request was created.
-                    example: 1581256457163
-                    readOnly: true
         ApiLifecycleState:
             type: string
             description: The status of the API regarding the console.
