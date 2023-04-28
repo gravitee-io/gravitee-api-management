@@ -1075,15 +1075,9 @@ jobs:
             - restore-maven-job-cache:
                   jobName: backend-build-and-publish-artifactory
             - run:
-                  name: Remove `-SNAPSHOT` from versions
-                  command: mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
-            - run:
-                  name: Update maven dependencies versions from properties
+                  name: Remove `-SNAPSHOT` from version
                   command: |
-                      # Update maven dependencies versions from properties
-                      mvn -s .gravitee.settings.xml -B -U versions:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -T 2C -no-transfer-progress
-
-                      # Remove `-SNAPSHOT` from version                    
+                      mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false                 
                       sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
 
             - prepare-gpg
