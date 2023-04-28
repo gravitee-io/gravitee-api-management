@@ -337,6 +337,7 @@ public class ApiServiceImplTest {
                 apiSearchService,
                 apiRepository,
                 apiMapper,
+                genericApiMapper,
                 apiNotificationService,
                 primaryOwnerService,
                 auditService,
@@ -1052,7 +1053,12 @@ public class ApiServiceImplTest {
 
         final ApiDeploymentEntity apiDeploymentEntity = new ApiDeploymentEntity();
         apiDeploymentEntity.setDeploymentLabel("deploy-label");
-        final ApiEntity result = apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, apiDeploymentEntity);
+        final ApiEntity result = (ApiEntity) apiStateService.deploy(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            USER_NAME,
+            apiDeploymentEntity
+        );
 
         verify(eventService)
             .createApiEvent(

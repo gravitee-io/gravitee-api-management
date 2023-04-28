@@ -94,14 +94,14 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
     @Override
     public ApiEntity findById(final ExecutionContext executionContext, final String apiId) {
-        final Api api = this.findApiById(executionContext, apiId, true);
+        final Api api = this.findV4RepositoryApiById(executionContext, apiId);
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
         return apiMapper.toEntity(executionContext, api, primaryOwner, null, true);
     }
 
     @Override
     public GenericApiEntity findGenericById(final ExecutionContext executionContext, final String apiId) {
-        final Api api = this.findApiById(executionContext, apiId, false);
+        final Api api = this.findRepositoryApiById(executionContext, apiId);
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
         final List<CategoryEntity> categories = categoryService.findAll(executionContext.getEnvironmentId());
         return genericApiMapper.toGenericApi(executionContext, api, primaryOwner, categories);
@@ -149,10 +149,6 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
     @Override
     public Api findRepositoryApiById(final ExecutionContext executionContext, final String apiId) {
-        return this.findApiById(executionContext, apiId, true);
-    }
-
-    private Api findApiById(final ExecutionContext executionContext, final String apiId, boolean throwWhenNotV4) {
         try {
             log.debug("Find API by ID: {}", apiId);
 
@@ -162,19 +158,24 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
                 optApi = optApi.filter(result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
             }
 
-            final Api api = optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
-
-            if (throwWhenNotV4 && api.getDefinitionVersion() != DefinitionVersion.V4) {
-                throw new IllegalArgumentException(
-                    String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel())
-                );
-            }
-
-            return api;
+            return optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
         }
+    }
+
+    @Override
+    public Api findV4RepositoryApiById(final ExecutionContext executionContext, final String apiId) {
+        Api api = this.findRepositoryApiById(executionContext, apiId);
+
+        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+            throw new IllegalArgumentException(
+                String.format("Api found doesn't support v%s definition model.", DefinitionVersion.V4.getLabel())
+            );
+        }
+
+        return api;
     }
 
     @Override

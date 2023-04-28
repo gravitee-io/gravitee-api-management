@@ -34,18 +34,20 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -67,6 +69,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final ApiSearchService apiSearchService;
     private final ApiRepository apiRepository;
     private final ApiMapper apiMapper;
+    private final GenericApiMapper genericApiMapper;
     private final ApiNotificationService apiNotificationService;
     private final PrimaryOwnerService primaryOwnerService;
     private final AuditService auditService;
@@ -77,6 +80,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         final ApiSearchService apiSearchService,
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
+        final GenericApiMapper genericApiMapper,
         final ApiNotificationService apiNotificationService,
         final PrimaryOwnerService primaryOwnerService,
         final AuditService auditService,
@@ -86,6 +90,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
+        this.genericApiMapper = genericApiMapper;
         this.apiNotificationService = apiNotificationService;
         this.primaryOwnerService = primaryOwnerService;
         this.auditService = auditService;
@@ -94,7 +99,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     @Override
-    public ApiEntity deploy(
+    public GenericApiEntity deploy(
         ExecutionContext executionContext,
         String apiId,
         String authenticatedUser,
@@ -102,13 +107,24 @@ public class ApiStateServiceImpl implements ApiStateService {
     ) {
         log.debug("Deploy API: {}", apiId);
 
+        Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
+
+        if (DefinitionContext.isKubernetes(api.getOrigin())) {
+            throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to deploy it.");
+        }
+
+        this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, api);
+
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
+        final GenericApiEntity deployed = genericApiMapper.toGenericApi(api, primaryOwner);
+
+        apiNotificationService.triggerDeployNotification(executionContext, deployed);
+
+        return deployed;
+    }
+
+    private void deployApi(ExecutionContext executionContext, String authenticatedUser, ApiDeploymentEntity apiDeploymentEntity, Api api) {
         try {
-            Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
-
-            if (DefinitionContext.isKubernetes(api.getOrigin())) {
-                throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to deploy it.");
-            }
-
             // add deployment date
             api.setUpdatedAt(new Date());
             api.setDeployedAt(api.getUpdatedAt());
@@ -120,20 +136,13 @@ public class ApiStateServiceImpl implements ApiStateService {
             Map<String, String> properties = new HashMap<>();
             properties.put(Event.EventProperties.USER.getValue(), authenticatedUser);
 
-            addDeploymentLabelToProperties(executionContext, apiId, properties, apiDeploymentEntity);
+            addDeploymentLabelToProperties(executionContext, api.getId(), properties, apiDeploymentEntity);
 
             // And create event
             eventService.createApiEvent(executionContext, singleton(executionContext.getEnvironmentId()), PUBLISH_API, api, properties);
-
-            PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-            final ApiEntity deployed = apiMapper.toEntity(api, primaryOwner);
-
-            apiNotificationService.triggerDeployNotification(executionContext, deployed);
-
-            return deployed;
         } catch (TechnicalException e) {
-            log.error("An error occurs while trying to deploy API: {}", apiId, e);
-            throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, e);
+            log.error("An error occurs while trying to deploy API: {}", api.getId(), e);
+            throw new TechnicalManagementException("An error occurs while trying to deploy API: " + api.getId(), e);
         }
     }
 
@@ -280,7 +289,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             } else {
                 // this is the first time we start the api without previously deployed id.
                 // let's do it.
-                return this.deploy(executionContext, apiId, userId, new ApiDeploymentEntity());
+                return (ApiEntity) this.deploy(executionContext, apiId, userId, new ApiDeploymentEntity());
             }
         } catch (Exception e) {
             log.error("An error occurs while trying to deploy last published API {}", apiId, e);

@@ -46,6 +46,7 @@ import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -55,6 +56,7 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -63,7 +65,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -117,6 +121,9 @@ public class ApiStateServiceImplTest {
     @Mock
     private ApiSearchService apiSearchService;
 
+    @InjectMocks
+    private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
+
     private Api api;
     private Api updatedApi;
     private ApiStateService apiStateService;
@@ -147,11 +154,13 @@ public class ApiStateServiceImplTest {
             workflowService,
             new CategoryMapper(categoryService)
         );
+        GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
         apiStateService =
             new ApiStateServiceImpl(
                 apiSearchService,
                 apiRepository,
                 apiMapper,
+                genericApiMapper,
                 apiNotificationService,
                 primaryOwnerService,
                 auditService,
