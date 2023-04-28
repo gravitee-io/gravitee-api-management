@@ -215,7 +215,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response deployApi(@Parameter(name = "apiDeployment") @Valid final ApiDeploymentEntity apiDeploymentEntity) {
         try {
-            ApiEntity apiEntity = apiStateService.deployV4(
+            ApiEntity apiEntity = (ApiEntity) apiStateService.deploy(
                 GraviteeContext.getExecutionContext(),
                 api,
                 getAuthenticatedUser(),

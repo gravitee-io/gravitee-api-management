@@ -15,22 +15,13 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
-import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
-import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static javax.ws.rs.client.Entity.entity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -67,6 +58,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.*;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.jetbrains.annotations.NotNull;
@@ -177,7 +169,10 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
 
-        assertEquals(OK_200, response.getStatus());
+        assertEquals(ACCEPTED_202, response.getStatus());
+
+        assertEquals(apiEntity.getUpdatedAt().toString(), response.getLastModified().toString());
+        assertEquals(new EntityTag(Long.toString(apiEntity.getUpdatedAt().getTime())), response.getEntityTag());
 
         verify(apiStateServiceV4, times(1)).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
     }
@@ -187,15 +182,11 @@ public class ApiResourceTest extends AbstractResourceTest {
         ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
         deployEntity.setDeploymentLabel("label_too_long_because_more_than_32_chars");
 
-        apiEntity.setState(Lifecycle.State.STARTED);
-        apiEntity.setUpdatedAt(new Date());
-        doReturn(apiEntity).when(apiStateServiceV4).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
-
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
-        verify(apiService, times(0)).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(EventType.PUBLISH_API), any());
+        verify(apiService, never()).deploy(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -209,6 +200,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        verify(apiService, never()).deploy(any(), any(), any(), any(), any());
     }
 
     @Test

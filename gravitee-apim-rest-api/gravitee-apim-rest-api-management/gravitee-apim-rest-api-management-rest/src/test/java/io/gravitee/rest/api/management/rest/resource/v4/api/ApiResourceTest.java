@@ -174,13 +174,13 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         apiEntity.setState(Lifecycle.State.STARTED);
         apiEntity.setUpdatedAt(new Date());
-        doReturn(apiEntity).when(apiStateServiceV4).deployV4(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        doReturn(apiEntity).when(apiStateServiceV4).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
 
         final Response response = envTarget(API + "/deploy").request().post(Entity.json(deployEntity));
 
         assertEquals(OK_200, response.getStatus());
 
-        verify(apiStateServiceV4, times(1)).deployV4(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        verify(apiStateServiceV4, times(1)).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
     }
 
     @Test
@@ -190,7 +190,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         apiEntity.setState(Lifecycle.State.STARTED);
         apiEntity.setUpdatedAt(new Date());
-        doReturn(apiEntity).when(apiStateServiceV4).deployV4(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        doReturn(apiEntity).when(apiStateServiceV4).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
 
         final Response response = envTarget(API + "/deploy").request().post(Entity.json(deployEntity));
 

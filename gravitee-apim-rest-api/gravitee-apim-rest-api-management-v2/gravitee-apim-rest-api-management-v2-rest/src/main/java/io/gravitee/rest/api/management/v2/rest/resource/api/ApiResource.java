@@ -174,14 +174,14 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response deployApi(@Valid final ApiDeploymentEntity apiDeploymentEntity) {
         try {
-            ApiEntity apiEntity = apiStateService.deploy(
+            GenericApiEntity apiEntity = apiStateService.deploy(
                 GraviteeContext.getExecutionContext(),
                 apiId,
                 getAuthenticatedUser(),
                 apiDeploymentEntity
             );
             return Response
-                .ok(ApiMapper.INSTANCE.convert(apiEntity))
+                .accepted()
                 .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
                 .lastModified(apiEntity.getUpdatedAt())
                 .build();
