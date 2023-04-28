@@ -398,13 +398,15 @@ describe('ApiPlanFormComponent', () => {
         validation: 'auto',
         flows: [
           {
+            selectors: [
+              {
+                type: 'http',
+                path: '/',
+                pathOperator: 'STARTS_WITH',
+              },
+            ],
             enabled: true,
-            'path-operator': {
-              operator: 'STARTS_WITH',
-              path: '/',
-            },
-            post: [],
-            pre: [
+            request: [
               {
                 configuration: {},
                 enabled: true,

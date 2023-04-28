@@ -1,4 +1,4 @@
-import { Flow } from '../flow/flow';
+import { Flow } from '../api-v4/Flow';
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)

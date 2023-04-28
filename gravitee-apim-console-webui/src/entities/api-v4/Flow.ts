@@ -17,10 +17,10 @@ export interface Flow {
   name?: string;
   enabled?: boolean;
   selectors?: FlowSelector[]; // To Complete when needed
-  request?: FlowStep;
-  response?: FlowStep;
-  subscribe?: FlowStep;
-  publish?: FlowStep;
+  request?: FlowStep[];
+  response?: FlowStep[];
+  subscribe?: FlowStep[];
+  publish?: FlowStep[];
   tags?: string[];
 }
 
@@ -28,14 +28,54 @@ export interface FlowStep {
   name?: string;
   description?: string;
   enabled?: boolean;
-  policy?: Record<string, unknown>;
-  configuration?: Record<string, unknown>;
+  policy?: string;
+  configuration?: string;
   condition?: string;
   messageCondition?: string;
 }
 
-export type SelectorType = 'http' | 'channel' | 'condition';
+/**
+ * Selectors
+ */
 
-export interface FlowSelector {
+export type SelectorType = 'http' | 'channel' | 'condition';
+export type FlowSelector = HttpSelector | ChannelSelector | ConditionSelector;
+export type HttpMethod = 'CONNECT' | 'DELETE' | 'GET' | 'HEAD' | 'OPTIONS' | 'PATCH' | 'POST' | 'PUT' | 'TRACE' | 'OTHER';
+export type OperationsEnum = 'PUBLISH' | 'SUBSCRIBE';
+export type Operator = 'EQUALS' | 'STARTS_WITH';
+
+export interface HttpSelector extends BaseSelector {
+  /**
+   * The path of the selector
+   */
+  path: string;
+  pathOperator: Operator;
+  methods?: HttpMethod[];
+}
+
+export interface ChannelSelector extends BaseSelector {
+  /**
+   * The list of operations associated with this channel selector.
+   */
+  operations?: OperationsEnum[];
+  /**
+   * The channel of the selector
+   */
+  channel: string;
+  channelOperator: Operator;
+  entrypoints?: string[];
+}
+
+export interface ConditionSelector extends BaseSelector {
+  /**
+   * The condition of the selector
+   */
+  condition: string;
+}
+
+interface BaseSelector {
+  /**
+   * Selector type.
+   */
   type?: SelectorType;
 }

@@ -39,7 +39,7 @@ import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-st
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 
 import { Api as ApiV3 } from '../../../../entities/api';
-import { ApiEntity as ApiV4 } from '../../../../entities/api-v4';
+import { ApiEntity as ApiV4, Flow as FlowV4, FlowStep } from '../../../../entities/api-v4';
 import {
   NewPlan as NewPlanV3,
   Plan as PlanV3,
@@ -443,8 +443,8 @@ const internalFormValueToPlanV3 = (value: InternalPlanFormValue, mode: 'create' 
 
 const internalFormValueToPlanV4 = (value: InternalPlanFormValue, mode: 'create' | 'edit'): InternalPlanV4Value => {
   // Init flows with restriction step. Only used in create mode
-  const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): Flow[] => {
-    const restrictionPolicies: Step[] = [
+  const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): FlowV4[] => {
+    const restrictionPolicies: FlowStep[] = [
       ...(restriction.rateLimitEnabled
         ? [
             {
@@ -479,13 +479,9 @@ const internalFormValueToPlanV4 = (value: InternalPlanFormValue, mode: 'create' 
 
     return [
       {
-        'path-operator': {
-          path: '/',
-          operator: 'STARTS_WITH',
-        },
+        selectors: [{ type: 'http', path: '/', pathOperator: 'STARTS_WITH' }],
         enabled: true,
-        pre: [...restrictionPolicies],
-        post: [],
+        request: [...restrictionPolicies],
       },
     ];
   };

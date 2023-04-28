@@ -932,13 +932,15 @@ describe('ApiCreationV4Component', () => {
             excluded_groups: [],
             flows: [
               {
+                selectors: [
+                  {
+                    type: 'http',
+                    path: '/',
+                    pathOperator: 'STARTS_WITH',
+                  },
+                ],
                 enabled: true,
-                'path-operator': {
-                  operator: 'STARTS_WITH',
-                  path: '/',
-                },
-                post: [],
-                pre: [],
+                request: [],
               },
             ],
             general_conditions: '',
@@ -957,6 +959,7 @@ describe('ApiCreationV4Component', () => {
         const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
 
         await step4Security1PlansHarness.editDefaultKeylessPlanName('Update name', httpTestingController);
+        await step4Security1PlansHarness.addRateLimitToPlan(httpTestingController);
 
         await step4Security1PlansHarness.clickValidate();
 
@@ -973,13 +976,22 @@ describe('ApiCreationV4Component', () => {
 
             flows: [
               {
+                selectors: [
+                  {
+                    type: 'http',
+                    path: '/',
+                    pathOperator: 'STARTS_WITH',
+                  },
+                ],
                 enabled: true,
-                'path-operator': {
-                  operator: 'STARTS_WITH',
-                  path: '/',
-                },
-                post: [],
-                pre: [],
+                request: [
+                  {
+                    enabled: true,
+                    name: 'Rate Limiting',
+                    configuration: {},
+                    policy: 'rate-limit',
+                  },
+                ],
               },
             ],
           },
