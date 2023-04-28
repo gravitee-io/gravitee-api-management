@@ -40,6 +40,8 @@ public interface ApiSearchService {
 
     Set<GenericApiEntity> findAllGenericByEnvironment(ExecutionContext executionContext);
 
+    Api findV4RepositoryApiById(ExecutionContext executionContext, String apiId);
+
     Api findRepositoryApiById(ExecutionContext executionContext, String apiId);
 
     Optional<String> findIdByEnvironmentIdAndCrossId(final String environment, final String crossId);

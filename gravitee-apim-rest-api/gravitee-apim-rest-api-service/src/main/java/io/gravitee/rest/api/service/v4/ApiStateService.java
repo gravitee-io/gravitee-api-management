@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 /**
@@ -24,7 +25,12 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface ApiStateService {
-    ApiEntity deploy(ExecutionContext executionContext, String apiId, String authenticatedUser, ApiDeploymentEntity apiDeploymentEntity);
+    GenericApiEntity deploy(
+        ExecutionContext executionContext,
+        String apiId,
+        String authenticatedUser,
+        ApiDeploymentEntity apiDeploymentEntity
+    );
 
     ApiEntity start(ExecutionContext executionContext, String apiId, String userId);
 
