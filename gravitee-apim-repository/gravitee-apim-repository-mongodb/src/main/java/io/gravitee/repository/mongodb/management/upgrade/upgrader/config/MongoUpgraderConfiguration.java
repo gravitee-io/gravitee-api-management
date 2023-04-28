@@ -51,7 +51,9 @@ public class MongoUpgraderConfiguration implements ApplicationContextAware {
 
     @Autowired
     public void setEnvironment(Environment environment) {
-        this.isUpgrade = environment.getProperty("upgrade.mode", Boolean.class, false);
+        Boolean upgradeMode = environment.getProperty("upgrade.mode", Boolean.class);
+        // If upgrade.mode is not set, we consider that we are in upgrade mode to ensure backward compatibility
+        this.isUpgrade = upgradeMode == null || upgradeMode;
     }
 
     private void registerBeans(ApplicationContext context, ConfigurableBeanFactory factory) {
