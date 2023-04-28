@@ -165,6 +165,7 @@
                 <exclude>io.gravitee.policy:gravitee-gateway-services-ratelimit:zip</exclude>
                 <exclude>io.gravitee.reporter:*:zip</exclude>
                 <exclude>io.gravitee.tracer:*:zip</exclude>
+                <exclude>com.graviteesource.reactor:*:zip</exclude>
             </excludes>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>755</fileMode>
