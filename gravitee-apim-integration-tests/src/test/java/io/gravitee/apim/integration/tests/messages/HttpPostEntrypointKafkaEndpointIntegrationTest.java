@@ -1,4 +1,4 @@
-package io.gravitee.apim.integration.tests.messages;/**
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@ package io.gravitee.apim.integration.tests.messages;/**
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.gravitee.apim.integration.tests.messages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +23,9 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
+import io.gravitee.apim.integration.tests.fake.InterruptMessageRequestPhasePolicy;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
@@ -31,6 +34,7 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.kafka.KafkaEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
+import io.gravitee.plugin.policy.PolicyPlugin;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.common.TopicPartition;
@@ -53,9 +57,7 @@ import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -69,7 +71,9 @@ import org.testcontainers.utility.DockerImageName;
  */
 @Testcontainers
 @GatewayTest
-@DeployApi({ "/apis/v4/messages/http-post-entrypoint-kafka-endpoint.json" })
+@DeployApi(
+    { "/apis/v4/messages/http-post-entrypoint-kafka-endpoint.json", "/apis/v4/messages/http-post-entrypoint-kafka-endpoint-failure.json" }
+)
 class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Container
@@ -93,6 +97,14 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest
     }
 
     @Override
+    public void configurePolicies(Map<String, PolicyPlugin> policies) {
+        policies.put(
+            "interrupt-message-request-phase",
+            PolicyBuilder.build("interrupt-message-request-phase", InterruptMessageRequestPhasePolicy.class)
+        );
+    }
+
+    @Override
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
         if (definitionClass.isAssignableFrom(Api.class)) {
             Api apiDefinition = (Api) api.getDefinition();
@@ -101,13 +113,13 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest
                 .stream()
                 .flatMap(eg -> eg.getEndpoints().stream())
                 .filter(endpoint -> endpoint.getType().equals("kafka"))
-                .forEach(endpoint -> {
-                    endpoint.setConfiguration(endpoint.getConfiguration().replace("bootstrap-server", kafka.getBootstrapServers()));
-                });
+                .forEach(endpoint ->
+                    endpoint.setConfiguration(endpoint.getConfiguration().replace("bootstrap-server", kafka.getBootstrapServers()))
+                );
         }
     }
 
-    @BeforeEach
+    @BeforeAll
     void setUp() throws ExecutionException, InterruptedException, TimeoutException {
         try (
             AdminClient adminClient = AdminClient.create(
@@ -120,8 +132,7 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest
     }
 
     @Test
-    @DisplayName("Should deploy a V4 API with a HTTP Post entrypoint and Kafka endpoint")
-    void shouldBeAbleToSubscribeToKafkaEndpointWithHTTPPostEntrypoint(HttpClient client, Vertx vertx) {
+    void should_be_able_to_subscribe_to_kafka_endpoint_with_httppost_entrypoint(HttpClient client, Vertx vertx) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
@@ -163,14 +174,30 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest
             )
             .assertComplete();
 
-        kafkaConsumer.close();
+        kafkaConsumer.close().subscribe();
     }
 
-    /**
-     * Creates a KafkaConsumer to be able to read messages from topic
-     * @param vertx
-     * @return
-     */
+    @Test
+    void should_return_an_error_when_message_failed_to_be_published(HttpClient client) {
+        JsonObject requestBody = new JsonObject();
+        requestBody.put("field", "value");
+
+        client
+            .rxRequest(HttpMethod.POST, "/http-post-entrypoint-kafka-endpoint-failure")
+            .flatMap(request -> request.rxSend(requestBody.toString()))
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(412);
+                return response.toFlowable();
+            })
+            .test()
+            .awaitCount(1)
+            .assertComplete()
+            .assertValue(buffer -> {
+                assertThat(buffer).hasToString("An error occurred");
+                return true;
+            });
+    }
+
     private static KafkaConsumer<String, byte[]> getKafkaConsumer(Vertx vertx) {
         Map<String, String> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
@@ -179,7 +206,6 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest
         config.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
         config.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        KafkaConsumer<String, byte[]> kafkaConsumer = KafkaConsumer.create(vertx, config);
-        return kafkaConsumer;
+        return KafkaConsumer.create(vertx, config);
     }
 }

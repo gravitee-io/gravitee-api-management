@@ -1,0 +1,77 @@
+{
+  "id": "http-post-entrypoint-kafka-endpoint-failure",
+  "name": "http-post-entrypoint-kafka-endpoint-failure",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "Api v4 using HTTP POST entrypoint and Kafka endpoint with failure",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/http-post-entrypoint-kafka-endpoint-failure"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-post",
+          "configuration": {
+            "requestHeadersToMessage": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "kafka",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "kafka",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "bootstrapServers": "bootstrap-server"
+          },
+          "sharedConfigurationOverride": {
+            "producer": {
+              "enabled": true,
+              "topics": ["test-topic"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "STARTS_WITH"
+        }
+      ],
+      "request": [],
+      "response": [],
+      "subscribe": [],
+      "publish": [
+        {
+          "name": "failure",
+          "description": "failure",
+          "enabled": true,
+          "policy": "interrupt-message-request-phase",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
