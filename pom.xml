@@ -33,9 +33,6 @@
     <packaging>pom</packaging>
 
     <name>Gravitee.io APIM</name>
-    <modules>
-        <module>gravitee-apim-integration-tests</module>
-    </modules>
 
     <scm>
         <url>https://github.com/gravitee-io/gravitee-api-management</url>
@@ -1166,6 +1163,18 @@
             </activation>
             <modules>
                 <module>gravitee-apim-repository</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>integration-tests-modules</id>
+            <activation>
+                <property>
+                    <name>integration-tests-modules</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>gravitee-apim-integration-tests</module>
             </modules>
         </profile>
     </profiles>
