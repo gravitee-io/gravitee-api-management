@@ -48,6 +48,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider<Securi
         contextSource.setBase(environment.getProperty("context.base"));
         contextSource.setUserDn(environment.getProperty("context.username"));
         contextSource.setPassword(environment.getProperty("context.password"));
+        contextSource.setReferral(environment.getProperty("context.referral", "ignore"));
         contextSource.afterPropertiesSet();
 
         ldapAuthenticationProviderConfigurer
