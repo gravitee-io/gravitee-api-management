@@ -125,13 +125,6 @@
             <artifactId>gravitee-apim-plugin-reactor-handler</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- Integration testing -->
-        <dependency>
-            <groupId>io.gravitee.apim.plugin</groupId>
-            <artifactId>gravitee-apim-plugin-tests-integration</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
     <build>
         <plugins>
