@@ -39,7 +39,6 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
         promotionAuthor.setUserId("user#1");
         promotionAuthor.setDisplayName("Gaetan Maisse");
         promotionAuthor.setEmail("gm@gv.io");
-        promotionAuthor.setPicture("http://image.png");
         promotionAuthor.setSource("internal");
         promotionAuthor.setSourceId("internal#1");
 
@@ -76,7 +75,6 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
         promotionAuthor.setUserId("user#1");
         promotionAuthor.setDisplayName("Gaetan Maisse");
         promotionAuthor.setEmail("gm@gv.io");
-        promotionAuthor.setPicture("http://image.png");
         promotionAuthor.setSource("internal");
         promotionAuthor.setSourceId("internal#1");
 

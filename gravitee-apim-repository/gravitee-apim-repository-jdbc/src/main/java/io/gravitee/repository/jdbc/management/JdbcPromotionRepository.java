@@ -64,7 +64,6 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
             .addColumn("author_user_id", Types.NVARCHAR, String.class)
             .addColumn("author_display_name", Types.NVARCHAR, String.class)
             .addColumn("author_email", Types.NVARCHAR, String.class)
-            .addColumn("author_picture", Types.NVARCHAR, String.class)
             .addColumn("author_source", Types.NVARCHAR, String.class)
             .addColumn("author_source_id", Types.NVARCHAR, String.class)
             .addColumn("target_api_id", Types.NVARCHAR, String.class)

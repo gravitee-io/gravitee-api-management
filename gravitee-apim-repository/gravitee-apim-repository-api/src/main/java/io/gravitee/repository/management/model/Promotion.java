@@ -158,14 +158,6 @@ public class Promotion {
         this.author.setEmail(email);
     }
 
-    public String getAuthorPicture() {
-        return this.author.getPicture();
-    }
-
-    public void setAuthorPicture(String picture) {
-        this.author.setPicture(picture);
-    }
-
     public String getAuthorSource() {
         return this.author.getSource();
     }

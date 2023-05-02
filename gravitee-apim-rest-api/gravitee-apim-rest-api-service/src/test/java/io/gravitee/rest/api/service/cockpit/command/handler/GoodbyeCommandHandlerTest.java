@@ -162,7 +162,6 @@ public class GoodbyeCommandHandlerTest {
         PromotionEntityAuthor author = new PromotionEntityAuthor();
         author.setDisplayName("Author");
         author.setEmail("author@gv.io");
-        author.setPicture("https://picture.png");
         promotion.setAuthor(author);
         return promotion;
     }
