@@ -41,8 +41,6 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
@@ -62,6 +60,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -394,11 +393,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
     }
 
     protected int getAvailablePort() {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        } catch (IOException e) {
-            throw new AssertionError(e);
-        }
+        return TestSocketUtils.findAvailableTcpPort();
     }
 
     /**
