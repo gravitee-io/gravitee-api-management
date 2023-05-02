@@ -31,7 +31,7 @@ public class ReactorBuilder {
         throw new IllegalStateException("Utility class");
     }
 
-    public static <F extends ReactorFactory<?>> ReactorPlugin<F> build(String id, Class<F> reactorFactoryClass) {
+    public static <F extends ReactorFactory<?>> ReactorPlugin<F> build(Class<F> reactorFactoryClass) {
         return new ReactorPlugin<F>() {
             @Override
             public Class<F> reactorFactory() {
@@ -40,7 +40,7 @@ public class ReactorBuilder {
 
             @Override
             public String id() {
-                return id;
+                return reactorFactoryClass.getCanonicalName();
             }
 
             @Override

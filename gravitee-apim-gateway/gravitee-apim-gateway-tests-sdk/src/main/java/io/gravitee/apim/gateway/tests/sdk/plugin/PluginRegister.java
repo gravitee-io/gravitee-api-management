@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.plugin;
 
+import io.gravitee.apim.plugin.reactor.ReactorPlugin;
+import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -23,6 +25,7 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -89,6 +92,22 @@ public interface PluginRegister {
      * @param entrypoints is the map containing entrypoints to deploy
      */
     default void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {}
+
+    /**
+     * Override this method to register a reactor to be used by the gateway.
+     * This method is useful if you want to register a new reactor.
+     * For example:
+     * <pre>
+     *     {@code
+     *     @Override
+     *     public void configureReactor(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
+     *         entrypoints.add(ReactorBuilder.build(DummyReactorFactory.class));
+     *     }
+     *     }
+     * </pre>
+     * @param reactors is the map containing reactors to deploy
+     */
+    default void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {}
 
     /**
      * Override this method to register an endpoint to be used by the gateway.

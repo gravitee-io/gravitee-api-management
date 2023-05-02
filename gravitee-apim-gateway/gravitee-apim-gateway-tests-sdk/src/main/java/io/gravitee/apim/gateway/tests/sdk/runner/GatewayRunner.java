@@ -81,9 +81,11 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import org.junit.platform.commons.PreconditionViolationException;
@@ -444,8 +446,9 @@ public class GatewayRunner {
 
     private void registerReactors(GatewayTestContainer container) {
         final ReactorPluginManager reactorPluginManager = container.applicationContext().getBean(ReactorPluginManager.class);
-        Map<String, ReactorPlugin<? extends ReactorFactory<?>>> reactorFactoriesMap = new HashMap<>();
-        reactorFactoriesMap.forEach((key, value) -> reactorPluginManager.register(value));
+        Set<ReactorPlugin<? extends ReactorFactory<?>>> reactorFactoriesMap = new HashSet<>();
+        testInstance.configureReactors(reactorFactoriesMap);
+        reactorFactoriesMap.forEach(reactorPluginManager::register);
     }
 
     private void registerReporters(GatewayTestContainer container) {
