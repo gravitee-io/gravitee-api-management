@@ -69,7 +69,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
-import io.gravitee.rest.api.service.jackson.ser.api.Api3_7VersionSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiDefaultSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
@@ -161,9 +160,6 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
         ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
         apiDefaultSerializer.setApplicationContext(applicationContext);
 
-        ApiSerializer apiPrior37VersionSerializer = new Api3_7VersionSerializer();
-        apiPrior37VersionSerializer.setApplicationContext(applicationContext);
-
         apiExportService =
             new ApiExportServiceImpl(
                 objectMapper,
@@ -176,7 +172,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
                 new CustomResourceDefinitionMapper()
             );
 
-        apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer, apiPrior37VersionSerializer));
+        apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer));
         SimpleModule module = new SimpleModule();
         module.addSerializer(ApiEntity.class, apiCompositeSerializer);
         objectMapper.registerModule(module);

@@ -35,24 +35,4 @@ public class ApiExportService_gRPC_ExportAsJsonTest extends ApiExportService_gRP
     public void shouldConvertAsJsonForExport() throws TechnicalException, IOException {
         shouldConvertAsJsonForExport(ApiSerializer.Version.DEFAULT, null);
     }
-
-    @Test
-    public void shouldConvertAsJsonForExport_3_0() throws TechnicalException, IOException {
-        shouldConvertAsJsonForExport(ApiSerializer.Version.V_3_0, "3_0");
-    }
-
-    @Test
-    public void shouldConvertAsJsonForExport_1_15() throws TechnicalException, IOException {
-        shouldConvertAsJsonForExport(ApiSerializer.Version.V_1_15, "1_15");
-    }
-
-    @Test
-    public void shouldConvertAsJsonForExport_1_20() throws TechnicalException, IOException {
-        shouldConvertAsJsonForExport(ApiSerializer.Version.V_1_20, "1_20");
-    }
-
-    @Test
-    public void shouldConvertAsJsonForExport_1_25() throws TechnicalException, IOException {
-        shouldConvertAsJsonForExport(ApiSerializer.Version.V_1_25, "1_25");
-    }
 }

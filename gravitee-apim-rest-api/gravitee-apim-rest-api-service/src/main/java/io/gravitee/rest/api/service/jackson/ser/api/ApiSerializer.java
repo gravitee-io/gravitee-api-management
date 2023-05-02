@@ -44,25 +44,12 @@ import org.springframework.context.ApplicationContext;
  */
 public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
 
-    private static final Pattern uid = Pattern.compile("uid=(.*?),");
     public static String METADATA_EXPORT_VERSION = "exportVersion";
     public static String METADATA_FILTERED_FIELDS_LIST = "filteredFieldsList";
     protected ApplicationContext applicationContext;
 
     protected ApiSerializer(Class<ApiEntity> t) {
         super(t);
-    }
-
-    public static String getUsernameFromSourceId(String sourceId) {
-        if (sourceId == null) {
-            return null;
-        }
-
-        Matcher matcher = uid.matcher(sourceId);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return sourceId;
     }
 
     public abstract Version version();
@@ -269,12 +256,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
     }
 
     public enum Version {
-        DEFAULT("default"), // AsciiDoc in 3.10
-        V_1_15("1.15"),
-        V_1_20("1.20"),
-        V_1_25("1.25"),
-        V_3_0("3.0"), // System folders & Links & translations
-        V_3_7("3.7"); // Markdown template
+        DEFAULT("default");
 
         private final String version;
 

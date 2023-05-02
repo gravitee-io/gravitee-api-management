@@ -26,7 +26,7 @@
           <mat-label>Target APIM version</mat-label>
           <mat-select #exportVersionSelect formControlName="exportVersion" name="exportVersion">
             <mat-select-trigger *ngIf="getJsonOptions(exportVersionSelect.value) as option">
-              {{ exportVersionSelect.value || '' }} <span *ngIf="option.isDeprecated" class="gio-badge-error">Deprecated</span>
+              {{ option.label || '' }} <span *ngIf="option.isDeprecated" class="gio-badge-error">Deprecated</span>
             </mat-select-trigger>
 
             <mat-option *ngFor="let option of jsonOptions" [value]="option.id">
