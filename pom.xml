@@ -129,9 +129,8 @@
         <powermock.version>2.0.9</powermock.version>
         <reactor-adapter.version>3.4.6</reactor-adapter.version>
         <snakeyaml.version>2.0</snakeyaml.version>
-        <swagger-jaxrs2.version>2.2.8</swagger-jaxrs2.version>
-        <swagger-core.version>2.2.8</swagger-core.version>
-        <swagger-parser.version>2.1.11</swagger-parser.version>
+        <swagger-core.version>2.2.9</swagger-core.version>
+        <swagger-parser.version>2.1.13</swagger-parser.version>
         <testcontainers.version>1.16.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
         <wiremock.version>2.27.2</wiremock.version>
@@ -512,7 +511,7 @@
             <dependency>
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-jaxrs2</artifactId>
-                <version>${swagger-jaxrs2.version}</version>
+                <version>${swagger-core.version}</version>
             </dependency>
 
             <dependency>
