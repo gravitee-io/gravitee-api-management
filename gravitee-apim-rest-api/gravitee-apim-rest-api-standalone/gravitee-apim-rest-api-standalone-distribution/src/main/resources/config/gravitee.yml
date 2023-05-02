@@ -325,6 +325,7 @@ security:
 #        password: "secret"
 #        url: "ldap://localhost:10389/c=io,o=gravitee"
 #        base: "c=io,o=gravitee" # the context source base
+#        referral: "ignore"
 #      authentication:
 #        user:
           # Search base for user authentication. Defaults to "". Only used with user filter.
