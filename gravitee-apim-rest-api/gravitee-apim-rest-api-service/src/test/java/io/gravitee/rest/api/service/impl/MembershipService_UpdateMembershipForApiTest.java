@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -112,6 +113,8 @@ public class MembershipService_UpdateMembershipForApiTest {
         )
             .thenReturn(Set.of(existingMembership), Set.of(existingMembership), Set.of(updatedMembership));
         when(membershipRepository.findById("existing-membership-id")).thenReturn(Optional.of(existingMembership));
+        when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization()))
+            .thenReturn(Optional.of(new RoleEntity()));
 
         MemberEntity updatedMember = membershipService.updateMembershipForApi(
             GraviteeContext.getExecutionContext(),
