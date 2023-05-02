@@ -75,6 +75,12 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.graviteesource.reactor</groupId>
+            <artifactId>gravitee-reactor-message</artifactId>
+            <version>${gravitee-reactor-message.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

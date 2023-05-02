@@ -19,13 +19,17 @@ import static io.gravitee.plugin.entrypoint.http.get.HttpGetEntrypointConnector.
 import static io.gravitee.plugin.entrypoint.http.get.HttpGetEntrypointConnector.LIMIT_QUERY_PARAM;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.graviteesouce.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
+import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -33,6 +37,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -46,10 +51,14 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 @GatewayTest
 @DeployApi({ "/apis/http-get-entrypoint.json" })
-@Disabled
 class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     public static final String TEST_TOPIC = "test-topic";
+
+    @Override
+    public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
+        reactors.add(ReactorBuilder.build(MessageApiReactorFactory.class));
+    }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
