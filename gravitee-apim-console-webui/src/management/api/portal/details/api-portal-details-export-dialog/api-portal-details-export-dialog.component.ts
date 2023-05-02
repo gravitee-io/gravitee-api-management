@@ -36,14 +36,7 @@ export type ApiPortalDetailsExportDialogData = {
 export class ApiPortalDetailsExportDialogComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public jsonOptions = [
-    { id: 'default', label: 'Current version', isDeprecated: false },
-    { id: '3.7', label: '3.7.x to 3.9.x version', isDeprecated: true },
-    { id: '3.0', label: '3.0.x to 3.6.x version', isDeprecated: true },
-    { id: '1.25', label: '1.25.x to 1.30.x version', isDeprecated: true },
-    { id: '1.20', label: '1.20.x to 1.24.x version', isDeprecated: true },
-    { id: '1.15', label: '1.15.x to 1.16.x version', isDeprecated: true },
-  ];
+  public jsonOptions = [{ id: 'default', label: 'Current version', isDeprecated: false }];
 
   public jsonOptionsCheckbox = [
     { id: 'groups', label: 'Groups', checked: true },

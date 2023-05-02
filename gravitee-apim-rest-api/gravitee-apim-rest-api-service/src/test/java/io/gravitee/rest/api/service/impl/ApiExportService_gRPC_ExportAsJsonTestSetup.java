@@ -133,32 +133,7 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
         apiDefaultSerializer.setApplicationContext(applicationContext);
 
-        //V_1_15
-        ApiSerializer apiPrior115VersionSerializer = new Api1_15VersionSerializer();
-        apiPrior115VersionSerializer.setApplicationContext(applicationContext);
-        //V_1_20
-        ApiSerializer apiPrior120VersionSerializer = new Api1_20VersionSerializer();
-        apiPrior120VersionSerializer.setApplicationContext(applicationContext);
-        //V_1_25
-        ApiSerializer apiPrior125VersionSerializer = new Api1_25VersionSerializer();
-        apiPrior125VersionSerializer.setApplicationContext(applicationContext);
-        //V_3_0
-        ApiSerializer apiPrior30VersionSerializer = new Api3_0VersionSerializer();
-        apiPrior30VersionSerializer.setApplicationContext(applicationContext);
-        //V_3_7
-        ApiSerializer apiPrior37VersionSerializer = new Api3_7VersionSerializer();
-        apiPrior37VersionSerializer.setApplicationContext(applicationContext);
-
-        apiCompositeSerializer.setSerializers(
-            Arrays.asList(
-                apiDefaultSerializer,
-                apiPrior115VersionSerializer,
-                apiPrior120VersionSerializer,
-                apiPrior125VersionSerializer,
-                apiPrior30VersionSerializer,
-                apiPrior37VersionSerializer
-            )
-        );
+        apiCompositeSerializer.setSerializers(Arrays.asList(apiDefaultSerializer));
         SimpleModule module = new SimpleModule();
         module.addSerializer(ApiEntity.class, apiCompositeSerializer);
         objectMapper.registerModule(module);
