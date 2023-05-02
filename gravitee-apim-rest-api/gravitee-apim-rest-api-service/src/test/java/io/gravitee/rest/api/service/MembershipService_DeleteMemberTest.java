@@ -78,6 +78,19 @@ public class MembershipService_DeleteMemberTest {
         );
     }
 
+    @Test(expected = ApiPrimaryOwnerRemovalException.class)
+    public void shouldNotDeleteApiPrimaryOwner() throws TechnicalException {
+        when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(apiPrimaryOwnerRole());
+
+        Membership membership = new Membership();
+        membership.setRoleId(API_PO_ROLE_ID);
+
+        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any()))
+            .thenReturn(Set.of(membership));
+
+        membershipService.deleteMemberForApi(GraviteeContext.getExecutionContext(), API_ID, REFERENCE_ID);
+    }
+
     private static Optional<RoleEntity> apiPrimaryOwnerRole() {
         RoleEntity role = new RoleEntity();
         role.setName(PRIMARY_OWNER.name());

@@ -230,6 +230,8 @@ public interface MembershipService {
 
     MemberEntity updateMembershipForApi(ExecutionContext executionContext, String apiId, String memberId, String roleName);
 
+    void deleteMemberForApi(ExecutionContext executionContext, String apiId, String memberId);
+
     class MembershipReference {
 
         private final MembershipReferenceType type;

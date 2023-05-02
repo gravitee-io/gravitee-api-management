@@ -338,6 +338,26 @@ paths:
                                 $ref: "#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/members/{memberId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/memberIdParam"
+        delete:
+            tags:
+                - APIs
+                - API Members
+            summary: Delete one API member
+            description: |
+                Deletes an API member.
+                User must have the API_MEMBER[DELETE] permissions.
+            operationId: deleteApiMembership
+            responses:
+                "204":
+                    description: API member successfully deleted
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/plans:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -2789,6 +2809,13 @@ components:
             in: path
             required: true
             description: Id of an API.
+            schema:
+                type: string
+        memberIdParam:
+            name: memberId
+            in: path
+            required: true
+            description: Id of an API member.
             schema:
                 type: string
         planIdParam:
