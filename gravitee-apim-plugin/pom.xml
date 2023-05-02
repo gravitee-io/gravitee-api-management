@@ -82,7 +82,6 @@
         <module>gravitee-apim-plugin-entrypoint</module>
         <module>gravitee-apim-plugin-coverage</module>
         <module>gravitee-apim-plugin-apiservice</module>
-        <module>gravitee-apim-plugin-tests-integration</module>
         <module>gravitee-apim-plugin-reactor</module>
     </modules>
 </project>

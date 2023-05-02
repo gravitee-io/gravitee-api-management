@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.tests.messages;
+package io.gravitee.apim.integration.tests.messages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.graviteesouce.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
+import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.kafka.KafkaEndpointConnectorFactory;
@@ -41,6 +45,7 @@ import io.vertx.rxjava3.kafka.client.producer.KafkaProducerRecord;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -67,11 +72,15 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 @GatewayTest
 @DeployApi({ "/apis/v4/messages/sse-entrypoint-kafka-endpoint.json" })
-@Disabled
 class SseEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Container
     private static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
+
+    @Override
+    public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
+        reactors.add(ReactorBuilder.build(MessageApiReactorFactory.class));
+    }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
