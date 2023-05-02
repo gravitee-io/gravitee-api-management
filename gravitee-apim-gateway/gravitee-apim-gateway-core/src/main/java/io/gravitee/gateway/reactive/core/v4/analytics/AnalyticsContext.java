@@ -33,7 +33,7 @@ public class AnalyticsContext {
 
     public AnalyticsContext(final Analytics analytics, final String loggingMaxsize, final String loggingExcludedResponseType) {
         this.analytics = analytics;
-        if (analytics != null && analytics.isEnabled()) {
+        if (isEnabled()) {
             initLoggingContext(loggingMaxsize, loggingExcludedResponseType);
         }
     }
@@ -51,7 +51,7 @@ public class AnalyticsContext {
     }
 
     public boolean isEnabled() {
-        return this.analytics.isEnabled();
+        return this.analytics != null && this.analytics.isEnabled();
     }
 
     public boolean isLoggingEnabled() {
