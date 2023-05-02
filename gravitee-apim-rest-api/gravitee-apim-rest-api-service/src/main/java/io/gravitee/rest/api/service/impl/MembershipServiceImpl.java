@@ -1689,6 +1689,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         boolean notify
     ) {
         try {
+            RoleEntity apiPORole = roleService
+                .findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+                .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner role"));
+
             Set<io.gravitee.repository.management.model.Membership> existingMemberships =
                 this.membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                         member.getMemberId(),
@@ -1696,6 +1700,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         convert(reference.getType()),
                         reference.getId()
                     );
+
+            // If new roles do not contain PRIMARY_OWNER, check we are not removing PRIMARY_OWNER membership
+            if (roles.stream().filter(role -> role.getName().equals(PRIMARY_OWNER.name())).findAny().isEmpty()) {
+                assertNoPrimaryOwnerRemoval(apiPORole, existingMemberships);
+            }
+
             if (existingMemberships != null && !existingMemberships.isEmpty()) {
                 existingMemberships.forEach(membership -> this.deleteMembership(executionContext, membership.getId()));
             }
