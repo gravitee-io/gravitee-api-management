@@ -106,6 +106,15 @@ public class ApiMembersResource extends AbstractResource {
         return Response.ok().entity(MemberMapper.INSTANCE.convert(updatedMembership)).build();
     }
 
+    @Path("/{memberId}")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.DELETE) })
+    public Response deleteApiMembership(@PathParam("memberId") String memberId) {
+        membershipService.deleteMemberForApi(GraviteeContext.getExecutionContext(), apiId, memberId);
+        return Response.ok().build();
+    }
+
     private void checkRoleIsNotPrimaryOwner(String roleId) {
         if (PRIMARY_OWNER.name().equals(roleId)) {
             throw new SinglePrimaryOwnerException(RoleScope.API);

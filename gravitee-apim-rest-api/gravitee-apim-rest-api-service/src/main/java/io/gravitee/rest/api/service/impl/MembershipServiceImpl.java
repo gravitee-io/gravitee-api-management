@@ -1776,6 +1776,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         return membership;
     }
 
+    @Override
+    public void deleteMemberForApi(ExecutionContext executionContext, String apiId, String memberId) {
+        deleteReferenceMember(executionContext, MembershipReferenceType.API, apiId, MembershipMemberType.USER, memberId);
+    }
+
     private boolean hasApiPrimaryOwnerMemberInGroup(ExecutionContext executionContext, String groupId) {
         return this.getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId)
             .stream()
