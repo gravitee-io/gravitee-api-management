@@ -182,7 +182,6 @@ public class PromotionTasksServiceImplTest {
         assertThat(taskData.get("targetEnvironmentName")).isEqualTo("Target Env");
         assertThat(taskData.get("authorDisplayName")).isEqualTo("Author");
         assertThat(taskData.get("authorEmail")).isEqualTo("author@gv.io");
-        assertThat(taskData.get("authorPicture")).isEqualTo("https://picture.png");
         assertThat(taskData.get("apiId")).isEqualTo("api id");
         assertThat(taskData.get("isApiUpdate")).isEqualTo(true);
         assertThat(taskData.get("targetApiId")).isEqualTo("api#target");
@@ -238,7 +237,6 @@ public class PromotionTasksServiceImplTest {
         assertThat(taskData.get("targetEnvironmentName")).isEqualTo("Target Env");
         assertThat(taskData.get("authorDisplayName")).isEqualTo("Author");
         assertThat(taskData.get("authorEmail")).isEqualTo("author@gv.io");
-        assertThat(taskData.get("authorPicture")).isEqualTo("https://picture.png");
         assertThat(taskData.get("apiId")).isEqualTo("api id");
         assertThat(taskData.get("isApiUpdate")).isEqualTo(false);
         assertThat(taskData.get("targetApiId")).isNull();
@@ -297,7 +295,6 @@ public class PromotionTasksServiceImplTest {
         assertThat(taskData.get("targetEnvironmentName")).isEqualTo("Target Env");
         assertThat(taskData.get("authorDisplayName")).isEqualTo("Author");
         assertThat(taskData.get("authorEmail")).isEqualTo("author@gv.io");
-        assertThat(taskData.get("authorPicture")).isEqualTo("https://picture.png");
         assertThat(taskData.get("apiId")).isEqualTo("api id");
         assertThat(taskData.get("isApiUpdate")).isEqualTo(false);
     }
@@ -369,7 +366,6 @@ public class PromotionTasksServiceImplTest {
         PromotionEntityAuthor author = new PromotionEntityAuthor();
         author.setDisplayName("Author");
         author.setEmail("author@gv.io");
-        author.setPicture("https://picture.png");
         promotion.setAuthor(author);
         return promotion;
     }

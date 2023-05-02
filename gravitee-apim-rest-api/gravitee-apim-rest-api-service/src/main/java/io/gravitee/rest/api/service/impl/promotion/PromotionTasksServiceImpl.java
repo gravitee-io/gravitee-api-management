@@ -164,7 +164,6 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         data.put("targetEnvironmentName", promotionEntity.getTargetEnvName());
         data.put("authorDisplayName", promotionEntity.getAuthor().getDisplayName());
         data.put("authorEmail", promotionEntity.getAuthor().getEmail());
-        data.put("authorPicture", promotionEntity.getAuthor().getPicture());
         data.put("promotionId", promotionEntity.getId());
         data.put("isApiUpdate", isUpdate);
 

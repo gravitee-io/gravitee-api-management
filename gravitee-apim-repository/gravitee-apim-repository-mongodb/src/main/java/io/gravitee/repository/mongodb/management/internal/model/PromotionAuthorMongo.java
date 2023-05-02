@@ -22,7 +22,6 @@ public class PromotionAuthorMongo {
     private String userId;
     private String displayName;
     private String email;
-    private String picture;
     private String source;
     private String sourceId;
 
@@ -50,14 +49,6 @@ public class PromotionAuthorMongo {
         this.email = email;
     }
 
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
     public String getSource() {
         return source;
     }
@@ -83,7 +74,6 @@ public class PromotionAuthorMongo {
             Objects.equals(userId, that.userId) &&
             Objects.equals(displayName, that.displayName) &&
             Objects.equals(email, that.email) &&
-            Objects.equals(picture, that.picture) &&
             Objects.equals(source, that.source) &&
             Objects.equals(sourceId, that.sourceId)
         );
@@ -91,6 +81,6 @@ public class PromotionAuthorMongo {
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, displayName, email, picture, source, sourceId);
+        return Objects.hash(userId, displayName, email, source, sourceId);
     }
 }

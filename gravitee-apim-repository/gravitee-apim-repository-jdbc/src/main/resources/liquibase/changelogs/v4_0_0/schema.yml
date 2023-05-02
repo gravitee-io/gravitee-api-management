@@ -72,3 +72,8 @@ databaseChangeLog:
             constraintName: pk_${gravitee_prefix}upgraders
             columnNames: id
             tableName: ${gravitee_prefix}upgraders
+
+        - dropColumn:
+            columnName: author_picture
+            tableName: ${gravitee_prefix}promotions
+
