@@ -69,6 +69,7 @@ public class DictionaryResource extends AbstractResource {
         boolean notReadOnly = hasPermission(
             GraviteeContext.getExecutionContext(),
             RolePermission.ENVIRONMENT_DICTIONARY,
+            GraviteeContext.getCurrentEnvironment(),
             RolePermissionAction.CREATE,
             RolePermissionAction.UPDATE,
             RolePermissionAction.DELETE
