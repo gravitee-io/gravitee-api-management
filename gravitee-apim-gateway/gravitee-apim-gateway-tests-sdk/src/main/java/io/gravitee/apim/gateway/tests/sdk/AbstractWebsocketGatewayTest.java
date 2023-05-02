@@ -21,6 +21,7 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
@@ -40,15 +41,18 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
 
     @BeforeAll
     public void beforeAll(Vertx vertx, VertxTestContext context) {
+        final HttpServerOptions httpServerOptions = new HttpServerOptions();
+        final int serverPort = getAvailablePort();
+        httpServerOptions.setPort(serverPort);
         serverDispose =
             vertx
-                .createHttpServer()
+                .createHttpServer(httpServerOptions)
                 .webSocketHandler(serverWebSocket -> {
                     if (null != websocketServerHandler) {
                         websocketServerHandler.handle(serverWebSocket);
                     }
                 })
-                .listen()
+                .listen(serverPort)
                 .subscribe(
                     server -> {
                         httpServer = server;
