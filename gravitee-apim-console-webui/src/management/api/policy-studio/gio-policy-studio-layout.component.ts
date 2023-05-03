@@ -63,17 +63,15 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         tap((api) => {
-          this.policyStudioService.emitApiDefinition(this.toApiDefinition(api));
+          this.policyStudioService.setApiDefinition(this.toApiDefinition(api));
         }),
       )
       .subscribe();
-    this.policyStudioService.getApiDefinition$().pipe(takeUntil(this.unsubscribe$)).subscribe(this.onDefinitionChange.bind(this));
+    this.policyStudioService.getApiDefinitionToSave$().pipe(takeUntil(this.unsubscribe$)).subscribe(this.onDefinitionChange.bind(this));
   }
 
   onDefinitionChange(apiDefinition: ApiDefinition) {
-    if (this.apiDefinition) {
-      this.isDirty = true;
-    }
+    this.isDirty = true;
     this.apiDefinition = apiDefinition;
   }
 
@@ -85,7 +83,7 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
         switchMap((api) => this.apiService.update({ ...api, ...this.apiDefinition })),
         tap((api) => {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
-          this.policyStudioService.emitApiDefinition(this.toApiDefinition(api));
+          this.policyStudioService.setApiDefinition(this.toApiDefinition(api));
           this.isDirty = false;
         }),
       )
