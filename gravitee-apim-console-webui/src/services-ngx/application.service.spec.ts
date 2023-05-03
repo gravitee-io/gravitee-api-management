@@ -72,4 +72,39 @@ describe('ApplicationService', () => {
       req.flush(mockApplications);
     });
   });
+
+  describe('search', () => {
+    it('should search application', (done) => {
+      const mockApplications = [fakeApplication()];
+
+      applicationService.list().subscribe((response) => {
+        expect(response).toMatchObject(mockApplications);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10`,
+      });
+
+      req.flush(mockApplications);
+    });
+
+    it('should search application with application id', (done) => {
+      const mockApplications = [fakeApplication()];
+      const query = '0d93fd04-e834-447f-93fd-04e834047f9d';
+
+      applicationService.list(undefined, query).subscribe((response) => {
+        expect(response).toMatchObject(mockApplications);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=10&ids=0d93fd04-e834-447f-93fd-04e834047f9d`,
+      });
+
+      req.flush(mockApplications);
+    });
+  });
 });
