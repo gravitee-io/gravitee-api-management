@@ -109,4 +109,14 @@ public class ResourceContextConfiguration {
     public OrganizationService organizationService() {
         return mock(OrganizationService.class);
     }
+
+    @Bean
+    public ApiMetadataService apiMetadataService() {
+        return mock(ApiMetadataService.class);
+    }
+
+    @Bean
+    public PageService pageService() {
+        return mock(PageService.class);
+    }
 }

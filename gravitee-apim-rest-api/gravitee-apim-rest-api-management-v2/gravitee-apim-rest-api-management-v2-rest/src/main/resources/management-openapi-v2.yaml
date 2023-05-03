@@ -125,6 +125,32 @@ paths:
                                 $ref: "#/components/schemas/Api"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/_import/definition:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Import API definition
+            description: |-
+                Create an API by importing an API definition. This definition can be retrieved from `GET /environments/{envId}/apis/{apiId}/_export/definition`
+                User must have the ENVIRONMENT_API[CREATE] permission.
+            operationId: createApiWithDefinition
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ExportApiV4"
+                required: true
+            responses:
+                "201":
+                    description: API successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiV4"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/_search:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -153,6 +179,7 @@ paths:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}:
         parameters:
+            - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
             tags:
@@ -210,6 +237,39 @@ paths:
             responses:
                 "204":
                     description: API successfully deleted
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/_export/definition:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - APIs
+            summary: Export an API
+            description: |-
+                ⚠️ Support only v4 API for the moment. ⚠️
+                Export an API to a JSON file.
+                User must have at least the API_DEFINITION[READ] permission.
+                User should also have these permissions for specific data:
+                 - API_DEFINITION[READ] for the API
+                 - API_MEMBER[READ] for the API's members
+                 - API_PLAN[READ] for the API's plans
+                 - API_METADATA[READ] for the API's metadata
+                 - API_DOCUMENTATION[READ] for the API's documentation pages
+            operationId: exportApiDefinition
+            responses:
+                "200":
+                    description: API deployment successfully deployed
+                    headers:
+                        Content-Disposition:
+                            schema:
+                                type: string
+                                example: attachment; filename="api-definition.json"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ExportApiV4"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_start:
@@ -846,7 +906,7 @@ components:
                         - STOPPED
                         - STOPPING
                 visibility:
-                    $ref: "#/components/schemas/ApiVisibility"
+                    $ref: "#/components/schemas/Visibility"
                 labels:
                     type: array
                     description: The free list of labels associated with this API.
@@ -866,7 +926,8 @@ components:
                         - private
                     items:
                         type: string
-                # primaryOwner ==> dedicated resource
+                primaryOwner:
+                    $ref: "#/components/schemas/PrimaryOwner"
                 categories:
                     type: array
                     description: The list of category ids associated with this API.
@@ -1068,6 +1129,36 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                   required: [listeners, endpointGroups]
 
+        ExportApiV4:
+            type: object
+            properties:
+                api:
+                    $ref: "#/components/schemas/Api"
+                members:
+                    type: array
+                    description: The list of members associated with this API.
+                    items:
+                        $ref: "#/components/schemas/Member"
+                    uniqueItems: true
+                metadata:
+                    type: array
+                    description: The list of API's metadata.
+                    items:
+                        $ref: "#/components/schemas/Metadata"
+                    uniqueItems: true
+                pages:
+                    type: array
+                    description: The list of pages associated with this API.
+                    items:
+                        $ref: "#/components/schemas/Page"
+                    uniqueItems: true
+                plans:
+                    type: array
+                    description: The list of plans associated with this API.
+                    items:
+                        $ref: "#/components/schemas/Plan"
+                    uniqueItems: true
+
         ApiDeployment:
             type: object
             properties:
@@ -1113,9 +1204,9 @@ components:
             enum:
                 - MESSAGE
                 - PROXY
-        ApiVisibility:
+        Visibility:
             type: string
-            description: The visibility of the API regarding the portal.
+            description: The visibility of the resource regarding the portal.
             example: PUBLIC
             enum:
                 - PUBLIC
@@ -1745,6 +1836,10 @@ components:
                         - MY_GROUP2
                     items:
                         type: string
+                flows:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/FlowV4"
                 generalConditions:
                     type: string
                 id:
@@ -1790,9 +1885,7 @@ components:
             type: object
             properties:
                 type:
-                    type: string
-                    description: The type of the plan security
-                    example: keyless
+                    $ref: "#/components/schemas/PlanSecurityType"
                 configuration:
                     type: object
             required:
@@ -1908,6 +2001,28 @@ components:
                     description: Plugin's version.
                     example: 1.0.0
                     minLength: 1
+        PrimaryOwner:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Owner's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                email:
+                    type: string
+                    description: Owner's email. Can be null if owner is a group.
+                displayName:
+                    type: string
+                    description: Owner's name.
+                    example: John Doe
+                    minLength: 1
+                type:
+                    type: string
+                    description: Owner's type.
+                    example: USER
+                    enum:
+                        - USER
+                        - GROUP
         Property:
             type: object
             required:
@@ -2774,6 +2889,208 @@ components:
                     type: boolean
                     description: Override the entrypoint or not
                     default: false
+
+        # Documentation pages
+        AccessControl:
+            type: object
+            properties:
+                referenceId:
+                    type: string
+                    description: The id of the resource used to check the access control
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                referenceType:
+                    type: string
+                    description: The type of the resource used to check the access control
+                    example:
+                        - GROUP
+                        - ROLE
+        Page:
+            description: Documentation page. Can be of multiple formats.
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Page's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                crossId:
+                    type: string
+                    description: Page's cross uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: Page's name.
+                    example: My Page
+                type:
+                    $ref: "#/components/schemas/PageType"
+                content:
+                    type: string
+                    description: Page's content.
+                    example: My Page content
+                order:
+                    type: integer
+                    description: Page's order.
+                    example: 1
+                lastContributor:
+                    type: string
+                    description: Page's last contributor. Id of a user.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                published:
+                    type: boolean
+                    description: Page's published status.
+                    example: true
+                visibility:
+                    $ref: "#/components/schemas/Visibility"
+                updatedAt:
+                    type: string
+                    format: date-time
+                    description: Page's last update date.
+                    example: 2018-01-01T00:00:00.000Z
+                contentType:
+                    type: string
+                    description: Page's content type.
+                    example: application/json
+                source:
+                    $ref: "#/components/schemas/PageSource"
+                configuration:
+                    type: object
+                    description: Page's configuration.
+                    additionalProperties:
+                        type: string
+                homepage:
+                    type: boolean
+                    description: Page's homepage status.
+                    example: true
+                parentId:
+                    type: string
+                    description: Page's parent id.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                parentPath:
+                    type: string
+                    description: Page's parent path.
+                    example: /parent
+                excludedGroups:
+                    type: array
+                    description: List of group ids that are considered when looking for acces control.
+                    items:
+                        type: string
+                        example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                excludedAccessControls:
+                    type: boolean
+                    description: Flag to restrict access to user matching the restrictions.
+                accessControls:
+                    type: array
+                    description: List of access controls.
+                    items:
+                        $ref: "#/components/schemas/AccessControl"
+                attachedMedia:
+                    type: array
+                    description: List of attached media.
+                    items:
+                        $ref: "#/components/schemas/PageMedia"
+                metadata:
+                    type: object
+                    description: Page's metadata.
+                    additionalProperties:
+                        type: string
+                translations:
+                    type: array
+                    description: List of page translations.
+                    items:
+                        $ref: "#/components/schemas/Page"
+                generalConditions:
+                    type: boolean
+                    description: Is the page used as General Conditions for a plan.
+                contentRevision:
+                    $ref: "#/components/schemas/Revision"
+        PageMedia:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Media's name.
+                    example: My Media
+                hash:
+                    type: string
+                    description: Media's hash.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                attachedAt:
+                    type: string
+                    format: date-time
+                    description: Media's attachment date.
+                    example: 2018-01-01T00:00:00.000Z
+        PageSource:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: The type of the page source (=fetcher type).
+                    example:
+                        - http-fetcher
+                        - git-fetcher
+                        - gitlab-fetcher
+                        - github-fetcher
+                        - bitbucket-fetcher
+                configuration:
+                    type: object
+                    description: Page source's configuration.
+        PageType:
+            type: string
+            description: The type of the page.
+            example: MARKDOWN
+            enum:
+                - ASCIIDOC
+                - ASYNCAPI
+                - MARKDOWN
+                - MARKDOWN_TEMPLATE
+                - SWAGGER
+                - FOLDER
+                - LINK
+                - ROOT
+                - SYSTEM_FOLDER
+                - TRANSLATION
+        Revision:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Id of the page used to fill the content attributes.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                revision:
+                    type: integer
+                    description: Revision number.
+                    example: 1
+
+        # Metadata Page
+        Metadata:
+            type: object
+            properties:
+                key:
+                    type: string
+                    description: The key of the metadata.
+                    minLength: 1
+                name:
+                    type: string
+                    description: The name of the metadata.
+                format:
+                    $ref: "#/components/schemas/MetadataFormat"
+                value:
+                    type: string
+                    description: The value of the metadata.
+                    minLength: 1
+                defaultValue:
+                    type: string
+                    description: The default value of the metadata.
+        MetadataFormat:
+            type: string
+            description: The format of the metadata.
+            example: DATE
+            enum:
+                - STRING
+                - NUMERIC
+                - BOOLEAN
+                - DATE
+                - MAIL
+                - URL
     parameters:
         #############
         # PathParam #

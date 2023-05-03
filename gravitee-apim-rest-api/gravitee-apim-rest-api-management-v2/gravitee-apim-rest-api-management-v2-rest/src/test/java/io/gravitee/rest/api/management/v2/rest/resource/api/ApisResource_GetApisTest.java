@@ -143,7 +143,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         Assertions.assertTrue(api.getGroups().containsAll(List.of("group1", "group2")));
         Assertions.assertTrue(api.getTags().containsAll(List.of("tag1", "tag2")));
         Assertions.assertEquals(BaseApi.StateEnum.STARTED, api.getState());
-        Assertions.assertEquals(ApiVisibility.PUBLIC, api.getVisibility());
+        Assertions.assertEquals(io.gravitee.rest.api.management.v2.rest.model.Visibility.PUBLIC, api.getVisibility());
         Assertions.assertEquals("2020-02-02T20:22:02Z", api.getDeployedAt().toString());
         Assertions.assertEquals("2020-01-01T10:10:10Z", api.getCreatedAt().toString());
         Assertions.assertEquals("2020-01-01T10:10:10Z", api.getUpdatedAt().toString());
@@ -213,7 +213,7 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         Assertions.assertTrue(api.getGroups().containsAll(List.of("group1", "group2")));
         Assertions.assertTrue(api.getTags().containsAll(List.of("tag1", "tag2")));
         Assertions.assertEquals(BaseApi.StateEnum.STARTED, api.getState());
-        Assertions.assertEquals(ApiVisibility.PUBLIC, api.getVisibility());
+        Assertions.assertEquals(io.gravitee.rest.api.management.v2.rest.model.Visibility.PUBLIC, api.getVisibility());
         Assertions.assertEquals("2020-02-02T20:22:02Z", api.getDeployedAt().toString());
         Assertions.assertEquals("2020-01-01T10:10:10Z", api.getCreatedAt().toString());
         Assertions.assertEquals("2020-01-01T10:10:10Z", api.getUpdatedAt().toString());

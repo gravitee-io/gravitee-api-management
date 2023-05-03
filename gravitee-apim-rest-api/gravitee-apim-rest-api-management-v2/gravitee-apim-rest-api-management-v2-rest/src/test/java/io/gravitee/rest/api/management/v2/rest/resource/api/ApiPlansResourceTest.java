@@ -90,7 +90,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         newPlanEntity.setDescription("my-plan-description");
         newPlanEntity.setValidation(PlanValidationType.AUTO);
         var planSecurity = new PlanSecurity();
-        planSecurity.setType("planType");
+        planSecurity.setType("api-key");
         newPlanEntity.setSecurity(planSecurity);
         newPlanEntity.setStatus(PlanStatus.STAGING);
 
@@ -124,7 +124,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         assertEquals(PlanValidation.AUTO, createdPlan.getValidation());
         var createdPlanSecurity = createdPlan.getSecurity();
         assertNotNull(createdPlanSecurity);
-        assertEquals("planType", createdPlanSecurity.getType());
+        assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY, createdPlanSecurity.getType());
         assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanType.API, createdPlan.getType());
         assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.STAGING, createdPlan.getStatus());
         assertEquals(createdAt.toInstant().atOffset(ZoneOffset.UTC), createdPlan.getCreatedAt());

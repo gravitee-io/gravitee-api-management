@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.common.http.MediaType;
@@ -26,10 +27,17 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.MetadataMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -41,14 +49,19 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiStateService;
+import io.gravitee.rest.api.service.v4.PlanService;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -84,6 +97,15 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ApiStateService apiStateService;
+
+    @Inject
+    private ApiMetadataService apiMetadataService;
+
+    @Inject
+    private PlanService planServiceV4;
+
+    @Inject
+    private PageService pageService;
 
     @PathParam("apiId")
     private String apiId;
@@ -188,6 +210,77 @@ public class ApiResource extends AbstractResource {
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
         }
+    }
+
+    @Path("/_export/definition")
+    @Produces(MediaType.APPLICATION_JSON)
+    @POST
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    public Response exportApiDefinition(@Context HttpHeaders headers) {
+        final ExportApiV4 exportApi = new ExportApiV4();
+        final var apiEntity = getApiEntityById();
+        if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
+            throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
+        }
+        exportApi.setApi(ApiMapper.INSTANCE.convert(apiEntity));
+
+        if (
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_MEMBER,
+                apiId,
+                RolePermissionAction.READ
+            )
+        ) {
+            var members = membershipService
+                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
+                .stream()
+                .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
+                .map(MemberMapper.INSTANCE::convert)
+                .collect(Collectors.toSet());
+            exportApi.setMembers(members);
+        }
+
+        if (
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_METADATA,
+                apiId,
+                RolePermissionAction.READ
+            )
+        ) {
+            var metadataList = apiMetadataService.findAllByApi(apiId);
+            exportApi.setMetadata(MetadataMapper.INSTANCE.convertListToSet(metadataList));
+        }
+
+        if (
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_PLAN,
+                apiId,
+                RolePermissionAction.READ
+            )
+        ) {
+            var plansSet = planServiceV4.findByApi(GraviteeContext.getExecutionContext(), apiId);
+            exportApi.setPlans(PlanMapper.INSTANCE.convertSet(plansSet));
+        }
+
+        if (
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_DOCUMENTATION,
+                apiId,
+                RolePermissionAction.READ
+            )
+        ) {
+            var pageList = pageService.findByApi(GraviteeContext.getCurrentEnvironment(), apiId);
+            exportApi.setPages(PageMapper.INSTANCE.convertListToSet(pageList));
+        }
+
+        return Response
+            .ok(exportApi)
+            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))
+            .build();
     }
 
     @Path("/_start")
@@ -340,5 +433,15 @@ public class ApiResource extends AbstractResource {
             default:
                 break;
         }
+    }
+
+    private String getExportFilename(GenericApiEntity apiEntity) {
+        return format("%s-%s.%s", apiEntity.getName(), apiEntity.getApiVersion(), "json")
+            .trim()
+            .toLowerCase()
+            .replaceAll(" +", " ")
+            .replaceAll(" ", "-")
+            .replaceAll("[^\\w\\s\\.]", "-")
+            .replaceAll("-+", "-");
     }
 }
