@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
+import io.gravitee.rest.api.service.exceptions.PreconditionFailedException;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.net.URI;
@@ -232,25 +233,26 @@ public abstract class AbstractResource {
         return requestUriBuilder.build();
     }
 
-    protected Response.ResponseBuilder evaluateIfMatch(final HttpHeaders headers, final String etagValue) {
+    protected void evaluateIfMatch(final HttpHeaders headers, final String etagValue) {
         String ifMatch = headers.getHeaderString(HttpHeaders.IF_MATCH);
-        if (ifMatch == null || ifMatch.isEmpty()) {
-            return null;
-        }
 
-        // Handle case for -gzip appended automatically (and sadly) by Apache
-        ifMatch = ifMatch.replaceAll("-gzip", "");
+        if (Objects.nonNull(ifMatch) && !ifMatch.isEmpty()) {
+            // Handle case for -gzip appended automatically (and sadly) by Apache
+            ifMatch = ifMatch.replaceAll("-gzip", "");
 
-        try {
-            Set<MatchingEntityTag> matchingTags = HttpHeaderReader.readMatchingEntityTag(ifMatch);
+            Set<MatchingEntityTag> matchingTags;
+            try {
+                matchingTags = HttpHeaderReader.readMatchingEntityTag(ifMatch);
+            } catch (java.text.ParseException e) {
+                return;
+            }
+
             MatchingEntityTag ifMatchHeader = matchingTags.iterator().next();
             EntityTag eTag = new EntityTag(etagValue, ifMatchHeader.isWeak());
 
-            return matchingTags != MatchingEntityTag.ANY_MATCH && !matchingTags.contains(eTag)
-                ? Response.status(Response.Status.PRECONDITION_FAILED)
-                : null;
-        } catch (java.text.ParseException e) {
-            return null;
+            if (matchingTags != MatchingEntityTag.ANY_MATCH && !matchingTags.contains(eTag)) {
+                throw new PreconditionFailedException();
+            }
         }
     }
 

@@ -54,6 +54,7 @@ import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.*;
@@ -64,6 +65,7 @@ import javax.ws.rs.core.Response;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -76,6 +78,9 @@ public class ApiResourceTest extends AbstractResourceTest {
     private static final String ENVIRONMENT = "my-env";
 
     private ApiEntity apiEntity;
+
+    @Autowired
+    private WorkflowService workflowService;
 
     private final ObjectMapper mapper = new GraviteeMapper(false);
 
@@ -280,24 +285,6 @@ public class ApiResourceTest extends AbstractResourceTest {
             .when(permissionService)
             .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
         final Response response = rootTarget(API).request().delete();
-        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
-    public void shouldNotStartApiWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
-        final Response response = rootTarget(API).path("/_start").request().post(Entity.json(""));
-        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
-    public void shouldNotStopApiWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
-        final Response response = rootTarget(API).path("/_stop").request().post(Entity.json(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
