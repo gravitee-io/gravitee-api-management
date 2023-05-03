@@ -39,7 +39,7 @@ describe('PolicyStudioDebugService', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     policyStudioDebugService = TestBed.inject<PolicyStudioDebugService>(PolicyStudioDebugService);
     policyStudioService = TestBed.inject(PolicyStudioService);
-    policyStudioService.emitApiDefinition(toApiDefinition(api));
+    policyStudioService.setApiDefinition(toApiDefinition(api));
   });
 
   afterEach(() => {
