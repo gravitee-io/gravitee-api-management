@@ -98,7 +98,7 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
     const { isDirty, errors, definition } = $event.detail;
     if (isDirty && errors === 0 && definition != null) {
       this.apiDefinition = definition;
-      this.policyStudioService.emitApiDefinition(this.apiDefinition);
+      this.policyStudioService.saveApiDefinition(this.apiDefinition);
     }
   }
 

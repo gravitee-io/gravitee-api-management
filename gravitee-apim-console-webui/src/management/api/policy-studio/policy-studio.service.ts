@@ -15,7 +15,7 @@
  */
 
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
 import { ApiDefinition } from './models/ApiDefinition';
@@ -26,15 +26,25 @@ import { ApiDefinition } from './models/ApiDefinition';
 export class PolicyStudioService {
   private apiDefinitionSubject = new BehaviorSubject<ApiDefinition>(null);
 
+  private apiDefinitionToSaveSubject = new Subject<ApiDefinition>();
+
   reset() {
     this.apiDefinitionSubject = new BehaviorSubject<ApiDefinition>(null);
   }
 
-  emitApiDefinition(apiDefinition: ApiDefinition) {
+  setApiDefinition(apiDefinition: ApiDefinition) {
     return this.apiDefinitionSubject.next(apiDefinition);
+  }
+
+  saveApiDefinition(apiDefinition: ApiDefinition) {
+    return this.apiDefinitionToSaveSubject.next(apiDefinition);
   }
 
   getApiDefinition$() {
     return this.apiDefinitionSubject.pipe(filter((value) => !!value));
+  }
+
+  getApiDefinitionToSave$() {
+    return this.apiDefinitionToSaveSubject;
   }
 }
