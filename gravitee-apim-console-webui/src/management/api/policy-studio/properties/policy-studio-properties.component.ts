@@ -71,14 +71,21 @@ export class PolicyStudioPropertiesComponent implements OnInit, OnDestroy {
   }
 
   onChange($event: ChangePropertiesEvent) {
-    this.apiDefinition.properties = $event.detail.properties;
-    this.policyStudioService.emitApiDefinition(this.apiDefinition);
+    this.policyStudioService.saveApiDefinition({
+      ...this.apiDefinition,
+      properties: $event.detail.properties,
+    });
   }
 
   onSaveProvider($event: SaveProviderEvent) {
     const { provider } = $event.detail;
-    this.apiDefinition.services['dynamic-property'] = provider;
-    this.policyStudioService.emitApiDefinition(this.apiDefinition);
+    this.policyStudioService.saveApiDefinition({
+      ...this.apiDefinition,
+      services: {
+        ...this.apiDefinition.services,
+        'dynamic-property': provider,
+      },
+    });
   }
 
   get isLoading() {
