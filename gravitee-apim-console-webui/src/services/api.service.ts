@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IHttpPromise, IHttpService, IPromise, IRootScopeService } from 'angular';
+import { IHttpPromise, IHttpResponse, IHttpService, IPromise, IRootScopeService } from 'angular';
 import { clone } from 'lodash';
 
 import { ApplicationExcludeFilter } from './application.service';
@@ -766,6 +766,18 @@ export class ApiService {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/schema`);
   }
 
+  picture(apiId: string): IPromise<string> {
+    return this.$http
+      .get(`${this.Constants.env.baseURL}/apis/${apiId}/picture`, { responseType: 'blob' })
+      .then((response: IHttpResponse<Blob>) => blobToBase64(response.data));
+  }
+
+  background(apiId: string): IPromise<string> {
+    return this.$http
+      .get(`${this.Constants.env.baseURL}/apis/${apiId}/background`, { responseType: 'blob' })
+      .then((response: IHttpResponse<Blob>) => blobToBase64(response.data));
+  }
+
   private async syncV2Api(api: { id: string }): Promise<boolean> {
     if (this.isV2(api)) {
       const updatedApi = await this.get(api.id);
@@ -803,3 +815,16 @@ export class ApiService {
     return api && api.gravitee === '2.0.0';
   }
 }
+
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise<string>((resolve, reject) => {
+    if (!blob || blob.size === 0) {
+      reject('Blob is empty');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
