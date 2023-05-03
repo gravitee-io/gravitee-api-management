@@ -47,8 +47,7 @@ const apiSubscriptionResource = new APISubscriptionsApi(forManagementAsApiUser()
 const portalApplicationResource = new ApplicationApi(forPortalAsAppUser());
 const portalSubscriptionResource = new SubscriptionApi(forPortalAsAppUser());
 
-// TODO: describeIfJupiter.skip('V4 subscription plan subscription and approval workflow', () => {
-describe.skip('V4 subscription plan subscription and approval workflow', () => {
+describeIfJupiter('V4 subscription plan subscription and approval workflow', () => {
   let api: ApiEntityV4;
   let plan: PlanEntityV4;
   let application: Application;

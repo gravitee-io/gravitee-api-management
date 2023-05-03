@@ -39,9 +39,11 @@ services:
 
   management_api:
     environment:
+      - gravitee_license_key=${GRAVITEE_LICENSE}
       - gravitee_management_mongodb_uri=mongodb://database:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
 
   gateway:
     environment:
+      - gravitee_license_key=${GRAVITEE_LICENSE}
       - gravitee_management_mongodb_uri=mongodb://database:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_ratelimit_mongodb_uri=mongodb://database:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000

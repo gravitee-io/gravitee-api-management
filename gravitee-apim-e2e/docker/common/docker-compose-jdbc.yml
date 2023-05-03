@@ -47,6 +47,7 @@ services:
     volumes:
       - ./docker/common/tmp/jdbc-driver:/opt/graviteeio-management-api/plugins/ext/repository-jdbc
     environment:
+      - gravitee_license_key=${GRAVITEE_LICENSE}
       - gravitee_management_type=jdbc
       - gravitee_management_jdbc_url=jdbc:postgresql://database:5432/gravitee
       - gravitee_management_jdbc_username=postgres
@@ -56,6 +57,7 @@ services:
     volumes:
       - ./docker/common/tmp/jdbc-driver:/opt/graviteeio-gateway/plugins/ext/repository-jdbc
     environment:
+      - gravitee_license_key=${GRAVITEE_LICENSE}
       - gravitee_management_type=jdbc
       - gravitee_management_jdbc_url=jdbc:postgresql://database:5432/gravitee
       - gravitee_management_jdbc_username=postgres
