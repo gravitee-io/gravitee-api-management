@@ -1521,6 +1521,24 @@ public class UserServiceTest {
     }
 
     @Test
+    public void shouldCreateNewUserWithNullMappings() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository, roleService);
+
+        mockDefaultEnvironment();
+
+        when(identityProvider.getRoleMappings()).thenReturn(null);
+        when(identityProvider.getGroupMappings()).thenReturn(null);
+
+        User createdUser = mockUser();
+        when(userRepository.create(any(User.class))).thenReturn(createdUser);
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(GraviteeContext.getExecutionContext(), identityProvider, userInfo);
+        verify(userRepository, times(1)).create(any(User.class));
+    }
+
+    @Test
     public void shouldCreateNewUserWithNoMatchingGroupsMappingFromUserInfo() throws IOException, TechnicalException {
         reset(identityProvider, userRepository, membershipService);
         mockDefaultEnvironment();
