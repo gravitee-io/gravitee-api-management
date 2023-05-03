@@ -1496,6 +1496,9 @@ jobs:
                   at: .
             - get-apim-tag
             - docker-azure-login
+            - keeper/env-export:
+                secret-url: keeper://w8WBpALVCgYdxtV5pVrQsw/custom_field/base64
+                var-name: GRAVITEE_LICENSE
             - run:
                   name: Run API & E2E Tests
                   command: |

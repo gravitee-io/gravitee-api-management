@@ -32,6 +32,7 @@ services:
     ports:
       - "8083:8083"
     environment:
+      - gravitee_license_key=${GRAVITEE_LICENSE}
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_newsletter_enabled=false
       - gravitee_security_providers[0].users[0].email=user@gravitee.io
@@ -62,6 +63,7 @@ services:
     ports:
       - "18082:18082"
     environment:
+      - gravitee_license_key=${GRAVITEE_LICENSE}
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_api_jupiterMode_enabled=${JUPITER_MODE_ENABLED:-false}
       - gravitee_services_sync_delay=500
@@ -97,6 +99,7 @@ services:
     volumes:
       - ./.license:/opt/graviteeio-gateway/license
     environment:
+      - gravitee_license_key=${GRAVITEE_LICENSE}
       - gravitee_management_type=http
       - gravitee_management_http_url=http://gateway-server:18092
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
