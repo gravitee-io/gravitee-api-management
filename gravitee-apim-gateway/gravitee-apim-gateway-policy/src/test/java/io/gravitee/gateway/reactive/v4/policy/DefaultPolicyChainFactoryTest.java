@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.v4.policy;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -27,6 +28,8 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -35,6 +38,7 @@ import io.gravitee.gateway.reactive.policy.PolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -254,5 +258,19 @@ class DefaultPolicyChainFactoryTest {
         verify(policyManager, times(2)).create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class));
 
         verifyNoMoreInteractions(policyManager);
+    }
+
+    @Test
+    public void shouldNotFailIfFlowMethodsIsNull() {
+        final Flow flow = mock(Flow.class);
+        final HttpSelector selector = mock(HttpSelector.class);
+
+        when(flow.selectorByType(eq(SelectorType.HTTP))).thenReturn(Optional.of(selector));
+        when(selector.getMethods()).thenReturn(null);
+        when(selector.getPath()).thenReturn("path");
+
+        final PolicyChain policyChain = cut.create("flowchain-test", flow, ExecutionPhase.REQUEST);
+        assertNotNull(policyChain);
+        assertEquals("flowchain-test-all-path", policyChain.getId());
     }
 }
