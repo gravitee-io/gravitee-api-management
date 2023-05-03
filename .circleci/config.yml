@@ -659,10 +659,9 @@ jobs:
 
     test-integration:
       executor:
-        name: ubuntu
-        class: medium
+        name: openjdk
+        class: medium+
       steps:
-        - install-jdk-17-for-machine
         - checkout
         - attach_workspace:
             at: .
