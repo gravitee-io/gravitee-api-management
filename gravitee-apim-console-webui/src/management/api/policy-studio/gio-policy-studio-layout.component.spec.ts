@@ -24,6 +24,7 @@ import { omit } from 'lodash';
 
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
 import { toApiDefinition } from './models/ApiDefinition';
+import { PolicyStudioService } from './policy-studio.service';
 
 import { User } from '../../../entities/user';
 import { fakeApi } from '../../../entities/api/Api.fixture';
@@ -81,6 +82,10 @@ describe('GioPolicyStudioLayoutComponent', () => {
 
   describe('onSubmit', () => {
     it('should call the API', async () => {
+      const policyStudioService = TestBed.inject(PolicyStudioService);
+      const apiDefinitionToSave = toApiDefinition(fakeApi());
+      policyStudioService.saveApiDefinition(apiDefinitionToSave);
+
       component.onSubmit();
 
       httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
@@ -94,7 +99,7 @@ describe('GioPolicyStudioLayoutComponent', () => {
             categories: undefined,
             paths: undefined,
             picture: undefined,
-            plans: [],
+            plans: apiDefinitionToSave.plans,
             flows: api.flows,
             execution_mode: undefined,
           }),
@@ -105,7 +110,9 @@ describe('GioPolicyStudioLayoutComponent', () => {
 
     it('should broadcast `apiChangeSuccess` with api updated', async () => {
       const updateApi = fakeUpdateApi();
-      const emitApiDefinitionSpy = jest.spyOn(component.policyStudioService, 'emitApiDefinition');
+      const policyStudioService = TestBed.inject(PolicyStudioService);
+      policyStudioService.saveApiDefinition(toApiDefinition(fakeApi()));
+      const setApiDefinitionSpy = jest.spyOn(component.policyStudioService, 'setApiDefinition');
 
       component.onSubmit();
 
@@ -113,7 +120,7 @@ describe('GioPolicyStudioLayoutComponent', () => {
       httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}` }).flush(updateApi);
 
       expect($broadcast).toHaveBeenCalledWith('apiChangeSuccess', { api: updateApi });
-      expect(emitApiDefinitionSpy).toHaveBeenCalledTimes(1);
+      expect(setApiDefinitionSpy).toHaveBeenCalledTimes(1);
       expect(component.isDirty).toBeFalsy();
     });
   });
