@@ -281,7 +281,8 @@ paths:
                 - APIs
             summary: Start an API
             description: |-
-                # FIXME add a description
+                Change the API's status to STARTED.
+                User must have the API_DEFINITION[UPDATE] permission.
             operationId: startApi
             responses:
                 "204":
@@ -297,7 +298,8 @@ paths:
                 - APIs
             summary: Stop an API
             description: |-
-                # FIXME add a description
+                Change the API's status to STOPPED.
+                User must have the API_DEFINITION[UPDATE] permission.
             operationId: stopApi
             responses:
                 "204":

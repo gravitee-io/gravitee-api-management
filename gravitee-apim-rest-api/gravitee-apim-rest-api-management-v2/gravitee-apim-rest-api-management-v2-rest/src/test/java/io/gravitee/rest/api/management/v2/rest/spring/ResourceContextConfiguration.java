@@ -119,4 +119,9 @@ public class ResourceContextConfiguration {
     public PageService pageService() {
         return mock(PageService.class);
     }
+
+    @Bean
+    public WorkflowService workflowService() {
+        return mock(WorkflowService.class);
+    }
 }

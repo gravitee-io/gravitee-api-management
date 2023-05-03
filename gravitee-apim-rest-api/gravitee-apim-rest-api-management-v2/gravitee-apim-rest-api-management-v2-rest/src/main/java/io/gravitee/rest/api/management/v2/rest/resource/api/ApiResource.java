@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
+import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -25,6 +28,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
@@ -52,6 +56,7 @@ import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
@@ -107,10 +112,13 @@ public class ApiResource extends AbstractResource {
     @Inject
     private PageService pageService;
 
+    @Inject
+    private WorkflowService workflowService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiById(@PathParam("apiId") String apiId) {
-        final GenericApiEntity apiEntity = getApiEntityById(apiId);
+        final GenericApiEntity apiEntity = getGenericApiEntityById(apiId);
         return Response
             .ok(ApiMapper.INSTANCE.convert(apiEntity))
             .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
@@ -136,12 +144,8 @@ public class ApiResource extends AbstractResource {
             throw new BadRequestException("'apiId' is not the same as the API in payload");
         }
 
-        final GenericApiEntity currentEntity = getApiEntityById(apiId);
-        Response.ResponseBuilder builder = evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
-
-        if (builder != null) {
-            return builder.build();
-        }
+        final GenericApiEntity currentEntity = getGenericApiEntityById(apiId);
+        evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
 
         try {
             ImageUtils.verify(apiToUpdate.getPicture());
@@ -218,7 +222,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
     public Response exportApiDefinition(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
         final ExportApiV4 exportApi = new ExportApiV4();
-        final var apiEntity = getApiEntityById(apiId);
+        final var apiEntity = getGenericApiEntityById(apiId);
         if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
         }
@@ -287,16 +291,15 @@ public class ApiResource extends AbstractResource {
     @POST
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response startAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
-        final Response responseApi = getApiById(apiId);
-        Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId);
+        evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
-        if (builder != null) {
-            return builder.build();
-        }
-
-        final ApiEntity apiEntity = (ApiEntity) responseApi.getEntity();
-        checkApiLifeCycle(apiEntity, LifecycleAction.START);
-        ApiEntity updatedApi = apiStateService.start(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser());
+        checkApiLifeCycle(genericApiEntity, LifecycleAction.START);
+        ApiEntity updatedApi = apiStateService.start(
+            GraviteeContext.getExecutionContext(),
+            genericApiEntity.getId(),
+            getAuthenticatedUser()
+        );
 
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
     }
@@ -305,21 +308,20 @@ public class ApiResource extends AbstractResource {
     @POST
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response stopAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
-        final Response responseApi = getApiById(apiId);
-        Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId);
+        evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
-        if (builder != null) {
-            return builder.build();
-        }
-
-        final ApiEntity apiEntity = (ApiEntity) responseApi.getEntity();
-        checkApiLifeCycle(apiEntity, LifecycleAction.STOP);
-        ApiEntity updatedApi = apiStateService.stop(GraviteeContext.getExecutionContext(), apiEntity.getId(), getAuthenticatedUser());
+        checkApiLifeCycle(genericApiEntity, LifecycleAction.STOP);
+        ApiEntity updatedApi = apiStateService.stop(
+            GraviteeContext.getExecutionContext(),
+            genericApiEntity.getId(),
+            getAuthenticatedUser()
+        );
 
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
     }
 
-    private GenericApiEntity getApiEntityById(String apiId) {
+    private GenericApiEntity getGenericApiEntityById(String apiId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
 
@@ -406,32 +408,35 @@ public class ApiResource extends AbstractResource {
         apiEntity.setResponseTemplates(null);
     }
 
-    private void checkApiLifeCycle(ApiEntity api, LifecycleAction action) {
+    private void checkApiLifeCycle(GenericApiEntity api, LifecycleAction action) {
         if (ApiLifecycleState.ARCHIVED.equals(api.getLifecycleState())) {
-            throw new BadRequestException("Deleted API can not be " + action.name().toLowerCase());
+            var actionKeyword = LifecycleAction.START.equals(action) ? "started" : "stopped";
+            throw new BadRequestException("Deleted API cannot be " + actionKeyword);
         }
-        switch (api.getState()) {
-            case STARTED:
-                if (LifecycleAction.START.equals(action)) {
-                    throw new BadRequestException("API is already started");
-                }
-                break;
-            case STOPPED:
-                if (LifecycleAction.STOP.equals(action)) {
-                    throw new BadRequestException("API is already stopped");
-                }
+        if (Lifecycle.State.STARTED.equals(api.getState()) && LifecycleAction.START.equals(action)) {
+            throw new BadRequestException("API is already started");
+        }
+        if (Lifecycle.State.STOPPED.equals(api.getState())) {
+            if (LifecycleAction.STOP.equals(action)) {
+                throw new BadRequestException("API is already stopped");
+            }
 
-                final boolean apiReviewEnabled = parameterService.findAsBoolean(
+            if (
+                parameterService.findAsBoolean(
                     GraviteeContext.getExecutionContext(),
                     Key.API_REVIEW_ENABLED,
                     ParameterReferenceType.ENVIRONMENT
-                );
-                if (apiReviewEnabled && api.getWorkflowState() != null && !WorkflowState.REVIEW_OK.equals(api.getWorkflowState())) {
-                    throw new BadRequestException("API can not be started without being reviewed");
-                }
-                break;
-            default:
-                break;
+                )
+            ) {
+                final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
+
+                workflows.forEach(workflow -> {
+                    WorkflowState workflowState = WorkflowState.valueOf(workflow.getState());
+                    if (!WorkflowState.REVIEW_OK.equals(workflowState)) {
+                        throw new BadRequestException("API cannot be started without being reviewed");
+                    }
+                });
+            }
         }
     }
 
