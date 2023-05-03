@@ -79,7 +79,7 @@ describe('PolicyStudioDebugComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
 
     policyStudioService = TestBed.inject(PolicyStudioService);
-    policyStudioService.emitApiDefinition(toApiDefinition(api));
+    policyStudioService.setApiDefinition(toApiDefinition(api));
     fixture.detectChanges();
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=icon&withResource=false`).flush(policies);

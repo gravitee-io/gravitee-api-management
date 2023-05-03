@@ -54,7 +54,7 @@ describe('PolicyStudioPropertiesComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     policyStudioService = TestBed.inject(PolicyStudioService);
-    policyStudioService.emitApiDefinition(toApiDefinition(api));
+    policyStudioService.setApiDefinition(toApiDefinition(api));
 
     fixture.detectChanges();
   });

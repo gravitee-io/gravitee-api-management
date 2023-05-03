@@ -64,7 +64,7 @@ export class PolicyStudioResourcesComponent implements OnInit, OnDestroy {
 
   onChange($event: any) {
     this.apiDefinition.resources = $event.detail.resources;
-    this.policyStudioService.emitApiDefinition(this.apiDefinition);
+    this.policyStudioService.saveApiDefinition(this.apiDefinition);
   }
 
   get isLoading() {

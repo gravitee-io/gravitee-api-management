@@ -77,11 +77,11 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
 
   onChange($event: GvSchemaFormChangeEvent<ApiDefinition>) {
     this.apiDefinition = { ...this.apiDefinition, ...$event.detail.values };
-    this.policyStudioService.emitApiDefinition(this.apiDefinition);
+    this.policyStudioService.saveApiDefinition(this.apiDefinition);
   }
 
   toggleJupiterMode($event: MatSlideToggleChange) {
     this.apiDefinition = { ...this.apiDefinition, execution_mode: $event.checked ? 'jupiter' : 'v3' };
-    this.policyStudioService.emitApiDefinition(this.apiDefinition);
+    this.policyStudioService.saveApiDefinition(this.apiDefinition);
   }
 }
