@@ -135,7 +135,7 @@ public class DefaultPolicyChainFactory implements PolicyChainFactory {
                 .selectorByType(SelectorType.HTTP)
                 .map(HttpSelector.class::cast)
                 .ifPresent(httpSelector -> {
-                    if (httpSelector.getMethods().isEmpty()) {
+                    if (httpSelector.getMethods() == null || httpSelector.getMethods().isEmpty()) {
                         flowNameBuilder.append("ALL").append(ID_SEPARATOR);
                     } else {
                         httpSelector.getMethods().forEach(httpMethod -> flowNameBuilder.append(httpMethod).append("-"));
