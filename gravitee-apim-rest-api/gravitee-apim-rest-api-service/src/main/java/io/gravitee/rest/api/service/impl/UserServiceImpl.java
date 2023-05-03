@@ -1539,7 +1539,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         // information (ie. mappings)
         Set<GroupEntity> userGroups = computeUserGroupsFromProfile(email, socialProvider.getGroupMappings(), userInfo, executionContext);
 
-        List<RoleMappingEntity> rolesMapping = socialProvider.getRoleMappings().isEmpty() ? emptyList() : socialProvider.getRoleMappings();
+        List<RoleMappingEntity> rolesMapping = socialProvider.getRoleMappings() == null || socialProvider.getRoleMappings().isEmpty()
+            ? emptyList()
+            : socialProvider.getRoleMappings();
 
         Set<RoleEntity> userOrganizationRoles = this.computeOrganizationRoles(executionContext, rolesMapping, email, userInfo);
         Map<String, Set<RoleEntity>> userEnvironmentRoles = this.computeEnvironmentRoles(executionContext, rolesMapping, email, userInfo);
