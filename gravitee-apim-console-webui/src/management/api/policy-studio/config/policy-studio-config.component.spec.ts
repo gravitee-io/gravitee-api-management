@@ -76,7 +76,7 @@ describe('PolicyStudioConfigComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     policyStudioService = TestBed.inject(PolicyStudioService);
-    policyStudioService.emitApiDefinition(toApiDefinition(api));
+    policyStudioService.setApiDefinition(toApiDefinition(api));
 
     fixture.detectChanges();
 
@@ -106,20 +106,20 @@ describe('PolicyStudioConfigComponent', () => {
     const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'execution_mode' }));
     expect(await activateSupportSlideToggle.isDisabled()).toEqual(false);
 
-    await activateSupportSlideToggle.check();
-
     // Expect last apiDefinition
-    policyStudioService.getApiDefinition$().subscribe((apiDefinition) => {
+    policyStudioService.getApiDefinitionToSave$().subscribe((apiDefinition) => {
       expect(apiDefinition.execution_mode).toEqual('jupiter');
       done();
     });
+
+    await activateSupportSlideToggle.check();
   });
 
   it('should disable field when origin is kubernetes', async () => {
     const api = fakeApi({
       definition_context: { origin: 'kubernetes' },
     });
-    policyStudioService.emitApiDefinition(toApiDefinition(api));
+    policyStudioService.setApiDefinition(toApiDefinition(api));
 
     const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'execution_mode' }));
     expect(await activateSupportSlideToggle.isDisabled()).toEqual(true);

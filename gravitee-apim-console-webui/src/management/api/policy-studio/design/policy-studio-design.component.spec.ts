@@ -71,7 +71,7 @@ describe('PolicyStudioDesignComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     policyStudioService = TestBed.inject(PolicyStudioService);
     apiDefinition = toApiDefinition(api);
-    policyStudioService.emitApiDefinition(apiDefinition);
+    policyStudioService.setApiDefinition(apiDefinition);
     fixture.detectChanges();
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/schema`).flush(apiFlowSchema);
@@ -94,7 +94,7 @@ describe('PolicyStudioDesignComponent', () => {
     const api = fakeApi({
       definition_context: { origin: 'kubernetes' },
     });
-    policyStudioService.emitApiDefinition(toApiDefinition(api));
+    policyStudioService.setApiDefinition(toApiDefinition(api));
     expect(component.isReadonly).toEqual(true);
   });
 
