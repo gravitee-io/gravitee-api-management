@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// eslint-disable-next-line @typescript-eslint/no-var-requires,import/order
-const copy = require('clipboard-copy');
-// eslint-disable-next-line @typescript-eslint/no-var-requires,import/order
-const JsDiff = require('diff/dist/diff.min.js');
-
 import '@gravitee/ui-components/wc/gv-policy-studio';
 import '@gravitee/ui-components/wc/gv-switch';
 import '@gravitee/ui-components/wc/gv-popover';
 import * as _ from 'lodash';
 import * as angular from 'angular';
 import { StateService } from '@uirouter/core';
+
+import { ApiService } from '../../../../services/api.service';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const copy = require('clipboard-copy');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const JsDiff = require('diff/dist/diff.min.js');
 
 const propertyProviders = [
   {
@@ -137,7 +139,7 @@ class ApiHistoryController {
     private $scope: any,
     private $rootScope: ng.IRootScopeService,
     private $state: StateService,
-    private ApiService,
+    private ApiService: ApiService,
     private NotificationService,
     private resolvedEvents,
     private PolicyService,
@@ -379,13 +381,21 @@ class ApiHistoryController {
     _apiDefinition.description = _apiPayload.description;
     _apiDefinition.visibility = _apiPayload.visibility;
 
-    this.ApiService.rollback(this.api.id, _apiDefinition).then(() => {
-      this.NotificationService.show('Api rollback !');
+    Promise.allSettled([this.ApiService.picture(this.api.id), this.ApiService.background(this.api.id)])
+      .then(([pictureResponse, backgroundResponse]) => {
+        _apiDefinition.picture = pictureResponse.status === 'fulfilled' ? pictureResponse?.value : null;
+        _apiDefinition.background = backgroundResponse.status === 'fulfilled' ? backgroundResponse?.value : null;
 
-      this.ApiService.get(this.api.id).then((response) => {
+        return this.ApiService.rollback(this.api.id, _apiDefinition);
+      })
+      .then(() => {
+        this.NotificationService.show('API successfully rollbacked!');
+
+        return this.ApiService.get(this.api.id);
+      })
+      .then((response) => {
         this.$rootScope.$broadcast('apiChangeSuccess', { api: response.data });
       });
-    });
   }
 
   showRollbackAPIConfirm(ev, api) {
