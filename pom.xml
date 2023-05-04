@@ -35,7 +35,7 @@
         <gravitee-bom.version>4.0.0</gravitee-bom.version>
         <gravitee-common-elasticsearch.version>4.1.0</gravitee-common-elasticsearch.version>
         <gravitee-gateway-api.version>2.1.0</gravitee-gateway-api.version>
-        <gravitee-node-api.version>2.0.0</gravitee-node-api.version>
+        <gravitee-node-api.version>2.0.8</gravitee-node-api.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
         <gravitee-reporter-api.version>1.25.0</gravitee-reporter-api.version>
         <commons-validator.version>1.7</commons-validator.version>
