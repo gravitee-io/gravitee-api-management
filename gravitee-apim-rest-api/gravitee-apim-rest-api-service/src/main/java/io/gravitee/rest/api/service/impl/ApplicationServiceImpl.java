@@ -577,7 +577,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setCreatedAt(applicationToUpdate.getCreatedAt());
             application.setUpdatedAt(new Date());
             application.setOrigin(applicationToUpdate.getOrigin() != null ? applicationToUpdate.getOrigin() : Origin.MANAGEMENT);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 97b534bd2f (fix: move liquibase changelog to v3.19)
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
             Application updatedApplication = applicationRepository.update(application);
