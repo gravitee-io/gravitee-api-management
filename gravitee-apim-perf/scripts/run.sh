@@ -139,6 +139,7 @@ then
     output_mode=$(jq -r '.k6.outputMode' "${CONFIG_DIR}/config.json")
 fi
 echo $K6_PROMETHEUS_RW_SERVER_URL
+
 ### Run K6
 k6 run --include-system-env-vars ${VERBOSE_OPTIONS} -o ${output_mode} -e K6_PROMETHEUS_RW_TREND_STATS="p(99),p(95),p(90),avg" "${file_path}"
 

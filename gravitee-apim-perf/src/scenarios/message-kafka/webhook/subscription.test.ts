@@ -297,9 +297,9 @@ export function teardown(data: GatewayTestData) {
     },
   });
 
-  // clear kafka topic
+  // wait to let the time to undeploy the Api (and close kafka client)
+  sleep((k6Options.apim.gatewaySyncInterval * 3) / 1000);
   if (__VU == 0) {
-    // Delete the topic
     connection.deleteTopic(kafkaTopic);
   }
 
