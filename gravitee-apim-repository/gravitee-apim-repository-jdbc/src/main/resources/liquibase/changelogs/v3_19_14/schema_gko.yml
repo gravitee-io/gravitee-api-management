@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.19.13-gko
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # Application Changes: Kubernetes Operator
+        # ################
+        - addColumn:
+            tableName: ${gravitee_prefix}applications
+            columns:
+              - column:
+                  name: origin
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
