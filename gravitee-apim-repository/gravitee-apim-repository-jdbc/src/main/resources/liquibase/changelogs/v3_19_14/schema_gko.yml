@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.0.0-gko
+      id: 3.19.13-gko
       author: GraviteeSource Team
       changes:
         # ################
@@ -14,4 +14,3 @@ databaseChangeLog:
                   type: nvarchar(64)
                   constraints:
                     nullable: true
-
