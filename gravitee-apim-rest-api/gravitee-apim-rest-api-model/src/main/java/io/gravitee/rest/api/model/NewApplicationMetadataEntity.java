@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.gravitee.definition.model.Origin;
 import java.util.Objects;
 
 /**
@@ -25,6 +26,8 @@ public class NewApplicationMetadataEntity extends NewReferenceMetadataEntity {
 
     private String applicationId;
 
+    private Origin origin;
+
     public String getApplicationId() {
         return applicationId;
     }
@@ -33,22 +36,40 @@ public class NewApplicationMetadataEntity extends NewReferenceMetadataEntity {
         this.applicationId = applicationId;
     }
 
+    public Origin getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Origin origin) {
+        this.origin = origin;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         NewApplicationMetadataEntity that = (NewApplicationMetadataEntity) o;
-        return Objects.equals(applicationId, that.applicationId);
+        return Objects.equals(applicationId, that.applicationId) && Objects.equals(origin, that.origin);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), applicationId);
+        return Objects.hash(super.hashCode(), applicationId, origin);
     }
 
     @Override
     public String toString() {
-        return "NewApplicationMetadataEntity{" + "applicationId='" + applicationId + '\'' + "} " + super.toString();
+        return (
+            "NewApplicationMetadataEntity{" +
+            "applicationId='" +
+            applicationId +
+            '\'' +
+            ", origin='" +
+            origin.value() +
+            '\'' +
+            '}' +
+            super.toString()
+        );
     }
 }

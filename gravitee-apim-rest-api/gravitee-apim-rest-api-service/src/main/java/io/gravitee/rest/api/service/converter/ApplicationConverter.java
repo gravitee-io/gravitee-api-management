@@ -69,6 +69,7 @@ public class ApplicationConverter {
         application.setBackground(newApplicationEntity.getBackground());
         application.setMetadata(toMetadata(newApplicationEntity.getSettings()));
         application.setApiKeyMode(toModelApiKeyMode(newApplicationEntity.getApiKeyMode()));
+        application.setOrigin(newApplicationEntity.getOrigin());
         return application;
     }
 
