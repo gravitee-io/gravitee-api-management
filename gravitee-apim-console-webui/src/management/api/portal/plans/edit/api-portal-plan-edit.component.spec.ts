@@ -125,7 +125,7 @@ describe('ApiPortalPlanEditComponent', () => {
         excluded_groups: [],
         tags: [],
         security: 'KEY_LESS',
-        securityDefinition: '{}',
+        securityDefinition: {},
         selection_rule: null,
         flows: [
           {

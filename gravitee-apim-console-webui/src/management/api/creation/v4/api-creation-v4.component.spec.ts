@@ -875,7 +875,7 @@ describe('ApiCreationV4Component', () => {
             description: 'Default unsecured plan',
             security: {
               type: PlanSecurityType.KEY_LESS,
-              configuration: '',
+              configuration: {},
             },
             validation: 'manual',
           },
@@ -920,7 +920,7 @@ describe('ApiCreationV4Component', () => {
             description: 'Default unsecured plan',
             security: {
               type: PlanSecurityType.KEY_LESS,
-              configuration: '',
+              configuration: {},
             },
             validation: 'manual',
           },
@@ -946,7 +946,7 @@ describe('ApiCreationV4Component', () => {
             general_conditions: '',
             name: 'Secure by ApiKey',
             security: {
-              configuration: '{}',
+              configuration: {},
               type: 'API_KEY',
             },
             selection_rule: null,
@@ -969,7 +969,7 @@ describe('ApiCreationV4Component', () => {
             description: 'Default unsecured plan',
             security: {
               type: PlanSecurityType.KEY_LESS,
-              configuration: '{}',
+              configuration: {},
             },
             validation: 'manual',
             comment_required: false,

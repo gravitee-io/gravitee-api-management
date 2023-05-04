@@ -37,7 +37,7 @@ export type PlanStatus = (typeof PLAN_STATUS)[number];
 
 export interface PlanSecurity {
   type: PlanSecurityType;
-  configuration: string;
+  configuration: unknown;
 }
 
 export interface NewPlan {
