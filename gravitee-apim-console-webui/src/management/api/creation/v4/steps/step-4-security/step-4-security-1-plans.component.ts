@@ -43,7 +43,7 @@ export class Step4Security1PlansComponent implements OnInit {
         description: 'Default unsecured plan',
         security: {
           type: PlanSecurityType.KEY_LESS,
-          configuration: '',
+          configuration: {},
         },
         validation: PlanValidation.MANUAL,
       });

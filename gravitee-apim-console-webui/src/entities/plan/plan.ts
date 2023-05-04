@@ -40,7 +40,7 @@ export interface NewPlan {
   description?: string;
   validation?: PlanValidation;
   security: PlanSecurityType;
-  securityDefinition?: string;
+  securityDefinition?: unknown;
   type?: PlanType;
   status?: PlanStatus;
   api?: string;
@@ -61,7 +61,7 @@ export interface Plan {
   name: string;
   description?: string;
   security: PlanSecurityType;
-  securityDefinition?: string;
+  securityDefinition?: unknown;
   api?: string;
   characteristics?: Array<string>;
   closed_at?: Date;

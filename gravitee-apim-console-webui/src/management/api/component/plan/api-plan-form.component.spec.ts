@@ -217,7 +217,7 @@ describe('ApiPlanFormComponent', () => {
         excluded_groups: ['group-a'],
         general_conditions: 'doc-1',
         security: 'JWT',
-        securityDefinition: '{}',
+        securityDefinition: {},
         selection_rule: '{ #el ...}',
         tags: [TAG_1_ID],
         validation: 'AUTO',
@@ -293,7 +293,7 @@ describe('ApiPlanFormComponent', () => {
         general_conditions: '',
         tags: [],
         security: 'OAUTH2',
-        securityDefinition: '{}',
+        securityDefinition: {},
         selection_rule: null,
         validation: 'MANUAL',
         flows: [
@@ -391,7 +391,7 @@ describe('ApiPlanFormComponent', () => {
         general_conditions: '',
         tags: [],
         security: {
-          configuration: '{}',
+          configuration: {},
           type: 'JWT',
         },
         selection_rule: '{ #el ...}',
@@ -519,7 +519,7 @@ describe('ApiPlanFormComponent', () => {
         name: 'Old 🗺',
         description: 'Old Description',
         security: PlanSecurityType.API_KEY,
-        securityDefinition: JSON.stringify({ propagateApiKey: true }),
+        securityDefinition: { propagateApiKey: true },
         tags: [TAG_1_ID],
       });
       testComponent.planControl = new FormControl(planToUpdate);
@@ -704,7 +704,7 @@ describe('ApiPlanFormComponent', () => {
         comment_required: false,
         excluded_groups: ['group-a'],
         security: {
-          configuration: '{}',
+          configuration: {},
           type: 'KEY_LESS',
         },
         general_conditions: 'doc-1',
@@ -718,7 +718,7 @@ describe('ApiPlanFormComponent', () => {
         description: 'Old Description',
         security: {
           type: PlanSecurityType.API_KEY,
-          configuration: JSON.stringify({ propagateApiKey: true }),
+          configuration: { propagateApiKey: true },
         },
         tags: [TAG_1_ID],
       });

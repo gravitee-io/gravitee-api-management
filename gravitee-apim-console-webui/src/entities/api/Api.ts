@@ -96,7 +96,7 @@ export interface ApiPlan {
   id: string;
   name?: string;
   security?: string;
-  securityDefinition?: string;
+  securityDefinition?: unknown;
   paths?: Record<string, unknown[]>;
   api?: string;
   selectionRule?: string;

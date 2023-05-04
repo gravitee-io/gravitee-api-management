@@ -69,7 +69,7 @@ type InternalPlanFormValue = {
   };
   secure: {
     securityType: string;
-    securityConfig: string;
+    securityConfig: unknown;
     selectionRule: string;
   };
 
@@ -340,7 +340,7 @@ const planV3ToInternalFormValue = (plan: InternalPlanV3Value | undefined): Inter
     },
     secure: {
       securityType: plan.security,
-      securityConfig: plan.securityDefinition ? JSON.parse(plan.securityDefinition) : {},
+      securityConfig: plan.securityDefinition,
       selectionRule: plan.selection_rule,
     },
   };
@@ -365,7 +365,7 @@ const planV4ToInternalFormValue = (plan: InternalPlanV4Value | undefined): Inter
     },
     secure: {
       securityType: plan.security.type,
-      securityConfig: plan.security.configuration ? JSON.parse(plan.security.configuration) : {},
+      securityConfig: plan.security.configuration,
       selectionRule: plan.selection_rule,
     },
   };
@@ -433,7 +433,7 @@ const internalFormValueToPlanV3 = (value: InternalPlanFormValue, mode: 'create' 
 
     // Secure
     security: value.secure.securityType as PlanSecurityTypeV3,
-    securityDefinition: JSON.stringify(value.secure.securityConfig),
+    securityDefinition: value.secure.securityConfig,
     selection_rule: value.secure.selectionRule,
 
     // Restriction (only for create mode)
@@ -500,7 +500,7 @@ const internalFormValueToPlanV4 = (value: InternalPlanFormValue, mode: 'create' 
     // Secure
     security: {
       type: value.secure.securityType as PlanSecurityTypeV4,
-      configuration: JSON.stringify(value.secure.securityConfig),
+      configuration: value.secure.securityConfig,
     },
     selection_rule: value.secure.selectionRule,
 
