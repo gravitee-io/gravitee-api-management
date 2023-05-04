@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
@@ -86,6 +87,9 @@ public class ApplicationEntity {
     private ApiKeyMode apiKeyMode;
 
     private String background;
+
+    @Schema(description = "The origin used for creating this application.")
+    private Origin origin;
 
     public boolean hasApiKeySharedMode() {
         return apiKeyMode == ApiKeyMode.SHARED;

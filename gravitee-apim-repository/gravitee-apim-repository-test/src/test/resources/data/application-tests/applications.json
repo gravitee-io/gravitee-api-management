@@ -28,7 +28,8 @@
       "client_id": "my-client-id",
       "type": "Web"
     },
-    "disableMembershipNotifications": false
+    "disableMembershipNotifications": false,
+    "origin": "MANAGEMENT"
   },
   {
     "id": "deleted-app",
@@ -146,6 +147,7 @@
     "metadata": {
       "type": "Web"
     },
-    "disableMembershipNotifications": false
+    "disableMembershipNotifications": false,
+    "origin": "KUBERNETES"
   }
 ]
