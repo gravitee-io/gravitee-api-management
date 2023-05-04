@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
@@ -575,6 +576,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setType(applicationToUpdate.getType());
             application.setCreatedAt(applicationToUpdate.getCreatedAt());
             application.setUpdatedAt(new Date());
+<<<<<<< HEAD
+=======
+            application.setOrigin(applicationToUpdate.getOrigin() != null ? applicationToUpdate.getOrigin() : Origin.MANAGEMENT);
+>>>>>>> 8d258263e0 (fix: move liquibase changelog to v3.19)
 
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
@@ -1007,6 +1012,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (application.getApiKeyMode() != null) {
             applicationEntity.setApiKeyMode(ApiKeyMode.valueOf(application.getApiKeyMode().name()));
         }
+<<<<<<< HEAD
+=======
+        applicationEntity.setOrigin(application.getOrigin() != null ? application.getOrigin() : Origin.MANAGEMENT);
+>>>>>>> 8d258263e0 (fix: move liquibase changelog to v3.19)
         return applicationEntity;
     }
 
