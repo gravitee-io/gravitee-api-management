@@ -575,6 +575,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setType(applicationToUpdate.getType());
             application.setCreatedAt(applicationToUpdate.getCreatedAt());
             application.setUpdatedAt(new Date());
+            application.setOrigin(applicationToUpdate.getOrigin());
 
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
@@ -1007,6 +1008,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         if (application.getApiKeyMode() != null) {
             applicationEntity.setApiKeyMode(ApiKeyMode.valueOf(application.getApiKeyMode().name()));
         }
+        applicationEntity.setOrigin(application.getOrigin());
         return applicationEntity;
     }
 
