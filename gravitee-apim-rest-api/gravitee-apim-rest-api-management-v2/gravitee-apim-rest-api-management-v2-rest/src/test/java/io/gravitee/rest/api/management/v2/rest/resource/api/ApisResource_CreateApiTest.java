@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.vertx.core.json.Json;
 import java.util.List;
 import java.util.Set;
 import javax.ws.rs.client.Entity;
@@ -193,8 +194,9 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         ObjectNode entrypointConfiguration = JsonNodeFactory.instance.objectNode();
         entrypointConfiguration.put("callbackUrl", "https://webhook.site/86195609-6ffe-4fda-8011-b8b8f91aa54b");
         Entrypoint entrypoint = new Entrypoint();
-        entrypoint.setType("Webhook");
+        entrypoint.setType("http-get");
         entrypoint.setConfiguration(entrypointConfiguration);
+        entrypoint.setQos(QoS.NONE);
         subscriptionListener.setEntrypoints(List.of(entrypoint));
 
         TcpListener tcpListener = new TcpListener();
@@ -203,7 +205,17 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
 
         api.setListeners(List.of(new Listener(httpListener), new Listener(subscriptionListener), new Listener(tcpListener)));
 
-        api.setEndpointGroups(List.of(new EndpointGroupV4().name("default").type("http")));
+        EndpointV4 endpoint = new EndpointV4();
+        endpoint.setName("default");
+        endpoint.setType("kafka");
+        endpoint.setWeight(1);
+        endpoint.setInheritConfiguration(false);
+        endpoint.setConfiguration("{\"bootstrapServers\": \"kafka:9092\"}");
+        endpoint.setSharedConfigurationOverride(
+            "{\"consumer\": {\"enabled\": true,\"topics\": [\"demo\"],\"autoOffsetReset\": \"earliest\"}}"
+        );
+
+        api.setEndpointGroups(List.of(new EndpointGroupV4().name("default").type("http").endpoints(List.of(endpoint))));
 
         FlowV4 flow = new FlowV4();
         flow.setName("flowName");
@@ -238,8 +250,8 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         doReturn(returnedApi)
             .when(apiServiceV4)
             .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
-        Entity<CreateApiV4> json = Entity.json(api);
-        final Response response = rootTarget().request().post(json);
+
+        final Response response = rootTarget().request().post(Entity.json(Json.encode(api)));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(rootTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }

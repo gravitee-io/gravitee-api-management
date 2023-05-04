@@ -1409,6 +1409,8 @@ components:
                     default: false
                 configuration:
                     type: object
+                sharedConfigurationOverride:
+                    type: object
                 services:
                     $ref: "#/components/schemas/EndpointServices"
             required:
@@ -2042,10 +2044,10 @@ components:
             description: Type of the quality of service.
             example: none
             enum:
-                - NONE
-                - AUTO
-                - AT_MOST_ONCE
-                - AT_LEAST_ONCE
+                - none
+                - auto
+                - at-most-once
+                - at-least-once
         Resource:
             type: object
             required:
