@@ -40,7 +40,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(uses = { DateMapper.class })
 public interface PageMapper {
     PageMapper INSTANCE = Mappers.getMapper(PageMapper.class);
 
@@ -56,11 +56,4 @@ public interface PageMapper {
     Page convert(PageEntity pageEntity);
 
     Set<Page> convertListToSet(List<PageEntity> pageEntityList);
-
-    default OffsetDateTime map(Date value) {
-        if (Objects.isNull(value)) {
-            return null;
-        }
-        return value.toInstant().atOffset(ZoneOffset.UTC);
-    }
 }
