@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
@@ -78,6 +79,10 @@ public class NewApplicationEntity {
     @JsonProperty("api_key_mode")
     @Schema(description = "The API key mode used for this application.")
     private ApiKeyMode apiKeyMode;
+
+    @JsonProperty(value = "origin")
+    @Schema(description = "The origin used for creating this application.")
+    private Origin origin = Origin.MANAGEMENT;
 
     public String getDescription() {
         return description;
@@ -157,6 +162,14 @@ public class NewApplicationEntity {
 
     public void setApiKeyMode(ApiKeyMode apiKeyMode) {
         this.apiKeyMode = apiKeyMode;
+    }
+
+    public Origin getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Origin origin) {
+        this.origin = origin;
     }
 
     @Override
