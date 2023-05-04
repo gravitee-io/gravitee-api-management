@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { check } from 'k6';
+import { check, sleep } from 'k6';
 import { Connection } from 'k6/x/kafka';
 import http from 'k6/http';
 import { ADMIN_USER, authorizationHeaderFor, k6Options } from '@env/environment';
@@ -192,9 +192,9 @@ export function teardown(data: GatewayTestData) {
     },
   });
 
-  // clear kafka topic
+  // wait to let the time to undeploy the Api (and close kafka client)
+  sleep((k6Options.apim.gatewaySyncInterval * 3) / 1000);
   if (__VU == 0) {
-    // Delete the topic
     connection.deleteTopic(kafkaTopic);
   }
 
