@@ -24,6 +24,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -96,11 +97,12 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
             .addColumn("background", Types.NVARCHAR, String.class)
             .addColumn("api_key_mode", Types.NVARCHAR, ApiKeyMode.class)
+            .addColumn("origin", Types.NVARCHAR, Origin.class)
             .build();
     }
 
     private static final String PROJECTION_WITHOUT_PICTURES =
-        "a.id, a.environment_id, a.name, a.description, a.type, a.created_at, a.updated_at, a.status, a.disable_membership_notifications, a.api_key_mode";
+        "a.id, a.environment_id, a.name, a.description, a.type, a.created_at, a.updated_at, a.status, a.disable_membership_notifications, a.api_key_mode, a.origin";
 
     private static final JdbcHelper.ChildAdder<Application> CHILD_ADDER = (Application parent, ResultSet rs) -> {
         Map<String, String> metadata = parent.getMetadata();
