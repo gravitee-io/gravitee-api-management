@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.definition.model.Origin;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
@@ -96,6 +97,8 @@ public class Application {
 
     private ApiKeyMode apiKeyMode = ApiKeyMode.UNSPECIFIED;
 
+    private Origin origin;
+
     public Application() {}
 
     public Application(Application cloned) {
@@ -111,6 +114,7 @@ public class Application {
         this.background = cloned.background;
         this.domain = cloned.domain;
         this.apiKeyMode = cloned.apiKeyMode;
+        this.origin = cloned.origin;
     }
 
     public Date getCreatedAt() {
@@ -231,6 +235,14 @@ public class Application {
 
     public void setApiKeyMode(ApiKeyMode apiKeyMode) {
         this.apiKeyMode = apiKeyMode;
+    }
+
+    public Origin getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Origin origin) {
+        this.origin = origin;
     }
 
     @Override
