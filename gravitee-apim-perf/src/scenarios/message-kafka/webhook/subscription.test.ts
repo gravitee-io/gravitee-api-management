@@ -34,8 +34,6 @@ import { SubscriptionEntityV4 } from '@models/v4/SubscriptionEntityV4';
 import { ApplicationEntityV4 } from '@models/v4/ApplicationEntityV4';
 import { randomString } from '@helpers/random.helper';
 
-export const k6InjectorOptions = k6Options;
-
 const schemaRegistry = new SchemaRegistry();
 const connection = new Connection({
   // ConnectionConfig object
@@ -66,12 +64,11 @@ if (__VU == 0) {
   });
 }
 
-export const options = {
-  thresholds: {
+export const options = k6Options;
+options['thresholds'] = {
     // Base thresholds to see if the writer or reader is working
     kafka_writer_error_count: ['count == 0'],
     kafka_reader_error_count: ['count == 0'],
-  },
 };
 
 export function setup(): GatewayTestData {
