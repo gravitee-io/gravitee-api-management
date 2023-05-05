@@ -89,12 +89,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
@@ -319,7 +314,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         entrypoint.setType("Entrypoint type");
         entrypoint.setQos(Qos.AT_LEAST_ONCE);
         entrypoint.setDlq(new Dlq("my-endpoint"));
-        entrypoint.setConfiguration("nice configuration");
+        entrypoint.setConfiguration("{\"nice\": \"configuration\"}");
         subscriptionListener.setEntrypoints(List.of(entrypoint));
         subscriptionListener.setType(ListenerType.SUBSCRIPTION);
 
@@ -561,7 +556,8 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         assertNotNull(subscriptionListener.getEntrypoints());
         var foundEntrypoint = subscriptionListener.getEntrypoints().get(0);
         assertNotNull(foundEntrypoint);
-        assertEquals("nice configuration", foundEntrypoint.getConfiguration());
+        LinkedHashMap subscriptionConfig = (LinkedHashMap) foundEntrypoint.getConfiguration();
+        assertEquals("configuration", subscriptionConfig.get("nice"));
         assertEquals("Entrypoint type", foundEntrypoint.getType());
         assertEquals("SUBSCRIPTION", subscriptionListener.getType().toString());
 
@@ -570,7 +566,8 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         assertNotNull(tcpListener.getEntrypoints());
         var tcpFoundEntrypoint = tcpListener.getEntrypoints().get(0);
         assertNotNull(tcpFoundEntrypoint);
-        assertEquals("nice configuration", tcpFoundEntrypoint.getConfiguration());
+        LinkedHashMap tcpConfig = (LinkedHashMap) tcpFoundEntrypoint.getConfiguration();
+        assertEquals("configuration", tcpConfig.get("nice"));
         assertEquals("Entrypoint type", tcpFoundEntrypoint.getType());
         assertEquals("TCP", tcpListener.getType().toString());
 
@@ -584,9 +581,9 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         assertNotNull(endpoint);
         assertEquals("http-get", endpoint.getType());
 
-        JsonNode jsonNode = mapper.readTree((String) endpoint.getConfiguration());
-        assertEquals("kafka:9092", jsonNode.get("bootstrapServers").asText());
-        assertEquals(List.of("demo"), mapper.readValue(jsonNode.get("topics").toString(), List.class));
+        LinkedHashMap endpointConfig = (LinkedHashMap) endpoint.getConfiguration();
+        assertEquals("kafka:9092", endpointConfig.get("bootstrapServers"));
+        assertEquals(List.of("demo"), endpointConfig.get("topics"));
 
         assertNotNull(responseApi.getFlows());
         assertEquals(1, responseApi.getFlows().size());

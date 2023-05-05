@@ -48,7 +48,7 @@ public class Entrypoint implements Serializable {
 
     @Schema(implementation = Object.class)
     @JsonRawValue
-    private Object configuration;
+    private String configuration;
 
     @JsonSetter
     public void setConfiguration(final JsonNode configuration) {
@@ -57,11 +57,7 @@ public class Entrypoint implements Serializable {
         }
     }
 
-    public void setConfiguration(final Object configuration) {
+    public void setConfiguration(final String configuration) {
         this.configuration = configuration;
-    }
-
-    public String getConfiguration() {
-        return (String) configuration;
     }
 }
