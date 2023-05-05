@@ -65,31 +65,25 @@ public class ApiPlansResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getApiPlansByApiId(@PathParam("apiId") String apiId, @BeanParam PaginationParam paginationParam) {
-        String username = getAuthenticatedUserOrNull();
-
-        final ApiQuery apiQuery = new ApiQuery();
-        apiQuery.setIds(Collections.singletonList(apiId));
-
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        Collection<ApiEntity> userApis = apiService.findPublishedByUser(executionContext, username, apiQuery);
-        if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
-            ApiEntity apiEntity = apiService.findById(executionContext, apiId);
+        final String username = getAuthenticatedUserOrNull();
 
-            if (Visibility.PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(executionContext, API_PLAN, apiId, READ)) {
-                List<Plan> plans = planService
-                    .findByApi(executionContext, apiId)
-                    .stream()
-                    .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
-                    .filter(plan -> groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), username))
-                    .sorted(Comparator.comparingInt(PlanEntity::getOrder))
-                    .map(p -> planMapper.convert(p))
-                    .collect(Collectors.toList());
+        ApiEntity apiEntity = apiService.findById(executionContext, apiId);
 
-                return createListResponse(executionContext, plans, paginationParam);
-            } else {
-                return createListResponse(executionContext, emptyList(), paginationParam);
-            }
+        // Public API can be accessed without permission
+        if (!hasPermission(executionContext, API_PLAN, apiId, READ) && !Visibility.PUBLIC.equals(apiEntity.getVisibility())) {
+            throw new ApiNotFoundException(apiId);
         }
-        throw new ApiNotFoundException(apiId);
+
+        List<Plan> plans = planService
+            .findByApi(executionContext, apiId)
+            .stream()
+            .filter(plan -> PlanStatus.PUBLISHED.equals(plan.getStatus()))
+            .filter(plan -> groupService.isUserAuthorizedToAccessApiData(apiEntity, plan.getExcludedGroups(), username))
+            .sorted(Comparator.comparingInt(PlanEntity::getOrder))
+            .map(p -> planMapper.convert(p))
+            .collect(Collectors.toList());
+
+        return createListResponse(executionContext, plans, paginationParam);
     }
 }

@@ -65,10 +65,6 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PUBLIC);
         doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis)
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
 
         plan1 = new PlanEntity();
         plan1.setId("A");
@@ -93,31 +89,6 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             .findByApi(GraviteeContext.getExecutionContext(), API);
 
         when(planMapper.convert(any())).thenCallRealMethod();
-    }
-
-    @Test
-    public void shouldHaveNotFoundWhileGettingApiPlans() {
-        //init
-        ApiEntity userApi = new ApiEntity();
-        userApi.setId("1");
-        doReturn(emptySet())
-            .when(apiService)
-            .findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), argThat(q -> singletonList(API).equals(q.getIds())));
-
-        //test
-        final Response response = target(API).path("plans").request().get();
-        assertEquals(NOT_FOUND_404, response.getStatus());
-
-        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
-        List<Error> errors = errorResponse.getErrors();
-        assertNotNull(errors);
-        assertEquals(1, errors.size());
-
-        Error error = errors.get(0);
-        assertNotNull(error);
-        assertEquals("errors.api.notFound", error.getCode());
-        assertEquals("404", error.getStatus());
-        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
 
     @Test
@@ -192,22 +163,25 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetEmptyListPrivateAPIAndNoReadPermission() {
+    public void should_have_NotFound_with_private_API_and_no_READ_permission() {
         doReturn(false).when(permissionService).hasPermission(any(), any(), any());
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PRIVATE);
         doReturn(mockApi).when(apiService).findById(GraviteeContext.getExecutionContext(), API);
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
-        doReturn(mockApis).when(apiService).findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any());
 
         final Response response = target(API).path("plans").request().get();
-        assertEquals(OK_200, response.getStatus());
+        assertEquals(NOT_FOUND_404, response.getStatus());
 
-        PlansResponse plansResponse = response.readEntity(PlansResponse.class);
-        List<Plan> plans = plansResponse.getData();
-        assertNotNull(plans);
-        assertEquals(0, plans.size());
+        ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
+        List<Error> errors = errorResponse.getErrors();
+        assertNotNull(errors);
+        assertEquals(1, errors.size());
+        Error error = errors.get(0);
+        assertNotNull(error);
+        assertEquals("errors.api.notFound", error.getCode());
+        assertEquals("404", error.getStatus());
+        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
 }
