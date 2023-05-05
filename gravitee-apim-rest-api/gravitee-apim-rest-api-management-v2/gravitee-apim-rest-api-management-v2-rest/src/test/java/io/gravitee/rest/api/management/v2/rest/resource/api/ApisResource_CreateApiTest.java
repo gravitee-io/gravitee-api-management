@@ -20,9 +20,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
+import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -33,6 +40,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.vertx.core.json.Json;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import javax.ws.rs.client.Entity;
@@ -177,7 +186,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldCreateApi() {
+    public void shouldCreateApi() throws JsonProcessingException {
         final CreateApiV4 api = new CreateApiV4();
         api.setName("My beautiful api");
         api.setApiVersion("v1");
@@ -211,9 +220,15 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         endpoint.setWeight(1);
         endpoint.setInheritConfiguration(false);
         endpoint.setConfiguration("{\"bootstrapServers\": \"kafka:9092\"}");
-        endpoint.setSharedConfigurationOverride(
-            "{\"consumer\": {\"enabled\": true,\"topics\": [\"demo\"],\"autoOffsetReset\": \"earliest\"}}"
-        );
+
+        LinkedHashMap<String, Object> consumer = new LinkedHashMap<>();
+        consumer.put("enabled", true);
+        consumer.put("topics", List.of("demo"));
+        consumer.put("autoOffsetReset", "earliest");
+
+        LinkedHashMap<String, Object> sharedConfigOverride = new LinkedHashMap<>();
+        sharedConfigOverride.put("consumer", consumer);
+        endpoint.setSharedConfigurationOverride(sharedConfigOverride);
 
         api.setEndpointGroups(List.of(new EndpointGroupV4().name("default").type("http").endpoints(List.of(endpoint))));
 
@@ -247,13 +262,37 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
-        doReturn(returnedApi)
-            .when(apiServiceV4)
-            .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
+        returnedApi.setName("My beautiful api");
+        returnedApi.setApiVersion("v1");
+        returnedApi.setDescription("my description");
+        returnedApi.setType(io.gravitee.definition.model.v4.ApiType.PROXY);
+
+        var listener = new io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener();
+        listener.setType(io.gravitee.definition.model.v4.listener.ListenerType.SUBSCRIPTION);
+        var foundEntrypoint = new io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint();
+        foundEntrypoint.setType("http-get");
+        foundEntrypoint.setConfiguration("{\"key\": \"value\"}");
+        foundEntrypoint.setQos(Qos.NONE);
+        listener.setEntrypoints(List.of(foundEntrypoint));
+
+        returnedApi.setListeners(List.of(listener));
+
+        var returnedEndpoint = new Endpoint();
+        returnedEndpoint.setConfiguration("{\"entrypointKey\": \"value\"}");
+
+        var returnedEndpointGroups = new EndpointGroup();
+        returnedEndpointGroups.setEndpoints(List.of(returnedEndpoint));
+        returnedApi.setEndpointGroups(List.of(returnedEndpointGroups));
+
+        when(apiServiceV4.create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME)))
+            .thenReturn(returnedApi);
 
         final Response response = rootTarget().request().post(Entity.json(Json.encode(api)));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(rootTarget().path("my-beautiful-api").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+
+        var body = response.readEntity(ApiV4.class);
+        assertNotNull(body);
     }
 
     @Test

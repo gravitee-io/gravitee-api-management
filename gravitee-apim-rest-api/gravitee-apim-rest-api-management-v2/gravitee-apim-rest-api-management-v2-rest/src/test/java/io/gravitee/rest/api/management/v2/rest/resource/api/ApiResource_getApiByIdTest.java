@@ -132,7 +132,8 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
         assertNotNull(subscriptionListener.getEntrypoints());
         var foundEntrypoint = subscriptionListener.getEntrypoints().get(0);
         assertNotNull(foundEntrypoint);
-        assertEquals("nice configuration", foundEntrypoint.getConfiguration());
+        LinkedHashMap configuration = (LinkedHashMap) foundEntrypoint.getConfiguration();
+        assertEquals("configuration", configuration.get("nice"));
         assertEquals("Entrypoint type", foundEntrypoint.getType());
         assertEquals("SUBSCRIPTION", subscriptionListener.getType().toString());
 
@@ -141,7 +142,8 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
         assertNotNull(tcpListener.getEntrypoints());
         var tcpFoundEntrypoint = tcpListener.getEntrypoints().get(0);
         assertNotNull(tcpFoundEntrypoint);
-        assertEquals("nice configuration", tcpFoundEntrypoint.getConfiguration());
+        LinkedHashMap tcpConfig = (LinkedHashMap) tcpFoundEntrypoint.getConfiguration();
+        assertEquals("configuration", tcpConfig.get("nice"));
         assertEquals("Entrypoint type", tcpFoundEntrypoint.getType());
         assertEquals("TCP", tcpListener.getType().toString());
 
@@ -155,7 +157,7 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
         assertNotNull(endpoint);
         assertEquals("http-get", endpoint.getType());
 
-        JsonNode jsonNode = mapper.readTree((String) endpoint.getConfiguration());
+        JsonNode jsonNode = mapper.valueToTree((LinkedHashMap) endpoint.getConfiguration());
         assertEquals("kafka:9092", jsonNode.get("bootstrapServers").asText());
         assertEquals(List.of("demo"), mapper.readValue(jsonNode.get("topics").toString(), List.class));
 
@@ -315,7 +317,7 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
         entrypoint.setType("Entrypoint type");
         entrypoint.setQos(Qos.AT_LEAST_ONCE);
         entrypoint.setDlq(new Dlq("my-endpoint"));
-        entrypoint.setConfiguration("nice configuration");
+        entrypoint.setConfiguration("{\"nice\": \"configuration\"}");
         subscriptionListener.setEntrypoints(List.of(entrypoint));
         subscriptionListener.setType(ListenerType.SUBSCRIPTION);
 
