@@ -107,14 +107,10 @@ public class ApiResource extends AbstractResource {
     @Inject
     private PageService pageService;
 
-    @PathParam("apiId")
-    private String apiId;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getApiById() {
-        final GenericApiEntity apiEntity = getApiEntityById();
-
+    public Response getApiById(@PathParam("apiId") String apiId) {
+        final GenericApiEntity apiEntity = getApiEntityById(apiId);
         return Response
             .ok(ApiMapper.INSTANCE.convert(apiEntity))
             .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
@@ -131,12 +127,16 @@ public class ApiResource extends AbstractResource {
             @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
         }
     )
-    public Response updateApi(@Context HttpHeaders headers, @Valid @NotNull final UpdateApiEntity apiToUpdate) {
+    public Response updateApi(
+        @Context HttpHeaders headers,
+        @PathParam("apiId") String apiId,
+        @Valid @NotNull final UpdateApiEntity apiToUpdate
+    ) {
         if (!apiId.equals(apiToUpdate.getId())) {
             throw new BadRequestException("'apiId' is not the same as the API in payload");
         }
 
-        final GenericApiEntity currentEntity = getApiEntityById();
+        final GenericApiEntity currentEntity = getApiEntityById(apiId);
         Response.ResponseBuilder builder = evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
 
         if (builder != null) {
@@ -183,7 +183,7 @@ public class ApiResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApi(@QueryParam("closePlans") boolean closePlans) {
+    public Response deleteApi(@PathParam("apiId") String apiId, @QueryParam("closePlans") boolean closePlans) {
         apiServiceV4.delete(GraviteeContext.getExecutionContext(), apiId, closePlans);
 
         return Response.noContent().build();
@@ -194,7 +194,7 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/deployments")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response deployApi(@Valid final ApiDeploymentEntity apiDeploymentEntity) {
+    public Response deployApi(@PathParam("apiId") String apiId, @Valid final ApiDeploymentEntity apiDeploymentEntity) {
         try {
             GenericApiEntity apiEntity = apiStateService.deploy(
                 GraviteeContext.getExecutionContext(),
@@ -216,9 +216,9 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @POST
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
-    public Response exportApiDefinition(@Context HttpHeaders headers) {
+    public Response exportApiDefinition(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
         final ExportApiV4 exportApi = new ExportApiV4();
-        final var apiEntity = getApiEntityById();
+        final var apiEntity = getApiEntityById(apiId);
         if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
         }
@@ -286,8 +286,8 @@ public class ApiResource extends AbstractResource {
     @Path("/_start")
     @POST
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response startAPI(@Context HttpHeaders headers) {
-        final Response responseApi = getApiById();
+    public Response startAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
+        final Response responseApi = getApiById(apiId);
         Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
 
         if (builder != null) {
@@ -304,8 +304,8 @@ public class ApiResource extends AbstractResource {
     @Path("/_stop")
     @POST
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response stopAPI(@Context HttpHeaders headers) {
-        final Response responseApi = getApiById();
+    public Response stopAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
+        final Response responseApi = getApiById(apiId);
         Response.ResponseBuilder builder = evaluateIfMatch(headers, responseApi.getEntityTag().getValue());
 
         if (builder != null) {
@@ -319,7 +319,7 @@ public class ApiResource extends AbstractResource {
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
     }
 
-    private GenericApiEntity getApiEntityById() {
+    private GenericApiEntity getApiEntityById(String apiId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
 
