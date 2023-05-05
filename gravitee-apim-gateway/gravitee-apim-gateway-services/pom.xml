@@ -33,7 +33,6 @@
     <name>Gravitee.io APIM - Gateway - Services</name>
 
     <modules>
-        <module>gravitee-apim-gateway-services-localregistry</module>
         <module>gravitee-apim-gateway-services-sync</module>
         <module>gravitee-apim-gateway-services-healthcheck</module>
         <module>gravitee-apim-gateway-services-heartbeat</module>

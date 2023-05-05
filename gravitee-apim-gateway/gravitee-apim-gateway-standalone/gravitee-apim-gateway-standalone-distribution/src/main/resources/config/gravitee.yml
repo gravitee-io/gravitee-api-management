@@ -357,14 +357,6 @@ services:
 #        - ns2
 #        - ns3
 
-  # Local registry service.
-  # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
-  # to configure your API using the web console or the rest API (but you need to know and understand the json descriptor
-  # format to make it work....)
-  local:
-    enabled: false
-    path: ${gravitee.home}/apis # The path to API descriptors
-
   # Gateway monitoring service.
   # This service retrieves metrics like os / process / jvm metrics and send them to an underlying reporting service.
   monitoring:
