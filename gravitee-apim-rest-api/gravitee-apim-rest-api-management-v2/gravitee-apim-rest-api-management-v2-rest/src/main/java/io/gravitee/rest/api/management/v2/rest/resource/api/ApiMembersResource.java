@@ -112,7 +112,7 @@ public class ApiMembersResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.DELETE) })
     public Response deleteApiMembership(@PathParam("memberId") String memberId) {
         membershipService.deleteMemberForApi(GraviteeContext.getExecutionContext(), apiId, memberId);
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     private void checkRoleIsNotPrimaryOwner(String roleId) {
