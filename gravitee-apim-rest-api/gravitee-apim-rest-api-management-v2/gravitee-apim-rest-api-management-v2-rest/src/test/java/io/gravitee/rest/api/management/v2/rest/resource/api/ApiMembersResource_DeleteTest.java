@@ -84,6 +84,6 @@ public class ApiMembersResource_DeleteTest extends AbstractResourceTest {
         Mockito.doNothing().when(membershipService).deleteMemberForApi(eq(GraviteeContext.getExecutionContext()), eq(apiId), eq(memberId));
 
         final Response response = rootTarget().request().delete();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
     }
 }
