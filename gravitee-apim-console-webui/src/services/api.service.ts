@@ -784,15 +784,19 @@ export class ApiService {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/schema`);
   }
 
-  picture(apiId: string): IPromise<string> {
+  picture(apiId: string, hash: number): IPromise<string> {
     return this.$http
-      .get(`${this.Constants.env.baseURL}/apis/${apiId}/picture`, { responseType: 'blob' })
+      .get(`${this.Constants.env.baseURL}/apis/${apiId}/picture?hash=${hash}`, {
+        responseType: 'blob',
+      })
       .then((response: IHttpResponse<Blob>) => blobToBase64(response.data));
   }
 
-  background(apiId: string): IPromise<string> {
+  background(apiId: string, hash: number): IPromise<string> {
     return this.$http
-      .get(`${this.Constants.env.baseURL}/apis/${apiId}/background`, { responseType: 'blob' })
+      .get(`${this.Constants.env.baseURL}/apis/${apiId}/background?hash=${hash}`, {
+        responseType: 'blob',
+      })
       .then((response: IHttpResponse<Blob>) => blobToBase64(response.data));
   }
 
