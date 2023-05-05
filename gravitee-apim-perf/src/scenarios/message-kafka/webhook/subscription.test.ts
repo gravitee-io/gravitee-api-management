@@ -66,9 +66,9 @@ if (__VU == 0) {
 
 export const options = k6Options;
 options['thresholds'] = {
-    // Base thresholds to see if the writer or reader is working
-    kafka_writer_error_count: ['count == 0'],
-    kafka_reader_error_count: ['count == 0'],
+  // Base thresholds to see if the writer or reader is working
+  kafka_writer_error_count: ['count == 0'],
+  kafka_reader_error_count: ['count == 0'],
 };
 
 export function setup(): GatewayTestData {
