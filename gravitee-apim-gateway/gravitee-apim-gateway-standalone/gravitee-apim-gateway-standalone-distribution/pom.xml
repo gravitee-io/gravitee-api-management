@@ -75,14 +75,6 @@
 
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
-            <artifactId>gravitee-apim-gateway-services-localregistry</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-            <type>zip</type>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-heartbeat</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>

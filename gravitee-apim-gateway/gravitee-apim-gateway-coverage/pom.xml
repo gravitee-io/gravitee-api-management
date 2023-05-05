@@ -154,12 +154,6 @@
 
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
-            <artifactId>gravitee-apim-gateway-services-localregistry</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-sync</artifactId>
             <version>${project.version}</version>
         </dependency>
