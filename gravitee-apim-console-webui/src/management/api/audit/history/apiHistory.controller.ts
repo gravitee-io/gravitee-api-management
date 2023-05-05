@@ -381,7 +381,10 @@ class ApiHistoryController {
     _apiDefinition.description = _apiPayload.description;
     _apiDefinition.visibility = _apiPayload.visibility;
 
-    Promise.allSettled([this.ApiService.picture(this.api.id), this.ApiService.background(this.api.id)])
+    Promise.allSettled([
+      this.ApiService.picture(this.api.id, this.api.updated_at),
+      this.ApiService.background(this.api.id, this.api.updated_at),
+    ])
       .then(([pictureResponse, backgroundResponse]) => {
         _apiDefinition.picture = pictureResponse.status === 'fulfilled' ? pictureResponse?.value : null;
         _apiDefinition.background = backgroundResponse.status === 'fulfilled' ? backgroundResponse?.value : null;
