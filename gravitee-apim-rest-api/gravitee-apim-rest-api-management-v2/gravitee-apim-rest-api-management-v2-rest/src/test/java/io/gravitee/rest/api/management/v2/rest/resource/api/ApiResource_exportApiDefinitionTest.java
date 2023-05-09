@@ -58,15 +58,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
-import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
-import io.gravitee.rest.api.management.v2.rest.model.Member;
-import io.gravitee.rest.api.management.v2.rest.model.Metadata;
-import io.gravitee.rest.api.management.v2.rest.model.Page;
-import io.gravitee.rest.api.management.v2.rest.model.PageType;
-import io.gravitee.rest.api.management.v2.rest.model.Plan;
-import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
-import io.gravitee.rest.api.management.v2.rest.model.Role;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.AccessControlEntity;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
@@ -233,7 +225,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         final ApiV4 api = export.getApi().getApiV4();
         testReturnedApi(api);
 
-        final Set<Plan> plans = export.getPlans();
+        final Set<PlanV4> plans = export.getPlans();
         testReturnedPlans(plans);
     }
 
@@ -665,7 +657,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         assertEquals(Set.of(firstMetadata, secondMetadata), metadata);
     }
 
-    private void testReturnedPlans(Set<Plan> plans) {
+    private void testReturnedPlans(Set<PlanV4> plans) {
         assertEquals(1, plans.size());
 
         var plan = plans.iterator().next();

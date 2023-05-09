@@ -462,7 +462,7 @@ paths:
                 - name: status
                   in: query
                   required: false
-                  description: List of plan status to filter on
+                  description: List of status filters
                   schema:
                       type: array
                       items:
@@ -472,7 +472,7 @@ paths:
                 - name: security
                   in: query
                   required: false
-                  description: List of plan security to filter on
+                  description: List of security plan type filters
                   schema:
                       type: array
                       items:
@@ -486,7 +486,8 @@ paths:
                 - API Plans
             summary: Get the API's plans
             description: |
-                # FIXME add a description
+                List plans for a given API, always filtered by a `status` and the possibility to filter by `security`.
+                User must have API_PLAN[READ] or API_LOG[READ] permissions to access endpoint.
             operationId: getApiPlans
             responses:
                 "200":
@@ -1237,7 +1238,7 @@ components:
                     type: array
                     description: The list of plans associated with this API.
                     items:
-                        $ref: "#/components/schemas/Plan"
+                        $ref: "#/components/schemas/PlanV4"
                     uniqueItems: true
 
         ApiDeployment:
@@ -1881,7 +1882,7 @@ components:
                 overrideAccess:
                     type: boolean
                     default: false
-        Plan:
+        BasePlan:
             type: object
             properties:
                 apiId:
@@ -1907,6 +1908,8 @@ components:
                     type: string
                     description: API's crossId. Identifies API across environments.
                     example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+                definitionVersion:
+                    $ref: "#/components/schemas/DefinitionVersion"
                 description:
                     type: string
                     description: API's description. A short description of your API.
@@ -1919,10 +1922,6 @@ components:
                         - MY_GROUP2
                     items:
                         type: string
-                flows:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/FlowV4"
                 generalConditions:
                     type: string
                 id:
@@ -1935,7 +1934,6 @@ components:
                     example: My Api plan
                 order:
                     type: integer
-                    format: int32
                 publishedAt:
                     type: string
                     format: date-time
@@ -1964,6 +1962,24 @@ components:
                     example: 1581256457163
                 validation:
                     $ref: "#/components/schemas/PlanValidation"
+            discriminator:
+                propertyName: definitionVersion
+                mapping:
+                    V2: PlanV2
+                    V4: PlanV4
+        PlanV4:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/BasePlan"
+                - properties:
+                    flows:
+                        type: array
+                        items:
+                            $ref: "#/components/schemas/FlowV4"
+        Plan:
+            oneOf:
+                - $ref: "#/components/schemas/PlanV2"
+                - $ref: "#/components/schemas/PlanV4"
         PlanSecurity:
             type: object
             properties:
@@ -2209,7 +2225,7 @@ components:
                     default: true
                 type:
                     type: string
-        StepV4:
+        BaseStep:
             type: object
             properties:
                 name:
@@ -2231,9 +2247,13 @@ components:
                 condition:
                     type: string
                     description: The condition of the step
-                messageCondition:
-                    type: string
-                    description: The message condition of the step
+        StepV4:
+            allOf:
+                - $ref: "#/components/schemas/BaseStep"
+                - properties:
+                      messageCondition:
+                          type: string
+                          description: The message condition of the step
         SubscriptionListener:
             allOf:
                 - $ref: "#/components/schemas/BaseListener"
@@ -2820,6 +2840,21 @@ components:
                     example: /my/path
                 operator:
                     $ref: "#/components/schemas/Operator"
+        PlanV2:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/BasePlan"
+                - properties:
+                      flows:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/FlowV2"
+                      paths:
+                          type: object
+                          additionalProperties:
+                              type: array
+                              items:
+                                  $ref: "#/components/schemas/Rule"
         ProtocolVersion:
             type: string
             description: The protocol version.
@@ -2867,28 +2902,8 @@ components:
                 dynamicProperty:
                     $ref: "#/components/schemas/DynamicPropertyService"
         StepV2:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: The name of the step
-                description:
-                    type: string
-                    description: The description of the step
-                enabled:
-                    type: boolean
-                    description: Is the step enabled or not.
-                    default: true
-                policy:
-                    type: string
-                    description: The policy of the step
-                configuration:
-                    type: object
-                    description: The configuration of the step
-                condition:
-                    type: string
-                    description: The condition of the step
-
+            allOf:
+                - $ref: "#/components/schemas/BaseStep"
         TrustStore:
             oneOf:
                 - $ref: "#/components/schemas/JKSTrustStore"
@@ -3366,14 +3381,15 @@ components:
             content:
                 application/json:
                     schema:
+                        title: "PlansResponse"
                         properties:
                             data:
                                 description: List of API plans.
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/Plan"
-                            metadata:
-                                $ref: "#/components/schemas/MetadataResponse"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
         MembersResponse:

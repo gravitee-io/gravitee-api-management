@@ -16,12 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.rest.api.management.v2.rest.model.ChannelSelector;
-import io.gravitee.rest.api.management.v2.rest.model.ConditionSelector;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
-import io.gravitee.rest.api.management.v2.rest.model.HttpSelector;
-import io.gravitee.rest.api.management.v2.rest.model.Plan;
-import io.gravitee.rest.api.management.v2.rest.model.Selector;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -46,6 +41,8 @@ public interface FlowMapper {
 
     @Mapping(target = "selectors", qualifiedByName = "toSelectors")
     io.gravitee.definition.model.v4.flow.Flow map(FlowV4 flow);
+
+    List<FlowV4> convert(List<io.gravitee.definition.model.v4.flow.Flow> flow);
 
     // Selectors
     HttpSelector map(io.gravitee.definition.model.v4.flow.selector.HttpSelector selector);
