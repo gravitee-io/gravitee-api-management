@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Provider;
@@ -32,6 +33,7 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
 
     public ObjectMapperResolver() {
         mapper = new GraviteeMapper();
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     @Override
