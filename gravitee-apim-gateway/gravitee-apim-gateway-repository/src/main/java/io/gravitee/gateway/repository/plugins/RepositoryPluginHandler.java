@@ -62,8 +62,6 @@ public class RepositoryPluginHandler implements PluginHandler, InitializingBean 
         lookForRepositoryType(Scope.MANAGEMENT);
         // 2_ Rate limit
         lookForRepositoryType(Scope.RATE_LIMIT);
-        // 3_ Caching
-        lookForRepositoryType(Scope.CACHE);
     }
 
     @Override
