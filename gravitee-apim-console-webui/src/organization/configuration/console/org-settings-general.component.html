@@ -112,43 +112,6 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="settings-general__form__card" formGroupName="theme">
-      <h2 gioTableOfContents>Theme</h2>
-      <mat-card-content>
-        <mat-form-field
-          [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('theme.name')"
-          class="settings-general__form__card__form-field"
-        >
-          <mat-icon *ngIf="isReadonlySetting('theme.name')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="name" />
-        </mat-form-field>
-
-        <mat-form-field
-          [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('theme.logo')"
-          class="settings-general__form__card__form-field"
-        >
-          <mat-icon *ngIf="isReadonlySetting('theme.logo')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
-          <mat-label>Logo</mat-label>
-          <input matInput formControlName="logo" />
-        </mat-form-field>
-
-        <mat-form-field
-          [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!isReadonlySetting('theme.loader')"
-          class="settings-general__form__card__form-field"
-        >
-          <mat-icon *ngIf="isReadonlySetting('theme.loader')" class="settings-general__form__card__form-field__icon" matPrefix
-            >lock</mat-icon
-          >
-          <mat-label>Loader</mat-label>
-          <input matInput formControlName="loader" />
-        </mat-form-field>
-      </mat-card-content>
-    </mat-card>
-
     <mat-card class="settings-general__form__card" formGroupName="scheduler">
       <h2 gioTableOfContents>Schedulers</h2>
       <mat-card-content>
