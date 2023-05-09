@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.reactivestreams.Publisher;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
@@ -48,13 +49,15 @@ public class KafkaReceiverErrorTransformer extends AbstractKafkaErrorTransformer
     ) {
         return consumerRecordFlux -> {
             AtomicReference<Consumer<K, V>> consumerRef = new AtomicReference<>();
+            AtomicReference<Disposable> kafkaDisconnectionRef = new AtomicReference<>();
             Sinks.Many<ConsumerRecord<K, V>> kafkaErrorSink = Sinks.many().unicast().onBackpressureError();
             return consumerRecordFlux
                 .zipWith(storeConsumerReference(qosStrategy, consumerRef), (c, o) -> c)
                 .materialize()
                 .mergeWith(kafkaErrorSink.asFlux().materialize())
                 .<ConsumerRecord<K, V>>dematerialize()
-                .doOnSubscribe(subscription -> handleKafkaDisconnection(consumerRef, kafkaErrorSink));
+                .doOnSubscribe(subscription -> kafkaDisconnectionRef.set(handleKafkaDisconnection(consumerRef, kafkaErrorSink)))
+                .doFinally(signal -> unsubscribeKafkaDisconnection(kafkaDisconnectionRef));
         };
     }
 
@@ -75,11 +78,11 @@ public class KafkaReceiverErrorTransformer extends AbstractKafkaErrorTransformer
             .repeat();
     }
 
-    private static <K, V> void handleKafkaDisconnection(
+    private static <K, V> Disposable handleKafkaDisconnection(
         final AtomicReference<Consumer<K, V>> consumerRef,
         final Sinks.Many<ConsumerRecord<K, V>> kafkaErrorSink
     ) {
-        Flux
+        return Flux
             .interval(Duration.ofMillis(KAFKA_CONNECTION_CHECK_INTERVAL))
             .publishOn(Schedulers.boundedElastic())
             .doOnNext(interval -> {

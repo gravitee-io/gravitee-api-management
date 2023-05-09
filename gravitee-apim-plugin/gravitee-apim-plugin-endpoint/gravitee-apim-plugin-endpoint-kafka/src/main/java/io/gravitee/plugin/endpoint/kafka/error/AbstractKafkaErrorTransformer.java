@@ -16,10 +16,12 @@
 package io.gravitee.plugin.endpoint.kafka.error;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
+import reactor.core.Disposable;
 import reactor.core.publisher.Sinks;
 
 /**
@@ -50,6 +52,13 @@ public abstract class AbstractKafkaErrorTransformer {
         if (connectionCloseTotal != null && connectionCloseTotal > 0 && connectionCount != null && connectionCount == 0) {
             kafkaErrorSink.tryEmitError(new KafkaConnectionClosedException());
             throw new KafkaConnectionClosedException();
+        }
+    }
+
+    protected static final void unsubscribeKafkaDisconnection(AtomicReference<Disposable> kafkaDisconnectionRef) {
+        final Disposable disposable = kafkaDisconnectionRef.get();
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
         }
     }
 }

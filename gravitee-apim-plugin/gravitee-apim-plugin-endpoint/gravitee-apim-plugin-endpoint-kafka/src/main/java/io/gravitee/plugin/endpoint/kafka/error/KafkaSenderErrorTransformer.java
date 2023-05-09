@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
 import org.reactivestreams.Publisher;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 import reactor.core.scheduler.Schedulers;
@@ -50,18 +51,20 @@ public class KafkaSenderErrorTransformer extends AbstractKafkaErrorTransformer {
     ) {
         return consumerRecordFlux -> {
             AtomicReference<Producer<K, V>> producerRef = new AtomicReference<>();
+            AtomicReference<Disposable> kafkaDisconnectionRef = new AtomicReference<>();
             Sinks.Many<SenderResult<T>> kafkaErrorSink = Sinks.many().unicast().onBackpressureError();
             return consumerRecordFlux
                 .zipWith(storeProduceReference(kafkaSender, producerRef), (r, o) -> r)
                 .materialize()
                 .mergeWith(kafkaErrorSink.asFlux().materialize())
                 .<SenderResult<T>>dematerialize()
-                .doOnSubscribe(subscription -> handleKafkaDisconnection(producerRef, kafkaErrorSink))
+                .doOnSubscribe(subscription -> kafkaDisconnectionRef.set(handleKafkaDisconnection(producerRef, kafkaErrorSink)))
                 .doOnError(throwable -> {
                     if (throwable instanceof KafkaConnectionClosedException) {
                         kafkaSenderFactory.clear(kafkaSender);
                     }
-                });
+                })
+                .doFinally(signal -> unsubscribeKafkaDisconnection(kafkaDisconnectionRef));
         };
     }
 
@@ -80,11 +83,11 @@ public class KafkaSenderErrorTransformer extends AbstractKafkaErrorTransformer {
             .repeat();
     }
 
-    private static <V, K, T> void handleKafkaDisconnection(
+    private static <V, K, T> Disposable handleKafkaDisconnection(
         final AtomicReference<Producer<K, V>> producerRef,
         final Sinks.Many<SenderResult<T>> kafkaErrorSink
     ) {
-        Flux
+        return Flux
             .interval(Duration.ofMillis(KAFKA_CONNECTION_CHECK_INTERVAL))
             .publishOn(Schedulers.boundedElastic())
             .doOnNext(interval -> {
