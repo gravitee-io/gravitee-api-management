@@ -29,7 +29,7 @@ import { StepEntrypointMenuItemComponent } from './steps/step-connector-menu-ite
 import { StepEndpointMenuItemComponent } from './steps/step-connector-menu-item/step-endpoint-menu-item.component';
 import { Step4MenuItemComponent } from './steps/step-4-menu-item/step-4-menu-item.component';
 
-import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { ApiEntity, EndpointGroup, Listener } from '../../../../entities/api-v4';
@@ -112,7 +112,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   constructor(
     private readonly injector: Injector,
-    private readonly apiV4Service: ApiV4Service,
+    private readonly apiV4Service: ApiV2Service,
     private readonly planV4Service: PlanV4Service,
     private readonly snackBarService: SnackBarService,
     @Inject(UIRouterState) readonly ajsState: StateService,

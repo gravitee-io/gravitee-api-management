@@ -19,6 +19,7 @@ import { Environment } from './environment/environment';
 export interface Constants {
   env?: {
     baseURL?: string;
+    v2BaseURL?: string;
     settings?: EnvSettings;
   };
   org?: {
@@ -28,6 +29,7 @@ export interface Constants {
     baseURL?: string;
   };
   baseURL: string;
+  v2BaseURL?: string;
 }
 
 interface EnvSettings {

@@ -24,24 +24,37 @@
 .mat-column-contextPath,
 .mat-column-tags,
 .mat-column-owner {
-  padding: 0 4px;
+  padding: 0 8px;
 }
 
 .mat-column-name {
   cursor: pointer;
-  padding: 0 4px;
+  padding: 0 8px;
   width: 15%;
 }
 
 .mat-column-picture,
 .mat-column-actions {
   width: 1%;
-  padding: 0 4px;
+  padding: 0 8px;
+}
+
+.mat-column-contextPath {
+  .contextPath {
+    &__message {
+      color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
+      cursor: default;
+    }
+
+    &__badge {
+      margin-left: 8px;
+    }
+  }
 }
 
 .mat-column-states {
   width: 1%;
-  padding: 0 4px;
+  padding: 0 8px;
   white-space: nowrap;
 
   .mat-icon {
@@ -99,7 +112,7 @@
 
 .mat-column-visibility {
   width: 1%;
-  padding: 0 4px;
+  padding: 0 8px;
 
   .visibility {
     color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');

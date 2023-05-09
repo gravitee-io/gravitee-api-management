@@ -20,29 +20,39 @@ import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { Api, ApiLifecycleState, ApiOrigin, ApiState } from '../../../entities/api';
-import { PagedResult } from '../../../entities/pagedResult';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { ApiService } from '../../../services-ngx/api.service';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { ApiService } from '../../../services-ngx/api.service';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Constants } from '../../../entities/Constants';
+import {
+  Api,
+  ApiLifecycleState,
+  ApisResponse,
+  ApiV2,
+  ApiV4,
+  StateEnum,
+  OriginEnum,
+  HttpListener,
+  PagedResult,
+} from '../../../entities/management-api-v2';
 
 export type ApisTableDS = {
   id: string;
   name: string;
   version: string;
-  contextPath: string;
+  contextPath: string[];
   tags: string;
   owner: string;
   ownerEmail: string;
   picture: string;
-  state: ApiState;
+  state: StateEnum;
   lifecycleState: ApiLifecycleState;
   workflowBadge?: { text: string; class: string };
   isNotSynced$?: Observable<boolean>;
   qualityScore$?: Observable<{ score: number; class: string }>;
   visibility: { label: string; icon: string };
-  origin: ApiOrigin;
+  origin: OriginEnum;
   readonly: boolean;
   definitionVersion: { label: string; icon?: string };
 }[];
@@ -75,6 +85,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject('Constants') private readonly constants: Constants,
     private readonly apiService: ApiService,
+    private readonly apiServiceV2: ApiV2Service,
   ) {}
 
   ngOnDestroy(): void {
@@ -103,13 +114,13 @@ export class ApiListComponent implements OnInit, OnDestroy {
           );
         }),
         switchMap(({ pagination, searchTerm, sort }) =>
-          this.apiService
-            .list(searchTerm, toOrder(sort), pagination.index, pagination.size)
+          this.apiServiceV2
+            .search({ query: searchTerm }, toOrder(sort), pagination.index, pagination.size)
             .pipe(catchError(() => of(new PagedResult<Api>()))),
         ),
         tap((apisPage) => {
           this.apisTableDS = this.toApisTableDS(apisPage);
-          this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
+          this.apisTableDSUnpaginatedLength = apisPage.pagination.pageItemsCount;
           this.isLoadingData = false;
         }),
       )
@@ -146,45 +157,71 @@ export class ApiListComponent implements OnInit, OnDestroy {
     this.filters$.next(this.filters);
   }
 
-  private toApisTableDS(api: PagedResult<Api>): ApisTableDS {
-    return api.page.total_elements > 0
-      ? api.data.map((api) => ({
-          id: api.id,
-          name: api.name,
-          version: api.version,
-          contextPath: api.context_path,
-          tags: api.tags.join(', '),
-          owner: api?.owner?.displayName,
-          ownerEmail: api?.owner?.email,
-          picture: api.picture_url,
-          state: api.state,
-          lifecycleState: api.lifecycle_state,
-          workflowBadge: this.getWorkflowBadge(api),
-          isNotSynced$: this.apiService.isAPISynchronized(api.id).pipe(map((a) => !a.is_synchronized)),
-          qualityScore$: this.isQualityDisplayed
-            ? this.apiService.getQualityMetrics(api.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
-            : null,
-          visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
-          origin: api.definition_context.origin,
-          readonly: api.definition_context?.origin === 'kubernetes',
-          definitionVersion: this.getDefinitionVersion(api),
-        }))
+  private toApisTableDS(apisResponse: ApisResponse): ApisTableDS {
+    return apisResponse?.pagination?.totalCount > 0
+      ? apisResponse.data.map((api) => {
+          const tableDS = {
+            id: api.id,
+            name: api.name,
+            version: api.apiVersion,
+            tags: api.tags?.join(', '),
+            state: api.state,
+            lifecycleState: api.lifecycleState,
+            workflowBadge: this.getWorkflowBadge(api),
+            visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
+            origin: api.definitionContext.origin,
+            readonly: api.definitionContext?.origin === 'kubernetes',
+            definitionVersion: this.getDefinitionVersion(api),
+            owner: api.primaryOwner.displayName,
+            ownerEmail: api.primaryOwner.email,
+            picture: api._links.pictureUrl,
+          };
+          if (api.definitionVersion === 'V4') {
+            const apiv4 = api as ApiV4;
+            return {
+              ...tableDS,
+              contextPath: this.getContextPath(apiv4),
+              isNotSynced$: undefined,
+              qualityScore$: null,
+            };
+          } else {
+            const apiv2 = api as ApiV2;
+            return {
+              ...tableDS,
+              contextPath: [apiv2.contextPath],
+              isNotSynced$: this.apiService.isAPISynchronized(apiv2.id).pipe(map((a) => !a.is_synchronized)),
+              qualityScore$: this.isQualityDisplayed
+                ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
+                : null,
+            };
+          }
+        })
       : [];
   }
 
-  private getDefinitionVersion(api) {
-    switch (api.gravitee) {
-      case '4.0.0':
+  private getContextPath(api: ApiV4): string[] {
+    if (api.listeners?.length > 0) {
+      const httpListener = api.listeners.find((listener) => listener.type === 'HTTP');
+      if (httpListener) {
+        return (httpListener as HttpListener).paths.map((path) => `${path.host ?? ''}${path.path}`);
+      }
+    }
+    return null;
+  }
+
+  private getDefinitionVersion(api: Api) {
+    switch (api.definitionVersion) {
+      case 'V4':
         return { label: 'Event native' };
-      case '2.0.0':
+      case 'V2':
         return { label: 'Policy studio' };
       default:
         return { icon: 'gio:alert-circle', label: 'Path based' };
     }
   }
 
-  private getWorkflowBadge(api) {
-    const state = api.lifecycle_state === 'DEPRECATED' ? api.lifecycle_state : api.workflow_state;
+  private getWorkflowBadge(api: Api) {
+    const state = api.lifecycleState === 'DEPRECATED' ? api.lifecycleState : api.workflowState;
     const toReadableState = {
       DEPRECATED: { text: 'Deprecated', class: 'gio-badge-error' },
       DRAFT: { text: 'Draft', class: 'gio-badge-primary' },
