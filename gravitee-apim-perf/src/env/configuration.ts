@@ -41,6 +41,7 @@ interface APIManagementConfiguration {
   gatewaySyncInterval: number;
   httpPost: HttpPost;
   webhook: Webhook;
+  kafkaInjector: KafkaInjector;
 }
 
 interface HttpPost {
@@ -49,6 +50,7 @@ interface HttpPost {
   topic: string;
   withJsontoJson: boolean;
   numPartitions: number;
+  compression: string;
 }
 
 interface Webhook {
@@ -57,6 +59,15 @@ interface Webhook {
   numPartitions: number;
   subscriptions: number;
   callbackBaseUrl: string;
+  compression: string;
+  acks: number;
+}
+
+interface KafkaInjector {
+  messageSizeInKB: number;
+  topic: string;
+  compression: string;
+  acks: number;
 }
 
 interface K6Configuration {

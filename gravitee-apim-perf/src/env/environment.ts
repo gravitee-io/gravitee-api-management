@@ -43,6 +43,7 @@ const k6DefaultOptions: Configuration = {
       topic: 'msg-http-post',
       numPartitions: 1,
       withJsontoJson: false,
+      compression: 'snappy',
     },
     webhook: {
       messageSizeInKB: 1,
@@ -50,6 +51,14 @@ const k6DefaultOptions: Configuration = {
       numPartitions: 1,
       subscriptions: 1,
       callbackBaseUrl: 'http://localhost:8888/hook',
+      compression: 'snappy',
+      ack: 1,
+    },
+    kafkaInjector: {
+      messageSizeInKB: 1,
+      topic: 'perf',
+      compression: 'snappy',
+      ack: 1,
     },
   },
   k6: {
