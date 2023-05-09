@@ -31,11 +31,13 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
@@ -252,6 +254,20 @@ public class ApiSearchService_SearchTest {
         )
             .thenReturn(new Page<>(List.of(apiEntity1, apiEntity2), 1, 2, 2));
 
+        PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+        primaryOwnerEntity.setId("id-1");
+        primaryOwnerEntity.setDisplayName("Primary Owner 1");
+
+        when(primaryOwnerService.getPrimaryOwners(any(ExecutionContext.class), anyList()))
+            .thenReturn(
+                new HashMap<>() {
+                    {
+                        put("id-1", primaryOwnerEntity);
+                        put("id-2", primaryOwnerEntity);
+                    }
+                }
+            );
+
         final Page<GenericApiEntity> apis = apiSearchService.search(
             GraviteeContext.getExecutionContext(),
             USER_ID,
@@ -266,9 +282,17 @@ public class ApiSearchService_SearchTest {
         assertThat(apis.getTotalElements()).isEqualTo(2);
         assertThat(apis.getPageNumber()).isEqualTo(1);
         assertThat(apis.getPageElements()).isEqualTo(2);
+        assertThat(
+            apis
+                .getContent()
+                .stream()
+                .allMatch(api -> null != api.getPrimaryOwner() && api.getPrimaryOwner().getId().equals(primaryOwnerEntity.getId()))
+        )
+            .isTrue();
 
         verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any());
         verify(apiRepository, times(1)).search(any(), any(), any(), any());
+        verify(primaryOwnerService, times(1)).getPrimaryOwners(any(), any());
     }
 
     @Test
