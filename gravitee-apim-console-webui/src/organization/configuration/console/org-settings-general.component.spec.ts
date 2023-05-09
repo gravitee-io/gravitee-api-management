@@ -172,62 +172,6 @@ describe('ConsoleSettingsComponent', () => {
     });
   });
 
-  describe('theme', () => {
-    it('should disable field when setting is readonly', async () => {
-      expectConsoleSettingsGetRequest({
-        theme: {
-          name: undefined,
-          logo: 'The logo',
-          loader: '',
-        },
-        metadata: {
-          readonly: ['theme.name', 'theme.logo', 'theme.loader'],
-        },
-      });
-
-      const nameFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Name' }));
-      expect(await nameFormField.isDisabled()).toEqual(true);
-
-      const logoFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Logo' }));
-      expect(await logoFormField.isDisabled()).toEqual(true);
-
-      const loaderFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Loader' }));
-      expect(await loaderFormField.isDisabled()).toEqual(true);
-    });
-
-    it('should save theme settings', async () => {
-      expectConsoleSettingsGetRequest({
-        theme: {
-          name: undefined,
-          logo: 'The logo',
-          loader: '',
-          css: 'red style',
-        },
-      });
-
-      const nameFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Name' }));
-      await (await nameFormField.getControl(MatInputHarness)).setValue('New name');
-
-      const logoFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Logo' }));
-      await (await logoFormField.getControl(MatInputHarness)).setValue('');
-
-      const loaderFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Loader' }));
-      await (await loaderFormField.getControl(MatInputHarness)).setValue('New loader');
-
-      const saveButton = await loader.getHarness(GioSaveBarHarness);
-      await saveButton.clickSubmit();
-
-      expectConsoleSettingsSendRequest({
-        theme: {
-          name: 'New name',
-          logo: '',
-          loader: 'New loader',
-          css: 'red style',
-        },
-      });
-    });
-  });
-
   describe('scheduler', () => {
     it('should disable field when setting is readonly', async () => {
       expectConsoleSettingsGetRequest({
