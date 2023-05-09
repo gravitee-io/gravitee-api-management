@@ -267,7 +267,8 @@ public class ApiServiceImpl_findAllTest {
                 propertiesService,
                 apiNotificationService,
                 tagsValidationService,
-                apiAuthorizationService
+                apiAuthorizationService,
+                groupService
             );
     }
 

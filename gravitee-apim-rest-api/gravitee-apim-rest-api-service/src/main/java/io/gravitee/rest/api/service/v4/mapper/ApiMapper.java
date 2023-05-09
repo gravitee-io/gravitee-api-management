@@ -304,4 +304,76 @@ public class ApiMapper {
             throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
         }
     }
+
+    public Api toRepository(final ExecutionContext executionContext, final ApiEntity apiEntity) {
+        Api repoApi = new Api();
+        if (apiEntity.getLifecycleState() != null) {
+            repoApi.setApiLifecycleState(ApiLifecycleState.valueOf(apiEntity.getLifecycleState().name()));
+        }
+        repoApi.setBackground(apiEntity.getBackground());
+        repoApi.setCategories(categoryMapper.toIdentifier(executionContext, apiEntity.getCategories(), null));
+        repoApi.setCrossId(apiEntity.getCrossId());
+        repoApi.setCreatedAt(apiEntity.getCreatedAt());
+        repoApi.setDefinition(toApiDefinition(apiEntity));
+        repoApi.setDefinitionVersion(apiEntity.getDefinitionVersion());
+        repoApi.setDeployedAt(apiEntity.getDeployedAt());
+        repoApi.setDescription(apiEntity.getDescription());
+        repoApi.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+        repoApi.setEnvironmentId(executionContext.getEnvironmentId());
+        repoApi.setGroups(apiEntity.getGroups());
+        repoApi.setId(apiEntity.getId());
+        if (apiEntity.getLabels() != null) {
+            repoApi.setLabels(new ArrayList<>(new HashSet<>(apiEntity.getLabels())));
+        }
+        if (apiEntity.getState() != null) {
+            repoApi.setLifecycleState(LifecycleState.valueOf(apiEntity.getState().name()));
+        }
+
+        if (apiEntity.getDefinitionContext() != null) {
+            repoApi.setMode(apiEntity.getDefinitionContext().getMode());
+            repoApi.setOrigin(apiEntity.getDefinitionContext().getOrigin());
+        }
+        repoApi.setName(apiEntity.getName());
+        repoApi.setPicture(apiEntity.getPicture());
+        repoApi.setType(apiEntity.getType());
+        repoApi.setUpdatedAt(apiEntity.getUpdatedAt());
+        if (apiEntity.getVisibility() != null) {
+            repoApi.setVisibility(Visibility.valueOf(apiEntity.getVisibility().toString()));
+        }
+        repoApi.setVersion(apiEntity.getApiVersion());
+        return repoApi;
+    }
+
+    private String toApiDefinition(final ApiEntity apiEntity) {
+        try {
+            io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
+
+            apiDefinition.setId(apiEntity.getId());
+            apiDefinition.setName(apiEntity.getName());
+            apiDefinition.setType(apiEntity.getType());
+            apiDefinition.setApiVersion(apiEntity.getApiVersion());
+            apiDefinition.setDefinitionVersion(apiEntity.getDefinitionVersion());
+            apiDefinition.setTags(apiEntity.getTags());
+            apiDefinition.setListeners(apiEntity.getListeners());
+            apiDefinition.setEndpointGroups(apiEntity.getEndpointGroups());
+            apiDefinition.setAnalytics(apiEntity.getAnalytics());
+            apiDefinition.setProperties(
+                apiEntity
+                    .getProperties()
+                    .stream()
+                    .map(propertyEntity -> new Property(propertyEntity.getKey(), propertyEntity.getValue()))
+                    .collect(Collectors.toList())
+            );
+            apiDefinition.setResources(apiEntity.getResources());
+            apiDefinition.setFlowExecution(apiEntity.getFlowExecution());
+            apiDefinition.setFlows(apiEntity.getFlows());
+            apiDefinition.setResponseTemplates(apiEntity.getResponseTemplates());
+            apiDefinition.setServices(apiEntity.getServices());
+
+            return objectMapper.writeValueAsString(apiDefinition);
+        } catch (JsonProcessingException jse) {
+            log.error("Unexpected error while generating API definition", jse);
+            throw new TechnicalManagementException("An error occurs while trying to parse API definition " + jse);
+        }
+    }
 }
