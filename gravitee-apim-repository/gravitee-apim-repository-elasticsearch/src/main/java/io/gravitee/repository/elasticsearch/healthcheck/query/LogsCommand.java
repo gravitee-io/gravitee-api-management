@@ -85,7 +85,7 @@ public class LogsCommand extends AbstractElasticsearchQueryCommand<LogsResponse>
             final Single<SearchResponse> result =
                 this.client.search(
                         this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to, clusters),
-                        !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
+                        !info.getVersion().canUseTypeRequests() ? null : Type.HEALTH_CHECK.getType(),
                         sQuery
                     );
             return this.toLogsResponse(result.blockingGet());
