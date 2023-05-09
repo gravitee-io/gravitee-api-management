@@ -40,6 +40,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
+import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -61,8 +62,10 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.PlanService;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -81,10 +84,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.*;
 
 /**
  * Defines the REST resources to manage API v4.
@@ -104,6 +104,9 @@ public class ApiResource extends AbstractResource {
     private ApiStateService apiStateService;
 
     @Inject
+    private ApiImagesService apiImagesService;
+
+    @Inject
     private ApiMetadataService apiMetadataService;
 
     @Inject
@@ -115,12 +118,15 @@ public class ApiResource extends AbstractResource {
     @Inject
     private WorkflowService workflowService;
 
+    @Context
+    protected UriInfo uriInfo;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiById(@PathParam("apiId") String apiId) {
         final GenericApiEntity apiEntity = getGenericApiEntityById(apiId);
         return Response
-            .ok(ApiMapper.INSTANCE.convert(apiEntity))
+            .ok(ApiMapper.INSTANCE.convert(apiEntity, uriInfo))
             .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
             .lastModified(apiEntity.getUpdatedAt())
             .build();
@@ -179,7 +185,7 @@ public class ApiResource extends AbstractResource {
         setPicturesUrl(updatedApi);
 
         return Response
-            .ok(ApiMapper.INSTANCE.convert(updatedApi))
+            .ok(ApiMapper.INSTANCE.convert(updatedApi, uriInfo))
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
             .lastModified(updatedApi.getUpdatedAt())
             .build();
@@ -226,7 +232,7 @@ public class ApiResource extends AbstractResource {
         if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
         }
-        exportApi.setApi(ApiMapper.INSTANCE.convert(apiEntity));
+        exportApi.setApi(ApiMapper.INSTANCE.convert(apiEntity, uriInfo));
 
         if (
             permissionService.hasPermission(
@@ -321,6 +327,20 @@ public class ApiResource extends AbstractResource {
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
     }
 
+    @GET
+    @Path("picture")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    public Response getApiPicture(@Context Request request, @Context HttpHeaders headers, @PathParam("apiId") String apiId) {
+        return getImageResponse(request, apiImagesService.getApiPicture(GraviteeContext.getExecutionContext(), apiId));
+    }
+
+    @GET
+    @Path("background")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    public Response getApiBackground(@Context Request request, @Context HttpHeaders headers, @PathParam("apiId") String apiId) {
+        return getImageResponse(request, apiImagesService.getApiBackground(GraviteeContext.getExecutionContext(), apiId));
+    }
+
     private GenericApiEntity getGenericApiEntityById(String apiId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
@@ -341,23 +361,25 @@ public class ApiResource extends AbstractResource {
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder().path("picture");
         // force browser to get if updated
         uriBuilder.queryParam("hash", apiEntity.getUpdatedAt().getTime());
+        String pictureUrl = uriBuilder.build().toString();
 
         uriBuilder = uriInfo.getAbsolutePathBuilder().path("background");
         // force browser to get if updated
         uriBuilder.queryParam("hash", apiEntity.getUpdatedAt().getTime());
+        String backgroundUrl = uriBuilder.build().toString();
 
         if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4) {
             ApiEntity apiEntityV4 = (ApiEntity) apiEntity;
-            apiEntityV4.setPictureUrl(uriBuilder.build().toString());
+            apiEntityV4.setPictureUrl(pictureUrl);
             apiEntityV4.setPicture(null);
-            apiEntityV4.setBackgroundUrl(uriBuilder.build().toString());
+            apiEntityV4.setBackgroundUrl(backgroundUrl);
             apiEntityV4.setBackground(null);
         }
         if (apiEntity.getDefinitionVersion() == DefinitionVersion.V2) {
             io.gravitee.rest.api.model.api.ApiEntity apiEntityV2 = (io.gravitee.rest.api.model.api.ApiEntity) apiEntity;
-            apiEntityV2.setPictureUrl(uriBuilder.build().toString());
+            apiEntityV2.setPictureUrl(pictureUrl);
             apiEntityV2.setPicture(null);
-            apiEntityV2.setBackgroundUrl(uriBuilder.build().toString());
+            apiEntityV2.setBackgroundUrl(backgroundUrl);
             apiEntityV2.setBackground(null);
         }
     }
@@ -448,5 +470,29 @@ public class ApiResource extends AbstractResource {
             .replaceAll(" ", "-")
             .replaceAll("[^\\w\\s\\.]", "-")
             .replaceAll("-+", "-");
+    }
+
+    private Response getImageResponse(final Request request, InlinePictureEntity image) {
+        CacheControl cc = new CacheControl();
+        cc.setNoTransform(true);
+        cc.setMustRevalidate(false);
+        cc.setNoCache(false);
+        cc.setMaxAge(86400);
+
+        if (image == null || image.getContent() == null) {
+            return Response.ok().cacheControl(cc).build();
+        }
+        EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
+        Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
+
+        if (builder != null) {
+            // Preconditions are not met, returning HTTP 304 'not-modified'
+            return builder.cacheControl(cc).build();
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(image.getContent(), 0, image.getContent().length);
+
+        return Response.ok(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
     }
 }

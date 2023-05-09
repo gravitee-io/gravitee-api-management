@@ -26,6 +26,7 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
@@ -33,6 +34,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.ws.rs.core.UriInfo;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -43,15 +45,17 @@ public interface ApiMapper {
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
     // Api
-    default Api convert(GenericApiEntity apiEntity) {
+    default Api convert(GenericApiEntity apiEntity, UriInfo uriInfo) {
         if (apiEntity == null) {
             return null;
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
-            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.convert((ApiEntity) apiEntity));
+            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.convert((ApiEntity) apiEntity, uriInfo));
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V2) {
-            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.map((io.gravitee.rest.api.model.api.ApiEntity) apiEntity));
+            return new io.gravitee.rest.api.management.v2.rest.model.Api(
+                this.map((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo)
+            );
         }
         return null;
     }
@@ -59,12 +63,14 @@ public interface ApiMapper {
     List<Api> convert(List<GenericApiEntity> apiEntities);
 
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
-    ApiV4 convert(ApiEntity apiEntity);
+    @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
+    ApiV4 convert(ApiEntity apiEntity, UriInfo uriInfo);
 
     @Mapping(target = "listeners", source = "listeners", qualifiedByName = "toListeners")
     NewApiEntity convert(CreateApiV4 api);
 
-    io.gravitee.rest.api.management.v2.rest.model.ApiV2 map(io.gravitee.rest.api.model.api.ApiEntity apiEntity);
+    @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
+    io.gravitee.rest.api.management.v2.rest.model.ApiV2 map(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
 
     // DefinitionVersion
     io.gravitee.definition.model.DefinitionVersion map(DefinitionVersion definitionVersion);
@@ -152,5 +158,12 @@ public interface ApiMapper {
                 return null;
             })
             .collect(Collectors.toList());
+    }
+
+    @Named("computeLinksFromApi")
+    default ApiLinks computeLinksFromApi(GenericApiEntity api, UriInfo uriInfo) {
+        return new ApiLinks()
+            .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
+            .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
     }
 }

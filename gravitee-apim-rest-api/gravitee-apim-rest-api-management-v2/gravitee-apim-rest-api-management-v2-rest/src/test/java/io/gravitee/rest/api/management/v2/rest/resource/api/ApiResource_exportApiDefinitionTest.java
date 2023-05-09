@@ -529,8 +529,9 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
     private void testReturnedApi(ApiV4 responseApi) throws JsonProcessingException {
         assertNotNull(responseApi);
         assertEquals(API_ID, responseApi.getName());
-        assertNotNull(responseApi.getPictureUrl());
-        assertNotNull(responseApi.getBackgroundUrl());
+        assertNotNull(responseApi.getLinks());
+        assertNotNull(responseApi.getLinks().getPictureUrl());
+        assertNotNull(responseApi.getLinks().getBackgroundUrl());
         assertNotNull(responseApi.getProperties());
         assertEquals(1, responseApi.getProperties().size());
         assertNotNull(responseApi.getServices());

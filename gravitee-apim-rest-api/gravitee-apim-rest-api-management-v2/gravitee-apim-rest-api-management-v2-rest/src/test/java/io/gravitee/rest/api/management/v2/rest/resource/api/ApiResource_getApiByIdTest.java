@@ -106,8 +106,11 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
 
         assertNotNull(responseApi);
         assertEquals(API_ID, responseApi.getName());
-        assertNotNull(responseApi.getPictureUrl());
-        assertNotNull(responseApi.getBackgroundUrl());
+        assertNotNull(responseApi.getLinks());
+        assertNotNull(responseApi.getLinks().getPictureUrl());
+        assertTrue(responseApi.getLinks().getPictureUrl().contains("environments/my-env/apis/my-api/picture"));
+        assertNotNull(responseApi.getLinks().getBackgroundUrl());
+        assertTrue(responseApi.getLinks().getBackgroundUrl().contains("environments/my-env/apis/my-api/background"));
         assertNotNull(responseApi.getProperties());
         assertEquals(1, responseApi.getProperties().size());
         assertNotNull(responseApi.getServices());
@@ -225,8 +228,9 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
         final ApiV4 responseApi = response.readEntity(ApiV4.class);
         assertNotNull(responseApi);
         assertEquals(API_ID, responseApi.getName());
-        assertNull(responseApi.getPictureUrl());
-        assertNull(responseApi.getBackgroundUrl());
+        assertNotNull(responseApi.getLinks());
+        assertNotNull(responseApi.getLinks().getPictureUrl());
+        assertNotNull(responseApi.getLinks().getBackgroundUrl());
         assertNull(responseApi.getProperties());
         assertNull(responseApi.getServices());
         assertNull(responseApi.getResources());
@@ -250,8 +254,11 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
 
         assertNotNull(responseApi);
         assertEquals(API_ID, responseApi.getName());
-        assertNotNull(responseApi.getPictureUrl());
-        assertNotNull(responseApi.getBackgroundUrl());
+        assertNotNull(responseApi.getLinks());
+        assertNotNull(responseApi.getLinks().getPictureUrl());
+        assertTrue(responseApi.getLinks().getPictureUrl().contains("environments/my-env/apis/my-api/picture"));
+        assertNotNull(responseApi.getLinks().getBackgroundUrl());
+        assertTrue(responseApi.getLinks().getBackgroundUrl().contains("environments/my-env/apis/my-api/background"));
         assertNotNull(responseApi.getProperties());
         assertEquals(1, responseApi.getProperties().size());
         assertNotNull(responseApi.getServices());
@@ -280,8 +287,9 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
         final ApiV2 responseApi = response.readEntity(ApiV2.class);
         assertNotNull(responseApi);
         assertEquals(API_ID, responseApi.getName());
-        assertNull(responseApi.getPictureUrl());
-        assertNull(responseApi.getBackgroundUrl());
+        assertNotNull(responseApi.getLinks());
+        assertNotNull(responseApi.getLinks().getPictureUrl());
+        assertNotNull(responseApi.getLinks().getBackgroundUrl());
         assertNull(responseApi.getProperties());
         assertNull(responseApi.getServices());
         assertNull(responseApi.getResources());

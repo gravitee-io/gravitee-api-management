@@ -56,6 +56,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public io.gravitee.rest.api.service.v4.ApiImagesService apiImageService() {
+        return mock(io.gravitee.rest.api.service.v4.ApiImagesService.class);
+    }
+
+    @Bean
     public io.gravitee.rest.api.service.v4.ApiAuthorizationService apiAuthorizationServiceV4() {
         return mock(io.gravitee.rest.api.service.v4.ApiAuthorizationService.class);
     }
