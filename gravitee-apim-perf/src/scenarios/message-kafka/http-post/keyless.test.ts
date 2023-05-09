@@ -18,7 +18,7 @@ import { Connection } from 'k6/x/kafka';
 import http from 'k6/http';
 import { ADMIN_USER, authorizationHeaderFor, k6Options } from '@env/environment';
 import { LifecycleAction } from '@models/v3/ApiEntity';
-import { failIf } from '@helpers/k6.helper';
+import { failIf, generatePayloadInKB } from '@helpers/k6.helper';
 import { ApisFixture } from '@fixtures/v3/apis.fixture';
 import { HttpHelper } from '@helpers/http.helper';
 import { GatewayTestData } from '@lib/test-api';
@@ -146,19 +146,8 @@ export function setup(): GatewayTestData {
 
   GatewayClient.waitForApiAvailability({ contextPath: contextPath, expectedStatusCode: 202, method: HttpMethod.POST, body: '' });
 
-  const message = generatePayload();
+  const message = generatePayloadInKB(k6Options.apim.httpPost.messageSizeInKB);
   return { api: createdApi, plan: createdPlan, waitGateway: { contextPath: contextPath }, msg: message };
-}
-
-function generatePayload() {
-  let message: any = {};
-  const expectedLength = k6Options.apim.httpPost.messageSizeInKB * 1024;
-  let i = 0;
-  do {
-    i = i + 1;
-    message[`key_${i}`] = `value_${i}`;
-  } while (JSON.stringify(message).length < expectedLength);
-  return message;
 }
 
 export default (data: GatewayTestData) => {

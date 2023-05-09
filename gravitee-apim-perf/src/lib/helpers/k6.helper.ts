@@ -25,3 +25,17 @@ export function failIf(condition: boolean, message: string = 'Test aborted') {
     execution.test.abort(message);
   }
 }
+
+export function generatePayloadInKB(expectedLength: number) {
+  return generatePayloadInBytes(expectedLength * 1024);
+}
+
+export function generatePayloadInBytes(expectedLength: number) {
+  let message: any = {};
+  let i = 0;
+  do {
+    i = i + 1;
+    message[`key_${i}`] = `value_${i}`;
+  } while (JSON.stringify(message).length < expectedLength);
+  return message;
+}

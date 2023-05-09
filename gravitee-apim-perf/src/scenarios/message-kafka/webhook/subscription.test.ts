@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { sleep } from 'k6';
-import { Connection, Writer, SchemaRegistry, SCHEMA_TYPE_BYTES, CODEC_SNAPPY } from 'k6/x/kafka';
+import { Connection, Writer, SchemaRegistry, SCHEMA_TYPE_BYTES } from 'k6/x/kafka';
 import { ADMIN_USER, authorizationHeaderFor, k6Options } from '@env/environment';
 import { LifecycleAction } from '@models/v3/ApiEntity';
-import { failIf } from '@helpers/k6.helper';
+import { failIf, generatePayloadInKB } from '@helpers/k6.helper';
 import { ApisFixture } from '@fixtures/v3/apis.fixture';
 import { HttpHelper } from '@helpers/http.helper';
 import { GatewayTestData } from '@lib/test-api';
@@ -48,7 +48,8 @@ const writer = new Writer({
   brokers: [k6Options.apim.kafkaBoostrapServer],
   topic: kafkaTopic,
   autoCreateTopic: true,
-  compression: CODEC_SNAPPY,
+  compression: k6Options.apim.webhook.compression,
+  requiredAcks: k6Options.apim.webhook.acks,
 });
 
 if (__VU == 0) {
@@ -58,7 +59,7 @@ if (__VU == 0) {
     configEntries: [
       {
         configName: 'compression.type',
-        configValue: CODEC_SNAPPY,
+        configValue: k6Options.apim.webhook.compression,
       },
     ],
   });
@@ -209,26 +210,19 @@ export function setup(): GatewayTestData {
   // wait 1 sec per subscription + 10 seconds that the webhook subscription are in place
   sleep(numberOfSubscriptions + 10);
 
-  const message = generatePayload();
+  const message = generatePayloadInKB(k6Options.apim.webhook.messageSizeInKB);
   return {
     api: createdApi,
     plan: createdPlan,
     waitGateway: { contextPath: contextPath },
-    msg: message,
+    // The data type of the value is a byte array
+    msg: schemaRegistry.serialize({
+      data: Array.from(JSON.stringify(message), (x) => x.charCodeAt(0)),
+      schemaType: SCHEMA_TYPE_BYTES,
+    }),
     applications: applications,
     subscriptions: subscriptions,
   };
-}
-
-function generatePayload() {
-  let message: any = {};
-  const expectedLength = k6Options.apim.httpPost.messageSizeInKB * 1024;
-  let i = 0;
-  do {
-    i = i + 1;
-    message[`key_${i}`] = `value_${i}`;
-  } while (JSON.stringify(message).length < expectedLength);
-  return message;
 }
 
 export default (data: GatewayTestData) => {
@@ -240,11 +234,7 @@ export default (data: GatewayTestData) => {
           data: Array.from('id-' + randomString(), (x) => x.charCodeAt(0)),
           schemaType: SCHEMA_TYPE_BYTES,
         }),
-        // The data type of the value is a byte array
-        value: schemaRegistry.serialize({
-          data: Array.from(JSON.stringify(data.msg), (x) => x.charCodeAt(0)),
-          schemaType: SCHEMA_TYPE_BYTES,
-        }),
+        value: data.msg,
       },
     ],
   });
