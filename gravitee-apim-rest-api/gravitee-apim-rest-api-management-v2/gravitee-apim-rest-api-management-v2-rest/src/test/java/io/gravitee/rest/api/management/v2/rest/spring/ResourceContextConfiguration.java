@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-@PropertySource("classpath:/io/gravitee/rest/api/management/v4/rest/resource/jwt.properties")
+@PropertySource("classpath:/io/gravitee/rest/api/management/v2/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {
 
     @Bean
