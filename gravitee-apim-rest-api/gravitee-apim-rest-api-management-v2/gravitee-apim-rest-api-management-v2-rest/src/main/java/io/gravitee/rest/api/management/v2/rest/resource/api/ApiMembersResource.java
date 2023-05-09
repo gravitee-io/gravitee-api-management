@@ -19,10 +19,10 @@ import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
-import io.gravitee.rest.api.management.v2.rest.model.CreateApiMembership;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApiMember;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.MembersResponse;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiMembership;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiMember;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
@@ -73,7 +73,7 @@ public class ApiMembersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.CREATE) })
-    public Response createApiMembership(CreateApiMembership apiMembership) {
+    public Response createApiMembership(CreateApiMember apiMembership) {
         checkRoleIsNotPrimaryOwner(apiMembership.getRoleName());
 
         if (apiMembership.getUserId() == null && apiMembership.getExternalReference() == null) {
@@ -94,7 +94,7 @@ public class ApiMembersResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiMembership(UpdateApiMembership apiMembership) {
+    public Response updateApiMembership(UpdateApiMember apiMembership) {
         checkRoleIsNotPrimaryOwner(apiMembership.getRoleName());
 
         var updatedMembership = membershipService.updateMembershipForApi(

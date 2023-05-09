@@ -355,13 +355,13 @@ paths:
             summary: Add a member to an API.
             description: |
                 Add a new member to an API.
-                User must have the API_MEMBER[CREATE] permissions.
+                User must have the API_MEMBER[CREATE] permission.
             operationId: createApiMembership
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/CreateApiMembership"
+                            $ref: "#/components/schemas/CreateApiMember"
                 required: true
             responses:
                 "201":
@@ -379,13 +379,13 @@ paths:
             summary: Updates a membership for an API.
             description: |
                 Edit a membership for an API.
-                User must have the API_MEMBER[UPDATE] permissions.
+                User must have the API_MEMBER[UPDATE] permission.
             operationId: updateApiMembership
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/UpdateApiMembership"
+                            $ref: "#/components/schemas/UpdateApiMember"
                 required: true
             responses:
                 "200":
@@ -408,7 +408,7 @@ paths:
             summary: Delete one API member
             description: |
                 Deletes an API member.
-                User must have the API_MEMBER[DELETE] permissions.
+                User must have the API_MEMBER[DELETE] permission.
             operationId: deleteApiMembership
             responses:
                 "204":
@@ -879,6 +879,7 @@ components:
                     $ref: "#/components/schemas/LoggingV4"
         Api:
             oneOf:
+                - $ref: "#/components/schemas/ApiV1"
                 - $ref: "#/components/schemas/ApiV2"
                 - $ref: "#/components/schemas/ApiV4"
         BaseApi:
@@ -999,8 +1000,43 @@ components:
             discriminator:
                 propertyName: definitionVersion
                 mapping:
+                    V1: ApiV1
                     V2: ApiV2
                     V4: ApiV4
+        ApiV1:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/BaseApi"
+                - properties:
+                      environmentId:
+                          type: string
+                          description: The environment's uuid.
+                          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                      executionMode:
+                          $ref: "#/components/schemas/ExecutionMode"
+                      contextPath:
+                          type: string
+                          description: The context path of the API.
+                          example: /my-api
+                      proxy:
+                          $ref: "#/components/schemas/Proxy"
+                      paths:
+                          type: array
+                          description: The list of flows associated with this API.
+                          items:
+                              $ref: "#/components/schemas/PathV1"
+                      services:
+                          $ref: "#/components/schemas/ServicesV2"
+                      pathMappings:
+                          type: array
+                          description: The list of path mappings associated with this API.
+                          items:
+                              type: string
+                      entrypoints:
+                          type: array
+                          description: The list of entrypoints associated with this API.
+                          items:
+                              $ref: "#/components/schemas/ApiEntrypoint"
         ApiV2:
             type: object
             allOf:
@@ -1115,7 +1151,7 @@ components:
         CreateApiV2:
             type: object
             allOf:
-                - $ref: "#/components/schemas/BaseApi"
+                - $ref: "#/components/schemas/CreateBaseApi"
                 - properties:
                       contextPath:
                           type: string
@@ -1618,7 +1654,7 @@ components:
                           type: array
                           minItems: 1
                           items:
-                              $ref: "#/components/schemas/Path"
+                              $ref: "#/components/schemas/PathV4"
                       pathMappings:
                           type: array
                           items:
@@ -1831,7 +1867,7 @@ components:
                 totalCount:
                     type: integer
                     description: The total number of items.
-        Path:
+        PathV4:
             type: object
             properties:
                 host:
@@ -1991,7 +2027,7 @@ components:
                     type: string
                     description: Role's name.
                     example: OWNER
-        CreateApiMembership:
+        CreateApiMember:
             type: object
             description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
             properties:
@@ -2006,7 +2042,7 @@ components:
                     description: The name of the role
                     minLength: 1
             required: [roleName]
-        UpdateApiMembership:
+        UpdateApiMember:
             type: object
             properties:
                 memberId:
@@ -3135,6 +3171,40 @@ components:
                 - DATE
                 - MAIL
                 - URL
+
+        # API V1 specific schemas
+        PathV1:
+            type: object
+            additionalProperties:
+                type: array
+                description: a map where you can associate a path to a configuration (the
+                    policies configuration)
+                items:
+                    $ref: "#/components/schemas/Rule"
+        Rule:
+            type: object
+            properties:
+                methods:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/HttpMethod"
+                description:
+                    type: string
+                    description: The description of the rule
+                enabled:
+                    type: boolean
+                    description: Is the rule enabled or not.
+                    default: true
+                operation:
+                    type: string
+                    description: The operation of the rule
+                configuration:
+                    type: object
+                    description: The configuration of the rule
+            additionalProperties:
+                type: object
+
+
     parameters:
         #############
         # PathParam #
