@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiMembership;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiMember;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.MemberEntity;
@@ -71,13 +71,13 @@ public class ApiMembersResource_UpdateTest extends AbstractResourceTest {
         )
             .thenReturn(false);
 
-        final Response response = rootTarget().request().put(Entity.json(new UpdateApiMembership()));
+        final Response response = rootTarget().request().put(Entity.json(new UpdateApiMember()));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void should_return_400_when_editing_with_role_primary_owner() {
-        var newMembership = new UpdateApiMembership();
+        var newMembership = new UpdateApiMember();
         newMembership.setRoleName("PRIMARY_OWNER");
         final Response response = rootTarget().request().put(Entity.json(newMembership));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -95,7 +95,7 @@ public class ApiMembersResource_UpdateTest extends AbstractResourceTest {
         when(membershipService.updateMembershipForApi(eq(GraviteeContext.getExecutionContext()), eq(apiId), eq("memberId"), eq("OWNER")))
             .thenReturn(memberEntity);
 
-        var newMembership = new UpdateApiMembership();
+        var newMembership = new UpdateApiMember();
         newMembership.setRoleName("OWNER");
         newMembership.setMemberId("memberId");
         final Response response = rootTarget().request().put(Entity.json(newMembership));

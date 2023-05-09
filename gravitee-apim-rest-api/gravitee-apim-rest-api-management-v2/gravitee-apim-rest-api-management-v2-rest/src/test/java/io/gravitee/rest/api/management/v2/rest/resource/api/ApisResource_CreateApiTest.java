@@ -121,7 +121,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         apiEntity.setApiVersion("v1");
         apiEntity.setDescription("my description");
         HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path().path("/context")));
+        httpListener.setPaths(List.of(new PathV4().path("/context")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("sse");
         httpListener.setEntrypoints(List.of(entrypoint));
@@ -144,7 +144,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         apiEntity.setApiVersion("v1");
         apiEntity.setDescription("my description");
         HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path().path("/context")));
+        httpListener.setPaths(List.of(new PathV4().path("/context")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("sse");
         httpListener.setEntrypoints(List.of(entrypoint));
@@ -170,7 +170,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         apiEntity.setApiVersion("v1");
         apiEntity.setDescription("my description");
         HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path().path("/context")));
+        httpListener.setPaths(List.of(new PathV4().path("/context")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("sse");
         httpListener.setEntrypoints(List.of(entrypoint));
@@ -194,7 +194,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         api.setType(ApiType.PROXY);
 
         HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path().path("/context")));
+        httpListener.setPaths(List.of(new PathV4().path("/context")));
         httpListener.entrypoints(List.of(new Entrypoint().type("sse")));
         httpListener.type(ListenerType.HTTP);
 
@@ -305,7 +305,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setDescription("Ma description");
         HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path().path("/context")));
+        httpListener.setPaths(List.of(new PathV4().path("/context")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("sse");
         httpListener.setEntrypoints(List.of(entrypoint));
