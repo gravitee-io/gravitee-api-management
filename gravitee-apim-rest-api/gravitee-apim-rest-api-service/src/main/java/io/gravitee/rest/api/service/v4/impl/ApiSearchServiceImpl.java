@@ -255,10 +255,15 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         // Step 4: get APIs page from repository by ids and add pagination and sorting
         Page<Api> apis = apiRepository.search(apiCriteriaBuilder.build(), convert(sortable), convert(pageable), ApiFieldFilter.allFields());
 
+        Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(
+            executionContext,
+            apis.getContent().stream().map(Api::getId).collect(toList())
+        );
+
         return apis
             .getContent()
             .stream()
-            .map(api -> genericApiMapper.toGenericApi(api, null))
+            .map(api -> genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId())))
             .collect(
                 Collectors.collectingAndThen(
                     Collectors.toList(),
