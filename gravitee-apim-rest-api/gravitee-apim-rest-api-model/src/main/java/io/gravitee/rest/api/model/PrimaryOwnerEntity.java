@@ -16,11 +16,19 @@
 package io.gravitee.rest.api.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
 public class PrimaryOwnerEntity {
 
     @Schema(description = "The user or group id.", example = "005197cc-cc84-86a6-a75a-88f9772c67db")
@@ -49,37 +57,5 @@ public class PrimaryOwnerEntity {
         this.email = null;
         this.displayName = group.getName();
         this.type = "GROUP";
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 }

@@ -32,6 +32,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 public interface ApiService {
     ApiEntity create(final ExecutionContext executionContext, final NewApiEntity api, final String userId);
 
+    ApiEntity createWithImport(final ExecutionContext executionContext, final ApiEntity api, final String userId);
+
     ApiEntity update(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api, final String userId);
 
     ApiEntity update(

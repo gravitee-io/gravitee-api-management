@@ -27,7 +27,6 @@ import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -38,10 +37,13 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
@@ -57,6 +59,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
@@ -67,6 +70,7 @@ import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PageService;
@@ -76,6 +80,8 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
@@ -134,6 +140,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final ApiNotificationService apiNotificationService;
     private final TagsValidationService tagsValidationService;
     private final ApiAuthorizationService apiAuthorizationService;
+    private final GroupService groupService;
+
+    private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
 
     public ApiServiceImpl(
         @Lazy final ApiRepository apiRepository,
@@ -162,7 +171,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final PropertiesService propertiesService,
         final ApiNotificationService apiNotificationService,
         final TagsValidationService tagsValidationService,
-        final ApiAuthorizationService apiAuthorizationService
+        final ApiAuthorizationService apiAuthorizationService,
+        final GroupService groupService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -191,6 +201,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.apiNotificationService = apiNotificationService;
         this.tagsValidationService = tagsValidationService;
         this.apiAuthorizationService = apiAuthorizationService;
+        this.groupService = groupService;
     }
 
     @Override
@@ -220,33 +231,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             );
 
             // Add the primary owner of the newly created API
-            membershipService.addRoleToMemberOnReference(
-                executionContext,
-                new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
-                new MembershipService.MembershipMember(primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
-                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-            );
+            addPrimaryOwnerToCreatedApi(executionContext, primaryOwner, createdApi);
 
             // create the default mail notification
-            final String emailMetadataValue = "${(api.primaryOwner.email)!''}";
-
-            GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
-            notificationConfigEntity.setName("Default Mail Notifications");
-            notificationConfigEntity.setReferenceType(HookScope.API.name());
-            notificationConfigEntity.setReferenceId(createdApi.getId());
-            notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
-            notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
-            notificationConfigEntity.setConfig(emailMetadataValue);
-            genericNotificationConfigService.create(notificationConfigEntity);
+            createDefaultMailNotification(createdApi);
 
             // create the default mail support metadata
-            NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
-            newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
-            newApiMetadataEntity.setName(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY);
-            newApiMetadataEntity.setDefaultValue(emailMetadataValue);
-            newApiMetadataEntity.setValue(emailMetadataValue);
-            newApiMetadataEntity.setApiId(createdApi.getId());
-            apiMetadataService.create(executionContext, newApiMetadataEntity);
+            createDefaultSupportEmailMetadata(executionContext, createdApi);
 
             // create the API flows
             flowService.save(FlowReferenceType.API, createdApi.getId(), newApiEntity.getFlows());
@@ -262,6 +253,139 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             log.error(errorMsg, ex);
             throw new TechnicalManagementException(errorMsg, ex);
         }
+    }
+
+    @Override
+    public ApiEntity createWithImport(final ExecutionContext executionContext, final ApiEntity apiEntity, final String userId) {
+        String id = apiEntity.getId() != null ? apiEntity.getId() : UuidString.generateRandom();
+        try {
+            apiRepository
+                .findById(id)
+                .ifPresent(action -> {
+                    throw new ApiAlreadyExistsException(id);
+                });
+        } catch (TechnicalException ex) {
+            String errorMsg = String.format("An error occurs while trying to check if 'id' %s is already used", id);
+            log.error(errorMsg, ex);
+            throw new TechnicalManagementException(errorMsg, ex);
+        }
+
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, userId, apiEntity.getPrimaryOwner());
+        apiValidationService.validateAndSanitizeImportApiForCreation(executionContext, apiEntity, primaryOwner);
+
+        Api repositoryApi = apiMapper.toRepository(executionContext, apiEntity);
+
+        repositoryApi.setId(id);
+        repositoryApi.setEnvironmentId(executionContext.getEnvironmentId());
+        // Set date fields
+        repositoryApi.setCreatedAt(new Date());
+        repositoryApi.setUpdatedAt(repositoryApi.getCreatedAt());
+
+        repositoryApi.setApiLifecycleState(ApiLifecycleState.CREATED);
+        if (DefinitionContext.isKubernetes(repositoryApi.getOrigin())) {
+            // Be sure that api is always marked as STARTED when managed by k8s.
+            repositoryApi.setLifecycleState(LifecycleState.STARTED);
+        } else {
+            // Be sure that lifecycle is set to STOPPED
+            repositoryApi.setLifecycleState(LifecycleState.STOPPED);
+        }
+
+        // Make sure visibility is PRIVATE by default if not set.
+        repositoryApi.setVisibility(
+            apiEntity.getVisibility() == null ? Visibility.PRIVATE : Visibility.valueOf(apiEntity.getVisibility().toString())
+        );
+
+        // Add Default groups
+        Set<String> defaultGroups = groupService
+            .findByEvent(executionContext.getEnvironmentId(), GroupEvent.API_CREATE)
+            .stream()
+            .map(GroupEntity::getId)
+            .collect(toSet());
+        if (repositoryApi.getGroups() == null) {
+            repositoryApi.setGroups(defaultGroups.isEmpty() ? null : defaultGroups);
+        } else {
+            repositoryApi.getGroups().addAll(defaultGroups);
+        }
+
+        // if po is a group, add it as a member of the API
+        if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwner.getType())) {
+            if (repositoryApi.getGroups() == null) {
+                repositoryApi.setGroups(new HashSet<>());
+            }
+            repositoryApi.getGroups().add(primaryOwner.getId());
+        }
+
+        if (parameterService.findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
+            workflowService.create(WorkflowReferenceType.API, id, REVIEW, userId, DRAFT, "");
+        }
+
+        Api createdApi;
+        try {
+            createdApi = apiRepository.create(repositoryApi);
+        } catch (TechnicalException ex) {
+            String errorMsg = String.format("An error occurs while trying to create '%s' for user '%s'", apiEntity, userId);
+            log.error(errorMsg, ex);
+            throw new TechnicalManagementException(errorMsg, ex);
+        }
+
+        // Audit
+        auditService.createApiAuditLog(
+            executionContext,
+            createdApi.getId(),
+            Collections.emptyMap(),
+            API_CREATED,
+            createdApi.getCreatedAt(),
+            null,
+            createdApi
+        );
+
+        // Add the primary owner of the newly created API
+        addPrimaryOwnerToCreatedApi(executionContext, primaryOwner, createdApi);
+
+        // create the default mail notification
+        createDefaultMailNotification(createdApi);
+
+        // create the default mail support metadata
+        createDefaultSupportEmailMetadata(executionContext, createdApi);
+
+        // create the API flows
+        flowService.save(FlowReferenceType.API, createdApi.getId(), apiEntity.getFlows());
+
+        ApiEntity createdApiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, null, true);
+        GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, createdApiEntity);
+
+        searchEngineService.index(executionContext, apiWithMetadata, false);
+        return apiEntity;
+    }
+
+    private void createDefaultSupportEmailMetadata(ExecutionContext executionContext, Api createdApi) {
+        NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
+        newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
+        newApiMetadataEntity.setName(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY);
+        newApiMetadataEntity.setDefaultValue(EMAIL_METADATA_VALUE);
+        newApiMetadataEntity.setValue(EMAIL_METADATA_VALUE);
+        newApiMetadataEntity.setApiId(createdApi.getId());
+        apiMetadataService.create(executionContext, newApiMetadataEntity);
+    }
+
+    private void createDefaultMailNotification(Api createdApi) {
+        GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
+        notificationConfigEntity.setName("Default Mail Notifications");
+        notificationConfigEntity.setReferenceType(HookScope.API.name());
+        notificationConfigEntity.setReferenceId(createdApi.getId());
+        notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
+        notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
+        notificationConfigEntity.setConfig(EMAIL_METADATA_VALUE);
+        genericNotificationConfigService.create(notificationConfigEntity);
+    }
+
+    private void addPrimaryOwnerToCreatedApi(ExecutionContext executionContext, PrimaryOwnerEntity primaryOwner, Api createdApi) {
+        membershipService.addRoleToMemberOnReference(
+            executionContext,
+            new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
+            new MembershipService.MembershipMember(primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
+            new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+        );
     }
 
     @Override

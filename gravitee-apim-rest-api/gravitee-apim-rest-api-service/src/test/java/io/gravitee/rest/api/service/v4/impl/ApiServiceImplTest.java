@@ -22,16 +22,21 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -42,9 +47,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
@@ -52,15 +61,29 @@ import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
+import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -74,12 +97,14 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -128,12 +153,15 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -258,6 +286,7 @@ public class ApiServiceImplTest {
     @Mock
     private TagsValidationService tagsValidationService;
 
+    private ApiMapper apiMapper;
     private ApiService apiService;
     private ApiSearchService apiSearchService;
     private UpdateApiEntity updateApiEntity;
@@ -283,14 +312,15 @@ public class ApiServiceImplTest {
 
     @Before
     public void setUp() {
-        ApiMapper apiMapper = new ApiMapper(
-            new ObjectMapper(),
-            planService,
-            flowService,
-            parameterService,
-            workflowService,
-            new CategoryMapper(categoryService)
-        );
+        apiMapper =
+            new ApiMapper(
+                new ObjectMapper(),
+                planService,
+                flowService,
+                parameterService,
+                workflowService,
+                new CategoryMapper(categoryService)
+            );
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
         apiService =
             new ApiServiceImpl(
@@ -320,7 +350,8 @@ public class ApiServiceImplTest {
                 propertiesService,
                 apiNotificationService,
                 tagsValidationService,
-                apiAuthorizationService
+                apiAuthorizationService,
+                groupService
             );
         apiSearchService =
             new ApiSearchServiceImpl(
@@ -642,6 +673,78 @@ public class ApiServiceImplTest {
         verify(subscriptionService).findByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(subscriptionService).delete(eq(GraviteeContext.getExecutionContext()), eq(SUBSCRIPTION_ID));
         verify(apiRepository).delete(eq(API_ID));
+    }
+
+    /*
+    Create by import tests
+     */
+    @Test
+    public void shouldCreateFromImport() throws TechnicalException {
+        ApiEntity apiEntity = fakeApiEntityV4();
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        doReturn(Optional.empty()).when(apiRepository).findById(API_ID);
+        doReturn(apiEntity.getPrimaryOwner())
+            .when(primaryOwnerService)
+            .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
+        doReturn(emptySet()).when(groupService).findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
+        doReturn(new ApiEntity()).when(apiMetadataService).fetchMetadataForApi(any(), any());
+        doReturn(false).when(parameterService).findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+
+        Api createdApi = new Api();
+        createdApi.setId(API_ID);
+        createdApi.setCreatedAt(new Date());
+        doReturn(createdApi).when(apiRepository).create(any());
+        apiService.createWithImport(executionContext, apiEntity, USER_NAME);
+
+        verify(primaryOwnerService).getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
+        verify(apiValidationService).validateAndSanitizeImportApiForCreation(executionContext, apiEntity, apiEntity.getPrimaryOwner());
+
+        ArgumentCaptor<Api> repositoryApiCaptor = ArgumentCaptor.forClass(Api.class);
+        verify(apiRepository).create(repositoryApiCaptor.capture());
+
+        testRepositoryApi(repositoryApiCaptor.getValue());
+
+        verify(auditService)
+            .createApiAuditLog(
+                eq(executionContext),
+                eq(API_ID),
+                eq(emptyMap()),
+                eq(Api.AuditEvent.API_CREATED),
+                any(Date.class),
+                isNull(),
+                any(Api.class)
+            );
+        verify(membershipService)
+            .addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+                new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+            );
+        verify(genericNotificationConfigService)
+            .create(argThat(notifConfig -> notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)));
+        verify(apiMetadataService)
+            .create(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(newApiMetadataEntity ->
+                    newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
+                    newApiMetadataEntity.getName().equals(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
+                )
+            );
+        verify(flowService).save(FlowReferenceType.API, API_ID, apiEntity.getFlows());
+        verify(apiMetadataService).fetchMetadataForApi(eq(executionContext), any(ApiEntity.class));
+        verify(searchEngineService).index(eq(executionContext), any(GenericApiEntity.class), eq(false));
+    }
+
+    private void testRepositoryApi(Api api) {
+        assertEquals(API_ID, api.getId());
+        assertEquals(GraviteeContext.getCurrentEnvironment(), api.getEnvironmentId());
+        assertNotNull(api.getCreatedAt());
+        assertEquals(api.getCreatedAt(), api.getUpdatedAt());
+        assertEquals(ApiLifecycleState.CREATED, api.getApiLifecycleState());
+        assertEquals(LifecycleState.STOPPED, api.getLifecycleState());
+        assertEquals(io.gravitee.repository.management.model.Visibility.PUBLIC, api.getVisibility());
+        assertNull(api.getGroups());
     }
 
     /*
@@ -1117,5 +1220,108 @@ public class ApiServiceImplTest {
         HttpListener listener = new HttpListener();
         listener.setPaths(singletonList(new Path(path)));
         updateApiEntity.setListeners(singletonList(listener));
+    }
+
+    private ApiEntity fakeApiEntityV4() {
+        var apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setId(API_ID);
+        apiEntity.setCrossId(API_ID);
+        apiEntity.setName(API_NAME);
+        apiEntity.setApiVersion("v1.0");
+        apiEntity.setBackground("background");
+        apiEntity.setPicture("picture");
+        apiEntity.setDescription("description");
+        apiEntity.setLabels(List.of("label"));
+        apiEntity.setType(ApiType.PROXY);
+        apiEntity.setVisibility(Visibility.PUBLIC);
+
+        DefinitionContext context = new DefinitionContext();
+        context.setMode("READ_ONLY");
+        context.setOrigin("MANAGEMENT");
+        apiEntity.setDefinitionContext(context);
+        PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+        primaryOwnerEntity.setId(USER_NAME);
+        primaryOwnerEntity.setType("USER");
+        primaryOwnerEntity.setDisplayName(USER_NAME);
+        apiEntity.setPrimaryOwner(primaryOwnerEntity);
+
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
+        httpListener.setPathMappings(Set.of("/test"));
+
+        SubscriptionListener subscriptionListener = new SubscriptionListener();
+        Entrypoint entrypoint = new Entrypoint();
+        entrypoint.setType("Entrypoint type");
+        entrypoint.setQos(Qos.AT_LEAST_ONCE);
+        entrypoint.setDlq(new Dlq("my-endpoint"));
+        entrypoint.setConfiguration("{\"nice\": \"configuration\"}");
+        subscriptionListener.setEntrypoints(List.of(entrypoint));
+        subscriptionListener.setType(ListenerType.SUBSCRIPTION);
+
+        TcpListener tcpListener = new TcpListener();
+        tcpListener.setType(ListenerType.TCP);
+        tcpListener.setEntrypoints(List.of(entrypoint));
+
+        apiEntity.setListeners(List.of(httpListener, subscriptionListener, tcpListener));
+        apiEntity.setProperties(List.of(new Property()));
+        apiEntity.setServices(new ApiServices());
+        apiEntity.setResources(List.of(new Resource()));
+        apiEntity.setResponseTemplates(Map.of("key", new HashMap<>()));
+        apiEntity.setUpdatedAt(new Date());
+        apiEntity.setAnalytics(new Analytics());
+
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setType("http-get");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setType("http-get");
+        endpoint.setConfiguration(
+            "{\n" +
+            "                        \"bootstrapServers\": \"kafka:9092\",\n" +
+            "                        \"topics\": [\n" +
+            "                            \"demo\"\n" +
+            "                        ],\n" +
+            "                        \"producer\": {\n" +
+            "                            \"enabled\": false\n" +
+            "                        },\n" +
+            "                        \"consumer\": {\n" +
+            "                            \"encodeMessageId\": true,\n" +
+            "                            \"enabled\": true,\n" +
+            "                            \"autoOffsetReset\": \"earliest\"\n" +
+            "                        }\n" +
+            "                    }"
+        );
+        endpointGroup.setEndpoints(List.of(endpoint));
+        apiEntity.setEndpointGroups(List.of(endpointGroup));
+
+        Flow flow = new Flow();
+        flow.setName("flowName");
+        flow.setEnabled(true);
+
+        Step step = new Step();
+        step.setEnabled(true);
+        step.setPolicy("my-policy");
+        step.setCondition("my-condition");
+        flow.setRequest(List.of(step));
+        flow.setTags(Set.of("tag1", "tag2"));
+
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/test");
+        httpSelector.setMethods(Set.of(HttpMethod.GET, HttpMethod.POST));
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+
+        ChannelSelector channelSelector = new ChannelSelector();
+        channelSelector.setChannel("my-channel");
+        channelSelector.setChannelOperator(Operator.STARTS_WITH);
+        channelSelector.setOperations(Set.of(ChannelSelector.Operation.SUBSCRIBE));
+        channelSelector.setEntrypoints(Set.of("my-entrypoint"));
+
+        ConditionSelector conditionSelector = new ConditionSelector();
+        conditionSelector.setCondition("my-condition");
+
+        flow.setSelectors(List.of(httpSelector, channelSelector, conditionSelector));
+        apiEntity.setFlows(List.of(flow));
+
+        return apiEntity;
     }
 }

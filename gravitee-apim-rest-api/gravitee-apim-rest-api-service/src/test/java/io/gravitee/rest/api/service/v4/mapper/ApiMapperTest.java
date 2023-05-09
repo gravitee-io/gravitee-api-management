@@ -39,6 +39,7 @@ import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
@@ -326,6 +327,84 @@ public class ApiMapperTest {
         assertThat(api.getLifecycleState()).isEqualTo(LifecycleState.STOPPED);
         assertThat(api.getPicture()).isEqualTo(updateApiEntity.getPicture());
         assertThat(api.getBackground()).isEqualTo(updateApiEntity.getBackground());
+        assertThat(api.getGroups().size()).isEqualTo(2);
+        assertThat(api.getCategories().size()).isEqualTo(2);
+        assertThat(api.getLabels().size()).isEqualTo(2);
+        assertThat(api.isDisableMembershipNotifications()).isTrue();
+        assertThat(api.getApiLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
+
+        io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
+        apiDefinition.setId(api.getId());
+        apiDefinition.setName(api.getName());
+        apiDefinition.setType(ApiType.MESSAGE);
+        apiDefinition.setApiVersion(api.getVersion());
+        apiDefinition.setDefinitionVersion(DefinitionVersion.V4);
+        apiDefinition.setTags(Set.of("tag1", "tag2"));
+        apiDefinition.setListeners(List.of(new HttpListener()));
+        apiDefinition.setEndpointGroups(List.of(new EndpointGroup()));
+        apiDefinition.setProperties(List.of(new Property("propKey", "propValue", false)));
+        apiDefinition.setResources(List.of(new Resource()));
+        apiDefinition.setFlowExecution(new FlowExecution());
+        apiDefinition.setFlows(List.of(new Flow(), new Flow()));
+        apiDefinition.setResponseTemplates(new HashMap<>());
+        assertThat(api.getDefinition()).isEqualTo(objectMapper.writeValueAsString(apiDefinition));
+    }
+
+    @Test
+    public void shouldCreateRepositoryApiFromApiEntity() throws JsonProcessingException {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("id");
+        apiEntity.setCrossId("crossId");
+        apiEntity.setName("name");
+        apiEntity.setApiVersion("version");
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.MESSAGE);
+        apiEntity.setDescription("description");
+        apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.PUBLIC);
+        apiEntity.setTags(Set.of("tag1", "tag2"));
+        apiEntity.setPicture("my-picture");
+        apiEntity.setPictureUrl("/path/to/my/picture");
+        apiEntity.setBackground("my-background");
+        apiEntity.setBackgroundUrl("/path/to/my/background");
+        apiEntity.setCategories(Set.of("existingCatId", "existingCatKey", "unknownCat"));
+        apiEntity.setLabels(List.of("label1", "label2"));
+        apiEntity.setGroups(Set.of("group1", "group2"));
+        apiEntity.setListeners(List.of(new HttpListener()));
+        apiEntity.setEndpointGroups(List.of(new EndpointGroup()));
+        apiEntity.setFlowExecution(new FlowExecution());
+        apiEntity.setFlows(List.of(new Flow(), new Flow()));
+        apiEntity.setMetadata(Map.of("key", "value"));
+        apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED);
+        apiEntity.setDisableMembershipNotifications(true);
+        apiEntity.setProperties(List.of(new PropertyEntity("propKey", "propValue", false, false)));
+        apiEntity.setResources(List.of(new Resource()));
+        apiEntity.setPlans(Set.of(new PlanEntity()));
+        apiEntity.setUpdatedAt(new Date());
+
+        CategoryEntity existingCategoryByIdEntity = new CategoryEntity();
+        existingCategoryByIdEntity.setId("existingCatId");
+        CategoryEntity existingCategoryByKeyEntity = new CategoryEntity();
+        existingCategoryByKeyEntity.setKey("existingCatKey");
+        when(categoryService.findAll(GraviteeContext.getCurrentEnvironment()))
+            .thenReturn(List.of(existingCategoryByIdEntity, existingCategoryByKeyEntity));
+
+        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(api.getId()).isEqualTo("id");
+        assertThat(api.getEnvironmentId()).isEqualTo("DEFAULT");
+        assertThat(api.getCrossId()).isEqualTo("crossId");
+        assertThat(api.getName()).isEqualTo("name");
+        assertThat(api.getDescription()).isEqualTo("description");
+        assertThat(api.getVersion()).isEqualTo("version");
+        assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+        assertThat(api.getType()).isEqualTo(ApiType.MESSAGE);
+        assertThat(api.getDeployedAt()).isNull();
+        assertThat(api.getCreatedAt()).isNull();
+        assertThat(api.getUpdatedAt()).isNotNull();
+        assertThat(api.getVisibility()).isEqualTo(Visibility.PUBLIC);
+        assertThat(api.getLifecycleState()).isEqualTo(LifecycleState.STOPPED);
+        assertThat(api.getPicture()).isEqualTo(apiEntity.getPicture());
+        assertThat(api.getBackground()).isEqualTo(apiEntity.getBackground());
         assertThat(api.getGroups().size()).isEqualTo(2);
         assertThat(api.getCategories().size()).isEqualTo(2);
         assertThat(api.getLabels().size()).isEqualTo(2);

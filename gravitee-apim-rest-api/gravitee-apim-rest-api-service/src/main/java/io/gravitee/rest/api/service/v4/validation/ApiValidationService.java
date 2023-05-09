@@ -38,4 +38,10 @@ public interface ApiValidationService {
         final PrimaryOwnerEntity primaryOwnerEntity,
         final ApiEntity existingApiEntity
     );
+
+    void validateAndSanitizeImportApiForCreation(
+        final ExecutionContext executionContext,
+        final ApiEntity apiEntity,
+        final PrimaryOwnerEntity primaryOwnerEntity
+    );
 }

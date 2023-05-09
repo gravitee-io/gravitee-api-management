@@ -81,7 +81,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     public void validateAndSanitizeNewApi(
         final ExecutionContext executionContext,
         final NewApiEntity newApiEntity,
-        final PrimaryOwnerEntity currentPrimaryOwnerEntity
+        final PrimaryOwnerEntity primaryOwnerEntity
     ) {
         // Validate version
         this.validateDefinitionVersion(null, newApiEntity.getDefinitionVersion());
@@ -91,7 +91,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         newApiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, newApiEntity.getTags()));
         // Validate and clean groups
         newApiEntity.setGroups(
-            groupValidationService.validateAndSanitize(executionContext, null, newApiEntity.getGroups(), currentPrimaryOwnerEntity)
+            groupValidationService.validateAndSanitize(executionContext, null, newApiEntity.getGroups(), primaryOwnerEntity)
         );
         // Validate and clean listeners
         newApiEntity.setListeners(
@@ -125,7 +125,6 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.validateApiType(existingApiEntity.getType(), updateApiEntity.getType());
         // Validate and clean lifecycle state
         updateApiEntity.setLifecycleState(this.validateAndSanitizeLifecycleState(existingApiEntity, updateApiEntity));
-
         // Validate and clean tags
         updateApiEntity.setTags(
             tagsValidationService.validateAndSanitize(executionContext, existingApiEntity.getTags(), updateApiEntity.getTags())
@@ -158,6 +157,39 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         updateApiEntity.setFlows(flowValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getFlows()));
         // Validate and clean resources
         updateApiEntity.setResources(resourcesValidationService.validateAndSanitize(updateApiEntity.getResources()));
+    }
+
+    @Override
+    public void validateAndSanitizeImportApiForCreation(
+        final ExecutionContext executionContext,
+        final ApiEntity apiEntity,
+        final PrimaryOwnerEntity primaryOwnerEntity
+    ) {
+        // Validate version
+        this.validateDefinitionVersion(null, apiEntity.getDefinitionVersion());
+        // Validate API Type
+        this.validateApiType(null, apiEntity.getType());
+        // Validate and clean lifecycle state. In creation, lifecycle state can't be set.
+        apiEntity.setLifecycleState(null);
+        // Validate and clean tags
+        apiEntity.setTags(tagsValidationService.validateAndSanitize(executionContext, null, apiEntity.getTags()));
+        // Validate and clean groups
+        apiEntity.setGroups(groupValidationService.validateAndSanitize(executionContext, null, apiEntity.getGroups(), primaryOwnerEntity));
+        // Validate and clean listeners
+        apiEntity.setListeners(
+            listenerValidationService.validateAndSanitize(executionContext, null, apiEntity.getListeners(), apiEntity.getEndpointGroups())
+        );
+        // Validate and clean endpoints
+        apiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(apiEntity.getEndpointGroups()));
+        // Validate and clean logging
+        apiEntity.setAnalytics(
+            analyticsValidationService.validateAndSanitize(executionContext, apiEntity.getType(), apiEntity.getAnalytics())
+        );
+        // Validate and clean flow
+        apiEntity.setFlows(flowValidationService.validateAndSanitize(apiEntity.getType(), apiEntity.getFlows()));
+
+        // Validate and clean resources
+        apiEntity.setResources(resourcesValidationService.validateAndSanitize(apiEntity.getResources()));
     }
 
     private void validateDefinitionVersion(final DefinitionVersion oldDefinitionVersion, final DefinitionVersion newDefinitionVersion) {
