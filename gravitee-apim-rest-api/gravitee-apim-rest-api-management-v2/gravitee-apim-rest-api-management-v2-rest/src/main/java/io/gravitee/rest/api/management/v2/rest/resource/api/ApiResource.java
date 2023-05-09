@@ -41,6 +41,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
 import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -55,6 +56,7 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
@@ -116,6 +118,9 @@ public class ApiResource extends AbstractResource {
     private PageService pageService;
 
     @Inject
+    private MediaService mediaService;
+
+    @Inject
     private WorkflowService workflowService;
 
     @Context
@@ -124,7 +129,7 @@ public class ApiResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiById(@PathParam("apiId") String apiId) {
-        final GenericApiEntity apiEntity = getGenericApiEntityById(apiId);
+        final GenericApiEntity apiEntity = getGenericApiEntityById(apiId, true);
         return Response
             .ok(ApiMapper.INSTANCE.convert(apiEntity, uriInfo))
             .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
@@ -150,7 +155,7 @@ public class ApiResource extends AbstractResource {
             throw new BadRequestException("'apiId' is not the same as the API in payload");
         }
 
-        final GenericApiEntity currentEntity = getGenericApiEntityById(apiId);
+        final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, true);
         evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
 
         try {
@@ -228,11 +233,13 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
     public Response exportApiDefinition(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
         final ExportApiV4 exportApi = new ExportApiV4();
-        final var apiEntity = getGenericApiEntityById(apiId);
+        final var apiEntity = getGenericApiEntityById(apiId, false);
         if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
         }
         exportApi.setApi(ApiMapper.INSTANCE.convert(apiEntity, uriInfo));
+        exportApi.setApiPicture(apiEntity.getPicture());
+        exportApi.setApiBackground(apiEntity.getBackground());
 
         if (
             permissionService.hasPermission(
@@ -285,6 +292,9 @@ public class ApiResource extends AbstractResource {
         ) {
             var pageList = pageService.findByApi(GraviteeContext.getCurrentEnvironment(), apiId);
             exportApi.setPages(PageMapper.INSTANCE.convertListToSet(pageList));
+
+            List<MediaEntity> apiMediaList = mediaService.findAllByApiId(apiId);
+            exportApi.setApiMedia(PageMapper.INSTANCE.convertMediaList(apiMediaList));
         }
 
         return Response
@@ -341,7 +351,7 @@ public class ApiResource extends AbstractResource {
         return getImageResponse(request, apiImagesService.getApiBackground(GraviteeContext.getExecutionContext(), apiId));
     }
 
-    private GenericApiEntity getGenericApiEntityById(String apiId) {
+    private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
 
@@ -349,12 +359,18 @@ public class ApiResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
+        if (prepareData) {
+            prepareDataForResponse(apiId, executionContext, apiEntity);
+        }
+        return apiEntity;
+    }
+
+    private void prepareDataForResponse(String apiId, ExecutionContext executionContext, GenericApiEntity apiEntity) {
         if (hasPermission(executionContext, RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)) {
             setPicturesUrl(apiEntity);
         } else {
             filterSensitiveData(apiEntity);
         }
-        return apiEntity;
     }
 
     private void setPicturesUrl(final GenericApiEntity apiEntity) {

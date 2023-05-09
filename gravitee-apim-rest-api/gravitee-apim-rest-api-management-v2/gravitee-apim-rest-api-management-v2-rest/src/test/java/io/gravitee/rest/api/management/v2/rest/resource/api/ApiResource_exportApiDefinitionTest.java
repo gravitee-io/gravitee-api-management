@@ -18,9 +18,11 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
@@ -63,6 +65,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.AccessControlEntity;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -79,6 +82,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -235,6 +239,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
 
         doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         doReturn(this.fakeApiPages()).when(pageService).findByApi(GraviteeContext.getCurrentEnvironment(), API_ID);
+        doReturn(this.fakeApiMedia()).when(mediaService).findAllByApiId(API_ID);
 
         Response response = rootTarget(API_ID).path("_export").path("definition").request().post(null);
         assertEquals(OK_200, response.getStatus());
@@ -250,7 +255,9 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         testReturnedApi(api);
 
         final Set<Page> pages = export.getPages();
+        final List<Media> mediaList = export.getApiMedia();
         testReturnedPages(pages);
+        testReturnedMedia(mediaList);
     }
 
     private void mockPermissions(boolean definition, boolean member, boolean metadata, boolean plan, boolean documentation) {
@@ -517,13 +524,25 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         return List.of(pageEntity);
     }
 
+    private List<MediaEntity> fakeApiMedia() {
+        MediaEntity mediaEntity = new MediaEntity();
+        mediaEntity.setId("media-id");
+        mediaEntity.setHash("media-hash");
+        mediaEntity.setSize(1_000);
+        mediaEntity.setFileName("media-file-name");
+        mediaEntity.setType("media-type");
+        mediaEntity.setSubType("media-sub-type");
+        mediaEntity.setData("media-data".getBytes(StandardCharsets.UTF_8));
+        mediaEntity.setUploadDate(new Date(0));
+
+        return List.of(mediaEntity);
+    }
+
     // Tests
     private void testReturnedApi(ApiV4 responseApi) throws JsonProcessingException {
         assertNotNull(responseApi);
         assertEquals(API_ID, responseApi.getName());
-        assertNotNull(responseApi.getLinks());
-        assertNotNull(responseApi.getLinks().getPictureUrl());
-        assertNotNull(responseApi.getLinks().getBackgroundUrl());
+        assertNull(responseApi.getLinks());
         assertNotNull(responseApi.getProperties());
         assertEquals(1, responseApi.getProperties().size());
         assertNotNull(responseApi.getServices());
@@ -785,5 +804,21 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         assertEquals(0, page.getTranslations().size());
 
         assertEquals(io.gravitee.rest.api.management.v2.rest.model.Visibility.PUBLIC, page.getVisibility());
+    }
+
+    private void testReturnedMedia(List<Media> mediaList) {
+        assertEquals(1, mediaList.size());
+
+        var media = mediaList.get(0);
+        assertNotNull(media);
+
+        assertEquals("media-id", media.getId());
+        assertEquals("media-hash", media.getHash());
+        assertEquals(1_000, media.getSize().longValue());
+        assertEquals("media-file-name", media.getFileName());
+        assertEquals("media-type", media.getType());
+        assertEquals("media-sub-type", media.getSubType());
+        assertArrayEquals("media-data".getBytes(StandardCharsets.UTF_8), media.getData());
+        assertEquals(OffsetDateTime.of(1970, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC), media.getCreatedAt());
     }
 }
