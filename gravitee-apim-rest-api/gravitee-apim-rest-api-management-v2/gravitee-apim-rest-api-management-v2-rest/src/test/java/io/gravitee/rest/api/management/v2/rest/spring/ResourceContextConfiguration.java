@@ -132,6 +132,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public MediaService mediaService() {
+        return mock(MediaService.class);
+	}
+
+	@Bean
     public WorkflowService workflowService() {
         return mock(WorkflowService.class);
     }

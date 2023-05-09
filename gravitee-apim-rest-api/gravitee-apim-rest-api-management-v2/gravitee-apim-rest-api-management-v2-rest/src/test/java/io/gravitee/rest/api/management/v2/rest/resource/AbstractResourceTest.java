@@ -24,6 +24,7 @@ import io.gravitee.rest.api.management.v2.rest.spring.ResourceContextConfigurati
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PermissionService;
@@ -85,6 +86,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected PageService pageService;
+
+    @Autowired
+    protected MediaService mediaService;
 
     @Before
     public void setUp() {

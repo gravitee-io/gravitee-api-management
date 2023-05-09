@@ -20,10 +20,12 @@ import io.gravitee.rest.api.management.v2.rest.model.ChannelSelector;
 import io.gravitee.rest.api.management.v2.rest.model.ConditionSelector;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.model.HttpSelector;
+import io.gravitee.rest.api.management.v2.rest.model.Media;
 import io.gravitee.rest.api.management.v2.rest.model.Page;
 import io.gravitee.rest.api.management.v2.rest.model.PageMedia;
 import io.gravitee.rest.api.management.v2.rest.model.Revision;
 import io.gravitee.rest.api.management.v2.rest.model.Selector;
+import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
 import java.time.OffsetDateTime;
@@ -56,4 +58,9 @@ public interface PageMapper {
     Page convert(PageEntity pageEntity);
 
     Set<Page> convertListToSet(List<PageEntity> pageEntityList);
+
+    @Mapping(target = "createdAt", source = "createAt")
+    Media convertMediaEntityToMedia(MediaEntity mediaEntity);
+
+    List<Media> convertMediaList(List<MediaEntity> mediaEntity);
 }

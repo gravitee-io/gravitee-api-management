@@ -1240,6 +1240,19 @@ components:
                     items:
                         $ref: "#/components/schemas/PlanV4"
                     uniqueItems: true
+                apiPicture:
+                    type: string
+                    format: base64
+                    description: The API's picture.
+                apiBackground:
+                    type: string
+                    format: base64
+                    description: The API's background.
+                apiMedia:
+                    type: array
+                    description: The list of API's media used in pages.
+                    items:
+                        $ref: "#/components/schemas/Media"
 
         ApiDeployment:
             type: object
@@ -3002,6 +3015,44 @@ components:
                     example:
                         - GROUP
                         - ROLE
+        Media:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Media's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                hash:
+                    type: string
+                    description: Media's hash.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                type:
+                    type: string
+                    description: Media's type.
+                    example: image/png
+                subType:
+                    type: string
+                    description: Media's sub type.
+                    example: png
+                fileName:
+                    type: string
+                    description: Media's file name.
+                    example: my-image.png
+                size:
+                    type: integer
+                    format: int64
+                    description: Media's size.
+                    example: 1000
+                data:
+                    type: string
+                    format: byte
+                    description: Media's data.
+                    example: binary encoded data
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: Media's creation date.
+                    example: 2018-11-23T22:00:00.000Z
         Page:
             description: Documentation page. Can be of multiple formats.
             type: object

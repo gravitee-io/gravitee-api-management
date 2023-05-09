@@ -69,4 +69,8 @@ public interface GenericApiEntity extends Indexable {
     Set<String> getCategories();
 
     DefinitionContext getDefinitionContext();
+
+    String getPicture();
+
+    String getBackground();
 }
