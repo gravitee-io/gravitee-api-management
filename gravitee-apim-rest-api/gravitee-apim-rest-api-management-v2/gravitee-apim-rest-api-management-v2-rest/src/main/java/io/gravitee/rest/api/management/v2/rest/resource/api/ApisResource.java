@@ -22,9 +22,7 @@ import com.google.common.base.Strings;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
-import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
-import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
-import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
@@ -37,7 +35,9 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
@@ -45,6 +45,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -56,6 +57,9 @@ public class ApisResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
+    @Context
+    protected UriInfo uriInfo;
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -64,7 +68,7 @@ public class ApisResource extends AbstractResource {
         // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
         NewApiEntity newApiEntity = ApiMapper.INSTANCE.convert(api);
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
-        return Response.created(this.getLocationHeader(newApi.getId())).entity(ApiMapper.INSTANCE.convert(newApi)).build();
+        return Response.created(this.getLocationHeader(newApi.getId())).entity(ApiMapper.INSTANCE.convert(newApi, uriInfo)).build();
     }
 
     @GET
@@ -79,7 +83,7 @@ public class ApisResource extends AbstractResource {
         );
 
         return new ApisResponse()
-            .data(ApiMapper.INSTANCE.convert(apis.getContent()))
+            .data(apis.getContent().stream().map(api -> ApiMapper.INSTANCE.convert(api, uriInfo)).collect(Collectors.toList()))
             .pagination(
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )
@@ -122,7 +126,7 @@ public class ApisResource extends AbstractResource {
         );
 
         return new ApisResponse()
-            .data(ApiMapper.INSTANCE.convert(apis.getContent()))
+            .data(apis.getContent().stream().map(api -> ApiMapper.INSTANCE.convert(api, uriInfo)).collect(Collectors.toList()))
             .pagination(
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )

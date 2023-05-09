@@ -416,6 +416,43 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/background:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - APIs
+            summary: Get an API's background picture
+            description: |-
+                Get the API's background picture.
+                User must have the API_DEFINITION[READ] permission.
+            operationId: getApiBackground
+            responses:
+                "200":
+                    $ref: "#/components/responses/ImageResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/picture:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - APIs
+            summary: Get an API's picture
+            description: |-
+                Get the API's picture.
+                User must have the API_DEFINITION[READ] permission.
+            operationId: getApiPicture
+            responses:
+                "200":
+                    $ref: "#/components/responses/ImageResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+
     /environments/{envId}/apis/{apiId}/plans:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -940,18 +977,8 @@ components:
                         type: string
                 definitionContext:
                     $ref: "#/components/schemas/DefinitionContext"
-                # picture ==> dedicated resource
-                pictureUrl:
-                    type: string
-                    description: The API logo URL.
-                    example: https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture
                 workflowState:
                     $ref: "#/components/schemas/ApiWorkflowState"
-                # background ==> dedicated resource
-                backgroundUrl:
-                    type: string
-                    description: The API background URL. Used in Portal.
-                    example: https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background
                 responseTemplates:
                     type: object
                     additionalProperties:
@@ -967,6 +994,8 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/Property"
+                _links:
+                    $ref: "#/components/schemas/ApiLinks"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
@@ -1034,6 +1063,17 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
+        ApiLinks:
+            type: object
+            properties:
+                pictureUrl:
+                    type: string
+                    description: The URL to the API's picture.
+                    example: https://gravitee.example.com/management/v2/environments/00f8c9e7-78fc-4907-b8c9-e778fc790750/apis/6c530064-0b2c-4004-9300-640b2ce0047b/picture
+                backgroundUrl:
+                    type: string
+                    description: The URL to the API's background.
+                    example: https://gravitee.example.com/management/v2/environments/00f8c9e7-78fc-4907-b8c9-e778fc790750/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background
 
         CreateApi:
             oneOf:
@@ -3249,6 +3289,14 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+        ImageResponse:
+            description: An image
+            content:
+                'image/*':
+                    schema:
+                        type: string
+                        format: binary
+
         PlansResponse:
             description: Page of API plans
             content:

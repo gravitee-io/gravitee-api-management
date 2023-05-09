@@ -225,8 +225,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         verify(apiServiceV4, times(1)).update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME);
 
         final ApiV4 responseApi = response.readEntity(ApiV4.class);
-        assertNotNull(responseApi.getPictureUrl());
-        assertNotNull(responseApi.getBackgroundUrl());
+        assertNotNull(responseApi.getLinks());
+        assertNotNull(responseApi.getLinks().getPictureUrl());
+        assertNotNull(responseApi.getLinks().getBackgroundUrl());
     }
 
     @Test
