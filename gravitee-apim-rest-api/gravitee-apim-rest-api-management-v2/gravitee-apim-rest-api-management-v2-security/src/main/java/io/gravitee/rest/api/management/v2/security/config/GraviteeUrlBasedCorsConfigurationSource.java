@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.security.config;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -29,10 +30,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  */
 public class GraviteeUrlBasedCorsConfigurationSource extends UrlBasedCorsConfigurationSource {
 
-    private Map<String, GraviteeCorsConfiguration> corsConfigurationByOrganization = new HashMap<>();
+    private final Map<String, GraviteeCorsConfiguration> corsConfigurationByOrganization = new HashMap<>();
 
-    private ParameterService parameterService;
-    private EventManager eventManager;
+    private final ParameterService parameterService;
+    private final EventManager eventManager;
 
     public GraviteeUrlBasedCorsConfigurationSource(ParameterService parameterService, EventManager eventManager) {
         this.parameterService = parameterService;
@@ -40,19 +41,8 @@ public class GraviteeUrlBasedCorsConfigurationSource extends UrlBasedCorsConfigu
     }
 
     private String computeOrganizationId(HttpServletRequest request) {
-        String path = request.getPathInfo();
-        final String organizationsResourcePath = "/organizations/";
-        final int organizationPathIndex = path.indexOf(organizationsResourcePath);
-
-        if (organizationPathIndex > -1) {
-            int orgIdStartIndex = organizationPathIndex + organizationsResourcePath.length();
-            int endIndex = path.indexOf('/', orgIdStartIndex);
-            if (endIndex > -1) {
-                return path.substring(orgIdStartIndex, endIndex);
-            }
-            return path.substring(orgIdStartIndex);
-        }
-        return null;
+        // FIXME: should return null if no organization found.
+        return GraviteeContext.getDefaultOrganization();
     }
 
     @Override
