@@ -26,6 +26,6 @@ import org.springframework.stereotype.Component;
 public class GatewayRepositoryScopeProvider implements RepositoryScopeProvider {
 
     public Scope[] getHandledScopes() {
-        return new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT, Scope.CACHE };
+        return new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT };
     }
 }
