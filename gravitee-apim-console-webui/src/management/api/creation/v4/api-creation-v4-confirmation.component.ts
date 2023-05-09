@@ -19,7 +19,7 @@ import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { ApiV4Service } from '../../../../services-ngx/api-v4.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiEntity } from '../../../../entities/api-v4';
 
 @Component({
@@ -33,7 +33,7 @@ export class ApiCreationV4ConfirmationComponent implements OnInit {
   constructor(
     @Inject(UIRouterState) readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiV4Service: ApiV4Service,
+    private readonly apiV2Service: ApiV2Service,
   ) {}
 
   navigate(urlState: string) {
@@ -41,7 +41,7 @@ export class ApiCreationV4ConfirmationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.apiV4Service
+    this.apiV2Service
       .get(this.ajsStateParams.apiId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((api) => {

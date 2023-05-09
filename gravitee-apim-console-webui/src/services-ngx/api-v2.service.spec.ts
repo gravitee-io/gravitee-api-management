@@ -16,14 +16,14 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { ApiV4Service } from './api-v4.service';
+import { ApiV2Service } from './api-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeApiEntity, fakeNewApiEntity } from '../entities/api-v4';
 
-describe('ApiV4Service', () => {
+describe('ApiV2Service', () => {
   let httpTestingController: HttpTestingController;
-  let apiV4Service: ApiV4Service;
+  let apiV2Service: ApiV2Service;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -31,7 +31,7 @@ describe('ApiV4Service', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    apiV4Service = TestBed.inject<ApiV4Service>(ApiV4Service);
+    apiV2Service = TestBed.inject<ApiV2Service>(ApiV2Service);
   });
 
   afterEach(() => {
@@ -42,7 +42,7 @@ describe('ApiV4Service', () => {
     it('should call the API', (done) => {
       const newApiEntity = fakeNewApiEntity();
 
-      apiV4Service.create(newApiEntity).subscribe((api) => {
+      apiV2Service.create(newApiEntity).subscribe((api) => {
         expect(api.name).toEqual(newApiEntity.name);
         done();
       });
@@ -60,7 +60,7 @@ describe('ApiV4Service', () => {
     it('should call the API', (done) => {
       const apiEntity = fakeApiEntity();
 
-      apiV4Service.get(apiEntity.id).subscribe((api) => {
+      apiV2Service.get(apiEntity.id).subscribe((api) => {
         expect(api.name).toEqual(apiEntity.name);
         done();
       });
@@ -78,7 +78,7 @@ describe('ApiV4Service', () => {
     it('should call the API', (done) => {
       const apiEntity = fakeApiEntity();
 
-      apiV4Service.start(apiEntity.id).subscribe(() => {
+      apiV2Service.start(apiEntity.id).subscribe(() => {
         done();
       });
 
@@ -89,6 +89,28 @@ describe('ApiV4Service', () => {
 
       expect(req.request.body).toEqual({});
       req.flush(apiEntity);
+    });
+  });
+
+  describe('search', () => {
+    it('should call the API', (done) => {
+      const apiEntity = fakeApiEntity();
+
+      apiV2Service.search({ ids: [apiEntity.id] }).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&size=10`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({
+        ids: [apiEntity.id],
+      });
+      req.flush({
+        data: [apiEntity],
+      });
     });
   });
 });

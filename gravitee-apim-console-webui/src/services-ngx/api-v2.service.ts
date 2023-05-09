@@ -19,11 +19,13 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { ApiEntity, NewApiEntity } from '../entities/api-v4';
+import { ApiSearchQuery } from '../entities/management-api-v2/apiSearchQuery';
+import { ApisResponse } from '../entities/management-api-v2/apisResponse';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ApiV4Service {
+export class ApiV2Service {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   create(newApiEntity: NewApiEntity): Observable<ApiEntity> {
@@ -36,5 +38,15 @@ export class ApiV4Service {
 
   start(apiId: string): Observable<void> {
     return this.http.post<void>(`${this.constants.env.baseURL}/v4/apis/${apiId}/?action=start`, {});
+  }
+
+  search(searchQuery?: ApiSearchQuery, sortBy?: string, page = 1, size = 10): Observable<ApisResponse> {
+    return this.http.post<ApisResponse>(`${this.constants.env.v2BaseURL}/apis/_search`, searchQuery, {
+      params: {
+        page,
+        size,
+        ...(sortBy ? { sortBy } : {}),
+      },
+    });
   }
 }

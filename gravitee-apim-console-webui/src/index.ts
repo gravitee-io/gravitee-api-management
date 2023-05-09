@@ -95,6 +95,9 @@ function computeBaseURLs(constants: any): any {
   // we use a placeholder here ({:envId}) that will be replaced in management.interceptor
   constants.env.baseURL = `${constants.org.baseURL}/environments/{:envId}`;
 
+  constants.v2BaseURL = `${constants.baseURL}/v2`;
+  constants.env.v2BaseURL = `${constants.v2BaseURL}/environments/{:envId}`;
+
   return constants;
 }
 
