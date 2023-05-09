@@ -28,6 +28,6 @@ public class GatewayRepositoryScopeProviderTest {
 
     @Test
     public void shouldReturnManagementAndAnalyticsScopes() {
-        Assert.assertArrayEquals(new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT, Scope.CACHE }, provider.getHandledScopes());
+        Assert.assertArrayEquals(new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT }, provider.getHandledScopes());
     }
 }
