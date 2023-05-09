@@ -1,3 +1,10 @@
+## [4.2.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.2.0...4.2.1) (2023-05-09)
+
+
+### Bug Fixes
+
+* **deps:** update dependency io.gravitee.node:gravitee-node-api to v2.0.8 ([cb8ebb3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/cb8ebb3f8351104740240d1a17463a8fb2b7e70c))
+
 # [4.2.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/4.1.0...4.2.0) (2023-04-05)
 
 
