@@ -57,7 +57,7 @@ public class PluginManifestLoader {
                 }
             }
         } catch (IOException e) {
-            LOGGER.warn("Unable to find a 'plugin.properties' file in src/main/resources folder", e);
+            LOGGER.warn("Unable to find a 'plugin.properties' file in src/main/resources folder");
         }
 
         return null;

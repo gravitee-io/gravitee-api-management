@@ -1,0 +1,37 @@
+{
+  "plans": [
+    {
+      "id": "keyless",
+      "name": "Keyless",
+      "security": "KEY_LESS",
+      "flows": [
+        {
+          "name": "Item",
+          "path-operator": {
+            "path": "/products/:productId/items/:itemId",
+            "operator": "STARTS_WITH"
+          },
+          "condition": "",
+          "methods": ["GET"],
+          "pre": [],
+          "post": [],
+          "enabled": true
+        },
+        {
+          "name": "Product",
+          "path-operator": {
+            "path": "/:productId",
+            "operator": "STARTS_WITH"
+          },
+          "condition": "",
+          "methods": [],
+          "pre": [],
+          "post": [],
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "resources": []
+}
