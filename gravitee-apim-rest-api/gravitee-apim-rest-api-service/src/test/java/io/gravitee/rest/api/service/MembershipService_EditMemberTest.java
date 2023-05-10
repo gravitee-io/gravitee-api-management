@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service;
 
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -26,14 +25,10 @@ import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiPrimaryOwnerRemovalException;
 import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -50,7 +45,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class MembershipService_EditMemberTest {
 
     private static final String ORG_ID = "DEFAULT";
-    private static final String ENV_ID = "DEFAULT";
     private static final String API_PO_ROLE_ID = "API_PRIMARY_OWNER_ROLE_ID";
     private static final String REFERENCE_ID = "REFERENCE_ID";
     private static final String MEMBER_ID = "MEMBER_ID";
@@ -61,15 +55,6 @@ public class MembershipService_EditMemberTest {
 
     @Mock
     private RoleService roleService;
-
-    @Mock
-    private UserService userService;
-
-    @Mock
-    private AuditService auditService;
-
-    @Mock
-    private ApiSearchService apiSearchService;
 
     @Mock
     private MembershipRepository membershipRepository;
@@ -92,25 +77,6 @@ public class MembershipService_EditMemberTest {
         );
     }
 
-    public void shouldAllowReplaceApiPrimaryOwner() throws TechnicalException {
-        when(roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name(), ORG_ID)).thenReturn(apiPrimaryOwnerRole());
-        when(userService.findById(eq(GraviteeContext.getExecutionContext()), eq(MEMBER_ID))).thenReturn(user());
-        when(apiSearchService.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID))).thenReturn(api());
-        Membership membership = new Membership();
-        membership.setRoleId(API_PO_ROLE_ID);
-        when(roleService.findById(eq(API_PO_ROLE_ID))).thenReturn(apiPrimaryOwnerRole().get());
-
-        when(membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(any(), any(), any(), any()))
-            .thenReturn(Set.of(membership));
-
-        membershipService.updateRoleToMemberOnReference(
-            GraviteeContext.getExecutionContext(),
-            new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-            new MembershipService.MembershipMember(MEMBER_ID, REFERENCE_ID, MembershipMemberType.USER),
-            new MembershipService.MembershipRole(RoleScope.API, "PRIMARY_OWNER")
-        );
-    }
-
     private static Optional<RoleEntity> apiPrimaryOwnerRole() {
         RoleEntity role = new RoleEntity();
         role.setName(PRIMARY_OWNER.name());
@@ -118,16 +84,5 @@ public class MembershipService_EditMemberTest {
         role.setId(API_PO_ROLE_ID);
         role.setPermissions(Map.of());
         return Optional.of(role);
-    }
-
-    private static UserEntity user() {
-        UserEntity user = new UserEntity();
-        user.setId(MEMBER_ID);
-        return user;
-    }
-
-    private static GenericApiEntity api() {
-        GenericApiEntity api = new ApiEntity();
-        return api;
     }
 }
