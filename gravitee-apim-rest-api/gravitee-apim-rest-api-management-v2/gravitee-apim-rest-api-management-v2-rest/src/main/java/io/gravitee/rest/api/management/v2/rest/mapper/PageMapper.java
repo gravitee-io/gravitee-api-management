@@ -15,34 +15,30 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.definition.model.v4.flow.selector.SelectorType;
-import io.gravitee.rest.api.management.v2.rest.model.ChannelSelector;
-import io.gravitee.rest.api.management.v2.rest.model.ConditionSelector;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
-import io.gravitee.rest.api.management.v2.rest.model.HttpSelector;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Media;
 import io.gravitee.rest.api.management.v2.rest.model.Page;
 import io.gravitee.rest.api.management.v2.rest.model.PageMedia;
+import io.gravitee.rest.api.management.v2.rest.model.PageSource;
 import io.gravitee.rest.api.management.v2.rest.model.Revision;
-import io.gravitee.rest.api.management.v2.rest.model.Selector;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Date;
+import io.gravitee.rest.api.model.PageSourceEntity;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
-import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { DateMapper.class })
+@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class })
 public interface PageMapper {
     PageMapper INSTANCE = Mappers.getMapper(PageMapper.class);
 
@@ -50,17 +46,55 @@ public interface PageMapper {
     @Mapping(target = "hash", source = "mediaHash")
     PageMedia convertMedia(PageMediaEntity pageMediaEntity);
 
+    @Mapping(target = "mediaName", source = "name")
+    @Mapping(target = "mediaHash", source = "hash")
+    PageMediaEntity convertMedia(PageMedia pageMedia);
+
     @Mapping(target = "id", source = "pageId")
     Revision convertRevision(PageEntity.PageRevisionId pageRevisionId);
 
+    @Mapping(target = "pageId", source = "id")
+    PageEntity.PageRevisionId convertRevision(Revision revision);
+
     @Mapping(target = "contentRevision", source = "contentRevisionId")
     @Mapping(target = "updatedAt", source = "lastModificationDate")
+    @Mapping(target = "_configuration", source = "configuration")
     Page convert(PageEntity pageEntity);
+
+    @Mapping(target = "contentRevisionId", source = "contentRevision")
+    @Mapping(target = "lastModificationDate", source = "updatedAt")
+    @Mapping(target = "configuration", source = "configuration")
+    PageEntity convert(Page page);
+
+    @Mapping(target = "configuration", qualifiedByName = "deserializeJsonConfiguration")
+    PageSourceEntity convert(PageSource source);
+
+    @Mapping(target = "_configuration", source = "configuration", qualifiedByName = "serializeConfiguration")
+    PageSource convert(PageSourceEntity sourceEntity);
 
     Set<Page> convertListToSet(List<PageEntity> pageEntityList);
 
     @Mapping(target = "createdAt", source = "createAt")
     Media convertMediaEntityToMedia(MediaEntity mediaEntity);
 
+    @Mapping(target = "uploadDate", source = "createdAt")
+    MediaEntity convert(Media media);
+
     List<Media> convertMediaList(List<MediaEntity> mediaEntity);
+
+    @Named("deserializeJsonConfiguration")
+    default JsonNode deserializeJsonConfiguration(Object configuration) throws JsonProcessingException {
+        if (Objects.isNull(configuration)) {
+            return null;
+        }
+        if (configuration instanceof LinkedHashMap) {
+            ObjectMapper mapper = new GraviteeMapper();
+            try {
+                return mapper.valueToTree(configuration);
+            } catch (IllegalArgumentException e) {
+                throw new TechnicalManagementException("An error occurred while trying to parse connector configuration " + e);
+            }
+        }
+        return null;
+    }
 }

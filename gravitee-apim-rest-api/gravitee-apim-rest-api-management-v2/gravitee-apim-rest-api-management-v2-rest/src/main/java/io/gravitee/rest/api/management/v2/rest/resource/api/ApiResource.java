@@ -31,10 +31,12 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MetadataMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
+import io.gravitee.rest.api.management.v2.rest.model.BaseApi;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
@@ -52,6 +54,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
@@ -65,6 +68,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
+import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.io.ByteArrayOutputStream;
@@ -109,16 +113,7 @@ public class ApiResource extends AbstractResource {
     private ApiImagesService apiImagesService;
 
     @Inject
-    private ApiMetadataService apiMetadataService;
-
-    @Inject
-    private PlanService planServiceV4;
-
-    @Inject
-    private PageService pageService;
-
-    @Inject
-    private MediaService mediaService;
+    private ApiImportExportService apiImportExportService;
 
     @Inject
     private WorkflowService workflowService;
@@ -232,74 +227,15 @@ public class ApiResource extends AbstractResource {
     @POST
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
     public Response exportApiDefinition(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
-        final ExportApiV4 exportApi = new ExportApiV4();
-        final var apiEntity = getGenericApiEntityById(apiId, false);
-        if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
-            throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
-        }
-        exportApi.setApi(ApiMapper.INSTANCE.convert(apiEntity, uriInfo));
-        exportApi.setApiPicture(apiEntity.getPicture());
-        exportApi.setApiBackground(apiEntity.getBackground());
-
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_MEMBER,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
-            var members = membershipService
-                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
-                .stream()
-                .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
-                .map(MemberMapper.INSTANCE::convert)
-                .collect(Collectors.toSet());
-            exportApi.setMembers(members);
-        }
-
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_METADATA,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
-            var metadataList = apiMetadataService.findAllByApi(apiId);
-            exportApi.setMetadata(MetadataMapper.INSTANCE.convertListToSet(metadataList));
-        }
-
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_PLAN,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
-            var plansSet = planServiceV4.findByApi(GraviteeContext.getExecutionContext(), apiId);
-            exportApi.setPlans(PlanMapper.INSTANCE.convertSet(plansSet));
-        }
-
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_DOCUMENTATION,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
-            var pageList = pageService.findByApi(GraviteeContext.getCurrentEnvironment(), apiId);
-            exportApi.setPages(PageMapper.INSTANCE.convertListToSet(pageList));
-
-            List<MediaEntity> apiMediaList = mediaService.findAllByApiId(apiId);
-            exportApi.setApiMedia(PageMapper.INSTANCE.convertMediaList(apiMediaList));
-        }
+        ExportApiEntity exportApiEntity = apiImportExportService.exportApi(
+            GraviteeContext.getExecutionContext(),
+            apiId,
+            getAuthenticatedUser()
+        );
 
         return Response
-            .ok(exportApi)
-            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))
+            .ok(ImportExportApiMapper.INSTANCE.map(exportApiEntity))
+            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(exportApiEntity.getApiEntity())))
             .build();
     }
 
@@ -307,7 +243,7 @@ public class ApiResource extends AbstractResource {
     @POST
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response startAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
-        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId);
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiLifeCycle(genericApiEntity, LifecycleAction.START);
@@ -324,7 +260,7 @@ public class ApiResource extends AbstractResource {
     @POST
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response stopAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
-        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId);
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiLifeCycle(genericApiEntity, LifecycleAction.STOP);

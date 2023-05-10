@@ -15,28 +15,18 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
 import io.gravitee.rest.api.management.v2.rest.model.Entrypoint;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.LinkedHashMap;
-import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-@Mapper
+@Mapper(uses = { ConfigurationSerializationMapper.class })
 public interface ConnectorMapper {
     ConnectorMapper INSTANCE = Mappers.getMapper(ConnectorMapper.class);
-    Logger LOGGER = LoggerFactory.getLogger(ConnectorMapper.class);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
     io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint map(Entrypoint entrypoint);
@@ -57,36 +47,4 @@ public interface ConnectorMapper {
 
     @Mapping(target = "sharedConfiguration", qualifiedByName = "serializeConfiguration")
     EndpointGroupV4 map(EndpointGroup endpointGroup);
-
-    @Named("deserializeConfiguration")
-    default String deserializeConfiguration(Object configuration) throws JsonProcessingException {
-        if (Objects.isNull(configuration)) {
-            return null;
-        }
-        if (configuration instanceof LinkedHashMap) {
-            ObjectMapper mapper = new GraviteeMapper();
-            try {
-                JsonNode jsonNode = mapper.valueToTree(configuration);
-                return mapper.writeValueAsString(jsonNode);
-            } catch (IllegalArgumentException | JsonProcessingException e) {
-                throw new TechnicalManagementException("An error occurred while trying to parse connector configuration " + e);
-            }
-        } else {
-            return configuration.toString();
-        }
-    }
-
-    @Named("serializeConfiguration")
-    default Object serializeConfiguration(String configuration) throws JsonProcessingException {
-        if (Objects.isNull(configuration)) {
-            return null;
-        }
-        try {
-            ObjectMapper mapper = new GraviteeMapper();
-            return mapper.readValue(configuration, LinkedHashMap.class);
-        } catch (JsonProcessingException jse) {
-            LOGGER.error("Unexpected error while generating connector", jse);
-            throw new TechnicalManagementException("An error occurred while trying to parse connector configuration");
-        }
-    }
 }

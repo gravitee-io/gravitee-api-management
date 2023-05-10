@@ -32,4 +32,11 @@ public interface DateMapper {
         }
         return value.toInstant().atOffset(ZoneOffset.UTC);
     }
+
+    default Date map(OffsetDateTime offsetDateTime) {
+        if (Objects.isNull(offsetDateTime)) {
+            return null;
+        }
+        return Date.from(offsetDateTime.toInstant());
+    }
 }

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.rest.api.management.v2.rest.model.Environment;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import java.util.Collection;
-import java.util.Set;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

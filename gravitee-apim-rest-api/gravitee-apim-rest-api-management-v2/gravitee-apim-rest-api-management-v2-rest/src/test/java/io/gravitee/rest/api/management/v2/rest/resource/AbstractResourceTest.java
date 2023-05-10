@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanService;
@@ -62,6 +63,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected io.gravitee.rest.api.service.v4.ApiImagesService apiImagesService;
+
+    @Autowired
+    protected ApiImportExportService apiImportExportService;
 
     @Autowired
     protected PermissionService permissionService;

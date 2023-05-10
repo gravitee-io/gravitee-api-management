@@ -17,15 +17,17 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.model.MemberEntity;
-import java.util.List;
+import java.util.Set;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(uses = { RoleMapper.class })
 public interface MemberMapper {
     MemberMapper INSTANCE = Mappers.getMapper(MemberMapper.class);
 
-    Member convert(MemberEntity memberEntity);
+    Member map(MemberEntity memberEntity);
+    MemberEntity map(Member member);
 
-    List<Member> convertCollection(List<MemberEntity> memberEntityCollection);
+    Set<Member> map(Set<MemberEntity> memberEntityCollection);
 }

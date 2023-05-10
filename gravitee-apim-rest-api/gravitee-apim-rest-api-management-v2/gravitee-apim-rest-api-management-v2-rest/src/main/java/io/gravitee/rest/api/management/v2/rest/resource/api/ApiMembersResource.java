@@ -60,7 +60,7 @@ public class ApiMembersResource extends AbstractResource {
             .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
             .stream()
             .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
-            .map(MemberMapper.INSTANCE::convert)
+            .map(MemberMapper.INSTANCE::map)
             .sorted(Comparator.comparing(Member::getId))
             .collect(Collectors.toList());
         return new MembersResponse()
@@ -87,7 +87,7 @@ public class ApiMembersResource extends AbstractResource {
             apiMembership.getExternalReference(),
             apiMembership.getRoleName()
         );
-        return Response.status(Response.Status.CREATED).entity(MemberMapper.INSTANCE.convert(createdMember)).build();
+        return Response.status(Response.Status.CREATED).entity(MemberMapper.INSTANCE.map(createdMember)).build();
     }
 
     @PUT
@@ -103,7 +103,7 @@ public class ApiMembersResource extends AbstractResource {
             apiMembership.getMemberId(),
             apiMembership.getRoleName()
         );
-        return Response.ok().entity(MemberMapper.INSTANCE.convert(updatedMembership)).build();
+        return Response.ok().entity(MemberMapper.INSTANCE.map(updatedMembership)).build();
     }
 
     @Path("/{memberId}")
