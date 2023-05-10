@@ -26,7 +26,10 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -75,6 +78,9 @@ public class MembershipService_UpdateMembershipForApiTest {
 
     @Mock
     private RoleService roleService;
+
+    @Mock
+    private ApiRepository apiRepository;
 
     @Before
     public void setUp() throws Exception {
@@ -169,10 +175,10 @@ public class MembershipService_UpdateMembershipForApiTest {
         when(roleService.findById(roleId)).thenReturn(role);
     }
 
-    private void mockApi() {
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId(API_ID);
-        apiEntity.setGroups(Collections.emptySet());
-        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiEntity);
+    private void mockApi() throws TechnicalException {
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setGroups(Collections.emptySet());
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
     }
 }
