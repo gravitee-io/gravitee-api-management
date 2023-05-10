@@ -44,7 +44,7 @@ export class ApiV2Service {
     return this.http.post<ApisResponse>(`${this.constants.env.v2BaseURL}/apis/_search`, searchQuery, {
       params: {
         page,
-        size,
+        perPage: size,
         ...(sortBy ? { sortBy } : {}),
       },
     });
