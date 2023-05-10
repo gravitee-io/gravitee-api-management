@@ -15,19 +15,54 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.policy;
 
+import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_APPLICATION;
+import static io.gravitee.gateway.jupiter.api.context.ExecutionContext.ATTR_SUBSCRIPTION_ID;
+
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.jupiter.api.context.RequestExecutionContext;
+import io.gravitee.gateway.jupiter.api.policy.SecurityPolicy;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
+import io.reactivex.Completable;
+import io.reactivex.Single;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class KeylessPolicy {
+public class KeylessPolicy implements SecurityPolicy {
 
     @OnRequest
     public void onRequest(Request request, Response response, PolicyChain policyChain) {
         policyChain.doNext(request, response);
+    }
+
+    @Override
+    public String id() {
+        return "keyless";
+    }
+
+    @Override
+    public int order() {
+        return 1000;
+    }
+
+    @Override
+    public boolean requireSubscription() {
+        return false;
+    }
+
+    @Override
+    public Single<Boolean> support(RequestExecutionContext ctx) {
+        return Single.just(Boolean.TRUE);
+    }
+
+    @Override
+    public Completable onRequest(RequestExecutionContext ctx) {
+        return Completable.fromRunnable(() -> {
+            ctx.setAttribute(ATTR_APPLICATION, "1");
+            ctx.setAttribute(ATTR_SUBSCRIPTION_ID, ctx.request().remoteAddress());
+        });
     }
 }
