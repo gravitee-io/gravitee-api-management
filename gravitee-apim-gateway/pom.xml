@@ -52,6 +52,7 @@
         <module>gravitee-apim-gateway-services</module>
         <module>gravitee-apim-gateway-standalone</module>
         <module>gravitee-apim-gateway-tests-sdk</module>
+        <module>gravitee-apim-gateway-tests-integration</module>
     </modules>
 
     <dependencyManagement>

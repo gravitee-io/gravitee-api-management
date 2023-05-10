@@ -43,7 +43,9 @@ import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.handlers.api.processor.logging.ApiLoggableRequestProcessor;
+import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersIndexProcessor;
+import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersProcessor;
 import io.gravitee.gateway.policy.PolicyChainOrder;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyManager;
@@ -131,6 +133,12 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             add(new PlanPolicyChainProvider(StreamType.ON_REQUEST, new PlanPolicyResolver(api), policyChainFactory));
             add(new ApiPolicyChainProvider(StreamType.ON_REQUEST, new ApiPolicyResolver(), policyChainFactory));
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+            final PathParametersExtractor extractor = new PathParametersExtractor(api);
+            if (extractor.canExtractPathParams()) {
+                final PathParametersProcessor pathParametersProcessor = new PathParametersProcessor(extractor);
+                add(() -> pathParametersProcessor);
+            }
+
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new PlanFlowPolicyChainProvider(
