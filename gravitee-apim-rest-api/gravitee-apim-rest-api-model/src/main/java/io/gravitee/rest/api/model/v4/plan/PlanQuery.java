@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.model.v4.plan;
 
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
@@ -25,10 +28,12 @@ import lombok.Getter;
  */
 @Builder
 @Getter
+@EqualsAndHashCode
 @Schema(name = "PlanQueryV4")
 public class PlanQuery {
 
-    private String api;
+    private String apiId;
     private String name;
-    private PlanSecurityType securityType;
+    private List<PlanSecurityType> securityType;
+    private List<PlanStatus> status;
 }

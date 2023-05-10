@@ -33,15 +33,14 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,6 +67,12 @@ public class PlanSearchServiceImplTest {
     private ApiRepository apiRepository;
 
     @Mock
+    private GroupService groupService;
+
+    @Mock
+    private ApiSearchService apiSearchService;
+
+    @Mock
     private GenericPlanMapper genericPlanMapper;
 
     private Plan plan;
@@ -79,7 +84,8 @@ public class PlanSearchServiceImplTest {
 
     @Before
     public void before() throws TechnicalException {
-        planSearchService = new PlanSearchServiceImpl(planRepository, apiRepository, objectMapper, genericPlanMapper);
+        planSearchService =
+            new PlanSearchServiceImpl(planRepository, apiRepository, groupService, apiSearchService, objectMapper, genericPlanMapper);
 
         api = new Api();
         api.setId(API_ID);

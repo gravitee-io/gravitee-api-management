@@ -19,41 +19,30 @@ import static java.util.Comparator.comparingInt;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
-import io.gravitee.rest.api.management.v2.rest.model.Plan;
+import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
+import io.gravitee.rest.api.management.v2.rest.model.PlanStatus;
+import io.gravitee.rest.api.management.v2.rest.model.PlansResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.v2.rest.resource.param.PlanSecurityParam;
-import io.gravitee.rest.api.management.v2.rest.resource.param.PlanStatusParam;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import io.gravitee.rest.api.model.v4.plan.PlanType;
-import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -69,6 +58,9 @@ public class ApiPlansResource extends AbstractResource {
     private PlanService planService;
 
     @Inject
+    private PlanSearchService planSearchService;
+
+    @Inject
     private GroupService groupService;
 
     @Context
@@ -80,36 +72,46 @@ public class ApiPlansResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Plan> getApiPlans(
-        @QueryParam("status") @DefaultValue("PUBLISHED") final PlanStatusParam wishedStatus,
-        @QueryParam("security") final PlanSecurityParam security
-    ) {
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            !hasPermission(executionContext, RolePermission.API_PLAN, apiId, RolePermissionAction.READ) &&
-            !hasPermission(executionContext, RolePermission.API_LOG, apiId, RolePermissionAction.READ)
-        ) {
-            throw new ForbiddenAccessException();
+    @Permissions(
+        {
+            @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.READ }),
+            @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }),
         }
-
-        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
-
-        List<PlanEntity> entities = planService
-            .findByApi(executionContext, apiId)
-            .stream()
-            .filter(plan ->
-                wishedStatus.contains(plan.getStatus()) &&
-                (
-                    (isAuthenticated() && isAdmin()) ||
-                    groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), getAuthenticatedUserOrNull())
-                )
+    )
+    public PlansResponse getApiPlans(
+        @QueryParam("status") @DefaultValue("PUBLISHED") final Set<PlanStatus> planStatusParamList,
+        @QueryParam("security") final Set<PlanSecurityType> planSecurityTypeParamList,
+        @BeanParam @Valid PaginationParam paginationParam
+    ) {
+        var planQuery = PlanQuery
+            .builder()
+            .apiId(apiId)
+            .securityType(
+                planSecurityTypeParamList
+                    .stream()
+                    .map(planSecurityType -> io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(planSecurityType.name()))
+                    .collect(Collectors.toList())
             )
-            .filter(plan -> security == null || security.contains(PlanSecurityType.valueOfLabel(plan.getSecurity().getType())))
-            .sorted(comparingInt(PlanEntity::getOrder))
+            .status(
+                planStatusParamList
+                    .stream()
+                    .map(planStatus -> io.gravitee.definition.model.v4.plan.PlanStatus.valueOf(planStatus.name()))
+                    .collect(Collectors.toList())
+            );
+
+        List<GenericPlanEntity> plans = planSearchService
+            .search(GraviteeContext.getExecutionContext(), planQuery.build(), getAuthenticatedUser(), isAdmin())
+            .stream()
+            .sorted(comparingInt(GenericPlanEntity::getOrder))
             .map(this::filterSensitiveData)
             .collect(Collectors.toList());
 
-        return PlanMapper.INSTANCE.convertList(entities);
+        List<GenericPlanEntity> paginationData = computePaginationData(plans, paginationParam);
+
+        return new PlansResponse()
+            .data(PlanMapper.INSTANCE.convert(paginationData))
+            .pagination(computePaginationInfo(plans.size(), paginationData.size(), paginationParam))
+            .links(computePaginationLinks(plans.size(), paginationParam));
     }
 
     @POST
@@ -237,7 +239,7 @@ public class ApiPlansResource extends AbstractResource {
         return Response.ok(deprecatedPlan).build();
     }
 
-    private PlanEntity filterSensitiveData(PlanEntity entity) {
+    private GenericPlanEntity filterSensitiveData(GenericPlanEntity entity) {
         if (
             hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -258,7 +260,7 @@ public class ApiPlansResource extends AbstractResource {
         filtered.setName(entity.getName());
         filtered.setDescription(entity.getDescription());
         filtered.setOrder(entity.getOrder());
-        filtered.setSecurity(entity.getSecurity());
+        filtered.setSecurity(entity.getPlanSecurity());
         filtered.setType(filtered.getType());
         filtered.setValidation(filtered.getValidation());
         filtered.setCommentRequired(entity.isCommentRequired());
