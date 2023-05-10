@@ -33,6 +33,7 @@
   [length]="apisTableDSUnpaginatedLength"
   [filters]="filters"
   (filtersChange)="onFiltersChanged($event)"
+  [paginationPageSizeOptions]="[5, 10, 25, 50]"
 >
   <table mat-table matSort [dataSource]="apisTableDS" id="apisTable" aria-label="Apis table">
     <!-- Picture Column -->
