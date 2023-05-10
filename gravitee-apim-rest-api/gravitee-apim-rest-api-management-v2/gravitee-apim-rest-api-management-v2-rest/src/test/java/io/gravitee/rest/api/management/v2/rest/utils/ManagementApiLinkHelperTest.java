@@ -18,8 +18,10 @@ package io.gravitee.rest.api.management.v2.rest.utils;
 import static org.junit.Assert.assertEquals;
 
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Date;
 import javax.ws.rs.core.UriBuilder;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ManagementApiLinkHelperTest {
@@ -31,6 +33,11 @@ public class ManagementApiLinkHelperTest {
     private static final String BASE_URL_APIS_APIID = BASE_URL_APIS + "/" + API_ID;
     private static final String BASE_URL_APIS_APIID_PICTURE = BASE_URL_APIS_APIID + "/picture?hash=" + UPDATED_AT.getTime();
     private static final String BASE_URL_APIS_APIID_BACKGROUND = BASE_URL_APIS_APIID + "/background?hash=" + UPDATED_AT.getTime();
+
+    @Before
+    public void setUp() {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void testApisLink() {
