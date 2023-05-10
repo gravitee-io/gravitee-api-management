@@ -79,11 +79,18 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
     ApiV4 convert(ApiEntity apiEntity, UriInfo uriInfo);
 
-    @Mapping(target = "listeners", source = "listeners", qualifiedByName = "toListeners")
+    @Mapping(target = "listeners", qualifiedByName = "fromListeners")
+    @Mapping(target = "links", ignore = true)
+    ApiV4 convert(ApiEntity apiEntity);
+
+    @Mapping(target = "listeners", qualifiedByName = "toListeners")
+    ApiEntity convert(ApiV4 api);
+
+    @Mapping(target = "listeners", qualifiedByName = "toListeners")
     NewApiEntity convert(CreateApiV4 api);
 
     @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
-    io.gravitee.rest.api.management.v2.rest.model.ApiV2 map(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
+    ApiV2 map(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
 
     @Mapping(target = "paths", qualifiedByName = "fromPaths")
     @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
@@ -108,8 +115,37 @@ public interface ApiMapper {
     }
 
     // ResponseTemplate
-    Map<String, ResponseTemplate> convertResponseTemplate(Map<String, io.gravitee.definition.model.ResponseTemplate> responseTemplate);
+    Map<String, ResponseTemplate> convertFromResponseTemplateModel(
+        Map<String, io.gravitee.definition.model.ResponseTemplate> responseTemplate
+    );
 
+    default Map<String, Map<String, ResponseTemplate>> mapFromModel(
+        Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> value
+    ) {
+        if (Objects.isNull(value)) {
+            return null;
+        }
+        Map<String, Map<String, ResponseTemplate>> convertedMap = new HashMap<>();
+        value.forEach((key, map) -> convertedMap.put(key, convertFromResponseTemplateModel(map)));
+        return convertedMap;
+    }
+
+    Map<String, io.gravitee.definition.model.ResponseTemplate> convertToResponseTemplateModel(
+        Map<String, ResponseTemplate> responseTemplate
+    );
+
+    default Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> mapToModel(
+        Map<String, Map<String, ResponseTemplate>> value
+    ) {
+        if (Objects.isNull(value)) {
+            return null;
+        }
+        Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> convertedMap = new HashMap<>();
+        value.forEach((key, map) -> convertedMap.put(key, convertToResponseTemplateModel(map)));
+        return convertedMap;
+    }
+
+    // Properties
     List<Property> map(List<io.gravitee.definition.model.Property> properties);
 
     default List<Property> map(io.gravitee.definition.model.Properties properties) {
@@ -117,15 +153,6 @@ public interface ApiMapper {
             return null;
         }
         return this.map(properties.getProperties());
-    }
-
-    default Map<String, Map<String, ResponseTemplate>> map(Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> value) {
-        if (Objects.isNull(value)) {
-            return null;
-        }
-        Map<String, Map<String, ResponseTemplate>> convertedMap = new HashMap<>();
-        value.forEach((key, map) -> convertedMap.put(key, convertResponseTemplate(map)));
-        return convertedMap;
     }
 
     // Listeners

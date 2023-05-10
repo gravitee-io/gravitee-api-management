@@ -16,15 +16,11 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.model.*;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -43,6 +39,11 @@ public interface FlowMapper {
     io.gravitee.definition.model.v4.flow.Flow map(FlowV4 flow);
 
     List<FlowV4> convert(List<io.gravitee.definition.model.v4.flow.Flow> flow);
+
+    @Mapping(target = "_configuration", source = "configuration")
+    StepV4 map(Step step);
+
+    Step map(StepV4 stepV4);
 
     // Selectors
     HttpSelector map(io.gravitee.definition.model.v4.flow.selector.HttpSelector selector);

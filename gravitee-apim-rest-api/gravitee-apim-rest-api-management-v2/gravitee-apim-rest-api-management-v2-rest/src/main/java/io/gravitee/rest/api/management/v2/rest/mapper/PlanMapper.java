@@ -25,12 +25,13 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { DateMapper.class, FlowMapper.class })
+@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class })
 public interface PlanMapper {
     PlanMapper INSTANCE = Mappers.getMapper(PlanMapper.class);
 
-    @Mapping(target = "security.type", qualifiedByName = "convertSecurityType")
+    @Mapping(target = "security.type", qualifiedByName = "convertToSecurityType")
     @Mapping(target = "status", qualifiedByName = "convertPlanStatusV4")
+    @Mapping(target = "security._configuration", source = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(constant = "V4", target = "definitionVersion")
     PlanV4 convert(PlanEntity planEntity);
 
@@ -61,12 +62,24 @@ public interface PlanMapper {
         }
     }
 
-    @Named("convertSecurityType")
-    default PlanSecurityType convertSecurityType(String securityType) {
+    @Mapping(target = "security.type", qualifiedByName = "convertFromSecurityType")
+    @Mapping(target = "security.configuration", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    PlanEntity convert(PlanV4 plan);
+
+    @Named("convertToSecurityType")
+    default PlanSecurityType convertToSecurityType(String securityType) {
         if (Objects.isNull(securityType)) {
             return null;
         }
         return PlanSecurityType.fromValue(securityType);
+    }
+
+    @Named("convertFromSecurityType")
+    default String convertFromSecurityType(PlanSecurityType securityType) {
+        if (Objects.isNull(securityType)) {
+            return null;
+        }
+        return securityType.getValue();
     }
 
     @Named("convertPlanStatusV4")

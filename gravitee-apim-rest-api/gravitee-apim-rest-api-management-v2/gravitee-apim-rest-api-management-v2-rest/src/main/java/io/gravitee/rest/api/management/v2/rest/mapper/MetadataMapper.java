@@ -27,5 +27,7 @@ public interface MetadataMapper {
     MetadataMapper INSTANCE = Mappers.getMapper(MetadataMapper.class);
 
     Metadata convert(ApiMetadataEntity metadataEntity);
-    Set<Metadata> convertListToSet(List<ApiMetadataEntity> metadataEntityList);
+    ApiMetadataEntity convert(Metadata metadataEntity);
+
+    Set<Metadata> convertListToSet(Set<ApiMetadataEntity> metadataEntityList);
 }

@@ -22,12 +22,11 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.common.http.HttpMethod;
@@ -68,7 +67,6 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
@@ -78,16 +76,19 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
+import org.apiguardian.api.API;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -104,13 +105,12 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT_ID + "/apis";
+        return "/environments/" + ENVIRONMENT_ID + "/apis/" + API_ID + "/_export/definition";
     }
 
     @Before
     public void init() throws TechnicalException {
         reset(apiServiceV4);
-        reset(permissionService);
         GraviteeContext.cleanContext();
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
@@ -123,60 +123,37 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_not_export_v2_apis() {
-        doReturn(true)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API_ID, RolePermissionAction.READ);
-        doReturn(this.fakeApiEntityV2()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
-
-        Response response = rootTarget(API_ID).path("_export").path("definition").request().post(null);
-        assertEquals(BAD_REQUEST_400, response.getStatus());
-    }
-
-    @Test
     public void should_not_export_when_no_definition_permission() {
         doReturn(false)
             .when(permissionService)
             .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API_ID, RolePermissionAction.READ);
-        Response response = rootTarget(API_ID).path("_export").path("definition").request().post(null);
+        Response response = rootTarget().request().post(null);
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
     @Test
-    public void should_export_only_api_when_only_definition_permission() throws JsonProcessingException {
-        mockPermissions(true, false, false, false, false);
-        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
-
-        Response response = rootTarget(API_ID).path("_export").path("definition").request().post(null);
-        assertEquals(OK_200, response.getStatus());
-
-        final ExportApiV4 export = response.readEntity(ExportApiV4.class);
-        assertNull(export.getMembers());
-        assertNull(export.getMetadata());
-        assertNull(export.getPlans());
-        assertNull(export.getPages());
-        assertNotNull(export.getApi().getApiV4());
-
-        final ApiV4 api = export.getApi().getApiV4();
-        testReturnedApi(api);
+    public void should_not_export_v2_apis() {
+        doThrow(new ApiDefinitionVersionNotSupportedException("2.0.0"))
+            .when(apiImportExportService)
+            .exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
+        Response response = rootTarget().request().post(null);
+        assertEquals(BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
-    public void should_export_members_and_api_when_member_and_definition_permission() throws JsonProcessingException {
-        mockPermissions(true, true, false, false, false);
-        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
-        doReturn(this.fakeApiMembers())
-            .when(membershipService)
-            .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+    public void should_export() throws JsonProcessingException {
+        doReturn(this.fakeExportApiEntity())
+            .when(apiImportExportService)
+            .exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
 
-        Response response = rootTarget(API_ID).path("_export").path("definition").request().post(null);
+        Response response = rootTarget().request().post(null);
         assertEquals(OK_200, response.getStatus());
 
         final ExportApiV4 export = response.readEntity(ExportApiV4.class);
         assertNotNull(export.getMembers());
-        assertNull(export.getMetadata());
-        assertNull(export.getPlans());
-        assertNull(export.getPages());
+        assertNotNull(export.getMetadata());
+        assertNotNull(export.getPlans());
+        assertNotNull(export.getPages());
         assertNotNull(export.getApi().getApiV4());
 
         final ApiV4 api = export.getApi().getApiV4();
@@ -184,98 +161,17 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
 
         final Set<Member> members = export.getMembers();
         testReturnedMembers(members);
-    }
-
-    @Test
-    public void should_export_metadata_and_api_when_metadata_and_definition_permission() throws JsonProcessingException {
-        mockPermissions(true, false, true, false, false);
-        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
-        doReturn(this.fakeApiMetadata()).when(apiMetadataService).findAllByApi(API_ID);
-
-        Response response = rootTarget(API_ID).path("_export").path("definition").request().post(null);
-        assertEquals(OK_200, response.getStatus());
-
-        final ExportApiV4 export = response.readEntity(ExportApiV4.class);
-        assertNull(export.getMembers());
-        assertNotNull(export.getMetadata());
-        assertNull(export.getPlans());
-        assertNull(export.getPages());
-        assertNotNull(export.getApi().getApiV4());
-
-        final ApiV4 api = export.getApi().getApiV4();
-        testReturnedApi(api);
 
         final Set<Metadata> metadata = export.getMetadata();
         testReturnedMetadata(metadata);
-    }
-
-    @Test
-    public void should_export_plans_and_api_when_plan_and_definition_permission() throws JsonProcessingException {
-        mockPermissions(true, false, false, true, false);
-
-        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
-        doReturn(this.fakeApiPlans()).when(planService).findByApi(GraviteeContext.getExecutionContext(), API_ID);
-
-        Response response = rootTarget(API_ID).path("_export").path("definition").request().post(null);
-        assertEquals(OK_200, response.getStatus());
-
-        final ExportApiV4 export = response.readEntity(ExportApiV4.class);
-        assertNull(export.getMembers());
-        assertNull(export.getMetadata());
-        assertNotNull(export.getPlans());
-        assertNull(export.getPages());
-        assertNotNull(export.getApi().getApiV4());
-
-        final ApiV4 api = export.getApi().getApiV4();
-        testReturnedApi(api);
 
         final Set<PlanV4> plans = export.getPlans();
         testReturnedPlans(plans);
-    }
-
-    @Test
-    public void should_export_pages_and_api_when_documentation_and_definition_permission() throws JsonProcessingException {
-        mockPermissions(true, false, false, false, true);
-
-        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
-        doReturn(this.fakeApiPages()).when(pageService).findByApi(GraviteeContext.getCurrentEnvironment(), API_ID);
-        doReturn(this.fakeApiMedia()).when(mediaService).findAllByApiId(API_ID);
-
-        Response response = rootTarget(API_ID).path("_export").path("definition").request().post(null);
-        assertEquals(OK_200, response.getStatus());
-
-        final ExportApiV4 export = response.readEntity(ExportApiV4.class);
-        assertNull(export.getMembers());
-        assertNull(export.getMetadata());
-        assertNull(export.getPlans());
-        assertNotNull(export.getPages());
-        assertNotNull(export.getApi().getApiV4());
-
-        final ApiV4 api = export.getApi().getApiV4();
-        testReturnedApi(api);
 
         final Set<Page> pages = export.getPages();
         final List<Media> mediaList = export.getApiMedia();
         testReturnedPages(pages);
         testReturnedMedia(mediaList);
-    }
-
-    private void mockPermissions(boolean definition, boolean member, boolean metadata, boolean plan, boolean documentation) {
-        doReturn(definition)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API_ID, RolePermissionAction.READ);
-        doReturn(member)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_MEMBER, API_ID, RolePermissionAction.READ);
-        doReturn(metadata)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_METADATA, API_ID, RolePermissionAction.READ);
-        doReturn(plan)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_PLAN, API_ID, RolePermissionAction.READ);
-        doReturn(documentation)
-            .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DOCUMENTATION, API_ID, RolePermissionAction.READ);
     }
 
     // Fakers
@@ -299,11 +195,24 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         return apiEntity;
     }
 
+    private ExportApiEntity fakeExportApiEntity() {
+        var exportApiEntity = new ExportApiEntity();
+        exportApiEntity.setApiEntity(fakeApiEntityV4());
+        exportApiEntity.setApiMedia(fakeApiMedia());
+        exportApiEntity.setMembers(fakeApiMembers());
+        exportApiEntity.setMetadata(fakeApiMetadata());
+        exportApiEntity.setPages(fakeApiPages());
+        exportApiEntity.setPlans(fakeApiPlans());
+
+        return exportApiEntity;
+    }
+
     private ApiEntity fakeApiEntityV4() {
         var apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setId(API_ID);
         apiEntity.setName(API_ID);
+        apiEntity.setApiVersion("v1.0");
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
         httpListener.setPathMappings(Set.of("/test"));
@@ -403,7 +312,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         return Set.of(userMember, poUserMember);
     }
 
-    private List<ApiMetadataEntity> fakeApiMetadata() {
+    private Set<ApiMetadataEntity> fakeApiMetadata() {
         ApiMetadataEntity firstMetadata = new ApiMetadataEntity();
         firstMetadata.setApiId(API_ID);
         firstMetadata.setKey("my-metadata-1");
@@ -420,7 +329,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         secondMetadata.setValue("Very important data !!");
         secondMetadata.setDefaultValue("Important data");
 
-        return List.of(firstMetadata, secondMetadata);
+        return Set.of(firstMetadata, secondMetadata);
     }
 
     private Set<PlanEntity> fakeApiPlans() {
@@ -475,7 +384,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
 
         PlanSecurity planSecurity = new PlanSecurity();
         planSecurity.setType("key-less");
-        planSecurity.setConfiguration("");
+        planSecurity.setConfiguration("{}");
         planEntity.setSecurity(planSecurity);
 
         return Set.of(planEntity);
@@ -542,6 +451,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
     private void testReturnedApi(ApiV4 responseApi) throws JsonProcessingException {
         assertNotNull(responseApi);
         assertEquals(API_ID, responseApi.getName());
+        assertEquals(API_ID, responseApi.getId());
         assertNull(responseApi.getLinks());
         assertNotNull(responseApi.getProperties());
         assertEquals(1, responseApi.getProperties().size());
@@ -745,7 +655,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         assertNotNull(plan.getSecurity());
         var planSecurity = plan.getSecurity();
         assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.KEY_LESS, planSecurity.getType());
-        assertEquals("", planSecurity.getConfiguration());
+        assertEquals("{}", planSecurity.getConfiguration());
     }
 
     private void testReturnedPages(Set<Page> pages) {

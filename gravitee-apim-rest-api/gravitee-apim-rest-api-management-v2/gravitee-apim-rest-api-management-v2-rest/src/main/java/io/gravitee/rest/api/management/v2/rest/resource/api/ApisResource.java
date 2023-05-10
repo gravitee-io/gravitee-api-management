@@ -17,33 +17,48 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
+import static java.lang.String.format;
 
 import com.google.common.base.Strings;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.ApiSortByParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.DefinitionContextEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.service.ApiDefinitionContextService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.Path;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -59,6 +74,9 @@ public class ApisResource extends AbstractResource {
 
     @Context
     protected UriInfo uriInfo;
+
+    @Inject
+    private ApiImportExportService apiImportExportService;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -88,6 +106,29 @@ public class ApisResource extends AbstractResource {
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )
             .links(computePaginationLinks(Math.toIntExact(apis.getTotalElements()), paginationParam));
+    }
+
+    @POST
+    @Path("/_import/definition")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    public Response createApiWithDefinition(@Valid ExportApiV4 apiToImport) {
+        // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
+        if (apiToImport.getApi().getActualInstance() instanceof ApiV2) {
+            throw new ApiDefinitionVersionNotSupportedException(DefinitionVersion.V2.getLabel());
+        }
+
+        ExportApiEntity exportApiEntity = ImportExportApiMapper.INSTANCE.map(apiToImport);
+        GenericApiEntity fromExportedApi = apiImportExportService.createFromExportedApi(
+            GraviteeContext.getExecutionContext(),
+            exportApiEntity,
+            getAuthenticatedUser()
+        );
+
+        return Response
+            .created(this.getLocationHeader(fromExportedApi.getId()))
+            .entity(ApiMapper.INSTANCE.convert(fromExportedApi, uriInfo))
+            .build();
     }
 
     @POST
