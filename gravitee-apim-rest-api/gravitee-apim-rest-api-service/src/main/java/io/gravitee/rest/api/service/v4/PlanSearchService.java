@@ -34,7 +34,7 @@ public interface PlanSearchService {
 
     Set<GenericPlanEntity> findByApi(final ExecutionContext executionContext, final String apiId);
 
-    List<GenericPlanEntity> search(final ExecutionContext executionContext, final PlanQuery query);
+    List<GenericPlanEntity> search(final ExecutionContext executionContext, final PlanQuery query, String user, boolean isAdmin);
 
     boolean anyPlanMismatchWithApi(List<String> planIds, String apiId);
 

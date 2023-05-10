@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -93,6 +94,11 @@ public class ResourceContextConfiguration {
     @Bean
     public PlanService planService() {
         return mock(PlanService.class);
+    }
+
+    @Bean
+    public PlanSearchService planSearchService() {
+        return mock(PlanSearchService.class);
     }
 
     @Bean

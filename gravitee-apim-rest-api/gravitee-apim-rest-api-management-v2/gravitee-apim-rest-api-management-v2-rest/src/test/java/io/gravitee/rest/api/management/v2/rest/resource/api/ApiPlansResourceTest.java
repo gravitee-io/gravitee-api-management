@@ -28,6 +28,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.Plan;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -36,6 +37,8 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.PlanService;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Optional;
@@ -45,7 +48,9 @@ import javax.ws.rs.core.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ApiPlansResourceTest extends AbstractResourceTest {
 
@@ -58,9 +63,12 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         return "/environments/" + ENVIRONMENT + "/apis/" + API + "/plans";
     }
 
+    @Autowired
+    private PlanSearchService planSearchService;
+
     @Before
     public void init() throws TechnicalException {
-        Mockito.reset(planService, apiSearchServiceV4);
+        Mockito.reset(planService, apiSearchServiceV4, planSearchService);
         GraviteeContext.cleanContext();
 
         Api api = new Api();
@@ -117,7 +125,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         assertEquals(CREATED_201, response.getStatus());
         assertEquals(rootTarget().path("new-plan-id").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
-        var createdPlan = response.readEntity(Plan.class);
+        var body = response.readEntity(Plan.class);
+        var createdPlan = body.getPlanV4();
+
         assertEquals(API, createdPlan.getApiId());
         assertEquals(PLAN, createdPlan.getName());
         assertEquals("my-plan-description", createdPlan.getDescription());
@@ -171,7 +181,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         final Response response = rootTarget().path(PLAN).request().get();
 
         assertEquals(200, response.getStatus());
-        var body = response.readEntity(Plan.class);
+        var body = response.readEntity(PlanV4.class);
         assertNotNull(body);
     }
 

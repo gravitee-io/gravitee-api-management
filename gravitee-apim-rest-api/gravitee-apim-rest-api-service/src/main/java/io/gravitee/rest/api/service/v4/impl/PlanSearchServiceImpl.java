@@ -17,23 +17,24 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static java.util.Collections.emptyList;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.uritemplate.vars.values.ValueType;
-import com.nimbusds.jose.jwk.KeyType;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import java.util.List;
@@ -58,17 +59,23 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
 
     private final PlanRepository planRepository;
     private final ApiRepository apiRepository;
+    private final GroupService groupService;
+    private final ApiSearchService apiSearchService;
     private final ObjectMapper objectMapper;
     private final GenericPlanMapper genericPlanMapper;
 
     public PlanSearchServiceImpl(
         @Lazy final PlanRepository planRepository,
         @Lazy final ApiRepository apiRepository,
+        final GroupService groupService,
+        final ApiSearchService apiSearchService,
         final ObjectMapper objectMapper,
         final GenericPlanMapper genericPlanMapper
     ) {
         this.planRepository = planRepository;
         this.apiRepository = apiRepository;
+        this.groupService = groupService;
+        this.apiSearchService = apiSearchService;
         this.objectMapper = objectMapper;
         this.genericPlanMapper = genericPlanMapper;
     }
@@ -113,24 +120,31 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     }
 
     @Override
-    public List<GenericPlanEntity> search(final ExecutionContext executionContext, final PlanQuery query) {
-        if (query.getApi() == null) {
+    public List<GenericPlanEntity> search(final ExecutionContext executionContext, final PlanQuery query, String user, boolean isAdmin) {
+        if (query.getApiId() == null) {
             return emptyList();
         }
 
-        return findByApi(executionContext, query.getApi())
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, query.getApiId());
+
+        return findByApi(executionContext, query.getApiId())
             .stream()
             .filter(p -> {
                 boolean filtered = true;
                 if (query.getName() != null) {
                     filtered = query.getName().equals(p.getName());
                 }
-                if (filtered && query.getSecurityType() != null) {
+                if (filtered && query.getSecurityType() != null && !query.getSecurityType().isEmpty()) {
                     PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
-                    filtered = planSecurityType.equals(query.getSecurityType());
+                    filtered = query.getSecurityType().contains(planSecurityType);
+                }
+                if (filtered && query.getStatus() != null && !query.getStatus().isEmpty()) {
+                    PlanStatus planStatus = PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
+                    filtered = query.getStatus().contains(planStatus);
                 }
                 return filtered;
             })
+            .filter(plan -> isAdmin || groupService.isUserAuthorizedToAccessApiData(genericApiEntity, plan.getExcludedGroups(), user))
             .collect(Collectors.toList());
     }
 
