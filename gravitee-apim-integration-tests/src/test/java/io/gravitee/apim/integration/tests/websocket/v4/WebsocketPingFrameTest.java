@@ -32,7 +32,8 @@ public class WebsocketPingFrameTest extends AbstractWebsocketV4GatewayTest {
         var serverConnected = testContext.checkpoint();
         var pingReceived = testContext.checkpoint();
         var pingSent = testContext.checkpoint();
-        var pongReceived = testContext.checkpoint();
+        // use a lax checkpoint because Pong frames may be received unsolicited https://vertx.io/docs/apidocs/io/vertx/core/http/WebSocketBase.html#pongHandler-io.vertx.core.Handler-
+        var pongReceived = testContext.laxCheckpoint();
 
         websocketServerHandler =
             (
