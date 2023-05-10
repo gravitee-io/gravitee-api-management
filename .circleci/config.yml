@@ -1837,15 +1837,16 @@ workflows:
             and:
                 - equal: [pull_requests, << pipeline.parameters.gio_action >>]
         jobs:
-            - community-build:
-                  context: cicd-orchestrator
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
-                              - /.*-run-e2e.*/
-                              - /.*merge.*/
+            # Deactivated until https://gravitee.atlassian.net/browse/APIM-1598
+            # - community-build:
+            #       context: cicd-orchestrator
+            #       filters:
+            #           branches:
+            #               only:
+            #                   - master
+            #                   - /^\d+\.\d+\.x$/
+            #                   - /.*-run-e2e.*/
+            #                   - /.*merge.*/
 
             - setup:
                   context: cicd-orchestrator
