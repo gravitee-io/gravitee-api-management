@@ -17,6 +17,7 @@ package io.gravitee.gateway.jupiter.handlers.api.processor;
 
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
@@ -27,6 +28,7 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.error.SimpleFailurePro
 import io.gravitee.gateway.jupiter.handlers.api.processor.error.template.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.processor.pathparameters.PathParametersProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.plan.PlanProcessor;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.ArrayList;
@@ -61,6 +63,11 @@ public class ApiProcessorChainFactory {
         }
         if (overrideXForwardedPrefix) {
             preProcessorList.add(XForwardedPrefixProcessor.instance());
+        }
+
+        final PathParametersExtractor extractor = new PathParametersExtractor(api);
+        if (extractor.canExtractPathParams()) {
+            preProcessorList.add(new PathParametersProcessor(extractor));
         }
 
         preProcessorList.add(PlanProcessor.instance());
