@@ -21,7 +21,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -83,8 +85,11 @@ public class MembershipService_TransferOwnershipTest {
     @Mock
     private ApiService apiService;
 
+    @Mock
+    private ApiRepository apiRepository;
+
     @Before
-    public void setUp() {
+    public void setUp() throws TechnicalException {
         newPrimaryOwnerRole.setId(USER_ROLE_ID);
         newPrimaryOwnerRole.setName(USER_ROLE_NAME);
         newPrimaryOwnerRole.setScope(RoleScope.API);
@@ -94,9 +99,9 @@ public class MembershipService_TransferOwnershipTest {
         when(userService.findByIds(EXECUTION_CONTEXT, Collections.singletonList(USER_ID), false)).thenReturn(Collections.singleton(user));
         when(userService.findById(EXECUTION_CONTEXT, USER_ID)).thenReturn(user);
 
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId(API_ID);
-        when(apiService.findById(EXECUTION_CONTEXT, API_ID)).thenReturn(apiEntity);
+        Api api = new Api();
+        api.setId(API_ID);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
     }
 
     @Test
