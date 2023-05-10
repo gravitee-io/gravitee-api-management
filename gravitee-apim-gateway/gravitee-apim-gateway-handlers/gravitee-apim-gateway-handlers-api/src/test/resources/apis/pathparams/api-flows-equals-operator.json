@@ -1,0 +1,149 @@
+{
+  "plans": [
+    {
+      "id": "keyless",
+      "name": "Keyless",
+      "security": "KEY_LESS",
+      "flows": [
+        {
+          "name": "Item",
+          "path-operator": {
+            "path": "/products/:productId/items/:itemId",
+            "operator": "EQUALS"
+          },
+          "condition": "",
+          "methods": [],
+          "pre": [],
+          "post": [],
+          "enabled": true
+        },
+        {
+          "name": "Products",
+          "path-operator": {
+            "path": "/products",
+            "operator": "EQUALS"
+          },
+          "condition": "",
+          "methods": [],
+          "pre": [],
+          "post": [],
+          "enabled": true
+        },
+        {
+          "name": "Products",
+          "path-operator": {
+            "path": "/products",
+            "operator": "EQUALS"
+          },
+          "condition": "",
+          "methods": [
+            "GET",
+            "PUT"
+          ],
+          "pre": [],
+          "post": [],
+          "enabled": true
+        },
+        {
+          "name": "Equals hello",
+          "path-operator": {
+            "path": "/products/:id/hello",
+            "operator": "EQUALS"
+          },
+          "condition": "",
+          "methods": [
+            "GET",
+            "PUT"
+          ],
+          "pre": [],
+          "post": [],
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Accept all - And add path parameters to headers",
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "",
+      "methods": [],
+      "pre": [
+        {
+          "name": "Path Parameters to headers",
+          "description": "",
+          "enabled": true,
+          "policy": "path-param-to-header"
+        }
+      ],
+      "post": [],
+      "enabled": true
+    },
+    {
+      "name": "Product id",
+      "path-operator": {
+        "path": "/products/:productId",
+        "operator": "EQUALS"
+      },
+      "condition": "",
+      "methods": [
+        "CONNECT",
+        "DELETE",
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "PATCH",
+        "POST",
+        "TRACE"
+      ],
+      "pre": [],
+      "post": [],
+      "enabled": true
+    },
+    {
+      "name": "Products",
+      "path-operator": {
+        "path": "/products",
+        "operator": "EQUALS"
+      },
+      "condition": "",
+      "methods": [],
+      "pre": [],
+      "post": [],
+      "enabled": true
+    },
+    {
+      "name": "",
+      "path-operator": {
+        "path": "/products",
+        "operator": "EQUALS"
+      },
+      "condition": "",
+      "methods": [
+        "GET"
+      ],
+      "pre": [],
+      "post": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "path-operator": {
+        "path": "/products/:productId",
+        "operator": "EQUALS"
+      },
+      "condition": "",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "pre": [],
+      "post": [],
+      "enabled": true
+    }
+  ],
+  "resources": []
+}

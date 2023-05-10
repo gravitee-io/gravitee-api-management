@@ -20,6 +20,7 @@ import static io.gravitee.gateway.jupiter.handlers.api.processor.subscription.Su
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.jupiter.api.hook.ProcessorHook;
 import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.gravitee.gateway.jupiter.core.processor.ProcessorChain;
@@ -32,6 +33,7 @@ import io.gravitee.gateway.jupiter.handlers.api.processor.forward.XForwardedPref
 import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.logging.LogResponseProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.pathmapping.PathMappingProcessor;
+import io.gravitee.gateway.jupiter.handlers.api.processor.pathparameters.PathParametersProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.jupiter.handlers.api.processor.transaction.TransactionPostProcessor;
@@ -89,6 +91,11 @@ public class ApiProcessorChainFactory {
         }
         if (overrideXForwardedPrefix) {
             preProcessorList.add(XForwardedPrefixProcessor.instance());
+        }
+
+        final PathParametersExtractor extractor = new PathParametersExtractor(api);
+        if (extractor.canExtractPathParams()) {
+            preProcessorList.add(new PathParametersProcessor(extractor));
         }
 
         preProcessorList.add(SubscriptionProcessor.instance(clientIdentifierHeader));
