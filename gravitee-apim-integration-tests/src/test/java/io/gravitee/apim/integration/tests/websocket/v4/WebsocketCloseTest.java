@@ -17,6 +17,9 @@ package io.gravitee.apim.integration.tests.websocket.v4;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.vertx.core.Promise;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 
@@ -30,19 +33,31 @@ public class WebsocketCloseTest extends AbstractWebsocketV4GatewayTest {
         var serverClosed = testContext.checkpoint();
         var clientClosed = testContext.checkpoint();
 
+        Promise<Void> clientReady = Promise.promise();
+
         websocketServerHandler =
-            serverWebSocket -> {
-                serverConnected.flag();
-                serverWebSocket.exceptionHandler(testContext::failNow);
-                serverWebSocket.accept();
-                serverWebSocket.close().doOnComplete(serverClosed::flag).doOnError(testContext::failNow).subscribe();
-            };
+            serverWebSocket ->
+                Completable
+                    .fromRunnable(() -> {
+                        serverConnected.flag();
+                        serverWebSocket.exceptionHandler(testContext::failNow);
+                        serverWebSocket.accept();
+
+                        clientReady
+                            .future()
+                            .onSuccess(__ ->
+                                serverWebSocket.close().doOnComplete(serverClosed::flag).doOnError(testContext::failNow).subscribe()
+                            );
+                    })
+                    .subscribeOn(Schedulers.io())
+                    .subscribe();
 
         httpClient
             .webSocket("/test")
             .doOnSuccess(webSocket -> {
                 webSocket.exceptionHandler(testContext::failNow);
                 webSocket.closeHandler(__ -> clientClosed.flag());
+                clientReady.complete();
             })
             .doOnError(testContext::failNow)
             .test()

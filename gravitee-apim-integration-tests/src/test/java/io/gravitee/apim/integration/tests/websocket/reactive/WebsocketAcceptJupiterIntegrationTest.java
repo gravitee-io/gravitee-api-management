@@ -21,6 +21,9 @@ import io.gravitee.apim.gateway.tests.sdk.AbstractWebsocketGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.vertx.core.Promise;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -36,13 +39,28 @@ public class WebsocketAcceptJupiterIntegrationTest extends AbstractWebsocketGate
         var serverMessageSent = testContext.checkpoint();
         var serverMessageChecked = testContext.checkpoint();
 
+        Promise<Void> clientReady = Promise.promise();
+
         websocketServerHandler =
-            serverWebSocket -> {
-                serverConnected.flag();
-                serverWebSocket.exceptionHandler(testContext::failNow);
-                serverWebSocket.accept();
-                serverWebSocket.writeTextMessage("PING").doOnComplete(serverMessageSent::flag).doOnError(testContext::failNow).subscribe();
-            };
+            serverWebSocket ->
+                Completable
+                    .fromRunnable(() -> {
+                        serverConnected.flag();
+                        serverWebSocket.exceptionHandler(testContext::failNow);
+                        serverWebSocket.accept();
+
+                        clientReady
+                            .future()
+                            .onSuccess(__ ->
+                                serverWebSocket
+                                    .writeTextMessage("PING")
+                                    .doOnComplete(serverMessageSent::flag)
+                                    .doOnError(testContext::failNow)
+                                    .subscribe()
+                            );
+                    })
+                    .subscribeOn(Schedulers.io())
+                    .subscribe();
 
         httpClient
             .webSocket("/test")
@@ -56,6 +74,7 @@ public class WebsocketAcceptJupiterIntegrationTest extends AbstractWebsocketGate
                         testContext.failNow("The frame is not a text frame");
                     }
                 });
+                clientReady.complete();
             })
             .doOnError(testContext::failNow)
             .test()
