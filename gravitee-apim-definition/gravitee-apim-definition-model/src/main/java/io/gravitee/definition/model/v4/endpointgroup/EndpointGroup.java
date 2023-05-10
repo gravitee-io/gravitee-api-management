@@ -53,7 +53,7 @@ public class EndpointGroup implements Serializable {
 
     @Schema(implementation = Object.class)
     @JsonRawValue
-    private Object sharedConfiguration;
+    private String sharedConfiguration;
 
     @Valid
     private List<Endpoint> endpoints;
@@ -70,9 +70,5 @@ public class EndpointGroup implements Serializable {
 
     public void setSharedConfiguration(final String sharedConfiguration) {
         this.sharedConfiguration = sharedConfiguration;
-    }
-
-    public String getSharedConfiguration() {
-        return (String) this.sharedConfiguration;
     }
 }
