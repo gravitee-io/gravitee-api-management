@@ -1285,10 +1285,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             Set<String> entityGroups = new HashSet<>();
             switch (referenceType) {
                 case API:
-                    entityGroups = apiService.findById(executionContext, referenceId).getGroups();
+                    entityGroups = apiRepository.findById(referenceId).orElseThrow().getGroups();
                     break;
                 case APPLICATION:
-                    entityGroups = applicationService.findById(executionContext, referenceId).getGroups();
+                    entityGroups = applicationRepository.findById(referenceId).orElseThrow().getGroups();
                     break;
                 default:
                     break;
