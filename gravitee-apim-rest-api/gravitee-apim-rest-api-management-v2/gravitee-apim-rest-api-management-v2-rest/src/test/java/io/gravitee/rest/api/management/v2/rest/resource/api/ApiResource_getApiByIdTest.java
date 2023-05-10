@@ -52,6 +52,7 @@ import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -153,6 +154,10 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
         assertNotNull(responseApi.getEndpointGroups());
         assertEquals(1, responseApi.getEndpointGroups().size());
         assertNotNull(responseApi.getEndpointGroups().get(0));
+        EndpointGroupV4 endpointGroup = responseApi.getEndpointGroups().get(0);
+        LinkedHashMap sharedConfig = (LinkedHashMap) endpointGroup.getSharedConfiguration();
+        assertNotNull(sharedConfig);
+        assertEquals("configuration", sharedConfig.get("shared"));
         assertNotNull(responseApi.getEndpointGroups().get(0).getEndpoints());
         assertEquals(1, responseApi.getEndpointGroups().get(0).getEndpoints().size());
 
@@ -343,6 +348,7 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
 
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setType("http-get");
+        endpointGroup.setSharedConfiguration("{\"shared\": \"configuration\"}");
         Endpoint endpoint = new Endpoint();
         endpoint.setType("http-get");
         endpoint.setConfiguration(

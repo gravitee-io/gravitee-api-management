@@ -19,6 +19,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
 import io.gravitee.rest.api.management.v2.rest.model.Entrypoint;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -49,6 +51,12 @@ public interface ConnectorMapper {
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "sharedConfigurationOverride", qualifiedByName = "serializeConfiguration")
     EndpointV4 map(io.gravitee.definition.model.v4.endpointgroup.Endpoint endpoint);
+
+    @Mapping(target = "sharedConfiguration", qualifiedByName = "deserializeConfiguration")
+    EndpointGroup map(EndpointGroupV4 endpointGroup);
+
+    @Mapping(target = "sharedConfiguration", qualifiedByName = "serializeConfiguration")
+    EndpointGroupV4 map(EndpointGroup endpointGroup);
 
     @Named("deserializeConfiguration")
     default String deserializeConfiguration(Object configuration) throws JsonProcessingException {
