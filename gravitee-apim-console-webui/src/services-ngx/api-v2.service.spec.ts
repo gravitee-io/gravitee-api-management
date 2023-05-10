@@ -101,7 +101,7 @@ describe('ApiV2Service', () => {
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&size=10`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10`,
         method: 'POST',
       });
 

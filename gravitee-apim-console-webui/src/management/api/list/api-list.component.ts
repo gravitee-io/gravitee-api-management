@@ -120,7 +120,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
         ),
         tap((apisPage) => {
           this.apisTableDS = this.toApisTableDS(apisPage);
-          this.apisTableDSUnpaginatedLength = apisPage.pagination.pageItemsCount;
+          this.apisTableDSUnpaginatedLength = apisPage.pagination.totalCount;
           this.isLoadingData = false;
         }),
       )
@@ -169,11 +169,11 @@ export class ApiListComponent implements OnInit, OnDestroy {
             lifecycleState: api.lifecycleState,
             workflowBadge: this.getWorkflowBadge(api),
             visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
-            origin: api.definitionContext.origin,
+            origin: api.definitionContext?.origin,
             readonly: api.definitionContext?.origin === 'kubernetes',
             definitionVersion: this.getDefinitionVersion(api),
-            owner: api.primaryOwner.displayName,
-            ownerEmail: api.primaryOwner.email,
+            owner: api.primaryOwner?.displayName,
+            ownerEmail: api.primaryOwner?.email,
             picture: api._links.pictureUrl,
           };
           if (api.definitionVersion === 'V4') {
