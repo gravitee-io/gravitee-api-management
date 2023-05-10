@@ -83,7 +83,7 @@ public class ApisResource extends AbstractResource {
         );
 
         return new ApisResponse()
-            .data(apis.getContent().stream().map(api -> ApiMapper.INSTANCE.convert(api, uriInfo)).collect(Collectors.toList()))
+            .data(ApiMapper.INSTANCE.convert(apis.getContent(), uriInfo))
             .pagination(
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )
@@ -126,7 +126,7 @@ public class ApisResource extends AbstractResource {
         );
 
         return new ApisResponse()
-            .data(apis.getContent().stream().map(api -> ApiMapper.INSTANCE.convert(api, uriInfo)).collect(Collectors.toList()))
+            .data(ApiMapper.INSTANCE.convert(apis.getContent(), uriInfo))
             .pagination(
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )

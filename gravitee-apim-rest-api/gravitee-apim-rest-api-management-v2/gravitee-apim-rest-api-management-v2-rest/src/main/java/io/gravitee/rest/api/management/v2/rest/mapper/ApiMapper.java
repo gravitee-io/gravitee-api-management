@@ -39,9 +39,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { DateMapper.class, FlowMapper.class, ConnectorMapper.class })
 public interface ApiMapper {
+    Logger logger = LoggerFactory.getLogger(ApiMapper.class);
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
     // Api
@@ -52,15 +55,31 @@ public interface ApiMapper {
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(this.convert((ApiEntity) apiEntity, uriInfo));
         }
-        if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V2) {
+        if (
+            apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V2 ||
+            apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V1
+        ) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(
                 this.map((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo)
             );
         }
+        // TODO:must handle v1
         return null;
     }
 
-    List<Api> convert(List<GenericApiEntity> apiEntities);
+    default List<Api> convert(List<GenericApiEntity> apiEntities, UriInfo uriInfo) {
+        var result = new ArrayList<Api>();
+        apiEntities.forEach(api -> {
+            try {
+                result.add(this.convert(api, uriInfo));
+            } catch (Exception e) {
+                // Ignore APIs throwing conversion issues in the list
+                // As v4 was out there in alpha version, we still want to build the list event if some APIs cannot be converted
+                logger.error("Unable to convert API {}", api.getId(), e);
+            }
+        });
+        return result;
+    }
 
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
