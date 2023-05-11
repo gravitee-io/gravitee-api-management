@@ -864,7 +864,11 @@ jobs:
             - notify-on-failure
 
     ## Release Jobs
-    announce-release:
+    slack-announcement:
+        parameters:
+            message:
+                type: string
+                default: ""
         docker:
             - image: cimg/base:stable
         resource_class: small
@@ -886,7 +890,7 @@ jobs:
                                       "type": "section",
                                       "text": {
                                         "type": "mrkdwn",
-                                        "text": "🚀 Starting APIM << pipeline.parameters.graviteeio_version >> release"
+                                        "text": "<< parameters.message >>"
                                       }
                                     }
                                   ]
@@ -1112,21 +1116,6 @@ jobs:
                     - keeper/env-export:
                         secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
                         var-name: SLACK_ACCESS_TOKEN
-                    - slack/notify:
-                        channel: C02NGT20S4W
-                        event: pass
-                        custom: |
-                            {
-                              "blocks": [
-                                {
-                                  "type": "section",
-                                  "text": {
-                                    "type": "mrkdwn",
-                                    "text": "🎆 APIM - << pipeline.parameters.graviteeio_version >> released!"
-                                  }
-                                }
-                              ]
-                            }
 
     jdbc-test-container:
         parameters:
@@ -1642,8 +1631,10 @@ workflows:
             # Prepare
             - setup:
                   context: cicd-orchestrator
-            - announce-release:
+            - slack-announcement:
                   context: cicd-orchestrator
+                  message: 🚀 Starting APIM << pipeline.parameters.graviteeio_version >> release
+
             # APIM Portal
             - webui-build:
                   context: cicd-orchestrator
@@ -1704,6 +1695,7 @@ workflows:
                   - Package bundle
             # Add docker images in Snyk
             - add-docker-images-in-snyk:
+                name: Push docker images to Snyk
                 context: cicd-orchestrator
                 requires:
                   - Build and push docker images for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
@@ -1727,6 +1719,15 @@ workflows:
                 context: cicd-orchestrator
                 requires:
                   - Package bundle
+            - slack-announcement:
+                message: 🎆 APIM - << pipeline.parameters.graviteeio_version >> released!
+                name: End of release
+                context: cicd-orchestrator
+                requires:
+                  - Nexus staging
+                  - Build and push RPM packages for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+                  - Push docker images to Snyk
+                  - Create release note pull request
 
     db_repositories_test_container:
         triggers:
