@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
+import org.mapstruct.factory.Mappers;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -38,7 +39,7 @@ import org.junit.Test;
  */
 public class GraviteeMapperTest {
 
-    GraviteeMapper mapper = new GraviteeDozerMapper();
+    GraviteeMapper mapper = Mappers.getMapper(GraviteeMapper.class);
 
     @Test
     public void should_map_api_quality_rule_with_proper_ids() {
@@ -49,7 +50,7 @@ public class GraviteeMapperTest {
         source.setCreatedAt(new Date());
         source.setUpdatedAt(new Date());
 
-        final ApiQualityRuleMongo target = mapper.map(source, ApiQualityRuleMongo.class);
+        final ApiQualityRuleMongo target = mapper.map(source);
 
         assertEquals(source.getApi(), target.getId().getApi());
         assertEquals(source.getQualityRule(), target.getId().getQualityRule());
@@ -57,7 +58,7 @@ public class GraviteeMapperTest {
         assertEquals(source.getCreatedAt(), target.getCreatedAt());
         assertEquals(source.getUpdatedAt(), target.getUpdatedAt());
 
-        final ApiQualityRule sourceBack = mapper.map(target, ApiQualityRule.class);
+        final ApiQualityRule sourceBack = mapper.map(target);
 
         assertEquals(source.getApi(), sourceBack.getApi());
         assertEquals(source.getQualityRule(), sourceBack.getQualityRule());
@@ -82,7 +83,7 @@ public class GraviteeMapperTest {
         source.setCreatedAt(new Date());
         source.setUpdatedAt(new Date());
 
-        final PageMongo target = mapper.map(source, PageMongo.class);
+        final PageMongo target = mapper.map(source);
 
         assertEquals(source.getId(), target.getId());
         assertEquals(source.getReferenceType().name(), target.getReferenceType());
@@ -94,7 +95,7 @@ public class GraviteeMapperTest {
         assertEquals(source.getCreatedAt(), target.getCreatedAt());
         assertEquals(source.getUpdatedAt(), target.getUpdatedAt());
 
-        final Page sourceBack = mapper.map(target, Page.class);
+        final Page sourceBack = mapper.map(target);
 
         assertEquals(source.getId(), sourceBack.getId());
         assertEquals(source.getReferenceType(), sourceBack.getReferenceType());
@@ -112,7 +113,7 @@ public class GraviteeMapperTest {
         final Page source = new Page();
         source.setVisibility(null);
 
-        final PageMongo target = mapper.map(source, PageMongo.class);
+        final PageMongo target = mapper.map(source);
 
         assertEquals("PUBLIC", target.getVisibility());
     }
@@ -127,7 +128,7 @@ public class GraviteeMapperTest {
         source.setContributor("contributor");
         source.setCreatedAt(new Date());
 
-        final PageRevisionMongo target = mapper.map(source, PageRevisionMongo.class);
+        final PageRevisionMongo target = mapper.map(source);
 
         assertEquals(source.getRevision(), target.getId().getRevision());
         assertEquals(source.getContent(), target.getContent());
@@ -136,7 +137,7 @@ public class GraviteeMapperTest {
         assertEquals(source.getContributor(), target.getContributor());
         assertEquals(source.getCreatedAt(), target.getCreatedAt());
 
-        final PageRevision sourceBack = mapper.map(target, PageRevision.class);
+        final PageRevision sourceBack = mapper.map(target);
 
         assertEquals(source.getRevision(), sourceBack.getRevision());
         assertEquals(source.getContent(), sourceBack.getContent());
@@ -159,7 +160,7 @@ public class GraviteeMapperTest {
         source.setCreatedAt(new Date());
         source.setUpdatedAt(new Date());
 
-        final SubscriptionMongo target = mapper.map(source, SubscriptionMongo.class);
+        final SubscriptionMongo target = mapper.map(source);
 
         assertEquals(source.getApplication(), target.getApplication());
         assertEquals(source.getApi(), target.getApi());
@@ -171,7 +172,7 @@ public class GraviteeMapperTest {
         assertEquals(source.getCreatedAt(), target.getCreatedAt());
         assertEquals(source.getUpdatedAt(), target.getUpdatedAt());
 
-        final Subscription sourceBack = mapper.map(target, Subscription.class);
+        final Subscription sourceBack = mapper.map(target);
 
         assertEquals(source.getApplication(), sourceBack.getApplication());
         assertEquals(source.getApi(), sourceBack.getApi());
@@ -195,7 +196,7 @@ public class GraviteeMapperTest {
         source.setCreatedAt(new Date());
         source.setUpdatedAt(new Date());
 
-        final CustomUserFieldMongo target = mapper.map(source, CustomUserFieldMongo.class);
+        final CustomUserFieldMongo target = mapper.map(source);
 
         assertEquals(source.getKey(), target.getId().getKey());
         assertEquals(source.getReferenceId(), target.getId().getReferenceId());
@@ -205,7 +206,7 @@ public class GraviteeMapperTest {
         assertEquals(source.getCreatedAt(), target.getCreatedAt());
         assertEquals(source.getUpdatedAt(), target.getUpdatedAt());
 
-        final CustomUserField sourceBack = mapper.map(target, CustomUserField.class);
+        final CustomUserField sourceBack = mapper.map(target);
 
         assertEquals(source.getKey(), sourceBack.getKey());
         assertEquals(source.getReferenceId(), sourceBack.getReferenceId());
@@ -241,7 +242,7 @@ public class GraviteeMapperTest {
         source.setResponse(responseSteps);
         source.setSubscribe(subscribeSteps);
 
-        final FlowMongo target = mapper.map(source, FlowMongo.class);
+        final FlowMongo target = mapper.map(source);
 
         assertEquals(source.getName(), target.getName());
         assertEquals(source.isEnabled(), target.isEnabled());
@@ -256,7 +257,7 @@ public class GraviteeMapperTest {
         assertEquals(source.getResponse(), target.getResponse());
         assertEquals(source.getSubscribe(), target.getSubscribe());
 
-        final Flow sourceBack = mapper.map(target, Flow.class);
+        final Flow sourceBack = mapper.map(target);
 
         assertEquals(source.getName(), sourceBack.getName());
         assertEquals(source.isEnabled(), sourceBack.isEnabled());

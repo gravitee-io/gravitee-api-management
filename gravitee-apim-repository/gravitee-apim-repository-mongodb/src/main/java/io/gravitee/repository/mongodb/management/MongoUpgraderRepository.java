@@ -51,17 +51,17 @@ public class MongoUpgraderRepository implements UpgraderRepository {
 
         LOGGER.debug("Find upgrade record by ID [{}] - Done", id);
 
-        return Optional.ofNullable(mapper.map(record, UpgradeRecord.class)).map(Maybe::just).orElseGet(Maybe::empty);
+        return Optional.ofNullable(mapper.map(record)).map(Maybe::just).orElseGet(Maybe::empty);
     }
 
     @Override
     public Single<UpgradeRecord> create(UpgradeRecord upgradeRecord) {
         LOGGER.debug("Create upgrade record [{}]", upgradeRecord.getId());
 
-        UpgradeRecordMongo recordMongo = mapper.map(upgradeRecord, UpgradeRecordMongo.class);
+        UpgradeRecordMongo recordMongo = mapper.map(upgradeRecord);
         UpgradeRecordMongo createdRecordMongo = internalUpgraderMongoRepository.insert(recordMongo);
 
-        UpgradeRecord res = mapper.map(createdRecordMongo, UpgradeRecord.class);
+        UpgradeRecord res = mapper.map(createdRecordMongo);
 
         LOGGER.debug("Create upgrade record [{}] - Done", upgradeRecord.getId());
 

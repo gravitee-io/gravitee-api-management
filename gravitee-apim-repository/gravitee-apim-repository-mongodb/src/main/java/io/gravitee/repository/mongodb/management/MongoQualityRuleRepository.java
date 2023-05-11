@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -27,7 +26,6 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,17 +53,17 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
         final QualityRuleMongo qualityRule = internalQualityRuleRepo.findById(qualityRuleId).orElse(null);
 
         LOGGER.debug("Find quality rule by ID [{}] - Done", qualityRuleId);
-        return Optional.ofNullable(mapper.map(qualityRule, QualityRule.class));
+        return Optional.ofNullable(mapper.map(qualityRule));
     }
 
     @Override
     public QualityRule create(QualityRule qualityRule) throws TechnicalException {
         LOGGER.debug("Create quality rule [{}]", qualityRule.getName());
 
-        QualityRuleMongo qualityRuleMongo = mapper.map(qualityRule, QualityRuleMongo.class);
+        QualityRuleMongo qualityRuleMongo = mapper.map(qualityRule);
         QualityRuleMongo createdQualityRuleMongo = internalQualityRuleRepo.insert(qualityRuleMongo);
 
-        QualityRule res = mapper.map(createdQualityRuleMongo, QualityRule.class);
+        QualityRule res = mapper.map(createdQualityRuleMongo);
 
         LOGGER.debug("Create quality rule [{}] - Done", qualityRule.getName());
 
@@ -92,7 +90,7 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
             qualityRuleMongo.setUpdatedAt(qualityRule.getUpdatedAt());
 
             QualityRuleMongo qualityRuleMongoUpdated = internalQualityRuleRepo.save(qualityRuleMongo);
-            return mapper.map(qualityRuleMongoUpdated, QualityRule.class);
+            return mapper.map(qualityRuleMongoUpdated);
         } catch (Exception e) {
             final String error = "An error occurred when updating quality rule";
             LOGGER.error(error, e);
@@ -114,6 +112,6 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
     @Override
     public Set<QualityRule> findAll() {
         final List<QualityRuleMongo> qualityRules = internalQualityRuleRepo.findAll();
-        return qualityRules.stream().map(qualityRuleMongo -> mapper.map(qualityRuleMongo, QualityRule.class)).collect(toSet());
+        return qualityRules.stream().map(qualityRuleMongo -> mapper.map(qualityRuleMongo)).collect(toSet());
     }
 }

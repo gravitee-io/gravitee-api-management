@@ -124,11 +124,7 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
         LOGGER.debug("Find all client registration providers");
 
         List<ClientRegistrationProviderMongo> clientRegistrationProviders = internalClientRegistrationProviderRepository.findAll();
-        Set<ClientRegistrationProvider> res = mapper.collection2set(
-            clientRegistrationProviders,
-            ClientRegistrationProviderMongo.class,
-            ClientRegistrationProvider.class
-        );
+        Set<ClientRegistrationProvider> res = mapper.mapClientRegistrationProviders(clientRegistrationProviders);
 
         LOGGER.debug("Find all client registration providers - Done");
         return res;
@@ -140,21 +136,17 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
         final List<ClientRegistrationProviderMongo> clientRegistrationProviders =
             internalClientRegistrationProviderRepository.findByEnvironmentId(environmentId);
 
-        Set<ClientRegistrationProvider> res = mapper.collection2set(
-            clientRegistrationProviders,
-            ClientRegistrationProviderMongo.class,
-            ClientRegistrationProvider.class
-        );
+        Set<ClientRegistrationProvider> res = mapper.mapClientRegistrationProviders(clientRegistrationProviders);
 
         LOGGER.debug("Find all client registration providers by environment - Done");
         return res;
     }
 
     private ClientRegistrationProvider map(ClientRegistrationProviderMongo provider) {
-        return (provider == null) ? null : mapper.map(provider, ClientRegistrationProvider.class);
+        return (provider == null) ? null : mapper.map(provider);
     }
 
     private ClientRegistrationProviderMongo map(ClientRegistrationProvider provider) {
-        return (provider == null) ? null : mapper.map(provider, ClientRegistrationProviderMongo.class);
+        return (provider == null) ? null : mapper.map(provider);
     }
 }

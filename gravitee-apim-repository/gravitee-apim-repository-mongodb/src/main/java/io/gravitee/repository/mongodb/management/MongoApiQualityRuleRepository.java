@@ -20,7 +20,6 @@ import static java.util.stream.Collectors.toList;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
-import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.ApiQualityRule;
 import io.gravitee.repository.mongodb.management.internal.model.ApiQualityRuleMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiQualityRulePkMongo;
@@ -57,15 +56,15 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
             .findById(new ApiQualityRulePkMongo(api, qualityRuleId))
             .orElse(null);
         LOGGER.debug("Find quality rule by ID [{}] - Done", qualityRuleId);
-        return Optional.ofNullable(mapper.map(apiQualityRule, ApiQualityRule.class));
+        return Optional.ofNullable(mapper.map(apiQualityRule));
     }
 
     @Override
     public ApiQualityRule create(ApiQualityRule apiQualityRule) throws TechnicalException {
         LOGGER.debug("Create quality rule for api [{}] and quality rule [{}]", apiQualityRule.getApi(), apiQualityRule.getQualityRule());
-        ApiQualityRuleMongo apiQualityRuleMongo = mapper.map(apiQualityRule, ApiQualityRuleMongo.class);
+        ApiQualityRuleMongo apiQualityRuleMongo = mapper.map(apiQualityRule);
         ApiQualityRuleMongo createdApiQualityRuleMongo = internalApiQualityRuleRepo.insert(apiQualityRuleMongo);
-        ApiQualityRule res = mapper.map(createdApiQualityRuleMongo, ApiQualityRule.class);
+        ApiQualityRule res = mapper.map(createdApiQualityRuleMongo);
         LOGGER.debug(
             "Create quality rule for api [{}] and quality rule [{}] - Done",
             apiQualityRule.getApi(),
@@ -99,7 +98,7 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
             apiQualityRuleMongo.setUpdatedAt(apiQualityRule.getUpdatedAt());
 
             ApiQualityRuleMongo apiQualityRuleMongoUpdated = internalApiQualityRuleRepo.save(apiQualityRuleMongo);
-            return mapper.map(apiQualityRuleMongoUpdated, ApiQualityRule.class);
+            return mapper.map(apiQualityRuleMongoUpdated);
         } catch (Exception e) {
             final String error = "An error occurred when updating quality rule";
             LOGGER.error(error, e);
@@ -125,13 +124,13 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
     @Override
     public List<ApiQualityRule> findByApi(String api) {
         final List<ApiQualityRuleMongo> apiQualityRules = internalApiQualityRuleRepo.findByIdApi(api);
-        return apiQualityRules.stream().map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo, ApiQualityRule.class)).collect(toList());
+        return apiQualityRules.stream().map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo)).collect(toList());
     }
 
     @Override
     public List<ApiQualityRule> findByQualityRule(String qualityRule) {
         final List<ApiQualityRuleMongo> apiQualityRules = internalApiQualityRuleRepo.findByIdQualityRule(qualityRule);
-        return apiQualityRules.stream().map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo, ApiQualityRule.class)).collect(toList());
+        return apiQualityRules.stream().map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo)).collect(toList());
     }
 
     @Override
@@ -161,7 +160,7 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
         return internalApiQualityRuleRepo
             .findAll()
             .stream()
-            .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo, ApiQualityRule.class))
+            .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo))
             .collect(Collectors.toSet());
     }
 }

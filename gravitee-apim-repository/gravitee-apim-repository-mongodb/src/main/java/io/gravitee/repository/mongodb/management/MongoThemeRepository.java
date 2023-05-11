@@ -52,17 +52,17 @@ public class MongoThemeRepository implements ThemeRepository {
         final ThemeMongo theme = internalThemeRepo.findById(themeId).orElse(null);
 
         LOGGER.debug("Find theme by ID [{}] - Done", themeId);
-        return Optional.ofNullable(mapper.map(theme, Theme.class));
+        return Optional.ofNullable(mapper.map(theme));
     }
 
     @Override
     public Theme create(Theme theme) throws TechnicalException {
         LOGGER.debug("Create theme [{}]", theme.getName());
 
-        ThemeMongo themeMongo = mapper.map(theme, ThemeMongo.class);
+        ThemeMongo themeMongo = mapper.map(theme);
         ThemeMongo createdThemeMongo = internalThemeRepo.insert(themeMongo);
 
-        Theme res = mapper.map(createdThemeMongo, Theme.class);
+        Theme res = mapper.map(createdThemeMongo);
 
         LOGGER.debug("Create theme [{}] - Done", theme.getName());
 
@@ -96,7 +96,7 @@ public class MongoThemeRepository implements ThemeRepository {
             themeMongo.setFavicon(theme.getFavicon());
 
             ThemeMongo themeMongoUpdated = internalThemeRepo.save(themeMongo);
-            return mapper.map(themeMongoUpdated, Theme.class);
+            return mapper.map(themeMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occured when updating theme", e);
             throw new TechnicalException("An error occured when updating theme");
@@ -116,12 +116,12 @@ public class MongoThemeRepository implements ThemeRepository {
     @Override
     public Set<Theme> findAll() {
         final List<ThemeMongo> themes = internalThemeRepo.findAll();
-        return themes.stream().map(themeMongo -> mapper.map(themeMongo, Theme.class)).collect(Collectors.toSet());
+        return themes.stream().map(themeMongo -> mapper.map(themeMongo)).collect(Collectors.toSet());
     }
 
     @Override
     public Set<Theme> findByReferenceIdAndReferenceType(String referenceId, String referenceType) {
         final Set<ThemeMongo> themes = internalThemeRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
-        return themes.stream().map(themeMongo -> mapper.map(themeMongo, Theme.class)).collect(Collectors.toSet());
+        return themes.stream().map(themeMongo -> mapper.map(themeMongo)).collect(Collectors.toSet());
     }
 }

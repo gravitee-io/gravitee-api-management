@@ -54,17 +54,17 @@ public class MongoWorkflowRepository implements WorkflowRepository {
         final WorkflowMongo workflow = internalWorkflowRepo.findById(workflowId).orElse(null);
 
         LOGGER.debug("Find workflow by ID [{}] - Done", workflowId);
-        return Optional.ofNullable(mapper.map(workflow, Workflow.class));
+        return Optional.ofNullable(mapper.map(workflow));
     }
 
     @Override
     public Workflow create(Workflow workflow) throws TechnicalException {
         LOGGER.debug("Create workflow [{}]", workflow.getId());
 
-        WorkflowMongo workflowMongo = mapper.map(workflow, WorkflowMongo.class);
+        WorkflowMongo workflowMongo = mapper.map(workflow);
         WorkflowMongo createdWorkflowMongo = internalWorkflowRepo.insert(workflowMongo);
 
-        Workflow res = mapper.map(createdWorkflowMongo, Workflow.class);
+        Workflow res = mapper.map(createdWorkflowMongo);
 
         LOGGER.debug("Create workflow [{}] - Done", workflow.getId());
 
@@ -93,7 +93,7 @@ public class MongoWorkflowRepository implements WorkflowRepository {
             workflowMongo.setCreatedAt(workflow.getCreatedAt());
 
             WorkflowMongo workflowMongoUpdated = internalWorkflowRepo.save(workflowMongo);
-            return mapper.map(workflowMongoUpdated, Workflow.class);
+            return mapper.map(workflowMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occured when updating workflow", e);
             throw new TechnicalException("An error occured when updating workflow");

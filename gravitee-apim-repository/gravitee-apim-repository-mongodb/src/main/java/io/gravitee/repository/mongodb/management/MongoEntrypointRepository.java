@@ -53,7 +53,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
         final EntrypointMongo entrypoint = internalEntryPointRepo.findById(entrypointId).orElse(null);
 
         LOGGER.debug("Find entry point by ID [{}] - Done", entrypointId);
-        return Optional.ofNullable(mapper.map(entrypoint, Entrypoint.class));
+        return Optional.ofNullable(mapper.map(entrypoint));
     }
 
     @Override
@@ -65,17 +65,17 @@ public class MongoEntrypointRepository implements EntrypointRepository {
             .orElse(null);
 
         LOGGER.debug("Find entry point by ID and reference [{}, {}, {}] - Done", entrypointId, referenceId, referenceType);
-        return Optional.ofNullable(mapper.map(entrypoint, Entrypoint.class));
+        return Optional.ofNullable(mapper.map(entrypoint));
     }
 
     @Override
     public Entrypoint create(Entrypoint entrypoint) throws TechnicalException {
         LOGGER.debug("Create entry point [{}]", entrypoint.getValue());
 
-        EntrypointMongo entrypointMongo = mapper.map(entrypoint, EntrypointMongo.class);
+        EntrypointMongo entrypointMongo = mapper.map(entrypoint);
         EntrypointMongo createdEntryPointMongo = internalEntryPointRepo.insert(entrypointMongo);
 
-        Entrypoint res = mapper.map(createdEntryPointMongo, Entrypoint.class);
+        Entrypoint res = mapper.map(createdEntryPointMongo);
 
         LOGGER.debug("Create entry point [{}] - Done", entrypoint.getValue());
 
@@ -102,7 +102,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
             entrypointMongo.setTags(entrypoint.getTags());
 
             EntrypointMongo entrypointMongoUpdated = internalEntryPointRepo.save(entrypointMongo);
-            return mapper.map(entrypointMongoUpdated, Entrypoint.class);
+            return mapper.map(entrypointMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occurred when updating entry point", e);
             throw new TechnicalException("An error occurred when updating entry point");
@@ -138,10 +138,6 @@ public class MongoEntrypointRepository implements EntrypointRepository {
 
     @Override
     public Set<Entrypoint> findAll() throws TechnicalException {
-        return internalEntryPointRepo
-            .findAll()
-            .stream()
-            .map(entrypointMongo -> mapper.map(entrypointMongo, Entrypoint.class))
-            .collect(Collectors.toSet());
+        return internalEntryPointRepo.findAll().stream().map(entrypointMongo -> mapper.map(entrypointMongo)).collect(Collectors.toSet());
     }
 }

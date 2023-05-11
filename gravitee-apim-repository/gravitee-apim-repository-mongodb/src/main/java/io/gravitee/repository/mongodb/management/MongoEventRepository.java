@@ -126,7 +126,7 @@ public class MongoEventRepository implements EventRepository {
     public Page<Event> search(EventCriteria filter, Pageable pageable) {
         Page<EventMongo> eventsMongo = internalEventRepo.search(filter, pageable);
 
-        List<Event> content = mapper.collection2list(eventsMongo.getContent(), EventMongo.class, Event.class);
+        List<Event> content = mapper.mapEvents(eventsMongo.getContent());
         return new Page<>(content, eventsMongo.getPageNumber(), (int) eventsMongo.getPageElements(), eventsMongo.getTotalElements());
     }
 
@@ -134,7 +134,7 @@ public class MongoEventRepository implements EventRepository {
     public List<Event> search(EventCriteria filter) {
         Page<EventMongo> eventsMongo = internalEventRepo.search(filter, null);
 
-        return mapper.collection2list(eventsMongo.getContent(), EventMongo.class, Event.class);
+        return mapper.mapEvents(eventsMongo.getContent());
     }
 
     private EventMongo mapEvent(Event event) {

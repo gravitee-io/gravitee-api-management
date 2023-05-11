@@ -55,17 +55,17 @@ public class MongoAlertRepository implements AlertTriggerRepository {
         final AlertTriggerMongo alert = internalAlertRepo.findById(triggerId).orElse(null);
 
         LOGGER.debug("Find an alert trigger by ID [{}] - Done", triggerId);
-        return Optional.ofNullable(mapper.map(alert, AlertTrigger.class));
+        return Optional.ofNullable(mapper.map(alert));
     }
 
     @Override
     public AlertTrigger create(AlertTrigger trigger) throws TechnicalException {
         LOGGER.debug("Create alert trigger [{}]", trigger.getName());
 
-        AlertTriggerMongo alertTriggerMongo = mapper.map(trigger, AlertTriggerMongo.class);
+        AlertTriggerMongo alertTriggerMongo = mapper.map(trigger);
         AlertTriggerMongo createdAlertTriggerMongo = internalAlertRepo.insert(alertTriggerMongo);
 
-        AlertTrigger res = mapper.map(createdAlertTriggerMongo, AlertTrigger.class);
+        AlertTrigger res = mapper.map(createdAlertTriggerMongo);
 
         LOGGER.debug("Create alert trigger [{}] - Done", trigger.getName());
 
@@ -111,7 +111,7 @@ public class MongoAlertRepository implements AlertTriggerRepository {
             }
 
             AlertTriggerMongo alertTriggerMongoUpdated = internalAlertRepo.save(alertTriggerMongo);
-            return mapper.map(alertTriggerMongoUpdated, AlertTrigger.class);
+            return mapper.map(alertTriggerMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occurs when updating alert trigger", e);
             throw new TechnicalException("An error occurs when updating alert trigger");

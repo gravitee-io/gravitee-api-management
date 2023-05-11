@@ -47,7 +47,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public ApiKey create(ApiKey apiKey) throws TechnicalException {
-        ApiKeyMongo apiKeyMongo = mapper.map(apiKey, ApiKeyMongo.class);
+        ApiKeyMongo apiKeyMongo = mapper.map(apiKey);
         apiKeyMongo = internalApiKeyRepo.insert(apiKeyMongo);
         return toApiKey(apiKeyMongo);
     }
@@ -64,7 +64,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
             throw new IllegalStateException(String.format("No apiKey found with id [%s]", apiKey.getId()));
         }
 
-        apiKeyMongo = internalApiKeyRepo.save(mapper.map(apiKey, ApiKeyMongo.class));
+        apiKeyMongo = internalApiKeyRepo.save(mapper.map(apiKey));
         return toApiKey(apiKeyMongo);
     }
 
@@ -80,7 +80,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter, Sortable sortable) {
-        return mapper.collection2list(internalApiKeyRepo.search(filter, sortable), ApiKeyMongo.class, ApiKey.class);
+        return mapper.mapApiKeys(internalApiKeyRepo.search(filter, sortable));
     }
 
     @Override
@@ -118,6 +118,6 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     private ApiKey toApiKey(ApiKeyMongo apiKeyMongo) {
-        return mapper.map(apiKeyMongo, ApiKey.class);
+        return mapper.map(apiKeyMongo);
     }
 }

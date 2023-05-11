@@ -89,11 +89,11 @@ public class MongoPlanRepository implements PlanRepository {
     }
 
     private PlanMongo map(Plan plan) {
-        return (plan == null) ? null : mapper.map(plan, PlanMongo.class);
+        return (plan == null) ? null : mapper.map(plan);
     }
 
     private Plan map(PlanMongo planMongo) {
-        return (planMongo == null) ? null : mapper.map(planMongo, Plan.class);
+        return (planMongo == null) ? null : mapper.map(planMongo);
     }
 
     @Override

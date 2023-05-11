@@ -103,10 +103,10 @@ public class MongoFlowRepository implements FlowRepository {
     }
 
     private FlowMongo map(Flow flow) {
-        return mapper.map(flow, FlowMongo.class);
+        return mapper.map(flow);
     }
 
     private Flow map(FlowMongo flow) {
-        return mapper.map(flow, Flow.class);
+        return mapper.map(flow);
     }
 }

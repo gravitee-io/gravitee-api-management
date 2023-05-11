@@ -58,7 +58,7 @@ public class MongoUserRepository implements UserRepository {
 
         String escapedSourceId = escaper.matcher(sourceId).replaceAll("\\\\$1");
         UserMongo user = internalUserRepo.findBySourceAndSourceId(source, escapedSourceId, organizationId);
-        User res = mapper.map(user, User.class);
+        User res = mapper.map(user);
 
         return Optional.ofNullable(res);
     }
@@ -68,7 +68,7 @@ public class MongoUserRepository implements UserRepository {
         logger.debug("Find user by email [{}]", email);
 
         UserMongo user = internalUserRepo.findByEmail(email, organizationId);
-        User res = mapper.map(user, User.class);
+        User res = mapper.map(user);
 
         return Optional.ofNullable(res);
     }
@@ -78,7 +78,7 @@ public class MongoUserRepository implements UserRepository {
         logger.debug("Find user by identifiers user [{}]", ids);
 
         Set<UserMongo> usersMongo = internalUserRepo.findByIds(ids);
-        Set<User> users = mapper.collection2set(usersMongo, UserMongo.class, User.class);
+        Set<User> users = mapper.mapUsers(usersMongo);
 
         logger.debug("Find user by identifiers user [{}] - Done", ids);
         return users;
@@ -89,7 +89,7 @@ public class MongoUserRepository implements UserRepository {
         logger.debug("search users");
 
         Page<UserMongo> users = internalUserRepo.search(criteria, pageable);
-        List<User> content = mapper.collection2list(users.getContent(), UserMongo.class, User.class);
+        List<User> content = mapper.mapUserList(users.getContent());
 
         logger.debug("search users - Done");
         return new Page<>(content, users.getPageNumber(), (int) users.getPageElements(), users.getTotalElements());
@@ -100,7 +100,7 @@ public class MongoUserRepository implements UserRepository {
         logger.debug("Find user by ID [{}]", id);
 
         UserMongo user = internalUserRepo.findById(id).orElse(null);
-        User res = mapper.map(user, User.class);
+        User res = mapper.map(user);
 
         logger.debug("Find user by ID [{}] - Done", id);
         return Optional.ofNullable(res);
@@ -110,10 +110,10 @@ public class MongoUserRepository implements UserRepository {
     public User create(User user) throws TechnicalException {
         logger.debug("Create user [{}]", user.getId());
 
-        UserMongo userMongo = mapper.map(user, UserMongo.class);
+        UserMongo userMongo = mapper.map(user);
         UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
 
-        User res = mapper.map(createdUserMongo, User.class);
+        User res = mapper.map(createdUserMongo);
 
         logger.debug("Create user [{}] - Done", user.getId());
 
@@ -150,7 +150,7 @@ public class MongoUserRepository implements UserRepository {
         userMongo.setFirstConnectionAt(user.getFirstConnectionAt());
         userMongo.setNewsletterSubscribed(user.getNewsletterSubscribed());
         UserMongo userUpdated = internalUserRepo.save(userMongo);
-        return mapper.map(userUpdated, User.class);
+        return mapper.map(userUpdated);
     }
 
     @Override
@@ -161,6 +161,6 @@ public class MongoUserRepository implements UserRepository {
 
     @Override
     public Set<User> findAll() throws TechnicalException {
-        return internalUserRepo.findAll().stream().map(userMongo -> mapper.map(userMongo, User.class)).collect(Collectors.toSet());
+        return internalUserRepo.findAll().stream().map(userMongo -> mapper.map(userMongo)).collect(Collectors.toSet());
     }
 }

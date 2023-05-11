@@ -50,7 +50,7 @@ public class MongoDashboardRepository implements DashboardRepository {
     public Set<Dashboard> findAll() {
         LOGGER.debug("Find all dictionaries");
         final List<DashboardMongo> dictionaries = internalDashboardRepo.findAll();
-        final Set<Dashboard> res = mapper.collection2set(dictionaries, DashboardMongo.class, Dashboard.class);
+        final Set<Dashboard> res = mapper.mapDashboards(dictionaries);
         LOGGER.debug("Find all dictionaries - Done");
         return res;
     }
@@ -62,17 +62,17 @@ public class MongoDashboardRepository implements DashboardRepository {
         final DashboardMongo dashboard = internalDashboardRepo.findById(dashboardId).orElse(null);
 
         LOGGER.debug("Find dashboard by ID [{}] - Done", dashboardId);
-        return Optional.ofNullable(mapper.map(dashboard, Dashboard.class));
+        return Optional.ofNullable(mapper.map(dashboard));
     }
 
     @Override
     public Dashboard create(Dashboard dashboard) throws TechnicalException {
         LOGGER.debug("Create dashboard [{}]", dashboard.getName());
 
-        DashboardMongo dashboardMongo = mapper.map(dashboard, DashboardMongo.class);
+        DashboardMongo dashboardMongo = mapper.map(dashboard);
         DashboardMongo createdDashboardMongo = internalDashboardRepo.insert(dashboardMongo);
 
-        Dashboard res = mapper.map(createdDashboardMongo, Dashboard.class);
+        Dashboard res = mapper.map(createdDashboardMongo);
 
         LOGGER.debug("Create dashboard [{}] - Done", dashboard.getName());
 
@@ -103,7 +103,7 @@ public class MongoDashboardRepository implements DashboardRepository {
             dashboardMongo.setUpdatedAt(dashboard.getUpdatedAt());
 
             DashboardMongo dashboardMongoUpdated = internalDashboardRepo.save(dashboardMongo);
-            return mapper.map(dashboardMongoUpdated, Dashboard.class);
+            return mapper.map(dashboardMongoUpdated);
         } catch (Exception e) {
             final String error = "An error occurred when updating dashboard";
             LOGGER.error(error, e);
@@ -125,6 +125,6 @@ public class MongoDashboardRepository implements DashboardRepository {
     @Override
     public List<Dashboard> findByReferenceType(String referenceType) throws TechnicalException {
         final List<DashboardMongo> dashboards = internalDashboardRepo.findByReferenceTypeOrderByOrder(referenceType);
-        return dashboards.stream().map(dashboardMongo -> mapper.map(dashboardMongo, Dashboard.class)).collect(toList());
+        return dashboards.stream().map(dashboardMongo -> mapper.map(dashboardMongo)).collect(toList());
     }
 }

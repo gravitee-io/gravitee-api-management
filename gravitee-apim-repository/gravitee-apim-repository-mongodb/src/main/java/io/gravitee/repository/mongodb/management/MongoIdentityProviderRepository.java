@@ -122,7 +122,7 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
             return null;
         }
 
-        IdentityProviderMongo identityProviderMongo = mapper.map(identityProvider, IdentityProviderMongo.class);
+        IdentityProviderMongo identityProviderMongo = mapper.map(identityProvider);
 
         if (identityProvider.getGroupMappings() != null) {
             Map<String, String[]> groupMappings = new HashMap<>(identityProvider.getGroupMappings().size());
@@ -148,7 +148,7 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
             return null;
         }
 
-        IdentityProvider identityProvider = mapper.map(identityProviderMongo, IdentityProvider.class);
+        IdentityProvider identityProvider = mapper.map(identityProviderMongo);
 
         if (identityProviderMongo.getGroupMappings() != null) {
             identityProviderMongo

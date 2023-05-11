@@ -57,7 +57,7 @@ public class MongoPageRepository implements PageRepository {
         logger.debug("Search Pages by criteria");
         List<PageMongo> results = internalPageRepo.search(criteria);
         logger.debug("Search Pages by criteria. Count={} - Done", results == null ? 0 : results.size());
-        return mapper.collection2list(results, PageMongo.class, Page.class);
+        return mapper.mapPages(results);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class MongoPageRepository implements PageRepository {
         logger.debug("Find page by ID [{}]", pageId);
 
         PageMongo page = internalPageRepo.findById(pageId).orElse(null);
-        Page res = mapper.map(page, Page.class);
+        Page res = mapper.map(page);
 
         logger.debug("Find page by ID [{}] - Done", pageId);
         return Optional.ofNullable(res);
@@ -75,10 +75,10 @@ public class MongoPageRepository implements PageRepository {
     public Page create(Page page) throws TechnicalException {
         logger.debug("Create page [{}]", page.getName());
 
-        PageMongo pageMongo = mapper.map(page, PageMongo.class);
+        PageMongo pageMongo = mapper.map(page);
         PageMongo createdPageMongo = internalPageRepo.insert(pageMongo);
 
-        Page res = mapper.map(createdPageMongo, Page.class);
+        Page res = mapper.map(createdPageMongo);
 
         logger.debug("Create page [{}] - Done", page.getName());
 
@@ -129,7 +129,7 @@ public class MongoPageRepository implements PageRepository {
             pageMongo.setMetadata(page.getMetadata());
 
             PageMongo pageMongoUpdated = internalPageRepo.save(pageMongo);
-            return mapper.map(pageMongoUpdated, Page.class);
+            return mapper.map(pageMongoUpdated);
         } catch (Exception e) {
             logger.error("An error occurred when updating page", e);
             throw new TechnicalException("An error occurred when updating page");
@@ -175,7 +175,7 @@ public class MongoPageRepository implements PageRepository {
     public io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException {
         try {
             io.gravitee.common.data.domain.Page<PageMongo> page = internalPageRepo.findAll(pageable);
-            List<Page> pageItems = mapper.collection2list(page.getContent(), PageMongo.class, Page.class);
+            List<Page> pageItems = mapper.mapPages(page.getContent());
             return new io.gravitee.common.data.domain.Page<>(pageItems, page.getPageNumber(), pageItems.size(), page.getTotalElements());
         } catch (Exception e) {
             logger.error("An error occurred when searching all pages", e);
@@ -205,6 +205,6 @@ public class MongoPageRepository implements PageRepository {
 
     @Override
     public Set<Page> findAll() throws TechnicalException {
-        return internalPageRepo.findAll().stream().map(pageMongo -> mapper.map(pageMongo, Page.class)).collect(Collectors.toSet());
+        return internalPageRepo.findAll().stream().map(pageMongo -> mapper.map(pageMongo)).collect(Collectors.toSet());
     }
 }

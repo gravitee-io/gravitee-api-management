@@ -51,17 +51,17 @@ public class MongoOrganizationRepository implements OrganizationRepository {
         final OrganizationMongo organization = internalOrganizationRepo.findById(organizationId).orElse(null);
 
         LOGGER.debug("Find organization by ID [{}] - Done", organization);
-        return Optional.ofNullable(mapper.map(organization, Organization.class));
+        return Optional.ofNullable(mapper.map(organization));
     }
 
     @Override
     public Organization create(Organization organization) throws TechnicalException {
         LOGGER.debug("Create organization [{}]", organization.getName());
 
-        OrganizationMongo organizationMongo = mapper.map(organization, OrganizationMongo.class);
+        OrganizationMongo organizationMongo = mapper.map(organization);
         OrganizationMongo createdOrganizationMongo = internalOrganizationRepo.insert(organizationMongo);
 
-        Organization res = mapper.map(createdOrganizationMongo, Organization.class);
+        Organization res = mapper.map(createdOrganizationMongo);
 
         LOGGER.debug("Create organization [{}] - Done", organization.getName());
 
@@ -90,7 +90,7 @@ public class MongoOrganizationRepository implements OrganizationRepository {
             organizationMongo.setFlowMode(organization.getFlowMode());
 
             OrganizationMongo organizationMongoUpdated = internalOrganizationRepo.save(organizationMongo);
-            return mapper.map(organizationMongoUpdated, Organization.class);
+            return mapper.map(organizationMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occurred when updating organization", e);
             throw new TechnicalException("An error occurred when updating organization");
@@ -120,11 +120,7 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     @Override
     public Set<Organization> findAll() throws TechnicalException {
         try {
-            return internalOrganizationRepo
-                .findAll()
-                .stream()
-                .map(organization -> mapper.map(organization, Organization.class))
-                .collect(Collectors.toSet());
+            return internalOrganizationRepo.findAll().stream().map(organization -> mapper.map(organization)).collect(Collectors.toSet());
         } catch (Exception e) {
             LOGGER.error("An error occurred when counting organizations", e);
             throw new TechnicalException("An error occurred when counting organization");
@@ -134,9 +130,6 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     @Override
     public Set<Organization> findByHrids(Set<String> hrids) {
         final Set<OrganizationMongo> organizations = internalOrganizationRepo.findByHrids(hrids);
-        return organizations
-            .stream()
-            .map(organizationMongo -> mapper.map(organizationMongo, Organization.class))
-            .collect(Collectors.toSet());
+        return organizations.stream().map(organizationMongo -> mapper.map(organizationMongo)).collect(Collectors.toSet());
     }
 }
