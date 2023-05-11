@@ -33,10 +33,19 @@ public class PolicyBuilder {
     }
 
     public static PolicyPlugin<?> build(String id, Class<?> policy) {
-        return build(id, policy, null);
+        return build(id, policy, null, null);
     }
 
     public static PolicyPlugin<?> build(String id, Class<?> policy, Class<? extends PolicyConfiguration> policyConfiguration) {
+        return build(id, policy, policyConfiguration, null);
+    }
+
+    public static PolicyPlugin<?> build(
+        String id,
+        Class<?> policy,
+        Class<? extends PolicyConfiguration> policyConfiguration,
+        Class<? extends PolicyContext> policyContext
+    ) {
         return new PolicyPlugin<>() {
             @Override
             public Class<?> policy() {
@@ -50,7 +59,7 @@ public class PolicyBuilder {
 
             @Override
             public Class<? extends PolicyContext> context() {
-                return null;
+                return policyContext;
             }
 
             @Override
