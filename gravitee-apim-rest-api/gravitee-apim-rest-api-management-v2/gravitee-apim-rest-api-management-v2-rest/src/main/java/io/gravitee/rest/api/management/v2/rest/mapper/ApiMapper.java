@@ -15,12 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
@@ -30,11 +24,10 @@ import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.lang3.tuple.Pair;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -55,15 +48,16 @@ public interface ApiMapper {
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(this.convert((ApiEntity) apiEntity, uriInfo));
         }
-        if (
-            apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V2 ||
-            apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V1
-        ) {
+        if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V2) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(
                 this.map((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo)
             );
         }
-        // TODO:must handle v1
+        if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V1) {
+            return new io.gravitee.rest.api.management.v2.rest.model.Api(
+                this.mapV1((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo)
+            );
+        }
         return null;
     }
 
@@ -91,8 +85,16 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
     io.gravitee.rest.api.management.v2.rest.model.ApiV2 map(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
 
+    @Mapping(target = "paths", qualifiedByName = "fromPaths")
+    @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
+    io.gravitee.rest.api.management.v2.rest.model.ApiV1 mapV1(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
+
     // DefinitionVersion
     io.gravitee.definition.model.DefinitionVersion map(DefinitionVersion definitionVersion);
+
+    // Rule
+    Rule map(io.gravitee.definition.model.Rule rule);
+    List<Rule> mapRuleList(List<io.gravitee.definition.model.Rule> rule);
 
     // DefinitionContext
     default DefinitionContext map(io.gravitee.definition.model.DefinitionContext definitionContext) {
@@ -133,6 +135,18 @@ public interface ApiMapper {
     HttpListener map(io.gravitee.rest.api.management.v2.rest.model.HttpListener listener);
     SubscriptionListener map(io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener listener);
     TcpListener map(io.gravitee.rest.api.management.v2.rest.model.TcpListener listener);
+
+    @Named("fromPaths")
+    default Map<String, List<Rule>> fromPath(Map<String, List<io.gravitee.definition.model.Rule>> paths) {
+        if (Objects.isNull(paths)) {
+            return new HashMap<>();
+        }
+        return paths
+            .entrySet()
+            .stream()
+            .map(entry -> Pair.of(entry.getKey(), this.mapRuleList(entry.getValue())))
+            .collect(Collectors.toMap(m -> m.getKey(), m -> m.getValue()));
+    }
 
     @Named("toListeners")
     default List<Listener> toListeners(List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners) {

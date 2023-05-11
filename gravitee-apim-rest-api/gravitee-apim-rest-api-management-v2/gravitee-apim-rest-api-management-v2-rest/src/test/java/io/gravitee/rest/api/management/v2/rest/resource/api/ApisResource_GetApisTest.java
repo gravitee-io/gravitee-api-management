@@ -236,6 +236,76 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_list_one_V1_api() {
+        io.gravitee.rest.api.model.api.ApiEntity returnedApi = new io.gravitee.rest.api.model.api.ApiEntity();
+        returnedApi.setId("api-v1");
+        returnedApi.setName("api-v1-name");
+        returnedApi.setVersion("v1");
+        returnedApi.setDescription("api-description");
+        returnedApi.setGraviteeDefinitionVersion("1.0.0");
+        returnedApi.setDisableMembershipNotifications(true);
+        returnedApi.setLabels(List.of("label1", "label2"));
+        returnedApi.setGroups(Set.of("group1", "group2"));
+        returnedApi.setTags(Set.of("tag1", "tag2"));
+        returnedApi.setState(Lifecycle.State.STARTED);
+        returnedApi.setWorkflowState(WorkflowState.REVIEW_OK);
+        returnedApi.setVisibility(Visibility.PUBLIC);
+        returnedApi.setCreatedAt(Date.from(Instant.parse("2020-01-01T10:10:10.00Z")));
+        returnedApi.setUpdatedAt(Date.from(Instant.parse("2020-01-01T10:10:10.00Z")));
+        returnedApi.setDeployedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+
+        var apiList = new ArrayList<GenericApiEntity>();
+        apiList.add(returnedApi);
+
+        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 10))))
+            .thenReturn(new Page<>(apiList, 1, apiList.size(), apiList.size()));
+
+        final Response response = rootTarget().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        // Check Response content
+        final ApisResponse apisResponse = response.readEntity(ApisResponse.class);
+        assertNotNull(apisResponse.getData());
+        assertNotNull(apisResponse.getPagination());
+        assertNotNull(apisResponse.getLinks());
+
+        // Check apis
+        List<Api> apis = apisResponse.getData();
+        Assertions.assertEquals(1, apis.size());
+        ApiV1 api = apis.get(0).getApiV1();
+        Assertions.assertEquals("api-v1", api.getId());
+        Assertions.assertEquals("api-v1-name", api.getName());
+        Assertions.assertEquals("v1", api.getApiVersion());
+        Assertions.assertEquals("api-description", api.getDescription());
+        Assertions.assertEquals("V1", api.getDefinitionVersion().getValue());
+        Assertions.assertEquals(true, api.getDisableMembershipNotifications());
+        Assertions.assertEquals(List.of("label1", "label2"), api.getLabels());
+        Assertions.assertTrue(api.getGroups().containsAll(List.of("group1", "group2")));
+        Assertions.assertTrue(api.getTags().containsAll(List.of("tag1", "tag2")));
+        Assertions.assertEquals(BaseApi.StateEnum.STARTED, api.getState());
+        Assertions.assertEquals(io.gravitee.rest.api.management.v2.rest.model.Visibility.PUBLIC, api.getVisibility());
+        Assertions.assertEquals("2020-02-02T20:22:02Z", api.getDeployedAt().toString());
+        Assertions.assertEquals("2020-01-01T10:10:10Z", api.getCreatedAt().toString());
+        Assertions.assertEquals("2020-01-01T10:10:10Z", api.getUpdatedAt().toString());
+
+        // Check pagination
+        Pagination pagination = apisResponse.getPagination();
+        Assertions.assertEquals(1, pagination.getPage());
+        Assertions.assertEquals(10, pagination.getPerPage());
+        Assertions.assertEquals(1, pagination.getPageItemsCount());
+        Assertions.assertEquals(1, pagination.getTotalCount());
+        Assertions.assertEquals(1, pagination.getPageCount());
+
+        // Check links
+        Links links = apisResponse.getLinks();
+        assertTrue(links.getSelf().endsWith("/apis/"));
+        assertNull(links.getFirst());
+        assertNull(links.getPrevious());
+        assertNull(links.getNext());
+        assertNull(links.getLast());
+    }
+
+    @Test
     public void should_list_multiple_api() {
         ApiEntity returnedApi1 = new ApiEntity();
         returnedApi1.setId("api-1");
