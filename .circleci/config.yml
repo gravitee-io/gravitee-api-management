@@ -982,7 +982,7 @@ jobs:
                         sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
 
                         git add --update
-                        git commit -m 'chore: prepare next version'
+                        git commit -m 'chore: prepare next version [skip ci]'
 
                         git push -u <<# pipeline.parameters.dry_run >>--dry-run<</ pipeline.parameters.dry_run >> origin ${MAINTENANCE_GIT_BRANCH}
 
@@ -1678,6 +1678,7 @@ workflows:
                       - Publish APIM Console to artifactory
                       - Publish APIM Portal to artifactory
                   context: cicd-orchestrator
+
             # Package bundle
             - package_bundle:
                 name: Package bundle
