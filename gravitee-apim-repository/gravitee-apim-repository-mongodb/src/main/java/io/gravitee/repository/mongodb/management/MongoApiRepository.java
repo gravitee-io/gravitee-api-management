@@ -91,14 +91,14 @@ public class MongoApiRepository implements ApiRepository {
     @Override
     public Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
         final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, sortable, pageable, apiFieldFilter);
-        final List<Api> content = mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
+        final List<Api> content = mapper.mapApis(apisMongo.getContent());
         return new Page<>(content, apisMongo.getPageNumber(), (int) apisMongo.getPageElements(), apisMongo.getTotalElements());
     }
 
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter) {
         final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, null, apiFieldFilter);
-        return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
+        return mapper.mapApis(apisMongo.getContent());
     }
 
     @Override
@@ -138,11 +138,11 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     private ApiMongo mapApi(Api api) {
-        return (api == null) ? null : mapper.map(api, ApiMongo.class);
+        return (api == null) ? null : mapper.map(api);
     }
 
     private Api mapApi(ApiMongo apiMongo) {
-        return (apiMongo == null) ? null : mapper.map(apiMongo, Api.class);
+        return (apiMongo == null) ? null : mapper.map(apiMongo);
     }
 
     private boolean isEmpty(Page page) {

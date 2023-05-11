@@ -53,16 +53,16 @@ public class MongoCommandRepository implements CommandRepository {
         final CommandMongo msg = internalMessageRepo.findById(commandId).orElse(null);
 
         logger.debug("Find Command by ID [{}] - Done", commandId);
-        return Optional.ofNullable(mapper.map(msg, Command.class));
+        return Optional.ofNullable(mapper.map(msg));
     }
 
     @Override
     public Command create(Command command) throws TechnicalException {
         logger.debug("Create Command [{}]", command.getId());
 
-        CommandMongo createdMsgMongo = internalMessageRepo.insert(mapper.map(command, CommandMongo.class));
+        CommandMongo createdMsgMongo = internalMessageRepo.insert(mapper.map(command));
 
-        Command res = mapper.map(createdMsgMongo, Command.class);
+        Command res = mapper.map(createdMsgMongo);
 
         logger.debug("Create Command [{}] - Done", res.getId());
 
@@ -82,8 +82,8 @@ public class MongoCommandRepository implements CommandRepository {
         }
 
         try {
-            CommandMongo commandMongoUpdated = internalMessageRepo.save(mapper.map(command, CommandMongo.class));
-            return mapper.map(commandMongoUpdated, Command.class);
+            CommandMongo commandMongoUpdated = internalMessageRepo.save(mapper.map(command));
+            return mapper.map(commandMongoUpdated);
         } catch (Exception e) {
             logger.error("An error occurred when updating command", e);
             throw new TechnicalException("An error occurred when updating command");
@@ -104,15 +104,11 @@ public class MongoCommandRepository implements CommandRepository {
     public List<Command> search(CommandCriteria criteria) {
         logger.debug("Search Command [{}]", criteria);
         List<CommandMongo> result = internalMessageRepo.search(criteria);
-        return mapper.collection2list(result, CommandMongo.class, Command.class);
+        return mapper.mapCommands(result);
     }
 
     @Override
     public Set<Command> findAll() throws TechnicalException {
-        return internalMessageRepo
-            .findAll()
-            .stream()
-            .map(commandMongo -> mapper.map(commandMongo, Command.class))
-            .collect(Collectors.toSet());
+        return internalMessageRepo.findAll().stream().map(commandMongo -> mapper.map(commandMongo)).collect(Collectors.toSet());
     }
 }

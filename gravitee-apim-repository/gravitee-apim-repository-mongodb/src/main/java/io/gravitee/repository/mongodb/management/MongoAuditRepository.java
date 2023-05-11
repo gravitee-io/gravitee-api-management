@@ -51,7 +51,7 @@ public class MongoAuditRepository implements AuditRepository {
     public Page<Audit> search(AuditCriteria filter, Pageable pageable) {
         Page<AuditMongo> auditsMongo = internalAuditRepo.search(filter, pageable);
 
-        List<Audit> content = mapper.collection2list(auditsMongo.getContent(), AuditMongo.class, Audit.class);
+        List<Audit> content = mapper.mapAudits(auditsMongo.getContent());
         return new Page<>(content, auditsMongo.getPageNumber(), (int) auditsMongo.getPageElements(), auditsMongo.getTotalElements());
     }
 
@@ -62,17 +62,17 @@ public class MongoAuditRepository implements AuditRepository {
         final AuditMongo audit = internalAuditRepo.findById(id).orElse(null);
 
         LOGGER.debug("Find audit by ID [{}] - Done", id);
-        return Optional.ofNullable(mapper.map(audit, Audit.class));
+        return Optional.ofNullable(mapper.map(audit));
     }
 
     @Override
     public Audit create(Audit audit) throws TechnicalException {
         LOGGER.debug("Create audit {}", audit.toString());
 
-        AuditMongo auditMongo = mapper.map(audit, AuditMongo.class);
+        AuditMongo auditMongo = mapper.map(audit);
         AuditMongo createdAuditMongo = internalAuditRepo.insert(auditMongo);
 
-        Audit res = mapper.map(createdAuditMongo, Audit.class);
+        Audit res = mapper.map(createdAuditMongo);
 
         LOGGER.debug("Create audit [{}] - Done", audit);
 

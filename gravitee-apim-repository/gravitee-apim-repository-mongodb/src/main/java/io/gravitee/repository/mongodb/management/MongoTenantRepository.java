@@ -53,7 +53,7 @@ public class MongoTenantRepository implements TenantRepository {
         final TenantMongo tenant = internalTenantRepo.findById(tenantId).orElse(null);
 
         LOGGER.debug("Find tenant by ID [{}] - Done", tenantId);
-        return Optional.ofNullable(mapper.map(tenant, Tenant.class));
+        return Optional.ofNullable(mapper.map(tenant));
     }
 
     @Override
@@ -65,17 +65,17 @@ public class MongoTenantRepository implements TenantRepository {
             .orElse(null);
 
         LOGGER.debug("Find tenant by ID [{}] - Done", tenantId);
-        return Optional.ofNullable(mapper.map(tenant, Tenant.class));
+        return Optional.ofNullable(mapper.map(tenant));
     }
 
     @Override
     public Tenant create(Tenant tenant) throws TechnicalException {
         LOGGER.debug("Create tenant [{}]", tenant.getName());
 
-        TenantMongo tenantMongo = mapper.map(tenant, TenantMongo.class);
+        TenantMongo tenantMongo = mapper.map(tenant);
         TenantMongo createdTenantMongo = internalTenantRepo.insert(tenantMongo);
 
-        Tenant res = mapper.map(createdTenantMongo, Tenant.class);
+        Tenant res = mapper.map(createdTenantMongo);
 
         LOGGER.debug("Create tenant [{}] - Done", tenant.getName());
 
@@ -102,7 +102,7 @@ public class MongoTenantRepository implements TenantRepository {
             tenantMongo.setReferenceType(tenant.getReferenceType());
 
             TenantMongo tenantMongoUpdated = internalTenantRepo.save(tenantMongo);
-            return mapper.map(tenantMongoUpdated, Tenant.class);
+            return mapper.map(tenantMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occurred when updating tenant", e);
             throw new TechnicalException("An error occurred when updating tenant");
@@ -138,6 +138,6 @@ public class MongoTenantRepository implements TenantRepository {
 
     @Override
     public Set<Tenant> findAll() throws TechnicalException {
-        return internalTenantRepo.findAll().stream().map(tenantMongo -> mapper.map(tenantMongo, Tenant.class)).collect(Collectors.toSet());
+        return internalTenantRepo.findAll().stream().map(tenantMongo -> mapper.map(tenantMongo)).collect(Collectors.toSet());
     }
 }

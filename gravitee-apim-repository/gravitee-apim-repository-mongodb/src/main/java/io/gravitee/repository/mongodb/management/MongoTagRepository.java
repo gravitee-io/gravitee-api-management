@@ -53,7 +53,7 @@ public class MongoTagRepository implements TagRepository {
         final TagMongo tag = internalTagRepo.findById(tagId).orElse(null);
 
         LOGGER.debug("Find tag by ID [{}] - Done", tagId);
-        return Optional.ofNullable(mapper.map(tag, Tag.class));
+        return Optional.ofNullable(mapper.map(tag));
     }
 
     @Override
@@ -63,17 +63,17 @@ public class MongoTagRepository implements TagRepository {
         final TagMongo tag = internalTagRepo.findByIdAndReferenceIdAndReferenceType(tagId, referenceId, referenceType).orElse(null);
 
         LOGGER.debug("Find tag by ID and reference[{}, {}, {}] - Done", tagId, referenceId, referenceType);
-        return Optional.ofNullable(mapper.map(tag, Tag.class));
+        return Optional.ofNullable(mapper.map(tag));
     }
 
     @Override
     public Tag create(Tag tag) throws TechnicalException {
         LOGGER.debug("Create tag [{}]", tag.getName());
 
-        TagMongo tagMongo = mapper.map(tag, TagMongo.class);
+        TagMongo tagMongo = mapper.map(tag);
         TagMongo createdTagMongo = internalTagRepo.insert(tagMongo);
 
-        Tag res = mapper.map(createdTagMongo, Tag.class);
+        Tag res = mapper.map(createdTagMongo);
 
         LOGGER.debug("Create tag [{}] - Done", tag.getName());
 
@@ -101,7 +101,7 @@ public class MongoTagRepository implements TagRepository {
             tagMongo.setReferenceType(tag.getReferenceType());
 
             TagMongo tagMongoUpdated = internalTagRepo.save(tagMongo);
-            return mapper.map(tagMongoUpdated, Tag.class);
+            return mapper.map(tagMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occured when updating tag", e);
             throw new TechnicalException("An error occured when updating tag");
@@ -121,11 +121,11 @@ public class MongoTagRepository implements TagRepository {
     @Override
     public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
         final List<TagMongo> tags = internalTagRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
-        return tags.stream().map(tagMongo -> mapper.map(tagMongo, Tag.class)).collect(Collectors.toSet());
+        return tags.stream().map(tagMongo -> mapper.map(tagMongo)).collect(Collectors.toSet());
     }
 
     @Override
     public Set<Tag> findAll() throws TechnicalException {
-        return internalTagRepo.findAll().stream().map(tagMongo -> mapper.map(tagMongo, Tag.class)).collect(Collectors.toSet());
+        return internalTagRepo.findAll().stream().map(tagMongo -> mapper.map(tagMongo)).collect(Collectors.toSet());
     }
 }

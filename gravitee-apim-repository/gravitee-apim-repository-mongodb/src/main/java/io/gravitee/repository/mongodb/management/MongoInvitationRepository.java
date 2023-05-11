@@ -52,17 +52,17 @@ public class MongoInvitationRepository implements InvitationRepository {
         final InvitationMongo invitation = internalInvitationRepo.findById(invitationId).orElse(null);
 
         LOGGER.debug("Find invitation by ID [{}] - Done", invitationId);
-        return Optional.ofNullable(mapper.map(invitation, Invitation.class));
+        return Optional.ofNullable(mapper.map(invitation));
     }
 
     @Override
     public Invitation create(Invitation invitation) throws TechnicalException {
         LOGGER.debug("Create invitation [{}]", invitation.getEmail());
 
-        InvitationMongo invitationMongo = mapper.map(invitation, InvitationMongo.class);
+        InvitationMongo invitationMongo = mapper.map(invitation);
         InvitationMongo createdInvitationMongo = internalInvitationRepo.insert(invitationMongo);
 
-        Invitation res = mapper.map(createdInvitationMongo, Invitation.class);
+        Invitation res = mapper.map(createdInvitationMongo);
 
         LOGGER.debug("Create invitation [{}] - Done", invitation.getEmail());
 
@@ -92,7 +92,7 @@ public class MongoInvitationRepository implements InvitationRepository {
             invitationMongo.setUpdatedAt(invitation.getUpdatedAt());
 
             InvitationMongo invitationMongoUpdated = internalInvitationRepo.save(invitationMongo);
-            return mapper.map(invitationMongoUpdated, Invitation.class);
+            return mapper.map(invitationMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occured when updating invitation", e);
             throw new TechnicalException("An error occured when updating invitation");

@@ -55,7 +55,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
             PageRequest.of(pageable.pageNumber(), pageable.pageSize())
         );
         return new Page<>(
-            revisions.getContent().stream().map(page -> mapper.map(page, PageRevision.class)).collect(Collectors.toList()),
+            revisions.getContent().stream().map(page -> mapper.map(page)).collect(Collectors.toList()),
             pageable.pageNumber(),
             revisions.getNumberOfElements(),
             revisions.getTotalElements()
@@ -67,7 +67,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
         logger.debug("Find page revision by ID [{}]", pageId);
 
         PageRevisionMongo page = internalPageRevisionRepo.findById(new PageRevisionPkMongo(pageId, revision)).orElse(null);
-        PageRevision res = mapper.map(page, PageRevision.class);
+        PageRevision res = mapper.map(page);
 
         logger.debug("Find page revision by ID [{}] - Done", pageId);
         return Optional.ofNullable(res);
@@ -77,10 +77,10 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     public PageRevision create(PageRevision page) throws TechnicalException {
         logger.debug("Create revision for page [{}]", page.getName());
 
-        PageRevisionMongo pageMongo = mapper.map(page, PageRevisionMongo.class);
+        PageRevisionMongo pageMongo = mapper.map(page);
         PageRevisionMongo createdPageMongo = internalPageRevisionRepo.insert(pageMongo);
 
-        PageRevision res = mapper.map(createdPageMongo, PageRevision.class);
+        PageRevision res = mapper.map(createdPageMongo);
 
         logger.debug("Create revision for page [{}] - Done", page.getName());
 
@@ -90,11 +90,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     @Override
     public List<PageRevision> findAllByPageId(String pageId) throws TechnicalException {
         try {
-            return internalPageRevisionRepo
-                .findAllByPageId(pageId)
-                .stream()
-                .map(rev -> mapper.map(rev, PageRevision.class))
-                .collect(Collectors.toList());
+            return internalPageRevisionRepo.findAllByPageId(pageId).stream().map(rev -> mapper.map(rev)).collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("An error occurred when querying all revisions for page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when querying page revisions");
@@ -104,7 +100,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     @Override
     public Optional<PageRevision> findLastByPageId(String pageId) throws TechnicalException {
         try {
-            return internalPageRevisionRepo.findLastByPageId(pageId).map(rev -> mapper.map(rev, PageRevision.class));
+            return internalPageRevisionRepo.findLastByPageId(pageId).map(rev -> mapper.map(rev));
         } catch (Exception e) {
             logger.error("An error occurred when querying last revision for page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when querying the last page revision");
@@ -116,7 +112,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
         return internalPageRevisionRepo
             .findAll()
             .stream()
-            .map(pageRevisionMongo -> mapper.map(pageRevisionMongo, PageRevision.class))
+            .map(pageRevisionMongo -> mapper.map(pageRevisionMongo))
             .collect(Collectors.toSet());
     }
 }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.common;
 
-import io.gravitee.repository.mongodb.management.mapper.GraviteeDozerMapper;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.gravitee.repository.mongodb.management.transaction.NoTransactionManager;
 import java.net.URI;
@@ -23,6 +22,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -79,7 +79,7 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
 
     @Bean
     public GraviteeMapper graviteeMapper() {
-        return new GraviteeDozerMapper();
+        return Mappers.getMapper(GraviteeMapper.class);
     }
 
     @Override

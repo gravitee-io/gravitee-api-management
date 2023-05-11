@@ -54,9 +54,9 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
         }
 
         logger.debug("Create CustomUserField [{}]", field);
-        CustomUserFieldMongo createdField = internalMongoRepo.insert(mapper.map(field, CustomUserFieldMongo.class));
+        CustomUserFieldMongo createdField = internalMongoRepo.insert(mapper.map(field));
         logger.debug("Create CustomUserField [{}] - Done", field);
-        return mapper.map(createdField, CustomUserField.class);
+        return mapper.map(createdField);
     }
 
     @Override
@@ -76,9 +76,9 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
         }
 
         logger.debug("Update CustomUserField [{}]", field);
-        CustomUserFieldMongo updatedField = internalMongoRepo.save(mapper.map(field, CustomUserFieldMongo.class));
+        CustomUserFieldMongo updatedField = internalMongoRepo.save(mapper.map(field));
         logger.debug("Update CustomUserField [{}] - Done", field);
-        return mapper.map(updatedField, CustomUserField.class);
+        return mapper.map(updatedField);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
         final CustomUserFieldMongo field = internalMongoRepo.findById(id).orElse(null);
 
         logger.debug("Find CustomUserField by ID [{}] - Done", id);
-        return Optional.ofNullable(mapper.map(field, CustomUserField.class));
+        return Optional.ofNullable(mapper.map(field));
     }
 
     @Override
@@ -109,7 +109,7 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
         final List<CustomUserFieldMongo> fields = internalMongoRepo.findByReference(refId, referenceType.name());
 
         logger.debug("Find CustomUserField by Reference [{}/{}] - Done", refId, referenceType);
-        return fields.stream().map(f -> mapper.map(f, CustomUserField.class)).collect(Collectors.toList());
+        return fields.stream().map(f -> mapper.map(f)).collect(Collectors.toList());
     }
 
     @Override
@@ -117,7 +117,7 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
         return internalMongoRepo
             .findAll()
             .stream()
-            .map(customUserFieldMongo -> mapper.map(customUserFieldMongo, CustomUserField.class))
+            .map(customUserFieldMongo -> mapper.map(customUserFieldMongo))
             .collect(Collectors.toSet());
     }
 }

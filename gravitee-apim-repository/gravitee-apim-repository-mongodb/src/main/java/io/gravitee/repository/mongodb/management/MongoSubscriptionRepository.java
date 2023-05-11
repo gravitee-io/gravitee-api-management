@@ -52,7 +52,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     public Page<Subscription> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
         Page<SubscriptionMongo> subscriptionsMongo = internalSubscriptionRepository.search(criteria, sortable, pageable);
 
-        List<Subscription> content = mapper.collection2list(subscriptionsMongo.getContent(), SubscriptionMongo.class, Subscription.class);
+        List<Subscription> content = mapper.mapSubscriptions(subscriptionsMongo.getContent());
         return new Page<>(
             content,
             subscriptionsMongo.getPageNumber(),
@@ -65,7 +65,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     public List<Subscription> search(SubscriptionCriteria criteria, Sortable sortable) throws TechnicalException {
         Page<SubscriptionMongo> subscriptionsMongo = internalSubscriptionRepository.search(criteria, sortable, null);
 
-        return mapper.collection2list(subscriptionsMongo.getContent(), SubscriptionMongo.class, Subscription.class);
+        return mapper.mapSubscriptions(subscriptionsMongo.getContent());
     }
 
     @Override
@@ -129,10 +129,10 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     }
 
     private SubscriptionMongo map(Subscription subscription) {
-        return (subscription == null) ? null : mapper.map(subscription, SubscriptionMongo.class);
+        return (subscription == null) ? null : mapper.map(subscription);
     }
 
     private Subscription map(SubscriptionMongo subscriptionMongo) {
-        return (subscriptionMongo == null) ? null : mapper.map(subscriptionMongo, Subscription.class);
+        return (subscriptionMongo == null) ? null : mapper.map(subscriptionMongo);
     }
 }

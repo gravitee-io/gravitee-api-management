@@ -23,7 +23,6 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AlertEvent;
 import io.gravitee.repository.mongodb.management.internal.api.AlertEventMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AlertEventMongo;
-import io.gravitee.repository.mongodb.management.internal.model.AlertTriggerMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
@@ -56,17 +55,17 @@ public class MongoAlertEventRepository implements AlertEventRepository {
         final AlertEventMongo alertEvent = internalAlertEventRepo.findById(eventId).orElse(null);
 
         LOGGER.debug("Find an alert event by ID [{}] - Done", eventId);
-        return Optional.ofNullable(mapper.map(alertEvent, AlertEvent.class));
+        return Optional.ofNullable(mapper.map(alertEvent));
     }
 
     @Override
     public AlertEvent create(AlertEvent event) throws TechnicalException {
         LOGGER.debug("Create alert event [{}]", event.getId());
 
-        AlertEventMongo alertEventMongo = mapper.map(event, AlertEventMongo.class);
+        AlertEventMongo alertEventMongo = mapper.map(event);
         AlertEventMongo createdAlertEventMongo = internalAlertEventRepo.insert(alertEventMongo);
 
-        AlertEvent res = mapper.map(createdAlertEventMongo, AlertEvent.class);
+        AlertEvent res = mapper.map(createdAlertEventMongo);
 
         LOGGER.debug("Create alert event [{}] - Done", event.getId());
 
@@ -92,7 +91,7 @@ public class MongoAlertEventRepository implements AlertEventRepository {
             alertEventMongo.setUpdatedAt(event.getUpdatedAt());
 
             AlertEventMongo alertEventMongoUpdated = internalAlertEventRepo.save(alertEventMongo);
-            return mapper.map(alertEventMongoUpdated, AlertEvent.class);
+            return mapper.map(alertEventMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occurs when updating alert event", e);
             throw new TechnicalException("An error occurs when updating alert event");
@@ -118,7 +117,7 @@ public class MongoAlertEventRepository implements AlertEventRepository {
     public Page<AlertEvent> search(AlertEventCriteria criteria, Pageable pageable) {
         Page<AlertEventMongo> alertEventsMongo = internalAlertEventRepo.search(criteria, pageable);
 
-        List<AlertEvent> content = mapper.collection2list(alertEventsMongo.getContent(), AlertEventMongo.class, AlertEvent.class);
+        List<AlertEvent> content = mapper.mapAlertEvents(alertEventsMongo.getContent());
         return new Page<>(
             content,
             alertEventsMongo.getPageNumber(),
@@ -129,10 +128,6 @@ public class MongoAlertEventRepository implements AlertEventRepository {
 
     @Override
     public Set<AlertEvent> findAll() throws TechnicalException {
-        return internalAlertEventRepo
-            .findAll()
-            .stream()
-            .map(alertEventMongo -> mapper.map(alertEventMongo, AlertEvent.class))
-            .collect(Collectors.toSet());
+        return internalAlertEventRepo.findAll().stream().map(alertEventMongo -> mapper.map(alertEventMongo)).collect(Collectors.toSet());
     }
 }

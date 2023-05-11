@@ -67,7 +67,7 @@ public class MongoEventLatestRepository implements EventLatestRepository {
     @Override
     public List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
         List<EventLatestMongo> eventsMongo = internalEventRepo.search(criteria, group, page, size);
-        return mapper.collection2list(eventsMongo, EventLatestMongo.class, Event.class);
+        return mapper.mapEventLatests(eventsMongo);
     }
 
     private EventLatestMongo mapEvent(Event event) {

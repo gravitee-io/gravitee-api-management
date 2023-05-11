@@ -53,10 +53,10 @@ public class MongoTicketRepository implements TicketRepository {
     public Ticket create(Ticket ticket) throws TechnicalException {
         LOGGER.debug("Create ticket [{}]", ticket.getId());
 
-        TicketMongo ticketMongo = mapper.map(ticket, TicketMongo.class);
+        TicketMongo ticketMongo = mapper.map(ticket);
         TicketMongo createdTicketMongo = internalTicketRepo.insert(ticketMongo);
 
-        Ticket res = mapper.map(createdTicketMongo, Ticket.class);
+        Ticket res = mapper.map(createdTicketMongo);
 
         LOGGER.debug("Create ticket [{}] - Done", ticket.getId());
 
@@ -68,7 +68,7 @@ public class MongoTicketRepository implements TicketRepository {
         LOGGER.debug("Search tickets");
 
         Page<TicketMongo> tickets = internalTicketRepo.search(criteria, sortable, pageable);
-        List<Ticket> content = mapper.collection2list(tickets.getContent(), TicketMongo.class, Ticket.class);
+        List<Ticket> content = mapper.mapTickets(tickets.getContent());
 
         LOGGER.debug("Search tickets - Done");
 
@@ -83,11 +83,11 @@ public class MongoTicketRepository implements TicketRepository {
 
         LOGGER.debug("Search ticket {} - Done", ticketId);
 
-        return Optional.ofNullable(mapper.map(ticket, Ticket.class));
+        return Optional.ofNullable(mapper.map(ticket));
     }
 
     @Override
     public Set<Ticket> findAll() throws TechnicalException {
-        return internalTicketRepo.findAll().stream().map(ticketMongo -> mapper.map(ticketMongo, Ticket.class)).collect(Collectors.toSet());
+        return internalTicketRepo.findAll().stream().map(ticketMongo -> mapper.map(ticketMongo)).collect(Collectors.toSet());
     }
 }

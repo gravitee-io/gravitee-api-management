@@ -18,9 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TokenRepository;
 import io.gravitee.repository.management.model.Token;
-import io.gravitee.repository.management.model.Token;
 import io.gravitee.repository.mongodb.management.internal.api.TokenMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.TokenMongo;
 import io.gravitee.repository.mongodb.management.internal.model.TokenMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
@@ -52,15 +50,15 @@ public class MongoTokenRepository implements TokenRepository {
         LOGGER.debug("Find token by ID [{}]", tokenId);
         final TokenMongo token = internalTokenRepo.findById(tokenId).orElse(null);
         LOGGER.debug("Find token by ID [{}] - Done", tokenId);
-        return Optional.ofNullable(mapper.map(token, Token.class));
+        return Optional.ofNullable(mapper.map(token));
     }
 
     @Override
     public Token create(Token token) throws TechnicalException {
         LOGGER.debug("Create token [{}]", token.getName());
-        TokenMongo tokenMongo = mapper.map(token, TokenMongo.class);
+        TokenMongo tokenMongo = mapper.map(token);
         TokenMongo createdTokenMongo = internalTokenRepo.insert(tokenMongo);
-        Token res = mapper.map(createdTokenMongo, Token.class);
+        Token res = mapper.map(createdTokenMongo);
         LOGGER.debug("Create token [{}] - Done", token.getName());
         return res;
     }
@@ -86,7 +84,7 @@ public class MongoTokenRepository implements TokenRepository {
             tokenMongo.setLastUseAt(token.getLastUseAt());
 
             TokenMongo tokenMongoUpdated = internalTokenRepo.save(tokenMongo);
-            return mapper.map(tokenMongoUpdated, Token.class);
+            return mapper.map(tokenMongoUpdated);
         } catch (Exception e) {
             final String error = "An error occurred when updating token";
             LOGGER.error(error, e);
@@ -108,7 +106,7 @@ public class MongoTokenRepository implements TokenRepository {
     @Override
     public Set<Token> findAll() throws TechnicalException {
         final List<TokenMongo> tokens = internalTokenRepo.findAll();
-        return tokens.stream().map(tokenMongo -> mapper.map(tokenMongo, Token.class)).collect(Collectors.toSet());
+        return tokens.stream().map(tokenMongo -> mapper.map(tokenMongo)).collect(Collectors.toSet());
     }
 
     @Override
@@ -116,6 +114,6 @@ public class MongoTokenRepository implements TokenRepository {
         LOGGER.debug("Find token by ref type '{}' and ref id '{}'", referenceType, referenceId);
         final List<TokenMongo> token = internalTokenRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
         LOGGER.debug("Find token by ref type '{}' and ref id '{}' done", referenceType, referenceId);
-        return token.stream().map(t -> mapper.map(t, Token.class)).collect(Collectors.toList());
+        return token.stream().map(t -> mapper.map(t)).collect(Collectors.toList());
     }
 }

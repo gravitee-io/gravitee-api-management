@@ -50,7 +50,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
     public Optional<NotificationTemplate> findById(String id) throws TechnicalException {
         LOGGER.debug("Find notificationTemplate by ID [{}]", id);
         NotificationTemplateMongo notificationTemplate = internalNotificationTemplateRepo.findById(id).orElse(null);
-        NotificationTemplate res = mapper.map(notificationTemplate, NotificationTemplate.class);
+        NotificationTemplate res = mapper.map(notificationTemplate);
 
         LOGGER.debug("Find notificationTemplate by ID [{}] - Done", id);
         return Optional.ofNullable(res);
@@ -60,10 +60,10 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
     public NotificationTemplate create(NotificationTemplate notificationTemplate) throws TechnicalException {
         LOGGER.debug("Create notificationTemplate [{}]", notificationTemplate.getName());
 
-        NotificationTemplateMongo notificationTemplateMongo = mapper.map(notificationTemplate, NotificationTemplateMongo.class);
+        NotificationTemplateMongo notificationTemplateMongo = mapper.map(notificationTemplate);
         NotificationTemplateMongo createdNotificationTemplateMongo = internalNotificationTemplateRepo.insert(notificationTemplateMongo);
 
-        NotificationTemplate res = mapper.map(createdNotificationTemplateMongo, NotificationTemplate.class);
+        NotificationTemplate res = mapper.map(createdNotificationTemplateMongo);
 
         LOGGER.debug("Create notificationTemplate [{}] - Done", notificationTemplate.getName());
 
@@ -97,7 +97,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
             notificationTemplateMongo.setEnabled(notificationTemplate.isEnabled());
 
             NotificationTemplateMongo notificationTemplateMongoUpdated = internalNotificationTemplateRepo.save(notificationTemplateMongo);
-            return mapper.map(notificationTemplateMongoUpdated, NotificationTemplate.class);
+            return mapper.map(notificationTemplateMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occured when updating notificationTemplate", e);
             throw new TechnicalException("An error occured when updating notificationTemplate");
@@ -119,11 +119,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
         LOGGER.debug("Find all notificationTemplates");
 
         List<NotificationTemplateMongo> notificationTemplates = internalNotificationTemplateRepo.findAll();
-        Set<NotificationTemplate> res = mapper.collection2set(
-            notificationTemplates,
-            NotificationTemplateMongo.class,
-            NotificationTemplate.class
-        );
+        Set<NotificationTemplate> res = mapper.mapNotificationTemplates(notificationTemplates);
 
         LOGGER.debug("Find all notificationTemplates - Done");
         return res;
@@ -142,11 +138,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
             referenceId,
             referenceType.name()
         );
-        Set<NotificationTemplate> res = mapper.collection2set(
-            notificationTemplates,
-            NotificationTemplateMongo.class,
-            NotificationTemplate.class
-        );
+        Set<NotificationTemplate> res = mapper.mapNotificationTemplates(notificationTemplates);
 
         LOGGER.debug("Find all notificationTemplates by type - Done");
         return res;
@@ -163,11 +155,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
             referenceId,
             referenceType.name()
         );
-        Set<NotificationTemplate> res = mapper.collection2set(
-            notificationTemplates,
-            NotificationTemplateMongo.class,
-            NotificationTemplate.class
-        );
+        Set<NotificationTemplate> res = mapper.mapNotificationTemplates(notificationTemplates);
 
         LOGGER.debug("Find all notificationTemplates by environment- Done");
         return res;
@@ -189,11 +177,7 @@ public class MongoNotificationTemplateRepository implements NotificationTemplate
                 referenceId,
                 referenceType.name()
             );
-        Set<NotificationTemplate> res = mapper.collection2set(
-            notificationTemplates,
-            NotificationTemplateMongo.class,
-            NotificationTemplate.class
-        );
+        Set<NotificationTemplate> res = mapper.mapNotificationTemplates(notificationTemplates);
 
         LOGGER.debug("Find all notificationTemplates by environment- Done");
         return res;

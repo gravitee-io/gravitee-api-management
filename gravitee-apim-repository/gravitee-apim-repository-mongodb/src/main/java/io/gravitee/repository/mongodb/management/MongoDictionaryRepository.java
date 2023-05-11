@@ -58,7 +58,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         LOGGER.debug("Find dictionary by ID [{}]", id);
 
         DictionaryMongo page = internalDictionaryRepo.findById(id).orElse(null);
-        Dictionary res = mapper.map(page, Dictionary.class);
+        Dictionary res = mapper.map(page);
 
         if (res != null && res.getProperties() != null) {
             final Map<String, String> properties = new HashMap<>(res.getProperties().size());
@@ -74,7 +74,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
     public Dictionary create(Dictionary dictionary) throws TechnicalException {
         LOGGER.debug("Create dictionary [{}]", dictionary.getName());
 
-        DictionaryMongo dictionaryMongo = mapper.map(dictionary, DictionaryMongo.class);
+        DictionaryMongo dictionaryMongo = mapper.map(dictionary);
 
         if (dictionaryMongo.getProperties() != null) {
             final Map<String, String> properties = new HashMap<>(dictionaryMongo.getProperties().size());
@@ -84,7 +84,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
         DictionaryMongo createdDictionaryMongo = internalDictionaryRepo.insert(dictionaryMongo);
 
-        Dictionary res = mapper.map(createdDictionaryMongo, Dictionary.class);
+        Dictionary res = mapper.map(createdDictionaryMongo);
 
         if (res != null && res.getProperties() != null) {
             final Map<String, String> properties = new HashMap<>(res.getProperties().size());
@@ -139,7 +139,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
             DictionaryMongo dictionaryMongoUpdated = internalDictionaryRepo.save(dictionaryMongo);
 
-            final Dictionary res = mapper.map(dictionaryMongoUpdated, Dictionary.class);
+            final Dictionary res = mapper.map(dictionaryMongoUpdated);
 
             if (res != null && res.getProperties() != null) {
                 final Map<String, String> properties = new HashMap<>(res.getProperties().size());
@@ -169,7 +169,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         LOGGER.debug("Find all dictionaries");
 
         List<DictionaryMongo> dictionaries = internalDictionaryRepo.findAll();
-        Set<Dictionary> res = mapper.collection2set(dictionaries, DictionaryMongo.class, Dictionary.class);
+        Set<Dictionary> res = mapper.mapDictionaries(dictionaries);
 
         LOGGER.debug("Find all dictionaries - Done");
         return res;
@@ -222,7 +222,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         }
 
         List<DictionaryMongo> dictionaries = internalDictionaryRepo.findByEnvironments(environments);
-        Set<Dictionary> res = mapper.collection2set(dictionaries, DictionaryMongo.class, Dictionary.class);
+        Set<Dictionary> res = mapper.mapDictionaries(dictionaries);
 
         LOGGER.debug("Find all dictionaries by environment- Done");
         return res;

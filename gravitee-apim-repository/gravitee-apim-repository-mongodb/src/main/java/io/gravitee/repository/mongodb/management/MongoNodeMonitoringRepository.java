@@ -96,10 +96,10 @@ public class MongoNodeMonitoringRepository implements NodeMonitoringRepository {
     }
 
     private MonitoringMongo map(Monitoring item) {
-        return (item == null) ? null : mapper.map(item, MonitoringMongo.class);
+        return (item == null) ? null : mapper.map(item);
     }
 
     private Monitoring map(MonitoringMongo item) {
-        return (item == null) ? null : mapper.map(item, Monitoring.class);
+        return (item == null) ? null : mapper.map(item);
     }
 }

@@ -89,11 +89,11 @@ public class MongoPromotionRepository implements PromotionRepository {
     }
 
     private PromotionMongo map(Promotion promotion) {
-        return mapper.map(promotion, PromotionMongo.class);
+        return mapper.map(promotion);
     }
 
     private Promotion map(PromotionMongo promotion) {
-        return mapper.map(promotion, Promotion.class);
+        return mapper.map(promotion);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class MongoPromotionRepository implements PromotionRepository {
         logger.debug("Searching promotions");
 
         Page<PromotionMongo> promotions = internalRepository.search(criteria, sortable, pageable);
-        List<Promotion> content = mapper.collection2list(promotions.getContent(), PromotionMongo.class, Promotion.class);
+        List<Promotion> content = mapper.mapPromotions(promotions.getContent());
 
         logger.debug("Searching promotions - Done");
         return new Page<>(content, promotions.getPageNumber(), (int) promotions.getPageElements(), promotions.getTotalElements());

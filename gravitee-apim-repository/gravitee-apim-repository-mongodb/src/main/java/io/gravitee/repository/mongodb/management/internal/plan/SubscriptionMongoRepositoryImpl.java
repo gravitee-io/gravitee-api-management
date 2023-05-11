@@ -20,7 +20,7 @@ import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Sorts.ascending;
 import static com.mongodb.client.model.Sorts.descending;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.model.Aggregates;

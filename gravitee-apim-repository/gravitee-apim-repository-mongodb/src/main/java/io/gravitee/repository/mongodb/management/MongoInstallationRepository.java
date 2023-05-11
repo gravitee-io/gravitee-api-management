@@ -98,10 +98,10 @@ public class MongoInstallationRepository implements InstallationRepository {
     }
 
     private InstallationMongo map(Installation group) {
-        return mapper.map(group, InstallationMongo.class);
+        return mapper.map(group);
     }
 
     private Installation map(InstallationMongo installationMongoMongo) {
-        return mapper.map(installationMongoMongo, Installation.class);
+        return mapper.map(installationMongoMongo);
     }
 }

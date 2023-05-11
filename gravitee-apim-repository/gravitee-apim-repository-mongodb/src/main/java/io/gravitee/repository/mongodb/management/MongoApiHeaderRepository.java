@@ -52,17 +52,17 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
         final ApiHeaderMongo apiHeader = internalApiHeaderRepo.findById(apiHeaderId).orElse(null);
 
         LOGGER.debug("Find apiHeader by ID [{}] - Done", apiHeaderId);
-        return Optional.ofNullable(mapper.map(apiHeader, ApiHeader.class));
+        return Optional.ofNullable(mapper.map(apiHeader));
     }
 
     @Override
     public ApiHeader create(ApiHeader apiHeader) throws TechnicalException {
         LOGGER.debug("Create apiHeader [{}]", apiHeader.getName());
 
-        ApiHeaderMongo apiHeaderMongo = mapper.map(apiHeader, ApiHeaderMongo.class);
+        ApiHeaderMongo apiHeaderMongo = mapper.map(apiHeader);
         ApiHeaderMongo createdApiHeaderMongo = internalApiHeaderRepo.insert(apiHeaderMongo);
 
-        ApiHeader res = mapper.map(createdApiHeaderMongo, ApiHeader.class);
+        ApiHeader res = mapper.map(createdApiHeaderMongo);
 
         LOGGER.debug("Create apiHeader [{}] - Done", apiHeader.getName());
 
@@ -82,8 +82,8 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
         }
 
         try {
-            ApiHeaderMongo apiHeaderMongoUpdated = internalApiHeaderRepo.save(mapper.map(apiHeader, ApiHeaderMongo.class));
-            return mapper.map(apiHeaderMongoUpdated, ApiHeader.class);
+            ApiHeaderMongo apiHeaderMongoUpdated = internalApiHeaderRepo.save(mapper.map(apiHeader));
+            return mapper.map(apiHeaderMongoUpdated);
         } catch (Exception e) {
             LOGGER.error("An error occured when updating apiHeader", e);
             throw new TechnicalException("An error occured when updating apiHeader");
@@ -103,12 +103,12 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
     @Override
     public Set<ApiHeader> findAll() throws TechnicalException {
         final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findAll();
-        return apiHeaders.stream().map(apiHeaderMongo -> mapper.map(apiHeaderMongo, ApiHeader.class)).collect(Collectors.toSet());
+        return apiHeaders.stream().map(apiHeaderMongo -> mapper.map(apiHeaderMongo)).collect(Collectors.toSet());
     }
 
     @Override
     public Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException {
         final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findByEnvironmentId(environmentId);
-        return apiHeaders.stream().map(apiHeaderMongo -> mapper.map(apiHeaderMongo, ApiHeader.class)).collect(Collectors.toSet());
+        return apiHeaders.stream().map(apiHeaderMongo -> mapper.map(apiHeaderMongo)).collect(Collectors.toSet());
     }
 }

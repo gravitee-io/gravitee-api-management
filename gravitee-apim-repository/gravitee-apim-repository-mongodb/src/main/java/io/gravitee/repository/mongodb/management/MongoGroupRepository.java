@@ -21,7 +21,8 @@ import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.mongodb.management.internal.group.GroupMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.*;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,11 +112,11 @@ public class MongoGroupRepository implements GroupRepository {
     }
 
     private GroupMongo map(Group group) {
-        return mapper.map(group, GroupMongo.class);
+        return mapper.map(group);
     }
 
     private Group map(GroupMongo groupMongo) {
-        return mapper.map(groupMongo, Group.class);
+        return mapper.map(groupMongo);
     }
 
     @Override
