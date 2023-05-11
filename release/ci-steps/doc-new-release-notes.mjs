@@ -72,41 +72,59 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 const version = await getJiraVersion(releasingVersion);
 let issues = await getJiraIssuesOfVersion(version.id);
 
-const gatewayIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Gateway'));
-issues = issues.filter((issue) => !gatewayIssues.includes(issue));
-
-const managementAPIIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Management API'));
-issues = issues.filter((issue) => !managementAPIIssues.includes(issue));
-
-const consoleIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Console'));
-issues = issues.filter((issue) => !consoleIssues.includes(issue));
-
-const portalIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Portal'));
-const otherIssues = issues.filter((issue) => !portalIssues.includes(issue));
-
 let changelogPatchTemplate = `
 == APIM - ${releasingVersion} (${new Date().toISOString().slice(0, 10)})
 
-=== Gateway
+`;
+
+const gatewayIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Gateway'));
+issues = issues.filter((issue) => !gatewayIssues.includes(issue));
+if (gatewayIssues.length > 0) {
+  changelogPatchTemplate += `=== Gateway
 
 ${getChangelogFor(gatewayIssues)}
 
-=== API
+`;
+}
+
+const managementAPIIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Management API'));
+issues = issues.filter((issue) => !managementAPIIssues.includes(issue));
+if (managementAPIIssues.length > 0) {
+  changelogPatchTemplate += `=== API
 
 ${getChangelogFor(managementAPIIssues)}
 
-=== Console
+`;
+}
+
+const consoleIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Console'));
+issues = issues.filter((issue) => !consoleIssues.includes(issue));
+if (consoleIssues.length > 0) {
+  changelogPatchTemplate += `=== Console
 
 ${getChangelogFor(consoleIssues)}
 
-=== Portal
+`;
+}
+
+const portalIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Portal'));
+if (portalIssues.length > 0) {
+  changelogPatchTemplate += `=== Portal
 
 ${getChangelogFor(portalIssues)}
 
-=== Other
+`;
+}
+
+const otherIssues = issues.filter((issue) => !portalIssues.includes(issue));
+if (otherIssues.length > 0) {
+  changelogPatchTemplate += `=== Other
 
 ${getChangelogFor(otherIssues)}
+
 `;
+}
+
 echo(changelogPatchTemplate);
 
 // write after anchor
