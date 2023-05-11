@@ -43,6 +43,28 @@ npm install
 
 == 🏁 Usage
 
+=== ⚡️ Full release for the win!
+
+Thanks to link:package.json[package.json], you can run those scripts as simple `npm` commands (do not forget to use `npm i` before starting).
+
+Each of the commands needs:
+
+* A `CIRCLECI_TOKEN` in `.env` file
+* the `--version` parameter
+
+Optional flag:
+
+* `--dry-run`: allow to run the pipeline in dry run mode (except for `nexus_sync` which does not have this mode)
+* `--latest`: to tag the docker image as the `latest`
+
+Here is the command to fully release APIM (Releasing 3.15.11, in the following example):
+
+`npm run full_release -- --version=3.15.11`: You can also provide the `--latest` parameter to flag the image as `latest`.
+
+=== 🐌 Step by step release
+
+This is the legacy process making you execute each step manually
+
 Thanks to link:package.json[package.json], you can run those scripts as simple `npm` commands (do not forget to use `npm i` before starting).
 
 Each of the commands needs:
