@@ -1,0 +1,72 @@
+{
+    "id": "api-cors-running-policies",
+    "name": "api-cors-running-policies",
+    "gravitee": "4.0.0",
+    "type": "proxy",
+    "listeners": [
+        {
+            "type": "http",
+            "cors": {
+                "enabled": true,
+                "allowCredentials": true,
+                "allowHeaders": ["x-gravitee-test"],
+                "allowMethods": ["GET", "POST"],
+                "allowOrigin": ["https://mydomain.com"],
+                "runPolicies": true
+            },
+            "paths": [
+                {
+                    "path": "/api-cors-running-policies"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-proxy"
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "default-group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "default",
+                    "type": "http-proxy",
+                    "weight": 1,
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "http://localhost:8080/endpoint"
+                    }
+                }
+            ]
+        }
+    ],
+    "flows": [
+        {
+            "name": "flow-1",
+            "enabled": true,
+            "selectors": [
+                {
+                    "type": "http",
+                    "path": "/",
+                    "pathOperator": "STARTS_WITH"
+                }
+            ],
+            "request": [],
+            "response": [
+                {
+                    "name": "Add Headers",
+                    "description": "",
+                    "enabled": true,
+                    "policy": "add-header",
+                    "configuration": {}
+                }
+            ],
+            "subscribe": [],
+            "publish": []
+        }
+    ],
+    "resources": []
+}

@@ -1,0 +1,48 @@
+{
+    "id": "api-cors-not-running-policies",
+    "name": "api-cors-not-running-policies",
+    "gravitee": "2.0.0",
+    "proxy": {
+        "context_path": "/api-cors-not-running-policies",
+        "endpoints": [
+            {
+                "name": "default",
+                "target": "http://localhost:8080/endpoint",
+                "http": {
+                    "connectTimeout": 3000,
+                    "readTimeout": 60000
+                }
+            }
+        ],
+        "cors": {
+            "enabled": true,
+            "allowCredentials": true,
+            "allowHeaders": ["x-gravitee-test"],
+            "allowMethods": ["GET", "POST"],
+            "allowOrigin": ["https://mydomain.com"],
+            "runPolicies": false
+        }
+    },
+    "flows": [
+        {
+            "name": "flow-1",
+            "methods": [],
+            "enabled": true,
+            "path-operator": {
+                "path": "/",
+                "operator": "STARTS_WITH"
+            },
+            "pre": [],
+            "post": [
+                {
+                    "name": "Add Headers",
+                    "description": "",
+                    "enabled": true,
+                    "policy": "add-header",
+                    "configuration": {}
+                }
+            ]
+        }
+    ],
+    "resources": []
+}
