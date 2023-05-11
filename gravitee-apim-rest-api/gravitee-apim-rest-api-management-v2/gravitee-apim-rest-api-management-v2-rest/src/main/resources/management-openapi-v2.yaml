@@ -1021,10 +1021,13 @@ components:
                       proxy:
                           $ref: "#/components/schemas/Proxy"
                       paths:
-                          type: array
-                          description: The list of flows associated with this API.
-                          items:
-                              $ref: "#/components/schemas/PathV1"
+                          type: object
+                          additionalProperties:
+                              type: array
+                              description: a map where you can associate a path to a configuration (the
+                                  policies configuration)
+                              items:
+                                  $ref: "#/components/schemas/Rule"
                       services:
                           $ref: "#/components/schemas/ServicesV2"
                       pathMappings:
@@ -3172,15 +3175,6 @@ components:
                 - MAIL
                 - URL
 
-        # API V1 specific schemas
-        PathV1:
-            type: object
-            additionalProperties:
-                type: array
-                description: a map where you can associate a path to a configuration (the
-                    policies configuration)
-                items:
-                    $ref: "#/components/schemas/Rule"
         Rule:
             type: object
             properties:
