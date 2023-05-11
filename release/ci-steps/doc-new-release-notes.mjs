@@ -15,41 +15,6 @@ const docApimChangelogFile = `${docApimChangelogFolder}changelog-${versions.trim
 
 const gitBranch = `release-apim-${releasingVersion}`;
 
-const computeCommitInfo = async (gitLogOutput) => {
-  const commitLines = gitLogOutput.trim().split('\n');
-  const fetchPrInfo = [];
-  for (const commitLine of commitLines) {
-    const commitHash = commitLine.substring(0, commitLine.indexOf(' '));
-    const commitMessage = commitLine.substring(commitLine.indexOf(' ') + 1);
-    try {
-      const foundPRCmd = await $`gh pr list --search "${commitHash}" --state merged --json url,title,number --jq '.[0]'`;
-      fetchPrInfo.push({
-        ...JSON.parse(foundPRCmd.stdout),
-        commitMessage,
-      });
-    } catch (error) {
-      console.error('🚨 Error while searching PR for commit', commitHash, error);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-
-  return Array.from(
-    fetchPrInfo
-      // Group by PR number
-      .reduce((entryMap, e) => entryMap.set(e.number, [...(entryMap.get(e.number) || []), e]), new Map())
-      .values(),
-  ).map((pr) => {
-    const info = pr[0].title ? `### [${pr[0].title} [${pr[0].number}]](${pr[0].url})\n` : '### Commit without found PR\n';
-
-    return info + pr.map((c) => `- ${c.commitMessage}`).join('\n');
-  });
-};
-
-echo(chalk.blue(`# Get feat & fix commits`));
-const allCommitsCmd =
-  await $`git log $(git describe --abbrev=0 --tags --exclude="$(git describe --abbrev=0 --tags)")..HEAD --no-merges --oneline --grep "^feat\\|^perf\\|^fix"`;
-const prInfo = (await computeCommitInfo(allCommitsCmd.stdout)).join('\n');
-
 echo(chalk.blue(`# Clone gravitee-docs repository`));
 await $`mkdir -p changelog`;
 cd('changelog');
@@ -167,20 +132,6 @@ await $`git push --set-upstream origin ${gitBranch}`;
 const prBody = `
 # New APIM version ${releasingVersion} has been released
 📝 You can modify the changelog template online [here](https://github.com/gravitee-io/gravitee-docs/edit/${gitBranch}/${docApimChangelogFile})
-
-Here is some information to help with the writing:
-
-## Pull requests
-<details>
-  <summary>See all Pull Requests</summary>
-
-${prInfo}
-
-</details>
-
-## Jira issues
-
-[See all Jira issues for ${versions.branch} version](https://gravitee.atlassian.net/jira/software/c/projects/APIM/issues/?jql=project%20%3D%20%22APIM%22%20and%20fixVersion%20%3D%20${releasingVersion}%20and%20status%20%3D%20Done%20ORDER%20BY%20created%20DESC)
 `;
 echo(chalk.blue('# Create PR on Github Doc repository'));
 echo(prBody);
