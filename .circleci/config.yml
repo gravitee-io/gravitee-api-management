@@ -246,7 +246,7 @@ commands:
 parameters:
     gio_action:
         type: enum
-        enum: [release, package_bundle, nexus_staging, pull_requests, build_rpm_&_docker_images, release_notes_apim, publish_docker_images]
+        enum: [release, pull_requests, publish_docker_images]
         default: pull_requests
     dry_run:
         type: boolean
@@ -1635,26 +1635,6 @@ workflows:
                               - /.*merge.*/
                               - /^\d+\.\d+\.x$/
 
-    build_rpm_&_docker_images:
-        when:
-            equal: [build_rpm_&_docker_images, << pipeline.parameters.gio_action >>]
-        jobs:
-            - publish_prod_docker_images:
-                  graviteeio_version: << pipeline.parameters.graviteeio_version >>
-                  docker_tag_as_latest: << pipeline.parameters.docker_tag_as_latest >>
-                  dry_run: << pipeline.parameters.dry_run >>
-                  context: cicd-orchestrator
-                  name: Build and push docker images for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
-            - add-docker-images-in-snyk:
-                  context: cicd-orchestrator
-                  requires:
-                      - Build and push docker images for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
-            - publish_rpm_packages:
-                  context: cicd-orchestrator
-                  graviteeio_version: << pipeline.parameters.graviteeio_version >>
-                  dry_run: << pipeline.parameters.dry_run >>
-                  name: Build and push RPM packages for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
-
     release:
         when:
             equal: [release, << pipeline.parameters.gio_action >>]
@@ -1678,7 +1658,6 @@ workflows:
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
                       - Build APIM Portal
-
             # APIM Console
             - webui-build:
                   context: cicd-orchestrator
@@ -1693,7 +1672,6 @@ workflows:
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
                       - Build APIM Console
-
             # APIM Backend
             - backend-build-and-publish-artifactory:
                   name: Backend build and publish to artifactory
@@ -1709,24 +1687,51 @@ workflows:
                       - Publish APIM Console to artifactory
                       - Publish APIM Portal to artifactory
                   context: cicd-orchestrator
-
-    package_bundle:
-        when:
-            equal: [package_bundle, << pipeline.parameters.gio_action >>]
-        jobs:
-            - package-bundle:
-                  context: cicd-orchestrator
-
-    nexus_staging:
-        when:
-            equal: [nexus_staging, << pipeline.parameters.gio_action >>]
-        jobs:
-            - setup:
-                  context: cicd-orchestrator
-            - nexus-staging:
-                  context: cicd-orchestrator
-                  requires:
-                      - setup
+            # Package bundle
+            - package_bundle:
+                name: Package bundle
+                context: cicd-orchestrator
+                requires:
+                  - Commit and prepare next version
+            # Publish Docker images
+            - publish_prod_docker_images:
+                graviteeio_version: << pipeline.parameters.graviteeio_version >>
+                docker_tag_as_latest: << pipeline.parameters.docker_tag_as_latest >>
+                dry_run: << pipeline.parameters.dry_run >>
+                context: cicd-orchestrator
+                name: Build and push docker images for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+                requires:
+                  - Package bundle
+            # Add docker images in Snyk
+            - add-docker-images-in-snyk:
+                context: cicd-orchestrator
+                requires:
+                  - Build and push docker images for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+            # Publish RPM Packages
+            - publish_rpm_packages:
+                context: cicd-orchestrator
+                graviteeio_version: << pipeline.parameters.graviteeio_version >>
+                dry_run: << pipeline.parameters.dry_run >>
+                name: Build and push RPM packages for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
+                requires:
+                  - Package bundle
+            # Create Release note pull request
+            - release_notes_apim:
+                name: Create release note pull request
+                context: cicd-orchestrator
+                requires:
+                  - Package bundle
+            # Nexus staging
+            # TODO: check if it needs docker publishing to be done or can be done directly after package_bundle ?
+            - when:
+                condition:
+                  not: << pipeline.parameters.dry_run>>
+                jobs:
+                    - nexus-staging:
+                        name: Nexus staging
+                        context: cicd-orchestrator
+                        requires:
+                          - Package bundle
 
     db_repositories_test_container:
         triggers:
@@ -1765,13 +1770,6 @@ workflows:
                   matrix:
                       parameters:
                           version: ["3", "4", "5"]
-
-    release_notes_apim:
-        when:
-            equal: [release_notes_apim, << pipeline.parameters.gio_action >>]
-        jobs:
-            - release_notes_apim:
-                  context: cicd-orchestrator
 
     publish_docker_images:
         when:
