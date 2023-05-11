@@ -1098,35 +1098,35 @@ jobs:
 
             - attach_workspace:
                   at: .
-            - prepare-gpg
-            - run:
-                  name: Release on Nexus
-                  command: |
-                      mvn clean deploy --activate-profiles gravitee-release --batch-mode -Dmaven.test.skip=true -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
-            - save-maven-job-cache:
-                  jobName: nexus-staging
-            - keeper/env-export:
-                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-                  var-name: SLACK_ACCESS_TOKEN
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run>>
                   steps:
-                      - slack/notify:
-                            channel: C02NGT20S4W
-                            event: pass
-                            custom: |
+                    - prepare-gpg
+                    - run:
+                        name: Release on Nexus
+                        command: |
+                          mvn clean deploy --activate-profiles gravitee-release --batch-mode -Dmaven.test.skip=true -DskipTests -Dskip.validation=true --settings .gravitee.settings.xml --update-snapshots
+                    - save-maven-job-cache:
+                        jobName: nexus-staging
+                    - keeper/env-export:
+                        secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
+                        var-name: SLACK_ACCESS_TOKEN
+                    - slack/notify:
+                        channel: C02NGT20S4W
+                        event: pass
+                        custom: |
+                            {
+                              "blocks": [
                                 {
-                                  "blocks": [
-                                    {
-                                      "type": "section",
-                                      "text": {
-                                        "type": "mrkdwn",
-                                        "text": "🎆 APIM - << pipeline.parameters.graviteeio_version >> released!"
-                                      }
-                                    }
-                                  ]
+                                  "type": "section",
+                                  "text": {
+                                    "type": "mrkdwn",
+                                    "text": "🎆 APIM - << pipeline.parameters.graviteeio_version >> released!"
+                                  }
                                 }
+                              ]
+                            }
 
     jdbc-test-container:
         parameters:
@@ -1722,16 +1722,11 @@ workflows:
                 requires:
                   - Package bundle
             # Nexus staging
-            # TODO: check if it needs docker publishing to be done or can be done directly after package_bundle ?
-            - when:
-                condition:
-                  not: << pipeline.parameters.dry_run>>
-                jobs:
-                    - nexus-staging:
-                        name: Nexus staging
-                        context: cicd-orchestrator
-                        requires:
-                          - Package bundle
+            - nexus-staging:
+                name: Nexus staging
+                context: cicd-orchestrator
+                requires:
+                  - Package bundle
 
     db_repositories_test_container:
         triggers:
