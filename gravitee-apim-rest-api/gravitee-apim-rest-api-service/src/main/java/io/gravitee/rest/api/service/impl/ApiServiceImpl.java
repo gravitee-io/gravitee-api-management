@@ -110,6 +110,7 @@ import io.gravitee.rest.api.model.api.RollbackApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -121,6 +122,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.AlertService;
@@ -853,178 +855,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-<<<<<<< HEAD
-    public Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
-        return new HashSet<>(findByUser(executionContext, userId, apiQuery, null, null, portal).getContent());
-    }
-
-    @Override
-=======
-    public Set<ApiEntity> findByEnvironmentAndIdIn(final ExecutionContext executionContext, Set<String> ids) {
-        LOGGER.debug("Find APIs by environment {} and ID in {}", executionContext.getEnvironmentId(), ids);
-        try {
-            if (ids.isEmpty()) {
-                return Collections.emptySet();
-            }
-            ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId(executionContext.getEnvironmentId()).build();
-
-            return convert(
-                executionContext,
-                apiRepository.search(criteria, null, new ApiFieldFilter.Builder().excludePicture().build()).collect(Collectors.toList())
-            )
-                .stream()
-                .collect(toSet());
-        } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while trying to find APIs by environment and ids", e);
-            throw new TechnicalManagementException("An error occurs while trying to find APIs by environment and ids", e);
-        }
-    }
-
-    @Override
     public Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
         return new HashSet<>(findByUser(executionContext, userId, apiQuery, null, null, manageOnly).getContent());
     }
 
     @Override
-    public Set<String> findIdsByUser(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        Sortable sortable,
-        boolean manageOnly
-    ) {
-        Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, apiQuery);
-
-        if (optionalTargetIds.isPresent()) {
-            Collection<String> targetIds = optionalTargetIds.get();
-            if (targetIds.isEmpty()) {
-                return Collections.emptySet();
-            }
-            apiQuery.setIds(targetIds);
-        }
-
-        List<ApiCriteria> apiCriteriaList = computeApiCriteriaForUser(executionContext, userId, apiQuery, manageOnly);
-
-        if (apiCriteriaList.isEmpty()) {
-            return Set.of();
-        }
-        // Just one call to apiRepository to preserve sort
-        // FIXME: Remove this hardcoded page size, it should be handled properly in the service
-        Pageable pageable = new PageableImpl(1, Integer.MAX_VALUE);
-        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(pageable), convert(sortable)).getContent();
-        return new LinkedHashSet<>(apiIds);
-    }
-
-    @NotNull
-    private List<ApiCriteria> computeApiCriteriaForUser(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        boolean manageOnly
-    ) {
-        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-        if (!manageOnly) {
-            // if manageOnly is false, return all visible apis for the user. Often used by portal-api resources.
-            apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).visibility(PUBLIC).build());
-        }
-
-        if (apiQuery == null) {
-            apiQuery = new ApiQuery();
-        }
-
-        // for others, user must be authenticated
-        if (userId != null) {
-            // get user apis
-            final Set<String> userApiIds = membershipService
-                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
-                .stream()
-                .filter(membership -> membership.getRoleId() != null)
-                .filter(membership -> {
-                    final RoleEntity role = roleService.findById(membership.getRoleId());
-                    if (manageOnly) {
-                        return canManageApi(role);
-                    }
-                    return role.getScope().equals(RoleScope.API);
-                })
-                .map(MembershipEntity::getReferenceId)
-                .collect(toSet());
-            // add dedicated criteria for user apis
-            if (!userApiIds.isEmpty()) {
-                apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).ids(userApiIds).build());
-            }
-
-            // get user groups apis
-            final Set<String> userGroupApiIds = findApiIdsByUserGroups(executionContext, userId, apiQuery, manageOnly);
-
-            // add dedicated criteria for groups apis
-            if (!userGroupApiIds.isEmpty()) {
-                apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).ids(userGroupApiIds).build());
-            }
-
-            // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
-            if (!manageOnly) {
-                Set<String> userApplicationIds = membershipService.getReferenceIdsByMemberAndReference(
-                    MembershipMemberType.USER,
-                    userId,
-                    MembershipReferenceType.APPLICATION
-                );
-
-                Set<String> applicationIds = new HashSet<>(userApplicationIds);
-
-                Set<String> userGroupIds = membershipService.getReferenceIdsByMemberAndReference(
-                    MembershipMemberType.USER,
-                    userId,
-                    MembershipReferenceType.GROUP
-                );
-
-                ApplicationQuery appQuery = new ApplicationQuery();
-                appQuery.setGroups(userGroupIds);
-                appQuery.setStatus(ApplicationStatus.ACTIVE.name());
-
-                Set<String> userGroupApplicationIds = applicationService.searchIds(executionContext, appQuery, null);
-
-                applicationIds.addAll(userGroupApplicationIds);
-
-                if (!applicationIds.isEmpty()) {
-                    final SubscriptionQuery query = new SubscriptionQuery();
-                    query.setApplications(applicationIds);
-                    query.setExcludedApis(
-                        apiCriteriaList
-                            .stream()
-                            .map(ApiCriteria::getIds)
-                            .filter(Objects::nonNull)
-                            .flatMap(Collection::stream)
-                            .collect(toSet())
-                    );
-
-                    final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, query);
-                    if (subscriptions != null && !subscriptions.isEmpty()) {
-                        apiCriteriaList.add(
-                            queryToCriteria(executionContext, apiQuery)
-                                .ids(subscriptions.stream().map(SubscriptionEntity::getApi).distinct().collect(toList()))
-                                .build()
-                        );
-                    }
-                }
-            }
-        }
-        return apiCriteriaList;
-    }
-
-    @Override
-    public Set<CategoryEntity> listCategories(Collection<String> apis, String environment) {
-        try {
-            ApiCriteria criteria = new ApiCriteria.Builder().ids(apis.toArray(new String[apis.size()])).build();
-            Set<String> categoryIds = apiRepository.listCategories(criteria);
-            return categoryService.findByIdIn(environment, categoryIds);
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to list categories for APIs {}", apis, ex);
-            throw new TechnicalManagementException("An error occurs while trying to list categories for APIs {}" + apis, ex);
-        }
-    }
-
-    @Override
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
     public Page<ApiEntity> findByUser(
         ExecutionContext executionContext,
         String userId,
@@ -1035,13 +870,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     ) {
         try {
             LOGGER.debug("Find APIs page by user {}", userId);
-
-<<<<<<< HEAD
-            Set<String> apiIds = apiAuthorizationService.findIdsByUser(executionContext, userId, apiQuery, sortable, portal);
-=======
-            Set<String> apiIds = findIdsByUser(executionContext, userId, apiQuery, sortable, manageOnly);
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
-
+            Set<String> apiIds = apiAuthorizationService.findIdsByUser(executionContext, userId, apiQuery, sortable, manageOnly);
             return loadPage(executionContext, apiIds, pageable);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find APIs for user {}", userId, ex);
@@ -1066,216 +895,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-<<<<<<< HEAD
-=======
-    private Set<String> findApiIdsByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
-        Set<String> apis = new HashSet<>();
-
-        // keep track of API roles mapped to their ID to avoid querying in a loop later
-        Map<String, RoleEntity> apiRoles = roleService
-            .findByScope(RoleScope.API, executionContext.getOrganizationId())
-            .stream()
-            .collect(toMap(RoleEntity::getId, Function.identity()));
-
-        List<String> nonPOGroupApiIds = findApiIdsByGroupWithUserHavingNonPOApiRole(
-            executionContext,
-            userId,
-            apiQuery,
-            apiRoles,
-            manageOnly
-        );
-        List<String> poGroupApiIds = findApiIdsByGroupWithUserHavingPOApiRole(executionContext, userId, apiQuery, apiRoles, manageOnly);
-
-        apis.addAll(nonPOGroupApiIds);
-        apis.addAll(poGroupApiIds);
-
-        return apis;
-    }
-
-    private List<String> findApiIdsByGroupWithUserHavingNonPOApiRole(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        Map<String, RoleEntity> apiRoles,
-        boolean manageOnly
-    ) {
-        Set<String> nonPoRoleIds = apiRoles
-            .values()
-            .stream()
-            .filter(role -> !role.isApiPrimaryOwner())
-            .map(RoleEntity::getId)
-            .collect(toSet());
-
-        String[] groupIds = membershipService
-            .getMembershipsByMemberAndReferenceAndRoleIn(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP, nonPoRoleIds)
-            .stream()
-            .filter(membership -> {
-                final RoleEntity roleInGroup = apiRoles.get(membership.getRoleId());
-                if (manageOnly) {
-                    return canManageApi(roleInGroup);
-                }
-                return roleInGroup.getScope().equals(RoleScope.API);
-            })
-            .map(MembershipEntity::getReferenceId)
-            .filter(Objects::nonNull)
-            .toArray(String[]::new);
-
-        if (groupIds.length > 0) {
-            List<String> apiIds = apiRepository
-                .searchIds(
-                    List.of(queryToCriteria(executionContext, apiQuery).groups(groupIds).build()),
-                    new PageableBuilder().pageSize(Integer.MAX_VALUE).build(),
-                    null
-                )
-                .getContent();
-            return apiIds != null ? apiIds : List.of();
-        }
-
-        return List.of();
-    }
-
-    /*
-     * If the user has the PRIMARY_OWNER role on the API scope in a group,
-     * the user will keep this role only if the group is primary owner
-     * on the API. If not, his role will be set to the default API role
-     * for this group.
-     *
-     * If no default role has been defined on the group,
-     * the API is removed from the list.
-     *
-     * see https://github.com/gravitee-io/issues/issues/6360
-     */
-    private List<String> findApiIdsByGroupWithUserHavingPOApiRole(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        Map<String, RoleEntity> apiRoles,
-        boolean manageOnly
-    ) {
-        String apiPrimaryOwnerRoleId = apiRoles
-            .values()
-            .stream()
-            .filter(RoleEntity::isApiPrimaryOwner)
-            .map(RoleEntity::getId)
-            .findFirst()
-            .orElseThrow(() -> new TechnicalManagementException("Unable to find API Primary Owner System Role"));
-
-        String[] poGroupIds = membershipService
-            .getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.USER,
-                userId,
-                MembershipReferenceType.GROUP,
-                apiPrimaryOwnerRoleId
-            )
-            .stream()
-            .map(MembershipEntity::getReferenceId)
-            .filter(Objects::nonNull)
-            .toArray(String[]::new);
-
-        // keep track of roles mapped to their name to be able to evaluate the default API role permission for the groups
-        Map<String, RoleEntity> apiRolesByName = apiRoles.values().stream().collect(toMap(RoleEntity::getName, Function.identity()));
-
-        // keep track of all the groups where the user has the role Primary Owner on the API scope
-        Set<GroupEntity> userGroups = groupService.findByIds(Set.of(poGroupIds));
-
-        if (poGroupIds.length > 0) {
-            return apiRepository
-                .search(queryToCriteria(executionContext, apiQuery).groups(poGroupIds).build(), null, ApiFieldFilter.allFields())
-                .filter(api -> {
-                    PrimaryOwnerEntity primaryOwner = getPrimaryOwner(executionContext, api);
-                    /*
-                     * If one of the groups where the user has the API Primary Owner Role
-                     * is the actual Primary Owner of the API, grant permission
-                     */
-                    if (Set.of(poGroupIds).contains(primaryOwner.getId())) {
-                        return true;
-                    }
-                    /*
-                     * Otherwise, check if the default API role for one of the groups
-                     * grants permission to the user
-                     */
-                    return userGroups
-                        .stream()
-                        .map(GroupEntity::getRoles)
-                        .filter(Objects::nonNull)
-                        .anyMatch(groupDefaultRoles -> {
-                            String defaultApiRoleName = groupDefaultRoles.get(RoleScope.API);
-                            final RoleEntity role = apiRolesByName.get(defaultApiRoleName);
-                            if (manageOnly) {
-                                return canManageApi(role);
-                            }
-                            return role.getScope().equals(RoleScope.API);
-                        });
-                })
-                .map(Api::getId)
-                .collect(toList());
-        }
-        return List.of();
-    }
-
-    @Override
-    public boolean canManageApi(RoleEntity role) {
-        return (
-            role != null &&
-            role.getScope().equals(RoleScope.API) &&
-            role
-                .getPermissions()
-                .entrySet()
-                .stream()
-                .filter(entry -> isApiManagementPermission(entry.getKey()))
-                .anyMatch(entry -> {
-                    String stringPerm = new String(entry.getValue());
-                    return stringPerm.contains("C") || stringPerm.contains("U") || stringPerm.contains("D");
-                })
-        );
-    }
-
-    private boolean isApiManagementPermission(String permissionAsString) {
-        return Arrays
-            .stream(ApiPermission.values())
-            .filter(permission -> permission != ApiPermission.RATING && permission != ApiPermission.RATING_ANSWER)
-            .anyMatch(permission -> permission.name().equals(permissionAsString));
-    }
-
-    @Override
-    public Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery) {
-        if (apiQuery == null) {
-            apiQuery = new ApiQuery();
-        }
-        apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
-        return findByUser(executionContext, userId, apiQuery, false);
-    }
-
-    @Override
-    public Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery) {
-        if (apiQuery == null) {
-            apiQuery = new ApiQuery();
-        }
-        apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
-        return findIdsByUser(executionContext, userId, apiQuery, false);
-    }
-
-    @Override
-    public Page<ApiEntity> findPublishedByUser(
-        ExecutionContext executionContext,
-        String userId,
-        ApiQuery apiQuery,
-        Sortable sortable,
-        Pageable pageable
-    ) {
-        if (apiQuery == null) {
-            apiQuery = new ApiQuery();
-        }
-        apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
-        return findByUser(executionContext, userId, apiQuery, sortable, pageable, false);
-    }
-
-    @Override
-    public Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId) {
-        return findPublishedByUser(executionContext, userId, null);
-    }
-
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
     private Set merge(List originSet, Collection setToAdd) {
         if (originSet == null) {
             return merge(Collections.emptySet(), setToAdd);
@@ -3031,11 +2650,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             ApiQuery apiQuery = new ApiQuery();
             apiQuery.setCategory(categoryId);
             // portal=false because we do not want to have visibility=public apis for authenticated users
-<<<<<<< HEAD
-            apiCriteriaList = apiAuthorizationService.computeApiCriteriaForUser(executionContext, userId, apiQuery, false);
-=======
-            apiCriteriaList = computeApiCriteriaForUser(executionContext, userId, apiQuery, true);
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
+            apiCriteriaList = apiAuthorizationService.computeApiCriteriaForUser(executionContext, userId, apiQuery, true);
         }
 
         Pageable pageable = new PageableImpl(1, Integer.MAX_VALUE);

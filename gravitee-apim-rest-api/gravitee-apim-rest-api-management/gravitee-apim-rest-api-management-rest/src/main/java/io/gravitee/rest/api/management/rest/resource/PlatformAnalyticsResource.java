@@ -102,13 +102,8 @@ public class PlatformAnalyticsResource extends AbstractResource {
             } else {
                 fieldName = "api";
                 ids =
-<<<<<<< HEAD
                     apiAuthorizationService
-                        .findIdsByUser(executionContext, getAuthenticatedUser(), false)
-=======
-                    apiService
-                        .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
+                        .findIdsByUser(executionContext, getAuthenticatedUser(), true)
                         .stream()
                         .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
                         .collect(Collectors.toList());

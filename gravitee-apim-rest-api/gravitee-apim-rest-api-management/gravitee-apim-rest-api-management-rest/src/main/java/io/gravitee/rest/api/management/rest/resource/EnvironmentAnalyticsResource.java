@@ -153,11 +153,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                             .getTotalElements()
                     );
                 } else {
-<<<<<<< HEAD
-                    return buildCountStat(apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), false).size());
-=======
-                    return buildCountStat(apiService.findIdsByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), true).size());
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
+                    return buildCountStat(apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), true).size());
                 }
             case APPLICATION_FIELD:
                 if (isAdmin()) {
@@ -256,13 +252,8 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         } else {
             fieldName = API_FIELD;
             ids =
-<<<<<<< HEAD
                 apiAuthorizationService
-                    .findIdsByUser(executionContext, getAuthenticatedUser(), false)
-=======
-                apiService
-                    .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
+                    .findIdsByUser(executionContext, getAuthenticatedUser(), true)
                     .stream()
                     .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
                     .collect(Collectors.toList());

@@ -46,17 +46,17 @@ public interface ApiAuthorizationService {
 
     Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final ApiQuery apiQuery);
 
-    default Set<String> findIdsByUser(final ExecutionContext executionContext, final String userId, final boolean portal) {
-        return this.findIdsByUser(executionContext, userId, new ApiQuery(), null, portal);
+    default Set<String> findIdsByUser(final ExecutionContext executionContext, final String userId, final boolean manageOnly) {
+        return this.findIdsByUser(executionContext, userId, new ApiQuery(), null, manageOnly);
     }
 
     default Set<String> findIdsByUser(
         final ExecutionContext executionContext,
         final String userId,
         final ApiQuery apiQuery,
-        final boolean portal
+        final boolean manageOnly
     ) {
-        return this.findIdsByUser(executionContext, userId, apiQuery, null, portal);
+        return this.findIdsByUser(executionContext, userId, apiQuery, null, manageOnly);
     }
 
     Set<String> findIdsByUser(
@@ -64,8 +64,8 @@ public interface ApiAuthorizationService {
         final String userId,
         final ApiQuery apiQuery,
         final Sortable sortable,
-        final boolean portal
+        final boolean manageOnly
     );
 
-    List<ApiCriteria> computeApiCriteriaForUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal);
+    List<ApiCriteria> computeApiCriteriaForUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
 }
