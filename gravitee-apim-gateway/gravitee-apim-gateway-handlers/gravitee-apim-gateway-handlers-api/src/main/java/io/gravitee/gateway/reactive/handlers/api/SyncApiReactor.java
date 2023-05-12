@@ -205,10 +205,10 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         return executeProcessorChain(ctx, beforeHandleProcessors, REQUEST)
             // Execute platform flow chain
             .andThen(platformFlowChain.execute(ctx, REQUEST))
-            // Execute before flows processors
-            .andThen(executeProcessorChain(ctx, beforeApiFlowsProcessors, REQUEST))
             // Execute security chain.
             .andThen(securityChain.execute(ctx))
+            // Execute before flows processors
+            .andThen(executeProcessorChain(ctx, beforeApiFlowsProcessors, REQUEST))
             .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
             .andThen(executeFlowChain(ctx, apiFlowChain, REQUEST))
             // All request flows have been executed. Invokes backend.

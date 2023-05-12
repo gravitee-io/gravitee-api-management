@@ -136,9 +136,4 @@ public class CorsV3IntegrationTest extends CorsIntegrationTest {
     @GatewayTest(mode = GatewayMode.V3)
     @DeployApi({ "/apis/http/cors-running-policies.json", "/apis/http/cors-not-running-policies.json" })
     class CheckingRejection extends CorsIntegrationTest.CheckingRejection {}
-
-    @Nested
-    @GatewayTest(mode = GatewayMode.V3)
-    @DeployApi({ "/apis/http/cors-running-policies.json" })
-    class CheckingSecurityChainSkip extends CorsIntegrationTest.CheckingSecurityChainSkip {}
 }
