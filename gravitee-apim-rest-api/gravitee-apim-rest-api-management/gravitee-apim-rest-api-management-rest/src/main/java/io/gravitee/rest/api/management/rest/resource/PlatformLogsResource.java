@@ -111,7 +111,7 @@ public class PlatformLogsResource extends AbstractResource {
         String applicationsFilter = getExtraFilter("application", applicationIds);
 
         List<String> apiIds = apiService
-            .findIdsByUser(executionContext, getAuthenticatedUser(), null, false)
+            .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
             .stream()
             .filter(appId -> permissionService.hasPermission(executionContext, API_LOG, appId, READ))
             .collect(Collectors.toList());

@@ -26,8 +26,6 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.query.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -105,7 +103,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
                 fieldName = "api";
                 ids =
                     apiService
-                        .findIdsByUser(executionContext, getAuthenticatedUser(), null, false)
+                        .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
                         .stream()
                         .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
                         .collect(Collectors.toList());

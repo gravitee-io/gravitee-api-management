@@ -48,10 +48,10 @@ public interface ApiService {
         ApiQuery apiQuery,
         Sortable sortable,
         Pageable pageable,
-        boolean portal
+        boolean manageOnly
     );
 
-    Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal);
+    Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
 
     Page<ApiEntity> findPublishedByUser(
         ExecutionContext executionContext,
@@ -63,11 +63,11 @@ public interface ApiService {
 
     Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId);
 
-    default Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
-        return findIdsByUser(executionContext, userId, apiQuery, null, portal);
+    default Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
+        return findIdsByUser(executionContext, userId, apiQuery, null, manageOnly);
     }
 
-    Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, Sortable sortable, boolean portal);
+    Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, Sortable sortable, boolean manageOnly);
 
     Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
 

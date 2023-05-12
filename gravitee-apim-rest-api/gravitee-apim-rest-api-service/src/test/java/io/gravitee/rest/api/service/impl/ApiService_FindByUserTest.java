@@ -184,7 +184,7 @@ public class ApiService_FindByUserTest {
         final ApplicationListItem application = new ApplicationListItem();
         application.setId("appId");
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, false);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, true);
 
         assertNotNull(apiEntities);
         assertEquals(1, apiEntities.size());
@@ -268,7 +268,7 @@ public class ApiService_FindByUserTest {
             null,
             new SortableImpl("name", false),
             new PageableImpl(2, 1),
-            false
+            true
         );
 
         assertNotNull(apiPage);
@@ -293,7 +293,7 @@ public class ApiService_FindByUserTest {
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
             .thenReturn(Collections.emptySet());
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, false);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, true);
 
         assertNotNull(apiEntities);
         assertTrue(apiEntities.isEmpty());
@@ -301,7 +301,7 @@ public class ApiService_FindByUserTest {
 
     @Test
     public void shouldFindPublicApisOnlyWithAnonymousUser() throws TechnicalException {
-        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), null, null, false);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), null, null, true);
 
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());
@@ -334,7 +334,7 @@ public class ApiService_FindByUserTest {
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
-        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, false);
+        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, true);
 
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());

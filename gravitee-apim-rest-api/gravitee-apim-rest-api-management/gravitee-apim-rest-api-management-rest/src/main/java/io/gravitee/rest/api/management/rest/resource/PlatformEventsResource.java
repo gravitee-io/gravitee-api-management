@@ -85,7 +85,7 @@ public class PlatformEventsResource extends AbstractResource {
             properties.put(
                 Event.EventProperties.API_ID.getValue(),
                 apiService
-                    .findByUser(executionContext, getAuthenticatedUser(), null, false)
+                    .findByUser(executionContext, getAuthenticatedUser(), null, true)
                     .stream()
                     .filter(api -> permissionService.hasPermission(executionContext, API_ANALYTICS, api.getId(), READ))
                     .map(ApiEntity::getId)
