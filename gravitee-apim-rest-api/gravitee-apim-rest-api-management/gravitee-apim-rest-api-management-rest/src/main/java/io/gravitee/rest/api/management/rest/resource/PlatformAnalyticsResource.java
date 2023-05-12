@@ -26,8 +26,6 @@ import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.analytics.Analytics;
 import io.gravitee.rest.api.model.analytics.query.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -104,8 +102,13 @@ public class PlatformAnalyticsResource extends AbstractResource {
             } else {
                 fieldName = "api";
                 ids =
+<<<<<<< HEAD
                     apiAuthorizationService
                         .findIdsByUser(executionContext, getAuthenticatedUser(), false)
+=======
+                    apiService
+                        .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
                         .stream()
                         .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
                         .collect(Collectors.toList());

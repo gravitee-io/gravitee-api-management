@@ -135,7 +135,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyHistoAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), !eq(false)))
             .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
@@ -155,7 +155,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyTopHitsAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), !eq(false)))
             .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
@@ -175,7 +175,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyCountAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), !eq(false)))
             .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
@@ -194,7 +194,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyStatsAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), !eq(false)))
             .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
@@ -217,7 +217,11 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApiEntity api = new ApiEntity();
         api.setId("apiId");
 
+<<<<<<< HEAD
         when(apiAuthorizationServiceV4.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(false)))
+=======
+        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true)))
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
             .thenReturn(Collections.singleton(api.getId()));
         when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_ANALYTICS, api.getId(), READ)).thenReturn(true);
 
