@@ -209,7 +209,7 @@ public class ApisResource extends AbstractResource {
                         apiQuery,
                         sortable,
                         commonPageable,
-                        apisParam.isPortal()
+                        !apisParam.isPortal()
                     );
             } else {
                 apiQuery.setVisibility(PUBLIC);
@@ -473,7 +473,11 @@ public class ApisResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!isAdmin()) {
+<<<<<<< HEAD
             filters.put("api", apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), false));
+=======
+            filters.put("api", apiService.findIdsByUser(executionContext, getAuthenticatedUser(), apiQuery, true));
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
         }
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);
