@@ -37,9 +37,7 @@ import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
-import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -155,7 +153,11 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
                             .getTotalElements()
                     );
                 } else {
+<<<<<<< HEAD
                     return buildCountStat(apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), false).size());
+=======
+                    return buildCountStat(apiService.findIdsByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), true).size());
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
                 }
             case APPLICATION_FIELD:
                 if (isAdmin()) {
@@ -254,8 +256,13 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         } else {
             fieldName = API_FIELD;
             ids =
+<<<<<<< HEAD
                 apiAuthorizationService
                     .findIdsByUser(executionContext, getAuthenticatedUser(), false)
+=======
+                apiService
+                    .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
                     .stream()
                     .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
                     .collect(Collectors.toList());
@@ -318,7 +325,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
     private TopHitsAnalytics getTopHitsAnalytics(final ExecutionContext executionContext, Function<ApiEntity, String> groupingByFunction) {
         Set<ApiEntity> apis = isAdmin()
             ? new HashSet<>(apiService.search(executionContext, new ApiQuery()))
-            : apiService.findByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), false);
+            : apiService.findByUser(executionContext, getAuthenticatedUser(), new ApiQuery(), true);
         Map<String, Long> collect = apis.stream().collect(Collectors.groupingBy(groupingByFunction, Collectors.counting()));
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
         topHitsAnalytics.setValues(collect);
