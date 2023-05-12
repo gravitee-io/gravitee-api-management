@@ -45,7 +45,10 @@ public class PluginManifestLoader {
         try {
             final Path resources = Path.of("src/main/resources");
             final PluginManifestVisitor visitor = new PluginManifestVisitor();
-            Files.walkFileTree(resources, visitor);
+
+            if (resources.toFile().exists()) {
+                Files.walkFileTree(resources, visitor);
+            }
 
             Path pluginManifestPath = visitor.getPluginManifest();
             if (pluginManifestPath != null) {
