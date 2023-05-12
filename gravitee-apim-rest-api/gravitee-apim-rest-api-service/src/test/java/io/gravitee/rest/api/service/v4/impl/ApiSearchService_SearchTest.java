@@ -395,4 +395,47 @@ public class ApiSearchService_SearchTest {
         verify(apiAuthorizationService, times(1)).findApiIdsByUserId(any(), any(), any());
         verify(apiRepository, never()).search(any(), any(), any(), any());
     }
+
+    @Test
+    public void should_return_no_results_if_user_has_other_ids() {
+        QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder.create(ApiEntity.class);
+        apiEntityQueryBuilder.setQuery("*");
+
+        var ids = List.of("id-1", "id-2");
+
+        var filters = new HashMap<String, Object>();
+        filters.put("api", ids);
+
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.setFilters(filters).build())))
+            .thenReturn(new SearchResult(ids));
+
+        var apiEntity1 = new Api();
+        apiEntity1.setId("id-1");
+        apiEntity1.setLifecycleState(LifecycleState.STARTED);
+
+        var apiEntity2 = new Api();
+        apiEntity2.setId("id-2");
+        apiEntity2.setLifecycleState(LifecycleState.STARTED);
+
+        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull()))
+            .thenReturn(Set.of("id-3"));
+
+        final Page<GenericApiEntity> apis = apiSearchService.search(
+            GraviteeContext.getExecutionContext(),
+            USER_ID,
+            false,
+            apiEntityQueryBuilder.setFilters(filters),
+            new PageableImpl(1, 10),
+            null
+        );
+
+        assertThat(apis).isNotNull();
+        assertThat(apis.getContent().size()).isEqualTo(0);
+        assertThat(apis.getTotalElements()).isEqualTo(0);
+        assertThat(apis.getPageNumber()).isEqualTo(0);
+        assertThat(apis.getPageElements()).isEqualTo(0);
+
+        verify(apiAuthorizationService, times(1)).findApiIdsByUserId(any(), any(), any());
+        verify(apiRepository, never()).search(any(), any(), any(), any());
+    }
 }
