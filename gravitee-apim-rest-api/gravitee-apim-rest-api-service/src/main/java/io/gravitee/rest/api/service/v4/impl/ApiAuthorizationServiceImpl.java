@@ -155,7 +155,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         String userId,
         ApiQuery apiQuery,
         Sortable sortable,
-        boolean portal
+        boolean manageOnly
     ) {
         Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, apiQuery);
 
@@ -167,7 +167,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             apiQuery.setIds(targetIds);
         }
 
-        List<ApiCriteria> apiCriteriaList = computeApiCriteriaForUser(executionContext, userId, apiQuery, portal);
+        List<ApiCriteria> apiCriteriaList = computeApiCriteriaForUser(executionContext, userId, apiQuery, manageOnly);
 
         if (apiCriteriaList.isEmpty()) {
             return Set.of();
@@ -220,11 +220,11 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         ExecutionContext executionContext,
         String userId,
         ApiQuery apiQuery,
-        boolean portal
+        boolean manageOnly
     ) {
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-        if (portal) {
-            // for portal, we get all public apis
+        if (!manageOnly) {
+            // if manageOnly is false, return all visible apis for the user. Often used by portal-api resources.
             apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).visibility(PUBLIC).build());
         }
 
@@ -241,7 +241,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
                 .filter(membership -> membership.getRoleId() != null)
                 .filter(membership -> {
                     final RoleEntity role = roleService.findById(membership.getRoleId());
-                    if (!portal) {
+                    if (manageOnly) {
                         return canManageApi(role);
                     }
                     return role.getScope().equals(RoleScope.API);
@@ -254,7 +254,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             }
 
             // get user groups apis
-            final Set<String> userGroupApiIds = findApiIdsByUserGroups(executionContext, userId, apiQuery, portal);
+            final Set<String> userGroupApiIds = findApiIdsByUserGroups(executionContext, userId, apiQuery, manageOnly);
 
             // add dedicated criteria for groups apis
             if (!userGroupApiIds.isEmpty()) {
@@ -262,7 +262,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             }
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
-            if (portal) {
+            if (!manageOnly) {
                 Set<String> userApplicationIds = membershipService.getReferenceIdsByMemberAndReference(
                     MembershipMemberType.USER,
                     userId,
@@ -302,7 +302,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         return apiCriteriaList;
     }
 
-    private Set<String> findApiIdsByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal) {
+    private Set<String> findApiIdsByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
         Set<String> apis = new HashSet<>();
 
         // keep track of API roles mapped to their ID to avoid querying in a loop later
@@ -311,8 +311,14 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             .stream()
             .collect(toMap(RoleEntity::getId, Function.identity()));
 
-        List<String> nonPOGroupApiIds = findApiIdsByGroupWithUserHavingNonPOApiRole(executionContext, userId, apiQuery, apiRoles, portal);
-        List<String> poGroupApiIds = findApiIdsByGroupWithUserHavingPOApiRole(executionContext, userId, apiQuery, apiRoles, portal);
+        List<String> nonPOGroupApiIds = findApiIdsByGroupWithUserHavingNonPOApiRole(
+            executionContext,
+            userId,
+            apiQuery,
+            apiRoles,
+            manageOnly
+        );
+        List<String> poGroupApiIds = findApiIdsByGroupWithUserHavingPOApiRole(executionContext, userId, apiQuery, apiRoles, manageOnly);
 
         apis.addAll(nonPOGroupApiIds);
         apis.addAll(poGroupApiIds);
@@ -325,7 +331,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         String userId,
         ApiQuery apiQuery,
         Map<String, RoleEntity> apiRoles,
-        boolean portal
+        boolean manageOnly
     ) {
         Set<String> nonPoRoleIds = apiRoles
             .values()
@@ -339,7 +345,10 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             .stream()
             .filter(membership -> {
                 final RoleEntity roleInGroup = apiRoles.get(membership.getRoleId());
-                return portal || canManageApi(roleInGroup);
+                if (manageOnly) {
+                    return canManageApi(roleInGroup);
+                }
+                return roleInGroup.getScope().equals(RoleScope.API);
             })
             .map(MembershipEntity::getReferenceId)
             .filter(Objects::nonNull)
@@ -375,7 +384,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         String userId,
         ApiQuery apiQuery,
         Map<String, RoleEntity> apiRoles,
-        boolean portal
+        boolean manageOnly
     ) {
         String apiPrimaryOwnerRoleId = apiRoles
             .values()
@@ -425,7 +434,11 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
                         .filter(Objects::nonNull)
                         .anyMatch(groupDefaultRoles -> {
                             String defaultApiRoleName = groupDefaultRoles.get(RoleScope.API);
-                            return portal || this.canManageApi(apiRolesByName.get(defaultApiRoleName));
+                            final RoleEntity role = apiRolesByName.get(defaultApiRoleName);
+                            if (manageOnly) {
+                                return canManageApi(role);
+                            }
+                            return role.getScope().equals(RoleScope.API);
                         });
                 })
                 .map(Api::getId)

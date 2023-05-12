@@ -166,7 +166,7 @@ public class ApiAuthorizationServiceImplTest {
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
-        final Set<String> apis = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, false);
+        final Set<String> apis = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
 
         assertNotNull(apis);
         assertEquals(1, apis.size());
@@ -186,7 +186,7 @@ public class ApiAuthorizationServiceImplTest {
         when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
             .thenReturn(Collections.emptySet());
 
-        final Set<String> apisId = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, false);
+        final Set<String> apisId = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
 
         assertNotNull(apisId);
         assertTrue(apisId.isEmpty());
@@ -194,7 +194,7 @@ public class ApiAuthorizationServiceImplTest {
 
     @Test
     public void shouldFindPublicApisOnlyWithAnonymousUser() throws TechnicalException {
-        final Set<String> apisId = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), null, false);
+        final Set<String> apisId = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), null, true);
 
         assertNotNull(apisId);
         assertEquals(0, apisId.size());
@@ -227,7 +227,7 @@ public class ApiAuthorizationServiceImplTest {
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
-        final Set<String> apisId = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, false);
+        final Set<String> apisId = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
 
         assertNotNull(apisId);
         assertEquals(0, apisId.size());
@@ -247,13 +247,6 @@ public class ApiAuthorizationServiceImplTest {
         when(roleService.findById(userRoleId)).thenReturn(userRole);
         when(api.getId()).thenReturn("api-1");
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-        apiCriteriaList.add(
-            new ApiCriteria.Builder()
-                .environmentId("DEFAULT")
-                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
-                .visibility(Visibility.PUBLIC)
-                .build()
-        );
         apiCriteriaList.add(
             new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
@@ -297,13 +290,6 @@ public class ApiAuthorizationServiceImplTest {
         when(roleService.findById(userRoleId)).thenReturn(userRole);
         when(api.getId()).thenReturn("api-1");
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-        apiCriteriaList.add(
-            new ApiCriteria.Builder()
-                .environmentId("DEFAULT")
-                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
-                .visibility(Visibility.PUBLIC)
-                .build()
-        );
         apiCriteriaList.add(
             new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
@@ -351,14 +337,6 @@ public class ApiAuthorizationServiceImplTest {
         when(roleService.findById(userRoleId)).thenReturn(userRole);
         when(api.getId()).thenReturn("api-1");
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-        apiCriteriaList.add(
-            new ApiCriteria.Builder()
-                .environmentId("DEFAULT")
-                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
-                .ids("api-1")
-                .visibility(Visibility.PUBLIC)
-                .build()
-        );
         apiCriteriaList.add(
             new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );

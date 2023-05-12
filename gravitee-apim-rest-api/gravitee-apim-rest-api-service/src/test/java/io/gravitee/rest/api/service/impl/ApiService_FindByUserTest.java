@@ -223,12 +223,8 @@ public class ApiService_FindByUserTest {
     }
 
     @Test
-<<<<<<< HEAD
-    public void shouldNotFindByUserBecauseNotExists() {
-        when(apiAuthorizationService.findIdsByUser(any(), eq(USER_NAME), any(), any(), anyBoolean())).thenReturn(Set.of());
-        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, false);
-=======
     public void shouldNotFindByUserBecauseNotExists() throws TechnicalException {
+        when(apiAuthorizationService.findIdsByUser(any(), eq(USER_NAME), any(), any(), anyBoolean())).thenReturn(Set.of());
         final String poRoleId = "API_PRIMARY_OWNER";
 
         RoleEntity poRole = new RoleEntity();
@@ -236,27 +232,16 @@ public class ApiService_FindByUserTest {
         poRole.setScope(RoleScope.API);
         poRole.setName(SystemRole.PRIMARY_OWNER.name());
 
-        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole));
-
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(Collections.emptySet());
-
         final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, true);
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
 
         assertNotNull(apiEntities);
         assertTrue(apiEntities.isEmpty());
     }
 
     @Test
-<<<<<<< HEAD
-    public void shouldFindPublicApisOnlyWithAnonymousUser() {
-        when(apiAuthorizationService.findIdsByUser(any(), eq(null), any(), any(), anyBoolean())).thenReturn(Set.of());
-        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), null, null, false);
-=======
     public void shouldFindPublicApisOnlyWithAnonymousUser() throws TechnicalException {
+        when(apiAuthorizationService.findIdsByUser(any(), eq(null), any(), any(), anyBoolean())).thenReturn(Set.of());
         final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), null, null, true);
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
 
         assertNotNull(apiEntities);
         assertEquals(0, apiEntities.size());
@@ -266,38 +251,5 @@ public class ApiService_FindByUserTest {
         verify(membershipService, times(0))
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.GROUP);
         verify(applicationService, times(0)).findByUser(GraviteeContext.getExecutionContext(), null);
-    }
-
-    private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
-        // By default in this service, we do not care for V4 APIs.
-        List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
-        allowedDefinitionVersion.add(null);
-        allowedDefinitionVersion.add(DefinitionVersion.V1);
-        allowedDefinitionVersion.add(DefinitionVersion.V2);
-
-<<<<<<< HEAD
-        return new ApiCriteria.Builder().definitionVersion(allowedDefinitionVersion);
-=======
-        Map<String, char[]> userPermissions = ImmutableMap.of("MEMBER", "CRUD".toCharArray());
-        RoleEntity userRole = new RoleEntity();
-        userRole.setId(userRoleId);
-        userRole.setPermissions(userPermissions);
-        userRole.setScope(RoleScope.API);
-
-        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
-            .thenReturn(emptySet());
-
-        RoleEntity poRole = new RoleEntity();
-        poRole.setId(poRoleId);
-        poRole.setScope(RoleScope.API);
-        poRole.setName(SystemRole.PRIMARY_OWNER.name());
-
-        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
-
-        final Set<ApiEntity> apiEntities = apiService.findByUser(GraviteeContext.getExecutionContext(), USER_NAME, null, true);
-
-        assertNotNull(apiEntities);
-        assertEquals(0, apiEntities.size());
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
     }
 }
