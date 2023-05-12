@@ -217,11 +217,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApiEntity api = new ApiEntity();
         api.setId("apiId");
 
-<<<<<<< HEAD
-        when(apiAuthorizationServiceV4.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(false)))
-=======
-        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true)))
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
+        when(apiAuthorizationServiceV4.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(true)))
             .thenReturn(Collections.singleton(api.getId()));
         when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_ANALYTICS, api.getId(), READ)).thenReturn(true);
 
