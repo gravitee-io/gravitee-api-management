@@ -1453,19 +1453,23 @@ workflows:
                 - equal: [pull_requests, << pipeline.parameters.gio_action >>]
         jobs:
             - job-setup:
+                  name: Setup
                   context: cicd-orchestrator
             - job-validate:
+                  name: Validate backend
                   context: cicd-orchestrator
                   requires:
-                      - job-setup
+                      - Setup
             - job-build:
+                  name: Build backend
                   context: cicd-orchestrator
                   requires:
-                      - job-validate
+                      - Validate backend
             - job-build-images:
+                  name: Build and push rest api and gateway images
                   context: cicd-orchestrator
                   requires:
-                      - job-build
+                      - Build backend
                   filters:
                       branches:
                           only:
@@ -1474,9 +1478,10 @@ workflows:
                               - /.*merge.*/
                               - /^\d+\.\d+\.x$/
             - job-test:
+                  name: Test backend
                   context: cicd-orchestrator
                   requires:
-                      - job-build
+                      - Build backend
             - job-sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
                   matrix:
@@ -1488,19 +1493,21 @@ workflows:
                   context: cicd-orchestrator
                   component: << matrix.working_directory >>
                   requires:
-                      - job-test
+                      - Test backend
             - job-test-repository:
+                  name: Test repository
                   context: cicd-orchestrator
                   requires:
-                      - job-build
+                      - Build backend
             - job-sonarcloud-analysis:
                   name: Sonar - gravitee-apim-repository
                   working_directory: gravitee-apim-repository
                   context: cicd-orchestrator
                   component: gravitee-apim-repository
                   requires:
-                      - job-test-repository
+                      - Test repository
             - job-publish-on-artifactory:
+                  name: Publish on artifactory
                   context: cicd-orchestrator
                   filters:
                       branches:
@@ -1508,9 +1515,10 @@ workflows:
                               - master
                               - /^\d+\.\d+\.x$/
                   requires:
-                      - job-test
-                      - job-test-repository
+                      - Test backend
+                      - Test repository
             - job-publish-on-nexus:
+                  name: Publish on nexus
                   context: cicd-orchestrator
                   filters:
                       branches:
@@ -1518,14 +1526,14 @@ workflows:
                               - master
                               - /^\d+\.\d+\.x$/
                   requires:
-                      - job-test
-                      - job-test-repository
+                      - Test backend
+                      - Test repository
             - job-webui-lint-test:
                   name: Lint & test APIM Console
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
-                      - job-setup
+                      - Setup
             - job-sonarcloud-analysis:
                   name: Sonar - gravitee-apim-console-webui
                   working_directory: gravitee-apim-console-webui
@@ -1537,25 +1545,25 @@ workflows:
                   context: cicd-orchestrator
                   name: Build Console Storybook
                   requires:
-                      - job-setup
+                      - Setup
             - job-console-webui-chromatic-deployment:
                   context: cicd-orchestrator
                   requires:
                       - Build Console Storybook
             - job-webui-build:
-                  name: Build APIM Console
+                  name: Build APIM Console and publish image
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   requires:
-                      - job-setup
+                      - Setup
             - job-webui-lint-test:
                   name: Lint & test APIM Portal
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   resource-class: large
                   requires:
-                      - job-setup
+                      - Setup
             - job-sonarcloud-analysis:
                   name: Sonar - gravitee-apim-portal-webui
                   working_directory: gravitee-apim-portal-webui
@@ -1564,20 +1572,20 @@ workflows:
                   requires:
                       - Lint & test APIM Portal
             - job-webui-build:
-                  name: Build APIM Portal
+                  name: Build APIM Portal and publish image
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
                   requires:
-                      - job-setup
+                      - Setup
             - job-deploy-on-azure-cluster:
                   context: cicd-orchestrator
                   requires:
-                      - job-test
-                      - job-test-repository
-                      - job-build-images
-                      - Build APIM Console
-                      - Build APIM Portal
+                      - Test backend
+                      - Test repository
+                      - Build and push rest api and gateway images
+                      - Build APIM Console and publish image
+                      - Build APIM Portal and publish image
                   filters:
                       branches:
                           only:
@@ -1588,13 +1596,13 @@ workflows:
                   name: Lint & Build APIM e2e
                   context: cicd-orchestrator
                   requires:
-                      - job-setup
+                      - Setup
             - job-e2e-test:
                   name: Test APIM e2e with mongo database
                   context: cicd-orchestrator
                   requires:
                       - Lint & Build APIM e2e
-                      - job-build-images
+                      - Build and push rest api and gateway images
                   database: mongo
                   filters:
                       branches:
@@ -1608,7 +1616,7 @@ workflows:
                   name: Test APIM e2e with jdbc database
                   requires:
                       - Lint & Build APIM e2e
-                      - job-build-images
+                      - Build and push rest api and gateway images
                   database: jdbc
                   filters:
                       branches:
@@ -1622,9 +1630,9 @@ workflows:
                   name: Run Cypress UI tests
                   requires:
                       - Lint & Build APIM e2e
-                      - Build APIM Portal
-                      - Build APIM Console
-                      - job-build-images
+                      - Build APIM Portal and publish image
+                      - Build APIM Console and publish image
+                      - Build and push rest api and gateway images
                   filters:
                       branches:
                           only:
@@ -1644,6 +1652,7 @@ workflows:
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
             - job-add-docker-images-in-snyk:
+                  name: Add images to snyk
                   context: cicd-orchestrator
                   requires:
                       - Build and push docker images for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
@@ -1659,29 +1668,31 @@ workflows:
         jobs:
             # Prepare
             - job-setup:
+                  name: Setup
                   context: cicd-orchestrator
             - job-slack-announcement:
+                  name: Announce release is starting
                   context: cicd-orchestrator
                   message: 🚀 Starting APIM << pipeline.parameters.graviteeio_version >> release
 
             # APIM Portal
             - job-webui-build:
                   context: cicd-orchestrator
-                  name: Build APIM Portal
+                  name: Build APIM Portal and publish image
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
                   requires:
-                      - job-setup
+                      - Setup
             - job-webui-publish-artifactory:
                   context: cicd-orchestrator
                   name: Publish APIM Portal to artifactory
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
-                      - Build APIM Portal
+                      - Build APIM Portal and publish image
             # APIM Console
             - job-webui-build:
                   context: cicd-orchestrator
-                  name: Build APIM Console
+                  name: Build APIM Console and publish image
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   requires:
@@ -1691,12 +1702,12 @@ workflows:
                   name: Publish APIM Console to artifactory
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
-                      - Build APIM Console
+                      - Build APIM Console and publish image
             # APIM Backend
             - job-backend-build-and-publish-artifactory:
                   name: Backend build and publish to artifactory
                   requires:
-                      - job-setup
+                      - Setup
                   context: cicd-orchestrator
 
             # Commit and set next version
@@ -1759,8 +1770,8 @@ workflows:
                   requires:
                       - Package bundle
             - job-slack-announcement:
+                  name: Announce end of release
                   message: 🎆 APIM - << pipeline.parameters.graviteeio_version >> released!
-                  name: End of release
                   context: cicd-orchestrator
                   requires:
                       - Nexus staging
@@ -1774,44 +1785,46 @@ workflows:
         jobs:
             # Prepare
             - job-setup:
+                  name: Setup
                   context: cicd-orchestrator
             - job-slack-announcement:
+                  name: Announce release is starting
                   context: cicd-orchestrator
                   message: 🚀 Starting APIM << pipeline.parameters.graviteeio_version >> release
 
             # APIM Portal
             - job-webui-build:
                   context: cicd-orchestrator
-                  name: Build APIM Portal
+                  name: Build APIM Portal and publish image
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
                   requires:
-                      - job-setup
+                      - Setup
             - job-webui-publish-artifactory:
                   context: cicd-orchestrator
                   name: Publish APIM Portal to artifactory
                   apim-ui-project: gravitee-apim-portal-webui
                   requires:
-                      - Build APIM Portal
+                      - Build APIM Portal and publish image
             # APIM Console
             - job-webui-build:
                   context: cicd-orchestrator
-                  name: Build APIM Console
+                  name: Build APIM Console and publish image
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   requires:
-                      - job-setup
+                      - Setup
             - job-webui-publish-artifactory:
                   context: cicd-orchestrator
                   name: Publish APIM Console to artifactory
                   apim-ui-project: gravitee-apim-console-webui
                   requires:
-                      - Build APIM Console
+                      - Build APIM Console and publish image
             # APIM Backend
             - job-backend-build-and-publish-artifactory:
                   name: Backend build and publish to artifactory
                   requires:
-                      - job-setup
+                      - Setup
                   context: cicd-orchestrator
 
             # Commit and set next version
@@ -1828,6 +1841,7 @@ workflows:
             equal: [package_bundle, << pipeline.parameters.gio_action >>]
         jobs:
             - job-package-bundle:
+                  name: Package bundle
                   context: cicd-orchestrator
 
     nexus_staging:
@@ -1835,15 +1849,16 @@ workflows:
             equal: [nexus_staging, << pipeline.parameters.gio_action >>]
         jobs:
             - job-setup:
+                  name: Setup
                   context: cicd-orchestrator
             - job-nexus-staging:
                   name: Nexus staging
                   context: cicd-orchestrator
                   requires:
-                      - job-setup
+                      - Setup
             - job-slack-announcement:
                   message: 🎆 APIM - << pipeline.parameters.graviteeio_version >> released!
-                  name: End of release
+                  name: Announce end of release
                   context: cicd-orchestrator
                   requires:
                       - Nexus staging
@@ -1858,10 +1873,12 @@ workflows:
                               - master
         jobs:
             - job-setup:
+                  name: Setup
                   context: cicd-orchestrator
             - job-jdbc-test-container:
+                  name: JDBC Test container
                   requires:
-                      - job-setup
+                      - Setup
                   matrix:
                       parameters:
                           version:
@@ -1880,8 +1897,9 @@ workflows:
                                   "sqlserver~2017-CU12",
                               ]
             - job-mongo-test-container:
+                  name: Mongo Test container
                   requires:
-                      - job-setup
+                      - Setup
                   matrix:
                       parameters:
                           version: ["3", "4", "5"]
@@ -1891,6 +1909,7 @@ workflows:
             equal: [release_notes_apim, << pipeline.parameters.gio_action >>]
         jobs:
             - job-release-notes-apim:
+                  name: Generate release note and create PR
                   context: cicd-orchestrator
 
     publish_docker_images:
@@ -1899,33 +1918,36 @@ workflows:
                 - equal: [publish_docker_images, << pipeline.parameters.gio_action >>]
         jobs:
             - job-setup:
+                  name: Setup
                   context: cicd-orchestrator
             - job-build:
+                  name: Build backend
                   context: cicd-orchestrator
                   requires:
-                      - job-setup
+                      - Setup
             - job-build-images:
+                  name: Build and push rest api and gateway images
                   context: cicd-orchestrator
                   requires:
-                      - job-build
+                      - Build backend
             - job-webui-build:
-                  name: Build APIM Console
+                  name: Build APIM Console and publish image
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   requires:
-                      - job-setup
+                      - Setup
             - job-webui-build:
-                  name: Build APIM Portal
+                  name: Build APIM Portal and publish image
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
                   requires:
-                      - job-setup
+                      - Setup
             - job-publish-pr-env-urls:
                   name: Publish environment URLs in Github PR
                   context: cicd-orchestrator
                   requires:
-                      - job-build-images
-                      - Build APIM Console
-                      - Build APIM Portal
+                      - Build and push rest api and gateway images
+                      - Build APIM Console and publish image
+                      - Build APIM Portal and publish image
