@@ -37,7 +37,6 @@ import java.util.Objects;
 import java.util.Set;
 import javax.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -68,13 +67,21 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
     public void shouldGetPlatformLogsAsNonAdmin() {
         when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
         when(applicationService.findIdsByUser(any(ExecutionContext.class), anyString())).thenReturn(Set.of("app1"));
+<<<<<<< HEAD
         when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(false)))
             .thenReturn(Set.of("api1"));
+=======
+        when(apiService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(Set.of("api1"));
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
         verify(applicationService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME));
+<<<<<<< HEAD
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(false));
+=======
+        verify(apiService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
         verify(logsService)
             .findPlatform(
                 any(ExecutionContext.class),
@@ -94,13 +101,21 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
     public void shouldGetPlatformLogsAsNonAdminFilterOnlyApp() {
         when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
         when(applicationService.findIdsByUser(any(ExecutionContext.class), anyString())).thenReturn(Set.of("app1"));
+<<<<<<< HEAD
         when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(false)))
             .thenReturn(emptySet());
+=======
+        when(apiService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(emptySet());
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
         verify(applicationService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME));
+<<<<<<< HEAD
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(false));
+=======
+        verify(apiService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
         verify(logsService)
             .findPlatform(
                 any(ExecutionContext.class),
@@ -120,13 +135,21 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
     public void shouldGetPlatformLogsAsNonAdminFilterOnlyAPI() {
         when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
         when(applicationService.findIdsByUser(any(ExecutionContext.class), anyString())).thenReturn(emptySet());
+<<<<<<< HEAD
         when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(false)))
             .thenReturn(Set.of("api1"));
+=======
+        when(apiService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(Set.of("api1"));
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
         verify(applicationService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME));
+<<<<<<< HEAD
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(false));
+=======
+        verify(apiService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
         verify(logsService)
             .findPlatform(
                 any(ExecutionContext.class),
@@ -145,8 +168,12 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoLogsAsNonAdminWithNoAPINoApp() {
         when(applicationService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME))).thenReturn(emptySet());
+<<<<<<< HEAD
         when(apiAuthorizationServiceV4.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(false)))
             .thenReturn(emptySet());
+=======
+        when(apiService.findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true))).thenReturn(emptySet());
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
@@ -154,7 +181,11 @@ public class PlatformLogsResourceNotAdminTest extends AbstractResourceTest {
         assertEquals(0, jsonNode.get("total").intValue());
         assertNull(jsonNode.get("logs"));
         verify(applicationService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME));
+<<<<<<< HEAD
         verify(apiAuthorizationServiceV4).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(false));
+=======
+        verify(apiService).findIdsByUser(any(ExecutionContext.class), eq(USER_NAME), isNull(), eq(true));
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
         verify(logsService, never()).findPlatform(any(ExecutionContext.class), any(LogQuery.class));
     }
 

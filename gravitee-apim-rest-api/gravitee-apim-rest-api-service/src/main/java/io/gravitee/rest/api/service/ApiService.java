@@ -45,11 +45,38 @@ public interface ApiService {
         ApiQuery apiQuery,
         Sortable sortable,
         Pageable pageable,
-        boolean portal
+        boolean manageOnly
     );
 
-    Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean portal);
+    Set<ApiEntity> findByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
 
+<<<<<<< HEAD
+=======
+    Page<ApiEntity> findPublishedByUser(
+        ExecutionContext executionContext,
+        String userId,
+        ApiQuery apiQuery,
+        Sortable sortable,
+        Pageable pageable
+    );
+
+    Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId);
+
+    default Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
+        return findIdsByUser(executionContext, userId, apiQuery, null, manageOnly);
+    }
+
+    Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, Sortable sortable, boolean manageOnly);
+
+    Set<ApiEntity> findPublishedByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
+
+    Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
+
+    default Set<String> findPublishedIdsByUser(ExecutionContext executionContext, String userId) {
+        return findPublishedIdsByUser(executionContext, userId, null);
+    }
+
+>>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
     ApiEntity create(ExecutionContext executionContext, NewApiEntity api, String userId);
     ApiEntity createFromSwagger(
         ExecutionContext executionContext,
