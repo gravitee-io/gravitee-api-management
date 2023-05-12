@@ -82,13 +82,8 @@ public class PlatformEventsResource extends AbstractResource {
         } else if (!isAdmin()) {
             properties.put(
                 Event.EventProperties.API_ID.getValue(),
-<<<<<<< HEAD
                 apiAuthorizationService
-                    .findIdsByUser(executionContext, getAuthenticatedUser(), false)
-=======
-                apiService
-                    .findByUser(executionContext, getAuthenticatedUser(), null, true)
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
+                    .findIdsByUser(executionContext, getAuthenticatedUser(), true)
                     .stream()
                     .filter(apiId -> permissionService.hasPermission(executionContext, API_ANALYTICS, apiId, READ))
                     .collect(Collectors.joining(","))

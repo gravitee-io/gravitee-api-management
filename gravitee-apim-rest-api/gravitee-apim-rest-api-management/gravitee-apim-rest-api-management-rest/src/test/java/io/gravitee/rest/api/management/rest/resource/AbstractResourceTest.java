@@ -31,6 +31,8 @@ import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
@@ -43,11 +45,7 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.ApiEntrypointService;
-import io.gravitee.rest.api.service.v4.ApiGroupService;
-import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.*;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import java.io.IOException;
 import java.security.Principal;
@@ -85,6 +83,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected io.gravitee.rest.api.service.v4.ApiStateService apiStateServiceV4;
+
+    @Autowired
+    protected ApiAuthorizationService apiAuthorizationService;
 
     @Autowired
     protected io.gravitee.rest.api.service.v4.ApiAuthorizationService apiAuthorizationServiceV4;

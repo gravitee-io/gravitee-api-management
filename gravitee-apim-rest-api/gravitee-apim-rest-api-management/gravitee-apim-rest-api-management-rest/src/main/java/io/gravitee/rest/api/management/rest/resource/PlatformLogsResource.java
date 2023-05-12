@@ -110,13 +110,8 @@ public class PlatformLogsResource extends AbstractResource {
             .collect(Collectors.toList());
         String applicationsFilter = getExtraFilter("application", applicationIds);
 
-<<<<<<< HEAD
         List<String> apiIds = apiAuthorizationService
-            .findIdsByUser(executionContext, getAuthenticatedUser(), null, false)
-=======
-        List<String> apiIds = apiService
             .findIdsByUser(executionContext, getAuthenticatedUser(), null, true)
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
             .stream()
             .filter(appId -> permissionService.hasPermission(executionContext, API_LOG, appId, READ))
             .collect(Collectors.toList());

@@ -477,15 +477,7 @@ public class ApisResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!isAdmin()) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-            filters.put("api", apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), false));
-=======
-            filters.put("api", apiService.findIdsByUser(executionContext, getAuthenticatedUser(), apiQuery, true));
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
-=======
-            filters.put("api", apiService.findIdsByUser(executionContext, getAuthenticatedUser(), apiQuery, manageOnly));
->>>>>>> e98788e0ff (feat(rest-api): add `manageOnly` QueryParam to POST `_search/_paged`)
+            filters.put("api", apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), manageOnly));
         }
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);

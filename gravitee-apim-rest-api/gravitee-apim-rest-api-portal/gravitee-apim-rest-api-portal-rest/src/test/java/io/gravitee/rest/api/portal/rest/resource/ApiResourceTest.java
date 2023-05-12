@@ -65,13 +65,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         doReturn(mockApi).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API);
 
         doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
-<<<<<<< HEAD
         doReturn(Set.of(API))
             .when(apiAuthorizationService)
-            .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true));
-=======
-        doReturn(mockApis).when(apiService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false));
->>>>>>> 658d54754e (refactor: rename portal to manageOnly and invert boolean)
+            .findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false));
 
         Api api = new Api();
         api.setId(API);
@@ -194,15 +190,8 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldHaveNotFoundWhileGettingApiPicture() {
         // init
-<<<<<<< HEAD
-        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true)))
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false)))
             .thenReturn(Set.of("1"));
-=======
-        ApiEntity userApi = new ApiEntity();
-        userApi.setId("1");
-        Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false));
->>>>>>> 658d54754e (refactor: rename portal to manageOnly and invert boolean)
 
         // test
         final Response response = target(API).path("picture").request().get();
