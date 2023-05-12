@@ -59,7 +59,7 @@ Optional flag:
 
 Here is the command to fully release APIM (Releasing 3.15.11, in the following example):
 
-`npm run full_release -- --version=3.15.11`
+`npm run full_release -- --version=3.15.11`: You can also provide the `--latest` parameter to flag the image as `latest`.
 
 === 🐌 Step by step release
 

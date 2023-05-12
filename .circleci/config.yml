@@ -1105,17 +1105,16 @@ jobs:
             - run:
                   name: Create .apim-version file for cache
                   command: |
-                      # the previous cache key was computed with the SNAPSHOT version of the release. 
                       echo "<< pipeline.parameters.graviteeio_version >>-SNAPSHOT" > .apim-version.txt
-            - cmd-restore-maven-job-cache:
-                  jobName: job-nexus-staging
 
-            - attach_workspace:
-                  at: .
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run>>
                   steps:
+                      - cmd-restore-maven-job-cache:
+                          jobName: job-nexus-staging
+                      - attach_workspace:
+                          at: .
                       - cmd-prepare-gpg
                       - run:
                             name: Release on Nexus
@@ -1547,6 +1546,7 @@ workflows:
                   requires:
                       - Setup
             - job-console-webui-chromatic-deployment:
+                  name: Deploy console in chromatic
                   context: cicd-orchestrator
                   requires:
                       - Build Console Storybook
