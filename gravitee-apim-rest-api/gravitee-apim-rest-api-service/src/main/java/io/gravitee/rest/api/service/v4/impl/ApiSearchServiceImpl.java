@@ -239,6 +239,9 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             }
 
             apiIds.retainAll(userApiIds);
+            if (apiIds.isEmpty()) {
+                return new Page<>(List.of(), 0, 0, 0);
+            }
         }
 
         // Step 3: add filters to ApiCriteria to be used by the repository search
