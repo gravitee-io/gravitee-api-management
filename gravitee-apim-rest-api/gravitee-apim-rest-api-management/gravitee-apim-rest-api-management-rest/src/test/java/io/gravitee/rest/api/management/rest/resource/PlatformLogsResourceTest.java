@@ -50,14 +50,10 @@ public class PlatformLogsResourceTest extends AbstractResourceTest {
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-<<<<<<< HEAD
-        verify(applicationService, never()).findIdsByUser(any(ExecutionContext.class), anyString());
+        verify(applicationService, never()).findIdsByUser(any(ExecutionContext.class), any());
         verify(apiAuthorizationServiceV4, never())
             .findIdsByUser(any(ExecutionContext.class), anyString(), any(ApiQuery.class), anyBoolean());
-=======
-        verify(applicationService, never()).findIdsByUser(any(ExecutionContext.class), any());
-        verify(apiService, never()).findIdsByUser(any(ExecutionContext.class), anyString(), any(ApiQuery.class), anyBoolean());
->>>>>>> 2a319e134c (refactor: rename portal to manageOnly and invert boolean)
+
         verify(logsService)
             .findPlatform(
                 any(ExecutionContext.class),

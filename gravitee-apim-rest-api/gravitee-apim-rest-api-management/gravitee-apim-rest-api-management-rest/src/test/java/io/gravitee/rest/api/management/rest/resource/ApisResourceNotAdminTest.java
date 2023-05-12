@@ -51,7 +51,7 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void get_should_search_apis() throws TechnicalException {
-        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), isA(ApiQuery.class), eq(true)))
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(true)))
             .thenReturn(Set.of("api1", "api2", "api15"));
 
         List<ApiEntity> resultApis = List.of(mockApi("api1"), mockApi("api2"), mockApi("api15"));
@@ -74,7 +74,7 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
 
     @Test
     public void get_should_search_apis_with_manageOnly_to_false() throws TechnicalException {
-        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), isA(ApiQuery.class), eq(false)))
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(false)))
             .thenReturn(Set.of("api1", "api2", "api15"));
 
         List<ApiEntity> resultApis = List.of(mockApi("api1"), mockApi("api2"), mockApi("api15"));
