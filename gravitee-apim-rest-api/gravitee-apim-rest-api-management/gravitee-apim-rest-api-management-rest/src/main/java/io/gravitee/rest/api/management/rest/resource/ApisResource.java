@@ -412,7 +412,7 @@ public class ApisResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response searchApis(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
-            return Response.ok().entity(this.searchPagedApis(query, new ApisOrderParam("name"), null).getData()).build();
+            return Response.ok().entity(this.searchPagedApis(query, new ApisOrderParam("name"), true, null).getData()).build();
         } catch (TechnicalManagementException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
         }
@@ -437,6 +437,10 @@ public class ApisResource extends AbstractResource {
                 description = "By default, sort is ASC. If *field* starts with '-', the order sort is DESC. Currently, only **name** and **paths** are supported"
             )
         ) @QueryParam("order") @DefaultValue("name") final ApisOrderParam apisOrderParam,
+        @Parameter(
+            name = "manageOnly",
+            description = "By default only APIs that the user can manage are returned. If set to false, all APIs that the user can view are returned."
+        ) @QueryParam("manageOnly") @DefaultValue("true") final boolean manageOnly,
         @Valid @BeanParam Pageable pageable
     ) {
         final ApiQuery apiQuery = new ApiQuery();
@@ -450,7 +454,7 @@ public class ApisResource extends AbstractResource {
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (!isAdmin()) {
-            filters.put("api", apiService.findIdsByUser(executionContext, getAuthenticatedUser(), apiQuery, true));
+            filters.put("api", apiService.findIdsByUser(executionContext, getAuthenticatedUser(), apiQuery, manageOnly));
         }
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);
