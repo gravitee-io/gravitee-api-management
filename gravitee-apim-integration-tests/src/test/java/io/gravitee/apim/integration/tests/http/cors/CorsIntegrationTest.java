@@ -15,21 +15,14 @@
  */
 package io.gravitee.apim.integration.tests.http.cors;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.integration.tests.fake.AddHeaderPolicy;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Plan;
-import io.gravitee.gateway.api.service.ApiKey;
-import io.gravitee.gateway.reactor.ReactableApi;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -226,103 +219,6 @@ public class CorsIntegrationTest {
                 .await()
                 .assertComplete()
                 .assertNoErrors();
-        }
-    }
-
-    @Nested
-    @GatewayTest(mode = GatewayMode.JUPITER)
-    @DeployApi({ "/apis/http/cors-running-policies.json" })
-    class CheckingSecurityChainSkip extends AbstractCorsIntegrationTest {
-
-        protected ApiKey apiKey;
-
-        @Override
-        public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
-            super.configureApi(api, definitionClass);
-
-            apiKey = anApiKey(api);
-            if (api.getDefinition() instanceof Api) {
-                ((Api) api.getDefinition()).setPlans(
-                        List.of(
-                            Plan
-                                .builder()
-                                .id("plan-id")
-                                .api(api.getId())
-                                .security("API_KEY")
-                                .status("PUBLISHED")
-                                .securityDefinition("{\"propagateApiKey\":true}")
-                                .build()
-                        )
-                    );
-            }
-        }
-
-        @Override
-        public void configureApi(Api api) {
-            super.configureApi(api);
-        }
-
-        @Test
-        void should_skip_security_on_preflight_request_when_valid(HttpClient httpClient) throws InterruptedException {
-            httpClient
-                .rxRequest(HttpMethod.OPTIONS, "/api-cors-running-policies")
-                .flatMap(httpClientRequest ->
-                    httpClientRequest.putHeader("Origin", "https://mydomain.com").putHeader("Access-Control-Request-Method", "GET").rxSend()
-                )
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors();
-        }
-
-        @Test
-        void should_skip_security_on_preflight_request_when_invalid(HttpClient httpClient) throws InterruptedException {
-            httpClient
-                .rxRequest(HttpMethod.OPTIONS, "/api-cors-running-policies")
-                .flatMap(httpClientRequest ->
-                    httpClientRequest.putHeader("Origin", "https://unknown.com").putHeader("Access-Control-Request-Method", "GET").rxSend()
-                )
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isNotEqualTo(401);
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors();
-        }
-
-        @Test
-        void should_apply_security_chain_on_regular_request(HttpClient httpClient) throws InterruptedException {
-            wiremock.stubFor(get("/endpoint").willReturn(ok()));
-
-            httpClient
-                .rxRequest(HttpMethod.GET, "/api-cors-running-policies")
-                .flatMap(httpClientRequest ->
-                    httpClientRequest.putHeader("Origin", "https://mydomain.com").putHeader("Access-Control-Request-Method", "GET").rxSend()
-                )
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(401);
-                    return response.toFlowable();
-                })
-                .test()
-                .await()
-                .assertComplete()
-                .assertNoErrors();
-        }
-
-        private ApiKey anApiKey(ReactableApi<?> api) {
-            final ApiKey apiKey = new ApiKey();
-            apiKey.setApi(api.getId());
-            apiKey.setApplication("application-id");
-            apiKey.setSubscription("subscription-id");
-            apiKey.setPlan("plan-id");
-            apiKey.setKey("apiKeyValue");
-            return apiKey;
         }
     }
 }

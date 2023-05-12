@@ -25,9 +25,6 @@ import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.policy.apikey.ApiKeyPolicy;
-import io.gravitee.policy.apikey.ApiKeyPolicyInitializer;
-import io.gravitee.policy.apikey.configuration.ApiKeyPolicyConfiguration;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,10 +44,6 @@ public class AbstractCorsIntegrationTest extends AbstractGatewayTest {
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put("add-header", PolicyBuilder.build("add-header", AddHeaderPolicy.class));
-        policies.put(
-            "api-key",
-            PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
-        );
     }
 
     protected static Map<String, String> extractHeaders(HttpClientResponse response) {

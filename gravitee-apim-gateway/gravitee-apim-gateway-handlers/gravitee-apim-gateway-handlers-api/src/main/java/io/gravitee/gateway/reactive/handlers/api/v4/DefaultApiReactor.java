@@ -239,10 +239,10 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         return new CompletableReactorChain(executeProcessorChain(ctx, beforeHandleProcessors, REQUEST))
             // Execute platform flow chain.
             .chainWith(platformFlowChain.execute(ctx, REQUEST))
-            // Before flows processors.
-            .chainWith(executeProcessorChain(ctx, beforeApiExecutionProcessors, REQUEST))
             // Execute security chain.
             .chainWith(securityChain.execute(ctx))
+            // Before flows processors.
+            .chainWith(executeProcessorChain(ctx, beforeApiExecutionProcessors, REQUEST))
             // Resolve entrypoint and prepare request to be handled.
             .chainWith(handleEntrypointRequest(ctx))
             // Execute all flows for request phases.
