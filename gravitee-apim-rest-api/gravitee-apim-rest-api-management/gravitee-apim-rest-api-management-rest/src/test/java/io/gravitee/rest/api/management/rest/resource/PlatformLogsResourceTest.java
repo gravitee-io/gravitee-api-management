@@ -50,7 +50,7 @@ public class PlatformLogsResourceTest extends AbstractResourceTest {
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
 
-        verify(applicationService, never()).findIdsByUser(any(ExecutionContext.class), anyString());
+        verify(applicationService, never()).findIdsByUser(any(ExecutionContext.class), any());
         verify(apiService, never()).findIdsByUser(any(ExecutionContext.class), anyString(), any(ApiQuery.class), anyBoolean());
         verify(logsService)
             .findPlatform(

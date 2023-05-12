@@ -150,7 +150,7 @@ public class ApiResource extends AbstractResource {
             GraviteeContext.getExecutionContext(),
             getAuthenticatedUserOrNull(),
             apiQuery,
-            true
+            false
         );
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
             InlinePictureEntity image = apiService.getPicture(GraviteeContext.getExecutionContext(), apiId);

@@ -135,7 +135,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyHistoAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), !eq(false)))
             .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
@@ -155,7 +155,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyTopHitsAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), !eq(false)))
             .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
@@ -175,7 +175,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyCountAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), !eq(false)))
             .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
@@ -194,7 +194,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyStatsAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), eq(false)))
+        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), !eq(false)))
             .thenReturn(Collections.emptySet());
 
         Response response = envTarget()
@@ -217,7 +217,7 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
         ApiEntity api = new ApiEntity();
         api.setId("apiId");
 
-        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false)))
+        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true)))
             .thenReturn(Collections.singleton(api.getId()));
         when(permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(API_ANALYTICS), eq(api.getId()), eq(READ)))
             .thenReturn(true);

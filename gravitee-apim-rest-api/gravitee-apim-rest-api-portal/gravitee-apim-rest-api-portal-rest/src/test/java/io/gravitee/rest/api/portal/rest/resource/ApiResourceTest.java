@@ -66,7 +66,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(mockApi));
         doReturn(true).when(accessControlService).canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API);
-        doReturn(mockApis).when(apiService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true));
+        doReturn(mockApis).when(apiService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false));
 
         Api api = new Api();
         api.setId(API);
@@ -192,7 +192,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         ApiEntity userApi = new ApiEntity();
         userApi.setId("1");
         Set<ApiEntity> mockApis = new HashSet<>(Arrays.asList(userApi));
-        doReturn(mockApis).when(apiService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(true));
+        doReturn(mockApis).when(apiService).findByUser(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(false));
 
         // test
         final Response response = target(API).path("picture").request().get();
