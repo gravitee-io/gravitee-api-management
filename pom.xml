@@ -245,7 +245,7 @@
         <gravitee-endpoint-mqtt5-advanced.version>1.2.0-alpha.1</gravitee-endpoint-mqtt5-advanced.version>
         <gravitee-resource-schema-registry-confluent.version>1.0.0-alpha.9
         </gravitee-resource-schema-registry-confluent.version>
-        <gravitee-reactor-message.version>1.0.0-alpha.2</gravitee-reactor-message.version>
+        <gravitee-reactor-message.version>1.0.0-alpha.3</gravitee-reactor-message.version>
     </properties>
 
     <dependencyManagement>

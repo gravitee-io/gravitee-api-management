@@ -18,6 +18,12 @@ package io.gravitee.apim.integration.tests.http.cors;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
+import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.gateway.reactor.ReactableApi;
+import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -45,4 +51,23 @@ public class CorsV4IntegrationTest extends CorsIntegrationTest {
     @GatewayTest(mode = GatewayMode.JUPITER)
     @DeployApi({ "/apis/v4/http/cors-running-policies.json", "/apis/v4/http/cors-not-running-policies.json" })
     class CheckingRejection extends CorsIntegrationTest.CheckingRejection {}
+
+    @Nested
+    @GatewayTest(mode = GatewayMode.JUPITER)
+    @DeployApi({ "/apis/v4/http/cors-running-policies.json" })
+    class CheckingSecurityChainSkip extends CorsIntegrationTest.CheckingSecurityChainSkip {
+
+        @Override
+        public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
+            super.configureApi(api, definitionClass);
+
+            if (api.getDefinition() instanceof Api) {
+                var security = new PlanSecurity();
+                security.setType("api-key");
+
+                var plan = Plan.builder().id("plan-id").security(security).status(PlanStatus.PUBLISHED).build();
+                ((Api) api.getDefinition()).setPlans(List.of(plan));
+            }
+        }
+    }
 }
