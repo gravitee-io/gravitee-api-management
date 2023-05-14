@@ -67,7 +67,7 @@ class ApplicationSubscribeController {
   }
 
   searchApiByName(searchText): IHttpPromise<any> {
-    return this.ApiService.searchApis(searchText, 1, 'name').then((response) => response.data.data);
+    return this.ApiService.searchApis(searchText, 1, 'name', undefined, undefined, false).then((response) => response.data.data);
   }
 
   onSelectAPI(api) {
