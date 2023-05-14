@@ -157,7 +157,7 @@ export class ApiService {
     return this.$http.get(url, opts);
   }
 
-  searchApis(query?: string, page?: any, order?: string, opts?: any, size?: number): IHttpPromise<any> {
+  searchApis(query?: string, page?: any, order?: string, opts?: any, size?: number, manageOnly?: boolean): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/_search/`;
 
     // Fallback to paginated search if a page parameter is provided.
@@ -171,6 +171,7 @@ export class ApiService {
       page: page,
       order: order,
       size,
+      ...(manageOnly ? {} : { manageOnly: false }),
     };
 
     return this.$http.post(url, {}, opts);
