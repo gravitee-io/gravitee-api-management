@@ -105,7 +105,6 @@ import io.gravitee.rest.api.model.api.RollbackApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -1932,6 +1931,171 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
+<<<<<<< HEAD
+=======
+    public void deleteCategoryFromAPIs(ExecutionContext executionContext, final String categoryId) {
+        apiRepository
+            .search(new ApiCriteria.Builder().category(categoryId).build(), null, ApiFieldFilter.allFields())
+            .forEach(api -> removeCategory(executionContext, api, categoryId));
+    }
+
+    private void removeCategory(ExecutionContext executionContext, Api api, String categoryId) {
+        try {
+            Api apiSnapshot = new Api(api);
+            api.getCategories().remove(categoryId);
+            api.setUpdatedAt(new Date());
+            apiRepository.update(api);
+            triggerUpdateNotification(executionContext, api);
+            auditService.createApiAuditLog(
+                executionContext,
+                api.getId(),
+                Collections.emptyMap(),
+                API_UPDATED,
+                api.getUpdatedAt(),
+                apiSnapshot,
+                api
+            );
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error has occurred while removing category " + categoryId + " from API " + api.getId(),
+                e
+            );
+        }
+    }
+
+    @Override
+    public void deleteTagFromAPIs(ExecutionContext executionContext, final String tagId) {
+        environmentService
+            .findByOrganization(executionContext.getOrganizationId())
+            .stream()
+            .map(ExecutionContext::new)
+            .flatMap(env ->
+                apiRepository
+                    .search(
+                        new ApiCriteria.Builder().environmentId(env.getEnvironmentId()).build(),
+                        null,
+                        new ApiFieldFilter.Builder().excludePicture().build()
+                    )
+                    .map(api -> convert(env, api))
+            )
+            .filter(api -> api.getTags() != null && api.getTags().contains(tagId))
+            .forEach(api -> removeTag(executionContext, api.getId(), tagId));
+    }
+
+    @Override
+    public ApiModelEntity findByIdForTemplates(ExecutionContext executionContext, String apiId, boolean decodeTemplate) {
+        final ApiEntity apiEntity = findById(executionContext, apiId);
+
+        final ApiModelEntity apiModelEntity = new ApiModelEntity();
+
+        apiModelEntity.setId(apiEntity.getId());
+        apiModelEntity.setName(apiEntity.getName());
+        apiModelEntity.setDescription(apiEntity.getDescription());
+        apiModelEntity.setCreatedAt(apiEntity.getCreatedAt());
+        apiModelEntity.setDeployedAt(apiEntity.getDeployedAt());
+        apiModelEntity.setUpdatedAt(apiEntity.getUpdatedAt());
+        apiModelEntity.setGroups(apiEntity.getGroups());
+        apiModelEntity.setVisibility(apiEntity.getVisibility());
+        apiModelEntity.setCategories(apiEntity.getCategories());
+        apiModelEntity.setVersion(apiEntity.getVersion());
+        apiModelEntity.setExecutionMode(apiEntity.getExecutionMode());
+        apiModelEntity.setState(apiEntity.getState());
+        apiModelEntity.setTags(apiEntity.getTags());
+        apiModelEntity.setServices(apiEntity.getServices());
+        apiModelEntity.setPaths(apiEntity.getPaths());
+        apiModelEntity.setPicture(apiEntity.getPicture());
+        apiModelEntity.setPrimaryOwner(apiEntity.getPrimaryOwner());
+        apiModelEntity.setProperties(apiEntity.getProperties());
+        apiModelEntity.setProxy(convert(apiEntity.getProxy()));
+        apiModelEntity.setLifecycleState(apiEntity.getLifecycleState());
+        apiModelEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+
+        final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiId);
+
+        if (metadataList == null) {
+            return apiModelEntity;
+        }
+
+        final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
+        metadataList.forEach(metadata ->
+            mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
+        );
+        apiModelEntity.setMetadata(mapMetadata);
+
+        if (!decodeTemplate) {
+            return apiModelEntity;
+        }
+
+        try {
+            String decodedValue =
+                this.notificationTemplateService.resolveInlineTemplateWithParam(
+                        executionContext.getOrganizationId(),
+                        apiModelEntity.getId(),
+                        new StringReader(mapMetadata.toString()),
+                        Collections.singletonMap("api", apiModelEntity)
+                    );
+            Map<String, String> metadataDecoded = Arrays
+                .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                .map(entry -> entry.split("=", 2))
+                .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+
+            String supportEmail = metadataDecoded.get("email-support");
+
+            if (StringUtils.isEmpty(supportEmail)) {
+                LOGGER.debug("No support email defined in API metadata, looking for primary owner email");
+                metadataDecoded.put("email-support", findPrimaryOwnerEmail(executionContext, apiId));
+            }
+
+            apiModelEntity.setMetadata(metadataDecoded);
+            return apiModelEntity;
+        } catch (Exception ex) {
+            throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
+        }
+    }
+
+    private String findPrimaryOwnerEmail(ExecutionContext executionContext, String apiId) {
+        PrimaryOwnerEntity primaryOwner = getPrimaryOwner(executionContext, apiId);
+        if (MembershipMemberType.USER.name().equals(primaryOwner.getType())) {
+            return primaryOwner.getEmail();
+        }
+
+        LOGGER.debug("Primary owner of API {} is a group, looking for a primary owner role member to resolve email", apiId);
+
+        List<GroupMemberEntity> poGroupMembers = getGroupsWithMembers(executionContext, apiId).get(primaryOwner.getId());
+
+        if (poGroupMembers == null) {
+            LOGGER.error("Unable to find primary owner group members for API {}", apiId);
+            throw new PrimaryOwnerNotFoundException(apiId);
+        }
+
+        final String poRole = SystemRole.PRIMARY_OWNER.name();
+        final String apiRole = RoleScope.API.name();
+
+        return poGroupMembers
+            .stream()
+            .filter(member -> poRole.equals(member.getRoles().get(apiRole)))
+            .map(GroupMemberEntity::getId)
+            .findFirst()
+            .map(userId -> userService.findById(executionContext, userId).getEmail())
+            .orElseThrow(() -> {
+                LOGGER.error("Unable to find primary owner email for API {}", apiId);
+                throw new PrimaryOwnerNotFoundException(apiId);
+            });
+    }
+
+    @Override
+    public boolean exists(final String apiId) {
+        try {
+            return apiRepository.findById(apiId).isPresent();
+        } catch (final TechnicalException te) {
+            final String msg = "An error occurs while checking if the API exists: " + apiId;
+            LOGGER.error(msg, te);
+            throw new TechnicalManagementException(msg, te);
+        }
+    }
+
+    @Override
+>>>>>>> 716febbab8 (fix: resolve support email recipient when PO is a group)
     public ApiEntity importPathMappingsFromPage(
         ExecutionContext executionContext,
         final ApiEntity apiEntity,
