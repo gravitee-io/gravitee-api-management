@@ -17,13 +17,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
-import { ResourceListItem } from '@gravitee/ui-policy-studio-angular';
 import '@gravitee/ui-components/wc/gv-resources';
 
 import { PolicyStudioResourcesService } from './policy-studio-resources.service';
 
 import { ApiDefinition } from '../models/ApiDefinition';
 import { PolicyStudioService } from '../policy-studio.service';
+import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
 
 @Component({
   selector: 'policy-studio-resources',

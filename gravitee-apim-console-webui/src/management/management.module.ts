@@ -16,7 +16,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
 
@@ -39,7 +38,6 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     MatSnackBarModule,
     GioPermissionModule,
     GioConfirmDialogModule,
-    GioPolicyStudioModule,
     EnvAuditModule,
     ApiCreationModule,
     ApiCreationV4Module,
