@@ -15,15 +15,33 @@
     limitations under the License.
 
 -->
-<gio-policy-studio
-  *ngIf="!isLoading"
-  flowsTitle="Platform flows"
-  [canAdd]="true"
-  [hasPolicyFilter]="true"
-  [hasConditionalSteps]="true"
-  [sortable]="true"
-  [flowSchema]="platformFlowSchema"
-  [policies]="policies"
-  [definition]="definition"
-  (save)="onSave($event)"
-></gio-policy-studio>
+<div class="header">
+  <nav mat-tab-nav-bar mat-align-tabs="end" class="header__nav">
+    <a mat-tab-link [active]="activeTab === 'design'" (click)="activeTab = 'design'"> Design </a>
+    <a mat-tab-link [active]="activeTab === 'config'" (click)="activeTab = 'config'"> Configuration </a>
+    <!-- save button -->
+    <button
+      class="header__nav__saveButton"
+      mat-flat-button
+      color="primary"
+      type="button"
+      [disabled]="isSaveButtonDisabled"
+      (click)="onSave()"
+    >
+      Save
+    </button>
+  </nav>
+</div>
+<div>
+  <div class="content">
+    <ng-container *ngIf="!isLoading && activeTab === 'design'">
+      <org-settings-platform-policies-studio (change)="onChangeStudio($event)"></org-settings-platform-policies-studio>
+    </ng-container>
+
+    <ng-container *ngIf="!isLoading && activeTab === 'config'">
+      WIP
+    </ng-container>
+
+    <ng-container *ngIf="isLoading"> Loading... </ng-container>
+  </div>
+</div>
