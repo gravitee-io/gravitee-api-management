@@ -53,6 +53,7 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
     public static final String EVENT_STARTED_AT_PROPERTY = "started_at";
     public static final String EVENT_STOPPED_AT_PROPERTY = "stopped_at";
     public static final String EVENT_ID_PROPERTY = "id";
+    public static final String EVENT_CLUSTER_PRIMARY_NODE_PROPERTY = "cluster_primary_node";
 
     private final HeartbeatStrategyConfiguration heartbeatStrategyConfiguration;
     private HeartbeatEventScheduler heartbeatStrategyScheduler;
@@ -100,6 +101,10 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
         event.setUpdatedAt(event.getCreatedAt());
         final Map<String, String> properties = new HashMap<>();
         properties.put(EVENT_ID_PROPERTY, heartbeatStrategyConfiguration.node().id());
+        properties.put(
+            EVENT_CLUSTER_PRIMARY_NODE_PROPERTY,
+            Boolean.toString(heartbeatStrategyConfiguration.clusterManager().self().primary())
+        );
 
         final String now = Long.toString(event.getCreatedAt().getTime());
         properties.put(EVENT_STARTED_AT_PROPERTY, now);
@@ -179,6 +184,7 @@ public class HeartbeatService extends AbstractService<HeartbeatService> {
             log.warn("Could not get hostname / IP", uhe);
         }
 
+        instanceInfo.setClusterId(heartbeatStrategyConfiguration.clusterManager().clusterId());
         return instanceInfo;
     }
 

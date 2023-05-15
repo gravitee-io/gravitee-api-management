@@ -245,6 +245,7 @@ public class DebugApiServiceTest {
         pluginEntity.setId("gateway-debug");
 
         instanceEntity.setPlugins(Set.of(pluginEntity));
+        instanceEntity.setClusterPrimaryNode(true);
 
         return instanceEntity;
     }

@@ -62,6 +62,7 @@ class HeartbeatEventListenerTest {
 
     @BeforeEach
     public void beforeEach() {
+        when(member.primary()).thenReturn(true);
         when(clusterManager.self()).thenReturn(member);
         cut = new HeartbeatEventListener(clusterManager, eventRepository);
     }
@@ -84,37 +85,6 @@ class HeartbeatEventListenerTest {
         event.setType(EventType.GATEWAY_STARTED);
         cut.onMessage(new Message<>("topic", event));
         verifyNoInteractions(eventRepository);
-    }
-
-    @Test
-    void should_create_light_event_on_primary_node_when_already_created() throws TechnicalException {
-        when(member.primary()).thenReturn(true);
-        Event event1 = new Event();
-        event1.setId("1");
-        event1.setType(EventType.GATEWAY_STARTED);
-        event1.setPayload("very large payload");
-        cut.onMessage(new Message<>("topic", event1));
-        Event event2 = new Event();
-        event2.setId("2");
-        event2.setPayload("very large payload");
-        event2.setType(EventType.GATEWAY_STARTED);
-        cut.onMessage(new Message<>("topic", event2));
-        verify(eventRepository, times(2))
-            .createOrPatch(
-                argThat(eventCreated -> {
-                    if (eventCreated.getId().equals("1")) {
-                        return eventCreated.equals(event1);
-                    } else if (eventCreated.getId().equals("2")) {
-                        assertThat(eventCreated.getCreatedAt()).isNull();
-                        assertThat(eventCreated.getUpdatedAt()).isNotNull();
-                        assertThat(eventCreated.getProperties())
-                            .containsOnly(entry(EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(eventCreated.getUpdatedAt().getTime())));
-                        return true;
-                    } else {
-                        return false;
-                    }
-                })
-            );
     }
 
     @Test

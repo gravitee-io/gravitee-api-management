@@ -16,12 +16,22 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@Getter
+@Setter
 public class InstanceEntity {
 
     private String id;
@@ -63,146 +73,12 @@ public class InstanceEntity {
 
     private Set<PluginEntity> plugins;
 
+    private String clusterId;
+
+    private boolean clusterPrimaryNode;
+
     public InstanceEntity(String id) {
         this.id = id;
-    }
-
-    public InstanceEntity() {}
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getEvent() {
-        return event;
-    }
-
-    public void setEvent(String event) {
-        this.event = event;
-    }
-
-    public Date getStartedAt() {
-        return startedAt;
-    }
-
-    public void setStartedAt(Date startedAt) {
-        this.startedAt = startedAt;
-    }
-
-    public Date getStoppedAt() {
-        return stoppedAt;
-    }
-
-    public void setStoppedAt(Date stoppedAt) {
-        this.stoppedAt = stoppedAt;
-    }
-
-    public Date getLastHeartbeatAt() {
-        return lastHeartbeatAt;
-    }
-
-    public void setLastHeartbeatAt(Date lastHeartbeatAt) {
-        this.lastHeartbeatAt = lastHeartbeatAt;
-    }
-
-    public List<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<String> tags) {
-        this.tags = tags;
-    }
-
-    public Set<String> getEnvironments() {
-        return environments;
-    }
-
-    public void setEnvironments(Set<String> environments) {
-        this.environments = environments;
-    }
-
-    public List<String> getEnvironmentsHrids() {
-        return environmentsHrids;
-    }
-
-    public void setEnvironmentsHrids(List<String> environmentsHrids) {
-        this.environmentsHrids = environmentsHrids;
-    }
-
-    public List<String> getOrganizationsHrids() {
-        return organizationsHrids;
-    }
-
-    public void setOrganizationsHrids(List<String> organizationsHrids) {
-        this.organizationsHrids = organizationsHrids;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
-    }
-
-    public InstanceState getState() {
-        return state;
-    }
-
-    public void setState(InstanceState state) {
-        this.state = state;
-    }
-
-    public Map<String, String> getSystemProperties() {
-        return systemProperties;
-    }
-
-    public void setSystemProperties(Map<String, String> systemProperties) {
-        this.systemProperties = systemProperties;
-    }
-
-    public Set<PluginEntity> getPlugins() {
-        return plugins;
-    }
-
-    public void setPlugins(Set<PluginEntity> plugins) {
-        this.plugins = plugins;
-    }
-
-    public String getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(String tenant) {
-        this.tenant = tenant;
     }
 
     @Override

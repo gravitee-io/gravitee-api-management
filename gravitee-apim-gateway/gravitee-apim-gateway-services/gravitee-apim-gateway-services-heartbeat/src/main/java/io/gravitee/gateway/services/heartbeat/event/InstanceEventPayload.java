@@ -18,11 +18,15 @@ package io.gravitee.gateway.services.heartbeat.event;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 public class InstanceEventPayload {
 
     private String id;
@@ -34,76 +38,5 @@ public class InstanceEventPayload {
     private String port;
     private String tenant;
     private Map<String, String> systemProperties;
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
-    }
-
-    public Map<String, String> getSystemProperties() {
-        return systemProperties;
-    }
-
-    public void setSystemProperties(Map<String, String> systemProperties) {
-        this.systemProperties = systemProperties;
-    }
-
-    public List<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<String> tags) {
-        this.tags = tags;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public Set<Plugin> getPlugins() {
-        return plugins;
-    }
-
-    public void setPlugins(Set<Plugin> plugins) {
-        this.plugins = plugins;
-    }
-
-    public String getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(String tenant) {
-        this.tenant = tenant;
-    }
+    private String clusterId;
 }

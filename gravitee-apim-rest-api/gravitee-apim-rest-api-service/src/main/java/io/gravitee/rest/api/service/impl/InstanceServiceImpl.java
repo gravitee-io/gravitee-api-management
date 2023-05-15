@@ -48,6 +48,8 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -222,9 +224,13 @@ public class InstanceServiceImpl implements InstanceService {
                 instance.setTags(info.getTags());
                 instance.setSystemProperties(info.getSystemProperties());
                 instance.setPlugins(info.getPlugins());
+                instance.setClusterId(info.getClusterId());
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while getting instance data from event payload", ioe);
             }
+        }
+        if (!isBlank(props.get("cluster_primary_node"))) {
+            instance.setClusterPrimaryNode(Boolean.parseBoolean(props.get("cluster_primary_node")));
         }
 
         if (event.getType() == EventType.GATEWAY_STARTED) {
@@ -247,6 +253,8 @@ public class InstanceServiceImpl implements InstanceService {
         return instance;
     }
 
+    @Getter
+    @Setter
     private static class InstanceInfo {
 
         private String id;
@@ -258,78 +266,7 @@ public class InstanceServiceImpl implements InstanceService {
         private String port;
         private String tenant;
         private Map<String, String> systemProperties;
-
-        public String getHostname() {
-            return hostname;
-        }
-
-        public void setHostname(String hostname) {
-            this.hostname = hostname;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getIp() {
-            return ip;
-        }
-
-        public void setIp(String ip) {
-            this.ip = ip;
-        }
-
-        public String getPort() {
-            return port;
-        }
-
-        public void setPort(String port) {
-            this.port = port;
-        }
-
-        public Map<String, String> getSystemProperties() {
-            return systemProperties;
-        }
-
-        public void setSystemProperties(Map<String, String> systemProperties) {
-            this.systemProperties = systemProperties;
-        }
-
-        public List<String> getTags() {
-            return tags;
-        }
-
-        public void setTags(List<String> tags) {
-            this.tags = tags;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public void setVersion(String version) {
-            this.version = version;
-        }
-
-        public Set<PluginEntity> getPlugins() {
-            return plugins;
-        }
-
-        public void setPlugins(Set<PluginEntity> plugins) {
-            this.plugins = plugins;
-        }
-
-        public String getTenant() {
-            return tenant;
-        }
-
-        public void setTenant(String tenant) {
-            this.tenant = tenant;
-        }
+        private String clusterId;
     }
 
     public static final class ExpiredPredicate implements Predicate<InstanceListItem> {

@@ -15,12 +15,15 @@
  */
 package io.gravitee.gateway.services.heartbeat.impl;
 
+import static io.gravitee.gateway.services.heartbeat.HeartbeatService.EVENT_CLUSTER_PRIMARY_NODE_PROPERTY;
 import static io.gravitee.gateway.services.heartbeat.HeartbeatService.EVENT_LAST_HEARTBEAT_PROPERTY;
 
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.cluster.messaging.Topic;
 import io.gravitee.repository.management.model.Event;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HeartbeatEventPublisher implements Runnable {
 
+    private final ClusterManager clusterManager;
     private final Topic<Event> topic;
     private final Event event;
 
@@ -45,10 +49,32 @@ public class HeartbeatEventPublisher implements Runnable {
                     event.setProperties(new HashMap<>());
                 }
                 event.getProperties().put(EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(event.getUpdatedAt().getTime()));
-                topic.publish(event);
+                event.getProperties().put(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.toString(clusterManager.self().primary()));
+                topic.publish(buildLiteEvent(event));
             }
         } catch (Exception ex) {
             log.error("An unexpected error occurs while monitoring the gateway", ex);
         }
+    }
+
+    /**
+     * Provides a lite version of the Heartbeat Event to only update date related fields
+     * @param heartbeatEvent the original heartbeat event
+     * @return the lite database
+     */
+    private Event buildLiteEvent(Event heartbeatEvent) {
+        Event eventLite = new Event();
+        eventLite.setId(heartbeatEvent.getId());
+        eventLite.setType(heartbeatEvent.getType());
+        eventLite.setUpdatedAt(heartbeatEvent.getUpdatedAt());
+        eventLite.setProperties(
+            Map.of(
+                EVENT_LAST_HEARTBEAT_PROPERTY,
+                heartbeatEvent.getProperties().get(EVENT_LAST_HEARTBEAT_PROPERTY),
+                EVENT_CLUSTER_PRIMARY_NODE_PROPERTY,
+                heartbeatEvent.getProperties().get(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY)
+            )
+        );
+        return eventLite;
     }
 }
