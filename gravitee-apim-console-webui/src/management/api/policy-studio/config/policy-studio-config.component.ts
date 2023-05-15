@@ -17,7 +17,6 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
-import { FlowConfigurationSchema } from '@gravitee/ui-policy-studio-angular';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-schema-form';
@@ -28,6 +27,7 @@ import { ApiDefinition } from '../models/ApiDefinition';
 import { PolicyStudioService } from '../policy-studio.service';
 import { GvSchemaFormChangeEvent } from '../models/GvSchemaFormChangeEvent';
 import { Constants } from '../../../../entities/Constants';
+import { FlowConfigurationSchema } from '../../../../entities/flow/configurationSchema';
 
 @Component({
   selector: 'policy-studio-config',
