@@ -30,7 +30,6 @@ public interface PlanMapper {
     PlanMapper INSTANCE = Mappers.getMapper(PlanMapper.class);
 
     @Mapping(target = "security.type", qualifiedByName = "convertToSecurityType")
-    @Mapping(target = "status", qualifiedByName = "convertPlanStatusV4")
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(constant = "V4", target = "definitionVersion")
     PlanV4 convert(PlanEntity planEntity);
@@ -71,7 +70,7 @@ public interface PlanMapper {
         if (Objects.isNull(securityType)) {
             return null;
         }
-        return PlanSecurityType.fromValue(securityType);
+        return PlanSecurityType.fromValue(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(securityType).name());
     }
 
     @Named("convertFromSecurityType")
@@ -79,15 +78,7 @@ public interface PlanMapper {
         if (Objects.isNull(securityType)) {
             return null;
         }
-        return securityType.getValue();
-    }
-
-    @Named("convertPlanStatusV4")
-    default PlanStatus convertPlanStatusV4(io.gravitee.definition.model.v4.plan.PlanStatus planStatus) {
-        if (Objects.isNull(planStatus)) {
-            return null;
-        }
-        return PlanStatus.fromValue(planStatus.getLabel());
+        return io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(securityType.name()).getLabel();
     }
 
     @Named("convertPlanStatusV2")
