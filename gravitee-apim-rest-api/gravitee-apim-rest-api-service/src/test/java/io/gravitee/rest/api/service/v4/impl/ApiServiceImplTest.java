@@ -326,7 +326,8 @@ public class ApiServiceImplTest {
                 primaryOwnerService,
                 auditService,
                 eventService,
-                objectMapper
+                objectMapper,
+                apiMetadataService
             );
         //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         reset(searchEngineService);
@@ -349,6 +350,9 @@ public class ApiServiceImplTest {
         updatedApi.setId(API_ID);
         updatedApi.setName(API_NAME);
         updatedApi.setEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId());
+
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
+            .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     @Test

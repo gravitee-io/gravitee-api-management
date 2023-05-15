@@ -379,7 +379,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
-                apiNotificationService.triggerDeprecatedNotification(executionContext, existingApiEntity);
+                GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, existingApiEntity);
+                apiNotificationService.triggerDeprecatedNotification(executionContext, apiWithMetadata);
             }
 
             Api updatedApi = apiRepository.update(api);
@@ -432,8 +433,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             ApiEntity apiEntity = apiMapper.toEntity(executionContext, updatedApi, primaryOwner, null, true);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
-
-            apiNotificationService.triggerUpdateNotification(executionContext, apiEntity);
+            apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
 
             searchEngineService.index(executionContext, apiWithMetadata, false);
 

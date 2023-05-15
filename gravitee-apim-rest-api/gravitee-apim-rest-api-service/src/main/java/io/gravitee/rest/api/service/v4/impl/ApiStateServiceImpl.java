@@ -34,6 +34,8 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -42,7 +44,6 @@ import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
@@ -72,6 +73,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final AuditService auditService;
     private final EventService eventService;
     private final ObjectMapper objectMapper;
+    private final ApiMetadataService apiMetadataService;
 
     public ApiStateServiceImpl(
         final ApiSearchService apiSearchService,
@@ -81,7 +83,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         final PrimaryOwnerService primaryOwnerService,
         final AuditService auditService,
         final EventService eventService,
-        final ObjectMapper objectMapper
+        final ObjectMapper objectMapper,
+        final ApiMetadataService apiMetadataService
     ) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
@@ -91,6 +94,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.auditService = auditService;
         this.eventService = eventService;
         this.objectMapper = objectMapper;
+        this.apiMetadataService = apiMetadataService;
     }
 
     @Override
@@ -127,11 +131,12 @@ public class ApiStateServiceImpl implements ApiStateService {
             eventService.createApiEvent(executionContext, singleton(executionContext.getEnvironmentId()), PUBLISH_API, api, properties);
 
             PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-            final ApiEntity deployed = apiMapper.toEntity(api, primaryOwner);
+            final ApiEntity deployedApi = apiMapper.toEntity(api, primaryOwner);
+            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, deployedApi);
 
-            apiNotificationService.triggerDeployNotification(executionContext, deployed);
+            apiNotificationService.triggerDeployNotification(executionContext, deployedApi);
 
-            return deployed;
+            return deployedApi;
         } catch (TechnicalException e) {
             log.error("An error occurs while trying to deploy API: {}", apiId, e);
             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, e);
@@ -169,7 +174,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         try {
             log.debug("Start API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STARTED, userId);
-            apiNotificationService.triggerStartNotification(executionContext, apiEntity);
+            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+            apiNotificationService.triggerStartNotification(executionContext, genericApiEntity);
             return apiEntity;
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to start API {}", apiId, ex);
@@ -182,7 +188,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         try {
             log.debug("Stop API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
-            apiNotificationService.triggerStopNotification(executionContext, apiEntity);
+            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+            apiNotificationService.triggerStopNotification(executionContext, genericApiEntity);
             return apiEntity;
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to stop API {}", apiId, ex);
