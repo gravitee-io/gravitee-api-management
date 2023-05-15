@@ -39,7 +39,7 @@
     </ng-container>
 
     <ng-container *ngIf="!isLoading && activeTab === 'config'">
-      WIP
+      <org-settings-platform-policies-config (change)="onConfigChange($event)"></org-settings-platform-policies-config>
     </ng-container>
 
     <ng-container *ngIf="isLoading"> Loading... </ng-container>
