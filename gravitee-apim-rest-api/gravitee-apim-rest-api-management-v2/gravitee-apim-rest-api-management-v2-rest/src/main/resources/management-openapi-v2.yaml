@@ -1372,19 +1372,19 @@ components:
         ConnectorFeature:
             type: string
             description: A feature used by a connector
-            example: limit
+            example: LIMIT
             enum:
-                - limit
-                - resume
-                - dlq
+                - LIMIT
+                - RESUME
+                - DLQ
         ConnectorMode:
             type: string
             description: A mode used by a connector
-            example: subscribe
+            example: SUBSCRIBE
             enum:
-                - subscribe
-                - publish
-                - request_response
+                - SUBSCRIBE
+                - PUBLISH
+                - REQUEST_RESPONSE
         ConnectorPlugin:
             type: object
             allOf:
@@ -1465,20 +1465,20 @@ components:
                 origin:
                     type: string
                     description: The origin of the API.
-                    example: management
+                    example: MANAGEMENT
                     enum:
-                        - management
-                        - kubernetes
+                        - MANAGEMENT
+                        - KUBERNETES
                 mode:
                     type: string
                     description: |-
                         The mode of the API.
                         fully_managed: Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
                         api_definition_only: Mode indicating the api is partially managed by the origin and so, only the origin should be able to manage the api definition part of the api. This includes everything regarding the definition of the apis (plans, flows, metadata, ...)
-                    example: fully_managed
+                    example: FULLY_MANAGED
                     enum:
-                        - fully_managed
-                        - api_definition_only
+                        - FULLY_MANAGED
+                        - API_DEFINITION_ONLY
             readOnly: true
         DefinitionVersion:
             type: string
@@ -1782,13 +1782,13 @@ components:
                 type:
                     type: string
                     description: Load balancer type.
-                    example: round-robin
-                    default: round-robin
+                    example: ROUND_ROBIN
+                    default: ROUND_ROBIN
                     enum:
-                        - random
-                        - round-robin
-                        - weighted-random
-                        - weighted-round-robin
+                        - RANDOM
+                        - ROUND_ROBIN
+                        - WEIGHTED_RANDOM
+                        - WEIGHTED_ROUND_ROBIN
         LoggingV4:
             type: object
             properties:
@@ -2013,36 +2013,36 @@ components:
         PlanSecurityType:
             type: string
             description: Plan security type.
-            example: key-less
+            example: KEY_LESS
             enum:
-                - key-less
-                - api-key
-                - oauth2
-                - jwt
-                - subscription
+                - KEY_LESS
+                - API_KEY
+                - OAUTH2
+                - JWT
+                - SUBSCRIPTION
         PlanStatus:
             type: string
             description: Plan status.
-            example: staging
+            example: STAGING
             enum:
-                - staging
-                - published
-                - deprecated
-                - closed
+                - STAGING
+                - PUBLISHED
+                - DEPRECATED
+                - CLOSED
         PlanType:
             type: string
             description: Plan type.
-            example: api
+            example: API
             enum:
-                - api
-                - catalog
+                - API
+                - CATALOG
         PlanValidation:
             type: string
             description: Plan validation type.
-            example: auto
+            example: AUTO
             enum:
-                - auto
-                - manual
+                - AUTO
+                - MANUAL
         Member:
             type: object
             properties:
@@ -2205,10 +2205,10 @@ components:
                     type: string
                     description: The type of the sampling
                     enum:
-                        - probability
-                        - temporal
-                        - count
-                        - query
+                        - PROBABILITY
+                        - TEMPORAL
+                        - COUNT
+                        - QUERY
                 value:
                     type: string
                     description: The value of the sampling
@@ -2761,7 +2761,7 @@ components:
                 - JKS
                 - PEM
                 - PKCS12
-                - None
+                - NONE
         BaseKeyStore:
             type: object
             properties:
@@ -2943,7 +2943,7 @@ components:
                 - JKS
                 - PEM
                 - PKCS12
-                - None
+                - NONE
         BaseTrustStore:
             type: object
             properties:
