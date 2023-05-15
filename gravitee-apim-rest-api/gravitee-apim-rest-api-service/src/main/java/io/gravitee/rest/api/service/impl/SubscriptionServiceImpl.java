@@ -156,6 +156,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
      */
     private final Logger logger = LoggerFactory.getLogger(SubscriptionServiceImpl.class);
 
+    @Lazy
     @Autowired
     private PlanSearchService planSearchService;
 

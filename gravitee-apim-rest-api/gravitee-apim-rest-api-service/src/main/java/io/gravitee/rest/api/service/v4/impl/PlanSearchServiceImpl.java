@@ -67,8 +67,8 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
     public PlanSearchServiceImpl(
         @Lazy final PlanRepository planRepository,
         @Lazy final ApiRepository apiRepository,
-        final GroupService groupService,
-        final ApiSearchService apiSearchService,
+        @Lazy final GroupService groupService,
+        @Lazy final ApiSearchService apiSearchService,
         final ObjectMapper objectMapper,
         final GenericPlanMapper genericPlanMapper
     ) {
