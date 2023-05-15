@@ -1589,6 +1589,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Start API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STARTED, userId);
+            fetchMetadataForApi(executionContext, apiEntity);
             notifierService.trigger(
                 executionContext,
                 ApiHook.API_STARTED,
@@ -1607,6 +1608,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Stop API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
+            fetchMetadataForApi(executionContext, apiEntity);
             notifierService.trigger(
                 executionContext,
                 ApiHook.API_STOPPED,
@@ -1768,8 +1770,19 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         final ApiEntity deployed = convert(executionContext, singletonList(api)).iterator().next();
 
+<<<<<<< HEAD
         if (getAuthenticatedUser() != null && !getAuthenticatedUser().isSystem()) {
             apiNotificationService.triggerDeployNotification(executionContext, deployed);
+=======
+        if (!getAuthenticatedUser().isSystem()) {
+            fetchMetadataForApi(executionContext, deployed);
+            notifierService.trigger(
+                executionContext,
+                ApiHook.API_DEPLOYED,
+                apiId,
+                new NotificationParamsBuilder().api(deployed).user(userService.findById(executionContext, userId)).build()
+            );
+>>>>>>> 4054cca2b8 (fix: enable use of API's metadata as email recipient)
         }
 
         return deployed;
@@ -2230,6 +2243,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setWorkflowState(workflowState);
 
         final UserEntity user = userService.findById(executionContext, userId);
+        fetchMetadataForApi(executionContext, apiEntity);
         notifierService.trigger(executionContext, hook, apiId, new NotificationParamsBuilder().api(apiEntity).user(user).build());
 
         // Find all reviewers of the API and send them a notification email
@@ -2610,6 +2624,69 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+<<<<<<< HEAD
+=======
+    private void triggerUpdateNotification(ExecutionContext executionContext, Api api) {
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, null);
+        triggerNotification(executionContext, apiEntity.getId(), ApiHook.API_UPDATED, apiEntity);
+    }
+
+    private void triggerApiDeprecatedNotification(ExecutionContext executionContext, String apiId, ApiEntity apiEntity) {
+        triggerNotification(executionContext, apiId, ApiHook.API_DEPRECATED, apiEntity);
+    }
+
+    private void triggerNotification(ExecutionContext executionContext, String apiId, ApiHook hook, ApiEntity apiEntity) {
+        String userId = getAuthenticatedUsername();
+        if (userId != null && !getAuthenticatedUser().isSystem()) {
+            fetchMetadataForApi(executionContext, apiEntity);
+            notifierService.trigger(
+                executionContext,
+                hook,
+                apiId,
+                new NotificationParamsBuilder().api(apiEntity).user(userService.findById(executionContext, userId)).build()
+            );
+        }
+    }
+
+    @Override
+    public Map<String, Long> countPublishedByUserGroupedByCategories(String userId) {
+        List<ApiCriteria> criteriaList = new ArrayList<>();
+        // Find all Public and published APIs
+        criteriaList.add(new ApiCriteria.Builder().visibility(PUBLIC).lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).build());
+
+        // if user is not anonymous
+        if (userId != null) {
+            // Find all Published APIs for which the user is a member
+            List<String> userMembershipApiIds = getUserMembershipApiIds(userId);
+            if (!userMembershipApiIds.isEmpty()) {
+                criteriaList.add(
+                    new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids(userMembershipApiIds).build()
+                );
+            }
+
+            // Find all Published APIs for which the user is a member of a group
+            List<String> userGroupIdsWithApiRole = getUserGroupIdsWithApiRole(userId);
+            if (!userGroupIdsWithApiRole.isEmpty()) {
+                criteriaList.add(
+                    new ApiCriteria.Builder().lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).groups(userGroupIdsWithApiRole).build()
+                );
+            }
+        }
+
+        Page<String> foundApiIds = apiRepository.searchIds(criteriaList, new PageableBuilder().pageSize(Integer.MAX_VALUE).build(), null);
+
+        if (foundApiIds.getContent() == null || foundApiIds.getContent().isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return apiRepository
+            .search(new ApiCriteria.Builder().ids(foundApiIds.getContent()).build(), null, ApiFieldFilter.defaultFields())
+            .filter(api -> api.getCategories() != null && !api.getCategories().isEmpty())
+            .flatMap(api -> api.getCategories().stream().map(cat -> Pair.of(cat, api)))
+            .collect(groupingBy(Pair::getKey, HashMap::new, counting()));
+    }
+
+>>>>>>> 4054cca2b8 (fix: enable use of API's metadata as email recipient)
     @Override
     public long countByCategoryForUser(ExecutionContext executionContext, String categoryId, String userId) {
         List<ApiCriteria> apiCriteriaList;

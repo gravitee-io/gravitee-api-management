@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -41,8 +42,13 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
+<<<<<<< HEAD
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
+=======
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import java.io.StringReader;
+>>>>>>> 4054cca2b8 (fix: enable use of API's metadata as email recipient)
 import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -105,7 +111,14 @@ public class ApiService_StartTest {
     private FlowService flowService;
 
     @Mock
+<<<<<<< HEAD
     private PrimaryOwnerService primaryOwnerService;
+=======
+    private ApiMetadataService apiMetadataService;
+
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
+>>>>>>> 4054cca2b8 (fix: enable use of API's metadata as email recipient)
 
     @Spy
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
@@ -135,6 +148,9 @@ public class ApiService_StartTest {
         query.setApi(API_ID);
         query.setTypes(singleton(PUBLISH_API));
         when(eventService.search(GraviteeContext.getExecutionContext(), query)).thenReturn(singleton(event));
+        when(apiMetadataService.findAllByApi(anyString())).thenReturn(List.of());
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(StringReader.class), anyMap()))
+            .thenReturn("content");
 
         apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
 
