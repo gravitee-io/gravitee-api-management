@@ -12,11 +12,11 @@
   "scripts": {
     "prettier": "prettier --check \"**/*.{js,mjs,json}\"",
     "prettier:fix": "prettier --write \"**/*.{js,mjs,json}\"",
-    "release": "npm run zx steps/1-release.mjs",
-    "package_zip": "npm run zx steps/2-package_zip.mjs",
-    "docker_rpms": "npm run zx steps/3-docker_and_rpms.mjs",
-    "release_notes": "npm run zx steps/4-generate_release_notes.mjs",
-    "nexus_sync": "npm run zx steps/5-nexus_sync.mjs",
+    "release": "zx steps/1-release.mjs",
+    "package_zip": "zx steps/2-package_zip.mjs",
+    "docker_rpms": "zx steps/3-docker_and_rpms.mjs",
+    "release_notes": "zx steps/4-generate_release_notes.mjs",
+    "nexus_sync": "zx steps/5-nexus_sync.mjs",
     "zx": "zx --quiet"
   },
   "devDependencies": {
