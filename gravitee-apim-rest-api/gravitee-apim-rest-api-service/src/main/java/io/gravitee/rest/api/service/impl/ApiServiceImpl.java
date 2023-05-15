@@ -102,7 +102,6 @@ import io.gravitee.rest.api.model.api.RollbackApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -2541,32 +2540,75 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiId);
 
-        if (metadataList != null) {
-            final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
-            metadataList.forEach(metadata ->
-                mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
-            );
-            apiModelEntity.setMetadata(mapMetadata);
-            if (decodeTemplate) {
-                try {
-                    String decodedValue =
-                        this.notificationTemplateService.resolveInlineTemplateWithParam(
-                                executionContext.getOrganizationId(),
-                                apiModelEntity.getId(),
-                                new StringReader(mapMetadata.toString()),
-                                Collections.singletonMap("api", apiModelEntity)
-                            );
-                    Map<String, String> metadataDecoded = Arrays
-                        .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
-                        .map(entry -> entry.split("=", 2))
-                        .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
-                    apiModelEntity.setMetadata(metadataDecoded);
-                } catch (Exception ex) {
-                    throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
-                }
-            }
+        if (metadataList == null) {
+            return apiModelEntity;
         }
-        return apiModelEntity;
+
+        final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
+        metadataList.forEach(metadata ->
+            mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
+        );
+        apiModelEntity.setMetadata(mapMetadata);
+
+        if (!decodeTemplate) {
+            return apiModelEntity;
+        }
+
+        try {
+            String decodedValue =
+                this.notificationTemplateService.resolveInlineTemplateWithParam(
+                        executionContext.getOrganizationId(),
+                        apiModelEntity.getId(),
+                        new StringReader(mapMetadata.toString()),
+                        Collections.singletonMap("api", apiModelEntity)
+                    );
+            Map<String, String> metadataDecoded = Arrays
+                .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                .map(entry -> entry.split("=", 2))
+                .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+
+            String supportEmail = metadataDecoded.get("email-support");
+
+            if (StringUtils.isEmpty(supportEmail)) {
+                LOGGER.debug("No support email defined in API metadata, looking for primary owner email");
+                metadataDecoded.put("email-support", findPrimaryOwnerEmail(executionContext, apiId));
+            }
+
+            apiModelEntity.setMetadata(metadataDecoded);
+            return apiModelEntity;
+        } catch (Exception ex) {
+            throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
+        }
+    }
+
+    private String findPrimaryOwnerEmail(ExecutionContext executionContext, String apiId) {
+        PrimaryOwnerEntity primaryOwner = getPrimaryOwner(executionContext, apiId);
+        if (MembershipMemberType.USER.name().equals(primaryOwner.getType())) {
+            return primaryOwner.getEmail();
+        }
+
+        LOGGER.debug("Primary owner of API {} is a group, looking for a primary owner role member to resolve email", apiId);
+
+        List<GroupMemberEntity> poGroupMembers = getGroupsWithMembers(executionContext, apiId).get(primaryOwner.getId());
+
+        if (poGroupMembers == null) {
+            LOGGER.error("Unable to find primary owner group members for API {}", apiId);
+            throw new PrimaryOwnerNotFoundException(apiId);
+        }
+
+        final String poRole = SystemRole.PRIMARY_OWNER.name();
+        final String apiRole = RoleScope.API.name();
+
+        return poGroupMembers
+            .stream()
+            .filter(member -> poRole.equals(member.getRoles().get(apiRole)))
+            .map(GroupMemberEntity::getId)
+            .findFirst()
+            .map(userId -> userService.findById(executionContext, userId).getEmail())
+            .orElseThrow(() -> {
+                LOGGER.error("Unable to find primary owner email for API {}", apiId);
+                throw new PrimaryOwnerNotFoundException(apiId);
+            });
     }
 
     @Override
