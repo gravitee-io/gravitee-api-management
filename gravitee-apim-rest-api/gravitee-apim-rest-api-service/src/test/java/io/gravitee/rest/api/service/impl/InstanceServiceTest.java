@@ -139,11 +139,13 @@ public class InstanceServiceTest {
                 "last_heartbeat_at",
                 String.valueOf(aMinAgo.toEpochMilli()),
                 "started_at",
-                String.valueOf(twoMinAgo.toEpochMilli())
+                String.valueOf(twoMinAgo.toEpochMilli()),
+                "cluster_primary_node",
+                Boolean.TRUE.toString()
             )
         );
         evt.setType(EventType.GATEWAY_STARTED);
-        evt.setPayload("{\"hostname\":\"myhost\"}");
+        evt.setPayload("{\"hostname\":\"myhost\",\"clusterId\":\"cluster\" }");
 
         when(eventService.findById(executionContext, "evt-id")).thenReturn(evt);
 
@@ -156,6 +158,8 @@ public class InstanceServiceTest {
         assertThat(result.getOrganizationsHrids()).hasSize(1);
 
         assertThat(result.getHostname()).isEqualTo("myhost");
+        assertThat(result.getClusterId()).isEqualTo("cluster");
+        assertThat(result.isClusterPrimaryNode()).isTrue();
     }
 
     @Test

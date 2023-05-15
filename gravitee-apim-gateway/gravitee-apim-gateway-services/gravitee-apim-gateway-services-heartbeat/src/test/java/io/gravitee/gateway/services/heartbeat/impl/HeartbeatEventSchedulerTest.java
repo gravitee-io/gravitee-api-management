@@ -15,11 +15,13 @@
  */
 package io.gravitee.gateway.services.heartbeat.impl;
 
+import static io.gravitee.gateway.services.heartbeat.HeartbeatService.EVENT_CLUSTER_PRIMARY_NODE_PROPERTY;
 import static io.gravitee.gateway.services.heartbeat.HeartbeatService.EVENT_STOPPED_AT_PROPERTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,6 +29,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.services.heartbeat.spring.configuration.HeartbeatStrategyConfiguration;
 import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.cluster.Member;
 import io.gravitee.node.api.cluster.messaging.Topic;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
@@ -52,6 +55,9 @@ class HeartbeatEventSchedulerTest {
 
     @Mock
     private ClusterManager clusterManager;
+
+    @Mock
+    private Member member;
 
     @Mock
     private EventRepository eventRepository;
@@ -82,6 +88,8 @@ class HeartbeatEventSchedulerTest {
                 null,
                 null
             );
+        lenient().when(member.primary()).thenReturn(true);
+        lenient().when(clusterManager.self()).thenReturn(member);
         when(clusterManager.<Event>topic("heartbeats")).thenReturn(topic);
         heartbeatEvent = new Event();
         cut =
@@ -121,7 +129,10 @@ class HeartbeatEventSchedulerTest {
                         return true;
                     } else if (argument.getType() == EventType.GATEWAY_STOPPED) {
                         assertThat(argument.getProperties())
-                            .containsOnly(entry(EVENT_STOPPED_AT_PROPERTY, Long.toString(argument.getUpdatedAt().getTime())));
+                            .containsOnly(
+                                entry(EVENT_STOPPED_AT_PROPERTY, Long.toString(argument.getUpdatedAt().getTime())),
+                                entry(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.TRUE.toString())
+                            );
                         return true;
                     }
                     return false;
