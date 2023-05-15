@@ -110,8 +110,6 @@ import io.gravitee.rest.api.model.api.RollbackApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
-import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -1214,7 +1212,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
-                apiNotificationService.triggerDeprecatedNotification(executionContext, apiToCheck);
+                GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiToCheck);
+                apiNotificationService.triggerDeprecatedNotification(executionContext, apiWithMetadata);
             }
 
             Api updatedApi = apiRepository.update(api);
@@ -1253,7 +1252,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             ApiEntity apiEntity = convert(executionContext, updatedApi, primaryOwner, categories);
             GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
 
-            apiNotificationService.triggerUpdateNotification(executionContext, apiEntity);
+            apiNotificationService.triggerUpdateNotification(executionContext, apiWithMetadata);
 
             searchEngineService.index(executionContext, apiWithMetadata, false);
 
@@ -1561,11 +1560,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Start API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STARTED, userId);
+            GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             notifierService.trigger(
                 executionContext,
                 ApiHook.API_STARTED,
                 apiId,
-                new NotificationParamsBuilder().api(apiEntity).user(userService.findById(executionContext, userId)).build()
+                new NotificationParamsBuilder().api(apiWithMetadata).user(userService.findById(executionContext, userId)).build()
             );
             return apiEntity;
         } catch (TechnicalException ex) {
@@ -1579,11 +1579,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         try {
             LOGGER.debug("Stop API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
+            GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             notifierService.trigger(
                 executionContext,
                 ApiHook.API_STOPPED,
                 apiId,
-                new NotificationParamsBuilder().api(apiEntity).user(userService.findById(executionContext, userId)).build()
+                new NotificationParamsBuilder().api(apiWithMetadata).user(userService.findById(executionContext, userId)).build()
             );
             return apiEntity;
         } catch (TechnicalException ex) {
@@ -1750,7 +1751,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ApiEntity deployed = convert(executionContext, singletonList(api)).iterator().next();
 
         if (getAuthenticatedUser() != null && !getAuthenticatedUser().isSystem()) {
-            apiNotificationService.triggerDeployNotification(executionContext, deployed);
+            GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, deployed);
+            apiNotificationService.triggerDeployNotification(executionContext, apiWithMetadata);
         }
 
         return deployed;
@@ -2222,7 +2224,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         apiEntity.setWorkflowState(workflowState);
 
         final UserEntity user = userService.findById(executionContext, userId);
-        notifierService.trigger(executionContext, hook, apiId, new NotificationParamsBuilder().api(apiEntity).user(user).build());
+        GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+        notifierService.trigger(executionContext, hook, apiId, new NotificationParamsBuilder().api(apiWithMetadata).user(user).build());
 
         // Find all reviewers of the API and send them a notification email
         if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {

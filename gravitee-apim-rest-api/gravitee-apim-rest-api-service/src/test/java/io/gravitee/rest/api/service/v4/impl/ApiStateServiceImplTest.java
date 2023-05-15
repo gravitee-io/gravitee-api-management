@@ -40,11 +40,9 @@ import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
@@ -116,6 +114,9 @@ public class ApiStateServiceImplTest {
     @Mock
     private ApiSearchService apiSearchService;
 
+    @Mock
+    private ApiMetadataService apiMetadataService;
+
     private Api api;
     private Api updatedApi;
     private ApiStateService apiStateService;
@@ -155,7 +156,8 @@ public class ApiStateServiceImplTest {
                 primaryOwnerService,
                 auditService,
                 eventService,
-                objectMapper
+                objectMapper,
+                apiMetadataService
             );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -168,6 +170,9 @@ public class ApiStateServiceImplTest {
         api.setDefinitionVersion(DefinitionVersion.V4);
 
         updatedApi = new Api(api);
+
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(GenericApiEntity.class)))
+            .then(invocation -> invocation.getArgument(1));
     }
 
     @Test
