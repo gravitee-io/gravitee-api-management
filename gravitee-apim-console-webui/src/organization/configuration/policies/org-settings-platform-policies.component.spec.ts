@@ -30,7 +30,6 @@ import { fakePolicyListItem } from '../../../entities/policy';
 import { fakeOrganization } from '../../../entities/organization/organization.fixture';
 import { fakePlatformFlowSchema } from '../../../entities/flow/platformFlowSchema.fixture';
 import { fakeFlow } from '../../../entities/flow/flow.fixture';
-import { fakeFlowConfigurationSchema } from '../../../entities/flow/configurationSchema.fixture';
 
 describe('OrgSettingsPlatformPoliciesComponent', () => {
   let fixture: ComponentFixture<OrgSettingsPlatformPoliciesComponent>;
@@ -79,23 +78,21 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/flow-schema`).flush(platformFlowSchema);
 
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=schema&expand=icon&withResource=false`)
-      .flush(policies);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=schema&expand=icon`).flush(policies);
+
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`).flush(organization);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
   });
 
-  describe('ngOnInit', () => {
-    it('should setup properties', async () => {
-      expect(component.policies).toStrictEqual(policies);
-      expect(component.platformFlowSchema).toStrictEqual(platformFlowSchema);
-      expect(component.organization).toStrictEqual(organization);
-      expect(component.definition).toStrictEqual({
+  describe('onSave', () => {
+    it('should call the API with updated organization', async () => {
+      component.definitionToSave = {
+        flow_mode: 'DEFAULT',
         flows: [
           {
             condition: '',
-            consumers: ['Consumer 1', 'Consumer 2'],
+            consumers: ['New Consumer', 'Consumer 2'],
             enabled: true,
             methods: [],
             name: 'Flow',
@@ -103,44 +100,23 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
             post: [],
             pre: [],
           },
+          {
+            condition: '',
+            consumers: ['Consumer 3', 'Consumer 4'],
+            enabled: true,
+            methods: [],
+            name: 'Flow 2 ',
+            'path-operator': { operator: 'STARTS_WITH', path: '' },
+            post: [],
+            pre: [],
+          },
         ],
-        flow_mode: 'BEST_MATCH',
-      });
-    });
-  });
-
-  describe('onSave', () => {
-    it('should call the API with updated organization', async () => {
-      component.onSave({
-        definition: {
-          flow_mode: 'DEFAULT',
-          flows: [
-            {
-              condition: '',
-              consumers: ['New Consumer', 'Consumer 2'],
-              enabled: true,
-              methods: [],
-              name: 'Flow',
-              'path-operator': { operator: 'STARTS_WITH', path: '' },
-              post: [],
-              pre: [],
-            },
-            {
-              condition: '',
-              consumers: ['Consumer 3', 'Consumer 4'],
-              enabled: true,
-              methods: [],
-              name: 'Flow 2 ',
-              'path-operator': { operator: 'STARTS_WITH', path: '' },
-              post: [],
-              pre: [],
-            },
-          ],
-        },
-      });
+      };
+      component.onSave();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       await (await dialog.getHarness(MatButtonHarness.with({ text: /^Yes/ }))).click();
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
 
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}` });
 
@@ -176,19 +152,7 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
           },
         ],
       });
-      req.flush(organization);
-
-      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/flow-schema`).flush(platformFlowSchema);
-
-      httpTestingController
-        .expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=schema&expand=icon&withResource=false`)
-        .flush(policies);
-
-      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
-      // This one is send by the gio-policy-studio component
-      httpTestingController
-        .expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/configuration-schema`)
-        .flush(fakeFlowConfigurationSchema());
+      // no flush to stop test here
     });
   });
 

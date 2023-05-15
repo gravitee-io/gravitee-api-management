@@ -42,6 +42,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { GioBannerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -68,6 +69,7 @@ import { OrgSettingsRoleComponent } from './roles/role/org-settings-role.compone
 import { OrgSettingsUserDetailAddGroupDialogComponent } from './user/detail/org-settings-user-detail-add-group-dialog.component';
 import { OrgSettingsUserGenerateTokenComponent } from './user/detail/tokens/org-settings-user-generate-token.component';
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
+import { OrgSettingsPlatformPoliciesStudioComponent } from './policies/studio/org-settings-platform-policies-studio.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
@@ -117,6 +119,7 @@ import { SpelService } from '../../services-ngx/spel.service';
     MatSortModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatTabsModule,
 
     GioPermissionModule,
     GioConfirmDialogModule,
@@ -151,6 +154,7 @@ import { SpelService } from '../../services-ngx/spel.service';
     OrgSettingsNotificationTemplateComponent,
     OrgSettingsCockpitComponent,
     OrgSettingsPlatformPoliciesComponent,
+    OrgSettingsPlatformPoliciesStudioComponent,
     OrgSettingsTenantsComponent,
     OrgSettingAddTenantComponent,
     OrgSettingsRolesComponent,
