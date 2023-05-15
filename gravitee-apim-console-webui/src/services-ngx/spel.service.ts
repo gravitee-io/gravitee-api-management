@@ -15,7 +15,6 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { SpelServiceAbstract } from '@gravitee/ui-policy-studio-angular';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
@@ -24,7 +23,7 @@ import { Grammar } from '../entities/spel/grammar';
 @Injectable({
   providedIn: 'root',
 })
-export class SpelService implements SpelServiceAbstract {
+export class SpelService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   getGrammar(): Observable<Grammar> {
