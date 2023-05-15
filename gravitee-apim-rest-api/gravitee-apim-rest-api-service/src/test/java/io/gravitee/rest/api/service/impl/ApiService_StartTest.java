@@ -32,8 +32,10 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.mixin.ApiMixin;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -41,6 +43,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import java.util.*;
@@ -107,6 +110,12 @@ public class ApiService_StartTest {
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
+    @Mock
+    private ApiMetadataService apiMetadataService;
+
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
+
     @Spy
     private CategoryMapper categoryMapper = new CategoryMapper(mock(CategoryService.class));
 
@@ -135,6 +144,8 @@ public class ApiService_StartTest {
         query.setApi(API_ID);
         query.setTypes(singleton(PUBLISH_API));
         when(eventService.search(GraviteeContext.getExecutionContext(), query)).thenReturn(singleton(event));
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
+            .thenAnswer(invocation -> invocation.getArgument(1));
 
         apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
 

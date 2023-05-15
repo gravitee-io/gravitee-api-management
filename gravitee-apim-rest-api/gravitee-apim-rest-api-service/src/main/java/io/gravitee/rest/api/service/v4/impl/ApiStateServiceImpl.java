@@ -35,10 +35,10 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -75,6 +75,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final AuditService auditService;
     private final EventService eventService;
     private final ObjectMapper objectMapper;
+    private final ApiMetadataService apiMetadataService;
 
     public ApiStateServiceImpl(
         final ApiSearchService apiSearchService,
@@ -85,7 +86,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         final PrimaryOwnerService primaryOwnerService,
         final AuditService auditService,
         final EventService eventService,
-        final ObjectMapper objectMapper
+        final ObjectMapper objectMapper,
+        final ApiMetadataService apiMetadataService
     ) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
@@ -96,6 +98,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.auditService = auditService;
         this.eventService = eventService;
         this.objectMapper = objectMapper;
+        this.apiMetadataService = apiMetadataService;
     }
 
     @Override
@@ -116,11 +119,12 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, api);
 
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, api.getId());
-        final GenericApiEntity deployed = genericApiMapper.toGenericApi(api, primaryOwner);
+        final GenericApiEntity deployedApi = genericApiMapper.toGenericApi(api, primaryOwner);
+        GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, deployedApi);
 
-        apiNotificationService.triggerDeployNotification(executionContext, deployed);
+        apiNotificationService.triggerDeployNotification(executionContext, apiWithMetadata);
 
-        return deployed;
+        return deployedApi;
     }
 
     private void deployApi(ExecutionContext executionContext, String authenticatedUser, ApiDeploymentEntity apiDeploymentEntity, Api api) {
@@ -177,7 +181,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         try {
             log.debug("Start API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STARTED, userId);
-            apiNotificationService.triggerStartNotification(executionContext, apiEntity);
+            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+            apiNotificationService.triggerStartNotification(executionContext, genericApiEntity);
             return apiEntity;
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to start API {}", apiId, ex);
@@ -190,7 +195,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         try {
             log.debug("Stop API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
-            apiNotificationService.triggerStopNotification(executionContext, apiEntity);
+            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+            apiNotificationService.triggerStopNotification(executionContext, genericApiEntity);
             return apiEntity;
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to stop API {}", apiId, ex);

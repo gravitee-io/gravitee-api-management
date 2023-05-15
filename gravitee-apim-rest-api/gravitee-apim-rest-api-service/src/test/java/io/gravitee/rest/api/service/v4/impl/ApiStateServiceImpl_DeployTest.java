@@ -114,6 +114,9 @@ public class ApiStateServiceImpl_DeployTest {
     @Mock
     private ApiSearchService apiSearchService;
 
+    @Mock
+    private ApiMetadataService apiMetadataService;
+
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
 
@@ -158,7 +161,8 @@ public class ApiStateServiceImpl_DeployTest {
                 primaryOwnerService,
                 auditService,
                 eventService,
-                objectMapper
+                objectMapper,
+                apiMetadataService
             );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -171,6 +175,9 @@ public class ApiStateServiceImpl_DeployTest {
         api.setDefinitionVersion(DefinitionVersion.V4);
 
         updatedApi = new Api(api);
+
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(GenericApiEntity.class)))
+            .then(invocation -> invocation.getArgument(1));
     }
 
     @Test(expected = ApiNotManagedException.class)
