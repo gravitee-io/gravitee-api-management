@@ -2,5 +2,9 @@
 
 :host {
   @include gio-layout.gio-full-width-content-container;
-  --gv-policy-studio--h: 100vh - 75px;
+}
+
+.header__nav__saveButton {
+  margin: 0 24px;
+  align-self: center;
 }
