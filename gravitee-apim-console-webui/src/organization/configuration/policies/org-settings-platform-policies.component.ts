@@ -15,16 +15,12 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, Subject } from 'rxjs';
-import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 
-import { PolicyService } from '../../../services-ngx/policy.service';
-import { FlowService } from '../../../services-ngx/flow.service';
 import { OrganizationService } from '../../../services-ngx/organization.service';
 import { Organization } from '../../../entities/organization/organization';
-import { PlatformFlowSchema } from '../../../entities/flow/platformFlowSchema';
-import { PolicyListItem } from '../../../entities/policy';
 import { PathOperator, Step } from '../../../entities/flow/flow';
 import {
   GioConfirmDialogComponent,
@@ -43,9 +39,9 @@ interface FlowVM {
   consumers: string[];
 }
 
-interface DefinitionVM {
-  flow_mode: 'DEFAULT' | 'BEST_MATCH';
-  flows: FlowVM[];
+export interface DefinitionVM {
+  flow_mode?: 'DEFAULT' | 'BEST_MATCH';
+  flows?: FlowVM[];
 }
 
 @Component({
@@ -55,46 +51,23 @@ interface DefinitionVM {
 })
 export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
   isLoading = true;
+  activeTab: 'design' | 'config' = 'design';
 
-  organization: Organization;
-  definition: DefinitionVM;
+  definitionToSave: DefinitionVM;
 
-  platformFlowSchema: PlatformFlowSchema;
-  policies: PolicyListItem[];
+  isSaveButtonDisabled = true;
 
   private unsubscribe$ = new Subject<boolean>();
 
   constructor(
-    private readonly flowService: FlowService,
-    private readonly policyService: PolicyService,
     private readonly organizationService: OrganizationService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
 
-  ngOnInit(): void {
-    combineLatest([
-      this.flowService.getPlatformFlowSchemaForm(),
-      this.policyService.list({ expandSchema: true, expandIcon: true, withoutResource: true }),
-      this.organizationService.get(),
-    ])
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        tap(([flowSchema, policies, organization]) => {
-          this.platformFlowSchema = flowSchema;
-          this.policies = policies;
-          this.organization = organization;
-          this.definition = {
-            flows: (this.organization.flows ?? []).map((flow) => ({
-              ...flow,
-              consumers: flow.consumers.map((consumer) => consumer.consumerId),
-            })),
-            flow_mode: this.organization.flowMode,
-          };
-          this.isLoading = false;
-        }),
-      )
-      .subscribe();
+  ngOnInit() {
+    this.isLoading = false;
+    this.isSaveButtonDisabled = true;
   }
 
   ngOnDestroy() {
@@ -102,16 +75,23 @@ export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  onSave({ definition }: { definition: DefinitionVM }) {
-    const updatedOrganization: Organization = {
-      ...this.organization,
-      flowMode: definition.flow_mode,
-      flows: definition.flows.map((flow) => ({
-        ...flow,
-        consumers: (flow.consumers ?? []).map((consumer) => ({ consumerType: 'TAG', consumerId: consumer })),
-      })),
+  onChangeStudio(flows: DefinitionVM['flows']) {
+    this.definitionToSave = {
+      ...this.definitionToSave,
+      flows,
     };
+    this.isSaveButtonDisabled = false;
+  }
 
+  onConfigChange(flow_mode: DefinitionVM['flow_mode']) {
+    this.definitionToSave = {
+      ...this.definitionToSave,
+      flow_mode,
+    };
+    this.isSaveButtonDisabled = false;
+  }
+
+  onSave() {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '450px',
@@ -125,7 +105,24 @@ export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
-        switchMap(() => this.organizationService.update(updatedOrganization)),
+        tap(() => {
+          this.isLoading = true;
+          this.isSaveButtonDisabled = true;
+        }),
+        switchMap(() => this.organizationService.get()),
+        map(
+          (organization) =>
+            ({
+              ...organization,
+              flowMode: this.definitionToSave.flow_mode ?? organization.flowMode,
+              flows:
+                this.definitionToSave.flows?.map((flow) => ({
+                  ...flow,
+                  consumers: (flow.consumers ?? []).map((consumer) => ({ consumerType: 'TAG', consumerId: consumer })),
+                })) ?? organization.flows,
+            } as Organization),
+        ),
+        switchMap((organizationToSave) => this.organizationService.update(organizationToSave)),
         tap(() => {
           this.snackBarService.success('Platform policies successfully updated!');
         }),
