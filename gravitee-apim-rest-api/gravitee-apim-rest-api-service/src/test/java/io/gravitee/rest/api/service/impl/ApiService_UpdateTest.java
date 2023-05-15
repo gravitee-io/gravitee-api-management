@@ -112,6 +112,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -370,6 +371,8 @@ public class ApiService_UpdateTest {
         when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(new UserEntity()));
         reset(searchEngineService);
         when(virtualHostService.sanitizeAndValidate(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
+            .thenAnswer(invocation -> invocation.getArgument(1));
     }
 
     @After

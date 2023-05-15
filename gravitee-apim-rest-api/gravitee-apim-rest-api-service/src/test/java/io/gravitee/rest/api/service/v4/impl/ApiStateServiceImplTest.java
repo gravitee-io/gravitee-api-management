@@ -40,11 +40,9 @@ import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -60,6 +58,7 @@ import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.apiguardian.api.API;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -121,6 +120,9 @@ public class ApiStateServiceImplTest {
     @Mock
     private ApiSearchService apiSearchService;
 
+    @Mock
+    private ApiMetadataService apiMetadataService;
+
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
 
@@ -165,7 +167,8 @@ public class ApiStateServiceImplTest {
                 primaryOwnerService,
                 auditService,
                 eventService,
-                objectMapper
+                objectMapper,
+                apiMetadataService
             );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -178,6 +181,9 @@ public class ApiStateServiceImplTest {
         api.setDefinitionVersion(DefinitionVersion.V4);
 
         updatedApi = new Api(api);
+
+        when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(GenericApiEntity.class)))
+            .then(invocation -> invocation.getArgument(1));
     }
 
     @Test
