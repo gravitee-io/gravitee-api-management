@@ -179,6 +179,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Autowired
     private PageRepository pageRepository;
 
+    @Lazy
     @Autowired
     private ApiSearchService apiSearchService;
 
