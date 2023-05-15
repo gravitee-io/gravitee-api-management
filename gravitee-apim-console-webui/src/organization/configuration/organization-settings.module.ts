@@ -41,7 +41,6 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSortModule } from '@angular/material/sort';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { GioBannerModule, GioFormJsonSchemaModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
-import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
@@ -137,7 +136,6 @@ import { SpelService } from '../../services-ngx/spel.service';
     GioClipboardModule,
     GioTableWrapperModule,
     GioUsersSelectorModule,
-    GioPolicyStudioModule,
     GioFormJsonSchemaModule,
   ],
   declarations: [

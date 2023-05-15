@@ -18,7 +18,6 @@ import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/cor
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
-import { PlatformFlowSchema, PolicyListItem, ResourceListItem, Grammar } from '@gravitee/ui-policy-studio-angular';
 import { Location } from '@angular/common';
 
 import { UrlParams } from '../../../../management/api/policy-studio/design/policy-studio-design.component';
@@ -26,6 +25,10 @@ import { OrganizationService } from '../../../../services-ngx/organization.servi
 import { OrgSettingsPlatformPoliciesService } from '../org-settings-platform-policies.service';
 import { Organization } from '../../../../entities/organization/organization';
 import { DefinitionVM } from '../org-settings-platform-policies.component';
+import { PlatformFlowSchema } from '../../../../entities/flow/platformFlowSchema';
+import { PolicyListItem } from '../../../../entities/policy';
+import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
+import { Grammar } from '../../../../entities/spel/grammar';
 
 @Component({
   selector: 'org-settings-platform-policies-studio',
