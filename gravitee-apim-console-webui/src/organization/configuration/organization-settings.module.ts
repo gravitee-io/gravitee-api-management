@@ -40,7 +40,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSortModule } from '@angular/material/sort';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { GioBannerModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormJsonSchemaModule, GioFormTagsInputModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 
@@ -70,6 +70,7 @@ import { OrgSettingsUserDetailAddGroupDialogComponent } from './user/detail/org-
 import { OrgSettingsUserGenerateTokenComponent } from './user/detail/tokens/org-settings-user-generate-token.component';
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
 import { OrgSettingsPlatformPoliciesStudioComponent } from './policies/studio/org-settings-platform-policies-studio.component';
+import { OrgSettingsPlatformPoliciesConfigComponent } from './policies/config/org-settings-platform-policies-config.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/gio-confirm-dialog/gio-confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
@@ -137,6 +138,7 @@ import { SpelService } from '../../services-ngx/spel.service';
     GioTableWrapperModule,
     GioUsersSelectorModule,
     GioPolicyStudioModule,
+    GioFormJsonSchemaModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,
@@ -155,6 +157,7 @@ import { SpelService } from '../../services-ngx/spel.service';
     OrgSettingsCockpitComponent,
     OrgSettingsPlatformPoliciesComponent,
     OrgSettingsPlatformPoliciesStudioComponent,
+    OrgSettingsPlatformPoliciesConfigComponent,
     OrgSettingsTenantsComponent,
     OrgSettingAddTenantComponent,
     OrgSettingsRolesComponent,
