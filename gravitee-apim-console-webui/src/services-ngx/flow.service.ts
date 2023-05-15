@@ -16,7 +16,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { FlowServiceAbstract } from '@gravitee/ui-policy-studio-angular';
 
 import { Constants } from '../entities/Constants';
 import { FlowConfigurationSchema } from '../entities/flow/configurationSchema';
@@ -26,7 +25,7 @@ import { OrganizationFlowConfiguration } from '../entities/flow/organizationFlow
 @Injectable({
   providedIn: 'root',
 })
-export class FlowService implements FlowServiceAbstract {
+export class FlowService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   getConfigurationSchemaForm(): Observable<FlowConfigurationSchema> {

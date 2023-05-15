@@ -87,10 +87,6 @@ import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-butto
 import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
-import { FlowService } from '../../services-ngx/flow.service';
-import { PolicyService } from '../../services-ngx/policy.service';
-import { ResourceService } from '../../services-ngx/resource.service';
-import { SpelService } from '../../services-ngx/spel.service';
 
 @NgModule({
   imports: [
@@ -139,7 +135,6 @@ import { SpelService } from '../../services-ngx/spel.service';
     GioClipboardModule,
     GioTableWrapperModule,
     GioUsersSelectorModule,
-    GioPolicyStudioModule,
     GioFormJsonSchemaModule,
   ],
   declarations: [
@@ -194,24 +189,6 @@ import { SpelService } from '../../services-ngx/spel.service';
     OrgSettingsRoleComponent,
     OrgSettingsUserDetailAddGroupDialogComponent,
     OrgSettingsAuditComponent,
-  ],
-  providers: [
-    {
-      provide: 'FlowService',
-      useExisting: FlowService,
-    },
-    {
-      provide: 'PolicyService',
-      useExisting: PolicyService,
-    },
-    {
-      provide: 'ResourceService',
-      useExisting: ResourceService,
-    },
-    {
-      provide: 'SpelService',
-      useExisting: SpelService,
-    },
   ],
 })
 export class OrganizationSettingsModule {}

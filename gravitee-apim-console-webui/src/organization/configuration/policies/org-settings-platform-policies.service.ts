@@ -16,7 +16,6 @@
 
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { ListParams, PolicyListItem, PolicySchema, PolicyDocumentation, ResourceListItem } from '@gravitee/ui-policy-studio-angular';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -25,6 +24,9 @@ import { FlowSchema } from '../../../entities/flow/flowSchema';
 import { ApiService } from '../../../services-ngx/api.service';
 import { PlatformFlowSchema } from '../../../entities/flow/platformFlowSchema';
 import { FlowService } from '../../../services-ngx/flow.service';
+import { ListParams } from '../../../management/api/policy-studio/models/ListParams';
+import { PolicyDocumentation, PolicyListItem, PolicySchema } from '../../../entities/policy';
+import { ResourceListItem } from '../../../entities/resource/resourceListItem';
 
 @Injectable({
   providedIn: 'root',
