@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -41,6 +42,8 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import java.io.StringReader;
 import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -100,6 +103,12 @@ public class ApiService_StartTest {
     @Mock
     private FlowService flowService;
 
+    @Mock
+    private ApiMetadataService apiMetadataService;
+
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
+
     @Spy
     private ApiConverter apiConverter;
 
@@ -134,6 +143,9 @@ public class ApiService_StartTest {
         query.setApi(API_ID);
         query.setTypes(singleton(PUBLISH_API));
         when(eventService.search(GraviteeContext.getExecutionContext(), query)).thenReturn(singleton(event));
+        when(apiMetadataService.findAllByApi(anyString())).thenReturn(List.of());
+        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(StringReader.class), anyMap()))
+            .thenReturn("content");
 
         apiService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
 
