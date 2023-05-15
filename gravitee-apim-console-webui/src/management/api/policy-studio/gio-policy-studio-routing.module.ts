@@ -20,7 +20,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
 import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioDebugComponent } from './debug/policy-studio-debug.component';
@@ -51,7 +50,6 @@ import { GioConfirmDialogModule } from '../../../shared/components/gio-confirm-d
     GioSaveBarModule,
     GioPermissionModule,
     GioConfirmDialogModule,
-    GioPolicyStudioModule,
 
     PolicyStudioDesignModule,
     PolicyStudioConfigModule,
