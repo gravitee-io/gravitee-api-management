@@ -17,4 +17,4 @@
 /**
  * Plan status.
  */
-export type PlanStatus = 'staging' | 'published' | 'deprecated' | 'closed';
+export type PlanStatus = 'STAGING' | 'PUBLISHED' | 'DEPRECATED' | 'CLOSED';

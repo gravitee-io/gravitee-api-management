@@ -40,12 +40,12 @@ import { ApiCreationStepperMenuHarness } from './components/api-creation-stepper
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { fakeApiV4, ApiType, ConnectorPlugin, getEntrypointConnectorSchema } from '../../../../entities/management-api-v2';
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
 import { PlanSecurityType } from '../../../../entities/plan-v4';
 import { fakeV4Plan } from '../../../../entities/plan-v4/plan.fixture';
+import { ApiType, ConnectorPlugin, fakeApiV4, getEntrypointConnectorSchema } from '../../../../entities/management-api-v2';
 import { fakeConnectorPlugin } from '../../../../entities/management-api-v2/connector/connectorPlugin.fixture';
 
 describe('ApiCreationV4Component', () => {

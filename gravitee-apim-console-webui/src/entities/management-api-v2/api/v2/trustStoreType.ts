@@ -17,4 +17,4 @@
 /**
  * The type of the trust store.
  */
-export type TrustStoreType = 'JKS' | 'PEM' | 'PKCS12' | 'None';
+export type TrustStoreType = 'JKS' | 'PEM' | 'PKCS12' | 'NONE';

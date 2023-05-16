@@ -34,7 +34,7 @@ export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) =>
     tags: [],
     labels: [],
     definitionContext: {
-      origin: 'management',
+      origin: 'MANAGEMENT',
     },
     responseTemplates: {
       customKey: {
@@ -122,7 +122,7 @@ export function fakeApiV2(modifier?: Partial<Api> | ((baseApi: Api) => Api)): Ap
             },
           ],
           loadBalancer: {
-            type: 'round-robin',
+            type: 'ROUND_ROBIN',
           },
           httpClientOptions: {
             connectTimeout: 5000,

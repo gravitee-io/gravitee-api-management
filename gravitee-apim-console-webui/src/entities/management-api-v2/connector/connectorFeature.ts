@@ -17,4 +17,4 @@
 /**
  * A feature used by a connector
  */
-export type ConnectorFeature = 'limit' | 'resume' | 'dlq';
+export type ConnectorFeature = 'LIMIT' | 'RESUME' | 'DLQ';

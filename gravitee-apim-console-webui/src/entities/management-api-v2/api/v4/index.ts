@@ -38,7 +38,7 @@ export * from './loggingModeV4';
 export * from './loggingPhase';
 export * from './loggingV4';
 export * from './pathV4';
-export * from './qoS';
+export * from './qos';
 export * from './sampling';
 export * from './selector';
 export * from './serviceV4';

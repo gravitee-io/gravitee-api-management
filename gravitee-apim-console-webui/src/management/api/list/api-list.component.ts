@@ -171,7 +171,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             workflowBadge: this.getWorkflowBadge(api),
             visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
             origin: api.definitionContext?.origin,
-            readonly: api.definitionContext?.origin === 'kubernetes',
+            readonly: api.definitionContext?.origin === 'KUBERNETES',
             definitionVersion: this.getDefinitionVersion(api),
             owner: api.primaryOwner?.displayName,
             ownerEmail: api.primaryOwner?.email,
