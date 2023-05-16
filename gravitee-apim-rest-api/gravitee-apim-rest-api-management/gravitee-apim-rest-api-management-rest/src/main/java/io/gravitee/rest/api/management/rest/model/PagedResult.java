@@ -25,9 +25,9 @@ import java.util.Map;
  */
 public class PagedResult<T> {
 
-    private final Collection<T> data;
+    private Collection<T> data;
     private Map<String, Map<String, Object>> metadata;
-    private final Page page;
+    private Page page;
 
     public PagedResult(Collection<T> data, int pageNumber, int perPage, int totalElements) {
         this.data = data;
@@ -41,6 +41,8 @@ public class PagedResult<T> {
     public PagedResult(io.gravitee.common.data.domain.Page<T> page, int perPage) {
         this(page.getContent(), page.getPageNumber(), perPage, (int) page.getTotalElements());
     }
+
+    public PagedResult() {}
 
     public Collection<T> getData() {
         return data;
@@ -58,35 +60,37 @@ public class PagedResult<T> {
         return page;
     }
 
-    public class Page {
+    public static class Page {
 
         /**
          * the current page number. Start to 1
          */
-        private final int current;
+        private int current;
 
         /**
          * the requested number of elements per page
          */
         @JsonProperty("per_page")
-        private final int perPage;
+        private int perPage;
 
         /**
          * the size of the result
          */
-        private final int size;
+        private int size;
 
         /**
          * the maximum page number
          */
         @JsonProperty("total_pages")
-        private final int totalPages;
+        private int totalPages;
 
         /**
          * the count of all elements
          */
         @JsonProperty("total_elements")
-        private final int totalElements;
+        private int totalElements;
+
+        public Page() {}
 
         public Page(int current, int perPage, int size, int totalElements) {
             this.current = current;
