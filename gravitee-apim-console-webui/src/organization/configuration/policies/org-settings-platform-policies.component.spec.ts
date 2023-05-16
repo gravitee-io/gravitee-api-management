@@ -115,7 +115,7 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
       component.onSave();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);
-      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Yes/ }))).click();
+      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Confirm/ }))).click();
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
 
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}` });
