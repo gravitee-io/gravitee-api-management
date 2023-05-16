@@ -16,11 +16,14 @@
 package io.gravitee.rest.api.management.rest.model.wrapper;
 
 import io.gravitee.rest.api.management.rest.model.PagedResult;
-import io.gravitee.rest.api.model.api.ApiListItem;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import java.util.Collection;
 
 public class ApplicationListItemPagedResult extends PagedResult<ApplicationListItem> {
+
+    public ApplicationListItemPagedResult() {
+        super();
+    }
 
     public ApplicationListItemPagedResult(Collection<ApplicationListItem> data, int pageNumber, int perPage, int totalElements) {
         super(data, pageNumber, perPage, totalElements);

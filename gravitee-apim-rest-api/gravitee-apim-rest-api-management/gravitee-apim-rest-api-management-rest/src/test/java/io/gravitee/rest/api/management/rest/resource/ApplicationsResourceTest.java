@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -29,11 +29,12 @@ import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.Date;
+import java.util.List;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -101,11 +102,53 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetApplicationsPaged() {
-        Page<ApplicationListItem> applications = mock(Page.class);
+        var app1 = mock(ApplicationListItem.class);
+        when(app1.getId()).thenReturn("app1");
+        when(app1.getUpdatedAt()).thenReturn(new Date());
+        var app2 = mock(ApplicationListItem.class);
+        when(app2.getId()).thenReturn("app2");
+        when(app2.getUpdatedAt()).thenReturn(new Date());
+        var app3 = mock(ApplicationListItem.class);
+        when(app3.getId()).thenReturn("app3");
+        when(app3.getUpdatedAt()).thenReturn(new Date());
+
+        List<ApplicationListItem> applications = List.of(app1, app2, app3);
+        Page<ApplicationListItem> pagedApplications = new Page(applications, 0, 3, 3);
         when(applicationService.search(eq(GraviteeContext.getExecutionContext()), any(ApplicationQuery.class), any(), any()))
-            .thenReturn(applications);
+            .thenReturn(pagedApplications);
 
         final Response response = envTarget("/_paged").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        var responseContent = response.readEntity(ApplicationListItemPagedResult.class);
+        var pagedApplicationsResult = (ApplicationListItemPagedResult) responseContent;
+        assertEquals(0, pagedApplicationsResult.getPage().getCurrent());
+        assertEquals(20, pagedApplicationsResult.getPage().getPerPage());
+        assertEquals(3, pagedApplicationsResult.getPage().getSize());
+        assertEquals(1, pagedApplicationsResult.getPage().getTotalPages());
+        assertEquals(3, pagedApplicationsResult.getPage().getTotalElements());
+    }
+
+    @Test
+    public void shouldGetApplicationsPagedLastPage() {
+        var app1 = mock(ApplicationListItem.class);
+        when(app1.getId()).thenReturn("app1");
+        when(app1.getUpdatedAt()).thenReturn(new Date());
+
+        List<ApplicationListItem> applications = List.of(app1);
+        Page<ApplicationListItem> pagedApplications = new Page(applications, 2, 1, 7);
+        when(applicationService.search(eq(GraviteeContext.getExecutionContext()), any(ApplicationQuery.class), any(), any()))
+            .thenReturn(pagedApplications);
+
+        final Response response = envTarget("/_paged").queryParam("page", 3).queryParam("size", 3).request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        var responseContent = response.readEntity(ApplicationListItemPagedResult.class);
+        var pagedApplicationsResult = (ApplicationListItemPagedResult) responseContent;
+        assertEquals(2, pagedApplicationsResult.getPage().getCurrent());
+        assertEquals(3, pagedApplicationsResult.getPage().getPerPage());
+        assertEquals(1, pagedApplicationsResult.getPage().getSize());
+        assertEquals(3, pagedApplicationsResult.getPage().getTotalPages());
+        assertEquals(7, pagedApplicationsResult.getPage().getTotalElements());
     }
 }
