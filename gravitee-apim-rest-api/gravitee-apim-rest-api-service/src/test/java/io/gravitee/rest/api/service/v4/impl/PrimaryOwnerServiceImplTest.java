@@ -34,14 +34,8 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
-import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,9 +61,6 @@ public class PrimaryOwnerServiceImplTest {
     private GroupService groupService;
 
     @Mock
-    private ApiGroupService apiGroupService;
-
-    @Mock
     private ParameterService parameterService;
 
     @Mock
@@ -79,8 +70,7 @@ public class PrimaryOwnerServiceImplTest {
 
     @Before
     public void setUp() {
-        this.primaryOwnerService =
-            new PrimaryOwnerServiceImpl(userService, membershipService, groupService, apiGroupService, parameterService, roleService);
+        this.primaryOwnerService = new PrimaryOwnerServiceImpl(userService, membershipService, groupService, parameterService, roleService);
     }
 
     @Test
@@ -172,10 +162,20 @@ public class PrimaryOwnerServiceImplTest {
         )
             .thenReturn(primaryOwnerGroupMembership());
 
-        when(groupService.findById(EXECUTION_CONTEXT, "some-group")).thenReturn(primaryOwnerGroup());
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), EXECUTION_CONTEXT.getOrganizationId()))
+            .thenReturn(apiPrimaryOwnerRole());
 
-        when(apiGroupService.getGroupsWithMembers(EXECUTION_CONTEXT, apiId))
-            .thenReturn(Map.of("some-group", List.of(primaryOwnerGroupMember())));
+        when(
+            membershipService.getMembersByReferenceAndRole(
+                EXECUTION_CONTEXT,
+                MembershipReferenceType.GROUP,
+                "some-group",
+                "role-api-primary-owner"
+            )
+        )
+            .thenReturn(primaryOwnerGroupMember());
+
+        when(groupService.findById(EXECUTION_CONTEXT, "some-group")).thenReturn(primaryOwnerGroup());
 
         when(userService.findById(EXECUTION_CONTEXT, "some-member")).thenReturn(primaryOwnerUser());
 
@@ -211,10 +211,17 @@ public class PrimaryOwnerServiceImplTest {
         return group;
     }
 
-    private static GroupMemberEntity primaryOwnerGroupMember() {
-        GroupMemberEntity member = new GroupMemberEntity();
+    private static Set<MemberEntity> primaryOwnerGroupMember() {
+        MemberEntity member = new MemberEntity();
         member.setId("some-member");
-        member.setRoles(Map.of(RoleScope.API.name(), SystemRole.PRIMARY_OWNER.name()));
-        return member;
+        return Set.of(member);
+    }
+
+    private static Optional<RoleEntity> apiPrimaryOwnerRole() {
+        RoleEntity role = new RoleEntity();
+        role.setScope(RoleScope.API);
+        role.setName(SystemRole.PRIMARY_OWNER.name());
+        role.setId("role-api-primary-owner");
+        return Optional.of(role);
     }
 }
