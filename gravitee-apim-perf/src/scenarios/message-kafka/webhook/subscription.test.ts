@@ -120,17 +120,19 @@ export function setup(): GatewayTestData {
         ],
         request: [],
         response: [],
-        subscribe: [
-          {
-            name: 'Json to Json',
-            description: 'Add sourceTimestamp to help webhook to generate globalMessageLatency metric',
-            enabled: true,
-            policy: 'json-to-json',
-            configuration: {
-              specification: '[{ "operation": "default", "spec": { "sourceTimestamp": "{#message.metadata[\'sourceTimestamp\']}" }}]',
-            },
-          },
-        ],
+        subscribe: k6Options.apim.webhook.withJsontoJson
+          ? [
+              {
+                name: 'Json to Json',
+                description: 'Add sourceTimestamp to help webhook to generate globalMessageLatency metric',
+                enabled: true,
+                policy: 'json-to-json',
+                configuration: {
+                  specification: '[{ "operation": "default", "spec": { "sourceTimestamp": "{#message.metadata[\'sourceTimestamp\']}" }}]',
+                },
+              },
+            ]
+          : [],
         publish: [],
         enabled: true,
       },

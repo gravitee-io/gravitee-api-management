@@ -118,6 +118,7 @@ export interface Selector {
   type: string;
   operation?: Array<string>;
   channel?: string;
+  condition?: string;
   'channel-operator'?: string;
 }
 

@@ -61,6 +61,7 @@ interface Webhook {
   callbackBaseUrl: string;
   compression: string;
   acks: number;
+  withJsontoJson: boolean;
 }
 
 interface KafkaInjector {
