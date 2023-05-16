@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import io.gravitee.definition.model.Origin;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -59,6 +60,8 @@ public class ApplicationMongo extends Auditable {
     private String domain;
 
     private String apiKeyMode;
+
+    private Origin origin;
 
     public String getId() {
         return id;
@@ -164,6 +167,14 @@ public class ApplicationMongo extends Auditable {
         this.apiKeyMode = apiKeyMode;
     }
 
+    public Origin getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Origin origin) {
+        this.origin = origin;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -188,6 +199,7 @@ public class ApplicationMongo extends Auditable {
         sb.append(", groups='").append(groups).append('\'');
         sb.append(", disableMembershipNotifications='").append(disableMembershipNotifications).append('\'');
         sb.append(", apiKeyMode='").append(apiKeyMode).append('\'');
+        sb.append(", origin='").append(origin).append('\'');
         sb.append('}');
         return sb.toString();
     }

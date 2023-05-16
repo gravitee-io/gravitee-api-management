@@ -30,6 +30,7 @@ export function fakeApplication(attributes?: Partial<Application>): Application 
     status: 'ACTIVE',
     type: 'SIMPLE',
     updated_at: 1636536375600,
+    origin: 'MANAGEMENT',
   };
 
   return {

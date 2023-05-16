@@ -275,6 +275,7 @@ describe('EnvApplicationListComponent', () => {
           owner: application.owner,
           updated_at: application.updated_at,
           status: application.status,
+          origin: application.origin,
         });
 
         const dialog = await rootLoader.getHarness(MatDialogHarness);
