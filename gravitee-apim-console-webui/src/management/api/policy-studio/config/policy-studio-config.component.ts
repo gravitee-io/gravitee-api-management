@@ -17,15 +17,12 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
-import { MatSlideToggleChange } from '@angular/material/slide-toggle';
-import '@gravitee/ui-components/wc/gv-icon';
-import '@gravitee/ui-components/wc/gv-schema-form';
+import { FormControl, FormGroup } from '@angular/forms';
 
 import { PolicyStudioConfigService } from './policy-studio-config.service';
 
 import { ApiDefinition } from '../models/ApiDefinition';
 import { PolicyStudioService } from '../policy-studio.service';
-import { GvSchemaFormChangeEvent } from '../models/GvSchemaFormChangeEvent';
 import { Constants } from '../../../../entities/Constants';
 import { FlowConfigurationSchema } from '../../../../entities/flow/configurationSchema';
 
@@ -41,9 +38,10 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
   <br/>This operator allows either to select a flow when the path matches exactly, or when the start of the path matches.
   <br/>The "Best match" option allows you to select the flow from the path that is closest.`;
 
-  public schema: FlowConfigurationSchema;
+  public flowConfigurationSchema: FlowConfigurationSchema;
 
   public apiDefinition: ApiDefinition;
+  public configForm: FormGroup;
 
   public isReadonly = false;
 
@@ -64,10 +62,32 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
     combineLatest([this.policyStudioService.getApiDefinition$(), this.policyStudioSettingsService.getConfigurationSchemaForm()])
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap(([definition, schema]) => {
+        tap(([definition, flowConfigurationSchema]) => {
           this.apiDefinition = definition;
-          this.schema = schema;
+
           this.isReadonly = definition.origin === 'kubernetes';
+
+          this.configForm = new FormGroup({
+            jupiterModeEnabled: new FormControl({
+              value: definition.execution_mode === 'jupiter',
+              disabled: this.isReadonly,
+            }),
+            flowConfiguration: new FormControl({
+              value: {
+                flow_mode: definition.flow_mode,
+              },
+              disabled: this.isReadonly,
+            }),
+          });
+
+          this.configForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
+            this.policyStudioService.saveApiDefinition({
+              ...this.apiDefinition,
+              flow_mode: value.flowConfiguration.flow_mode,
+              execution_mode: value.jupiterModeEnabled ? 'jupiter' : 'v3',
+            });
+          });
+          this.flowConfigurationSchema = flowConfigurationSchema;
         }),
       )
       .subscribe();
@@ -76,15 +96,5 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  onChange($event: GvSchemaFormChangeEvent<ApiDefinition>) {
-    this.apiDefinition = { ...this.apiDefinition, ...$event.detail.values };
-    this.policyStudioService.saveApiDefinition(this.apiDefinition);
-  }
-
-  toggleJupiterMode($event: MatSlideToggleChange) {
-    this.apiDefinition = { ...this.apiDefinition, execution_mode: $event.checked ? 'jupiter' : 'v3' };
-    this.policyStudioService.saveApiDefinition(this.apiDefinition);
   }
 }
