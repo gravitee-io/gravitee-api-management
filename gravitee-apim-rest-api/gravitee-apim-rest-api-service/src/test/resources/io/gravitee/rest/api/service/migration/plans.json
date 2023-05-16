@@ -32,7 +32,8 @@
     } ]
   },
   "flows" : [ ],
-  "comment_required" : false
+  "comment_required" : false,
+  "selection_rule" : "true"
 },
   {
     "id" : "closed-plan-id",
