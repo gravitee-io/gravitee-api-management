@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.v4.impl;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.DefinitionVersion;
@@ -31,11 +30,9 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.io.Reader;
-import java.io.StringReader;
-import java.util.Collections;
 import java.util.List;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,13 +53,17 @@ public class ApiTemplateServiceImplTest {
     private ApiMetadataService apiMetadataService;
 
     @Mock
+    private PrimaryOwnerService primaryOwnerService;
+
+    @Mock
     private NotificationTemplateService notificationTemplateService;
 
     private ApiTemplateService apiTemplateService;
 
     @Before
     public void before() {
-        apiTemplateService = new ApiTemplateServiceImpl(apiSearchService, apiMetadataService, notificationTemplateService);
+        apiTemplateService =
+            new ApiTemplateServiceImpl(apiSearchService, apiMetadataService, primaryOwnerService, notificationTemplateService);
     }
 
     @Test
@@ -109,8 +110,11 @@ public class ApiTemplateServiceImplTest {
         when(notificationTemplateService.resolveInlineTemplateWithParam(any(), any(), any(Reader.class), any()))
             .thenReturn("{key=value resolved}");
 
+        when(primaryOwnerService.getPrimaryOwnerEmail(any(), any())).thenReturn("support@gravitee.test");
+
         GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), "api", true);
         assertTrue(genericApiModel instanceof io.gravitee.rest.api.model.v4.api.ApiModel);
         assertEquals("value resolved", genericApiModel.getMetadata().get("key"));
+        assertEquals("support@gravitee.test", genericApiModel.getMetadata().get("email-support"));
     }
 }
