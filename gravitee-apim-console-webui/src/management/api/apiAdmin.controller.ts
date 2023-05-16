@@ -32,7 +32,6 @@ class ApiAdminController {
   /* @ngInject */
   constructor(
     private resolvedApi: any,
-    private resolvedApiGroups: any,
     private $state: StateService,
     private $scope: IScope,
     private $rootScope: IScope,
@@ -55,8 +54,6 @@ class ApiAdminController {
     this.api = resolvedApi.data;
     this.ngIfMatchEtagInterceptor.updateLastEtag('api', resolvedApi.headers('etag'));
 
-    this.resolvedApiGroups = resolvedApiGroups;
-
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;
     this.UserService = UserService;
@@ -66,16 +63,6 @@ class ApiAdminController {
   }
 
   init() {
-    this.$scope.$on('apiPictureChangeSuccess', (event, args) => {
-      this.api.picture = args.image;
-      this.api.picture_url = args.imageUrl;
-      this.update(this.api);
-    });
-    this.$scope.$on('apiBackgroundChangeSuccess', (event, args) => {
-      this.api.background = args.image;
-      this.api.background_url = args.imageUrl;
-      this.update(this.api);
-    });
     this.$scope.$on('apiChangeSuccess', (event, args) => {
       this.api = args.api;
       this.checkAPISynchronization(this.api);
@@ -172,15 +159,6 @@ class ApiAdminController {
       this.ngIfMatchEtagInterceptor.updateLastEtag('api', deployedApi.headers('etag'));
       this.api.picture_url = api.picture_url;
       this.apiJustDeployed = true;
-      this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
-    });
-  }
-
-  update(api) {
-    this.ApiService.update(api).then((updatedApi) => {
-      this.api = updatedApi.data;
-      this.ngIfMatchEtagInterceptor.updateLastEtag('api', updatedApi.headers('etag'));
-      this.NotificationService.show("API '" + this.api.name + "' saved");
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
     });
   }
