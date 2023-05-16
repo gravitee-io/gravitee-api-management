@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.rest.api.model.*;
@@ -39,18 +38,11 @@ import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -61,12 +53,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PrimaryOwnerServiceImpl extends TransactionalService implements PrimaryOwnerService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PrimaryOwnerServiceImpl.class);
-
     private final UserService userService;
     private final MembershipService membershipService;
     private final GroupService groupService;
-    private final ApiGroupService apiGroupService;
     private final ParameterService parameterService;
     private final RoleService roleService;
 
@@ -74,14 +63,12 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
         final UserService userService,
         final MembershipService membershipService,
         final GroupService groupService,
-        final ApiGroupService apiGroupService,
         final ParameterService parameterService,
         final RoleService roleService
     ) {
         this.userService = userService;
         this.membershipService = membershipService;
         this.groupService = groupService;
-        this.apiGroupService = apiGroupService;
         this.parameterService = parameterService;
         this.roleService = roleService;
     }
@@ -110,26 +97,35 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
             return primaryOwner.getEmail();
         }
 
-        LOG.debug("Primary owner of API {} is a group, looking for a primary owner role member to resolve email", apiId);
+        log.debug("Primary owner of API {} is a group, looking for a primary owner role member to resolve email", apiId);
 
-        List<GroupMemberEntity> poGroupMembers = apiGroupService.getGroupsWithMembers(executionContext, apiId).get(primaryOwner.getId());
+        final RoleScope apiRole = RoleScope.API;
+        final String poRole = SystemRole.PRIMARY_OWNER.name();
+
+        String poRoleId = roleService
+            .findByScopeAndName(apiRole, poRole, executionContext.getOrganizationId())
+            .map(RoleEntity::getId)
+            .orElseThrow(() -> new RoleNotFoundException(apiRole, poRole));
+
+        Set<MemberEntity> poGroupMembers = membershipService.getMembersByReferenceAndRole(
+            executionContext,
+            MembershipReferenceType.GROUP,
+            primaryOwner.getId(),
+            poRoleId
+        );
 
         if (poGroupMembers == null) {
-            LOG.error("Unable to find primary owner group members for API {}", apiId);
+            log.error("Unable to find primary owner group members for API {}", apiId);
             throw new PrimaryOwnerNotFoundException(apiId);
         }
 
-        final String poRole = SystemRole.PRIMARY_OWNER.name();
-        final String apiRole = RoleScope.API.name();
-
         return poGroupMembers
             .stream()
-            .filter(member -> poRole.equals(member.getRoles().get(apiRole)))
-            .map(GroupMemberEntity::getId)
+            .map(MemberEntity::getId)
             .findFirst()
             .map(userId -> userService.findById(executionContext, userId).getEmail())
             .orElseThrow(() -> {
-                LOG.error("Unable to find primary owner email for API {}", apiId);
+                log.error("Unable to find primary owner email for API {}", apiId);
                 throw new PrimaryOwnerNotFoundException(apiId);
             });
     }

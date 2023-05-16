@@ -74,9 +74,6 @@ public class ApiService_FindPrimaryOwnerTest {
     private GroupService groupService;
 
     @Mock
-    private ApiGroupService apiGroupService;
-
-    @Mock
     private MembershipService membershipService;
 
     @Mock
@@ -91,7 +88,6 @@ public class ApiService_FindPrimaryOwnerTest {
             userService,
             membershipService,
             groupService,
-            apiGroupService,
             parameterService,
             roleService
         );
