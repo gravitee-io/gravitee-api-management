@@ -204,7 +204,9 @@
             ],
             "status": "PUBLISHED",
             "tags": ["first-tag", "second-tag"],
-            "api": "api-id"
+            "api": "api-id",
+            "comment_required" : false,
+            "selection_rule" : "true"
         }
     ],
     "gravitee": "2.0.0",
