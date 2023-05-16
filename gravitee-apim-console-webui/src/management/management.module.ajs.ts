@@ -517,7 +517,6 @@ import { ApiNavigationComponent } from './api/api-navigation/api-navigation.comp
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
 import { ApiPortalPlanListComponent } from './api/portal/plans/list/api-portal-plan-list.component';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
-import ApiPortalController from './api/portal/general/apiPortal.controller';
 import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
 import { ApiCreationV4Component } from './api/creation/v4/api-creation-v4.component';
 import { ApiPathMappingsComponent } from './api/analytics/pathMappings/api-path-mappings.component';
@@ -695,7 +694,6 @@ graviteeManagementModule.directive(
   downgradeComponent({ component: ApiPortalDocumentationMetadataComponent }),
 );
 
-graviteeManagementModule.controller('ApiPortalController', ApiPortalController);
 graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);
 graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
