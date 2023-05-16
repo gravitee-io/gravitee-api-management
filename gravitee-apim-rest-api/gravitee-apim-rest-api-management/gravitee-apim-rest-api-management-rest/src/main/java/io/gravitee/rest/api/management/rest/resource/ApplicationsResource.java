@@ -168,7 +168,10 @@ public class ApplicationsResource extends AbstractResource {
             applications.getContent().forEach(this::addPictureUrl);
         }
 
-        return new ApplicationListItemPagedResult(applications, (int) applications.getPageElements());
+        return new ApplicationListItemPagedResult(
+            applications,
+            pageable != null ? pageable.getSize() : (int) applications.getPageElements()
+        );
     }
 
     private void addPictureUrl(ApplicationListItem application) {
