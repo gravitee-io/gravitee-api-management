@@ -217,7 +217,7 @@ describe('ApiPlanFormComponent', () => {
         excluded_groups: ['group-a'],
         general_conditions: 'doc-1',
         security: 'JWT',
-        securityDefinition: {},
+        securityDefinition: '{}',
         selection_rule: '{ #el ...}',
         tags: [TAG_1_ID],
         validation: 'AUTO',
@@ -293,7 +293,7 @@ describe('ApiPlanFormComponent', () => {
         general_conditions: '',
         tags: [],
         security: 'OAUTH2',
-        securityDefinition: {},
+        securityDefinition: '{}',
         selection_rule: null,
         validation: 'MANUAL',
         flows: [

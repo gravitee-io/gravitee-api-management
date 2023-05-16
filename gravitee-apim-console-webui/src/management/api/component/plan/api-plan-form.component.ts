@@ -260,6 +260,10 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     });
 
     if (value) {
+      // TODO: Delete if-check once rest-api-v2 is implemented
+      if (typeof value.secure?.securityConfig === 'string') {
+        value.secure.securityConfig = JSON.parse(<string>value.secure.securityConfig);
+      }
       this.planForm.patchValue(value);
       this.planForm.updateValueAndValidity();
     }
@@ -433,7 +437,7 @@ const internalFormValueToPlanV3 = (value: InternalPlanFormValue, mode: 'create' 
 
     // Secure
     security: value.secure.securityType as PlanSecurityTypeV3,
-    securityDefinition: value.secure.securityConfig,
+    securityDefinition: JSON.stringify(value.secure.securityConfig), // TODO: remove stringify when rest-api-v2 implemented
     selection_rule: value.secure.selectionRule,
 
     // Restriction (only for create mode)
