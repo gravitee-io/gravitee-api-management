@@ -35,4 +35,5 @@ export interface Application {
   settings?: unknown;
   disable_membership_notifications?: boolean;
   api_key_mode?: ApiKeyMode;
+  origin?: string;
 }

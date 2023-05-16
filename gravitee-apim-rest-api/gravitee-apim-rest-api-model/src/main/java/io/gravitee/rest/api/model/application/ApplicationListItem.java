@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.application;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -85,6 +86,9 @@ public class ApplicationListItem {
 
     @JsonProperty("disable_membership_notifications")
     private boolean disableMembershipNotifications;
+
+    @JsonProperty("origin")
+    private Origin origin;
 
     public String getId() {
         return id;
@@ -224,6 +228,14 @@ public class ApplicationListItem {
 
     public void setDisableMembershipNotifications(boolean disableMembershipNotifications) {
         this.disableMembershipNotifications = disableMembershipNotifications;
+    }
+
+    public Origin getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Origin origin) {
+        this.origin = origin;
     }
 
     @Override
