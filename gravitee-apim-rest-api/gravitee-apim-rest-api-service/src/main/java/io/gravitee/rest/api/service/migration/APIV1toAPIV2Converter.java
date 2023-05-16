@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.migration;
 import static io.gravitee.common.http.HttpMethod.*;
 import static io.gravitee.rest.api.service.validator.JsonHelper.clearNullValues;
 import static java.util.Collections.reverseOrder;
+import static org.springframework.beans.BeanUtils.copyProperties;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jackson.JsonLoader;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -101,20 +103,8 @@ public class APIV1toAPIV2Converter {
             .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
             .map(planEntity -> {
                 final PlanEntity plan = new PlanEntity();
-                plan.setId(planEntity.getId());
-                plan.setApi(planEntity.getApi());
-                plan.setName(planEntity.getName());
-                plan.setSecurity(planEntity.getSecurity());
-                plan.setSecurityDefinition(planEntity.getSecurityDefinition());
-                plan.setValidation(planEntity.getValidation());
-                plan.setDescription(planEntity.getDescription());
-                plan.setType(planEntity.getType());
-                plan.setStatus(planEntity.getStatus());
-                plan.setOrder(planEntity.getOrder());
+                copyProperties(planEntity, plan, "paths");
                 plan.setFlows(migratePathsToFlows(planEntity.getPaths(), policies));
-                if (planEntity.getTags() != null) {
-                    plan.setTags(new HashSet<>(planEntity.getTags()));
-                }
                 return plan;
             })
             .collect(Collectors.toSet());
