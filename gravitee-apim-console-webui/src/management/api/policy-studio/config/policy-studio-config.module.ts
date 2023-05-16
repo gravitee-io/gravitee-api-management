@@ -16,12 +16,13 @@
 import { CommonModule } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormJsonSchemaModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { PolicyStudioConfigComponent } from './policy-studio-config.component';
 
 @NgModule({
-  imports: [CommonModule, MatSlideToggleModule, GioFormSlideToggleModule],
+  imports: [CommonModule, ReactiveFormsModule, MatSlideToggleModule, GioFormSlideToggleModule, GioFormJsonSchemaModule, GioBannerModule],
   declarations: [PolicyStudioConfigComponent],
   exports: [PolicyStudioConfigComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

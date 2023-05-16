@@ -20,6 +20,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { PolicyStudioConfigComponent } from './policy-studio-config.component';
 import { PolicyStudioConfigModule } from './policy-studio-config.module';
@@ -46,7 +47,7 @@ describe('PolicyStudioConfigComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioConfigModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioConfigModule, MatIconTestingModule],
       providers: [
         {
           provide: 'Constants',
@@ -98,7 +99,7 @@ describe('PolicyStudioConfigComponent', () => {
         properties: api.properties,
         execution_mode: api.execution_mode,
       });
-      expect(component.schema).toStrictEqual(configurationSchema);
+      expect(component.flowConfigurationSchema).toStrictEqual(configurationSchema);
     });
   });
 

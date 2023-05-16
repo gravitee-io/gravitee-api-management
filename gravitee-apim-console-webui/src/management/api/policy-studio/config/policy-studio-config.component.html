@@ -15,20 +15,12 @@
     limitations under the License.
 
 -->
-<div *ngIf="!this.isLoading" class="policy-studio-api-config">
-  <div class="policy-studio-api-config__information">
-    <gv-icon class="policy-studio-api-config__information__icon" title="Info" shape="code:info"></gv-icon>
-    <blockquote class="policy-studio-api-config__information__blockquote" [innerHtml]="this.information"></blockquote>
-  </div>
+<div *ngIf="!isLoading" class="policy-studio-api-config" [formGroup]="configForm">
+  <gio-banner-info>
+    <span [innerHtml]="information"></span>
+  </gio-banner-info>
 
-  <gv-schema-form
-    class="policy-studio-api-config__schema-form"
-    [attr.readonly]="isReadonly ? isReadonly : null"
-    [schema]="this.schema"
-    [values]="this.apiDefinition"
-    (:gv-schema-form:change)="onChange($event)"
-  >
-  </gv-schema-form>
+  <gio-form-json-schema [jsonSchema]="flowConfigurationSchema" formControlName="flowConfiguration"></gio-form-json-schema>
 
   <gio-form-slide-toggle *ngIf="displayJupiterToggle" class="policy-studio-api-config__execution_mode">
     <gio-form-label>Enable Jupiter mode</gio-form-label>
@@ -36,9 +28,7 @@
       gioFormSlideToggle
       aria-label="Enable Jupiter mode"
       name="execution_mode"
-      [disabled]="isReadonly"
-      [checked]="apiDefinition.execution_mode === 'jupiter'"
-      (change)="toggleJupiterMode($event)"
+      formControlName="execution_mode"
     ></mat-slide-toggle>
   </gio-form-slide-toggle>
 </div>
