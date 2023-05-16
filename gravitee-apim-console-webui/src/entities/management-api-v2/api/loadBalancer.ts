@@ -21,4 +21,4 @@ export interface LoadBalancer {
   type?: LoadBalancerTypeEnum;
 }
 
-export type LoadBalancerTypeEnum = 'random' | 'round-robin' | 'weighted-random' | 'weighted-round-robin';
+export type LoadBalancerTypeEnum = 'RANDOM' | 'ROUND_ROBIN' | 'WEIGHTED_RANDOM' | 'WEIGHTED_ROUND_ROBIN';

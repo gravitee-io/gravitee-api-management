@@ -17,4 +17,4 @@
 /**
  * Plan type.
  */
-export type PlanType = 'api' | 'catalog';
+export type PlanType = 'API' | 'CATALOG';

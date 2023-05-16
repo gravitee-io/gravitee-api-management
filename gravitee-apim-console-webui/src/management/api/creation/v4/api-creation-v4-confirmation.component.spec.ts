@@ -25,9 +25,9 @@ import { MatCardHarness } from '@angular/material/card/testing';
 import { ApiCreationV4ConfirmationComponent } from './api-creation-v4-confirmation.component';
 import { ApiCreationV4Module } from './api-creation-v4.module';
 
-import { Api, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { Api, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('ApiCreationV4ConfirmationComponent', () => {
   const API_ID = 'api-id';

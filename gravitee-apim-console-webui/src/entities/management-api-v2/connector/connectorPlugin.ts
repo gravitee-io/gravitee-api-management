@@ -18,12 +18,12 @@ import { ConnectorFeature } from './connectorFeature';
 import { ConnectorMode } from './connectorMode';
 import { PlatformPlugin } from './platformPlugin';
 
-import { ApiType, ListenerType, QoS } from '../api';
+import { ApiType, ListenerType, Qos } from '../api';
 
 export interface ConnectorPlugin extends PlatformPlugin {
   supportedApiType?: ApiType;
   supportedModes?: ConnectorMode[];
-  supportedQos?: QoS[];
+  supportedQos?: Qos[];
   supportedListenerType?: ListenerType;
   availableFeatures?: ConnectorFeature[];
   /**

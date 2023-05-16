@@ -15,14 +15,14 @@
  */
 
 import { Dlq } from './dlq';
-import { QoS } from './qoS';
+import { Qos } from './qos';
 
 export interface Entrypoint {
   /**
    * The type of the entrypoint
    */
   type: string;
-  qos?: QoS;
+  qos?: Qos;
   dlq?: Dlq;
   configuration?: any;
 }

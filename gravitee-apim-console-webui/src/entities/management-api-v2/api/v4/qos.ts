@@ -17,4 +17,4 @@
 /**
  * Type of the quality of service.
  */
-export type QoS = 'NONE' | 'AUTO' | 'AT_MOST_ONCE' | 'AT_LEAST_ONCE';
+export type Qos = 'NONE' | 'AUTO' | 'AT_MOST_ONCE' | 'AT_LEAST_ONCE';

@@ -17,4 +17,4 @@
 /**
  * The type of the key store.
  */
-export type KeyStoreType = 'JKS' | 'PEM' | 'PKCS12' | 'None';
+export type KeyStoreType = 'JKS' | 'PEM' | 'PKCS12' | 'NONE';

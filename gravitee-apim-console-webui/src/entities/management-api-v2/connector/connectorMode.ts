@@ -17,4 +17,4 @@
 /**
  * A mode used by a connector
  */
-export type ConnectorMode = 'subscribe' | 'publish' | 'request_response';
+export type ConnectorMode = 'SUBSCRIBE' | 'PUBLISH' | 'REQUEST_RESPONSE';

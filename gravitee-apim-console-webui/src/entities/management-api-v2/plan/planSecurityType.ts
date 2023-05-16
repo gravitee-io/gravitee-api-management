@@ -17,4 +17,4 @@
 /**
  * Plan security type.
  */
-export type PlanSecurityType = 'key-less' | 'api-key' | 'oauth2' | 'jwt' | 'subscription';
+export type PlanSecurityType = 'KEY_LESS' | 'API_KEY' | 'OAUTH2' | 'JWT' | 'SUBSCRIPTION';

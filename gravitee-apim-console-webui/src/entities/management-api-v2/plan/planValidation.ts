@@ -17,4 +17,4 @@
 /**
  * Plan validation type.
  */
-export type PlanValidation = 'auto' | 'manual';
+export type PlanValidation = 'AUTO' | 'MANUAL';
