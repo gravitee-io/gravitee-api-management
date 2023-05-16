@@ -28,6 +28,16 @@ import java.util.Map;
 public interface PrimaryOwnerService {
     PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String apiId) throws TechnicalManagementException;
 
+    /**
+     * Resolves the primary owner email for the given API.
+     * If the primary owner is a user, the email is returned.
+     * If the primary owner is a group, the email of the member entitled as an API primary owner is returned.
+     * @param executionContext the execution context
+     * @param apiId the API id
+     * @return the primary owner email
+     */
+    String getPrimaryOwnerEmail(ExecutionContext executionContext, String apiId);
+
     PrimaryOwnerEntity getPrimaryOwner(ExecutionContext executionContext, String userId, PrimaryOwnerEntity currentPrimaryOwner);
 
     Map<String, PrimaryOwnerEntity> getPrimaryOwners(ExecutionContext executionContext, List<String> apiIds);
