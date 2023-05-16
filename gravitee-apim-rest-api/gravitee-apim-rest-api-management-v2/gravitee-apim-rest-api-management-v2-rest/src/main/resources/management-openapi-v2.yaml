@@ -637,9 +637,6 @@ paths:
                     $ref: "#/components/responses/Error"
     /plugins/endpoints:
         get:
-            parameters:
-                - $ref: "#/components/parameters/pageParam"
-                - $ref: "#/components/parameters/perPageParam"
             tags:
                 - Installation
                 - Endpoints
@@ -650,7 +647,13 @@ paths:
             operationId: getEndpoints
             responses:
                 "200":
-                    $ref: "#/components/responses/EndpointsResponse"
+                    description: List of Endpoints.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
     /plugins/endpoints/{endpointId}:
@@ -752,9 +755,6 @@ paths:
                     $ref: "#/components/responses/Error"
     /plugins/entrypoints:
         get:
-            parameters:
-                - $ref: "#/components/parameters/pageParam"
-                - $ref: "#/components/parameters/perPageParam"
             tags:
                 - Installation
                 - Entrypoints
@@ -765,7 +765,13 @@ paths:
             operationId: getEntrypoints
             responses:
                 "200":
-                    $ref: "#/components/responses/EntrypointsResponse"
+                    description: List of Entrypoints.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
     /plugins/entrypoints/{entrypointId}:
@@ -3263,8 +3269,6 @@ components:
                     description: The configuration of the rule
             additionalProperties:
                 type: object
-
-
     parameters:
         #############
         # PathParam #
@@ -3387,38 +3391,6 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
-        EndpointsResponse:
-            description: Page of endpoints
-            content:
-                application/json:
-                    schema:
-                        title: "EndpointsResponse"
-                        properties:
-                            data:
-                                description: List of Endpoints.
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/ConnectorPlugin"
-                            pagination:
-                                $ref: "#/components/schemas/Pagination"
-                            links:
-                                $ref: "#/components/schemas/Links"
-        EntrypointsResponse:
-            description: Page of entrypoints
-            content:
-                application/json:
-                    schema:
-                        title: "EntrypointsResponse"
-                        properties:
-                            data:
-                                description: List of Entrypoints.
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/ConnectorPlugin"
-                            pagination:
-                                $ref: "#/components/schemas/Pagination"
-                            links:
-                                $ref: "#/components/schemas/Links"
         ImageResponse:
             description: An image
             content:
@@ -3426,7 +3398,6 @@ components:
                     schema:
                         type: string
                         format: binary
-
         PlansResponse:
             description: Page of API plans
             content:

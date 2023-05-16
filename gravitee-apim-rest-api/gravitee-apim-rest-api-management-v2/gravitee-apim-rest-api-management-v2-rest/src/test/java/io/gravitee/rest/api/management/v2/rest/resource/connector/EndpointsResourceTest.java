@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
@@ -57,125 +58,26 @@ public class EndpointsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldThrowBadRequestExceptionIfPerPageParamIsNotValid() {
-        final Response response = rootTarget()
-            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
-            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, -2)
-            .request()
-            .get();
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        final String message = response.readEntity(String.class);
-        assertTrue(message.contains("Pagination perPage param must be >= 1"));
-    }
-
-    @Test
-    public void shouldThrowBadRequestExceptionIfPageParamIsNotValid() {
-        final Response response = rootTarget()
-            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 0)
-            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 1)
-            .request()
-            .get();
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        final String message = response.readEntity(String.class);
-        assertTrue(message.contains("Pagination page param must be >= 1"));
-    }
-
-    @Test
-    public void shouldReturnEndpointsFirstPage() {
+    public void shouldReturnEndpoints() {
         ConnectorPluginEntity connectorPlugin = getConnectorPluginEntity();
         when(endpointConnectorPluginService.findAll()).thenReturn(Set.of(connectorPlugin));
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        // Check Response content
-        final EndpointsResponse endpointsResponse = response.readEntity(EndpointsResponse.class);
-        assertNotNull(endpointsResponse.getData());
-        assertNotNull(endpointsResponse.getPagination());
-        assertNotNull(endpointsResponse.getLinks());
-
-        // Check connectorPlugins
-        List<ConnectorPlugin> connectorPlugins = endpointsResponse.getData();
-        assertEquals(1, connectorPlugins.size());
-        ConnectorPlugin pluginEntity = connectorPlugins.get(0);
-        assertEquals("id", pluginEntity.getId());
-        assertEquals("name", pluginEntity.getName());
-        assertEquals("1.0", pluginEntity.getVersion());
-        assertEquals(ApiType.MESSAGE.toString(), pluginEntity.getSupportedApiType().getValue());
-        assertEquals(1, pluginEntity.getSupportedModes().size());
-        assertEquals(ConnectorMode.SUBSCRIBE.getLabel(), pluginEntity.getSupportedModes().iterator().next().getValue());
-        assertEquals(1, pluginEntity.getSupportedQos().size());
-        assertEquals(Qos.AUTO.name(), pluginEntity.getSupportedQos().iterator().next().name());
-
-        // Check pagination
-        Pagination pagination = endpointsResponse.getPagination();
-        assertEquals(1, pagination.getPage());
-        assertEquals(10, pagination.getPerPage());
-        assertEquals(1, pagination.getPageItemsCount());
-        assertEquals(1, pagination.getTotalCount());
-        assertEquals(1, pagination.getPageCount());
-
-        // Check links
-        Links links = endpointsResponse.getLinks();
-        assertTrue(links.getSelf().endsWith("/plugins/endpoints/"));
-        assertNull(links.getFirst());
-        assertNull(links.getPrevious());
-        assertNull(links.getNext());
-        assertNull(links.getLast());
-    }
-
-    @Test
-    public void shouldReturnEndpointsSmallPage() {
-        ConnectorPluginEntity connectorPlugin = getConnectorPluginEntity("id-1");
-        when(endpointConnectorPluginService.findAll())
-            .thenReturn(
-                List
-                    .of(connectorPlugin, getConnectorPluginEntity("id-2"), getConnectorPluginEntity("id-3"))
-                    .stream()
-                    .collect(Collectors.toCollection(LinkedHashSet::new))
-            );
-
-        final Response response = rootTarget()
-            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
-            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
-            .request()
-            .get();
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-
         // Check response content
-        final EndpointsResponse endpointsResponse = response.readEntity(EndpointsResponse.class);
-        assertNotNull(endpointsResponse.getData());
-        assertNotNull(endpointsResponse.getPagination());
-        assertNotNull(endpointsResponse.getLinks());
+        final Set<ConnectorPlugin> connectorPlugins = response.readEntity(new GenericType<>() {});
 
         // Check data
-        List<ConnectorPlugin> data = endpointsResponse.getData();
-        assertEquals(2, data.size());
-        ConnectorPlugin pluginEntity = data.get(0);
-        assertEquals("id-1", pluginEntity.getId());
-        assertEquals("name", pluginEntity.getName());
-        assertEquals("1.0", pluginEntity.getVersion());
-        assertEquals(ApiType.MESSAGE.toString(), pluginEntity.getSupportedApiType().getValue());
-        assertEquals(1, pluginEntity.getSupportedModes().size());
-        assertEquals(ConnectorMode.SUBSCRIBE.getLabel(), pluginEntity.getSupportedModes().iterator().next().getValue());
-        assertEquals(1, pluginEntity.getSupportedQos().size());
-        assertEquals(Qos.AUTO.name(), pluginEntity.getSupportedQos().iterator().next().name());
+        ConnectorPlugin pluginEntity1 = new ConnectorPlugin()
+            .id("id")
+            .name("name")
+            .version("1.0")
+            .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
+            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
+            .supportedQos(Set.of(QoS.AUTO));
 
-        // Check pagination
-        Pagination pagination = endpointsResponse.getPagination();
-        assertEquals(1, pagination.getPage());
-        assertEquals(2, pagination.getPerPage());
-        assertEquals(2, pagination.getPageItemsCount());
-        assertEquals(3, pagination.getTotalCount());
-        assertEquals(2, pagination.getPageCount());
-
-        // Check links
-        Links links = endpointsResponse.getLinks();
-        assertTrue(links.getSelf().endsWith("/plugins/endpoints/?page=1&perPage=2"));
-        assertTrue(links.getFirst().endsWith("/plugins/endpoints/?page=1&perPage=2"));
-        assertNull(links.getPrevious());
-        assertTrue(links.getNext().endsWith("/plugins/endpoints/?page=2&perPage=2"));
-        assertTrue(links.getLast().endsWith("/plugins/endpoints/?page=2&perPage=2"));
+        assertEquals(Set.of(pluginEntity1), connectorPlugins);
     }
 
     @Test

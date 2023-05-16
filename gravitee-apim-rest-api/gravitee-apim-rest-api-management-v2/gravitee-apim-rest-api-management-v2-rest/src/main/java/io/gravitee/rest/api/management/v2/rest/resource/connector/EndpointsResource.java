@@ -19,16 +19,15 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ConnectorPluginMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MoreInformationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ConnectorPlugin;
-import io.gravitee.rest.api.management.v2.rest.model.EndpointsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.MoreInformation;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
-import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 
@@ -49,13 +48,8 @@ public class EndpointsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public EndpointsResponse getEndpoints(@BeanParam @Valid PaginationParam paginationParam) {
-        Set<ConnectorPlugin> connectorPlugins = ConnectorPluginMapper.INSTANCE.convertSet(endpointService.findAll());
-        List paginationData = computePaginationData(connectorPlugins, paginationParam);
-        return new EndpointsResponse()
-            .data(paginationData)
-            .pagination(computePaginationInfo(connectorPlugins.size(), paginationData.size(), paginationParam))
-            .links(computePaginationLinks(connectorPlugins.size(), paginationParam));
+    public Set<ConnectorPlugin> getEndpoints() {
+        return ConnectorPluginMapper.INSTANCE.convertSet(endpointService.findAll());
     }
 
     @Path("/{endpointId}")
