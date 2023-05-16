@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.NoPrimaryOwnerGroupForUserException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
+import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.impl.PrimaryOwnerServiceImpl;
 import java.util.Arrays;
@@ -73,6 +74,9 @@ public class ApiService_FindPrimaryOwnerTest {
     private GroupService groupService;
 
     @Mock
+    private ApiGroupService apiGroupService;
+
+    @Mock
     private MembershipService membershipService;
 
     @Mock
@@ -87,6 +91,7 @@ public class ApiService_FindPrimaryOwnerTest {
             userService,
             membershipService,
             groupService,
+            apiGroupService,
             parameterService,
             roleService
         );
