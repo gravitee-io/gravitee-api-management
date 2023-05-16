@@ -52,13 +52,14 @@ const k6DefaultOptions: Configuration = {
       subscriptions: 1,
       callbackBaseUrl: 'http://localhost:8888/hook',
       compression: 'snappy',
-      ack: 1,
+      withJsontoJson: true,
+      acks: 1,
     },
     kafkaInjector: {
       messageSizeInKB: 1,
       topic: 'perf',
       compression: 'snappy',
-      ack: 1,
+      acks: 1,
     },
   },
   k6: {
