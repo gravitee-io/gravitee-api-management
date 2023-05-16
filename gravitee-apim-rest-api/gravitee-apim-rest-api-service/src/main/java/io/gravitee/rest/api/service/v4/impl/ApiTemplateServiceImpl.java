@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY;
+
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
@@ -29,6 +31,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,15 +50,18 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
 
     private final ApiSearchService apiSearchService;
     private final ApiMetadataService apiMetadataService;
+    private final PrimaryOwnerService primaryOwnerService;
     private final NotificationTemplateService notificationTemplateService;
 
     public ApiTemplateServiceImpl(
         final ApiSearchService apiSearchService,
         final ApiMetadataService apiMetadataService,
+        final PrimaryOwnerService primaryOwnerService,
         final NotificationTemplateService notificationTemplateService
     ) {
         this.apiSearchService = apiSearchService;
         this.apiMetadataService = apiMetadataService;
+        this.primaryOwnerService = primaryOwnerService;
         this.notificationTemplateService = notificationTemplateService;
     }
 
@@ -133,32 +139,53 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
     ) {
         final List<ApiMetadataEntity> metadataList = apiMetadataService.findAllByApi(apiId);
 
-        if (metadataList != null) {
-            final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
-            metadataList.forEach(metadata ->
-                mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
-            );
-            if (decodeTemplate) {
-                try {
-                    String decodedValue =
-                        this.notificationTemplateService.resolveInlineTemplateWithParam(
-                                executionContext.getOrganizationId(),
-                                genericApiModel.getId(),
-                                new StringReader(mapMetadata.toString()),
-                                Collections.singletonMap("api", genericApiModel)
-                            );
-                    return Arrays
-                        .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
-                        .map(entry -> entry.split("=", 2))
-                        .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
-                } catch (Exception ex) {
-                    throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
-                }
-            } else {
-                return mapMetadata;
-            }
+        if (metadataList == null) {
+            return Map.of();
         }
-        return Collections.emptyMap();
+
+        final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
+        metadataList.forEach(metadata ->
+            mapMetadata.put(metadata.getKey(), metadata.getValue() == null ? metadata.getDefaultValue() : metadata.getValue())
+        );
+
+        try {
+            return decodeTemplate ? decodeMetadata(executionContext, genericApiModel, mapMetadata) : mapMetadata;
+        } catch (Exception ex) {
+            throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
+        }
+    }
+
+    private Map<String, String> decodeMetadata(
+        ExecutionContext executionContext,
+        GenericApiModel genericApiModel,
+        Map<String, String> metadata
+    ) {
+        try {
+            String decodedValue =
+                this.notificationTemplateService.resolveInlineTemplateWithParam(
+                        executionContext.getOrganizationId(),
+                        genericApiModel.getId(),
+                        new StringReader(metadata.toString()),
+                        Collections.singletonMap("api", genericApiModel)
+                    );
+
+            Map<String, String> decodedMetadata = Arrays
+                .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
+                .map(entry -> entry.split("=", 2))
+                .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
+
+            String supportEmail = decodedMetadata.getOrDefault(METADATA_EMAIL_SUPPORT_KEY, "");
+            if (supportEmail.isBlank()) {
+                decodedMetadata.put(
+                    METADATA_EMAIL_SUPPORT_KEY,
+                    primaryOwnerService.getPrimaryOwnerEmail(executionContext, genericApiModel.getId())
+                );
+            }
+
+            return decodedMetadata;
+        } catch (Exception ex) {
+            throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
+        }
     }
 
     private ProxyModelEntity convert(Proxy proxy) {
