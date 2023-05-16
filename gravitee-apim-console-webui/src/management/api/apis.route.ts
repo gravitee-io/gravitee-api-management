@@ -18,13 +18,11 @@ import { StateProvider } from '@uirouter/angularjs';
 import * as _ from 'lodash';
 
 import { ApiService } from '../../services/api.service';
-import CategoryService from '../../services/category.service';
 import EnvironmentService from '../../services/environment.service';
 import GroupService from '../../services/group.service';
 import PolicyService from '../../services/policy.service';
 import TagService from '../../services/tag.service';
 import TenantService from '../../services/tenant.service';
-import UserService from '../../services/user.service';
 
 export default apisRouterConfig;
 
@@ -59,29 +57,11 @@ function apisRouterConfig($stateProvider: StateProvider) {
             }
           });
         },
-        resolvedCategories: (CategoryService: CategoryService) => {
-          return CategoryService.list().then((response) => {
-            return response.data;
-          });
-        },
         resolvedGroups: (GroupService: GroupService) => {
           return GroupService.list().then((response) => {
             return response.data;
           });
         },
-        resolvedApiGroups: ($stateParams: StateParams, ApiService: ApiService, UserService: UserService) => {
-          if (UserService.isUserHasPermissions(['api-member-r'])) {
-            return ApiService.getGroupsWithMembers($stateParams.apiId).then((response) => {
-              return response.data;
-            });
-          }
-        },
-        resolvedTags: (TagService: TagService) => {
-          return TagService.list().then((response) => {
-            return response.data;
-          });
-        },
-        resolvedTenants: () => [],
         resolvedApiPermissions: (ApiService: ApiService, $stateParams: StateParams) =>
           ApiService.getPermissions($stateParams.apiId).catch((err) => {
             if (err && err.interceptorFuture) {
@@ -100,7 +80,6 @@ function apisRouterConfig($stateProvider: StateProvider) {
           }
           UserService.reloadPermissions();
         },
-        userTags: (UserService: UserService) => UserService.getCurrentUserTags().then((response) => response.data),
       },
     })
     .state('management.apis.new', {
