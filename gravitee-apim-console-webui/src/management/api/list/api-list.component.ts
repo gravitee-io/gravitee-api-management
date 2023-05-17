@@ -35,6 +35,7 @@ import {
   OriginEnum,
   HttpListener,
   PagedResult,
+  apiSortByParamFromString,
 } from '../../../entities/management-api-v2';
 
 export type ApisTableDS = {
@@ -115,7 +116,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
         }),
         switchMap(({ pagination, searchTerm, sort }) =>
           this.apiServiceV2
-            .search({ query: searchTerm }, toOrder(sort), pagination.index, pagination.size)
+            .search({ query: searchTerm }, apiSortByParamFromString(toOrder(sort)), pagination.index, pagination.size)
             .pipe(catchError(() => of(new PagedResult<Api>()))),
         ),
         tap((apisPage) => {

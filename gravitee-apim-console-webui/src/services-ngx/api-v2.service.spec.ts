@@ -96,12 +96,12 @@ describe('ApiV2Service', () => {
     it('should call the API', (done) => {
       const apiEntity = fakeApiEntity();
 
-      apiV2Service.search({ ids: [apiEntity.id] }).subscribe(() => {
+      apiV2Service.search({ ids: [apiEntity.id] }, '-paths').subscribe(() => {
         done();
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10&sortBy=-paths`,
         method: 'POST',
       });
 
