@@ -376,7 +376,7 @@ public class ApiMapperTest {
         apiEntity.setMetadata(Map.of("key", "value"));
         apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED);
         apiEntity.setDisableMembershipNotifications(true);
-        apiEntity.setProperties(List.of(new PropertyEntity("propKey", "propValue", false, false)));
+        apiEntity.setProperties(null);
         apiEntity.setResources(List.of(new Resource()));
         apiEntity.setPlans(Set.of(new PlanEntity()));
         apiEntity.setUpdatedAt(new Date());
@@ -420,7 +420,7 @@ public class ApiMapperTest {
         apiDefinition.setTags(Set.of("tag1", "tag2"));
         apiDefinition.setListeners(List.of(new HttpListener()));
         apiDefinition.setEndpointGroups(List.of(new EndpointGroup()));
-        apiDefinition.setProperties(List.of(new Property("propKey", "propValue", false)));
+        apiDefinition.setProperties(null);
         apiDefinition.setResources(List.of(new Resource()));
         apiDefinition.setFlowExecution(new FlowExecution());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));

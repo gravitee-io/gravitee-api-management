@@ -285,6 +285,15 @@ public class ApiMapper {
             apiDefinition.setListeners(updateApiEntity.getListeners());
             apiDefinition.setEndpointGroups(updateApiEntity.getEndpointGroups());
             apiDefinition.setAnalytics(updateApiEntity.getAnalytics());
+            if (updateApiEntity.getProperties() != null) {
+                apiDefinition.setProperties(
+                    updateApiEntity
+                        .getProperties()
+                        .stream()
+                        .map(propertyEntity -> new Property(propertyEntity.getKey(), propertyEntity.getValue()))
+                        .collect(Collectors.toList())
+                );
+            }
             apiDefinition.setProperties(
                 updateApiEntity
                     .getProperties()
@@ -357,13 +366,15 @@ public class ApiMapper {
             apiDefinition.setListeners(apiEntity.getListeners());
             apiDefinition.setEndpointGroups(apiEntity.getEndpointGroups());
             apiDefinition.setAnalytics(apiEntity.getAnalytics());
-            apiDefinition.setProperties(
-                apiEntity
-                    .getProperties()
-                    .stream()
-                    .map(propertyEntity -> new Property(propertyEntity.getKey(), propertyEntity.getValue()))
-                    .collect(Collectors.toList())
-            );
+            if (apiEntity.getProperties() != null) {
+                apiDefinition.setProperties(
+                    apiEntity
+                        .getProperties()
+                        .stream()
+                        .map(propertyEntity -> new Property(propertyEntity.getKey(), propertyEntity.getValue()))
+                        .collect(Collectors.toList())
+                );
+            }
             apiDefinition.setResources(apiEntity.getResources());
             apiDefinition.setFlowExecution(apiEntity.getFlowExecution());
             apiDefinition.setFlows(apiEntity.getFlows());
