@@ -40,7 +40,6 @@ public interface FlowMapper {
 
     List<FlowV4> convert(List<io.gravitee.definition.model.v4.flow.Flow> flow);
 
-    @Mapping(target = "_configuration", source = "configuration")
     StepV4 map(Step step);
 
     Step map(StepV4 stepV4);

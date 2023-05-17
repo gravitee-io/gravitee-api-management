@@ -31,7 +31,7 @@ public interface PlanMapper {
 
     @Mapping(target = "security.type", qualifiedByName = "convertToSecurityType")
     @Mapping(target = "status", qualifiedByName = "convertPlanStatusV4")
-    @Mapping(target = "security._configuration", source = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(constant = "V4", target = "definitionVersion")
     PlanV4 convert(PlanEntity planEntity);
 
@@ -63,7 +63,7 @@ public interface PlanMapper {
     }
 
     @Mapping(target = "security.type", qualifiedByName = "convertFromSecurityType")
-    @Mapping(target = "security.configuration", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     PlanEntity convert(PlanV4 plan);
 
     @Named("convertToSecurityType")
