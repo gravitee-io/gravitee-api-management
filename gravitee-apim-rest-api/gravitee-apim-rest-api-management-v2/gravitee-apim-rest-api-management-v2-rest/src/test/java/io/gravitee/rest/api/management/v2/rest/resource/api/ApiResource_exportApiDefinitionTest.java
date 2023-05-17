@@ -655,7 +655,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         assertNotNull(plan.getSecurity());
         var planSecurity = plan.getSecurity();
         assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.KEY_LESS, planSecurity.getType());
-        assertEquals("{}", planSecurity.getConfiguration());
+        assertEquals(new LinkedHashMap<>(), planSecurity.getConfiguration());
     }
 
     private void testReturnedPages(Set<Page> pages) {
@@ -706,7 +706,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         assertNotNull(page.getSource());
         var source = page.getSource();
         assertEquals("GITHUB", source.getType());
-        assertEquals("{}", source.getConfiguration());
+        assertEquals(new LinkedHashMap<>(), source.getConfiguration());
 
         assertEquals(PageType.MARKDOWN, page.getType());
 

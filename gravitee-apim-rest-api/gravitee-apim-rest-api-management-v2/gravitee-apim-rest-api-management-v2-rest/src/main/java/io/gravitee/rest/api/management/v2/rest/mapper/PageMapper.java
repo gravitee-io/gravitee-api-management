@@ -58,18 +58,16 @@ public interface PageMapper {
 
     @Mapping(target = "contentRevision", source = "contentRevisionId")
     @Mapping(target = "updatedAt", source = "lastModificationDate")
-    @Mapping(target = "_configuration", source = "configuration")
     Page convert(PageEntity pageEntity);
 
     @Mapping(target = "contentRevisionId", source = "contentRevision")
     @Mapping(target = "lastModificationDate", source = "updatedAt")
-    @Mapping(target = "configuration", source = "configuration")
     PageEntity convert(Page page);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeJsonConfiguration")
     PageSourceEntity convert(PageSource source);
 
-    @Mapping(target = "_configuration", source = "configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
     PageSource convert(PageSourceEntity sourceEntity);
 
     Set<Page> convertListToSet(List<PageEntity> pageEntityList);
