@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api';
-export * from './connector';
-export * from './createApi';
-export * from './member';
-export * from './plan';
+export type ApiSortByParam = 'name' | '-name' | 'paths' | '-paths';
 
-export * from './apiDeployment';
-export * from './apiSearchQuery';
-export * from './apiSortByParam';
-export * from './apisResponse';
-export * from './environment';
-export * from './links';
-export * from './metadataResponse';
-export * from './modelError';
-export * from './organization';
-export * from './pagedResult';
-export * from './pagination';
+export function apiSortByParamFromString(sort: string): ApiSortByParam {
+  if (!sort) {
+    return undefined;
+  }
+  const desc = sort.startsWith('-');
+  if (sort.endsWith('contextPath')) {
+    return desc ? '-paths' : 'paths';
+  }
+  return desc ? '-name' : 'name';
+}

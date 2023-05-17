@@ -223,6 +223,25 @@ describe('ApisListComponent', () => {
       expectApisListRequest(apis, '-name');
     }));
 
+    it('should order rows by contextPath', fakeAsync(async () => {
+      const planetsApi = fakeApiV2({ id: '1', name: 'Planets 🪐', contextPath: '/planets' });
+      const unicornsApi = fakeApiV2({ id: '2', name: 'Unicorns 🦄', contextPath: '/unicorns' });
+      const apis = [planetsApi, unicornsApi];
+      await initComponent(apis);
+
+      const contextPathSort = await loader
+        .getHarness(MatSortHeaderHarness.with({ selector: '#contextPath' }))
+        .then((sortHarness) => sortHarness.host());
+      await contextPathSort.click();
+      apis.map((api) => expectSyncedApi(api.id, true));
+      expectApisListRequest(apis, 'paths');
+
+      fixture.detectChanges();
+      await contextPathSort.click();
+      apis.map((api) => expectSyncedApi(api.id, true));
+      expectApisListRequest(apis, '-paths');
+    }));
+
     it('should display out of sync api icon', fakeAsync(async () => {
       const api = fakeApiV2();
       const apis = [api];
