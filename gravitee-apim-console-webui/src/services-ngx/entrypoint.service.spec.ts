@@ -20,7 +20,6 @@ import { EntrypointService } from './entrypoint.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeEntrypoint } from '../entities/entrypoint/entrypoint.fixture';
-import { fakeConnectorListItem } from '../entities/connector/connector-list-item.fixture';
 
 describe('EntrypointService', () => {
   let httpTestingController: HttpTestingController;
@@ -101,58 +100,6 @@ describe('EntrypointService', () => {
           method: 'DELETE',
         })
         .flush(null);
-    });
-  });
-
-  describe('v4ListSyncEntrypointPlugins', () => {
-    it('should call the API', (done) => {
-      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'proxy' }), fakeConnectorListItem({ supportedApiType: 'message' })];
-
-      entrypointService.v4ListSyncEntrypointPlugins().subscribe((connectors) => {
-        expect(connectors).toMatchObject([fakeConnectors[0]]);
-        done();
-      });
-
-      httpTestingController
-        .expectOne({
-          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints?expand=icon`,
-          method: 'GET',
-        })
-        .flush(fakeConnectors);
-    });
-  });
-
-  describe('v4ListAsyncEntrypointPlugins', () => {
-    it('should call the API', (done) => {
-      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'proxy' }), fakeConnectorListItem({ supportedApiType: 'message' })];
-
-      entrypointService.v4ListAsyncEntrypointPlugins().subscribe((connectors) => {
-        expect(connectors).toMatchObject([fakeConnectors[1]]);
-        done();
-      });
-
-      httpTestingController
-        .expectOne({
-          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints?expand=icon`,
-          method: 'GET',
-        })
-        .flush(fakeConnectors);
-    });
-
-    it('should call the API with expand', (done) => {
-      const fakeConnectors = [fakeConnectorListItem({ supportedApiType: 'proxy' }), fakeConnectorListItem({ supportedApiType: 'message' })];
-
-      entrypointService.v4ListAsyncEntrypointPlugins(['schema', 'icon']).subscribe((connectors) => {
-        expect(connectors).toMatchObject([fakeConnectors[1]]);
-        done();
-      });
-
-      httpTestingController
-        .expectOne({
-          url: `${CONSTANTS_TESTING.env.baseURL}/v4/entrypoints?expand=schema&expand=icon`,
-          method: 'GET',
-        })
-        .flush(fakeConnectors);
     });
   });
 

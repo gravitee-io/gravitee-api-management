@@ -20,7 +20,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { GioFormListenersContextPathHarness } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
-import { HttpListenerPath } from '../../../../../entities/api-v4';
+import { PathV4 } from '../../../../../entities/management-api-v2';
 
 export class GioFormListenersVirtualHostHarness extends GioFormListenersContextPathHarness {
   public static hostSelector = 'gio-form-listeners-virtual-host';
@@ -78,7 +78,7 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
     };
   }
 
-  public async addListener({ host, path, overrideAccess }: HttpListenerPath): Promise<void> {
+  public async addListener({ host, path, overrideAccess }: PathV4): Promise<void> {
     await this.addListenerRow();
 
     const { hostInput, pathInput, overrideAccessInput } = await this.getLastListenerRow();

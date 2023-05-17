@@ -18,9 +18,9 @@ import { AbstractControl, FormControl, FormGroup, NG_ASYNC_VALIDATORS, NG_VALUE_
 import { escapeRegExp, isEmpty } from 'lodash';
 
 import { GioFormListenersContextPathComponent } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.component';
-import { HttpListenerPath } from '../../../../../entities/api-v4';
+import { PathV4 } from '../../../../../entities/management-api-v2';
 
-interface InternalHttpListenerPath extends HttpListenerPath {
+interface InternalPathV4 extends PathV4 {
   _hostSubDomain?: string;
   _hostDomain?: string;
 }
@@ -46,7 +46,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   @Input()
   public domainRestrictions: string[] = [];
 
-  public newListenerFormGroup(listener: HttpListenerPath): FormGroup {
+  public newListenerFormGroup(listener: PathV4): FormGroup {
     const { host, hostDomain } = extractDomainToHost(listener?.host, this.domainRestrictions);
 
     return new FormGroup({
@@ -60,8 +60,8 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   }
 
   // From ControlValueAccessor interface
-  public registerOnChange(fn: (listeners: HttpListenerPath[] | null) => void): void {
-    this._onChange = (listeners: InternalHttpListenerPath[]) =>
+  public registerOnChange(fn: (listeners: PathV4[] | null) => void): void {
+    this._onChange = (listeners: InternalPathV4[]) =>
       fn(
         listeners.map((listener) => ({
           ...listener,
@@ -70,11 +70,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
       );
   }
 
-  validateListenerControl(
-    listenerControl: AbstractControl,
-    httpListeners: HttpListenerPath[],
-    currentIndex: number,
-  ): ValidationErrors | null {
+  validateListenerControl(listenerControl: AbstractControl, httpListeners: PathV4[], currentIndex: number): ValidationErrors | null {
     const inheritErrors = super.validateListenerControl(listenerControl, httpListeners, currentIndex);
     const subDomainControl = listenerControl.get('_hostSubDomain');
     const domainControl = listenerControl.get('_hostDomain');

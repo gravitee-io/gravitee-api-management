@@ -24,7 +24,6 @@ import { isEqual } from 'lodash';
 
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
-import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ConnectorVM } from '../../models/ConnectorVM';
 import {
@@ -32,6 +31,7 @@ import {
   GioConnectorDialogData,
 } from '../../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
 import { IconService } from '../../../../../../services-ngx/icon.service';
+import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
 
 @Component({
   selector: 'step-2-entrypoints-1-list',
@@ -47,7 +47,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly formBuilder: FormBuilder,
-    private readonly entrypointService: EntrypointService,
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly matDialog: MatDialog,
     private readonly confirmDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
@@ -65,8 +65,8 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       ),
     });
 
-    this.entrypointService
-      .v4ListAsyncEntrypointPlugins()
+    this.connectorPluginsV2Service
+      .listAsyncEntrypointPlugins()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((entrypointPlugins) => {
         this.entrypoints = entrypointPlugins.map((entrypoint) => ({
@@ -120,8 +120,8 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   onMoreInfoClick(event, entrypoint: ConnectorVM) {
     event.stopPropagation();
 
-    this.entrypointService
-      .v4GetMoreInformation(entrypoint.id)
+    this.connectorPluginsV2Service
+      .getEndpointPluginMoreInformation(entrypoint.id)
       .pipe(
         takeUntil(this.unsubscribe$),
         catchError(() => of({})),

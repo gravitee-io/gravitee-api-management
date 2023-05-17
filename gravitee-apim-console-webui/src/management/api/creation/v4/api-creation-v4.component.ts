@@ -201,7 +201,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
       const listenerConfig = {
         type: listenersType,
-        ...(listenersType === 'http' ? { paths: apiCreationPayload.paths } : {}),
+        ...(listenersType === 'HTTP' ? { paths: apiCreationPayload.paths } : {}),
         entrypoints,
       };
       return [...listeners, listenerConfig];
@@ -214,7 +214,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         apiVersion: apiCreationPayload.version,
         description: apiCreationPayload.description ?? '',
         listeners: listeners,
-        type: apiCreationPayload.type,
+        type: apiCreationPayload.type === 'PROXY' ? 'proxy' : 'message',
         endpointGroups: apiCreationPayload.selectedEndpoints.map(
           (endpoint) =>
             ({
