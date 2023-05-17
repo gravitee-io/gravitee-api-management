@@ -3336,8 +3336,8 @@ components:
                 enum:
                     - name
                     - -name
-                    - createdAt
-                    - -createdAt
+                    - paths
+                    - -paths
         pageParam:
             name: page
             in: query

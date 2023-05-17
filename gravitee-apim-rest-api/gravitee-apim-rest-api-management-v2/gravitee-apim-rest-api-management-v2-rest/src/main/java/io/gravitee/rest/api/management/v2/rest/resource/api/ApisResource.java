@@ -157,13 +157,16 @@ public class ApisResource extends AbstractResource {
             apiQueryBuilder.addFilter(FIELD_DEFINITION_VERSION, ApiMapper.INSTANCE.map(apiSearchQuery.getDefinitionVersion()).getLabel());
         }
 
+        if (Objects.nonNull(apiSortByParam)) {
+            apiQueryBuilder.setSort(apiSortByParam.toSortable());
+        }
+
         Page<GenericApiEntity> apis = apiSearchService.search(
             GraviteeContext.getExecutionContext(),
             getAuthenticatedUser(),
             isAdmin(),
             apiQueryBuilder,
-            paginationParam.toPageable(),
-            apiSortByParam.toSortable()
+            paginationParam.toPageable()
         );
 
         return new ApisResponse()

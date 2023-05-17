@@ -59,8 +59,7 @@ public interface ApiSearchService {
         final String userId,
         final boolean isAdmin,
         final QueryBuilder<ApiEntity> queryBuilder,
-        final Pageable pageable,
-        final Sortable sortable
+        final Pageable pageable
     );
 
     Collection<String> searchIds(
