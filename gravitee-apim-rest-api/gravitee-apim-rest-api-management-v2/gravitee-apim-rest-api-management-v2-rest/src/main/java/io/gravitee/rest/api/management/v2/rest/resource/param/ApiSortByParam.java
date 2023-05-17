@@ -26,8 +26,8 @@ public class ApiSortByParam {
     public enum ApiSortByEnum {
         NAME("name"),
         _NAME("-name"),
-        CREATED_AT("createdAt"),
-        _CREATED_AT("-createdAt");
+        PATHS("paths"),
+        _PATHS("-paths");
 
         private String value;
 

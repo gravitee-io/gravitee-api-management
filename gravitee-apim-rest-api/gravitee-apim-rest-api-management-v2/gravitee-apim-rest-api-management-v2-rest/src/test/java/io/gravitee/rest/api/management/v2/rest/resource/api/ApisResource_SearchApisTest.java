@@ -89,8 +89,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                isNull()
+                eq(new PageableImpl(1, 10))
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -128,8 +127,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                isNull()
+                eq(new PageableImpl(1, 10))
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -167,8 +165,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                isNull()
+                eq(new PageableImpl(1, 10))
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -205,8 +202,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                isNull()
+                eq(new PageableImpl(1, 10))
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -261,8 +257,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(new SortableImpl("name", true))
+                eq(new PageableImpl(1, 10))
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -300,13 +295,12 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                eq(new SortableImpl("createdAt", false))
+                eq(new PageableImpl(1, 10))
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
-        final Response response = rootTarget().queryParam("sortBy", "-createdAt").request().post(Entity.json(apiSearchQuery));
+        final Response response = rootTarget().queryParam("sortBy", "-paths").request().post(Entity.json(apiSearchQuery));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         var page = response.readEntity(ApisResponse.class);
@@ -319,6 +313,9 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         var apiQuery = apiQueryBuilder.build();
         assertEquals("api-name", apiQuery.getQuery());
         assertEquals(0, apiQuery.getFilters().size());
+        assertNotNull(apiQuery.getSort());
+        assertEquals("paths", apiQuery.getSort().getField());
+        assertEquals(false, apiQuery.getSort().isAscOrder());
     }
 
     @Test
@@ -339,8 +336,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq("UnitTests"),
                 eq(true),
                 apiQueryBuilderCaptor.capture(),
-                eq(new PageableImpl(1, 10)),
-                isNull()
+                eq(new PageableImpl(1, 10))
             )
         )
             .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -360,5 +356,49 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         assertNotNull(apiQuery.getFilters().get("definition_version"));
         String definitionVersion = (String) apiQuery.getFilters().get("definition_version");
         assertEquals("4.0.0", definitionVersion);
+        assertNull(apiQuery.getSort());
+    }
+
+    @Test
+    public void should_sort_by_paths() {
+        var apiSearchQuery = new ApiSearchQuery();
+        apiSearchQuery.setDefinitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4);
+
+        var apiEntity = new ApiEntity();
+        apiEntity.setId("id-1");
+        apiEntity.setState(Lifecycle.State.INITIALIZED);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
+        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
+
+        when(
+            apiSearchServiceV4.search(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                apiQueryBuilderCaptor.capture(),
+                eq(new PageableImpl(1, 10))
+            )
+        )
+            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+
+        final Response response = rootTarget().queryParam("sortBy", "paths").request().post(Entity.json(apiSearchQuery));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        var page = response.readEntity(ApisResponse.class);
+        var data = page.getData();
+        assertNotNull(data);
+        assertEquals(1, data.size());
+        assertEquals("id-1", data.get(0).getApiV4().getId());
+
+        var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
+        var apiQuery = apiQueryBuilder.build();
+        assertNotNull(apiQuery.getFilters());
+        assertNotNull(apiQuery.getFilters().get("definition_version"));
+        String definitionVersion = (String) apiQuery.getFilters().get("definition_version");
+        assertEquals("4.0.0", definitionVersion);
+        assertNotNull(apiQuery.getSort());
+        assertEquals("paths", apiQuery.getSort().getField());
+        assertEquals(true, apiQuery.getSort().isAscOrder());
     }
 }

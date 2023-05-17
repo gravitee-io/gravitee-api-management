@@ -39,10 +39,10 @@ import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
-import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
@@ -216,8 +216,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final String userId,
         final boolean isAdmin,
         final QueryBuilder<ApiEntity> apiQueryBuilder,
-        final Pageable pageable,
-        final Sortable sortable
+        final Pageable pageable
     ) {
         // Step 1: find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
         var apiQuery = apiQueryBuilder.build();
@@ -227,7 +226,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             return new Page<>(List.of(), 0, 0, 0);
         }
 
-        Set<String> apiIds = apiIdsResult.getDocuments().stream().collect(toSet());
+        List<String> apiIds = new LinkedList<>(apiIdsResult.getDocuments());
 
         // Step 2: if user is not admin, get list of apiIds in their scope and join with Lucene results
         if (!isAdmin) {
@@ -244,10 +243,12 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             }
         }
 
-        // Step 3: add filters to ApiCriteria to be used by the repository search
+        // Step 3: create apiId page subset add filters to ApiCriteria to be used by the repository search
+        List<String> apiIdPageSubset = this.getApiIdPageSubset(apiIds, pageable);
+
         ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder()
             .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-            .ids(apiIds);
+            .ids(apiIdPageSubset);
 
         if (Objects.nonNull(apiQuery.getFilters()) && apiQuery.getFilters().containsKey(FIELD_DEFINITION_VERSION)) {
             apiCriteriaBuilder.definitionVersion(
@@ -255,24 +256,50 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             );
         }
 
-        // Step 4: get APIs page from repository by ids and add pagination and sorting
-        Page<Api> apis = apiRepository.search(apiCriteriaBuilder.build(), convert(sortable), convert(pageable), ApiFieldFilter.allFields());
+        // Step 4: get APIs from repository by ids and add primary owner
+        List<Api> apis = apiRepository.search(apiCriteriaBuilder.build(), ApiFieldFilter.allFields());
+
+        if (apis.isEmpty()) {
+            return new Page<>(List.of(), 0, 0, 0);
+        }
 
         Map<String, PrimaryOwnerEntity> primaryOwners = primaryOwnerService.getPrimaryOwners(
             executionContext,
-            apis.getContent().stream().map(Api::getId).collect(toList())
+            apis.stream().map(Api::getId).collect(toList())
         );
 
+        Comparator<String> orderingComparator = Comparator.comparingInt(apiIdPageSubset::indexOf);
+
+        // Step 5: Map the page ID subset to GenericApis, sort by subset order and add Page information
         return apis
-            .getContent()
             .stream()
             .map(api -> genericApiMapper.toGenericApi(api, primaryOwners.get(api.getId())))
+            .sorted((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()))
             .collect(
                 Collectors.collectingAndThen(
                     Collectors.toList(),
-                    apiEntityList -> new Page<>(apiEntityList, apis.getPageNumber(), (int) apis.getPageElements(), apis.getTotalElements())
+                    apiEntityList -> new Page<>(apiEntityList, pageable.getPageNumber(), apis.size(), apiIds.size())
                 )
             );
+    }
+
+    private List<String> getApiIdPageSubset(Collection<String> ids, Pageable pageable) {
+        Integer numberOfItems = ids.size();
+        Integer numberOfItemPerPage = pageable.getPageSize();
+
+        if (numberOfItemPerPage == 0 || numberOfItems <= 0) {
+            return new ArrayList<>();
+        }
+
+        Integer currentPage = pageable.getPageNumber();
+
+        Integer startIndex = (currentPage - 1) * numberOfItemPerPage;
+        Integer lastIndex = Math.min(startIndex + numberOfItemPerPage, numberOfItems);
+
+        if (startIndex >= numberOfItems || currentPage < 1) {
+            throw new PaginationInvalidException();
+        }
+        return ids.stream().skip(startIndex).limit(lastIndex).collect(toList());
     }
 
     /**
