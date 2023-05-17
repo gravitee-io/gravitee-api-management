@@ -24,14 +24,13 @@ import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.
 import { Step2Entrypoints1ListComponent } from './step-2-entrypoints-1-list.component';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
-import { ConnectorListItem } from '../../../../../../entities/connector/connector-list-item';
 import {
   GioConnectorDialogComponent,
   GioConnectorDialogData,
 } from '../../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
-import { EndpointService } from '../../../../../../services-ngx/endpoint.service';
+import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../../services-ngx/icon.service';
+import { ApiType, ConnectorPlugin } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -42,15 +41,14 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   form: FormGroup;
-  private httpProxyEntrypoint: ConnectorListItem;
+  private httpProxyEntrypoint: ConnectorPlugin;
 
-  private initialValue: { type: 'proxy' | 'message'[] };
+  private initialValue: { type: ApiType[] };
 
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly stepService: ApiCreationStepService,
-    private readonly entrypointService: EntrypointService,
-    private readonly endpointService: EndpointService,
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly confirmDialog: MatDialog,
     private readonly matDialog: MatDialog,
     private readonly iconService: IconService,
@@ -59,8 +57,8 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
 
-    this.entrypointService
-      .v4ListSyncEntrypointPlugins()
+    this.connectorPluginsV2Service
+      .listSyncEntrypointPlugins()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((entrypoints) => {
         this.httpProxyEntrypoint = entrypoints.find((e) => e.id === 'http-proxy');
@@ -102,25 +100,25 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
         .subscribe((confirmed) => {
           if (confirmed) {
             this.stepService.removeAllNextSteps();
-            this.form.value.type[0] === 'proxy' ? this.doSaveSync() : this.doSaveAsync();
+            this.form.value.type[0] === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
           } else {
             this.form.setValue(this.initialValue);
           }
         });
       return;
     }
-    this.form.value.type[0] === 'proxy' ? this.doSaveSync() : this.doSaveAsync();
+    this.form.value.type[0] === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
   }
 
   private doSaveSync() {
-    this.endpointService
-      .v4Get('http-proxy')
+    this.connectorPluginsV2Service
+      .getEndpointPlugin('http-proxy')
       .pipe(
         takeUntil(this.unsubscribe$),
         tap((httpProxyEndpoint) => {
           this.stepService.validStep((previousPayload) => ({
             ...previousPayload,
-            type: 'proxy',
+            type: 'PROXY',
             selectedEntrypoints: [
               {
                 id: this.httpProxyEntrypoint.id,
@@ -143,7 +141,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   private doSaveAsync() {
     this.stepService.validStep((previousPayload) => ({
       ...previousPayload,
-      type: 'message',
+      type: 'MESSAGE',
     }));
     this.stepService.goToNextStep({
       groupNumber: 2,
@@ -151,11 +149,11 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     });
   }
 
-  onMoreInfoClick(event, entrypoint: ConnectorListItem) {
+  onMoreInfoClick(event, entrypoint: ConnectorPlugin) {
     event.stopPropagation();
 
-    this.entrypointService
-      .v4GetMoreInformation(entrypoint.id)
+    this.connectorPluginsV2Service
+      .getEntrypointPluginMoreInformation(entrypoint.id)
       .pipe(
         takeUntil(this.unsubscribe$),
         catchError(() =>

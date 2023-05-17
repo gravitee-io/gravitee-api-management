@@ -32,13 +32,13 @@ import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/op
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { asyncScheduler, Observable, Subject, zip } from 'rxjs';
 
-import { HttpListenerPath } from '../../../../../entities/api-v4';
 import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
 import { ApiService } from '../../../../../services-ngx/api.service';
+import { PathV4 } from '../../../../../entities/management-api-v2';
 
 const PATH_PATTERN_REGEX = new RegExp(/^\/[/.a-zA-Z0-9-_]*$/);
 
-const DEFAULT_LISTENER: HttpListenerPath = {
+const DEFAULT_LISTENER: PathV4 = {
   path: '/',
 };
 
@@ -60,7 +60,7 @@ const DEFAULT_LISTENER: HttpListenerPath = {
   ],
 })
 export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, ControlValueAccessor, AsyncValidator {
-  public listeners: HttpListenerPath[] = [DEFAULT_LISTENER];
+  public listeners: PathV4[] = [DEFAULT_LISTENER];
   public mainForm: FormGroup;
   public listenerFormArray = new FormArray(
     [this.newListenerFormGroup(DEFAULT_LISTENER)],
@@ -79,7 +79,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     this._onTouched();
   }
 
-  protected _onChange: (_listeners: HttpListenerPath[] | null) => void = () => ({});
+  protected _onChange: (_listeners: PathV4[] | null) => void = () => ({});
 
   protected _onTouched: () => void = () => ({});
 
@@ -125,7 +125,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   }
 
   // From ControlValueAccessor interface
-  public writeValue(listeners: HttpListenerPath[] | null): void {
+  public writeValue(listeners: PathV4[] | null): void {
     if (!listeners || isEmpty(listeners)) {
       return;
     }
@@ -135,7 +135,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   }
 
   // From ControlValueAccessor interface
-  public registerOnChange(fn: (listeners: HttpListenerPath[] | null) => void): void {
+  public registerOnChange(fn: (listeners: PathV4[] | null) => void): void {
     this._onChange = fn;
   }
 
@@ -161,7 +161,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     this.listenerFormArray.push(this.newListenerFormGroup({}), { emitEvent: true });
   }
 
-  public newListenerFormGroup(listener: HttpListenerPath) {
+  public newListenerFormGroup(listener: PathV4) {
     return new FormGroup({
       path: new FormControl(listener.path || '/'),
     });
@@ -194,11 +194,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     };
   }
 
-  public validateListenerControl(
-    listenerControl: AbstractControl,
-    httpListeners: HttpListenerPath[],
-    currentIndex: number,
-  ): ValidationErrors | null {
+  public validateListenerControl(listenerControl: AbstractControl, httpListeners: PathV4[], currentIndex: number): ValidationErrors | null {
     const listenerPathControl = listenerControl.get('path');
     const contextPath = listenerPathControl.value;
 

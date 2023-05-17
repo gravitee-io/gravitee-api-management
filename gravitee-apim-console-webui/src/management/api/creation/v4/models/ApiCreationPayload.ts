@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpListenerPath } from '../../../../../entities/api-v4';
 import { NewPlan } from '../../../../../entities/plan-v4';
+import { ApiType, PathV4 } from '../../../../../entities/management-api-v2';
 
 export type ApiCreationPayload = Partial<{
   // API details
@@ -23,8 +23,8 @@ export type ApiCreationPayload = Partial<{
   description?: string;
 
   // Entrypoints
-  type?: 'proxy' | 'message';
-  paths?: HttpListenerPath[];
+  type?: ApiType;
+  paths?: PathV4[];
   selectedEntrypoints?: {
     id: string;
     name: string;

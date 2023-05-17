@@ -21,7 +21,7 @@ import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particle
 import { takeUntil } from 'rxjs/operators';
 import { mapValues, omitBy } from 'lodash';
 
-import { EndpointService } from '../../../../../../services-ngx/endpoint.service';
+import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step4Security1PlansComponent } from '../step-4-security/step-4-security-1-plans.component';
 
@@ -37,7 +37,10 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   public selectedEndpoints: { id: string; name: string }[];
   public endpointSchemas: Record<string, { config: GioJsonSchema; sharedConfig: GioJsonSchema }>;
 
-  constructor(private readonly endpointService: EndpointService, private readonly stepService: ApiCreationStepService) {}
+  constructor(
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
+    private readonly stepService: ApiCreationStepService,
+  ) {}
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
@@ -46,7 +49,10 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
       currentStepPayload.selectedEndpoints.reduce((map: Record<string, Observable<[GioJsonSchema, GioJsonSchema]>>, { id }) => {
         return {
           ...map,
-          [id]: combineLatest([this.endpointService.v4GetSchema(id), this.endpointService.v4GetSharedConfigurationSchema(id)]),
+          [id]: combineLatest([
+            this.connectorPluginsV2Service.getEndpointPluginSchema(id),
+            this.connectorPluginsV2Service.getEndpointPluginSharedConfigurationSchema(id),
+          ]),
         };
       }, {}),
     )

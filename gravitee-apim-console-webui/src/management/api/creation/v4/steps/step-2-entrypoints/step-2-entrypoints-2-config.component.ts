@@ -21,13 +21,13 @@ import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particle
 import { takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, omitBy } from 'lodash';
 
-import { EntrypointService } from '../../../../../../services-ngx/entrypoint.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { HttpListenerPath } from '../../../../../../entities/api-v4';
 import { EnvironmentService } from '../../../../../../services-ngx/environment.service';
 import { Step3Endpoints1ListComponent } from '../step-3-endpoints/step-3-endpoints-1-list.component';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { Step3Endpoints2ConfigComponent } from '../step-3-endpoints/step-3-endpoints-2-config.component';
+import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
+import { PathV4 } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -48,7 +48,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly formBuilder: FormBuilder,
-    private readonly entrypointService: EntrypointService,
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly stepService: ApiCreationStepService,
     private readonly environmentService: EnvironmentService,
   ) {}
@@ -72,7 +72,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       .subscribe();
     this.formGroup = this.formBuilder.group({});
 
-    this.hasListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'http') != null;
+    this.hasListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'HTTP') != null;
     if (this.hasListeners) {
       this.formGroup.addControl('paths', this.formBuilder.control(paths, Validators.required));
     }
@@ -85,7 +85,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       currentStepPayload.selectedEntrypoints.reduce(
         (map: Record<string, Observable<GioJsonSchema>>, { id }) => ({
           ...map,
-          [id]: this.entrypointService.v4GetSchema(id),
+          [id]: this.connectorPluginsV2Service.getEntrypointPluginSchema(id),
         }),
         {},
       ),
@@ -107,7 +107,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     const pathsValue = this.formGroup.get('paths')?.value ?? [];
 
     this.stepService.validStep((previousPayload) => {
-      const paths: HttpListenerPath[] = this.enableVirtualHost
+      const paths: PathV4[] = this.enableVirtualHost
         ? // Remove host and overrideAccess from virualHost if is not necessary
           pathsValue.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
         : // Clear private properties from gio-listeners-virtual-host component
@@ -123,7 +123,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     // Skip step 3-list if api type is sync
     this.stepService.goToNextStep({
       groupNumber: 3,
-      component: this.apiType === 'message' ? Step3Endpoints1ListComponent : Step3Endpoints2ConfigComponent,
+      component: this.apiType === 'MESSAGE' ? Step3Endpoints1ListComponent : Step3Endpoints2ConfigComponent,
     });
   }
 

@@ -44,6 +44,7 @@ export const CONSTANTS_TESTING: Constants = {
       },
     } as any,
   },
+  v2BaseURL: 'https://url.test:3000/management/v2',
 };
 
 @NgModule({

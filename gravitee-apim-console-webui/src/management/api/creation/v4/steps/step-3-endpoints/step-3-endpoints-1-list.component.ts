@@ -25,7 +25,7 @@ import { isEqual } from 'lodash';
 import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.component';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { EndpointService } from '../../../../../../services-ngx/endpoint.service';
+import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
 import { ConnectorVM } from '../../models/ConnectorVM';
 import {
   GioConnectorDialogComponent,
@@ -47,7 +47,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly formBuilder: FormBuilder,
-    private readonly endpointService: EndpointService,
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly matDialog: MatDialog,
     private readonly confirmDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
@@ -65,13 +65,13 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
       ),
     });
 
-    this.endpointService
-      .v4ListEndpointPlugins()
+    this.connectorPluginsV2Service
+      .listEndpointPlugins()
       .pipe(
         takeUntil(this.unsubscribe$),
         map((endpointPlugins) =>
           endpointPlugins
-            .filter((endpoint) => endpoint.supportedApiType === 'message')
+            .filter((endpoint) => endpoint.supportedApiType === 'MESSAGE')
             .sort((endpoint1, endpoint2) => {
               const name1 = endpoint1.name.toUpperCase();
               const name2 = endpoint2.name.toUpperCase();
@@ -145,8 +145,8 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
   onMoreInfoClick(event, endpoint: ConnectorVM) {
     event.stopPropagation();
-    this.endpointService
-      .v4GetMoreInformation(endpoint.id)
+    this.connectorPluginsV2Service
+      .getEndpointPluginMoreInformation(endpoint.id)
       .pipe(
         takeUntil(this.unsubscribe$),
         catchError(() => of({})),
