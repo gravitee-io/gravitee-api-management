@@ -1,0 +1,125 @@
+{
+  "name" : "Eureka",
+  "crossId" : "f2148f04-b4d8-4802-948f-04b4d86802c9",
+  "version" : "v1",
+  "execution_mode" : "v3",
+  "description" : "Eureka test",
+  "visibility" : "PRIVATE",
+  "flows" : [ ],
+  "gravitee" : "2.0.0",
+  "flow_mode" : "DEFAULT",
+  "services" : {
+    "health-check" : {
+      "enabled" : true,
+      "schedule" : "*/10 * * * * *",
+      "steps" : [ {
+        "name" : "default-step",
+        "request" : {
+          "path" : "/",
+          "method" : "GET",
+          "fromRoot" : false
+        },
+        "response" : {
+          "assertions" : [ "#response.status == 200" ]
+        }
+      } ]
+    }
+  },
+  "resources" : [ ],
+  "properties" : [ ],
+  "members" : [ {
+    "source" : "memory",
+    "sourceId" : "admin",
+    "roles" : [ "0eee7ed5-6ab3-4f2b-ae7e-d56ab37f2b85" ]
+  } ],
+  "pages" : [ {
+    "id" : "f2f7762d-ef56-4ff2-b776-2def564ff242",
+    "crossId" : "2c44cffa-a44f-46d0-84cf-faa44fc6d041",
+    "name" : "Aside",
+    "type" : "SYSTEM_FOLDER",
+    "order" : 0,
+    "published" : true,
+    "visibility" : "PUBLIC",
+    "lastModificationDate" : 1684499573555,
+    "contentType" : "application/json",
+    "homepage" : false,
+    "parentPath" : "",
+    "excludedAccessControls" : false,
+    "accessControls" : [ ],
+    "api" : "86191b05-32f8-4534-991b-0532f8253433",
+    "attached_media" : [ ]
+  } ],
+  "plans" : [ {
+    "id" : "e1c19008-5771-4aaa-8190-0857714aaaec",
+    "crossId" : "911d74b6-8fc1-420d-9d74-b68fc1320dbf",
+    "name" : "Free",
+    "description" : "Free plan",
+    "validation" : "AUTO",
+    "security" : "KEY_LESS",
+    "type" : "API",
+    "status" : "PUBLISHED",
+    "api" : "86191b05-32f8-4534-991b-0532f8253433",
+    "order" : 0,
+    "characteristics" : [ ],
+    "created_at" : 1684489922223,
+    "updated_at" : 1684503835270,
+    "published_at" : 1684489922225,
+    "paths" : { },
+    "flows" : [ {
+      "id" : "d0899b90-15ed-444d-899b-9015ed144d6b",
+      "name" : "",
+      "path-operator" : {
+        "path" : "/",
+        "operator" : "STARTS_WITH"
+      },
+      "condition" : "",
+      "consumers" : [ ],
+      "methods" : [ ],
+      "pre" : [ ],
+      "post" : [ ],
+      "enabled" : true
+    } ],
+    "comment_required" : false
+  } ],
+  "metadata" : [ {
+    "key" : "email-support",
+    "name" : "email-support",
+    "format" : "MAIL",
+    "value" : "${(api.primaryOwner.email)!''}",
+    "defaultValue" : "support@change.me",
+    "apiId" : "86191b05-32f8-4534-991b-0532f8253433"
+  } ],
+  "id" : "86191b05-32f8-4534-991b-0532f8253433",
+  "path_mappings" : [ ],
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/eureka"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false,
+    "groups" : [ {
+      "name" : "default-group",
+      "endpoints" : [ ],
+      "load_balancing" : {
+        "type" : "ROUND_ROBIN"
+      },
+      "services" : {
+        "discovery" : {
+          "enabled" : true,
+          "provider" : "eureka-service-discovery",
+          "configuration" : {"application":"GRAVITEE"}
+        }
+      },
+      "http" : {
+        "connectTimeout" : 5000,
+        "idleTimeout" : 60000,
+        "keepAlive" : true,
+        "readTimeout" : 10000,
+        "pipelining" : false,
+        "maxConcurrentConnections" : 100,
+        "useCompression" : true,
+        "followRedirects" : false
+      }
+    } ]
+  }
+}
