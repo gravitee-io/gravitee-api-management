@@ -33,7 +33,7 @@ export class ApiPlanFormHarness extends ComponentHarness {
   public getDescriptionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="description"]' }));
   public getCharacteristicsInput = this.locatorFor(GioFormTagsInputHarness.with({ selector: '[formControlName="characteristics"]' }));
   public getGeneralConditionsInput = this.locatorForOptional(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
-  public getValidationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="validation"]' }));
+  public getValidationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="autoValidation"]' }));
   public getCommentRequiredToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="commentRequired"]' }));
   public getCommentMessageInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="commentMessage"]' }));
   public getShardingTagsInput = this.locatorForOptional(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));

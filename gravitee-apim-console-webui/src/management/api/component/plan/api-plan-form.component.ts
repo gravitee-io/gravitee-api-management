@@ -64,7 +64,7 @@ type InternalPlanFormValue = {
     shardingTags: string[];
     commentRequired: boolean;
     commentMessage: string;
-    validation: string;
+    autoValidation: boolean;
     excludedGroups: string[];
   };
   secure: {
@@ -289,12 +289,12 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
         if (securityType === 'KEY_LESS') {
           this.planForm.get('general').get('commentRequired').disable();
           this.planForm.get('general').get('commentRequired').setValue(false);
-          this.planForm.get('general').get('validation').disable();
-          this.planForm.get('general').get('validation').setValue(false);
+          this.planForm.get('general').get('autoValidation').disable();
+          this.planForm.get('general').get('autoValidation').setValue(false);
           return;
         }
         !this.isDisabled && this.planForm.get('general').get('commentRequired').enable();
-        !this.isDisabled && this.planForm.get('general').get('validation').enable();
+        !this.isDisabled && this.planForm.get('general').get('autoValidation').enable();
       });
 
     // After init internal planForm. Subscribe to it and emit changes when needed
@@ -339,7 +339,7 @@ const planV3ToInternalFormValue = (plan: InternalPlanV3Value | undefined): Inter
       shardingTags: plan.tags,
       commentRequired: plan.comment_required,
       commentMessage: plan.comment_message,
-      validation: plan.validation,
+      autoValidation: plan.validation === PlanValidationV3.AUTO,
       excludedGroups: plan.excluded_groups,
     },
     secure: {
@@ -364,7 +364,7 @@ const planV4ToInternalFormValue = (plan: InternalPlanV4Value | undefined): Inter
       shardingTags: plan.tags,
       commentRequired: plan.comment_required,
       commentMessage: plan.comment_message,
-      validation: plan.validation,
+      autoValidation: plan.validation === PlanValidationV4.AUTO,
       excludedGroups: plan.excluded_groups,
     },
     secure: {
@@ -432,7 +432,7 @@ const internalFormValueToPlanV3 = (value: InternalPlanFormValue, mode: 'create' 
     tags: value.general.shardingTags,
     comment_required: value.general.commentRequired,
     comment_message: value.general.commentMessage,
-    validation: value.general.validation ? PlanValidationV3.AUTO : PlanValidationV3.MANUAL,
+    validation: value.general.autoValidation ? PlanValidationV3.AUTO : PlanValidationV3.MANUAL,
     excluded_groups: value.general.excludedGroups,
 
     // Secure
@@ -498,7 +498,7 @@ const internalFormValueToPlanV4 = (value: InternalPlanFormValue, mode: 'create' 
     tags: value.general.shardingTags,
     comment_required: value.general.commentRequired,
     comment_message: value.general.commentMessage,
-    validation: value.general.validation ? PlanValidationV4.AUTO : PlanValidationV4.MANUAL,
+    validation: value.general.autoValidation ? PlanValidationV4.AUTO : PlanValidationV4.MANUAL,
     excluded_groups: value.general.excludedGroups,
 
     // Secure
