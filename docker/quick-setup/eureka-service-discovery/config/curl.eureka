@@ -1,0 +1,29 @@
+## Configure the echo API on Eureka:
+
+curl -H "Content-Type: application/json" -d '{
+        "instance": {
+          "hostName": "echo-api",
+          "app": "GRAVITEE",
+          "port": {
+            "$": "8080",
+            "@enabled": "true"
+          }
+        }
+      }' http://localhost:8761/eureka/apps/gravitee
+
+## Configure the "what time is it" API on Eureka:
+
+curl -H "Content-Type: application/json" -d '{
+        "instance": {
+          "hostName": "wtii-api",
+          "app": "GRAVITEE",
+          "port": {
+            "$": "8080",
+            "@enabled": "true"
+          }
+        }
+      }' http://localhost:8761/eureka/apps/gravitee
+
+## Check that the APIs are registered on Eureka:
+
+curl -X GET -H "Accept: application/json" http://localhost:8761/eureka/apps
