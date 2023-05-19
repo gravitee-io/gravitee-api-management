@@ -85,7 +85,7 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
       description: new FormControl(''),
       characteristics: new FormControl([]),
       generalConditions: new FormControl(''),
-      validation: new FormControl(false),
+      autoValidation: new FormControl(false),
       commentRequired: new FormControl(false),
       commentMessage: new FormControl(''),
       shardingTags: new FormControl([]),
