@@ -35,10 +35,10 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +52,14 @@ import org.springframework.security.config.annotation.SecurityConfigurer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
@@ -67,7 +70,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
-public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+public class BasicSecurityConfigurerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
@@ -104,8 +107,73 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     @Autowired
     private EventManager eventManager;
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    @Bean
+    public AuthenticationSuccessListener authenticationSuccessListener() {
+        return new AuthenticationSuccessListener();
+    }
+
+    @Bean
+    public AuthenticationFailureListener authenticationFailureListener() {
+        return new AuthenticationFailureListener();
+    }
+
+    @Bean
+    public CookieCsrfSignedTokenRepository cookieCsrfSignedTokenRepository() {
+        return new CookieCsrfSignedTokenRepository();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, eventManager);
+    }
+
+    /*
+     * We don't want sonar to warn us about the hard coded jwt secret string as it is used to provide a warning
+     * and encourage users to use a personal secret instead of the default one
+     */
+    @Bean
+    @SuppressWarnings("java:S6418")
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        final String jwtSecret = environment.getProperty("jwt.secret");
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            throw new IllegalStateException("JWT secret is mandatory");
+        }
+
+        //Warning if the secret is still the default one
+        if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
+            LOGGER.warn("");
+            LOGGER.warn("##############################################################");
+            LOGGER.warn("#                      SECURITY WARNING                      #");
+            LOGGER.warn("##############################################################");
+            LOGGER.warn("");
+            LOGGER.warn("You still use the default jwt secret.");
+            LOGGER.warn("This known secret can be used to impersonate anyone.");
+            LOGGER.warn("Please change this value, or ask your administrator to do it !");
+            LOGGER.warn("");
+            LOGGER.warn("##############################################################");
+            LOGGER.warn("");
+        }
+
+        authenticationManager(http);
+        authentication(http);
+        session(http);
+        authorizations(http);
+        hsts(http);
+        csrf(http);
+        cors(http);
+
+        http.addFilterBefore(
+            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
+            BasicAuthenticationFilter.class
+        );
+        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    private void authenticationManager(HttpSecurity http) throws Exception {
+        final AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
+
         LOGGER.info("--------------------------------------------------------------");
         LOGGER.info("Management API BasicSecurity Config");
         LOGGER.info("Loading authentication identity providers for Basic authentication");
@@ -151,67 +219,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         LOGGER.info("--------------------------------------------------------------");
     }
 
-    @Bean
-    public AuthenticationSuccessListener authenticationSuccessListener() {
-        return new AuthenticationSuccessListener();
-    }
-
-    @Bean
-    public AuthenticationFailureListener authenticationFailureListener() {
-        return new AuthenticationFailureListener();
-    }
-
-    @Bean
-    public CookieCsrfSignedTokenRepository cookieCsrfSignedTokenRepository() {
-        return new CookieCsrfSignedTokenRepository();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, eventManager);
-    }
-
-    /*
-     * We don't want sonar to warn us about the hard coded jwt secret string as it is used to provide a warning
-     * and encourage users to use a personal secret instead of the default one
-     */
-    @SuppressWarnings("java:S6418")
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        final String jwtSecret = environment.getProperty("jwt.secret");
-        if (jwtSecret == null || jwtSecret.isEmpty()) {
-            throw new IllegalStateException("JWT secret is mandatory");
-        }
-
-        //Warning if the secret is still the default one
-        if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
-            LOGGER.warn("");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("#                      SECURITY WARNING                      #");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("");
-            LOGGER.warn("You still use the default jwt secret.");
-            LOGGER.warn("This known secret can be used to impersonate anyone.");
-            LOGGER.warn("Please change this value, or ask your administrator to do it !");
-            LOGGER.warn("");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("");
-        }
-
-        authentication(http);
-        session(http);
-        authorizations(http);
-        hsts(http);
-        csrf(http);
-        cors(http);
-
-        http.addFilterBefore(
-            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
-            BasicAuthenticationFilter.class
-        );
-        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
-    }
-
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
         return security
             .httpBasic()
@@ -229,152 +236,152 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         String uriPrefix = uriOrgPrefix + "/environments/**";
 
         return security
-            .authorizeRequests()
+            .authorizeHttpRequests()
             /*
              * Swagger
              */
             // ---------------------------
             // TODO: DELETE THIS IN 3.18.0
-            .antMatchers(HttpMethod.GET, "/swagger.json")
+            .requestMatchers(HttpMethod.GET, "/swagger.json")
             .permitAll()
             // ---------------------------
 
-            .antMatchers(HttpMethod.GET, "/openapi.*")
+            .requestMatchers(HttpMethod.GET, "/openapi.*")
             .permitAll()
-            .antMatchers(HttpMethod.OPTIONS, "**")
+            .requestMatchers(HttpMethod.OPTIONS, "**")
             .permitAll()
             /*
              * Global auth resources.
              */
-            .antMatchers(HttpMethod.GET, "/auth/cockpit")
+            .requestMatchers(HttpMethod.GET, "/auth/cockpit")
             .permitAll()
             /*
              * organizations resources
              */
             // Console resource
-            .antMatchers(HttpMethod.GET, uriOrgPrefix + "/console/**")
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/console/**")
             .permitAll()
             // Auth resource
-            .antMatchers(HttpMethod.POST, uriOrgPrefix + "/auth/**")
+            .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/auth/**")
             .permitAll()
-            .antMatchers(HttpMethod.GET, uriOrgPrefix + "/social-identities")
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/social-identities")
             .permitAll()
             // Current user
-            .antMatchers(HttpMethod.POST, uriOrgPrefix + "/user/login")
+            .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/user/login")
             .permitAll()
-            .antMatchers(HttpMethod.GET, uriOrgPrefix + "/user/**")
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/user/**")
             .authenticated()
             // Users management
-            .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users/custom-fields")
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/users/custom-fields")
             .permitAll()
-            .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**")
+            .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/users/registration/**")
             .permitAll()
-            .antMatchers(HttpMethod.POST, uriOrgPrefix + "/users/**/changePassword")
+            .requestMatchers(HttpMethod.POST, uriOrgPrefix + "/users/**/changePassword")
             .permitAll()
-            .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users")
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/users")
             .authenticated()
-            .antMatchers(HttpMethod.GET, uriOrgPrefix + "/users/**")
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/users/**")
             .authenticated()
-            .antMatchers(HttpMethod.PUT, uriOrgPrefix + "/users/**")
+            .requestMatchers(HttpMethod.PUT, uriOrgPrefix + "/users/**")
             .authenticated()
-            .antMatchers(HttpMethod.DELETE, uriOrgPrefix + "/users/**")
+            .requestMatchers(HttpMethod.DELETE, uriOrgPrefix + "/users/**")
             .authenticated()
             // Organization configuration
-            .antMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/rolescopes/**")
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/rolescopes/**")
             .permitAll()
-            .antMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/custom-user-fields")
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/custom-user-fields")
             .permitAll()
-            .antMatchers(uriOrgPrefix + "/configuration/**")
+            .requestMatchers(uriOrgPrefix + "/configuration/**")
             .authenticated()
             // Search for users
-            .antMatchers(HttpMethod.GET, uriOrgPrefix + "/search/users")
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/search/users")
             .authenticated()
             /*
              * environments resources
              */
             // DEPRECATED
             // Auth resource
-            .antMatchers(HttpMethod.POST, uriPrefix + "/auth/**")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/auth/**")
             .permitAll()
             // DEPRECATED
             // Current user
-            .antMatchers(HttpMethod.POST, uriPrefix + "/user/login")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/user/login")
             .permitAll()
-            .antMatchers(HttpMethod.GET, uriPrefix + "/user/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/user/**")
             .authenticated()
             // DEPRECATED
             // Users management
-            .antMatchers(HttpMethod.GET, uriPrefix + "/users/custom-fields")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/users/custom-fields")
             .permitAll()
-            .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**")
             .permitAll()
-            .antMatchers(HttpMethod.GET, uriPrefix + "/users")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/users")
             .authenticated()
-            .antMatchers(HttpMethod.GET, uriPrefix + "/users/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/users/**")
             .authenticated()
-            .antMatchers(HttpMethod.PUT, uriPrefix + "/users/**")
+            .requestMatchers(HttpMethod.PUT, uriPrefix + "/users/**")
             .authenticated()
-            .antMatchers(HttpMethod.DELETE, uriPrefix + "/users/**")
+            .requestMatchers(HttpMethod.DELETE, uriPrefix + "/users/**")
             .authenticated()
             // DEPRECATED
             // configuration
-            .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/rolescopes/**")
             .permitAll()
             // DEPRECATED
             // Search for users
-            .antMatchers(HttpMethod.GET, uriPrefix + "/search/users")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/search/users")
             .authenticated()
             /*
              * environments resources
              */
             // API requests
-            .antMatchers(HttpMethod.GET, uriPrefix + "/apis/hooks")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/hooks")
             .authenticated()
-            .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/**")
             .authenticated()
-            .antMatchers(HttpMethod.POST, uriPrefix + "/apis")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/apis")
             .authenticated()
-            .antMatchers(HttpMethod.POST, uriPrefix + "/apis/**")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/apis/**")
             .authenticated()
-            .antMatchers(HttpMethod.PUT, uriPrefix + "/apis/**")
+            .requestMatchers(HttpMethod.PUT, uriPrefix + "/apis/**")
             .authenticated()
-            .antMatchers(HttpMethod.DELETE, uriPrefix + "/apis/**")
+            .requestMatchers(HttpMethod.DELETE, uriPrefix + "/apis/**")
             .authenticated()
             // Application requests
-            .antMatchers(HttpMethod.POST, uriPrefix + "/applications")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/applications")
             .authenticated()
-            .antMatchers(HttpMethod.POST, uriPrefix + "/applications/**")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/applications/**")
             .authenticated()
-            .antMatchers(HttpMethod.PUT, uriPrefix + "/applications/**")
+            .requestMatchers(HttpMethod.PUT, uriPrefix + "/applications/**")
             .authenticated()
-            .antMatchers(HttpMethod.DELETE, uriPrefix + "/applications/**")
+            .requestMatchers(HttpMethod.DELETE, uriPrefix + "/applications/**")
             .authenticated()
             // Subscriptions
-            .antMatchers(HttpMethod.GET, uriPrefix + "/subscriptions/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/subscriptions/**")
             .authenticated()
             // Instance requests
-            .antMatchers(HttpMethod.GET, uriPrefix + "/instances/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/instances/**")
             .authenticated()
             // Platform requests
-            .antMatchers(HttpMethod.GET, uriPrefix + "/platform/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/platform/**")
             .authenticated()
             // Configuration Groups
-            .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/groups/**")
             .permitAll()
             // Configuration Categories
-            .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/categories/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/categories/**")
             .permitAll()
             // Configuration Tags
-            .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/tags/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/tags/**")
             .permitAll()
             // Configuration Tenants
-            .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/tenants/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/tenants/**")
             .permitAll()
             // Configuration
-            .antMatchers(uriPrefix + "/configuration/**")
+            .requestMatchers(uriPrefix + "/configuration/**")
             .authenticated()
             // Entrypoints
-            .antMatchers(HttpMethod.GET, uriPrefix + "/entrypoints/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/entrypoints/**")
             .permitAll()
             .anyRequest()
             .authenticated()
@@ -402,15 +409,26 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     private HttpSecurity csrf(HttpSecurity security) throws Exception {
         if (environment.getProperty("http.csrf.enabled", Boolean.class, false)) {
+            // Don't use deferred csrf (see https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_need_to_opt_out_of_deferred_tokens_for_another_reason)
+            final CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+            requestHandler.setCsrfRequestAttributeName(null);
+
+            final CookieCsrfSignedTokenRepository csrfTokenRepository = cookieCsrfSignedTokenRepository();
             return security
-                .csrf()
-                .csrfTokenRepository(cookieCsrfSignedTokenRepository())
-                .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
-                .and()
+                .csrf(csrf ->
+                    csrf
+                        .csrfTokenRepository(csrfTokenRepository)
+                        .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
+                        .csrfTokenRequestHandler(requestHandler)
+                        .sessionAuthenticationStrategy((authentication, request, response) -> {
+                            // Force the csrf cookie to be pushed back in the response cookies to keep it across subsequent request.
+                            csrfTokenRepository.saveToken((CsrfToken) request.getAttribute(CsrfToken.class.getName()), request, response);
+                        })
+                )
                 .addFilterAfter(new CsrfIncludeFilter(), CsrfFilter.class);
         } else {
             // deepcode ignore DisablesCSRFProtection: CSRF Protection is disabled here to match configuration set by the user (via gravitee.yml)
-            return security.csrf().disable();
+            return security.csrf(AbstractHttpConfigurer::disable);
         }
     }
 

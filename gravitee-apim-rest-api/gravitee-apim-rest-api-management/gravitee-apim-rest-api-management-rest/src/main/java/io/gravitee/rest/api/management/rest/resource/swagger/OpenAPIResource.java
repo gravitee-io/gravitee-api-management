@@ -17,11 +17,11 @@ package io.gravitee.rest.api.management.rest.resource.swagger;
 
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.swagger.v3.oas.annotations.Operation;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.*;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
 
 import io.gravitee.rest.api.service.exceptions.PreconditionFailedException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.Provider;
 
 @Provider
 public class PreconditionFailedExceptionMapper extends AbstractExceptionMapper<PreconditionFailedException> {

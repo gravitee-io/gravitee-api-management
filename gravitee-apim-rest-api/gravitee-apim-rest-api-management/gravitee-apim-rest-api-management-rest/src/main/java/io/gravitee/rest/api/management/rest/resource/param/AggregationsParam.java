@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.gravitee.rest.api.model.analytics.query.AggregationType;
-import javax.ws.rs.WebApplicationException;
+import jakarta.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

@@ -28,10 +28,10 @@ import io.gravitee.rest.api.model.configuration.identity.oidc.OIDCIdentityProvid
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.ConfigurationIdentitiesResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import javax.ws.rs.core.Response;
 import org.junit.Test;
 import org.mockito.internal.util.collections.Sets;
 

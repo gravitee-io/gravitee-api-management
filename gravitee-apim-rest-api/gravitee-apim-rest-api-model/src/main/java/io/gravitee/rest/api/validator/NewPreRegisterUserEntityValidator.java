@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.validator;
 
 import io.gravitee.rest.api.model.NewPreRegisterUserEntity;
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

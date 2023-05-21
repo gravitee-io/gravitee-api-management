@@ -18,9 +18,9 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Objects;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

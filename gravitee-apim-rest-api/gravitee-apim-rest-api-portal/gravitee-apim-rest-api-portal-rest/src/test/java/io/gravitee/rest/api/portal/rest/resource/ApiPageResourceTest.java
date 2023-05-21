@@ -32,9 +32,9 @@ import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.Response;
 import java.util.*;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

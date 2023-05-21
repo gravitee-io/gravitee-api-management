@@ -25,9 +25,9 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.NewGroupEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
 /**

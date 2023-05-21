@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.service.exceptions.ApiMediaNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import javax.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.Invocation;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
 import org.junit.Test;

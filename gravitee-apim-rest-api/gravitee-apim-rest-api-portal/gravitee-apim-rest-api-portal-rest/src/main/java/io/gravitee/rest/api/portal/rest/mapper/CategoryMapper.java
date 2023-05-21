@@ -19,7 +19,7 @@ import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.portal.rest.model.Category;
 import io.gravitee.rest.api.portal.rest.model.CategoryLinks;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

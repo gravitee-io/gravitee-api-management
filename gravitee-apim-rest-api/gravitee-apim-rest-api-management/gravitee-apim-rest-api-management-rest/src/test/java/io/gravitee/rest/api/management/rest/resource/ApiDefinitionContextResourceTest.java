@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.definition.model.DefinitionContext.*;
-import static javax.ws.rs.client.Entity.*;
+import static jakarta.ws.rs.client.Entity.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.api.DefinitionContextEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
 /**

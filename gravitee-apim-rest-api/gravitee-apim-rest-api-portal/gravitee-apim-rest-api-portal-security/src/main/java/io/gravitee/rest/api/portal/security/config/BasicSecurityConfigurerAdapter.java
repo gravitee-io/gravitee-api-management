@@ -33,12 +33,12 @@ import io.gravitee.rest.api.security.listener.AuthenticationSuccessListener;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +52,12 @@ import org.springframework.security.config.annotation.SecurityConfigurer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.*;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
@@ -67,7 +68,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @Configuration
 @Profile("basic")
 @EnableWebSecurity
-public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+public class BasicSecurityConfigurerAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicSecurityConfigurerAdapter.class);
 
@@ -98,8 +99,73 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     @Autowired
     private EventManager eventManager;
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    @Bean
+    public AuthenticationSuccessListener authenticationSuccessListener() {
+        return new AuthenticationSuccessListener();
+    }
+
+    @Bean
+    public AuthenticationFailureListener authenticationFailureListener() {
+        return new AuthenticationFailureListener();
+    }
+
+    @Bean
+    public CookieCsrfSignedTokenRepository cookieCsrfSignedTokenRepository() {
+        return new CookieCsrfSignedTokenRepository();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, eventManager);
+    }
+
+    /*
+     * We don't want sonar to warn us about the hard coded jwt secret string as it used to provide a warning
+     * and encourage users to use a personal secret instead of the default one
+     */
+    @Bean
+    @SuppressWarnings("java:S6418")
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        final String jwtSecret = environment.getProperty("jwt.secret");
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            throw new IllegalStateException("JWT secret is mandatory");
+        }
+
+        //Warning if the secret is still the default one
+        if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
+            LOGGER.warn("");
+            LOGGER.warn("##############################################################");
+            LOGGER.warn("#                      SECURITY WARNING                      #");
+            LOGGER.warn("##############################################################");
+            LOGGER.warn("");
+            LOGGER.warn("You still use the default jwt secret.");
+            LOGGER.warn("This known secret can be used to impersonate anyone.");
+            LOGGER.warn("Please change this value, or ask your administrator to do it !");
+            LOGGER.warn("");
+            LOGGER.warn("##############################################################");
+            LOGGER.warn("");
+        }
+
+        authenticationManager(http);
+        authentication(http);
+        session(http);
+        authorizations(http);
+        hsts(http);
+        csrf(http);
+        cors(http);
+
+        http.addFilterBefore(
+            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, authoritiesProvider),
+            BasicAuthenticationFilter.class
+        );
+        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    private void authenticationManager(HttpSecurity http) throws Exception {
+        final AuthenticationManagerBuilder auth = http.getSharedObject(AuthenticationManagerBuilder.class);
+
         LOGGER.info("--------------------------------------------------------------");
         LOGGER.info("Portal API BasicSecurity Config");
         LOGGER.info("Loading authentication identity providers for Basic authentication");
@@ -142,67 +208,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
         LOGGER.info("--------------------------------------------------------------");
     }
 
-    @Bean
-    public AuthenticationSuccessListener authenticationSuccessListener() {
-        return new AuthenticationSuccessListener();
-    }
-
-    @Bean
-    public AuthenticationFailureListener authenticationFailureListener() {
-        return new AuthenticationFailureListener();
-    }
-
-    @Bean
-    public CookieCsrfSignedTokenRepository cookieCsrfSignedTokenRepository() {
-        return new CookieCsrfSignedTokenRepository();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        return new GraviteeUrlBasedCorsConfigurationSource(parameterService, eventManager);
-    }
-
-    /*
-     * We don't want sonar to warn us about the hard coded jwt secret string as it used to provide a warning
-     * and encourage users to use a personal secret instead of the default one
-     */
-    @SuppressWarnings("java:S6418")
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        final String jwtSecret = environment.getProperty("jwt.secret");
-        if (jwtSecret == null || jwtSecret.isEmpty()) {
-            throw new IllegalStateException("JWT secret is mandatory");
-        }
-
-        //Warning if the secret is still the default one
-        if ("myJWT4Gr4v1t33_S3cr3t".equals(jwtSecret)) {
-            LOGGER.warn("");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("#                      SECURITY WARNING                      #");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("");
-            LOGGER.warn("You still use the default jwt secret.");
-            LOGGER.warn("This known secret can be used to impersonate anyone.");
-            LOGGER.warn("Please change this value, or ask your administrator to do it !");
-            LOGGER.warn("");
-            LOGGER.warn("##############################################################");
-            LOGGER.warn("");
-        }
-
-        authentication(http);
-        session(http);
-        authorizations(http);
-        hsts(http);
-        csrf(http);
-        cors(http);
-
-        http.addFilterBefore(
-            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, null, null, authoritiesProvider),
-            BasicAuthenticationFilter.class
-        );
-        http.addFilterBefore(new RecaptchaFilter(reCaptchaService, objectMapper), TokenAuthenticationFilter.class);
-    }
-
     private HttpSecurity authentication(HttpSecurity security) throws Exception {
         return security.httpBasic().authenticationDetailsSource(authenticationDetailsSource()).realmName("Gravitee.io Portal API").and();
     }
@@ -214,44 +219,44 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     private HttpSecurity authorizations(HttpSecurity security) throws Exception {
         String uriPrefix = "/environments/**";
         return security
-            .authorizeRequests()
-            .antMatchers(HttpMethod.OPTIONS, "**")
+            .authorizeHttpRequests()
+            .requestMatchers(HttpMethod.OPTIONS, "**")
             .permitAll()
             // OpenApi
-            .antMatchers(HttpMethod.GET, "/openapi")
+            .requestMatchers(HttpMethod.GET, "/openapi")
             .permitAll()
             //  Auth request
-            .antMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**")
             .permitAll()
             // API requests
-            .antMatchers(HttpMethod.GET, uriPrefix + "/apis/*/subscribers")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/*/subscribers")
             .authenticated()
-            .antMatchers(HttpMethod.GET, uriPrefix + "/apis/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/**")
             .permitAll()
-            .antMatchers(HttpMethod.POST, uriPrefix + "/apis/_search")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/apis/_search")
             .permitAll()
             // Pages
-            .antMatchers(HttpMethod.GET, uriPrefix + "/pages/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/pages/**")
             .permitAll()
             // Portal
-            .antMatchers(HttpMethod.GET, uriPrefix + "/configuration/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/configuration/**")
             .permitAll()
-            .antMatchers(HttpMethod.GET, uriPrefix + "/info/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/info/**")
             .permitAll()
-            .antMatchers(HttpMethod.GET, uriPrefix + "/media/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/media/**")
             .permitAll()
             // Theme
-            .antMatchers(HttpMethod.GET, uriPrefix + "/theme/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/theme/**")
             .permitAll()
             // Users
-            .antMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/users/registration/**")
             .permitAll()
-            .antMatchers(HttpMethod.POST, uriPrefix + "/users/_reset_password/**")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/users/_reset_password/**")
             .permitAll()
-            .antMatchers(HttpMethod.POST, uriPrefix + "/users/_change_password/**")
+            .requestMatchers(HttpMethod.POST, uriPrefix + "/users/_change_password/**")
             .permitAll()
             // Categories
-            .antMatchers(HttpMethod.GET, uriPrefix + "/categories/**")
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/categories/**")
             .permitAll()
             /* Others requests
              * i.e. :
@@ -290,15 +295,26 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
 
     private HttpSecurity csrf(HttpSecurity security) throws Exception {
         if (environment.getProperty("http.csrf.enabled", Boolean.class, false)) {
+            // Don't use deferred csrf (see https://docs.spring.io/spring-security/reference/5.8/migration/servlet/exploits.html#_i_need_to_opt_out_of_deferred_tokens_for_another_reason)
+            final CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+            requestHandler.setCsrfRequestAttributeName(null);
+
+            final CookieCsrfSignedTokenRepository csrfTokenRepository = cookieCsrfSignedTokenRepository();
             return security
-                .csrf()
-                .csrfTokenRepository(cookieCsrfSignedTokenRepository())
-                .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
-                .and()
+                .csrf(csrf ->
+                    csrf
+                        .csrfTokenRepository(csrfTokenRepository)
+                        .requireCsrfProtectionMatcher(new CsrfRequestMatcher())
+                        .csrfTokenRequestHandler(requestHandler)
+                        .sessionAuthenticationStrategy((authentication, request, response) -> {
+                            // Force the csrf cookie to be pushed back in the response cookies to keep it across subsequent request.
+                            csrfTokenRepository.saveToken((CsrfToken) request.getAttribute(CsrfToken.class.getName()), request, response);
+                        })
+                )
                 .addFilterAfter(new CsrfIncludeFilter(), CsrfFilter.class);
         } else {
             // deepcode ignore DisablesCSRFProtection: CSRF Protection is disabled here to match configuration set by the user (via gravitee.yml)
-            return security.csrf().disable();
+            return security.csrf(AbstractHttpConfigurer::disable);
         }
     }
 

@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model.configuration.identity;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import java.util.List;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

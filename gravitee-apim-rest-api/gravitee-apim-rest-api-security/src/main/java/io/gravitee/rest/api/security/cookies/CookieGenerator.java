@@ -17,7 +17,7 @@ package io.gravitee.rest.api.security.cookies;
 
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 import org.springframework.core.env.Environment;
 
 /**

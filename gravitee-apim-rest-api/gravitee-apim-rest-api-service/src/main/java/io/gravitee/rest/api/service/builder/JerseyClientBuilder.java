@@ -18,13 +18,13 @@ package io.gravitee.rest.api.service.builder;
 import static io.gravitee.common.http.HttpHeaders.PROXY_AUTHORIZATION;
 
 import io.gravitee.common.util.EnvironmentUtils;
+import jakarta.ws.rs.client.ClientBuilder;
 import java.net.*;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.ws.rs.client.ClientBuilder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.springframework.core.env.ConfigurableEnvironment;

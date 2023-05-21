@@ -60,8 +60,8 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import jakarta.ws.rs.core.Response;
 import java.util.*;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

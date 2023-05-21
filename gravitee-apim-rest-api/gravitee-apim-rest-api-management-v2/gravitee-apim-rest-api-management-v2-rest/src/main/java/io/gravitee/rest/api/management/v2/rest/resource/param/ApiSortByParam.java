@@ -17,9 +17,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.param;
 
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.QueryParam;
 import java.util.Objects;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.QueryParam;
 
 public class ApiSortByParam {
 

@@ -17,9 +17,9 @@ package io.gravitee.rest.api.management.security.config;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.service.ParameterService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 

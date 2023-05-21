@@ -27,9 +27,9 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
-import javax.inject.Inject;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

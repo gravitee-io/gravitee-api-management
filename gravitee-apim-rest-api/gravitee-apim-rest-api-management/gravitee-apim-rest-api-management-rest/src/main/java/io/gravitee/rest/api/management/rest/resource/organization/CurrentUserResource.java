@@ -18,8 +18,8 @@ package io.gravitee.rest.api.management.rest.resource.organization;
 import static io.gravitee.rest.api.management.rest.model.TokenType.BEARER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
-import static javax.ws.rs.core.Response.ok;
-import static javax.ws.rs.core.Response.status;
+import static jakarta.ws.rs.core.Response.ok;
+import static jakarta.ws.rs.core.Response.status;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -35,17 +35,7 @@ import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.management.rest.model.wrapper.TaskEntityPagedResult;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.resource.TokensResource;
-import io.gravitee.rest.api.model.InlinePictureEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.PictureEntity;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.TagReferenceType;
-import io.gravitee.rest.api.model.TaskEntity;
-import io.gravitee.rest.api.model.UpdateUserEntity;
-import io.gravitee.rest.api.model.UrlPictureEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.security.utils.ImageUtils;
@@ -64,39 +54,21 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.*;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -275,7 +247,7 @@ public class CurrentUserResource extends AbstractResource {
             logoutCurrentUser();
             return Response.noContent().build();
         } else {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            return status(Response.Status.UNAUTHORIZED).build();
         }
     }
 
@@ -328,7 +300,7 @@ public class CurrentUserResource extends AbstractResource {
 
         InlinePictureEntity image = (InlinePictureEntity) picture;
         if (image == null || image.getContent() == null) {
-            return Response.ok().build();
+            return ok().build();
         }
 
         EntityTag etag = new EntityTag(Integer.toString(new String(image.getContent()).hashCode()));
@@ -348,7 +320,7 @@ public class CurrentUserResource extends AbstractResource {
     @Path("/login")
     @Operation(summary = "Login")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response login(final @Context javax.ws.rs.core.HttpHeaders headers, final @Context HttpServletResponse servletResponse) {
+    public Response login(final @Context HttpHeaders headers, final @Context HttpServletResponse servletResponse) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             // JWT signer
@@ -424,7 +396,7 @@ public class CurrentUserResource extends AbstractResource {
 
             return ok(tokenEntity).build();
         }
-        return Response.status(Response.Status.UNAUTHORIZED).build();
+        return status(Response.Status.UNAUTHORIZED).build();
     }
 
     @POST
@@ -432,7 +404,7 @@ public class CurrentUserResource extends AbstractResource {
     @Operation(summary = "Logout")
     public Response logoutCurrentUser() {
         response.addCookie(cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null));
-        return Response.ok().build();
+        return ok().build();
     }
 
     @GET
@@ -470,8 +442,7 @@ public class CurrentUserResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserShardingTags() {
-        return Response
-            .ok(tagService.findByUser(getAuthenticatedUser(), GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION))
+        return ok(tagService.findByUser(getAuthenticatedUser(), GraviteeContext.getCurrentOrganization(), TagReferenceType.ORGANIZATION))
             .build();
     }
 

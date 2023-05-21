@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.model.ThemeResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

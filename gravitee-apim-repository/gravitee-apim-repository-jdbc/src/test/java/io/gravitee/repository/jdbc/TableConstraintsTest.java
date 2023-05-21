@@ -19,10 +19,10 @@ import static org.junit.Assert.assertEquals;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
+import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import javax.inject.Inject;
 import javax.sql.DataSource;
 import org.junit.Test;
 import org.junit.runner.RunWith;

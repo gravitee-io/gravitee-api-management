@@ -18,7 +18,7 @@ package io.gravitee.definition.model.v4.flow.selector;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.swagger.v3.oas.annotations.media.Schema;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

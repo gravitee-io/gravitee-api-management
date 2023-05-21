@@ -25,8 +25,8 @@ import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.core.Response;
 import java.util.Date;
-import javax.ws.rs.core.Response;
 import org.junit.Test;
 
 public class DictionaryResourceTest extends AbstractResourceTest {

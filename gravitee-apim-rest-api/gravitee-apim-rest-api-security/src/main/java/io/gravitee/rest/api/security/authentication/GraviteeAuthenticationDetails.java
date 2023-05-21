@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.security.authentication;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 public class GraviteeAuthenticationDetails extends WebAuthenticationDetails {

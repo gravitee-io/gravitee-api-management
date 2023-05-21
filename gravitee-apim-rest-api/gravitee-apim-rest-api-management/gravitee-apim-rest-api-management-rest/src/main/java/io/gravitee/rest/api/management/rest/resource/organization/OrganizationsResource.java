@@ -18,10 +18,10 @@ package io.gravitee.rest.api.management.rest.resource.organization;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

@@ -24,10 +24,10 @@ import io.gravitee.rest.api.model.alert.AlertThreshold;
 import io.gravitee.rest.api.model.alert.MetricType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import java.util.List;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

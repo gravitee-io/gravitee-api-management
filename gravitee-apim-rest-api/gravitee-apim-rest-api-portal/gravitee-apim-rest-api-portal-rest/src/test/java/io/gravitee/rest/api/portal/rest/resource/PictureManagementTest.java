@@ -23,14 +23,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.rest.api.model.InlinePictureEntity;
+import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import org.eclipse.jetty.http.HttpHeader;
 import org.junit.Test;
 import org.mockito.Mockito;

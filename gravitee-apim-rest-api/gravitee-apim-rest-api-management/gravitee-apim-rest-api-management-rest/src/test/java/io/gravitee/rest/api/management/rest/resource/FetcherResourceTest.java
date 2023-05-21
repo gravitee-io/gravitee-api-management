@@ -21,8 +21,8 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.FetcherEntity;
+import jakarta.ws.rs.core.Response;
 import java.util.LinkedHashMap;
-import javax.ws.rs.core.Response;
 import org.junit.Test;
 import org.mockito.Mockito;
 

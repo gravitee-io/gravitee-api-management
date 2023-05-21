@@ -18,9 +18,9 @@ package io.gravitee.rest.api.model.alert;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.rest.api.model.AlertEventRuleEntity;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)

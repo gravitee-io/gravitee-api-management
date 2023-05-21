@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.rest.provider;
 
 import static org.junit.Assert.*;
 
-import javax.ws.rs.ext.ParamConverter;
+import jakarta.ws.rs.ext.ParamConverter;
 import org.junit.Test;
 
 public class EnumParamConverterProviderTest {

@@ -24,15 +24,14 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.service.AccessControlService;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.PermissionService;
-import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.core.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -43,9 +42,6 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-import javax.inject.Inject;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -435,7 +431,7 @@ public abstract class AbstractResource<T, K> {
             return this;
         }
 
-        @javax.annotation.Nullable
+        @jakarta.annotation.Nullable
         @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
         public Collection getData() {
             return data;
@@ -446,7 +442,7 @@ public abstract class AbstractResource<T, K> {
             return this;
         }
 
-        @javax.annotation.Nullable
+        @jakarta.annotation.Nullable
         @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
         public Map<String, Map<String, Object>> getMetadata() {
             return metadata;
@@ -457,7 +453,7 @@ public abstract class AbstractResource<T, K> {
             return this;
         }
 
-        @javax.annotation.Nullable
+        @jakarta.annotation.Nullable
         @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
         public Links getLinks() {
             return links;

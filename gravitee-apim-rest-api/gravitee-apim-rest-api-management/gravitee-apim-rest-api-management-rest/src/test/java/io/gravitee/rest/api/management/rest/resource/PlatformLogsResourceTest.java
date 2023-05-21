@@ -29,8 +29,8 @@ import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import jakarta.ws.rs.core.Response;
 import java.util.Objects;
-import javax.ws.rs.core.Response;
 import org.junit.Test;
 
 /**

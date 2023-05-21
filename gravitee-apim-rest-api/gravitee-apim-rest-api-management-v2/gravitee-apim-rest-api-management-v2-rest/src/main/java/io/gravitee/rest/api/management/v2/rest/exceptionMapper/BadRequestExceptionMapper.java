@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.Provider;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)

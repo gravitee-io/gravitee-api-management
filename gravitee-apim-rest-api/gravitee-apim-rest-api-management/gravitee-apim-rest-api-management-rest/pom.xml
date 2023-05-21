@@ -22,6 +22,9 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
 	<modelVersion>4.0.0</modelVersion>
+	<properties>
+		<swagger-maven-plugin-jakarta.version>2.2.9</swagger-maven-plugin-jakarta.version>
+	</properties>
 
 	<parent>
         <groupId>io.gravitee.apim.rest.api.management</groupId>
@@ -98,13 +101,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.ext</groupId>
-			<artifactId>jersey-spring5</artifactId>
+			<artifactId>jersey-spring6</artifactId>
 		</dependency>
 
 		<!-- Swagger -->
 		<dependency>
 			<groupId>io.swagger.core.v3</groupId>
-			<artifactId>swagger-jaxrs2</artifactId>
+			<artifactId>swagger-jaxrs2-jakarta</artifactId>
 		</dependency>
 
 		<dependency>
@@ -169,43 +172,36 @@
 	</dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>openapi-configuration.yaml</include>
+                </includes>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
-                <groupId>io.openapitools.swagger</groupId>
-                <artifactId>swagger-maven-plugin</artifactId>
-                <version>${swagger-maven-plugin.version}</version>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-maven-plugin-jakarta</artifactId>
+                <version>${swagger-maven-plugin-jakarta.version}</version>
                 <configuration>
-                    <resourcePackages>
-                        <resourcePackage>io.gravitee.rest.api.management.rest.resource</resourcePackage>
-                    </resourcePackages>
-                    <useResourcePackagesChildren>true</useResourcePackagesChildren>
-                    <outputDirectory>${basedir}/target/classes</outputDirectory>
-                    <outputFilename>console-openapi</outputFilename>
-                    <outputFormats>JSON,YAML</outputFormats>
-                    <swaggerConfig>
-                        <servers>
-                            <server>
-                                <url>http://localhost:8083/management</url>
-                            </server>
-                        </servers>
-                        <info>
-                            <title>Gravitee.io - Management API</title>
-                            <version>${project.version}</version>
-                            <!-- TODO: Remove the following line when v4 API is stable-->
-                            <description>Some news resources are in alpha version. This implies that they are likely to be modified or even removed in future versions. They are marked with the 🧪 symbol</description>
-                        </info>
-                    </swaggerConfig>
-
+                    <outputPath>${basedir}/target/classes</outputPath>
+                    <configurationFilePath>${basedir}/target/classes/openapi-configuration.yaml</configurationFilePath>
+                    <outputFileName>console-openapi</outputFileName>
+                    <outputFormat>JSONANDYAML</outputFormat>
+                    <prettyPrint>false</prettyPrint>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>generate</goal>
+                            <goal>resolve</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
-
 </project>

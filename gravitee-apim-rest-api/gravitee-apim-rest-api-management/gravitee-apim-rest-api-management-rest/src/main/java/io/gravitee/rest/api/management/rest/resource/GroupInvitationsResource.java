@@ -38,12 +38,12 @@ import io.gravitee.rest.api.service.exceptions.GroupMembersLimitationExceededExc
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.DELETE;
 import java.util.List;
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.DELETE;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

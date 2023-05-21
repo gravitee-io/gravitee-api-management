@@ -17,7 +17,7 @@ package io.gravitee.rest.api.portal.rest.utils;
 
 import static org.junit.Assert.assertEquals;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 import org.junit.Test;
 
 /**

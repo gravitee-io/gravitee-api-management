@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.utils;
 
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 public final class ManagementApiLinkHelper {
 

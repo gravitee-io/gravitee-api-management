@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.rest.api.model.CategoryEntity;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)

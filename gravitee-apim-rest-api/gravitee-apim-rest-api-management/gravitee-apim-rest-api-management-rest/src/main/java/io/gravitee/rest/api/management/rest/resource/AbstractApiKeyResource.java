@@ -20,7 +20,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * A resource that manages API keys.

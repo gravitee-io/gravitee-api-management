@@ -20,11 +20,12 @@ import static org.reflections.ReflectionUtils.*;
 import com.google.common.base.Predicate;
 import io.gravitee.resource.api.Resource;
 import io.gravitee.resource.api.ResourceConfiguration;
+import jakarta.inject.Inject;
 import java.lang.reflect.*;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import javax.inject.Inject;
 import org.reflections.ReflectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,23 +63,21 @@ public class ResourceFactory {
 
         if (resourceInst != null) {
             Set<Field> fields = lookingForInjectableFields(resourceClass);
-            if (fields != null) {
-                for (Field field : fields) {
-                    boolean accessible = field.isAccessible();
+            for (Field field : fields) {
+                boolean accessible = field.isAccessible();
 
-                    Class<?> type = field.getType();
-                    Optional<?> value = injectables.values().stream().filter(o -> type.isAssignableFrom(o.getClass())).findFirst();
+                Class<?> type = field.getType();
+                Optional<?> value = injectables.values().stream().filter(o -> type.isAssignableFrom(o.getClass())).findFirst();
 
-                    if (value.isPresent()) {
-                        LOGGER.debug("Inject value into field {} [{}] in {}", field.getName(), type.getName(), resourceClass);
-                        try {
-                            field.setAccessible(true);
-                            field.set(resourceInst, value.get());
-                        } catch (IllegalAccessException iae) {
-                            LOGGER.error("Unable to set field value for {} in {}", field.getName(), resourceClass, iae);
-                        } finally {
-                            field.setAccessible(accessible);
-                        }
+                if (value.isPresent()) {
+                    LOGGER.debug("Inject value into field {} [{}] in {}", field.getName(), type.getName(), resourceClass);
+                    try {
+                        field.setAccessible(true);
+                        field.set(resourceInst, value.get());
+                    } catch (IllegalAccessException iae) {
+                        LOGGER.error("Unable to set field value for {} in {}", field.getName(), resourceClass, iae);
+                    } finally {
+                        field.setAccessible(accessible);
                     }
                 }
             }
@@ -118,7 +117,10 @@ public class ResourceFactory {
     }
 
     private Set<Field> lookingForInjectableFields(Class<?> resourceClass) {
-        return ReflectionUtils.getAllFields(resourceClass, withAnnotation(Inject.class));
+        // For now, we still need to support javax.inject waiting for all third-parties to migrate to jakarta.inject.
+        final HashSet<Field> fields = new HashSet<>(getAllFields(resourceClass, withAnnotation(javax.inject.Inject.class)));
+        fields.addAll(ReflectionUtils.getAllFields(resourceClass, withAnnotation(Inject.class)));
+        return fields;
     }
 
     public static Predicate<Member> withParametersAssignableFrom(final Class... types) {

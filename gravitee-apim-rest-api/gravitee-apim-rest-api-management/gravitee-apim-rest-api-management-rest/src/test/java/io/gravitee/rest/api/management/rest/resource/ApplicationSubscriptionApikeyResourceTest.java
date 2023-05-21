@@ -26,8 +26,8 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import jakarta.ws.rs.core.Response;
 import java.util.Set;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

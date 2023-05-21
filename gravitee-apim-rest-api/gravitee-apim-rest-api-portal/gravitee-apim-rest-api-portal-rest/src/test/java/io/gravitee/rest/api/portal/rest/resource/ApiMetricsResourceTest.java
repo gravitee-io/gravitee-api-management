@@ -32,9 +32,9 @@ import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.*;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

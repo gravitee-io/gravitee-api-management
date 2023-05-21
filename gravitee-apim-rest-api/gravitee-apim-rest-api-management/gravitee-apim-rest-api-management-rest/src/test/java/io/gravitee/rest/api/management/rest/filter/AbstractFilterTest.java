@@ -18,8 +18,8 @@ package io.gravitee.rest.api.management.rest.filter;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.rest.api.service.*;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.SecurityContext;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

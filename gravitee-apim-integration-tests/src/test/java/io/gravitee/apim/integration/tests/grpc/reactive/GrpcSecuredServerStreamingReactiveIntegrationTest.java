@@ -21,6 +21,9 @@ import io.gravitee.apim.gateway.tests.sdk.AbstractGrpcGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
+import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
+import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -31,9 +34,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
-import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
-import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

@@ -23,11 +23,11 @@ import io.gravitee.rest.api.model.DashboardEntity;
 import io.gravitee.rest.api.portal.rest.mapper.DashboardMapper;
 import io.gravitee.rest.api.portal.rest.model.Dashboard;
 import io.gravitee.rest.api.service.DashboardService;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

@@ -30,7 +30,7 @@ import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;

@@ -72,7 +72,8 @@ public class LogMapperTest {
         assertEquals(LOG_API, log.getApi());
         assertNull(log.getHost());
         assertEquals(LOG_ID, log.getId());
-        assertNull(log.getMetadata());
+        assertNotNull(log.getMetadata());
+        assertTrue(log.getMetadata().isEmpty());
         assertEquals(io.gravitee.rest.api.portal.rest.model.HttpMethod.CONNECT, log.getMethod());
         assertEquals(LOG_PATH, log.getPath());
         assertEquals(LOG_PLAN, log.getPlan());

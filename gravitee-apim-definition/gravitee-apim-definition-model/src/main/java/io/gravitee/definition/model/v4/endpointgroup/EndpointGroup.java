@@ -22,10 +22,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import lombok.*;
 
 /**

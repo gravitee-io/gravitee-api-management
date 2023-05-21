@@ -17,7 +17,7 @@ package io.gravitee.rest.api.security.cookies;
 
 import static org.junit.Assert.*;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 import org.junit.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;

@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.gravitee.rest.api.model.PlanSecurityType;
-import javax.ws.rs.WebApplicationException;
+import jakarta.ws.rs.WebApplicationException;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
