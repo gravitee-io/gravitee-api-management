@@ -17,11 +17,11 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.portal.rest.model.Info;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Properties;
-import javax.ws.rs.GET;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

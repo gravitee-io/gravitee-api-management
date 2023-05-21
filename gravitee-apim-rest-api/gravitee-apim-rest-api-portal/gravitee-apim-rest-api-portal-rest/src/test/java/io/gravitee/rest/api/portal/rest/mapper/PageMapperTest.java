@@ -31,9 +31,9 @@ import io.gravitee.rest.api.portal.rest.model.PageConfiguration.DocExpansionEnum
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration.ViewerEnum;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import io.gravitee.rest.api.service.MediaService;
+import jakarta.ws.rs.core.UriBuilder;
 import java.time.Instant;
 import java.util.*;
-import javax.ws.rs.core.UriBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

@@ -33,11 +33,11 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -296,7 +296,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         Links links = applicationsResponse.getLinks();
         assertNotNull(links);
-        assertNull(applicationsResponse.getMetadata());
+        assertNotNull(applicationsResponse.getMetadata());
+        assertTrue(applicationsResponse.getMetadata().isEmpty());
     }
 
     @Test
@@ -333,7 +334,8 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         Links links = applicationsResponse.getLinks();
         assertNotNull(links);
-        assertNull(applicationsResponse.getMetadata());
+        assertNotNull(applicationsResponse.getMetadata());
+        assertTrue(applicationsResponse.getMetadata().isEmpty());
     }
 
     @Test

@@ -21,8 +21,8 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import jakarta.validation.constraints.NotNull;
 import java.util.*;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

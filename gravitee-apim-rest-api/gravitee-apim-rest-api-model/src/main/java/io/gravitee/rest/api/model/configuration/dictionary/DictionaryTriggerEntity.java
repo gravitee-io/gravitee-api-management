@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model.configuration.dictionary;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

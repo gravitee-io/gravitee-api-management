@@ -16,10 +16,10 @@
 package io.gravitee.rest.api.model.promotion;
 
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Objects;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

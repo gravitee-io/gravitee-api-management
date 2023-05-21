@@ -51,9 +51,6 @@ class DefaultReactorPluginManagerTest {
     private ConfigurableApplicationContext applicationContext;
 
     @Mock
-    private DefaultListableBeanFactory applicationContextListable;
-
-    @Mock
     private PluginContextFactory pluginContextFactory;
 
     @Mock
@@ -85,7 +82,7 @@ class DefaultReactorPluginManagerTest {
         final DummyService dummyService = new DummyService();
         when(pluginContext.getBeansOfType(AbstractService.class)).thenReturn(Map.of("dummyService", dummyService));
 
-        when(applicationContext.getBeanFactory()).thenReturn(applicationContextListable);
+        when(applicationContext.getBeanFactory()).thenReturn(new DefaultListableBeanFactory());
 
         cut.register(reactorPlugin);
 

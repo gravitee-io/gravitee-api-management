@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.model.Media;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,7 +29,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
-import javax.xml.bind.DatatypeConverter;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 

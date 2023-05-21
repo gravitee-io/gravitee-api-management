@@ -35,7 +35,6 @@
         <gravitee-connector-http.version>3.0.1</gravitee-connector-http.version>
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <reactiverse-junit5-rx-java2-web-client.version>0.3.0</reactiverse-junit5-rx-java2-web-client.version>
-        <jetty94.wiremock.version>9.4.44.v20210927</jetty94.wiremock.version>
     </properties>
 
     <dependencyManagement>
@@ -54,57 +53,6 @@
                 <version>${junit-jupiter.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <!-- Need to downgrade jetty to a compatible version with wiremock (jetty is only use for tests purpose) -->
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-server</artifactId>
-                <version>${jetty94.wiremock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-http</artifactId>
-                <version>${jetty94.wiremock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-util</artifactId>
-                <version>${jetty94.wiremock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-io</artifactId>
-                <version>${jetty94.wiremock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-servlet</artifactId>
-                <version>${jetty94.wiremock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-servlets</artifactId>
-                <version>${jetty94.wiremock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-continuation</artifactId>
-                <version>${jetty94.wiremock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-security</artifactId>
-                <version>${jetty94.wiremock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-webapp</artifactId>
-                <version>${jetty94.wiremock.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-xml</artifactId>
-                <version>${jetty94.wiremock.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -420,10 +368,9 @@
         <!-- Testing -->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8</artifactId>
+            <artifactId>wiremock</artifactId>
             <scope>compile</scope>
         </dependency>
-
 
         <dependency>
             <groupId>io.vertx</groupId>

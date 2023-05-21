@@ -33,12 +33,12 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.core.Response;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

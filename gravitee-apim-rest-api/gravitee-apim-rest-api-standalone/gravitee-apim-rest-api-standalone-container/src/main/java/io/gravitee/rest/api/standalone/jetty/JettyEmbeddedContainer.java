@@ -23,10 +23,10 @@ import io.gravitee.rest.api.management.v2.security.SecurityManagementV2Configura
 import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
 import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
 import io.gravitee.rest.api.standalone.jetty.handler.NoContentOutputErrorHandler;
+import jakarta.servlet.DispatcherType;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import javax.servlet.DispatcherType;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -127,7 +127,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         final ServletContextHandler childContext = new ServletContextHandler(server, apiContextPath, ServletContextHandler.SESSIONS);
 
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
-        servletHolder.setInitParameter("javax.ws.rs.Application", applicationName);
+        servletHolder.setInitParameter("jakarta.ws.rs.Application", applicationName);
         servletHolder.setInitOrder(0);
         childContext.addServlet(servletHolder, "/*");
 

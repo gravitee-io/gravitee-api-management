@@ -21,9 +21,9 @@ import io.gravitee.rest.api.management.rest.resource.TagsResource;
 import io.gravitee.rest.api.management.rest.resource.TenantsResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.identity.IdentityProvidersResource;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import javax.ws.rs.Path;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

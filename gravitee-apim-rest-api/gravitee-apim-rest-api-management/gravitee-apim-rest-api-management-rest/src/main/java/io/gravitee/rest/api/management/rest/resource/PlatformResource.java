@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import javax.ws.rs.Path;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)

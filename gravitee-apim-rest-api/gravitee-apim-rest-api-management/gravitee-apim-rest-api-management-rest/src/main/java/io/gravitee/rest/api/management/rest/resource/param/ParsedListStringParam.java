@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.ws.rs.WebApplicationException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

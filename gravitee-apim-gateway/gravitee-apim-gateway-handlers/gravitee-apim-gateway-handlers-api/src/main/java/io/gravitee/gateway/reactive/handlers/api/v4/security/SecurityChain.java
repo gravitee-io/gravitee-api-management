@@ -21,10 +21,10 @@ import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.plan.SecurityPlanFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.reactivex.rxjava3.core.Flowable;
+import jakarta.annotation.Nonnull;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 
 /**
  *

@@ -18,8 +18,8 @@ package io.gravitee.repository.jdbc;
 import static org.junit.Assert.assertTrue;
 
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
+import jakarta.inject.Inject;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.inject.Inject;
 import javax.sql.DataSource;
 import org.junit.Test;
 import org.junit.runner.RunWith;

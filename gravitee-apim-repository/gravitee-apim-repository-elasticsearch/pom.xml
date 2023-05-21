@@ -218,6 +218,13 @@
             <artifactId>snakeyaml</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Required because of third party libraries are not yet migrated to jakarta. Test only as the library is directly included by standalone container distribution -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

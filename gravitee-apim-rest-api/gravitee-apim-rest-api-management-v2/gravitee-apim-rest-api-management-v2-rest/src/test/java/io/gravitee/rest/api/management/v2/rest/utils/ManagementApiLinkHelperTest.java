@@ -19,8 +19,8 @@ import static org.junit.Assert.assertEquals;
 
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.core.UriBuilder;
 import java.util.Date;
-import javax.ws.rs.core.UriBuilder;
 import org.junit.Before;
 import org.junit.Test;
 

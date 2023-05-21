@@ -26,10 +26,10 @@ import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

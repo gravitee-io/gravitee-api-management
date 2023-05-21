@@ -19,8 +19,8 @@ import static org.junit.Assert.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.portal.rest.resource.param.LogsParam;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
 /**

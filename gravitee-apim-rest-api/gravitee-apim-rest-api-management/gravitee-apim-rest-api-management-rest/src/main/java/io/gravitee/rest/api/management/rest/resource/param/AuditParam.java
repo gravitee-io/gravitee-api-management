@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.QueryParam;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

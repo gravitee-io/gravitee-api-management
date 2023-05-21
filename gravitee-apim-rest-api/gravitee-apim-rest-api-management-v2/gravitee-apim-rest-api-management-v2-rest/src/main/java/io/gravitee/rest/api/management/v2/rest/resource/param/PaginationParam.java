@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.management.v2.rest.resource.param;
 
 import io.gravitee.rest.api.model.common.PageableImpl;
-import javax.validation.constraints.Min;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.QueryParam;
+import jakarta.validation.constraints.Min;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.QueryParam;
 
 public class PaginationParam {
 

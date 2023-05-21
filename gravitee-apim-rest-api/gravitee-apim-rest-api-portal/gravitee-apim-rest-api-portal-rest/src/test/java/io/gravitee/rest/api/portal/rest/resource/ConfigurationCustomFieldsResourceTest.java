@@ -23,10 +23,10 @@ import static org.mockito.Mockito.doReturn;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.CustomUserFieldEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
 import org.junit.Test;
 
 /**

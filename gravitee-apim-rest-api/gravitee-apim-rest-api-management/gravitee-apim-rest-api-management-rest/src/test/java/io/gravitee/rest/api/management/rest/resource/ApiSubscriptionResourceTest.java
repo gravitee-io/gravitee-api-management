@@ -24,8 +24,8 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

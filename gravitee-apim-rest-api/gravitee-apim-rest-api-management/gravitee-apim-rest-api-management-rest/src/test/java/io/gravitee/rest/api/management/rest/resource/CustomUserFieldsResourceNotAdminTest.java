@@ -23,8 +23,8 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.CustomUserFieldEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 

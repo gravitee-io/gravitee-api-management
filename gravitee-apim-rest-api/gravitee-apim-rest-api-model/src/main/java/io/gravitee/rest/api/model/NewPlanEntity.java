@@ -18,8 +18,8 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
+import jakarta.validation.constraints.NotNull;
 import java.util.*;
-import javax.validation.constraints.NotNull;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 

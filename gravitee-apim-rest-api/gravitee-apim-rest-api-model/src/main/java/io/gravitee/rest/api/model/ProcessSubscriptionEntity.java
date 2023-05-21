@@ -17,8 +17,8 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.validator.CustomApiKey;
+import jakarta.validation.constraints.NotNull;
 import java.util.Date;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

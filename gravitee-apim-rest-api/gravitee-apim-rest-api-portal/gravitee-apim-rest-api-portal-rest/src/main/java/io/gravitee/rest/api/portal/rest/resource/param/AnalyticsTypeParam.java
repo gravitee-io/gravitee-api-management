@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.param;
 
-import javax.ws.rs.WebApplicationException;
+import jakarta.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

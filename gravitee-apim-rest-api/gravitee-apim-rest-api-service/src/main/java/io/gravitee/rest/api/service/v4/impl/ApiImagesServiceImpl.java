@@ -18,20 +18,17 @@ package io.gravitee.rest.api.service.v4.impl;
 import static java.util.Optional.of;
 
 import com.google.common.base.Strings;
-import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Optional;
-import javax.inject.Inject;
-import javax.xml.bind.DatatypeConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 

@@ -25,11 +25,11 @@ import static org.mockito.Mockito.doReturn;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.List;
-import javax.inject.Inject;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

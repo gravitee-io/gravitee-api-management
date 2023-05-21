@@ -16,7 +16,7 @@
 package io.gravitee.gateway.resource.internal.v4.fake;
 
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import lombok.Getter;
 
 /**

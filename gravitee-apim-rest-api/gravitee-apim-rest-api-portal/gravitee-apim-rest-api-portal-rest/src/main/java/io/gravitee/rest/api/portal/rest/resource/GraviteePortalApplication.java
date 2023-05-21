@@ -22,7 +22,7 @@ import io.gravitee.rest.api.portal.rest.filter.SecurityContextFilter;
 import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.provider.*;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;

@@ -18,16 +18,15 @@ package io.gravitee.repository.config;
 import static java.lang.Class.forName;
 import static org.springframework.util.StringUtils.capitalize;
 
-import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
+import jakarta.inject.Inject;
 import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.junit.After;
 import org.junit.Before;

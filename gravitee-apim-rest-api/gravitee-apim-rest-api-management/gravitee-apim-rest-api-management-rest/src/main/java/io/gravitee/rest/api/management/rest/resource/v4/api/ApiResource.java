@@ -57,26 +57,26 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 /**
  * Defines the REST resources to manage API v4.
@@ -201,7 +201,7 @@ public class ApiResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @javax.ws.rs.Path("deploy")
+    @jakarta.ws.rs.Path("deploy")
     @Operation(
         summary = "🧪 Deploy API to gateway instances",
         description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the MANAGE_LIFECYCLE permission to use this service"
@@ -345,47 +345,47 @@ public class ApiResource extends AbstractResource {
         }
     }
 
-    @javax.ws.rs.Path("events")
+    @jakarta.ws.rs.Path("events")
     public ApiEventsResource getApiEventsResource() {
         return resourceContext.getResource(ApiEventsResource.class);
     }
 
-    @javax.ws.rs.Path("groups")
+    @jakarta.ws.rs.Path("groups")
     public ApiGroupsResource getApiGroupsResource() {
         return resourceContext.getResource(ApiGroupsResource.class);
     }
 
-    @javax.ws.rs.Path("members")
+    @jakarta.ws.rs.Path("members")
     public ApiMembersResource getApiMembersResource() {
         return resourceContext.getResource(ApiMembersResource.class);
     }
 
-    @javax.ws.rs.Path("metadata")
+    @jakarta.ws.rs.Path("metadata")
     public ApiMetadataResource getApiMetadataResource() {
         return resourceContext.getResource(ApiMetadataResource.class);
     }
 
-    @javax.ws.rs.Path("pages")
+    @jakarta.ws.rs.Path("pages")
     public ApiPagesResource getApiPagesResource() {
         return resourceContext.getResource(ApiPagesResource.class);
     }
 
-    @javax.ws.rs.Path("plans")
+    @jakarta.ws.rs.Path("plans")
     public ApiPlansResource getApiPlansResource() {
         return resourceContext.getResource(ApiPlansResource.class);
     }
 
-    @javax.ws.rs.Path("subscriptions")
+    @jakarta.ws.rs.Path("subscriptions")
     public ApiSubscriptionsResource getApiSubscriptionsResource() {
         return resourceContext.getResource(ApiSubscriptionsResource.class);
     }
 
-    @javax.ws.rs.Path("subscribers")
+    @jakarta.ws.rs.Path("subscribers")
     public ApiSubscribersResource geApiSubscribersResource() {
         return resourceContext.getResource(ApiSubscribersResource.class);
     }
 
-    @javax.ws.rs.Path("ratings")
+    @jakarta.ws.rs.Path("ratings")
     public ApiRatingResource getRatingResource() {
         return resourceContext.getResource(ApiRatingResource.class);
     }

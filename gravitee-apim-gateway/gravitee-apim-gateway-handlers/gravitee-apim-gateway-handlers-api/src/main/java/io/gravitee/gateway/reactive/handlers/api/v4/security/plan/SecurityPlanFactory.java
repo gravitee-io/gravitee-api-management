@@ -21,8 +21,8 @@ import io.gravitee.gateway.reactive.api.policy.SecurityPolicy;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlan;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.policy.SecurityPolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -34,17 +34,18 @@
 	<name>Gravitee.io APIM - Management API - Portal - Rest API</name>
 
 	<properties>
-		<openapi-generator.version>4.3.1</openapi-generator.version>
-        <openapi.modelPackage>io.gravitee.rest.api.portal.rest.model</openapi.modelPackage>
+		<openapi-generator.version>6.5.0</openapi-generator.version>
+		<jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
+		<openapi.modelPackage>io.gravitee.rest.api.portal.rest.model</openapi.modelPackage>
 	</properties>
 
 	<build>
-        <resources>
-            <resource>
-              <directory>src/main/resources</directory>
-              <filtering>true</filtering>
-            </resource>
-        </resources>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<plugins>
 			<!--Plugin used to replace version on several files -->
 			<plugin>
@@ -72,38 +73,43 @@
 				</executions>
 			</plugin>
 			<plugin>
-              <groupId>org.openapitools</groupId>
-              <artifactId>openapi-generator-maven-plugin</artifactId>
-              <version>${openapi-generator.version}</version>
-              <executions>
-                  <execution>
-                      <id>model</id>
-                      <goals>
-                          <goal>generate</goal>
-                      </goals>
-                      <configuration>
-                          <inputSpec>${project.basedir}/src/main/resources/portal-openapi.yaml</inputSpec>
-                          <generatorName>java</generatorName>
-                          <library>jersey2</library>
-                          <modelPackage>${openapi.modelPackage}</modelPackage>
-                          <generateApis>false</generateApis>
-                          <generateModels>true</generateModels>
-                          <generateModelTests>false</generateModelTests>
-                          <generateModelDocumentation>false</generateModelDocumentation>
-                          <generateSupportingFiles>false</generateSupportingFiles>
-                          <configOptions>
-                              <dateLibrary>java8</dateLibrary>
-                              <useBeanValidation>true</useBeanValidation>
-                          </configOptions>
-                          <typeMappings>
-                              <typeMapping>BigDecimal=Number</typeMapping>
-                          </typeMappings>
-                      </configuration>
-                  </execution>
-              </executions>
+                <groupId>org.openapitools</groupId>
+                <artifactId>openapi-generator-maven-plugin</artifactId>
+                <version>${openapi-generator.version}</version>
+                <executions>
+                    <execution>
+                        <id>model</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/portal-openapi.yaml</inputSpec>
+                            <generatorName>java</generatorName>
+                            <library>jersey3</library>
+                            <modelPackage>${openapi.modelPackage}</modelPackage>
+                            <generateApis>false</generateApis>
+                            <generateModels>true</generateModels>
+                            <generateModelTests>false</generateModelTests>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateSupportingFiles>true</generateSupportingFiles>
+                            <supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java
+                            </supportingFilesToGenerate>
+                            <configOptions>
+                                <dateLibrary>java8</dateLibrary>
+                                <useBeanValidation>true</useBeanValidation>
+                            </configOptions>
+                            <typeMappings>
+                                <typeMapping>BigDecimal=Number</typeMapping>
+                            </typeMappings>
+                            <globalProperties>
+                                <skipFormModel>false</skipFormModel>
+                            </globalProperties>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
-	</build>
+    </build>
 
 	<dependencies>
 
@@ -170,7 +176,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.ext</groupId>
-			<artifactId>jersey-spring5</artifactId>
+			<artifactId>jersey-spring6</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
 		</dependency>
 
 		<dependency>
@@ -208,6 +218,11 @@
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-transcoder</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>${jackson-databind-nullable-version}</version>
 		</dependency>
 
 		<!-- Unit testing -->

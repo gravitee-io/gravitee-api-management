@@ -23,8 +23,8 @@ import io.gravitee.rest.api.portal.rest.model.Member;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import jakarta.ws.rs.core.UriInfo;
 import java.time.ZoneOffset;
-import javax.ws.rs.core.UriInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -17,7 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource.param;
 
 import io.gravitee.rest.api.portal.rest.model.FilterApiQuery;
 import io.swagger.v3.oas.annotations.Parameter;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.QueryParam;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.rest.resource.param;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.ExecutionMode;
 import io.swagger.v3.oas.annotations.Parameter;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.QueryParam;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

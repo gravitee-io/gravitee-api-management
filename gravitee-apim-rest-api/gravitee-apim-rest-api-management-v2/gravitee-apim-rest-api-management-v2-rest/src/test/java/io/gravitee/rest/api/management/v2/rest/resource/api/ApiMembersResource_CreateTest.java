@@ -30,9 +30,9 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

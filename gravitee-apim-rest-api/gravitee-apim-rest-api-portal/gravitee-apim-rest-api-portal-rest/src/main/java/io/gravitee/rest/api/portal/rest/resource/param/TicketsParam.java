@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource.param;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.QueryParam;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

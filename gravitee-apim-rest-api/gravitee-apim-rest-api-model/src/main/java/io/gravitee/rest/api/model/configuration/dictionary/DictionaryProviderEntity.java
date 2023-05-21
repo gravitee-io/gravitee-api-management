@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model.configuration.dictionary;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

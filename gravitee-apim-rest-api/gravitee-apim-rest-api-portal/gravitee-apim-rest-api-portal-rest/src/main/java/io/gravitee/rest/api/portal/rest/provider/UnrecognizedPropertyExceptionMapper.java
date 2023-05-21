@@ -18,10 +18,10 @@ package io.gravitee.rest.api.portal.rest.provider;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.portal.rest.model.Error;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.Provider;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

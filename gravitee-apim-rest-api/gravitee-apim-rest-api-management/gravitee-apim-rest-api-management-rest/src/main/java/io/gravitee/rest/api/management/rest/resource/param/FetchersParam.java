@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.rest.resource.param;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.media.Schema;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.QueryParam;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

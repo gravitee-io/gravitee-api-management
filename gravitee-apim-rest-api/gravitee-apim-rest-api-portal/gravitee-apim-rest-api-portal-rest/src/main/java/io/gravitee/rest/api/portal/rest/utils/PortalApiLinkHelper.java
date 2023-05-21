@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.portal.rest.utils;
 
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 public final class PortalApiLinkHelper {
 

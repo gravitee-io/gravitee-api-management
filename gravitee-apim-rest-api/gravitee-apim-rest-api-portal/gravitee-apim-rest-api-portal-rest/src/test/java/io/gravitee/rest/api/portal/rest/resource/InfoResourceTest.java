@@ -19,8 +19,8 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 
 import io.gravitee.rest.api.portal.rest.model.Info;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
-import javax.ws.rs.core.Response;
 import org.junit.Test;
 
 /**

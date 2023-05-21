@@ -16,12 +16,12 @@
 package io.gravitee.rest.api.management.v2.rest.filter;
 
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.ext.Provider;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

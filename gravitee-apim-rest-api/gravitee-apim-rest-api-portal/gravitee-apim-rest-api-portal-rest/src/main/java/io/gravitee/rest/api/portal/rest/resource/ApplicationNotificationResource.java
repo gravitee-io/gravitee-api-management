@@ -27,11 +27,11 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.Set;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

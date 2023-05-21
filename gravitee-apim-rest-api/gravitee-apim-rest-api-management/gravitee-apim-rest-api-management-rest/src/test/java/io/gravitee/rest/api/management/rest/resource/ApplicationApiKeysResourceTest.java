@@ -23,9 +23,9 @@ import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

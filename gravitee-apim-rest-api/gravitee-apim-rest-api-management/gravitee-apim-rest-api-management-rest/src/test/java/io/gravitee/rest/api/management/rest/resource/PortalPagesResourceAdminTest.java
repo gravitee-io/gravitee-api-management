@@ -29,9 +29,9 @@ import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
 /**
@@ -90,7 +90,9 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
         pageMock.setType("SYSTEM_FOLDER");
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
-        final Response response = envTarget(PAGE_NAME).request().method(javax.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
+        final Response response = envTarget(PAGE_NAME)
+            .request()
+            .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
     }

@@ -31,12 +31,12 @@ import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Rating;
 import io.gravitee.rest.api.portal.rest.model.RatingInput;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

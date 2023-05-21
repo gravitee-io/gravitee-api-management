@@ -21,8 +21,8 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.NotifierEntity;
 import io.gravitee.rest.api.service.NotifierService;
+import jakarta.ws.rs.core.Response;
 import java.util.Set;
-import javax.ws.rs.core.Response;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

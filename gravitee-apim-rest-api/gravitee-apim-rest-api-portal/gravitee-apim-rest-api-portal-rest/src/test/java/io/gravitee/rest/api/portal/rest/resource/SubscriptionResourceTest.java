@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static javax.ws.rs.client.Entity.json;
+import static jakarta.ws.rs.client.Entity.json;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -32,9 +32,9 @@ import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
 import io.gravitee.rest.api.portal.rest.model.UpdateSubscriptionInput;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.core.Response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.Before;

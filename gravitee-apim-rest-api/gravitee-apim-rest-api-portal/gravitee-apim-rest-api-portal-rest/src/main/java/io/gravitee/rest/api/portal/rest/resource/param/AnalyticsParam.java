@@ -17,9 +17,9 @@ package io.gravitee.rest.api.portal.rest.resource.param;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.QueryParam;
 import java.util.List;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.QueryParam;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

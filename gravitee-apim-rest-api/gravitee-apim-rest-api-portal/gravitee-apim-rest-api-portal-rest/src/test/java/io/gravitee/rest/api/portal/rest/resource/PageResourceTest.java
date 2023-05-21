@@ -29,10 +29,10 @@ import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
+import jakarta.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

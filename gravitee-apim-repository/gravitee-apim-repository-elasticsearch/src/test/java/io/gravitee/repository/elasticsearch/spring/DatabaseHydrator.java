@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.spring;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.vertx.core.buffer.Buffer;
+import jakarta.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -25,7 +26,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 
 public class DatabaseHydrator {
 

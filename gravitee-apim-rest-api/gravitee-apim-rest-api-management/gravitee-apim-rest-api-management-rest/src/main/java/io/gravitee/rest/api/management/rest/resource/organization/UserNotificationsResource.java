@@ -25,11 +25,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

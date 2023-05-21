@@ -16,10 +16,10 @@
 package io.gravitee.rest.api.security.csrf;
 
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 

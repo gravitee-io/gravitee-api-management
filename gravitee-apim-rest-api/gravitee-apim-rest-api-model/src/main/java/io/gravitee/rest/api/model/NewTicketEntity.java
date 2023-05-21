@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

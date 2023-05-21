@@ -15,11 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.security;
 
+import jakarta.ws.rs.NameBinding;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import javax.ws.rs.NameBinding;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

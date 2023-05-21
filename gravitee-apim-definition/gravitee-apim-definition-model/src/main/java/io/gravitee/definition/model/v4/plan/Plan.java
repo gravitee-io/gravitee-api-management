@@ -18,11 +18,11 @@ package io.gravitee.definition.model.v4.plan;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import lombok.*;
 
 /**

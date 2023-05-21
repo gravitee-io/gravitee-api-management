@@ -29,26 +29,26 @@ import io.gravitee.rest.api.service.builder.JerseyClientBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
 import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,7 +130,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 Response response = client
                     //TODO: what is the correct introspection URL here ?
                     .target(identityProvider.getTokenIntrospectionEndpoint())
-                    .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                    .request(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
                     .header(
                         HttpHeaders.AUTHORIZATION,
                         String.format(
@@ -199,7 +199,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
             Response response = client
                 .target(identityProvider.getTokenEndpoint())
-                .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                .request(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.form(accessData));
             accessData.clear();
 
@@ -237,7 +237,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         // Step 2. Retrieve profile information about the authenticated end-user.
         Response response = client
             .target(socialProvider.getUserInfoEndpoint())
-            .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+            .request(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
             .header(HttpHeaders.AUTHORIZATION, String.format(socialProvider.getAuthorizationHeader(), accessToken))
             .get();
 

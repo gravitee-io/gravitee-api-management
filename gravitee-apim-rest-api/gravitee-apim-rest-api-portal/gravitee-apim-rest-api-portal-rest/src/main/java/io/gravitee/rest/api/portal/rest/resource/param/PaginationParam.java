@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.param;
 
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.QueryParam;
 
 public class PaginationParam {
 

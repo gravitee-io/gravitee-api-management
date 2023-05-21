@@ -21,11 +21,11 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.PolicyEntity;
+import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Set;
-import javax.ws.rs.core.Response;
 import org.junit.Test;
 
 /**

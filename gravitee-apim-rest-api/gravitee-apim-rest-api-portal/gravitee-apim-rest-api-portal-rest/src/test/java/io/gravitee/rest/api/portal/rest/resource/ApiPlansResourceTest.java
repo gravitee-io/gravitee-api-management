@@ -34,12 +34,12 @@ import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.PlansResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 

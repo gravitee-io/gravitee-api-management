@@ -28,7 +28,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.connector.EndpointsResou
 import io.gravitee.rest.api.management.v2.rest.resource.connector.EntrypointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.OrganizationResource;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;

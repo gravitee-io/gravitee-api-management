@@ -16,13 +16,13 @@
 package io.gravitee.rest.api.management.v2.rest.filter;
 
 import io.gravitee.common.http.HttpHeaders;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.util.List;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.ext.Provider;
 
 /**
  * @author David BRASSELY (david at gravitee.io)

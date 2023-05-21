@@ -22,11 +22,11 @@ import io.gravitee.rest.api.portal.rest.model.PortalNotification;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
