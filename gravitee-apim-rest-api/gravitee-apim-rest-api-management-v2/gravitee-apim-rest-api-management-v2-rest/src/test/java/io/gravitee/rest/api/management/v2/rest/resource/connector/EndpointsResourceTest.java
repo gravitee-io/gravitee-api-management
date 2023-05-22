@@ -76,7 +76,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
             .icon("my-icon")
             .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
             .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
-            .supportedQos(Set.of(QoS.AUTO));
+            .supportedQos(Set.of(io.gravitee.rest.api.management.v2.rest.model.Qos.AUTO));
 
         assertEquals(Set.of(pluginEntity1), connectorPlugins);
     }

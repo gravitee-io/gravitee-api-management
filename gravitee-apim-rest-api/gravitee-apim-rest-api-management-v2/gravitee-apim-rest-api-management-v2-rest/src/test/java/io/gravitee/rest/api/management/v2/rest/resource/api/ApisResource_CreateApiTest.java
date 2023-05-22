@@ -205,7 +205,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("http-get");
         entrypoint.setConfiguration(entrypointConfiguration);
-        entrypoint.setQos(QoS.NONE);
+        entrypoint.setQos(io.gravitee.rest.api.management.v2.rest.model.Qos.NONE);
         subscriptionListener.setEntrypoints(List.of(entrypoint));
 
         TcpListener tcpListener = new TcpListener();
