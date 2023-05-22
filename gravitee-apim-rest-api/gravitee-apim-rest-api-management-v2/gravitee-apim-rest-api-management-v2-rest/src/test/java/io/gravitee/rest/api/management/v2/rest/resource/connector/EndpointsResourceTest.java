@@ -73,6 +73,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
             .id("id")
             .name("name")
             .version("1.0")
+            .icon("my-icon")
             .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
             .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
             .supportedQos(Set.of(QoS.AUTO));
@@ -228,6 +229,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(id);
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");
+        connectorPlugin.setIcon("my-icon");
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         connectorPlugin.setSupportedQos(Set.of(Qos.AUTO));
