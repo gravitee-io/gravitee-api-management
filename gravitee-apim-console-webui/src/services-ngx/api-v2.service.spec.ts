@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ApiV2Service } from './api-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { fakeApiEntity, fakeNewApiEntity } from '../entities/api-v4';
+import { fakeApiV4, fakeCreateApiV4 } from '../entities/management-api-v2';
 
 describe('ApiV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -40,76 +40,76 @@ describe('ApiV2Service', () => {
 
   describe('create', () => {
     it('should call the API', (done) => {
-      const newApiEntity = fakeNewApiEntity();
+      const newApi = fakeCreateApiV4();
 
-      apiV2Service.create(newApiEntity).subscribe((api) => {
-        expect(api.name).toEqual(newApiEntity.name);
+      apiV2Service.create(newApi).subscribe((api) => {
+        expect(api.name).toEqual(newApi.name);
         done();
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis`,
         method: 'POST',
       });
 
-      req.flush(fakeApiEntity());
+      req.flush(fakeCreateApiV4());
     });
   });
 
   describe('get', () => {
     it('should call the API', (done) => {
-      const apiEntity = fakeApiEntity();
+      const fakeApi = fakeApiV4();
 
-      apiV2Service.get(apiEntity.id).subscribe((api) => {
-        expect(api.name).toEqual(apiEntity.name);
+      apiV2Service.get(fakeApi.id).subscribe((api) => {
+        expect(api.name).toEqual(fakeApi.name);
         done();
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiEntity.id}`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}`,
         method: 'GET',
       });
 
-      req.flush(fakeApiEntity());
+      req.flush(fakeApiV4());
     });
   });
 
   describe('start', () => {
     it('should call the API', (done) => {
-      const apiEntity = fakeApiEntity();
+      const fakeApi = fakeApiV4();
 
-      apiV2Service.start(apiEntity.id).subscribe(() => {
+      apiV2Service.start(fakeApi.id).subscribe(() => {
         done();
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiEntity.id}/?action=start`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}/_start`,
         method: 'POST',
       });
 
       expect(req.request.body).toEqual({});
-      req.flush(apiEntity);
+      req.flush(fakeApi);
     });
   });
 
   describe('search', () => {
     it('should call the API', (done) => {
-      const apiEntity = fakeApiEntity();
+      const fakeApi = fakeApiV4();
 
-      apiV2Service.search({ ids: [apiEntity.id] }, '-paths').subscribe(() => {
+      apiV2Service.search({ ids: [fakeApi.id] }).subscribe(() => {
         done();
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10&sortBy=-paths`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10`,
         method: 'POST',
       });
 
       expect(req.request.body).toEqual({
-        ids: [apiEntity.id],
+        ids: [fakeApi.id],
       });
       req.flush({
-        data: [apiEntity],
+        data: [fakeApi],
       });
     });
   });

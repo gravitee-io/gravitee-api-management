@@ -1,3 +1,5 @@
+import { ListenerType } from '../../../../../entities/management-api-v2';
+
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -18,6 +20,6 @@ export type ConnectorVM = {
   name: string;
   description: string;
   isEnterprise: boolean;
-  supportedListenerType: string;
+  supportedListenerType: ListenerType;
   icon: string;
 };

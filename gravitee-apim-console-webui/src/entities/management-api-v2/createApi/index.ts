@@ -17,3 +17,5 @@ export * from './createApi';
 export * from './createApiV2';
 export * from './createApiV4';
 export * from './createBaseApi';
+
+export * from './createApi.fixture';

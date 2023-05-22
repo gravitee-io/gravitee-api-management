@@ -20,7 +20,7 @@ import { Subject } from 'rxjs';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiEntity } from '../../../../entities/api-v4';
+import { Api } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-creation-v4-confirmation',
@@ -29,7 +29,7 @@ import { ApiEntity } from '../../../../entities/api-v4';
 })
 export class ApiCreationV4ConfirmationComponent implements OnInit {
   private unsubscribe$: Subject<void> = new Subject<void>();
-  public api: ApiEntity;
+  public api: Api;
   constructor(
     @Inject(UIRouterState) readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,

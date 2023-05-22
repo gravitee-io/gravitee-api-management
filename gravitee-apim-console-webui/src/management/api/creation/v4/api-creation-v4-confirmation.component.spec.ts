@@ -92,6 +92,6 @@ describe('ApiCreationV4ConfirmationComponent', () => {
   });
 
   function expectOneGet(api: ApiEntity) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${api.id}`, method: 'GET' }).flush(api);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
   }
 });

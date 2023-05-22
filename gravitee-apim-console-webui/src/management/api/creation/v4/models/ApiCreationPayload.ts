@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApiType, ListenerType, PathV4 } from '../../../../../entities/management-api-v2';
 import { NewPlan } from '../../../../../entities/plan-v4';
-import { ApiType, PathV4 } from '../../../../../entities/management-api-v2';
 
 export type ApiCreationPayload = Partial<{
   // API details
@@ -29,7 +29,7 @@ export type ApiCreationPayload = Partial<{
     id: string;
     name: string;
     icon: string;
-    supportedListenerType: string;
+    supportedListenerType: ListenerType;
     configuration?: unknown;
   }[];
 
