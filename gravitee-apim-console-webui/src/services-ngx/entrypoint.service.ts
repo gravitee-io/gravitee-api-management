@@ -16,8 +16,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { MatIconRegistry } from '@angular/material/icon';
-import { DomSanitizer } from '@angular/platform-browser';
 
 import { Constants } from '../entities/Constants';
 import { Entrypoint } from '../entities/entrypoint/entrypoint';
@@ -26,12 +24,7 @@ import { Entrypoint } from '../entities/entrypoint/entrypoint';
   providedIn: 'root',
 })
 export class EntrypointService {
-  constructor(
-    private readonly http: HttpClient,
-    @Inject('Constants') private readonly constants: Constants,
-    private readonly matIconRegistry: MatIconRegistry,
-    private _sanitizer: DomSanitizer,
-  ) {}
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   list(): Observable<Entrypoint[]> {
     return this.http.get<Entrypoint[]>(`${this.constants.org.baseURL}/configuration/entrypoints`);

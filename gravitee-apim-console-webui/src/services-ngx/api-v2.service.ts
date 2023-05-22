@@ -18,10 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApiEntity, NewApiEntity } from '../entities/api-v4';
-import { ApiSearchQuery } from '../entities/management-api-v2/apiSearchQuery';
-import { ApisResponse } from '../entities/management-api-v2/apisResponse';
-import { ApiSortByParam } from '../entities/management-api-v2/apiSortByParam';
+import { Api, ApiSearchQuery, ApiSortByParam, ApisResponse, CreateApi } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -29,16 +26,16 @@ import { ApiSortByParam } from '../entities/management-api-v2/apiSortByParam';
 export class ApiV2Service {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
-  create(newApiEntity: NewApiEntity): Observable<ApiEntity> {
-    return this.http.post<ApiEntity>(`${this.constants.env.baseURL}/v4/apis`, newApiEntity);
+  create(newApi: CreateApi): Observable<Api> {
+    return this.http.post<Api>(`${this.constants.env.v2BaseURL}/apis`, newApi);
   }
 
-  get(id: string): Observable<ApiEntity> {
-    return this.http.get<ApiEntity>(`${this.constants.env.baseURL}/v4/apis/${id}`);
+  get(id: string): Observable<Api> {
+    return this.http.get<Api>(`${this.constants.env.v2BaseURL}/apis/${id}`);
   }
 
   start(apiId: string): Observable<void> {
-    return this.http.post<void>(`${this.constants.env.baseURL}/v4/apis/${apiId}/?action=start`, {});
+    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_start`, {});
   }
 
   search(searchQuery?: ApiSearchQuery, sortBy?: ApiSortByParam, page = 1, size = 10): Observable<ApisResponse> {

@@ -1319,7 +1319,7 @@ describe('ApiCreationV4Component', () => {
   }
 
   function expectCallsForApiCreation(apiId: string, planId: string) {
-    const createApiRequest = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis`, method: 'POST' });
+    const createApiRequest = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis`, method: 'POST' });
 
     // TODO: complete with all the expected fields
     expect(createApiRequest.request.body).toEqual(
@@ -1351,7 +1351,7 @@ describe('ApiCreationV4Component', () => {
     publishPlansRequest.flush({});
 
     const startApiRequest = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiId}/?action=start`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_start`,
       method: 'POST',
     });
     startApiRequest.flush(fakeApiEntity({ id: apiId }));

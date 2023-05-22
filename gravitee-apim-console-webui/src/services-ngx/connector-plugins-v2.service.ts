@@ -15,8 +15,6 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { MatIconRegistry } from '@angular/material/icon';
-import { DomSanitizer } from '@angular/platform-browser';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -28,12 +26,7 @@ import { ConnectorPlugin, MoreInformation } from '../entities/management-api-v2'
   providedIn: 'root',
 })
 export class ConnectorPluginsV2Service {
-  constructor(
-    private readonly http: HttpClient,
-    @Inject('Constants') private readonly constants: Constants,
-    private readonly matIconRegistry: MatIconRegistry,
-    private _sanitizer: DomSanitizer,
-  ) {}
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   listEndpointPlugins(): Observable<ConnectorPlugin[]> {
     return this.http.get<ConnectorPlugin[]>(`${this.constants.v2BaseURL}/plugins/endpoints`);

@@ -32,9 +32,9 @@ import { Step4MenuItemComponent } from './steps/step-4-menu-item/step-4-menu-ite
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
-import { ApiEntity, EndpointGroup, Listener } from '../../../../entities/api-v4';
 import { PlanV4Service } from '../../../../services-ngx/plan-v4.service';
 import { Plan } from '../../../../entities/plan-v4';
+import { Api, CreateApiV4, EndpointGroupV4, Entrypoint, Listener } from '../../../../entities/management-api-v2';
 
 // TODO: Make better... Add apiId as req ?
 export interface Result {
@@ -42,7 +42,7 @@ export interface Result {
   apiCreationPayload: ApiCreationPayload;
   message?: string;
   result?: {
-    api?: ApiEntity;
+    api?: Api;
     plans?: Plan[];
   };
 }
@@ -112,7 +112,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   constructor(
     private readonly injector: Injector,
-    private readonly apiV4Service: ApiV2Service,
+    private readonly apiV2Service: ApiV2Service,
     private readonly planV4Service: PlanV4Service,
     private readonly snackBarService: SnackBarService,
     @Inject(UIRouterState) readonly ajsState: StateService,
@@ -192,7 +192,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
     // Create one listener per supportedListenerType and add all supported entrypoints
     const listeners: Listener[] = listenersType.reduce((listeners, listenersType) => {
-      const entrypoints = apiCreationPayload.selectedEntrypoints
+      const entrypoints: Entrypoint[] = apiCreationPayload.selectedEntrypoints
         .filter((e) => e.supportedListenerType === listenersType)
         .map(({ id, configuration }) => ({
           type: id,
@@ -207,38 +207,38 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
       return [...listeners, listenerConfig];
     }, []);
 
-    return this.apiV4Service
-      .create({
-        definitionVersion: '4.0.0',
-        name: apiCreationPayload.name,
-        apiVersion: apiCreationPayload.version,
-        description: apiCreationPayload.description ?? '',
-        listeners: listeners,
-        type: apiCreationPayload.type === 'PROXY' ? 'proxy' : 'message',
-        endpointGroups: apiCreationPayload.selectedEndpoints.map(
-          (endpoint) =>
-            ({
-              name: `Default ${endpoint.name} group`,
-              type: endpoint.id,
-              sharedConfiguration: endpoint.sharedConfiguration,
-              endpoints: [
-                {
-                  name: `Default ${endpoint.name}`,
-                  type: endpoint.id,
-                  weight: 1,
-                  inheritConfiguration: true,
-                  configuration: endpoint.configuration,
-                },
-              ],
-            } as EndpointGroup),
-        ),
-      })
-      .pipe(
-        map((apiEntity) => ({ apiCreationPayload, result: { api: apiEntity }, status: 'success' as const })),
-        catchError((err) => {
-          return of({ apiCreationPayload, status: 'failure' as const, message: err.error?.message ?? `Error occurred when creating API` });
-        }),
-      );
+    const newV4Api: CreateApiV4 = {
+      definitionVersion: 'V4',
+      name: apiCreationPayload.name,
+      apiVersion: apiCreationPayload.version,
+      description: apiCreationPayload.description ?? '',
+      listeners: listeners,
+      type: apiCreationPayload.type,
+      endpointGroups: apiCreationPayload.selectedEndpoints.map(
+        (endpoint) =>
+          ({
+            name: `Default ${endpoint.name} group`,
+            type: endpoint.id,
+            sharedConfiguration: endpoint.sharedConfiguration,
+            endpoints: [
+              {
+                name: `Default ${endpoint.name}`,
+                type: endpoint.id,
+                weight: 1,
+                inheritConfiguration: true,
+                configuration: endpoint.configuration,
+              },
+            ],
+          } as EndpointGroupV4),
+      ),
+    };
+
+    return this.apiV2Service.create(newV4Api).pipe(
+      map((apiEntity) => ({ apiCreationPayload, result: { api: apiEntity }, status: 'success' as const })),
+      catchError((err) => {
+        return of({ apiCreationPayload, status: 'failure' as const, message: err.error?.message ?? `Error occurred when creating API` });
+      }),
+    );
   }
 
   private createPlans$(apiCreationStatus: Result): Observable<Result> {
@@ -274,7 +274,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
   }
 
   private startApi$(planPublishResult: Result): Observable<Result> {
-    return this.apiV4Service.start(planPublishResult.result.api.id).pipe(
+    return this.apiV2Service.start(planPublishResult.result.api.id).pipe(
       map(() => planPublishResult),
       catchError((err) => {
         return of({
