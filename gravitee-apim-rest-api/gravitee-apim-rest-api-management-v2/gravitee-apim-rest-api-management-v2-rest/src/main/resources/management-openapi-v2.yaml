@@ -1401,7 +1401,7 @@ components:
                       supportedQos:
                           type: array
                           items:
-                              $ref: "#/components/schemas/QoS"
+                              $ref: "#/components/schemas/Qos"
                           uniqueItems: true
                       supportedListenerType:
                           $ref: "#/components/schemas/ListenerType"
@@ -1566,7 +1566,7 @@ components:
                     example: http-get
                     nullable: false
                 qos:
-                    $ref: "#/components/schemas/QoS"
+                    $ref: "#/components/schemas/Qos"
                 dlq:
                     $ref: "#/components/schemas/Dlq"
                 configuration:
@@ -2161,15 +2161,16 @@ components:
                     type: boolean
                 dynamic:
                     type: boolean
-        QoS:
+        Qos:
             type: string
             description: Type of the quality of service.
-            example: none
+            example: NONE
+            default: AUTO
             enum:
-                - none
-                - auto
-                - at-most-once
-                - at-least-once
+                - NONE
+                - AUTO
+                - AT_MOST_ONCE
+                - AT_LEAST_ONCE
         Resource:
             type: object
             required:

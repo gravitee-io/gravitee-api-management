@@ -41,7 +41,6 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
-import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.AccessControl;
@@ -82,7 +81,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PlanType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
 import io.gravitee.rest.api.management.v2.rest.model.Property;
-import io.gravitee.rest.api.management.v2.rest.model.QoS;
+import io.gravitee.rest.api.management.v2.rest.model.Qos;
 import io.gravitee.rest.api.management.v2.rest.model.Resource;
 import io.gravitee.rest.api.management.v2.rest.model.Revision;
 import io.gravitee.rest.api.management.v2.rest.model.Role;
@@ -223,7 +222,7 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         var subscriptionListener = new SubscriptionListener();
         var entrypoint = new Entrypoint();
         entrypoint.setType("Entrypoint type");
-        entrypoint.setQos(QoS.AT_LEAST_ONCE);
+        entrypoint.setQos(Qos.AT_LEAST_ONCE);
         entrypoint.setDlq(new Dlq().endpoint("my-endpoint"));
         entrypoint.setConfiguration(new LinkedHashMap<>(Map.of("nice", "configuration")));
         subscriptionListener.setEntrypoints(List.of(entrypoint));
@@ -450,7 +449,7 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint entrypoint =
             new io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint();
         entrypoint.setType("Entrypoint type");
-        entrypoint.setQos(Qos.AT_LEAST_ONCE);
+        entrypoint.setQos(io.gravitee.definition.model.v4.listener.entrypoint.Qos.AT_LEAST_ONCE);
         entrypoint.setDlq(new io.gravitee.definition.model.v4.listener.entrypoint.Dlq("my-endpoint"));
         entrypoint.setConfiguration("{\"nice\": \"configuration\"}");
         subscriptionListener.setEntrypoints(List.of(entrypoint));
