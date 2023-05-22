@@ -201,7 +201,7 @@ public class SyncManager {
                         }
                     }
                 } catch (Exception e) {
-                    logger.error("Error while determining deployed APIs store into events payload", e);
+                    logger.error("Unable to handle event [" + apiEvent.getType() + "]  for API [" + apiId + "]", e);
                 }
                 break;
             default:
