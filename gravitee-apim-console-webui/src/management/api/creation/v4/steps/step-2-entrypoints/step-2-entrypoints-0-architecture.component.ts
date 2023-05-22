@@ -127,7 +127,13 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
                 supportedListenerType: this.httpProxyEntrypoint.supportedListenerType,
               },
             ],
-            selectedEndpoints: [{ id: httpProxyEndpoint.id, name: httpProxyEndpoint.name, icon: httpProxyEndpoint.icon }],
+            selectedEndpoints: [
+              {
+                id: httpProxyEndpoint.id,
+                name: httpProxyEndpoint.name,
+                icon: this.iconService.registerSvg(httpProxyEndpoint.id, httpProxyEndpoint.icon),
+              },
+            ],
           }));
           this.stepService.goToNextStep({
             groupNumber: 2,
