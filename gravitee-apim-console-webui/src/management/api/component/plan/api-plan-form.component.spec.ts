@@ -35,9 +35,8 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { fakeGroup } from '../../../../entities/group/group.fixture';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
 import { fakeApi as fakeApiV3 } from '../../../../entities/api/Api.fixture';
-import { fakeApiEntity as fakeApiV4 } from '../../../../entities/api-v4/ApiEntity.fixture';
+import { fakeApiV4, ApiV4 } from '../../../../entities/management-api-v2';
 import { Api as ApiV3 } from '../../../../entities/api';
-import { ApiEntity as ApiV4 } from '../../../../entities/api-v4';
 import { Plan, PlanSecurityType } from '../../../../entities/plan';
 import { fakePlan as fakePlanV3 } from '../../../../entities/plan/plan.fixture';
 import { fakeV4Plan as fakePlanV4 } from '../../../../entities/plan-v4/plan.fixture';

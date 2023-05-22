@@ -40,13 +40,12 @@ import { ApiCreationStepperMenuHarness } from './components/api-creation-stepper
 
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { fakeApiEntity } from '../../../../entities/api-v4';
+import { fakeApiV4, ApiType, ConnectorPlugin, getEntrypointConnectorSchema } from '../../../../entities/management-api-v2';
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
 import { PlanSecurityType } from '../../../../entities/plan-v4';
 import { fakeV4Plan } from '../../../../entities/plan-v4/plan.fixture';
-import { ApiType, ConnectorPlugin, getEntrypointConnectorSchema } from '../../../../entities/management-api-v2';
 import { fakeConnectorPlugin } from '../../../../entities/management-api-v2/connector/connectorPlugin.fixture';
 
 describe('ApiCreationV4Component', () => {
@@ -1327,7 +1326,7 @@ describe('ApiCreationV4Component', () => {
         name: 'API name',
       }),
     );
-    createApiRequest.flush(fakeApiEntity({ id: apiId }));
+    createApiRequest.flush(fakeApiV4({ id: apiId }));
 
     const createPlansRequest = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiId}/plans`,
@@ -1354,6 +1353,6 @@ describe('ApiCreationV4Component', () => {
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_start`,
       method: 'POST',
     });
-    startApiRequest.flush(fakeApiEntity({ id: apiId }));
+    startApiRequest.flush(fakeApiV4({ id: apiId }));
   }
 });

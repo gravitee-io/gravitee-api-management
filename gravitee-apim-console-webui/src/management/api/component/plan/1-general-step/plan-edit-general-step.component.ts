@@ -20,7 +20,7 @@ import { combineLatest, of, ReplaySubject, Subject } from 'rxjs';
 import { map, startWith, switchMap, takeUntil } from 'rxjs/operators';
 
 import { Api as ApiV3 } from '../../../../../entities/api';
-import { ApiEntity as ApiV4 } from '../../../../../entities/api-v4';
+import { ApiV4 } from '../../../../../entities/management-api-v2';
 import { CurrentUserService } from '../../../../../services-ngx/current-user.service';
 import { DocumentationService } from '../../../../../services-ngx/documentation.service';
 import { GroupService } from '../../../../../services-ngx/group.service';

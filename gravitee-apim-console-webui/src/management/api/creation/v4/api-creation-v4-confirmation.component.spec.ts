@@ -25,7 +25,7 @@ import { MatCardHarness } from '@angular/material/card/testing';
 import { ApiCreationV4ConfirmationComponent } from './api-creation-v4-confirmation.component';
 import { ApiCreationV4Module } from './api-creation-v4.module';
 
-import { ApiEntity, fakeApiEntity } from '../../../../entities/api-v4';
+import { Api, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 
@@ -71,7 +71,7 @@ describe('ApiCreationV4ConfirmationComponent', () => {
 
   describe('API created', () => {
     it('should display API name and created', async () => {
-      const api = fakeApiEntity({ id: API_ID, name: 'my brand new API', lifecycleState: 'CREATED' });
+      const api = fakeApiV4({ id: API_ID, name: 'my brand new API', lifecycleState: 'CREATED' });
       expectOneGet(api);
 
       const mainCard = await rootLoader.getHarness(MatCardHarness);
@@ -82,7 +82,7 @@ describe('ApiCreationV4ConfirmationComponent', () => {
 
   describe('API deployed', () => {
     it('should display API name and deployed', async () => {
-      const api = fakeApiEntity({ id: API_ID, name: 'my brand new API', lifecycleState: 'PUBLISHED' });
+      const api = fakeApiV4({ id: API_ID, name: 'my brand new API', lifecycleState: 'PUBLISHED' });
       expectOneGet(api);
 
       const mainCard = await rootLoader.getHarness(MatCardHarness);
@@ -91,7 +91,7 @@ describe('ApiCreationV4ConfirmationComponent', () => {
     });
   });
 
-  function expectOneGet(api: ApiEntity) {
+  function expectOneGet(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
   }
 });

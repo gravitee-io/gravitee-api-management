@@ -39,7 +39,7 @@ import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-st
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 
 import { Api as ApiV3 } from '../../../../entities/api';
-import { ApiEntity as ApiV4, Flow as FlowV4, FlowStep } from '../../../../entities/api-v4';
+import { ApiV4 } from '../../../../entities/management-api-v2';
 import {
   NewPlan as NewPlanV3,
   Plan as PlanV3,
@@ -51,6 +51,8 @@ import {
   Plan as PlanV4,
   PlanSecurityType as PlanSecurityTypeV4,
   PlanValidation as PlanValidationV4,
+  Flow as FlowV4,
+  FlowStep,
 } from '../../../../entities/plan-v4';
 import { Flow, Step } from '../../../../entities/flow/flow';
 import { isApiV3 } from '../../../../util';
@@ -136,7 +138,6 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     if (!this.api) {
       return false;
     }
-
     return isApiV3(this.api);
   }
   constructor(private readonly changeDetectorRef: ChangeDetectorRef, @Host() @Optional() public readonly ngControl?: NgControl) {
