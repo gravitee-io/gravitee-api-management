@@ -1295,7 +1295,9 @@ components:
                     items:
                         type: string
                     description: List of ids to find
-                    example: apiId-1, apiId-2
+                    example:
+                     - apiId-1
+                     - apiId-2
                 definitionVersion:
                     $ref: "#/components/schemas/DefinitionVersion"
         ApiType:
