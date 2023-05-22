@@ -28,9 +28,11 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
@@ -682,7 +684,7 @@ public class ApiServiceImplTest {
     public void shouldCreateFromImport() throws TechnicalException {
         ApiEntity apiEntity = fakeApiEntityV4();
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        doReturn(Optional.empty()).when(apiRepository).findById(API_ID);
+        doReturn(Optional.empty()).when(apiRepository).findById(anyString());
         doReturn(apiEntity.getPrimaryOwner())
             .when(primaryOwnerService)
             .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
@@ -737,7 +739,8 @@ public class ApiServiceImplTest {
     }
 
     private void testRepositoryApi(Api api) {
-        assertEquals(API_ID, api.getId());
+        assertNotNull(api.getId());
+        assertFalse(api.getId().isEmpty());
         assertEquals(GraviteeContext.getCurrentEnvironment(), api.getEnvironmentId());
         assertNotNull(api.getCreatedAt());
         assertEquals(api.getCreatedAt(), api.getUpdatedAt());
@@ -1225,7 +1228,7 @@ public class ApiServiceImplTest {
     private ApiEntity fakeApiEntityV4() {
         var apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        apiEntity.setId(API_ID);
+        apiEntity.setId("");
         apiEntity.setCrossId(API_ID);
         apiEntity.setName(API_NAME);
         apiEntity.setApiVersion("v1.0");
