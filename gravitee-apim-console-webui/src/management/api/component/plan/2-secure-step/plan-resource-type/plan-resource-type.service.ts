@@ -20,7 +20,7 @@ import { isEmpty } from 'lodash';
 
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
 import { Api as ApiV3 } from '../../../../../../entities/api';
-import { ApiEntity as ApiV4 } from '../../../../../../entities/api-v4';
+import { Api as ApiV4 } from '../../../../../../entities/management-api-v2';
 
 type ApiResources = ApiV3['resources'] | ApiV4['resources'];
 

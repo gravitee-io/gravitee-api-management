@@ -1,5 +1,3 @@
-import { Flow } from '../api-v4/Flow';
-
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -15,6 +13,9 @@ import { Flow } from '../api-v4/Flow';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { Flow } from './Flow';
+
 export enum PlanSecurityType {
   KEY_LESS = 'KEY_LESS',
   API_KEY = 'API_KEY',

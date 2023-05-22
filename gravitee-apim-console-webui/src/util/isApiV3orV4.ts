@@ -16,12 +16,12 @@
 import { get, has } from 'lodash';
 
 import { Api as ApiV3 } from '../entities/api';
-import { ApiEntity as ApiV4 } from '../entities/api-v4';
+import { ApiV4 } from '../entities/management-api-v2';
 
 export const isApiV3 = (api: ApiV3 | ApiV4): api is ApiV3 => {
   return !isApiV4(api);
 };
 
 export const isApiV4 = (api: ApiV3 | ApiV4): api is ApiV4 => {
-  return has(api, 'definitionVersion') && get(api, 'definitionVersion') === '4.0.0';
+  return has(api, 'definitionVersion') && get(api as ApiV4, 'definitionVersion') === 'V4';
 };
