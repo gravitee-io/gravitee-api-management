@@ -73,6 +73,7 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
             .id("id-1")
             .name("name")
             .version("1.0")
+            .icon("my-icon")
             .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
             .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
             .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE));
@@ -80,6 +81,7 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
             .id("id-2")
             .name("name")
             .version("1.0")
+            .icon("my-icon")
             .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
             .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
             .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE));
@@ -87,6 +89,7 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
             .id("id-3")
             .name("name")
             .version("1.0")
+            .icon("my-icon")
             .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
             .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
             .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE));
@@ -215,6 +218,7 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
         connectorPlugin.setName("Fake Entrypoint");
         connectorPlugin.setVersion("1.0");
+        connectorPlugin.setIcon("Fake Icon");
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
@@ -227,6 +231,7 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         assertEquals(FAKE_ENTRYPOINT_ID, entrypoint.getId());
         assertEquals("Fake Entrypoint", entrypoint.getName());
         assertEquals("1.0", entrypoint.getVersion());
+        assertEquals("Fake Icon", entrypoint.getIcon());
         assertEquals(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE, entrypoint.getSupportedApiType());
         assertEquals(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE), entrypoint.getSupportedModes());
     }
@@ -237,6 +242,7 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setId(id);
         connectorPlugin.setName("name");
         connectorPlugin.setVersion("1.0");
+        connectorPlugin.setIcon("my-icon");
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         connectorPlugin.setSupportedListenerType(ListenerType.HTTP);

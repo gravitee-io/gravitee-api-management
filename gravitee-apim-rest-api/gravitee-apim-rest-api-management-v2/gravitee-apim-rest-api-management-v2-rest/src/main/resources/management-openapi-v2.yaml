@@ -2111,6 +2111,10 @@ components:
                     description: Plugin's description.
                     example: I can use many characters to describe this plugin.
                     minLength: 1
+                icon:
+                    type: string
+                    description: Plugin's icon.
+                    minLength: 1
                 category:
                     type: string
                     description: Plugin's category.
