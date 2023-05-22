@@ -217,7 +217,7 @@ public class ApiSearchService_SearchTest {
         QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder.create(ApiEntity.class);
         apiEntityQueryBuilder.setQuery("*");
 
-        var ids = List.of("id-1", "id-2");
+        var ids = List.of("id-1", "id-2", "id-3", "id-4", "id-5", "id-6");
 
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
@@ -227,11 +227,11 @@ public class ApiSearchService_SearchTest {
             .thenReturn(new SearchResult(ids));
 
         var apiEntity1 = new Api();
-        apiEntity1.setId("id-1");
+        apiEntity1.setId("id-3");
         apiEntity1.setLifecycleState(LifecycleState.STARTED);
 
         var apiEntity2 = new Api();
-        apiEntity2.setId("id-2");
+        apiEntity2.setId("id-4");
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
         when(
@@ -239,7 +239,7 @@ public class ApiSearchService_SearchTest {
                 eq(
                     new ApiCriteria.Builder()
                         .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-                        .ids(ids)
+                        .ids(List.of("id-3", "id-4"))
                         .definitionVersion(List.of(DefinitionVersion.V4))
                         .build()
                 ),
@@ -256,8 +256,8 @@ public class ApiSearchService_SearchTest {
             .thenReturn(
                 new HashMap<>() {
                     {
-                        put("id-1", primaryOwnerEntity);
-                        put("id-2", primaryOwnerEntity);
+                        put("id-3", primaryOwnerEntity);
+                        put("id-4", primaryOwnerEntity);
                     }
                 }
             );
@@ -267,14 +267,14 @@ public class ApiSearchService_SearchTest {
             USER_ID,
             true,
             apiEntityQueryBuilder.setFilters(filters),
-            new PageableImpl(1, 10)
+            new PageableImpl(2, 2)
         );
 
         assertThat(apis).isNotNull();
         assertThat(apis.getContent().size()).isEqualTo(2);
-        assertThat(apis.getContent().get(0).getId()).isEqualTo("id-1");
-        assertThat(apis.getTotalElements()).isEqualTo(2);
-        assertThat(apis.getPageNumber()).isEqualTo(1);
+        assertThat(apis.getContent().get(0).getId()).isEqualTo("id-3");
+        assertThat(apis.getTotalElements()).isEqualTo(6);
+        assertThat(apis.getPageNumber()).isEqualTo(2);
         assertThat(apis.getPageElements()).isEqualTo(2);
         assertThat(
             apis

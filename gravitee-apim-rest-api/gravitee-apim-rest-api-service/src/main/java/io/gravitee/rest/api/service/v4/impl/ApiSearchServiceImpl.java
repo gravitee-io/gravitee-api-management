@@ -294,12 +294,11 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         Integer currentPage = pageable.getPageNumber();
 
         Integer startIndex = (currentPage - 1) * numberOfItemPerPage;
-        Integer lastIndex = Math.min(startIndex + numberOfItemPerPage, numberOfItems);
 
         if (startIndex >= numberOfItems || currentPage < 1) {
             throw new PaginationInvalidException();
         }
-        return ids.stream().skip(startIndex).limit(lastIndex).collect(toList());
+        return ids.stream().skip(startIndex).limit(numberOfItemPerPage).collect(toList());
     }
 
     /**
