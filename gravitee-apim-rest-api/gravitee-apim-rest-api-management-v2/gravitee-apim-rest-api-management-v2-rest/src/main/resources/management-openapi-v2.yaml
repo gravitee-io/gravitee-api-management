@@ -415,6 +415,27 @@ paths:
                     description: API member successfully deleted
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/groups/{groupId}/members:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/groupIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - APIs
+                - API Members
+            summary: Get a group's members
+            description: |
+                Get the list of members for a specific group.
+                User must have the API_MEMBER[READ] permission.
+            operationId: getGroupMembers
+            responses:
+                "200":
+                    $ref: "#/components/responses/MembersResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     /environments/{envId}/apis/{apiId}/background:
         parameters:
@@ -2067,6 +2088,18 @@ components:
                     type: string
                     description: Role's name.
                     example: OWNER
+                scope:
+                    $ref: "#/components/schemas/RoleScope"
+        RoleScope:
+            type: string
+            description: Scope of a role.
+            enum:
+                - API
+                - APPLICATION
+                - GROUP
+                - ENVIRONMENT
+                - ORGANIZATION
+                - PLATFORM
         CreateApiMember:
             type: object
             description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
@@ -3303,6 +3336,13 @@ components:
             description: Id of an API.
             schema:
                 type: string
+        groupIdParam:
+            name: groupId
+            in: path
+            required: true
+            description: Id of a group.
+            schema:
+                type: string
         memberIdParam:
             name: memberId
             in: path
@@ -3433,10 +3473,12 @@ components:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/Member"
-                            pagination:
-                                $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+                            metadata:
+                                $ref: "#/components/schemas/MetadataResponse"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
         SchemaFormResponse:
             description: Schema form of a plugin
             content:

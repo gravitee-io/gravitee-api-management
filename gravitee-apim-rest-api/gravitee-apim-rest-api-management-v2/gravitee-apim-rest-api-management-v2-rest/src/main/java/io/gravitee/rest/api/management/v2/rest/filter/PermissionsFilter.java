@@ -94,7 +94,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
     }
 
     private String getGroupId(ContainerRequestContext requestContext) {
-        return getId("group", requestContext);
+        return getId("groupId", requestContext);
     }
 
     private String getApiId(ContainerRequestContext requestContext) {

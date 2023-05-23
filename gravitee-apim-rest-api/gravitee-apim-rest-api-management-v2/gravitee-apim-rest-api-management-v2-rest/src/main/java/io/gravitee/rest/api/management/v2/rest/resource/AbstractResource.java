@@ -255,24 +255,23 @@ public abstract class AbstractResource {
         }
     }
 
-    protected List computePaginationData(Collection list, PaginationParam paginationParam) {
-        Integer numberOfItems = list.size();
+    protected <T> List<T> computePaginationData(Collection<T> list, PaginationParam paginationParam) {
+        int numberOfItems = list.size();
 
-        if (paginationParam.getPerPage() == 0 || numberOfItems <= 0) {
-            return new ArrayList();
+        if (paginationParam.getPerPage() == 0 || numberOfItems == 0) {
+            return new ArrayList<>();
         }
 
-        Integer currentPage = paginationParam.getPage();
-        Integer numberOfItemPerPage = paginationParam.getPerPage();
+        int currentPage = paginationParam.getPage();
+        int numberOfItemPerPage = paginationParam.getPerPage();
 
-        Integer startIndex = (currentPage - 1) * numberOfItemPerPage;
-        Integer lastIndex = Math.min(startIndex + numberOfItemPerPage, numberOfItems);
+        int startIndex = (currentPage - 1) * numberOfItemPerPage;
+        int lastIndex = Math.min(startIndex + numberOfItemPerPage, numberOfItems);
 
         if (startIndex >= numberOfItems || currentPage < 1) {
             throw new PaginationInvalidException();
-        } else {
-            return new ArrayList(list).subList(startIndex, lastIndex);
         }
+        return new ArrayList<>(list).subList(startIndex, lastIndex);
     }
 
     protected Pagination computePaginationInfo(Integer totalCount, Integer pageItemsCount, PaginationParam paginationParam) {
