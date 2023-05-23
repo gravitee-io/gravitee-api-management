@@ -1,0 +1,11 @@
+{{- if .Values.cockpit.enabled -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "gravitee.api.fullname" . }}-cockpit-certificates
+data:
+  keystore.p12: {{ .Values.cockpit.keystore.value }}
+  {{- if .Values.cockpit.truststore }}
+  truststore.p12: {{ .Values.cockpit.truststore.value }}
+  {{- end -}}  
+{{- end -}}

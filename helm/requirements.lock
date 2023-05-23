@@ -1,0 +1,9 @@
+dependencies:
+- name: elasticsearch
+  repository: https://raw.githubusercontent.com/bitnami/charts/eb5f9a9513d987b519f0ecd732e7031241c50328/bitnami
+  version: 17.9.29
+- name: mongodb
+  repository: https://charts.bitnami.com/bitnami
+  version: 12.1.31
+digest: sha256:47332c5b20c0ccc108f699fdc980de0e8302d82fc569261a73eda67c212b9909
+generated: "2023-05-23T15:24:45.599307+02:00"

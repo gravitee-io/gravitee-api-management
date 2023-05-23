@@ -1,0 +1,48 @@
+{{- if .Values.portal.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "gravitee.portal.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.portal.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.portal.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- range $key, $value := .Values.portal.service.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- if .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  type: "{{ .Values.portal.service.type }}"
+  {{- if eq .Values.portal.service.type "NodePort" "LoadBalancer" }}
+  externalTrafficPolicy: {{ .Values.portal.service.externalTrafficPolicy }}
+  {{- end }}
+  ports:
+    - port: {{ .Values.portal.service.externalPort }}
+      targetPort: {{ .Values.portal.service.internalPort }}
+      protocol: TCP
+      {{- if (include "common.service.supportsAppProtocol" .) }}
+      {{ if .Values.portal.service.appProtocol }}
+      appProtocol: {{ .Values.portal.service.appProtocol }}
+      {{ else }}
+      appProtocol: http
+      {{ end }}
+      {{- end }}
+      name: {{ .Values.portal.name | trunc 63 | trimSuffix "-" }}
+  selector:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: "{{ .Values.portal.name }}"
+{{- end -}}

@@ -1,0 +1,66 @@
+suite: Test deployment and configmap with a volumeMount named config defined
+templates:
+  - "portal/portal-deployment.yaml"
+  - "portal/portal-configmap.yaml"
+tests:
+  - it: Should NOT generate portal-configmap.yaml
+    template: portal/portal-configmap.yaml
+    set:
+      portal:
+        extraVolumes: |
+          - name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Should generate portal-configmap.yaml
+    template: portal/portal-configmap.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: Should generate a volume named config in portal-deployment.yaml
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        extraVolumes: |
+          - name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /usr/share/nginx/html/assets/config.json
+            subPath: config.json
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+
+  - it: Should NOT generate a volume named config in portal-deployment.yaml
+    template: portal/portal-deployment.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /usr/share/nginx/html/assets/config.json
+            subPath: config.json
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            secret:
+              secretName: gravitee-yml-secret-name

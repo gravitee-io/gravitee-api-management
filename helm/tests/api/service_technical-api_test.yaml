@@ -1,0 +1,92 @@
+suite: Test Management API Service with Technical API enabled
+templates:
+  - "api/api-service.yaml"
+tests:
+  - it: Check technical api service
+    template: api/api-service.yaml
+    set:
+      api:
+        http:
+          services:
+            core:
+              service:
+                externalPort: 18083
+                enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - isNull:
+          path: spec.externalTrafficPolicy
+      - contains:
+          path: spec.ports
+          content:
+            port: 18083
+            targetPort: 18083
+            protocol: TCP
+            name: api-technical
+            appProtocol: http
+
+  - it: Check technical api service with custom appProtocol
+    template: api/api-service.yaml
+    set:
+      api:
+        http:
+          services:
+            core:
+              service:
+                externalPort: 18083
+                enabled: true
+                appProtocol: http-test
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - contains:
+          path: spec.ports
+          content:
+            port: 18083
+            targetPort: 18083
+            protocol: TCP
+            name: api-technical
+            appProtocol: http-test
+
+  - it: Deploy with NodePort and externalTrafficPolicy
+    template: api/api-service.yaml
+    set:
+      api:
+        service:
+          type: NodePort
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
+
+  - it: Deploy with LoadBalancer and externalTrafficPolicy
+    template: api/api-service.yaml
+    set:
+      api:
+        service:
+          type: LoadBalancer
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local

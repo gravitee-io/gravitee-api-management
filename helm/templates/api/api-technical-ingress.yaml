@@ -1,0 +1,60 @@
+{{- if .Values.api.http.services.core.http.enabled -}}
+{{- if .Values.api.http.services.core.ingress.enabled -}}
+{{- $serviceAPIName := include "gravitee.api.fullname" . -}}
+{{- $serviceAPIPort := .Values.api.http.services.core.service.externalPort -}}
+{{- $ingressPath   := .Values.api.http.services.core.ingress.path -}}
+{{- $ingressPathType   := .Values.api.http.services.core.ingress.pathType -}}
+{{- $apiVersion := include "common.capabilities.ingress.apiVersion" . -}}
+apiVersion: {{ $apiVersion }}
+kind: Ingress
+metadata:
+  name: {{ template "gravitee.api.fullname" . }}-technical
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.api.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.api.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if .Values.api.http.services.core.ingress.annotations }}
+    {{- include "common.ingress.annotations.render" (dict "annotations" .Values.api.http.services.core.ingress.annotations "ingressClassName" .Values.api.http.services.core.ingress.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
+    {{- end }}
+    {{- if .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  {{- if and (eq (include "common.ingress.supportsIngressClassname" .) "true") (.Values.api.http.services.core.ingress.ingressClassName) (ne .Values.api.http.services.core.ingress.ingressClassName "none") }}
+  ingressClassName: {{ .Values.api.http.services.core.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+  {{- range $host := .Values.api.http.services.core.ingress.hosts }}
+  - host: {{ $host }}
+    http:
+      paths:
+      - pathType: {{ $ingressPathType }}
+        path: {{ $ingressPath }}
+        backend:
+          {{- if (eq $apiVersion "networking.k8s.io/v1") }}
+          service:
+            name: {{ $serviceAPIName }}
+            port:
+              number: {{ $serviceAPIPort }}
+          {{ else }}
+          serviceName: {{ $serviceAPIName }}
+          servicePort: {{ $serviceAPIPort }}
+          {{- end -}}
+  {{- end -}}
+  {{- if .Values.api.http.services.core.ingress.tls }}
+  tls:
+{{ toYaml .Values.api.http.services.core.ingress.tls | indent 4 }}
+  {{- end -}}
+{{- end -}}
+{{- end -}}

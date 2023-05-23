@@ -1,0 +1,125 @@
+suite: Test Management API - Technical API Ingress
+templates:
+  - "api/api-technical-ingress.yaml"
+tests:
+  - it: Check technical ingress disabled by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Check technical Ingress extensions/v1beta1
+    set:
+      api:
+        http:
+          services:
+            core:
+              ingress:
+                enabled: true
+      global:
+        kubeVersion: 1.13.0
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: extensions/v1beta1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check technical Ingress networking.k8s.io/v1beta1
+    set:
+      api:
+        http:
+          services:
+            core:
+              ingress:
+                enabled: true
+      global:
+        kubeVersion: 1.15.0
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check technical Ingress networking.k8s.io/v1 without IngressClassName
+    set:
+      api:
+        http:
+          services:
+            core:
+              ingress:
+                enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check technical Ingress networking.k8s.io/v1 with IngressClassName
+    set:
+      api:
+        http:
+          services:
+            core:
+              ingress:
+                enabled: true
+                ingressClassName: nginx
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+
+  - it: Check technical Ingress networking.k8s.io/v1 with IngressClassName "none"
+    set:
+      api:
+        http:
+          services:
+            core:
+              ingress:
+                enabled: true
+                ingressClassName: none
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check Ingress pathType and path
+    set:
+      api:
+        http:
+          services:
+            core:
+              ingress:
+                enabled: true
+                pathType: Exact
+                path: /test-technical
+                hosts:
+                  - apim.example.com
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Exact
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /test-technical

@@ -1,0 +1,183 @@
+{{- if and .Values.api.enabled .Values.api.upgrader  -}}
+{{- $initContainers := .Values.initContainers -}}
+{{- $serviceAccount := include "apim.serviceAccount" . -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "gravitee.api.fullname" . }}-pre-upgrade
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.api.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.api.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.api.deployment.labels }}
+    {{- range $key, $value := .Values.api.deployment.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- else }}
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- if .Values.api.deployment.annotations}}
+    {{- range $key, $value := .Values.api.deployment.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  template:
+    metadata:
+      name: {{ template "gravitee.api.fullname" . }}-pre-upgrade
+      annotations:
+        chaos.alpha.kubernetes.io/enabled: "{{ .Values.chaos.enabled }}"
+        {{- if .Values.api.reloadOnConfigChange }}
+        checksum/config: {{ include (print $.Template.BasePath "/api/api-configmap.yaml") . | sha256sum }}
+        {{- end }}
+        {{- range $key, $value := .Values.api.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ template "gravitee.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ default .Chart.AppVersion .Values.api.image.tag | quote }}
+        app.kubernetes.io/component: "{{ .Values.api.name }}"
+        {{- if .Values.api.deployment.labels }}
+        {{- range $key, $value := .Values.api.deployment.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- else }}
+        {{- range $key, $value := .Values.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+    spec:
+      restartPolicy: Never
+      {{- if $serviceAccount }}
+      serviceAccountName: {{ $serviceAccount }}
+      {{ end }}
+      affinity: {{ toYaml .Values.api.deployment.affinity | nindent 8 }}
+      nodeSelector: {{ toYaml .Values.api.deployment.nodeSelector | nindent 8 }}
+      topologySpreadConstraints: {{ toYaml .Values.api.deployment.topologySpreadConstraints | nindent 8 }}
+      tolerations: {{ toYaml .Values.api.deployment.tolerations | nindent 8 }}
+      {{- if .Values.api.priorityClassName }}
+      priorityClassName: {{ .Values.api.priorityClassName  }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.api.terminationGracePeriod }}
+      {{- if .Values.api.deployment.hostAliases }}
+      hostAliases: {{ toYaml .Values.api.deployment.hostAliases | nindent 6 }}
+      {{- end }}
+
+      {{- $plugins := list -}}
+      {{- if .Values.api.additionalPlugins -}}
+        {{- $plugins = concat $plugins .Values.api.additionalPlugins -}}
+      {{- end -}}
+      {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-management-api" "pluginsToRemove" .Values.api.removePlugins "initContainers" $initContainers -}}
+      {{- if or .Values.api.extraInitContainers $plugins .Values.jdbc.driver }}
+      initContainers:
+        {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+        - name: get-repository-jdbc-ext
+          {{- toYaml .Values.initContainers | nindent 10 }}
+          command: [ 'sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget {{ .Values.jdbc.driver }}" ]
+          volumeMounts:
+            - name: graviteeio-apim-repository-jdbc-ext
+              mountPath: /tmp/plugins-ext
+        {{- end -}}
+        {{- include "deployment.pluginInitContainers" $pluginParams | indent 8}}
+        {{- with .Values.api.extraInitContainers }}
+        {{- tpl . $ | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ template "gravitee.api.fullname" . }}-pre-upgrade
+          image: "{{ .Values.api.image.repository }}:{{ default .Chart.AppVersion .Values.api.image.tag }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          securityContext: {{ toYaml ( .Values.api.securityContext | default .Values.api.deployment.securityContext ) | nindent 12 }}
+          ports:
+            - name: {{ .Values.api.service.internalPortName }}
+              containerPort: {{ .Values.api.service.internalPort }}
+          env:
+            - name: gravitee_upgrade_mode
+              value: "true"
+            {{- if $plugins }}
+            - name: GRAVITEE_PLUGINS_PATH_0
+              value: '${gravitee.home}/plugins'
+            - name: GRAVITEE_PLUGINS_PATH_1
+              value: '${gravitee.home}/plugins-ext'
+            {{- end }}
+{{- if .Values.api.env | default .Values.api.deployment.extraEnvs }}
+{{ toYaml ( .Values.api.env | default .Values.api.deployment.extraEnvs ) | indent 12 }}
+{{- end }}
+          envFrom: {{ toYaml .Values.api.deployment.envFrom | nindent 12 }}
+          {{- if .Values.api.lifecycle }}
+          lifecycle:
+            {{- if .Values.api.lifecycle.postStart }}
+            postStart:
+              exec:
+                command: {{ .Values.api.lifecycle.postStart }}
+            {{- end }}
+            {{- if .Values.api.lifecycle.preStop }}
+            preStop:
+              exec:
+                command: {{ .Values.api.lifecycle.preStop }}
+            {{- end }}
+          {{- end }}
+          livenessProbe: {{ toYaml .Values.api.livenessProbe | nindent 12 }}
+          readinessProbe: {{ toYaml .Values.api.readinessProbe | nindent 12 }}
+          {{- if and (.Values.api.startupProbe) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+          startupProbe: {{ toYaml .Values.api.startupProbe | nindent 12 }}
+          {{- end }}
+          resources: {{ toYaml .Values.api.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /opt/graviteeio-management-api/config/gravitee.yml
+              subPath: gravitee.yml
+          {{- if .Values.api.logging.debug }}
+            - name: config
+              mountPath: /opt/graviteeio-management-api/config/logback.xml
+              subPath: logback.xml
+          {{- end }}
+          {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+            - name: graviteeio-apim-repository-jdbc-ext
+              mountPath: /opt/graviteeio-management-api/plugins/ext/repository-jdbc
+          {{- end }}
+          {{- include "deployment.pluginVolumeMounts" $pluginParams | indent 12 }}
+          {{- with .Values.api.extraVolumeMounts }}
+          {{- tpl . $ | nindent 12 }}
+          {{- end }}
+        {{- if .Values.api.extraContainers }}
+        {{- with .Values.api.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.api.image.pullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.api.image.pullSecrets }}
+      {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "gravitee.api.fullname" . }}
+        {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+        - name: graviteeio-apim-repository-jdbc-ext
+          emptyDir: { }
+        {{- end }}
+        {{- include "deployment.pluginVolumes" $pluginParams | indent 8 }}
+        {{- with .Values.api.extraVolumes }}
+          {{- tpl . $ | nindent 8 }}
+        {{- end }}
+{{- end -}}

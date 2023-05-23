@@ -1,0 +1,176 @@
+{{- if .Values.portal.enabled -}}
+{{- $base_href := include "portal.base_href" . -}}
+{{- $base_href_defined := include "portal.base_href.defined" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "gravitee.portal.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.portal.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.portal.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.portal.deployment.labels }}
+    {{- range $key, $value := .Values.portal.deployment.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- else }}
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if .Values.portal.deployment.annotations}}
+    {{- range $key, $value := .Values.portal.deployment.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  {{- if not .Values.portal.autoscaling.enabled }}
+  replicas: {{ .Values.portal.replicaCount }}
+  {{- end }}
+  strategy: {{ toYaml .Values.portal.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "gravitee.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: "{{ .Values.portal.name }}"
+  template:
+    metadata:
+      annotations:
+        chaos.alpha.kubernetes.io/enabled: "{{ .Values.chaos.enabled }}"
+        {{- if not (include "portal.externalConfig" .) }}
+        checksum/config: {{ include (print $.Template.BasePath "/portal/portal-configmap.yaml") . | sha256sum }}
+        {{- end }}
+        {{- range $key, $value := .Values.portal.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- if .Values.common.annotations }}
+        {{- range $key, $value := .Values.common.annotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ template "gravitee.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ default .Chart.AppVersion .Values.portal.image.tag | quote }}
+        app.kubernetes.io/component: "{{ .Values.portal.name }}"
+        {{- if .Values.portal.deployment.labels }}
+        {{- range $key, $value := .Values.portal.deployment.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- else }}
+        {{- range $key, $value := .Values.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.common.labels }}
+        {{- range $key, $value := .Values.common.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+    spec:
+      affinity: {{ toYaml .Values.portal.deployment.affinity | nindent 8 }}
+      nodeSelector: {{ toYaml .Values.portal.deployment.nodeSelector | nindent 8 }}
+      topologySpreadConstraints: {{ toYaml .Values.portal.deployment.topologySpreadConstraints | nindent 8 }}
+      tolerations: {{ toYaml .Values.portal.deployment.tolerations | nindent 8 }}
+      {{- if .Values.portal.priorityClassName }}
+      priorityClassName: {{ .Values.portal.priorityClassName  }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.portal.terminationGracePeriod }}
+      {{- if .Values.portal.deployment.hostAliases }}
+      hostAliases: {{ toYaml .Values.portal.deployment.hostAliases | nindent 6 }}
+      {{- end }}
+
+    {{- if or .Values.portal.extraInitContainers }}
+      initContainers:
+      {{- with .Values.portal.extraInitContainers }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
+    {{- end }}
+      containers:
+        - name: {{ template "gravitee.portal.fullname" . }}
+          image: "{{ .Values.portal.image.repository }}:{{ default .Chart.AppVersion .Values.portal.image.tag }}"
+          imagePullPolicy: {{ .Values.portal.image.pullPolicy }}
+          securityContext: {{ toYaml ( .Values.portal.securityContext | default .Values.portal.deployment.securityContext ) | nindent 12 }}
+          env:
+            - name: PORTAL_API_URL
+              value: "https://{{index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}/"
+            {{- if not (eq $base_href_defined "true") }}
+            - name: PORTAL_BASE_HREF
+              value: {{ $base_href }}
+            {{- end }}
+{{- if .Values.portal.env | default .Values.portal.deployment.extraEnvs }}
+{{ toYaml ( .Values.portal.env | default .Values.portal.deployment.extraEnvs ) | indent 12 }}
+{{- end }}
+          envFrom: {{ toYaml .Values.portal.deployment.envFrom | nindent 12 }}
+          ports:
+            - name: {{ .Values.portal.service.internalPortName }}
+              containerPort: {{ .Values.portal.service.internalPort }}
+          {{- if .Values.portal.lifecycle }}
+          lifecycle:
+            {{- if .Values.portal.lifecycle.postStart }}
+            postStart:
+              exec:
+                command: {{ .Values.portal.lifecycle.postStart }}
+            {{- end }}
+            {{- if .Values.portal.lifecycle.preStop }}
+            preStop:
+              exec:
+                command: {{ .Values.portal.lifecycle.preStop }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.portal.deployment.livenessProbe.enabled }}
+          livenessProbe: {{- omit .Values.portal.deployment.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if .Values.portal.deployment.customLivenessProbe }}
+          livenessProbe: {{ toYaml .Values.portal.deployment.customLivenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.portal.deployment.readinessProbe.enabled }}
+          readinessProbe: {{- omit .Values.portal.deployment.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if .Values.portal.deployment.customReadinessProbe }}
+          readinessProbe: {{ toYaml .Values.portal.deployment.customReadinessProbe | nindent 12 }}
+          {{- end }}
+          {{- if and (.Values.portal.deployment.startupProbe.enabled) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+          startupProbe: {{- omit .Values.portal.deployment.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if and (.Values.portal.deployment.customStartupProbe) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+          startupProbe: {{ toYaml .Values.portal.deployment.customStartupProbe | nindent 12 }}
+          {{- end }}
+          resources: {{ toYaml .Values.portal.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /usr/share/nginx/html/assets/config.json
+              subPath: config.json
+            {{- with .Values.portal.extraVolumeMounts }}
+            {{- tpl . $ | nindent 12 }}
+            {{- end }}
+        {{- if .Values.portal.extraContainers }}
+        {{- with .Values.portal.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.portal.image.pullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.portal.image.pullSecrets }}
+      {{- end }}
+      volumes:
+        {{- if not (include "portal.externalConfig" .) }}
+        - name: config
+          configMap:
+            name: {{ template "gravitee.portal.fullname" . }}
+        {{- end }}
+      {{- with .Values.portal.extraVolumes }}
+        {{- tpl . $ | nindent 8 }}
+      {{- end }}
+{{- end -}}

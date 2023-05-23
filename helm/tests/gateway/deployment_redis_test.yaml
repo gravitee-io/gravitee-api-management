@@ -1,0 +1,480 @@
+suite: Test API Gateway deployment with Redis support
+templates:
+  - "gateway/gateway-deployment.yaml"
+  - "gateway/gateway-configmap.yaml"
+
+tests:
+  - it: Check that volumes are defined
+    template: gateway/gateway-deployment.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 3.15.2
+    set:
+      ratelimit:
+        type: "redis"
+      gateway:
+        ratelimit:
+          redis:
+            host: localhost
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /opt/graviteeio-gateway/plugins-ext
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.volumes[1].emptyDir
+          value: {}
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: get-plugins
+            image: "alpine:latest"
+            imagePullPolicy: Always
+            command: ['sh', '-c', "mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  gravitee-apim-repository-redis-3.15.2.zip  2>/dev/null || true ) && wget https://download.gravitee.io/graviteeio-apim/plugins/repositories/gravitee-apim-repository-redis/gravitee-apim-repository-redis-3.15.2.zip"]
+            env: []
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            volumeMounts:
+              - name: graviteeio-apim-plugins
+                mountPath: /tmp/plugins
+
+  - it: Check that volumes are defined for APIM < 3.6.0
+    template: gateway/gateway-deployment.yaml
+    set:
+      ratelimit:
+        type: "redis"
+      gateway:
+        ratelimit:
+          redis:
+            host: localhost
+      redis:
+        repositoryVersion: 3.2.0
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /opt/graviteeio-gateway/plugins-ext
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.volumes[1].emptyDir
+          value: {}
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: get-plugins
+            image: "alpine:latest"
+            imagePullPolicy: Always
+            command: ['sh', '-c', "mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  gravitee-repository-redis-3.2.0.zip  2>/dev/null || true ) && wget https://download.gravitee.io/graviteeio-apim/plugins/repositories/gravitee-repository-redis/gravitee-repository-redis-3.2.0.zip"]
+            env: []
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            volumeMounts:
+              - name: graviteeio-apim-plugins
+                mountPath: /tmp/plugins
+
+  - it: Check redis plugin with old version of image (should be 3.15.2)
+    template: gateway/gateway-deployment.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 3.15.2
+    set:
+      ratelimit:
+        type: "redis"
+      gateway:
+        ratelimit:
+          redis:
+            host: localhost
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /opt/graviteeio-gateway/plugins-ext
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.volumes[1].emptyDir
+          value: {}
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: get-plugins
+            image: "alpine:latest"
+            imagePullPolicy: Always
+            command: ['sh', '-c', "mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  gravitee-apim-repository-redis-3.15.2.zip  2>/dev/null || true ) && wget https://download.gravitee.io/graviteeio-apim/plugins/repositories/gravitee-apim-repository-redis/gravitee-apim-repository-redis-3.15.2.zip"]
+            env: []
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            volumeMounts:
+              - name: graviteeio-apim-plugins
+                mountPath: /tmp/plugins
+
+  - it: Check redis plugin not downloaded when version is 3.21.0 or superior
+    template: gateway/gateway-deployment.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 3.21.0
+    release:
+      name: my-apim
+      namespace: unittest
+    set:
+      ratelimit:
+        type: "redis"
+      gateway:
+        ratelimit:
+          redis:
+            host: localhost
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec
+          value:
+            serviceAccountName: my-apim-apim
+            affinity:
+              { }
+            nodeSelector:
+              { }
+            topologySpreadConstraints:
+              [ ]
+            tolerations:
+              [ ]
+            terminationGracePeriodSeconds: 30
+            initContainers:
+            containers:
+              - name: my-apim-gateway
+                image: "graviteeio/apim-gateway:3.21.0"
+                imagePullPolicy: Always
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1001
+                ports:
+                  - name: http
+                    containerPort: 8082
+                  - containerPort: 18082
+                    name: gateway-techapi
+                env:
+                envFrom:
+                  [ ]
+                livenessProbe:
+                  failureThreshold: 3
+                  httpGet:
+                    httpHeaders:
+                      - name: Authorization
+                        value: Basic YWRtaW46YWRtaW5hZG1pbg==
+                    path: /_node/health?probes=http-server
+                    port: 18082
+                    scheme: HTTP
+                  periodSeconds: 15
+                  successThreshold: 1
+                  timeoutSeconds: 2
+                readinessProbe:
+                  failureThreshold: 2
+                  httpGet:
+                    httpHeaders:
+                      - name: Authorization
+                        value: Basic YWRtaW46YWRtaW5hZG1pbg==
+                    path: /_node/health?probes=api-sync
+                    port: 18082
+                    scheme: HTTP
+                  periodSeconds: 10
+                  successThreshold: 1
+                  timeoutSeconds: 2
+                startupProbe:
+                  failureThreshold: 29
+                  httpGet:
+                    httpHeaders:
+                      - name: Authorization
+                        value: Basic YWRtaW46YWRtaW5hZG1pbg==
+                    path: /_node/health?probes=http-server
+                    port: 18082
+                    scheme: HTTP
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  successThreshold: 1
+                  timeoutSeconds: 1
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+                  requests:
+                    cpu: 200m
+                    memory: 256Mi
+                volumeMounts:
+                  - name: config
+                    mountPath: /opt/graviteeio-gateway/config/gravitee.yml
+                    subPath: gravitee.yml
+            volumes:
+              - name: config
+                configMap:
+                  name: my-apim-gateway
+
+  - it: Check redis plugin not downloaded with nightly version
+    template: gateway/gateway-deployment.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 3.21.0
+    set:
+      ratelimit:
+        type: "redis"
+      gateway:
+        image:
+          tag: nightly
+        ratelimit:
+          redis:
+            host: localhost
+      redis:
+        repositoryVersion: 3.11.0
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /opt/graviteeio-gateway/plugins-ext
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.volumes[1].emptyDir
+          value: { }
+      - contains:
+          path: spec.template.spec.initContainers
+          content:
+            name: get-plugins
+            image: "alpine:latest"
+            imagePullPolicy: Always
+            command: [ 'sh', '-c', "mkdir -p /tmp/plugins && cd /tmp/plugins && ( rm  gravitee-apim-repository-redis-3.11.0.zip  2>/dev/null || true ) && wget https://download.gravitee.io/graviteeio-apim/plugins/repositories/gravitee-apim-repository-redis/gravitee-apim-repository-redis-3.11.0.zip" ]
+            env: [ ]
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1001
+            volumeMounts:
+              - name: graviteeio-apim-plugins
+                mountPath: /tmp/plugins
+
+  - it: Check redis plugin not downloaded when version is superior to 3.21.0 and latest
+    template: gateway/gateway-deployment.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 3.21.x-latest
+    release:
+      name: my-apim
+      namespace: unittest
+    set:
+      ratelimit:
+        type: "redis"
+      gateway:
+        image:
+          tag: master-latest
+        ratelimit:
+          redis:
+            host: localhost
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec
+          value:
+            serviceAccountName: my-apim-apim
+            affinity:
+              { }
+            nodeSelector:
+              { }
+            topologySpreadConstraints:
+              [ ]
+            tolerations:
+              [ ]
+            terminationGracePeriodSeconds: 30
+            initContainers:
+            containers:
+              - name: my-apim-gateway
+                image: "graviteeio/apim-gateway:master-latest"
+                imagePullPolicy: Always
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1001
+                ports:
+                  - name: http
+                    containerPort: 8082
+                  - containerPort: 18082
+                    name: gateway-techapi
+                env:
+                envFrom:
+                  [ ]
+                livenessProbe:
+                  failureThreshold: 3
+                  httpGet:
+                    httpHeaders:
+                      - name: Authorization
+                        value: Basic YWRtaW46YWRtaW5hZG1pbg==
+                    path: /_node/health?probes=http-server
+                    port: 18082
+                    scheme: HTTP
+                  periodSeconds: 15
+                  successThreshold: 1
+                  timeoutSeconds: 2
+                readinessProbe:
+                  failureThreshold: 2
+                  httpGet:
+                    httpHeaders:
+                      - name: Authorization
+                        value: Basic YWRtaW46YWRtaW5hZG1pbg==
+                    path: /_node/health?probes=api-sync
+                    port: 18082
+                    scheme: HTTP
+                  periodSeconds: 10
+                  successThreshold: 1
+                  timeoutSeconds: 2
+                startupProbe:
+                  failureThreshold: 29
+                  httpGet:
+                    httpHeaders:
+                      - name: Authorization
+                        value: Basic YWRtaW46YWRtaW5hZG1pbg==
+                    path: /_node/health?probes=http-server
+                    port: 18082
+                    scheme: HTTP
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  successThreshold: 1
+                  timeoutSeconds: 1
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+                  requests:
+                    cpu: 200m
+                    memory: 256Mi
+                volumeMounts:
+                  - name: config
+                    mountPath: /opt/graviteeio-gateway/config/gravitee.yml
+                    subPath: gravitee.yml
+            volumes:
+              - name: config
+                configMap:
+                  name: my-apim-gateway
+
+  - it: Check redis plugin to not download
+    template: gateway/gateway-deployment.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 1.0.0-app
+    release:
+      name: my-apim
+      namespace: unittest
+    set:
+      ratelimit:
+        type: "redis"
+      gateway:
+        ratelimit:
+          redis:
+            host: localhost
+      redis:
+        download: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec
+          value:
+            serviceAccountName: my-apim-apim
+            affinity:
+              {}
+            nodeSelector:
+              {}
+            topologySpreadConstraints:
+              []
+            tolerations:
+              []
+            terminationGracePeriodSeconds: 30
+            initContainers:
+            containers:
+              - name: my-apim-gateway
+                image: "graviteeio/apim-gateway:1.0.0-app"
+                imagePullPolicy: Always
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1001
+                ports:
+                  - name: http
+                    containerPort: 8082
+                  - containerPort: 18082
+                    name: gateway-techapi
+                env:
+                envFrom:
+                  []
+                livenessProbe:
+                  failureThreshold: 3
+                  httpGet:
+                    httpHeaders:
+                      - name: Authorization
+                        value: Basic YWRtaW46YWRtaW5hZG1pbg==
+                    path: /_node/health?probes=http-server
+                    port: 18082
+                    scheme: HTTP
+                  periodSeconds: 15
+                  successThreshold: 1
+                  timeoutSeconds: 2
+                readinessProbe:
+                  failureThreshold: 2
+                  httpGet:
+                    httpHeaders:
+                      - name: Authorization
+                        value: Basic YWRtaW46YWRtaW5hZG1pbg==
+                    path: /_node/health?probes=api-sync
+                    port: 18082
+                    scheme: HTTP
+                  periodSeconds: 10
+                  successThreshold: 1
+                  timeoutSeconds: 2
+                startupProbe:
+                  failureThreshold: 29
+                  httpGet:
+                    httpHeaders:
+                      - name: Authorization
+                        value: Basic YWRtaW46YWRtaW5hZG1pbg==
+                    path: /_node/health?probes=http-server
+                    port: 18082
+                    scheme: HTTP
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  successThreshold: 1
+                  timeoutSeconds: 1
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+                  requests:
+                    cpu: 200m
+                    memory: 256Mi
+                volumeMounts:
+                  - name: config
+                    mountPath: /opt/graviteeio-gateway/config/gravitee.yml
+                    subPath: gravitee.yml
+            volumes:
+              - name: config
+                configMap:
+                  name: my-apim-gateway
