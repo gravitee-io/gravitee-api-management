@@ -149,7 +149,7 @@ public class ApplicationsResource extends AbstractResource {
         if (!isAdmin()) {
             applicationQuery.setUser(getAuthenticatedUser());
         }
-        if (isAdmin() || (query != null && !query.isEmpty())) {
+        if (isAdmin() || (status != null && !status.isEmpty())) {
             applicationQuery.setStatus(status);
         } else {
             applicationQuery.setUser(getAuthenticatedUser());
