@@ -144,7 +144,7 @@ public class ApiMembersResource_GetTest extends AbstractResourceTest {
         assertEquals(2, apiResponse.getPagination().getPageCount().intValue());
         assertEquals(2, apiResponse.getPagination().getPerPage().intValue());
         assertEquals(4, apiResponse.getPagination().getTotalCount().intValue());
-        assertEquals(1, apiResponse.getPagination().getPageItemsCount().intValue());
+        assertEquals(2, apiResponse.getPagination().getPageItemsCount().intValue());
 
         assertEquals(
             List.of("John Doe", "Jane Doe"),

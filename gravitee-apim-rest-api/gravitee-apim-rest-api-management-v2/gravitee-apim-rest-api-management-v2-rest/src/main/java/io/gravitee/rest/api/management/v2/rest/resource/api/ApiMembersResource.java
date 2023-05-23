@@ -41,6 +41,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Path("/environments/{envId}/apis/{apiId}/members")
@@ -63,9 +64,12 @@ public class ApiMembersResource extends AbstractResource {
             .map(MemberMapper.INSTANCE::map)
             .sorted(Comparator.comparing(Member::getId))
             .collect(Collectors.toList());
+
+        List<Member> membersSubList = computePaginationData(members, paginationParam);
+
         return new MembersResponse()
-            .data(computePaginationData(members, paginationParam))
-            .pagination(computePaginationInfo(members.size(), 1, paginationParam))
+            .data(membersSubList)
+            .pagination(computePaginationInfo(members.size(), membersSubList.size(), paginationParam))
             .links(computePaginationLinks(members.size(), paginationParam));
     }
 
