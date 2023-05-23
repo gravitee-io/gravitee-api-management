@@ -127,7 +127,7 @@ class ApiProcessorChainFactoryTest {
     }
 
     @Test
-    void shouldReturnCorsBeforeApiExecutionChainWithCors() {
+    void shouldReturnCorsBeforeSecurityChainWithCors() {
         io.gravitee.definition.model.Api apiModel = new io.gravitee.definition.model.Api();
         final Proxy proxy = new Proxy();
         Cors cors = new Cors();
@@ -135,34 +135,18 @@ class ApiProcessorChainFactoryTest {
         proxy.setCors(cors);
         apiModel.setProxy(proxy);
         Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeSecurityChain(api);
+        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-security-chain");
         Flowable<Processor> processors = extractProcessorChain(processorChain);
         processors
             .test()
             .assertComplete()
-            .assertValueCount(2)
-            .assertValueAt(0, processor -> processor instanceof CorsPreflightRequestProcessor)
-            .assertValueAt(1, processor -> processor instanceof SubscriptionProcessor);
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof CorsPreflightRequestProcessor);
     }
 
     @Test
-    void shouldReturnBeforeApiExecutionChain() {
-        io.gravitee.definition.model.Api apiModel = new io.gravitee.definition.model.Api();
-        final Logging logging = new Logging();
-        logging.setMode(LoggingMode.CLIENT);
-        final Proxy proxy = new Proxy();
-        proxy.setLogging(logging);
-        apiModel.setProxy(proxy);
-        Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
-        Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
-    }
-
-    @Test
-    void shouldReturnXForwardedBeforeApiExecutionChainWithOverrideXForwarded() {
+    void shouldReturnXForwardedBeforeApiExecutionWithOverrideXForwarded() {
         when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false)).thenReturn(true);
         apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node);
 
@@ -180,6 +164,21 @@ class ApiProcessorChainFactoryTest {
             .assertValueCount(2)
             .assertValueAt(0, processor -> processor instanceof XForwardedPrefixProcessor)
             .assertValueAt(1, processor -> processor instanceof SubscriptionProcessor);
+    }
+
+    @Test
+    void shouldReturnBeforeApiExecutionChain() {
+        io.gravitee.definition.model.Api apiModel = new io.gravitee.definition.model.Api();
+        final Logging logging = new Logging();
+        logging.setMode(LoggingMode.CLIENT);
+        final Proxy proxy = new Proxy();
+        proxy.setLogging(logging);
+        apiModel.setProxy(proxy);
+        Api api = new Api(apiModel);
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
+        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
+        Flowable<Processor> processors = extractProcessorChain(processorChain);
+        processors.test().assertComplete().assertValueCount(1).assertValueAt(0, processor -> processor instanceof SubscriptionProcessor);
     }
 
     @Test

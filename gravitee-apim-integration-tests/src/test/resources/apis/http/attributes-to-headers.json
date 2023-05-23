@@ -1,0 +1,42 @@
+{
+  "id": "attributes-to-headers",
+  "name": "attributes-to-headers",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/attributes-to-headers",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/endpoint",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [
+        "GET"
+      ],
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [],
+      "post": [
+        {
+          "name": "Attributes to Headers",
+          "description": "",
+          "enabled": true,
+          "policy": "attributes-to-header",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "resources": []
+}

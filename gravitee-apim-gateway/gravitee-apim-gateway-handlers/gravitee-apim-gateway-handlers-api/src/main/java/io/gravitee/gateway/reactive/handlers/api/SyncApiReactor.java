@@ -98,6 +98,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected final FlowChain apiFlowChain;
     private final ProcessorChain beforeHandleProcessors;
     private final ProcessorChain afterHandleProcessors;
+    protected final ProcessorChain beforeSecurityChainProcessors;
     protected final ProcessorChain beforeApiFlowsProcessors;
     protected final ProcessorChain afterApiFlowsProcessors;
     protected final ProcessorChain onErrorProcessors;
@@ -136,6 +137,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
         this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api);
         this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api);
+        this.beforeSecurityChainProcessors = apiProcessorChainFactory.beforeSecurityChain(api);
         this.beforeApiFlowsProcessors = apiProcessorChainFactory.beforeApiExecution(api);
         this.afterApiFlowsProcessors = apiProcessorChainFactory.afterApiExecution(api);
         this.onErrorProcessors = apiProcessorChainFactory.onError(api);
@@ -205,6 +207,8 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         return executeProcessorChain(ctx, beforeHandleProcessors, REQUEST)
             // Execute platform flow chain
             .andThen(platformFlowChain.execute(ctx, REQUEST))
+            // Before Security Chain.
+            .andThen(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
             // Execute security chain.
             .andThen(securityChain.execute(ctx))
             // Execute before flows processors

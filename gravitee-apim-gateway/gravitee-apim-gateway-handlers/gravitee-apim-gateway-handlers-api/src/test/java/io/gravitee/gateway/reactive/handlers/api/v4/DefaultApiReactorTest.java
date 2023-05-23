@@ -17,8 +17,6 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import static io.gravitee.common.component.Lifecycle.State.STOPPED;
 import static io.gravitee.common.http.HttpStatusCode.GATEWAY_TIMEOUT_504;
-import static io.gravitee.gateway.reactive.api.ExecutionPhase.MESSAGE_REQUEST;
-import static io.gravitee.gateway.reactive.api.ExecutionPhase.MESSAGE_RESPONSE;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
@@ -110,8 +108,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 class DefaultApiReactorTest {
 
-    public static final Long REQUEST_TIMEOUT = 200L;
-    public static final Long REQUEST_TIMEOUT_GRACE_DELAY = 30L;
     public static final String CONTEXT_PATH = "context-path";
     public static final String API_ID = "api-id";
     public static final String ORGANIZATION_ID = "organization-id";
@@ -146,6 +142,9 @@ class DefaultApiReactorTest {
 
     @Spy
     Completable spyAfterHandleProcessors = Completable.complete();
+
+    @Spy
+    Completable spyBeforeSecurityChainProcessors = Completable.complete();
 
     @Spy
     Completable spyBeforeApiExecutionProcessors = Completable.complete();
@@ -229,6 +228,9 @@ class DefaultApiReactorTest {
     private ProcessorChain afterHandleProcessors;
 
     @Mock
+    private ProcessorChain beforeSecurityChainProcessors;
+
+    @Mock
     private ProcessorChain beforeApiExecutionProcessors;
 
     @Mock
@@ -236,12 +238,6 @@ class DefaultApiReactorTest {
 
     @Mock
     private ProcessorChain onErrorProcessors;
-
-    @Mock
-    private ProcessorChain afterEntrypointRequestProcessors;
-
-    @Mock
-    private ProcessorChain beforeEntrypointResponseProcessors;
 
     @Mock
     private MutableExecutionContext ctx;
@@ -304,6 +300,7 @@ class DefaultApiReactorTest {
         lenient().when(apiDefinition.getAnalytics()).thenReturn(new Analytics());
         lenient().when(apiProcessorChainFactory.beforeHandle(api)).thenReturn(beforeHandleProcessors);
         lenient().when(apiProcessorChainFactory.afterHandle(api)).thenReturn(afterHandleProcessors);
+        lenient().when(apiProcessorChainFactory.beforeSecurityChain(api)).thenReturn(beforeSecurityChainProcessors);
         lenient().when(apiProcessorChainFactory.beforeApiExecution(api)).thenReturn(beforeApiExecutionProcessors);
         lenient().when(apiProcessorChainFactory.afterApiExecution(api)).thenReturn(afterApiExecutionProcessors);
         lenient().when(apiProcessorChainFactory.onError(api)).thenReturn(onErrorProcessors);
@@ -321,6 +318,7 @@ class DefaultApiReactorTest {
 
         lenient().when(beforeHandleProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeHandleProcessors);
         lenient().when(afterHandleProcessors.execute(ctx, RESPONSE)).thenReturn(spyAfterHandleProcessors);
+        lenient().when(beforeSecurityChainProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeSecurityChainProcessors);
         lenient().when(beforeApiExecutionProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeApiExecutionProcessors);
         lenient().when(afterApiExecutionProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyAfterApiExecutionProcessors);
         lenient().when(onErrorProcessors.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyOnErrorProcessors);
@@ -439,6 +437,7 @@ class DefaultApiReactorTest {
 
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -469,6 +468,7 @@ class DefaultApiReactorTest {
 
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -498,6 +498,7 @@ class DefaultApiReactorTest {
         InOrder inOrder = getInOrder();
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -529,6 +530,7 @@ class DefaultApiReactorTest {
         InOrder inOrder = getInOrder();
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -560,6 +562,7 @@ class DefaultApiReactorTest {
         InOrder inOrder = getInOrder();
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -590,6 +593,7 @@ class DefaultApiReactorTest {
         InOrder inOrder = getInOrder();
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -620,6 +624,7 @@ class DefaultApiReactorTest {
         InOrder inOrder = getInOrder();
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -656,6 +661,7 @@ class DefaultApiReactorTest {
         InOrder inOrder = getInOrder();
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -714,6 +720,7 @@ class DefaultApiReactorTest {
         InOrder inOrder = getInOrder();
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -770,7 +777,7 @@ class DefaultApiReactorTest {
         // Verify flow chain has been executed in the right order
         InOrder inOrder = getInOrder();
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
-        inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -825,6 +832,7 @@ class DefaultApiReactorTest {
         InOrder inOrder = getInOrder();
         inOrder.verify(spyBeforeHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyRequestPlatformFlowChain).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyBeforeSecurityChainProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spySecurityChain).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyBeforeApiExecutionProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyEntrypointRequest).subscribe(any(CompletableObserver.class));
@@ -843,7 +851,7 @@ class DefaultApiReactorTest {
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
 
         verify(endpointInvoker).invoke(any(), any(), handlerArgumentCaptor.capture());
-        assertThat(handlerArgumentCaptor.getValue()).isNotNull().isInstanceOf(ConnectionHandlerAdapter.class);
+        assertThat(handlerArgumentCaptor.getValue()).isInstanceOf(ConnectionHandlerAdapter.class);
     }
 
     @Test
@@ -964,6 +972,7 @@ class DefaultApiReactorTest {
     private InOrder getInOrder() {
         return inOrder(
             spyRequestPlatformFlowChain,
+            spyBeforeSecurityChainProcessors,
             spySecurityChain,
             spyBeforeHandleProcessors,
             spyAfterHandleProcessors,

@@ -84,13 +84,29 @@ public class ApiProcessorChainFactory {
         return new ProcessorChain("processor-chain-before-api-handle", processors, processorHooks);
     }
 
-    public ProcessorChain beforeApiExecution(final Api api) {
+    /**
+     * Return the chain of processors to execute before executing security chain.
+     *
+     * @param api the api to create the processor chain for.
+     *
+     * @return the chain of processors.
+     */
+    public ProcessorChain beforeSecurityChain(final Api api) {
         List<Processor> preProcessorList = new ArrayList<>();
 
         Cors cors = api.getDefinition().getProxy().getCors();
         if (cors != null && cors.isEnabled()) {
             preProcessorList.add(CorsPreflightRequestProcessor.instance());
         }
+
+        ProcessorChain processorChain = new ProcessorChain("processor-chain-before-security-chain", preProcessorList);
+        processorChain.addHooks(processorHooks);
+        return processorChain;
+    }
+
+    public ProcessorChain beforeApiExecution(final Api api) {
+        List<Processor> preProcessorList = new ArrayList<>();
+
         if (overrideXForwardedPrefix) {
             preProcessorList.add(XForwardedPrefixProcessor.instance());
         }

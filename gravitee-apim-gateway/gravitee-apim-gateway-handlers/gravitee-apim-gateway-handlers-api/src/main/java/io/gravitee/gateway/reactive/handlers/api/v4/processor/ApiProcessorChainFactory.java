@@ -18,7 +18,6 @@ package io.gravitee.gateway.reactive.handlers.api.v4.processor;
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 
 import io.gravitee.definition.model.Cors;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -96,13 +95,13 @@ public class ApiProcessorChainFactory {
     }
 
     /**
-     * Return the chain of processors to execute before executing all the apis flows.
+     * Return the chain of processors to execute before executing security chain.
      *
      * @param api the api to create the processor chain for.
      *
      * @return the chain of processors.
      */
-    public ProcessorChain beforeApiExecution(final Api api) {
+    public ProcessorChain beforeSecurityChain(final Api api) {
         final List<Processor> processors = new ArrayList<>();
         if (api.getDefinition().getListeners() != null) {
             getHttpListener(api)
@@ -112,11 +111,25 @@ public class ApiProcessorChainFactory {
                     if (cors != null && cors.isEnabled()) {
                         processors.add(CorsPreflightRequestProcessor.instance());
                     }
-
-                    if (overrideXForwardedPrefix) {
-                        processors.add(XForwardedPrefixProcessor.instance());
-                    }
                 });
+        }
+
+        return new ProcessorChain("processor-chain-before-security-chain", processors, processorHooks);
+    }
+
+    /**
+     * Return the chain of processors to execute before executing all the apis flows.
+     *
+     * @param api the api to create the processor chain for.
+     *
+     * @return the chain of processors.
+     */
+    public ProcessorChain beforeApiExecution(final Api api) {
+        final List<Processor> processors = new ArrayList<>();
+        if (api.getDefinition().getListeners() != null) {
+            if (overrideXForwardedPrefix) {
+                processors.add(XForwardedPrefixProcessor.instance());
+            }
 
             processors.add(SubscriptionProcessor.instance(clientIdentifierHeader));
         }
