@@ -23,11 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -90,13 +86,7 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.apiguardian.api.API;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,6 +97,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class ApiImportExportServiceImplTest {
+
+    private static final String PRIMARY_OWNER = "PRIMARY_OWNER";
+    private static final String OWNER = "OWNER";
+    private static final String MEMBER_ID = "memberId";
+    private static final String PO_MEMBER_ID = "poMemberId";
+    public static final String DUMMY = "dummy";
 
     @Mock
     private ApiMetadataService apiMetadataService;
@@ -318,10 +314,19 @@ public class ApiImportExportServiceImplTest {
             .when(apiService)
             .createWithImport(GraviteeContext.getExecutionContext(), exportApiEntityV4.getApiEntity(), USER_ID);
 
-        RoleEntity roleEntity = new RoleEntity();
-        roleEntity.setId("PRIMARY_OWNER");
-        roleEntity.setName("PRIMARY_OWNER");
-        doReturn(roleEntity).when(roleService).findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.API);
+        RoleEntity primaryOwnerRole = new RoleEntity();
+        primaryOwnerRole.setId(PRIMARY_OWNER);
+        primaryOwnerRole.setName(PRIMARY_OWNER);
+        doReturn(primaryOwnerRole)
+            .when(roleService)
+            .findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.API);
+
+        RoleEntity ownerRole = new RoleEntity();
+        ownerRole.setId(OWNER);
+        ownerRole.setName(OWNER);
+        doReturn(Optional.of(ownerRole))
+            .when(roleService)
+            .findByScopeAndName(eq(RoleScope.API), eq(OWNER), eq(GraviteeContext.getDefaultOrganization()));
 
         doReturn(emptyList()).when(pageService).search(any(), any());
 
@@ -329,14 +334,25 @@ public class ApiImportExportServiceImplTest {
         assertEquals(exportApiEntityV4.getApiEntity(), fromExportedApi);
 
         verify(apiService).createWithImport(GraviteeContext.getExecutionContext(), exportApiEntityV4.getApiEntity(), USER_ID);
+
+        verify(membershipService, times(0))
+            .addRoleToMemberOnReference(
+                GraviteeContext.getExecutionContext(),
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                PO_MEMBER_ID,
+                PRIMARY_OWNER
+            );
+
         verify(membershipService)
             .addRoleToMemberOnReference(
                 GraviteeContext.getExecutionContext(),
                 MembershipReferenceType.API,
                 API_ID,
                 MembershipMemberType.USER,
-                "memberId",
-                "OWNER"
+                MEMBER_ID,
+                OWNER
             );
         verify(pageService).createOrUpdatePages(GraviteeContext.getExecutionContext(), exportApiEntityV4.getPages(), API_ID);
 
@@ -352,6 +368,42 @@ public class ApiImportExportServiceImplTest {
 
         verify(mediaService).saveApiMedia(API_ID, fakeApiMedia().get(0));
         verify(pageService).createAsideFolder(GraviteeContext.getExecutionContext(), API_ID);
+        verify(roleService).findByScopeAndName(RoleScope.API, OWNER, GraviteeContext.getDefaultOrganization());
+    }
+
+    @Test
+    public void should_not_find_role_to_import() {
+        ExportApiEntity exportApiEntityV4 = fakeExportApiEntity();
+
+        var dummyRole = new RoleEntity();
+        dummyRole.setId(DUMMY);
+        dummyRole.setName(DUMMY);
+        var dummyMember = new MemberEntity();
+        dummyMember.setId(MEMBER_ID);
+        dummyMember.setDisplayName("Dummy John Doe");
+        dummyMember.setRoles(List.of(dummyRole));
+        dummyMember.setType(MembershipMemberType.USER);
+        exportApiEntityV4.setMembers(Set.of(dummyMember));
+
+        doReturn(exportApiEntityV4.getApiEntity())
+            .when(apiService)
+            .createWithImport(GraviteeContext.getExecutionContext(), exportApiEntityV4.getApiEntity(), USER_ID);
+
+        RoleEntity primaryOwnerRole = new RoleEntity();
+        primaryOwnerRole.setId(PRIMARY_OWNER);
+        primaryOwnerRole.setName(PRIMARY_OWNER);
+        doReturn(primaryOwnerRole)
+            .when(roleService)
+            .findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.API);
+        doReturn(Optional.empty())
+            .when(roleService)
+            .findByScopeAndName(eq(RoleScope.API), eq(DUMMY), eq(GraviteeContext.getDefaultOrganization()));
+
+        doReturn(emptyList()).when(pageService).search(any(), any());
+
+        cut.createFromExportedApi(GraviteeContext.getExecutionContext(), exportApiEntityV4, USER_ID);
+
+        verifyNoInteractions(membershipService);
     }
 
     // Fakers
@@ -469,19 +521,19 @@ public class ApiImportExportServiceImplTest {
 
     private Set<MemberEntity> fakeApiMembers() {
         var role = new RoleEntity();
-        role.setId("OWNER");
-        role.setName("OWNER");
+        role.setId(OWNER);
+        role.setName(OWNER);
         var userMember = new MemberEntity();
-        userMember.setId("memberId");
+        userMember.setId(MEMBER_ID);
         userMember.setDisplayName("John Doe");
         userMember.setRoles(List.of(role));
         userMember.setType(MembershipMemberType.USER);
 
         var poRole = new RoleEntity();
-        poRole.setId("PRIMARY_OWNER");
-        poRole.setName("PRIMARY_OWNER");
+        poRole.setId(PRIMARY_OWNER);
+        poRole.setName(PRIMARY_OWNER);
         var poUserMember = new MemberEntity();
-        poUserMember.setId("poMemberId");
+        poUserMember.setId(PO_MEMBER_ID);
         poUserMember.setDisplayName("Thomas Pesquet");
         poUserMember.setRoles(List.of(poRole));
         poUserMember.setType(MembershipMemberType.USER);

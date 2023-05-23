@@ -49,6 +49,8 @@ import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -184,13 +186,27 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         // get the current PO
         RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
         assert (poRole != null);
-        String poRoleId = poRole.getId();
+        String poRoleName = poRole.getName();
 
         for (MemberEntity member : members) {
             List<RoleEntity> rolesToImport = member
                 .getRoles()
                 .stream()
-                .filter(role -> !role.getId().equals(poRoleId))
+                .filter(role -> !role.getName().equals(poRoleName))
+                .map(role -> {
+                    Optional<RoleEntity> roleEntity = roleService.findByScopeAndName(
+                        RoleScope.API,
+                        role.getName(),
+                        executionContext.getOrganizationId()
+                    );
+                    if (roleEntity.isPresent()) {
+                        return roleEntity.get();
+                    }
+
+                    log.warn("Unable to find role '{}' to import", role.getName());
+                    return null;
+                })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
             rolesToImport.forEach(role -> {
