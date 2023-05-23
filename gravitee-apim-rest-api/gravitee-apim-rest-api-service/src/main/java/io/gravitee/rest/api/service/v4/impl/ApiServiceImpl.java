@@ -355,7 +355,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, createdApiEntity);
 
         searchEngineService.index(executionContext, apiWithMetadata, false);
-        return apiEntity;
+        return createdApiEntity;
     }
 
     private void createDefaultSupportEmailMetadata(ExecutionContext executionContext, Api createdApi) {
