@@ -15,13 +15,17 @@
  */
 import { get, has } from 'lodash';
 
-import { Api as ApiV3 } from '../entities/api';
-import { ApiV4 } from '../entities/management-api-v2';
+import { Api as ApiV1V2FromMAPIV1 } from '../entities/api';
+import { ApiV4, ApiV2 as ApiV2FromMAPIV2 } from '../entities/management-api-v2';
 
-export const isApiV3 = (api: ApiV3 | ApiV4): api is ApiV3 => {
+export const isApiV1V2FromMAPIV1 = (api: ApiV1V2FromMAPIV1 | ApiV4): api is ApiV1V2FromMAPIV1 => {
   return !isApiV4(api);
 };
 
-export const isApiV4 = (api: ApiV3 | ApiV4): api is ApiV4 => {
+export const isApiV2FromMAPIV2 = (api: ApiV2FromMAPIV2 | ApiV4): api is ApiV2FromMAPIV2 => {
+  return !isApiV4(api);
+};
+
+export const isApiV4 = (api: ApiV1V2FromMAPIV1 | ApiV4): api is ApiV4 => {
   return has(api, 'definitionVersion') && get(api as ApiV4, 'definitionVersion') === 'V4';
 };
