@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v2.rest.resource.connector.EndpointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.connector.EntrypointsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.group.GroupResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.OrganizationResource;
 import jakarta.inject.Inject;
@@ -52,6 +53,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(EndpointsResource.class);
         register(EntrypointsResource.class);
         register(ApiMembersResource.class);
+        register(GroupResource.class);
 
         register(MultiPartFeature.class);
 
