@@ -15,14 +15,24 @@
  */
 import { afterAll, beforeAll, expect } from '@jest/globals';
 import faker from '@faker-js/faker';
+import { find } from 'lodash';
 import { ApplicationsApi } from '@management-apis/ApplicationsApi';
-import { ADMIN_USER, APP_USER, forManagementAsAdminUser, forManagementAsApiUser, forManagementAsAppUser } from '@client-conf/*';
+import { ADMIN_USER, API_USER, APP_USER, forManagementAsAdminUser, forManagementAsApiUser, forManagementAsAppUser } from '@client-conf/*';
 import { forbidden, succeed } from '@lib/jest-utils';
 import { ApplicationEntity } from '@management-models/ApplicationEntity';
+import { GroupsApi } from '@management-apis/GroupsApi';
+import { GroupEntity } from '@management-models/GroupEntity';
+import { GroupMembershipsApi } from '@management-apis/GroupMembershipsApi';
+import { MemberRoleEntityFromJSON } from '@management-models/MemberRoleEntity';
+import { SearchableUser } from '@management-models/SearchableUser';
+import { UsersApi } from '@management-apis/UsersApi';
 
 const applicationManagementApiAsAdminUser = new ApplicationsApi(forManagementAsAdminUser());
 const applicationManagementApiAsAppUser = new ApplicationsApi(forManagementAsAppUser());
 const applicationManagementApiAsApiUser = new ApplicationsApi(forManagementAsApiUser());
+const groupsApi = new GroupsApi(forManagementAsAdminUser());
+const usersResourceAsApiUser = new UsersApi(forManagementAsApiUser());
+const groupMembershipsApi = new GroupMembershipsApi(forManagementAsAdminUser());
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -31,6 +41,8 @@ let createdApplication1: ApplicationEntity;
 let createdApplication2: ApplicationEntity;
 let createdApplication3: ApplicationEntity;
 let createdApplication4: ApplicationEntity;
+let createdApplication5: ApplicationEntity;
+let createdGroup: GroupEntity;
 
 describe('Applications - Searching - Paged', () => {
   beforeAll(async () => {
@@ -50,10 +62,26 @@ describe('Applications - Searching - Paged', () => {
 
     [createdApplication1, createdApplication2, createdApplication3] = await Promise.all(createdAppsAsAppUser);
 
-    const createdAppsAsApiUser = [4]
+    [createdGroup] = await Promise.all(
+      [
+        {
+          name: `${faker.random.word()}-${faker.datatype.uuid()}`,
+        },
+      ].map(
+        async (newGroupEntity) =>
+          await groupsApi.createGroup({
+            orgId,
+            envId,
+            newGroupEntity,
+          }),
+      ),
+    );
+
+    const createdAppsAsApiUser = [4, 5]
       .map((num) => ({
         name: `${faker.random.word()}-${faker.datatype.uuid()}`,
         description: `Application ${num} for "Applications searching scenario"`,
+        groups: [createdGroup.id],
       }))
       .map(
         async (newApplicationEntity) =>
@@ -64,7 +92,43 @@ describe('Applications - Searching - Paged', () => {
           }),
       );
 
-    [createdApplication4] = await Promise.all(createdAppsAsApiUser);
+    [createdApplication4, createdApplication5] = await Promise.all(createdAppsAsApiUser);
+
+    // get user member
+    const users: SearchableUser[] = await usersResourceAsApiUser.searchUsers({
+      envId,
+      orgId,
+      q: process.env.API_USERNAME,
+    });
+    const userMember = find(users, (user) => user.displayName === process.env.API_USERNAME);
+
+    // add member user to the group
+    await groupMembershipsApi.addOrUpdateGroupMember({
+      envId,
+      orgId,
+      group: createdGroup.id,
+      groupMembership: [
+        {
+          id: userMember.id,
+          reference: userMember.reference,
+          roles: [
+            { scope: 'API', name: 'USER' },
+            { scope: 'APPLICATION', name: 'USER' },
+          ].map(MemberRoleEntityFromJSON),
+        },
+      ],
+    });
+
+    // archive the application5
+    const deletedAppsAsApiUser = [createdApplication5].map(
+      async (application) =>
+        await applicationManagementApiAsApiUser.deleteApplication({
+          orgId,
+          envId,
+          application: application.id,
+        }),
+    );
+    await Promise.all(deletedAppsAsApiUser);
   });
 
   test(`Search all for ${APP_USER.username}`, async () => {
@@ -114,6 +178,12 @@ describe('Applications - Searching - Paged', () => {
     expect(applications.page.total_pages).toBeGreaterThanOrEqual(2);
   });
 
+  test(`Search all ACTIVE for ${API_USER.username}`, async () => {
+    const applications = await succeed(applicationManagementApiAsApiUser.getApplicationsPagedRaw({ orgId, envId, status: 'ACTIVE' }));
+    const archivedApplications = applications.data.filter((a) => a.status === 'ARCHIVED');
+    expect(archivedApplications.length).toEqual(0);
+  });
+
   afterAll(async () => {
     const deletedAppsAsAppUser = [createdApplication1, createdApplication2, createdApplication3].map(
       async (application) =>
@@ -133,5 +203,14 @@ describe('Applications - Searching - Paged', () => {
         }),
     );
     await Promise.all(deletedAppsAsApiUser);
+    const deletedGroup = [createdGroup].map(
+      async (group) =>
+        await groupsApi.deleteGroup({
+          orgId,
+          envId,
+          group: group.id,
+        }),
+    );
+    await Promise.all(deletedGroup);
   });
 });
