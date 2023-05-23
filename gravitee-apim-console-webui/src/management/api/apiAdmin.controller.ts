@@ -31,7 +31,7 @@ class ApiAdminController {
 
   /* @ngInject */
   constructor(
-    private resolvedApi: any,
+    private resolvedApiV1V2: any,
     private $state: StateService,
     private $scope: IScope,
     private $rootScope: IScope,
@@ -51,8 +51,8 @@ class ApiAdminController {
 
     this.hasPlatformPolicies = false;
 
-    this.api = resolvedApi.data;
-    this.ngIfMatchEtagInterceptor.updateLastEtag('api', resolvedApi.headers('etag'));
+    this.api = resolvedApiV1V2.data;
+    this.ngIfMatchEtagInterceptor.updateLastEtag('api', resolvedApiV1V2.headers('etag'));
 
     this.ApiService = ApiService;
     this.NotificationService = NotificationService;

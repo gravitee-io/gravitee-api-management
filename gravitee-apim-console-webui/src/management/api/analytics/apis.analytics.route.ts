@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateParams } from '@uirouter/core';
+import { StateParams, StateService } from '@uirouter/core';
 
 import { Scope } from '../../../entities/alert';
 import AlertService from '../../../services/alert.service';
 import { ApiService } from '../../../services/api.service';
 import DashboardService from '../../../services/dashboard.service';
 import TenantService from '../../../services/tenant.service';
+import EnvironmentService from '../../../services/environment.service';
 
 export default apisAnalyticsRouterConfig;
 
@@ -36,6 +37,19 @@ function apisAnalyticsRouterConfig($stateProvider) {
       controllerAs: 'analyticsCtrl',
       resolve: {
         dashboards: (DashboardService: DashboardService) => DashboardService.list('API').then((response) => response.data),
+        resolvedApi: function (
+          $stateParams: StateParams,
+          ApiService: ApiService,
+          $state: StateService,
+          Constants: any,
+          EnvironmentService: EnvironmentService,
+        ) {
+          return ApiService.get($stateParams.apiId).catch((err) => {
+            if (err && err.interceptorFuture) {
+              $state.go('management.apis.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id) });
+            }
+          });
+        },
       },
       data: {
         perms: {
@@ -108,6 +122,19 @@ function apisAnalyticsRouterConfig($stateProvider) {
         applications: ($stateParams: StateParams, ApiService: ApiService) =>
           ApiService.getSubscribers($stateParams.apiId, null, null, null, ['owner']),
         tenants: (TenantService: TenantService) => TenantService.list(),
+        resolvedApi: function (
+          $stateParams: StateParams,
+          ApiService: ApiService,
+          $state: StateService,
+          Constants: any,
+          EnvironmentService: EnvironmentService,
+        ) {
+          return ApiService.get($stateParams.apiId).catch((err) => {
+            if (err && err.interceptorFuture) {
+              $state.go('management.apis.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id) });
+            }
+          });
+        },
       },
     })
     .state('management.apis.detail.analytics.logs.configuration', {

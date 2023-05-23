@@ -1,0 +1,100 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="api-navigation">
+  <div class="api-navigation__menu">
+    <gio-submenu class="api-navigation__submenu">
+      <api-ng-navigation-title
+        gioSubmenuTitle
+        class="api-navigation__submenu__title"
+        [apiName]="currentApi.name"
+        [apiVersion]="currentApi.apiVersion"
+        [apiState]="currentApi.state"
+        [apiLifecycleState]="currentApi.lifecycleState"
+        [apiIsSync]="currentApiIsSync"
+        [apiOrigin]="currentApi.definitionContext.origin"
+        separator="pipe"
+      ></api-ng-navigation-title>
+      <ng-container *ngFor="let menuItem of this.subMenuItems">
+        <gio-submenu-item
+          *ngIf="!menuItem?.targetRoute && menuItem?.tabs?.length > 0"
+          tabIndex="1"
+          (click)="navigateTo(menuItem?.tabs[0]?.targetRoute)"
+          [active]="isTabActive(menuItem?.tabs)"
+          >{{ menuItem?.displayName }}</gio-submenu-item
+        >
+        <gio-submenu-item
+          *ngIf="menuItem?.targetRoute"
+          tabIndex="1"
+          (click)="navigateTo(menuItem?.targetRoute)"
+          [active]="isActive(menuItem?.baseRoute)"
+          >{{ menuItem?.displayName }}</gio-submenu-item
+        >
+      </ng-container>
+      <ng-container *ngFor="let group of this.groupItems">
+        <gio-submenu-group [title]="group.title" *ngIf="group.title">
+          <ng-container *ngFor="let subItem of group.items">
+            <gio-submenu-item
+              *ngIf="!subItem?.targetRoute && subItem?.tabs?.length > 0"
+              tabIndex="1"
+              (click)="navigateTo(subItem?.tabs[0]?.targetRoute)"
+              [active]="isTabActive(subItem?.tabs)"
+              >{{ subItem?.displayName }}</gio-submenu-item
+            >
+            <gio-submenu-item
+              *ngIf="subItem?.targetRoute"
+              tabIndex="1"
+              (click)="navigateTo(subItem?.targetRoute)"
+              [active]="isActive(subItem?.baseRoute)"
+              >{{ subItem?.displayName }}</gio-submenu-item
+            >
+          </ng-container>
+        </gio-submenu-group>
+      </ng-container>
+    </gio-submenu>
+  </div>
+  <div class="api-navigation__content">
+    <ng-content select="#banner"></ng-content>
+    <div class="api-navigation__content__view">
+      <gio-breadcrumb *ngIf="hasBreadcrumb" class="api-navigation__breadcrumb">
+        <span *gioBreadcrumbItem class="api-navigation__breadcrumb__item">APIs</span>
+        <api-ng-navigation-title
+          gioSubmenuTitle
+          class="api-navigation__submenu__title api-navigation__breadcrumb__item"
+          [apiName]="currentApi.name"
+          [apiVersion]="currentApi.apiVersion"
+          [apiState]="currentApi.state"
+          [apiLifecycleState]="currentApi.lifecycleState"
+          [apiIsSync]="currentApiIsSync"
+          [apiOrigin]="currentApi.definitionContext.origin"
+          *gioBreadcrumbItem
+        ></api-ng-navigation-title>
+        <ng-template ngFor let-item [ngForOf]="this.computeBreadcrumbItems()">
+          <span *gioBreadcrumbItem class="api-navigation__breadcrumb__item">{{ item }}</span>
+        </ng-template>
+      </gio-breadcrumb>
+
+      <api-ng-navigation-tabs
+        *ngIf="selectedItemWithTabs"
+        class="api-navigation__content__tabs"
+        [tabMenuItems]="this.selectedItemWithTabs.tabs"
+      ></api-ng-navigation-tabs>
+
+      <ui-view></ui-view>
+    </div>
+  </div>
+</div>

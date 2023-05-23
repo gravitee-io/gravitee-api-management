@@ -340,4 +340,8 @@ export class ApiService {
   deleteMetadata(apiId: string, metadataKey: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.baseURL}/apis/${apiId}/metadata/${metadataKey}`);
   }
+
+  getPermissions(apiId: string): Observable<Record<string, ('C' | 'R' | 'U' | 'D')[]>> {
+    return this.http.get<Record<string, ('C' | 'R' | 'U' | 'D')[]>>(`${this.constants.env.baseURL}/apis/${apiId}/members/permissions`);
+  }
 }
