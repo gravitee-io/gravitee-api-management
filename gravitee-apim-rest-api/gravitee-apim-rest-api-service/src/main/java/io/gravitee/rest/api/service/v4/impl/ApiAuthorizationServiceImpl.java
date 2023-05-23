@@ -146,7 +146,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             apiQuery = new ApiQuery();
         }
         apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
-        return findIdsByUser(executionContext, userId, apiQuery, true);
+        return findIdsByUser(executionContext, userId, apiQuery, false);
     }
 
     @Override
