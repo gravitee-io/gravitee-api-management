@@ -1,0 +1,516 @@
+{{- if and (.Values.gateway.enabled) (or (not (include "gateway.externalConfig" .)) (.Values.gateway.logging.debug)) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "gravitee.gateway.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.gateway.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.gateway.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.gateway.ingressController }}
+    gravitee.io/component: ingress
+    {{- end }}
+    {{- if .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+data:
+  {{- if not (include "gateway.externalConfig" .)}}
+  gravitee.yml: |
+    # Gateway HTTP server
+    http:
+      port: {{ .Values.gateway.service.internalPort }}
+      host: 0.0.0.0
+    #  idleTimeout: 0
+    #  tcpKeepAlive: true
+    #  compressionSupported: false
+    #  instances: 0
+      alpn: true
+      {{- if .Values.gateway.ssl.enabled }}
+      secured: true
+      ssl:
+        keystore:
+          {{- if .Values.gateway.ssl.keystore.type }}
+          type: {{ .Values.gateway.ssl.keystore.type }}
+          {{- end }}
+          {{- if .Values.gateway.ssl.keystore.path }}
+          path: {{ .Values.gateway.ssl.keystore.path }}
+          {{- end }}
+          {{- if .Values.gateway.ssl.keystore.password }}
+          password: {{ .Values.gateway.ssl.keystore.password | quote }}
+          {{- end }}
+          {{- if .Values.gateway.ssl.keystore.kubernetes }}
+          kubernetes: {{ .Values.gateway.ssl.keystore.kubernetes }}
+          {{- end }}
+        clientAuth: {{ .Values.gateway.ssl.clientAuth }}
+        {{- if .Values.gateway.ssl.truststore }}
+        truststore:
+          {{- if .Values.gateway.ssl.truststore.type }}
+          type: {{ .Values.gateway.ssl.truststore.type }}
+          {{- end }}
+          path: {{ .Values.gateway.ssl.truststore.path }}
+          password: {{ .Values.gateway.ssl.truststore.password | quote }}
+        {{- end }}
+        {{- if .Values.gateway.ssl.sni }}
+        sni: true
+        {{- end }}
+      {{- end }}
+      websocket:
+        enabled: {{ .Values.gateway.websocket }}
+    management:
+      type: {{ .Values.management.type | default "mongodb" }}
+      {{- if or (eq .Values.management.type "mongodb") (kindIs "invalid" .Values.management.type) }}
+      mongodb:
+        sslEnabled: {{ .Values.mongo.sslEnabled }}
+        socketKeepAlive: {{ .Values.mongo.socketKeepAlive }}
+        {{- if .Values.mongo.uri }}
+        uri: {{ .Values.mongo.uri }}
+        {{- else if .Values.mongo.servers }}
+        servers:
+          {{- .Values.mongo.servers | nindent 10 }}
+        dbname: {{ .Values.mongo.dbname }}
+        {{- if (eq .Values.mongo.auth.enabled true) }}
+        username: {{ .Values.mongo.auth.username }}
+        password: {{ .Values.mongo.auth.password }}
+        authSource: {{ .Values.mongo.auth.source | default "gravitee" }}
+        {{- end }}
+        {{- else }}
+        uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
+        {{- end }}
+        {{- if .Values.mongo.keystore }}
+        keystore:
+        {{- toYaml .Values.mongo.keystore | nindent 10 }}
+        {{- end }}
+        {{- if .Values.mongo.truststore }}
+        truststore:
+        {{- toYaml .Values.mongo.truststore | nindent 10 }}
+        {{- end }}
+      {{- else if (eq .Values.management.type "jdbc") }}
+      jdbc:
+        url: {{ .Values.jdbc.url }}
+        {{- if .Values.jdbc.username }}
+        username: {{ .Values.jdbc.username }}
+        {{- end }}
+        {{- if .Values.jdbc.password }}
+        password: {{ .Values.jdbc.password }}
+        {{- end }}
+        schema: {{ .Values.jdbc.schema | default "public" }}
+        liquibase: {{ .Values.jdbc.liquibase | default true }}
+        {{- if .Values.jdbc.pool }}
+        pool:
+          {{ toYaml .Values.jdbc.pool | nindent 10 | trim -}}
+        {{- end }}
+      {{- else if (eq .Values.management.type "http") }}
+      http:
+        url: {{ .Values.gateway.management.http.url }}
+        keepAlive: {{ .Values.gateway.management.http.keepAlive | default true }}
+        idleTimeout: {{ .Values.gateway.management.http.idleTimeout | default 30000 }}
+        connectTimeout: {{ .Values.gateway.management.http.connectTimeout | default 10000 }}
+        {{- if .Values.gateway.management.http.proxy }}
+        proxy:
+          host: {{ .Values.gateway.management.http.proxy.host }}
+          port: {{ .Values.gateway.management.http.proxy.port }}
+        {{- end }}
+        authentication:
+          basic:
+            username: {{ .Values.gateway.management.http.username }}
+            password: {{ .Values.gateway.management.http.password }}
+        {{- if .Values.gateway.management.http.ssl }}
+        ssl:
+          trustall: {{ .Values.gateway.management.http.ssl.trustall | default true }}
+          verifyHostname: {{ .Values.gateway.management.http.ssl.verifyHostname | default true }}
+          {{- if .Values.gateway.management.http.ssl.keystore }}
+          keystore:
+            {{- if .Values.gateway.management.http.ssl.keystore.type }}
+            type: {{ .Values.gateway.management.http.ssl.keystore.type }}
+            {{- end }}
+            path: {{ .Values.gateway.management.http.ssl.keystore.path }}
+            password: {{ .Values.gateway.management.http.ssl.keystore.password | quote }}
+          {{- end }}
+          {{- if .Values.gateway.management.http.ssl.truststore }}
+          truststore:
+            {{- if .Values.gateway.management.http.ssl.truststore.type }}
+            type: {{ .Values.gateway.management.http.ssl.truststore.type }}
+            {{- end }}
+            path: {{ .Values.gateway.management.http.ssl.truststore.path }}
+            password: {{ .Values.gateway.management.http.ssl.truststore.password | quote }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+
+    ratelimit:
+      type: {{ .Values.ratelimit.type | default "mongodb" }}
+      {{- if or (eq .Values.ratelimit.type "mongodb") (kindIs "invalid" .Values.ratelimit.type) }}
+      mongodb:
+        sslEnabled: {{ .Values.mongo.sslEnabled }}
+        socketKeepAlive: {{ .Values.mongo.socketKeepAlive }}
+        {{- if .Values.mongo.uri }}
+        uri: {{ .Values.mongo.uri }}
+        {{- else if .Values.mongo.servers }}
+        servers:
+          {{- .Values.mongo.servers | nindent 10 }}
+        dbname: {{ .Values.mongo.dbname }}
+        {{- if (eq .Values.mongo.auth.enabled true) }}
+        username: {{ .Values.mongo.auth.username }}
+        password: {{ .Values.mongo.auth.password }}
+        authSource: {{ .Values.mongo.auth.source | default "gravitee" }}
+        {{- end }}
+        {{- else }}
+        uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
+        {{- end }}
+      {{- else if (eq .Values.ratelimit.type "jdbc") }}
+      jdbc:
+        url: {{ .Values.jdbc.url }}
+        {{- if .Values.jdbc.username }}
+        username: {{ .Values.jdbc.username }}
+        {{- end }}
+        {{- if .Values.jdbc.password }}
+        password: {{ .Values.jdbc.password }}
+        {{- end }}
+        schema: {{ .Values.jdbc.schema | default "public" }}
+        liquibase: {{ .Values.jdbc.liquibase | default true }}
+        {{- if .Values.jdbc.pool }}
+        pool:
+          {{ toYaml .Values.jdbc.pool | nindent 10 | trim -}}
+        {{- end }}
+      {{- else if (eq .Values.ratelimit.type "redis") }}
+      redis:
+        host: {{ .Values.gateway.ratelimit.redis.host }}
+        port: {{ .Values.gateway.ratelimit.redis.port }}
+        {{- if .Values.gateway.ratelimit.redis.password }}
+        password: {{ .Values.gateway.ratelimit.redis.password }}
+        {{- end }}
+        {{- if .Values.gateway.ratelimit.redis.ssl }}
+        ssl: {{ .Values.gateway.ratelimit.redis.ssl }}
+        {{- end }}
+        {{- if (not (empty ((.Values.gateway.ratelimit.redis.sentinel).nodes))) }}
+        sentinel:
+          master: {{ .Values.gateway.ratelimit.redis.sentinel.master }}
+          nodes:
+            {{- range .Values.gateway.ratelimit.redis.sentinel.nodes }}
+            - host: {{ .host }}
+              port: {{ .port }}
+            {{- end }}
+        {{- end }}
+      {{- end }}
+
+    cache:
+      type: ehcache
+      enabled: true
+
+    # Sharding tags configuration
+    # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
+    tags: {{ .Values.gateway.sharding_tags }}  
+
+    # Multi-tenant configuration
+    # Allow only a single-value
+    tenant: {{ .Values.gateway.tenant }}  
+
+    {{- if .Values.gateway.system}}
+    system:
+{{ toYaml .Values.gateway.system | indent 6 }}
+    {{- end }}
+    
+    # Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
+    # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
+    reporters:
+      # Elasticsearch reporter
+      elasticsearch:
+        enabled: {{ .Values.gateway.reporters.elasticsearch.enabled }}
+        {{- with .Values.es.endpoints }}
+        endpoints:
+          {{ toYaml . | nindent 10 | trim -}}
+        {{- end }}
+        {{- if .Values.es.index_mode }}
+        index_mode: {{ .Values.es.index_mode }}
+        {{- end }}
+        pipeline:
+          plugins:
+            ingest: {{ .Values.es.pipeline.plugins.ingest }}
+        {{- if (eq .Values.es.lifecycle.enabled true) }}
+        lifecycle:
+          policy_property_name: {{ .Values.es.lifecycle.policyPropertyName }}
+          policies:
+            monitor: {{ .Values.es.lifecycle.policies.monitor }}
+            request: {{ .Values.es.lifecycle.policies.request }}
+            health: {{ .Values.es.lifecycle.policies.health }}
+            log: {{ .Values.es.lifecycle.policies.log }}
+        {{- end }}
+        {{- if (eq .Values.es.security.enabled true) }}
+        security:
+          username: {{ .Values.es.security.username }}
+          password: {{ .Values.es.security.password }}
+        {{- end }}
+        {{- if (eq .Values.es.ssl.enabled true) }}
+        ssl:
+          keystore:
+            type: {{ .Values.es.ssl.keystore.type }}
+            {{- if or .Values.es.ssl.keystore.path .Values.es.ssl.keystore.password }}
+            path: {{ .Values.es.ssl.keystore.path }}
+            password: {{ .Values.es.ssl.keystore.password }}
+            {{- end }}
+            {{- if or .Values.es.ssl.keystore.certs .Values.es.ssl.keystore.keys }}
+            certs: {{ .Values.es.ssl.keystore.certs }}
+            keys: {{ .Values.es.ssl.keystore.keys }}
+            {{- end }}
+        {{- end }}
+        index: {{ .Values.es.index }}
+        bulk:
+          actions: 1000           # Number of requests action before flush
+          flush_interval: 5       # Flush interval in seconds
+
+      {{- range $key, $value := .Values.gateway.reporters }}
+      {{- if ne $key "elasticsearch"}}
+      {{ $key }}:
+{{ toYaml $value | indent 8 }}      
+      {{- end }}
+      {{- end }}
+
+    services:
+      core:
+        http:
+          enabled: {{ .Values.gateway.services.core.http.enabled | default true }}
+          port: {{ .Values.gateway.services.core.http.port | default "18082" }}
+          host: {{ .Values.gateway.services.core.http.host | default "localhost" }}
+          authentication:
+            type: {{ .Values.gateway.services.core.http.authentication.type | default "basic" }}
+            users:
+              admin: {{ .Values.gateway.services.core.http.authentication.password | default "adminadmin" }}
+          secured: {{ .Values.gateway.services.core.http.secured | default false }}
+          {{- if (eq .Values.gateway.services.core.http.secured true) }}
+          ssl:
+            keystore:
+              type: {{ .Values.gateway.services.core.http.ssl.keystore.type }}
+              path: {{ .Values.gateway.services.core.http.ssl.keystore.path }}
+          {{- end }}
+
+      sync: {{ toYaml .Values.gateway.services.sync | nindent 8 }}
+
+      # Service used to store and cache api-keys from the management repository to avoid direct repository communication
+      # while serving requests.
+      apikeyscache:
+        delay: 10000
+        unit: MILLISECONDS
+        threads: 3 # Threads core size used to retrieve api-keys from repository.
+
+      # Local registry service.
+      # This registry is used to load API Definition with json format from the file system. By doing so, you do not need
+      # to configure your API using the web console or the rest API (but you need to know and understand the json descriptor
+      # format to make it work....)
+      local:
+        enabled: false
+        path: ${gravitee.home}/apis # The path to API descriptors
+
+      # Gateway monitoring service.
+      # This service retrieves metrics like os / process / jvm metrics and send them to an underlying reporting service.
+      monitoring:
+        delay: 5000
+        unit: MILLISECONDS
+
+      # Endpoint healthcheck service.
+      healthcheck:
+        threads: 3 # Threads core size used to check endpoint availability
+
+      {{- if .Values.gateway.services.bridge.enabled }}
+      bridge:
+        http:
+          enabled: true
+          port: {{ .Values.gateway.services.bridge.service.internalPort | default 18092}}
+          host: {{ .Values.gateway.services.bridge.host | default "localhost" }}
+          authentication:
+            type: basic
+            {{- if .Values.gateway.services.bridge.username }}
+            users:
+              {{ .Values.gateway.services.bridge.username }}: {{ .Values.gateway.services.bridge.password }}
+            {{- end }}
+          {{- if .Values.gateway.services.bridge.ssl }}
+          secured: {{ .Values.gateway.services.bridge.ssl.enabled | default false }}
+          alpn: true
+          ssl:
+            {{- if .Values.gateway.services.bridge.ssl.keystore}}
+            keystore:
+              {{- if .Values.gateway.services.bridge.ssl.keystore.type }}
+              type: {{ .Values.gateway.services.bridge.ssl.keystore.type }}
+              {{- end }}
+              path: {{ .Values.gateway.services.bridge.ssl.keystore.path }}
+              password: {{ .Values.gateway.services.bridge.ssl.keystore.password | quote }}
+            {{- end }}
+            clientAuth: {{ .Values.gateway.services.bridge.ssl.clientAuth | default false }}
+            {{- if .Values.gateway.services.bridge.ssl.truststore }}
+            truststore:
+              {{- if .Values.gateway.services.bridge.ssl.truststore.type }}
+              type: {{ .Values.gateway.services.bridge.ssl.truststore.type }}
+              {{- end }}
+              path: {{ .Values.gateway.services.bridge.ssl.truststore.path }}
+              password: {{ .Values.gateway.services.bridge.ssl.truststore.password | quote }}
+            {{- end }}
+          {{- end }}
+      {{- end }}
+
+      {{- if .Values.gateway.services.metrics.enabled }}
+      metrics: {{- toYaml .Values.gateway.services.metrics | nindent 10 }}
+      {{- end }}
+
+      {{- if .Values.gateway.services.tracing.enabled }}
+      tracing:
+        enabled: {{ .Values.gateway.services.tracing.enabled }}
+        type: {{ .Values.gateway.services.tracing.type | quote }}
+        {{- if .Values.gateway.services.tracing.jaeger }}
+        jaeger:
+{{ toYaml .Values.gateway.services.tracing.jaeger | indent 10 }}
+        {{- end }}
+      {{- end }}
+
+    {{- if or .Values.gateway.handlers }}
+    handlers:
+{{ toYaml .Values.gateway.handlers | indent 6 }}
+    {{- end }}
+    
+    {{- if .Values.gateway.policy }}
+    policy: 
+{{ toYaml .Values.gateway.policy | indent 6 }}   
+    {{ else }}
+    policy:
+      api-key:
+        header: {{ .Values.gateway.apiKey.header }}
+        param: {{ .Values.gateway.apiKey.param }}
+    {{- end }}
+    
+    # Alert Engine communication
+    {{- if .Values.alerts.enabled }}
+    alerts:
+      alert-engine-connector-ws:
+        enabled: true
+      alert-engine:
+        enabled: true
+        {{- if .Values.alerts.engines }}
+        engines:
+          {{ toYaml .Values.alerts.engines | nindent 10 | trim -}}
+        {{- end }}
+        ws:
+          discovery: true
+          {{- if .Values.alerts.options }}
+          {{ toYaml .Values.alerts.options | nindent 10 | trim -}}
+          {{- end }}
+          {{- with .Values.alerts.endpoints }}
+          endpoints:
+            {{ toYaml . | nindent 12 | trim -}}
+          {{- end }}
+          {{- if (eq .Values.alerts.security.enabled true) }}
+          security:
+            username: {{ .Values.alerts.security.username }}
+            password: {{ .Values.alerts.security.password }}
+          {{- end }}
+    {{- else }}
+    alerts:
+      alert-engine-connector-ws:
+        enabled: false
+    {{- end }}
+
+    # APIs specific configuration
+    {{- if .Values.gateway.api }}
+      api: {{- toYaml .Values.gateway.api | nindent 6 -}}
+    {{- end}}
+
+    gracefulShutdown:
+      delay: {{ .Values.gateway.gracefulShutdown.delay }}
+      unit: {{ .Values.gateway.gracefulShutdown.unit }}
+
+    # Old class loader behavior, false by default
+    classloader:
+      legacy:
+        enabled: {{ .Values.gateway.classloader.legacy.enabled }}
+
+  {{- end }}
+  {{- if .Values.gateway.logging.debug }}
+  logback.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+
+    <!--
+      ~ Copyright (c) 2015-2016, The Gravitee team (http://www.gravitee.io)
+      ~
+      ~  Licensed under the Apache License, Version 2.0 (the "License");
+      ~  you may not use this file except in compliance with the License.
+      ~  You may obtain a copy of the License at
+      ~
+      ~  http://www.apache.org/licenses/LICENSE-2.0
+      ~
+      ~  Unless required by applicable law or agreed to in writing, software
+      ~  distributed under the License is distributed on an "AS IS" BASIS,
+      ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+      ~  See the License for the specific language governing permissions and
+      ~  limitations under the License.
+      -->
+
+    <configuration>
+
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            {{- if .Values.gateway.logging.stdout.json }}
+            <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+                    <jsonFormatter
+                            class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+                    </jsonFormatter>
+                    <appendLineSeparator>true</appendLineSeparator>
+                    <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSXX</timestampFormat>
+                </layout>
+            </encoder>
+            {{- else }}
+            <!-- encoders are assigned the type
+                ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+            <encoder>
+                <pattern>{{ .Values.gateway.logging.stdout.encoderPattern }}</pattern>
+            </encoder>
+            {{- end }}
+        </appender>
+
+        {{- if .Values.gateway.logging.file.enabled }}
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${gravitee.home}/logs/gravitee.log</file>
+{{ .Values.gateway.logging.file.rollingPolicy | indent 12 }}
+            <encoder>
+                <pattern>{{ .Values.gateway.logging.file.encoderPattern }}</pattern>
+            </encoder>
+        </appender>
+        {{- end }}
+
+        {{- if .Values.gateway.logging.file.enabled }}
+        <appender name="async-file" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="FILE" />
+        </appender>
+        {{- end }}
+
+        <appender name="async-console" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="STDOUT" />
+        </appender>
+
+        <logger name="io.gravitee" level="{{ .Values.gateway.logging.graviteeLevel }}" />
+        <logger name="org.reflections" level="WARN" />
+        <logger name="org.springframework" level="WARN" />
+        <logger name="org.eclipse.jetty" level="{{ .Values.gateway.logging.jettyLevel }}" />
+        {{- range $additionalLogger := .Values.gateway.logging.additionalLoggers }}
+        <logger name="{{ $additionalLogger.name }}" level="{{ $additionalLogger.level }}" />
+        {{- end }}
+
+        <!-- Strictly speaking, the level attribute is not necessary since -->
+        <!-- the level of the root level is set to DEBUG by default.       -->
+        <root level="INFO">
+            <appender-ref ref="async-console" />
+            {{- if .Values.gateway.logging.file.enabled }}
+            <appender-ref ref="async-file" />
+            {{- end }}
+        </root>
+
+    </configuration>
+  {{- end -}}
+  {{- end -}}

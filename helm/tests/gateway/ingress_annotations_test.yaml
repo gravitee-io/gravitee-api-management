@@ -1,0 +1,18 @@
+suite: Test API Gateway Ingress - annotations
+templates:
+  - "gateway/gateway-ingress.yaml"
+tests:
+  - it: Sets common ingress annotations
+    set:
+      common:
+        annotations:
+          acme.com/team: api
+          acme.com/feature: products
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            acme.com/team: api
+            acme.com/feature: products
+            kubernetes.io/ingress.class: nginx 
+            nginx.ingress.kubernetes.io/ssl-redirect: "false" 

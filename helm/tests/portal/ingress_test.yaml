@@ -1,0 +1,176 @@
+suite: Test Portal Ingress
+templates:
+  - "portal/portal-ingress.yaml"
+tests:
+  - it: Check Ingress extensions/v1beta1
+    set:
+      global:
+        kubeVersion: 1.13.0
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: extensions/v1beta1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check Ingress networking.k8s.io/v1beta1
+    set:
+      global:
+        kubeVersion: 1.15.0
+      portal:
+        ingress:
+          annotations:
+            kubernetes.io/ingress.class: nginx
+            my-annotation: my-annotation-value
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - isEmpty:
+          path: spec.ingressClassName
+      - isNotEmpty:
+          path: metadata.annotations.[kubernetes.io/ingress.class]
+      - isNotEmpty:
+          path: metadata.annotations.[my-annotation]
+
+  - it: Check Ingress networking.k8s.io/v1 without IngressClassName
+    set:
+      portal:
+        ingress:
+          annotations:
+            kubernetes.io/ingress.class: nginx
+            my-annotation: my-annotation-value
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - isEmpty:
+          path: spec.ingressClassName
+      - isNotEmpty:
+          path: metadata.annotations.[kubernetes.io/ingress.class]
+      - isNotEmpty:
+          path: metadata.annotations.[my-annotation]
+
+  - it: Check Ingress networking.k8s.io/v1 with IngressClassName
+    set:
+      portal:
+        ingress:
+          ingressClassName: nginx
+          annotations:
+            kubernetes.io/ingress.class: nginx
+            my-annotation: my-annotation-value
+            nginx.ingress.kubernetes.io/rewrite-target: /$1
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - isEmpty:
+          path: metadata.annotations.[kubernetes.io/ingress.class]
+      - isNotEmpty:
+          path: metadata.annotations.[my-annotation]
+      - isNotEmpty:
+          path: metadata.annotations.[nginx.ingress.kubernetes.io/rewrite-target]
+
+  - it: Check Ingress networking.k8s.io/v1 with ingress.class notNginx
+    set:
+      portal:
+        ingress:
+          ingressClassName: nginx
+          annotations:
+            kubernetes.io/ingress.class: notNginx
+            my-annotation: my-annotation-value
+            nginx.ingress.kubernetes.io/rewrite-target: /$1
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - isEmpty:
+          path: metadata.annotations.[kubernetes.io/ingress.class]
+      - isNotEmpty:
+          path: metadata.annotations.[my-annotation]
+      - isEmpty:
+          path: metadata.annotations.[nginx.ingress.kubernetes.io/rewrite-target]
+
+  - it: Check bridge ingress with ingressClassName and kube < 1.18-0
+    set:
+      global:
+        kubeVersion: 1.15.0
+      portal:
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check bridge ingress with ingressClassName and kube >= 1.18-0
+    set:
+      global:
+        kubeVersion: 1.18.0
+      portal:
+        ingress:
+          enabled: true
+          ingressClassName: ingress
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - equal:
+          path: spec.ingressClassName
+          value: ingress
+
+  - it: Check bridge ingress with ingressClassName "none" and kube >= 1.18-0
+    set:
+      global:
+        kubeVersion: 1.18.0
+      portal:
+        ingress:
+          enabled: true
+          ingressClassName: none
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check Ingress pathType and path
+    set:
+      portal:
+        ingress:
+          pathType: Exact
+          path: /test-portal
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Exact
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /test-portal

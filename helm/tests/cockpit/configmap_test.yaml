@@ -1,0 +1,50 @@
+suite: Test Cockpit ConfigMap
+templates:
+  - "cockpit/cockpit-certificates.yaml"
+tests:
+  - it: Check no cockpit
+    template: cockpit/cockpit-certificates.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Check cockpit with keystore only
+    template: cockpit/cockpit-certificates.yaml
+    set:
+      cockpit:
+        enabled: true
+        keystore:
+          value: my_base64_encoded_keystore
+          password: password
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Secret
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: metadata.name
+          value:  RELEASE-NAME-apim-api-cockpit-certificates
+      - equal:
+          path: data
+          value:
+              keystore.p12: my_base64_encoded_keystore
+
+  - it: Check cockpit certificates includes truststore
+    template: cockpit/cockpit-certificates.yaml
+    set:
+      cockpit:
+        enabled: true
+        keystore:
+          value: my_base64_encoded_keystore
+          password: password
+        truststore:
+          value: my_base64_encoded_truststore
+          password: password
+    asserts:
+      - equal:
+          path: data
+          value:
+              keystore.p12: my_base64_encoded_keystore
+              truststore.p12: my_base64_encoded_truststore

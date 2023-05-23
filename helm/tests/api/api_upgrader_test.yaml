@@ -1,0 +1,61 @@
+suite: Test Management API Upgrader Job
+templates:
+  - "api/api-upgrader-job.yaml"
+  - "api/api-configmap.yaml"
+tests:
+  - it: Check upgrade mode is enabled
+    set:
+      api:
+        upgrader: true
+    template: api/api-upgrader-job.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 1.0.0-app
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Job
+      - isAPIVersion:
+          of: batch/v1
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: graviteeio/apim-management-api:1.0.0-app
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: gravitee_upgrade_mode
+              value: "true"
+      - isEmpty:
+          # It should not contain init containers by default
+          path: spec.template.spec.initContainers
+
+  - it: Check if the helm hook annotations are present
+    set:
+      api:
+        upgrader: true
+    template: api/api-upgrader-job.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Job
+      - isAPIVersion:
+          of: batch/v1
+      - equal:
+          path: metadata.annotations
+          value:
+            helm.sh/hook: pre-upgrade
+            helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+      - equal:
+          path: metadata.annotations.[helm.sh/hook]
+          value: pre-upgrade
+      - equal:
+          path: metadata.annotations.[helm.sh/hook-delete-policy]
+          value: before-hook-creation,hook-succeeded
+
+  - it: Check if the upgrader manifest is disabled by default
+    template: api/api-upgrader-job.yaml
+    asserts:
+      - hasDocuments:
+          count: 0

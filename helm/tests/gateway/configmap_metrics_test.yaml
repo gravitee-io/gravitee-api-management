@@ -1,0 +1,48 @@
+suite: Test Gateway default configmap - Metrics
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Disable metrics service by default
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data.[gravitee.yml]
+          pattern: "metrics:\n"
+  - it: Enable metrics service and set `labels`
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          metrics:
+            enabled: true
+            labels:
+              - local
+              - remote
+            prometheus:
+              enabled: true
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " *metrics:\n
+                     *  enabled: true\n
+                     *  labels:\n
+                     *    - local\n
+                     *    - remote\n
+                     *  prometheus:\n
+                     *    enabled: true"
+  - it: Enable metrics service and don't set any `labels`
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          metrics:
+            enabled: true
+            prometheus:
+              enabled: true
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " *metrics:\n
+                     *  enabled: true\n
+                     *  prometheus:\n
+                     *    enabled: true"

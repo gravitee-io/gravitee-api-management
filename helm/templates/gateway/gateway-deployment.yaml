@@ -1,0 +1,247 @@
+{{- if .Values.gateway.enabled -}}
+{{- $initContainers := .Values.initContainers -}}
+{{- $serviceAccount := include "apim.serviceAccount" . -}}
+{{- $logbackVolumeName := include "gateway.logbackVolumeName" . -}}
+apiVersion: apps/v1
+kind: {{ .Values.gateway.type }}
+metadata:
+  name: {{ template "gravitee.gateway.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.gateway.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.gateway.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.gateway.deployment.labels }}
+    {{- range $key, $value := .Values.gateway.deployment.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- else }}
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.gateway.deployment.annotations}}
+    {{- range $key, $value := .Values.gateway.deployment.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  {{- if eq .Values.gateway.type "StatefulSet" }}
+  serviceName: {{ template "gravitee.gateway.fullname" . }}
+  updateStrategy:
+    type: RollingUpdate
+  {{- end }}
+  {{- if eq .Values.gateway.type "Deployment" }}
+  strategy: {{ toYaml .Values.gateway.deployment.strategy | nindent 4 }}
+  {{- end }}
+  {{- if .Values.gateway.deployment.revisionHistoryLimit }}
+  revisionHistoryLimit: {{ .Values.gateway.deployment.revisionHistoryLimit }}
+  {{- end }}
+  {{- if not .Values.gateway.autoscaling.enabled }}
+  replicas: {{ .Values.gateway.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "gravitee.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: "{{ .Values.gateway.name }}"
+  template:
+    metadata:
+      annotations:
+        chaos.alpha.kubernetes.io/enabled: "{{ .Values.chaos.enabled }}"
+        {{- if and (.Values.gateway.reloadOnConfigChange) (not (include "gateway.externalConfig" .)) }}
+        checksum/config: {{ include (print $.Template.BasePath "/gateway/gateway-configmap.yaml") . | sha256sum }}
+        {{- end }}
+        {{- range $key, $value := .Values.gateway.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ template "gravitee.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ default .Chart.AppVersion .Values.gateway.image.tag | quote }}
+        app.kubernetes.io/component: "{{ .Values.gateway.name }}"
+        {{- if .Values.gateway.deployment.labels }}
+        {{- range $key, $value := .Values.gateway.deployment.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- else }}
+        {{- range $key, $value := .Values.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+    spec:
+      {{- if $serviceAccount }}
+      serviceAccountName: {{ $serviceAccount }}
+      {{ end }}
+      affinity: {{ toYaml .Values.gateway.deployment.affinity | nindent 8 }}
+      nodeSelector: {{ toYaml .Values.gateway.deployment.nodeSelector | nindent 8 }}
+      topologySpreadConstraints: {{ toYaml .Values.gateway.deployment.topologySpreadConstraints | nindent 8 }}
+      tolerations: {{ toYaml .Values.gateway.deployment.tolerations | nindent 8 }}
+      {{- if .Values.gateway.priorityClassName }}
+      priorityClassName: {{ .Values.gateway.priorityClassName  }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.gateway.terminationGracePeriod }}
+      {{- if .Values.gateway.deployment.hostAliases }}
+      hostAliases: {{ toYaml .Values.gateway.deployment.hostAliases | nindent 6 }}
+      {{- end }}
+
+      {{- $plugins := list -}}
+      {{- if .Values.gateway.additionalPlugins -}}
+        {{- $plugins = concat $plugins .Values.gateway.additionalPlugins -}}
+      {{- end -}}
+    
+      {{- if eq .Values.ratelimit.type "redis"  -}}
+        {{- $redisPlugin := include "redis.plugin" . -}}
+        {{- if $redisPlugin -}}
+          {{- $plugins = append $plugins $redisPlugin -}}
+        {{- end -}}  
+      {{- end -}}
+
+      {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-gateway" "pluginsToRemove" .Values.gateway.removePlugins "initContainers" $initContainers -}}
+      {{- if or .Values.gateway.extraInitContainers $plugins .Values.jdbc.driver }}
+      initContainers:
+        {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+        - name: get-repository-jdbc-ext
+          {{- toYaml .Values.initContainers | nindent 10 }}
+          command: ['sh', '-c', "mkdir -p /tmp/plugins-ext && cd /tmp/plugins-ext && wget  {{ .Values.jdbc.driver }}"]
+          volumeMounts:
+            - name: graviteeio-apim-repository-jdbc-ext
+              mountPath: /tmp/plugins-ext
+        {{- end -}}
+        {{- include "deployment.pluginInitContainers" $pluginParams | indent 8 }}
+        {{- with .Values.gateway.extraInitContainers }}
+        {{- tpl . $ | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ template "gravitee.gateway.fullname" . }}
+          image: "{{ .Values.gateway.image.repository }}:{{ default .Chart.AppVersion .Values.gateway.image.tag }}"
+          imagePullPolicy: {{ .Values.gateway.image.pullPolicy }}
+          securityContext: {{ toYaml ( .Values.gateway.securityContext | default .Values.gateway.deployment.securityContext ) | nindent 12 }}
+          ports:
+            - name: {{ .Values.gateway.service.internalPortName }}
+              containerPort: {{ .Values.gateway.service.internalPort }}
+            {{- if .Values.gateway.services.bridge.enabled }}
+            - name: {{ printf "%s-%s" (.Values.gateway.name | trunc 8 | trimSuffix "-") "bridge" }}
+              containerPort: {{ .Values.gateway.services.bridge.service.internalPort }}
+            {{- end }}
+            {{- if .Values.gateway.services.core.http.enabled }}
+            - name: {{ printf "%s-%s" (.Values.gateway.name | trunc 7 | trimSuffix "-") "techapi" }}
+              containerPort: {{ .Values.gateway.services.core.http.port | default "18082" }}
+            {{- end }}
+          env:
+            {{- if $plugins }}
+            - name: GRAVITEE_PLUGINS_PATH_0
+              value: '${gravitee.home}/plugins'
+            - name: GRAVITEE_PLUGINS_PATH_1
+              value: '${gravitee.home}/plugins-ext'
+            {{- end }}
+{{- if .Values.gateway.env | default .Values.gateway.deployment.extraEnvs }}
+{{ toYaml ( .Values.gateway.env | default .Values.gateway.deployment.extraEnvs ) | indent 12 }}
+{{- end }}
+          envFrom: {{ toYaml .Values.gateway.deployment.envFrom | nindent 12 }}
+          {{- if .Values.gateway.lifecycle }}
+          lifecycle:
+            {{- if .Values.gateway.lifecycle.postStart }}
+            postStart:
+              exec:
+                command: {{ .Values.gateway.lifecycle.postStart }}
+            {{- end }}
+            {{- if .Values.gateway.lifecycle.preStop }}
+            preStop:
+              exec:
+                command: {{ .Values.gateway.lifecycle.preStop }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.gateway.deployment.livenessProbe.enabled }}
+          livenessProbe: {{- omit .Values.gateway.deployment.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if .Values.gateway.deployment.customLivenessProbe }}
+          livenessProbe: {{ toYaml .Values.gateway.deployment.customLivenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.gateway.deployment.readinessProbe.enabled }}
+          readinessProbe: {{- omit .Values.gateway.deployment.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if .Values.gateway.deployment.customReadinessProbe }}
+          readinessProbe: {{ toYaml .Values.gateway.deployment.customReadinessProbe | nindent 12 }}
+          {{- end }}
+          {{- if and (.Values.gateway.deployment.startupProbe.enabled) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+          startupProbe: {{- omit .Values.gateway.deployment.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- else if and (.Values.gateway.deployment.customStartupProbe) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
+          startupProbe: {{ toYaml .Values.gateway.deployment.customStartupProbe | nindent 12 }}
+          {{- end }}
+          resources: {{ toYaml .Values.gateway.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /opt/graviteeio-gateway/config/gravitee.yml
+              subPath: gravitee.yml
+          {{- if .Values.gateway.logging.debug }}
+            - name: {{ $logbackVolumeName }}
+              mountPath: /opt/graviteeio-gateway/config/logback.xml
+              subPath: logback.xml
+          {{- end }}
+          {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+            - name: graviteeio-apim-repository-jdbc-ext
+              mountPath: /opt/graviteeio-gateway/plugins/ext/repository-jdbc
+          {{- end }}
+          {{- with .Values.license }}
+          {{- if .key }}
+            - name: licensekey
+              mountPath: /opt/graviteeio-gateway/license
+              readOnly: true
+          {{- end }}
+          {{- end }}
+          {{- include "deployment.pluginVolumeMounts" $pluginParams | indent 12 }}
+          {{- with .Values.gateway.extraVolumeMounts }}
+          {{- tpl . $ | nindent 12 }}
+          {{- end }}
+        {{- if .Values.gateway.extraContainers }}
+        {{- with .Values.gateway.extraContainers }}
+        {{- tpl . $ | nindent 8 }}
+        {{- end }}
+        {{- end }}
+      {{- if .Values.gateway.image.pullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.gateway.image.pullSecrets }}
+      {{- end }}
+      volumes:
+        {{- if not (include "gateway.externalConfig" .) }}
+        - name: config
+          configMap:
+            name: {{ template "gravitee.gateway.fullname" . }}
+        {{- end }}
+        {{- if and (include "gateway.externalConfig" .) (.Values.gateway.logging.debug) }}
+        - name: logback
+          configMap:
+            name: {{ template "gravitee.gateway.fullname" . }}
+        {{- end }}
+        {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}
+        - name: graviteeio-apim-repository-jdbc-ext
+          emptyDir: {}
+        {{- end }}
+        {{- with .Values.license }}
+        {{- if .key }}
+        - name: licensekey
+          secret:
+            secretName: {{ .name }}
+            items:
+              - key: licensekey
+                path: license.key
+        {{- end }}
+        {{- end }}
+        {{- include "deployment.pluginVolumes" $pluginParams | indent 8 }}
+        {{- with .Values.gateway.extraVolumes }}
+          {{- tpl . $ | nindent 8 }}
+        {{- end }}
+{{- end -}}
