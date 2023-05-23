@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 export { Json } from './json';
-export * from './isApiV3orV4';
+export * from './isApiV1V2orV4';

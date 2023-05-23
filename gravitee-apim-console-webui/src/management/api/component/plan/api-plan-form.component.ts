@@ -55,7 +55,7 @@ import {
   FlowStep,
 } from '../../../../entities/plan-v4';
 import { Flow, Step } from '../../../../entities/flow/flow';
-import { isApiV3 } from '../../../../util';
+import { isApiV1V2FromMAPIV1 } from '../../../../util';
 
 type InternalPlanFormValue = {
   general: {
@@ -138,7 +138,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     if (!this.api) {
       return false;
     }
-    return isApiV3(this.api);
+    return isApiV1V2FromMAPIV1(this.api);
   }
   constructor(private readonly changeDetectorRef: ChangeDetectorRef, @Host() @Optional() public readonly ngControl?: NgControl) {
     if (ngControl) {
