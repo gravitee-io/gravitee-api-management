@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.http.cors;
+package io.gravitee.apim.integration.tests.http.attributes;
 
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
-import io.gravitee.apim.integration.tests.fake.AddHeaderPolicy;
+import io.gravitee.apim.integration.tests.fake.AttributesToHeaderPolicy;
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.api.service.ApiKey;
+import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -29,10 +34,13 @@ import io.gravitee.policy.apikey.ApiKeyPolicy;
 import io.gravitee.policy.apikey.ApiKeyPolicyInitializer;
 import io.gravitee.policy.apikey.configuration.ApiKeyPolicyConfiguration;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class AbstractCorsIntegrationTest extends AbstractGatewayTest {
+public class AbstractAttributesIntegrationTest extends AbstractGatewayTest {
+
+    protected ApiKey apiKey;
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -46,14 +54,58 @@ public class AbstractCorsIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
-        policies.put("add-header", PolicyBuilder.build("add-header", AddHeaderPolicy.class));
+        policies.put("attributes-to-header", PolicyBuilder.build("attributes-to-header", AttributesToHeaderPolicy.class));
         policies.put(
             "api-key",
             PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
         );
     }
 
+    protected void addApiKeyPlan(ReactableApi<?> api) {
+        apiKey = anApiKey(api);
+        if (api.getDefinition() instanceof Api) {
+            ((Api) api.getDefinition()).setPlans(
+                    List.of(
+                        Plan
+                            .builder()
+                            .id("default_plan")
+                            .api(api.getId())
+                            .security("key_less")
+                            .status("PUBLISHED")
+                            .securityDefinition("{\"propagateApiKey\":true}")
+                            .build(),
+                        Plan
+                            .builder()
+                            .id("plan-id")
+                            .api(api.getId())
+                            .security("API_KEY")
+                            .status("PUBLISHED")
+                            .securityDefinition("{\"propagateApiKey\":true}")
+                            .build()
+                    )
+                );
+        }
+    }
+
     protected static Map<String, String> extractHeaders(HttpClientResponse response) {
         return response.headers().entries().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    protected ApiKey anApiKey(ReactableApi<?> api) {
+        final ApiKey apiKey = new ApiKey();
+        apiKey.setApi(api.getId());
+        apiKey.setApplication("application-id");
+        apiKey.setSubscription("subscription-id");
+        apiKey.setPlan("plan-id");
+        apiKey.setKey("apiKeyValue");
+        return apiKey;
+    }
+
+    protected Subscription aSubscription() {
+        final Subscription subscription = new Subscription();
+        subscription.setApplication("application-id");
+        subscription.setId("subscription-id");
+        subscription.setPlan("plan-id");
+        return subscription;
     }
 }

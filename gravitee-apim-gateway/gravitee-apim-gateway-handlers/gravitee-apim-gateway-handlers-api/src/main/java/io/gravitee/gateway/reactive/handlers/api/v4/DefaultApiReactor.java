@@ -119,6 +119,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     private final ResourceLifecycleManager resourceLifecycleManager;
     protected final ProcessorChain beforeHandleProcessors;
     protected final ProcessorChain afterHandleProcessors;
+    protected final ProcessorChain beforeSecurityChainProcessors;
     protected final ProcessorChain beforeApiExecutionProcessors;
     protected final ProcessorChain afterApiExecutionProcessors;
     protected final ProcessorChain onErrorProcessors;
@@ -172,6 +173,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
 
         this.beforeHandleProcessors = apiProcessorChainFactory.beforeHandle(api);
         this.afterHandleProcessors = apiProcessorChainFactory.afterHandle(api);
+        this.beforeSecurityChainProcessors = apiProcessorChainFactory.beforeSecurityChain(api);
         this.beforeApiExecutionProcessors = apiProcessorChainFactory.beforeApiExecution(api);
         this.afterApiExecutionProcessors = apiProcessorChainFactory.afterApiExecution(api);
 
@@ -239,6 +241,8 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         return new CompletableReactorChain(executeProcessorChain(ctx, beforeHandleProcessors, REQUEST))
             // Execute platform flow chain.
             .chainWith(platformFlowChain.execute(ctx, REQUEST))
+            // Before Security Chain.
+            .chainWith(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
             // Execute security chain.
             .chainWith(securityChain.execute(ctx))
             // Before flows processors.
