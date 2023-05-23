@@ -30,6 +30,7 @@ import { fakeRole } from '../../entities/role/role.fixture';
 import { MessageService } from '../../services-ngx/message.service';
 import { User } from '../../entities/user';
 import { HttpMessagePayload, TextMessagePayload } from '../../entities/message/messagePayload';
+import { GioHttpTestingModule } from '../../shared/testing';
 
 describe('MigratedMessagesComponent', () => {
   let fixture: ComponentFixture<MessagesComponent>;
@@ -41,7 +42,7 @@ describe('MigratedMessagesComponent', () => {
   const init = async (apiId?: string) => {
     await TestBed.configureTestingModule({
       declarations: [MessagesComponent],
-      imports: [NoopAnimationsModule, MessagesModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, MessagesModule, MatIconTestingModule],
       providers: [
         {
           provide: UIRouterStateParams,

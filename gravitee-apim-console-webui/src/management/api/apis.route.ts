@@ -23,6 +23,8 @@ import GroupService from '../../services/group.service';
 import PolicyService from '../../services/policy.service';
 import TagService from '../../services/tag.service';
 import TenantService from '../../services/tenant.service';
+import { ApiV2Service } from '../../services-ngx/api-v2.service';
+import { isApiV4 } from '../../util';
 
 export default apisRouterConfig;
 
@@ -44,18 +46,33 @@ function apisRouterConfig($stateProvider: StateProvider) {
         resolvedApiState: function ($stateParams, ApiService) {
           return ApiService.isAPISynchronized($stateParams.apiId);
         },
-        resolvedApi: function (
+        resolvedApiV1V2: function (
+          $q: angular.IQService,
           $stateParams: StateParams,
           ApiService: ApiService,
+          ngApiV2Service: ApiV2Service,
           $state: StateService,
           Constants: any,
           EnvironmentService: EnvironmentService,
         ) {
-          return ApiService.get($stateParams.apiId).catch((err) => {
-            if (err && err.interceptorFuture) {
-              $state.go('management.apis.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id) });
-            }
-          });
+          const deferred = $q.defer();
+          return ngApiV2Service
+            .get($stateParams.apiId)
+            .toPromise()
+            .then((api) => {
+              // If api is V4 redirect to new Angular routing
+              if (isApiV4(api)) {
+                $state.go('management.apis.ng.general', { apiId: $stateParams.apiId });
+                return deferred.reject();
+              }
+              return ApiService.get($stateParams.apiId).catch((err) => {
+                if (err && err.interceptorFuture) {
+                  $state.go('management.apis.list', {
+                    environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id),
+                  });
+                }
+              });
+            });
         },
         resolvedGroups: (GroupService: GroupService) => {
           return GroupService.list().then((response) => {

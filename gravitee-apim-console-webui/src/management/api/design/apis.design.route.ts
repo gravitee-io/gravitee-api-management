@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateParams, StateService } from '@uirouter/core';
+
 import ResourceService from '../../../services/resource.service';
 import TenantService from '../../../services/tenant.service';
+import { ApiService } from '../../../services/api.service';
+import EnvironmentService from '../../../services/environment.service';
 
 export default apisDesignRouterConfig;
 
@@ -66,6 +70,21 @@ function apisDesignRouterConfig($stateProvider) {
       controller: 'ApiPropertiesController',
       controllerAs: 'apiPropertiesCtrl',
       apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flowsNg' },
+      resolve: {
+        resolvedApi: function (
+          $stateParams: StateParams,
+          ApiService: ApiService,
+          $state: StateService,
+          Constants: any,
+          EnvironmentService: EnvironmentService,
+        ) {
+          return ApiService.get($stateParams.apiId).catch((err) => {
+            if (err && err.interceptorFuture) {
+              $state.go('management.apis.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id) });
+            }
+          });
+        },
+      },
       data: {
         perms: {
           only: ['api-definition-r'],

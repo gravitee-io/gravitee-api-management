@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateParams, StateService } from '@uirouter/core';
+
 import { Scope } from '../../../entities/scope';
 import AlertService from '../../../services/alert.service';
 import { ApiService } from '../../../services/api.service';
+import EnvironmentService from '../../../services/environment.service';
 import NotificationSettingsService from '../../../services/notificationSettings.service';
 import NotifierService from '../../../services/notifier.service';
 import { Scope as AlertScope } from '../../../entities/alert';
@@ -102,6 +105,19 @@ function apisNotificationsRouterConfig($stateProvider) {
           AlertService.getStatus(AlertScope.API, $stateParams.apiId).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
         mode: () => 'create',
+        resolvedApi: function (
+          $stateParams: StateParams,
+          ApiService: ApiService,
+          $state: StateService,
+          Constants: any,
+          EnvironmentService: EnvironmentService,
+        ) {
+          return ApiService.get($stateParams.apiId).catch((err) => {
+            if (err && err.interceptorFuture) {
+              $state.go('management.apis.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id) });
+            }
+          });
+        },
       },
     })
     .state('management.apis.detail.alerts.alert', {
@@ -122,6 +138,19 @@ function apisNotificationsRouterConfig($stateProvider) {
           AlertService.getStatus(AlertScope.API, $stateParams.apiId).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
         mode: () => 'detail',
+        resolvedApi: function (
+          $stateParams: StateParams,
+          ApiService: ApiService,
+          $state: StateService,
+          Constants: any,
+          EnvironmentService: EnvironmentService,
+        ) {
+          return ApiService.get($stateParams.apiId).catch((err) => {
+            if (err && err.interceptorFuture) {
+              $state.go('management.apis.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id) });
+            }
+          });
+        },
       },
     });
 }

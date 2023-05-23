@@ -530,6 +530,7 @@ import AlertTabsController from '../components/alerts/alertTabs/alert-tabs-compo
 import AlertsActivityController from '../components/alerts/activity/alerts-activity.controller';
 import { ApiPortalPlanEditComponent } from './api/portal/plans/edit/api-portal-plan-edit.component';
 import { ApiPortalDocumentationMetadataComponent } from './api/portal/documentation/metadata/api-portal-documentation-metadata.component';
+import { ApiV2Service } from '../services-ngx/api-v2.service';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -803,6 +804,7 @@ graviteeManagementModule.service('InstallationService', InstallationService);
 graviteeManagementModule.service('FlowService', FlowService);
 graviteeManagementModule.service('SpelService', SpelService);
 graviteeManagementModule.service('ConnectorService', ConnectorService);
+graviteeManagementModule.factory('ngApiV2Service', downgradeInjectable(ApiV2Service));
 graviteeManagementModule.controller('DialogGenerateTokenController', DialogGenerateTokenController);
 
 graviteeManagementModule.directive('filecontent', () => FileContentDirective);

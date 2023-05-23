@@ -21,6 +21,7 @@ import { GioPermissionCheckOptions } from './gio-permission.directive';
 
 import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { User } from '../../../entities/user';
+import { GioHttpTestingModule } from '../../testing';
 
 @Component({ template: `<div *gioPermission="permissions">A Content</div>` })
 class TestPermissionComponent {
@@ -39,7 +40,7 @@ describe('GioPermissionDirective', () => {
   function prepareTestPermissionComponent(permission: GioPermissionCheckOptions) {
     fixture = TestBed.configureTestingModule({
       declarations: [TestPermissionComponent],
-      imports: [GioPermissionModule],
+      imports: [GioHttpTestingModule, GioPermissionModule],
       providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     }).createComponent(TestPermissionComponent);
 
