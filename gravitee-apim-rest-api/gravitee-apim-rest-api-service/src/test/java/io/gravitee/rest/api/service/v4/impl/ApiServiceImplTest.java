@@ -696,7 +696,10 @@ public class ApiServiceImplTest {
         createdApi.setId(API_ID);
         createdApi.setCreatedAt(new Date());
         doReturn(createdApi).when(apiRepository).create(any());
-        apiService.createWithImport(executionContext, apiEntity, USER_NAME);
+        var result = apiService.createWithImport(executionContext, apiEntity, USER_NAME);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isNotEmpty();
 
         verify(primaryOwnerService).getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
         verify(apiValidationService).validateAndSanitizeImportApiForCreation(executionContext, apiEntity, apiEntity.getPrimaryOwner());
