@@ -28,14 +28,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.UriInfo;
 import org.apache.commons.lang3.tuple.Pair;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mapper(uses = { DateMapper.class, FlowMapper.class, ConnectorMapper.class })
+@Mapper(uses = { DateMapper.class, FlowMapper.class, ConnectorMapper.class, DefinitionContextMapper.class })
 public interface ApiMapper {
     Logger logger = LoggerFactory.getLogger(ApiMapper.class);
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
@@ -102,17 +100,6 @@ public interface ApiMapper {
     // Rule
     Rule map(io.gravitee.definition.model.Rule rule);
     List<Rule> mapRuleList(List<io.gravitee.definition.model.Rule> rule);
-
-    // DefinitionContext
-    default DefinitionContext map(io.gravitee.definition.model.DefinitionContext definitionContext) {
-        if (definitionContext == null) {
-            return null;
-        }
-        DefinitionContext context = new DefinitionContext();
-        context.setOrigin(DefinitionContext.OriginEnum.fromValue(definitionContext.getOrigin()));
-        context.setMode(DefinitionContext.ModeEnum.fromValue(definitionContext.getMode()));
-        return context;
-    }
 
     // ResponseTemplate
     Map<String, ResponseTemplate> convertFromResponseTemplateModel(
