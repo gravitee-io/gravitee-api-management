@@ -248,6 +248,13 @@ public class ApiAuthorizationServiceImplTest {
         when(api.getId()).thenReturn("api-1");
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
         apiCriteriaList.add(
+            new ApiCriteria.Builder()
+                .environmentId("DEFAULT")
+                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                .visibility(Visibility.PUBLIC)
+                .build()
+        );
+        apiCriteriaList.add(
             new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
@@ -290,6 +297,13 @@ public class ApiAuthorizationServiceImplTest {
         when(roleService.findById(userRoleId)).thenReturn(userRole);
         when(api.getId()).thenReturn("api-1");
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(
+            new ApiCriteria.Builder()
+                .environmentId("DEFAULT")
+                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                .visibility(Visibility.PUBLIC)
+                .build()
+        );
         apiCriteriaList.add(
             new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
@@ -337,6 +351,14 @@ public class ApiAuthorizationServiceImplTest {
         when(roleService.findById(userRoleId)).thenReturn(userRole);
         when(api.getId()).thenReturn("api-1");
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(
+            new ApiCriteria.Builder()
+                .environmentId("DEFAULT")
+                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                .ids("api-1")
+                .visibility(Visibility.PUBLIC)
+                .build()
+        );
         apiCriteriaList.add(
             new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
