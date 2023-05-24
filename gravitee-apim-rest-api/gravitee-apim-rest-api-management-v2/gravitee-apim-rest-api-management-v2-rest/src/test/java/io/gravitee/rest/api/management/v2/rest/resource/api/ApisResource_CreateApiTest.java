@@ -82,10 +82,11 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotCreateApiWithoutName() {
-        final CreateApiV4 apiEntity = new CreateApiV4();
-        apiEntity.setName("");
-        apiEntity.setApiVersion("v1");
-        apiEntity.setDescription("my description");
+        final CreateApiV4 createApiV4 = new CreateApiV4();
+        createApiV4.setName("");
+        createApiV4.setApiVersion("v1");
+        createApiV4.setDescription("my description");
+        createApiV4.setType(ApiType.PROXY);
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
@@ -93,16 +94,17 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
             .when(apiServiceV4)
             .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
-        final Response response = rootTarget().request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(createApiV4));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void shouldNotCreateApiWithoutListeners() {
-        final CreateApiV4 apiEntity = new CreateApiV4();
-        apiEntity.setName("My beautiful api");
-        apiEntity.setApiVersion("v1");
-        apiEntity.setDescription("my description");
+        final CreateApiV4 createApiV4 = new CreateApiV4();
+        createApiV4.setName("My beautiful api");
+        createApiV4.setApiVersion("v1");
+        createApiV4.setDescription("my description");
+        createApiV4.setType(ApiType.PROXY);
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
@@ -110,22 +112,24 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
             .when(apiServiceV4)
             .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
-        final Response response = rootTarget().request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(createApiV4));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void shouldNotCreateApiWithoutEndpoints() {
-        final CreateApiV4 apiEntity = new CreateApiV4();
-        apiEntity.setName("My beautiful api");
-        apiEntity.setApiVersion("v1");
-        apiEntity.setDescription("my description");
+        final CreateApiV4 createApiV4 = new CreateApiV4();
+        createApiV4.setName("My beautiful api");
+        createApiV4.setApiVersion("v1");
+        createApiV4.setDescription("my description");
+        createApiV4.setType(ApiType.PROXY);
+
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new PathV4().path("/context")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("sse");
         httpListener.setEntrypoints(List.of(entrypoint));
-        apiEntity.setListeners(List.of(new Listener(httpListener)));
+        createApiV4.setListeners(List.of(new Listener(httpListener)));
 
         ApiEntity returnedApi = new ApiEntity();
         returnedApi.setId("my-beautiful-api");
@@ -133,31 +137,33 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
             .when(apiServiceV4)
             .create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME));
 
-        final Response response = rootTarget().request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(createApiV4));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void shouldNotCreateApiWhenServiceThrowException() {
-        final CreateApiV4 apiEntity = new CreateApiV4();
-        apiEntity.setName("My beautiful api");
-        apiEntity.setApiVersion("v1");
-        apiEntity.setDescription("my description");
+        final CreateApiV4 createApiV4 = new CreateApiV4();
+        createApiV4.setName("My beautiful api");
+        createApiV4.setApiVersion("v1");
+        createApiV4.setDescription("my description");
+        createApiV4.setType(ApiType.PROXY);
+
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new PathV4().path("/context")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("sse");
         httpListener.setEntrypoints(List.of(entrypoint));
-        apiEntity.setListeners(List.of(new Listener(httpListener)));
+        createApiV4.setListeners(List.of(new Listener(httpListener)));
 
         EndpointGroupV4 endpoint = new EndpointGroupV4();
         endpoint.setName("default");
         endpoint.setType("http");
-        apiEntity.setEndpointGroups(List.of(endpoint));
+        createApiV4.setEndpointGroups(List.of(endpoint));
 
         when(apiServiceV4.create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME)))
             .thenThrow(new TechnicalManagementException());
-        final Response response = rootTarget().request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(createApiV4));
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
     }
 
@@ -165,23 +171,25 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
     public void shouldReturn404WhenEnvironmentDoesNotExist() {
         doThrow(new EnvironmentNotFoundException(ENVIRONMENT)).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
 
-        final CreateApiV4 apiEntity = new CreateApiV4();
-        apiEntity.setName("My beautiful api");
-        apiEntity.setApiVersion("v1");
-        apiEntity.setDescription("my description");
+        final CreateApiV4 createApiV4 = new CreateApiV4();
+        createApiV4.setName("My beautiful api");
+        createApiV4.setApiVersion("v1");
+        createApiV4.setDescription("my description");
+        createApiV4.setType(ApiType.PROXY);
+
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new PathV4().path("/context")));
         Entrypoint entrypoint = new Entrypoint();
         entrypoint.setType("sse");
         httpListener.setEntrypoints(List.of(entrypoint));
-        apiEntity.setListeners(List.of(new Listener(httpListener)));
+        createApiV4.setListeners(List.of(new Listener(httpListener)));
 
         EndpointGroupV4 endpoint = new EndpointGroupV4();
         endpoint.setName("default");
         endpoint.setType("http");
-        apiEntity.setEndpointGroups(List.of(endpoint));
+        createApiV4.setEndpointGroups(List.of(endpoint));
 
-        final Response response = rootTarget().request().post(Entity.json(apiEntity));
+        final Response response = rootTarget().request().post(Entity.json(createApiV4));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
