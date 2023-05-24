@@ -1,5 +1,5 @@
 {
-  "id": "http-get-entrypoint-kafka-endpoint",
+  "id": "http-get-entrypoint-kafka-endpoint-failure",
   "name": "my-api-auto",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
@@ -10,7 +10,7 @@
       "type": "http",
       "paths": [
         {
-          "path": "/test"
+          "path": "/test-failure"
         }
       ],
       "entrypoints": [
@@ -18,7 +18,7 @@
           "type": "http-get",
           "configuration": {
             "messagesLimitCount": 2,
-            "messagesLimitDurationMs": 10000,
+            "messagesLimitDurationMs": 5000,
             "headersInPayload": true,
             "metadataInPayload": true
           }
@@ -37,7 +37,7 @@
           "weight": 1,
           "inheritConfiguration": false,
           "configuration": {
-            "bootstrapServers": "bootstrap-server"
+            "bootstrapServers": "wrong"
           },
           "sharedConfigurationOverride": {
             "consumer": {
