@@ -1,6 +1,6 @@
 {
-  "id": "http-get-entrypoint-kafka-endpoint",
-  "name": "my-api-auto",
+  "id": "http-get-entrypoint-kafka-endpoint-at-least-once",
+  "name": "my-api-at-least-once",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
   "type": "message",
@@ -10,12 +10,13 @@
       "type": "http",
       "paths": [
         {
-          "path": "/test"
+          "path": "/test-at-least-once"
         }
       ],
       "entrypoints": [
         {
           "type": "http-get",
+          "qos": "at-least-once",
           "configuration": {
             "messagesLimitCount": 2,
             "messagesLimitDurationMs": 10000,
