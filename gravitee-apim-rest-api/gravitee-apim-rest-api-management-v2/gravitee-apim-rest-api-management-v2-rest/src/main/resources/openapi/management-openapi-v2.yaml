@@ -1220,7 +1220,7 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV4"
-                  required: [listeners, endpointGroups]
+                  required: [listeners, endpointGroups, type]
 
         ExportApiV4:
             type: object
