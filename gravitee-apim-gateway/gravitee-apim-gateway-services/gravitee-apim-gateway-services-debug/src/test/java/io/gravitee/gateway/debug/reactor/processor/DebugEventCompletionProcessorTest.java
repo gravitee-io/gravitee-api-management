@@ -17,6 +17,8 @@ package io.gravitee.gateway.debug.reactor.processor;
 
 import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -24,6 +26,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.PolicyScope;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -41,15 +44,13 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.gravitee.repository.management.model.Plan.Status;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
 import io.vertx.core.impl.future.PromiseImpl;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,6 +98,15 @@ public class DebugEventCompletionProcessorTest {
             })
             .when(vertx)
             .executeBlocking(any(), any());
+        when(debugApi.getPlans())
+            .thenReturn(Arrays.asList(plan(Status.STAGING), plan(Status.PUBLISHED), plan(Status.DEPRECATED), plan(Status.CLOSED)));
+    }
+
+    private static Plan plan(Status status) {
+        Plan plan = new Plan();
+        plan.setId(status.name());
+        plan.setStatus(status.name());
+        return plan;
     }
 
     @Test
@@ -232,6 +242,21 @@ public class DebugEventCompletionProcessorTest {
         assertThat(result.get("X-Gravitee-Request-Id")).contains("request-id");
         assertThat(result.get("accept-encoding")).hasSize(3);
         assertThat(result.get("accept-encoding")).contains("deflate", "gzip", "compress");
+    }
+
+    @Test
+    public void shouldConvertDebugApi() {
+        final io.gravitee.definition.model.debug.DebugApi debugApiConverted = cut.convert(debugApi);
+
+        assertNotEquals(debugApiConverted.getPlans().size(), debugApi.getPlans().size());
+
+        List<Plan> unexpectedPlans = debugApiConverted
+            .getPlans()
+            .stream()
+            .filter(plan -> Status.CLOSED.name().equalsIgnoreCase(plan.getStatus()))
+            .collect(Collectors.toList());
+
+        assertEquals(unexpectedPlans.size(), 0);
     }
 
     private VertxHttpServerResponseDebugDecorator getDebugResponse() {
