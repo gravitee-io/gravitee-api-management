@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
-export interface Role {
-  /**
-   * Role's name.
-   */
-  name?: string;
-  scope?: 'API' | 'APPLICATION' | 'GROUP' | 'ENVIRONMENT' | 'ORGANIZATION' | 'PLATFORM';
+export class ApiPortalGroupsMembersHarness extends ComponentHarness {
+  static hostSelector = 'api-portal-groups-members';
+
+  protected getGroupTable = (groupName: string) =>
+    this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Group ' + groupName + ' members table"]' }))();
+
+  public getGroupTableByGroupName(groupName: string): Promise<MatTableHarness> {
+    return this.getGroupTable(groupName);
+  }
 }

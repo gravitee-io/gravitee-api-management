@@ -84,7 +84,7 @@
     </table>
   </mat-card>
 
-  <api-portal-groups-members></api-portal-groups-members>
+  <api-portal-groups-members [groupIds]="groupIds"></api-portal-groups-members>
 
   <gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSubmit()"></gio-save-bar>
 </form>
