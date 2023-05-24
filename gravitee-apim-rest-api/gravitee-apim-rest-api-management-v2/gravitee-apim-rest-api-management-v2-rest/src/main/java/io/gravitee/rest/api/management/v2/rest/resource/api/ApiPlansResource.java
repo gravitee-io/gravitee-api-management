@@ -175,9 +175,10 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.DELETE }) })
     public Response deleteApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, plan);
+
         if (!planEntity.getApiId().equals(apiId)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
+            return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(plan)).build();
         }
 
         planService.delete(executionContext, plan);

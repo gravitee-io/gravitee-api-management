@@ -583,8 +583,9 @@ paths:
                 - APIs
                 - API Plans
             summary: Delete one API's plan
-            description: |
-                # FIXME add a description
+            description: |-
+                Delete the API's plan by its identifier
+                User must have the API_PLAN[DELETE] permission.
             operationId: deleteApiPlan
             responses:
                 "204":
