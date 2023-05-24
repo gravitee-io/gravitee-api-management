@@ -13,11 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { isFunction } from 'lodash';
 
-export interface Role {
-  /**
-   * Role's name.
-   */
-  name?: string;
-  scope?: 'API' | 'APPLICATION' | 'GROUP' | 'ENVIRONMENT' | 'ORGANIZATION' | 'PLATFORM';
+import { Member } from './member';
+
+export function fakeMember(modifier?: Partial<Member>): Member {
+  const base: Member = {
+    id: '45ff00ef-8256-3218-bf0d-b289735d84bb',
+    roles: [
+      {
+        name: 'PRIMARY_OWNER',
+      },
+    ],
+    displayName: 'member-display-name',
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
 }

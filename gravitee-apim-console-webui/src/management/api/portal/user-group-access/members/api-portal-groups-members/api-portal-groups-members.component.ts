@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
-import { combineLatest, Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { Component, Input, OnInit } from '@angular/core';
+import { forkJoin, Subject } from 'rxjs';
+import { map, takeUntil } from 'rxjs/operators';
 
-import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
-import { ApiService } from '../../../../../../services-ngx/api.service';
-import { GroupService } from '../../../../../../services-ngx/group.service';
 import { UsersService } from '../../../../../../services-ngx/users.service';
+import { GroupV2Service } from '../../../../../../services-ngx/group-v2.service';
 
 class MemberDataSource {
   id: string;
@@ -37,46 +35,40 @@ class MemberDataSource {
 export class ApiPortalGroupsMembersComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  private apiId: string;
-
   dataSourceGroups: {
-    id: string;
     groupName: string;
     dataSource: MemberDataSource[];
   }[];
   displayedColumns = ['picture', 'displayName', 'role'];
 
-  constructor(
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly groupService: GroupService,
-    private readonly apiService: ApiService,
-    private readonly userService: UsersService,
-  ) {}
+  @Input()
+  groupIds: string[] = [];
+
+  constructor(private readonly groupService: GroupV2Service, private readonly userService: UsersService) {}
 
   ngOnInit(): void {
-    this.apiId = this.ajsStateParams.apiId;
+    if (this.groupIds.length === 0) {
+      return;
+    }
 
-    combineLatest([this.apiService.getGroupIdsWithMembers(this.apiId), this.groupService.list()])
+    forkJoin(this.groupIds.map((id) => this.groupService.getMembers(id, 1, 9999))) // Return all members since pagination not in place
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap(([groupIdsWithMembers, groups]) => {
-          this.dataSourceGroups = Object.entries(groupIdsWithMembers).map(([groupId, members]) => {
-            return {
-              id: groupId,
-              groupName: groups.find((group) => group.id === groupId).name,
-              dataSource: members.map((member) => {
-                return {
-                  id: member.id,
-                  role: member.roles['API'],
-                  displayName: member.displayName,
-                  picture: this.userService.getUserAvatar(member.id),
-                };
-              }),
-            };
-          });
-        }),
+        map((responses) => responses.filter((r) => r.data.length > 0)),
       )
-      .subscribe();
+      .subscribe((responses) => {
+        this.dataSourceGroups = responses.map((membersResponse) => ({
+          groupName: membersResponse.metadata['groupName'] as string,
+          dataSource: membersResponse.data.map((member) => {
+            return {
+              id: member.id,
+              role: member.roles.find((role) => role.scope === 'API')?.name,
+              displayName: member.displayName,
+              picture: this.userService.getUserAvatar(member.id),
+            };
+          }),
+        }));
+      });
   }
 
   ngOnDestroy() {

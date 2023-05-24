@@ -20,35 +20,37 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MatTableHarness } from '@angular/material/table/testing';
+import { Component } from '@angular/core';
 
 import { ApiPortalGroupsMembersComponent } from './api-portal-groups-members.component';
+import { ApiPortalGroupsMembersHarness } from './api-portal-groups-members.harness';
 
 import { User } from '../../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
 import { ApiPortalUserGroupModule } from '../../api-portal-user-group.module';
-import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
 import { CurrentUserService } from '../../../../../../services-ngx/current-user.service';
-import { Group } from '../../../../../../entities/group/group';
-import { GroupMember } from '../../../../../../entities/group/groupMember';
-import { fakeGroupMember } from '../../../../../../entities/group/groupMember.fixture';
-import { fakeGroup } from '../../../../../../entities/group/group.fixture';
+import { MembersResponse } from '../../../../../../entities/management-api-v2';
+import { fakeMember } from '../../../../../../entities/management-api-v2/member/member.fixture';
 
+@Component({
+  selector: `host-component`,
+  template: `<api-portal-groups-members [groupIds]="groupIds"></api-portal-groups-members>`,
+})
+class TestComponent {
+  groupIds = ['groupId1', 'groupId2'];
+}
 describe('ApiPortalMembersComponent', () => {
-  let fixture: ComponentFixture<ApiPortalGroupsMembersComponent>;
+  let fixture: ComponentFixture<TestComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
 
   const currentUser = new User();
-  const apiId = 'apiId';
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiPortalUserGroupModule],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { apiId } },
-        { provide: CurrentUserService, useValue: { currentUser } },
-      ],
+      declarations: [ApiPortalGroupsMembersComponent, TestComponent],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
@@ -56,7 +58,7 @@ describe('ApiPortalMembersComponent', () => {
       },
     });
 
-    fixture = TestBed.createComponent(ApiPortalGroupsMembersComponent);
+    fixture = TestBed.createComponent(TestComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
 
@@ -69,23 +71,30 @@ describe('ApiPortalMembersComponent', () => {
   });
 
   it('Display groups members tables', async () => {
-    expectGroupIdsWithMembersGetRequest({
-      groupId1: [fakeGroupMember()],
+    expectGroupsGetMembersRequest('groupId1', {
+      data: [fakeMember({ roles: [{ name: 'USER', scope: 'API' }] })],
+      metadata: { groupName: 'Group1' },
     });
-    expectGroupsGetRequest([fakeGroup({ id: 'groupId1', name: 'Group1' })]);
-
+    expectGroupsGetMembersRequest('groupId2', {
+      data: [fakeMember({ roles: [{ name: 'USER', scope: 'APPLICATION' }] })],
+      metadata: { groupName: 'Group2' },
+    });
     fixture.detectChanges();
 
-    const groupsMembersTable = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="Group Group1 members table"]' }));
+    const apiGroupsMembersComponent = await loader.getHarness(ApiPortalGroupsMembersHarness);
 
-    expect(await groupsMembersTable.getCellTextByIndex()).toEqual([['', 'Joe Bar', 'USER']]);
+    const group1MembersTable = await apiGroupsMembersComponent.getGroupTableByGroupName('Group1');
+
+    expect(await group1MembersTable.getCellTextByIndex()).toEqual([['', 'member-display-name', 'USER']]);
+
+    const group2MembersTable = await apiGroupsMembersComponent.getGroupTableByGroupName('Group2');
+
+    expect(await group2MembersTable.getCellTextByIndex()).toEqual([['', 'member-display-name', '']]);
   });
 
-  function expectGroupIdsWithMembersGetRequest(groupIdsMembers: Record<string, GroupMember[]>) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/groups`, method: 'GET' }).flush(groupIdsMembers);
-  }
-
-  function expectGroupsGetRequest(groups: Group[] = []) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups`, method: 'GET' }).flush(groups);
+  function expectGroupsGetMembersRequest(groupId: string, membersResponse: MembersResponse) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${groupId}/members?page=1&perPage=9999`, method: 'GET' })
+      .flush(membersResponse);
   }
 });

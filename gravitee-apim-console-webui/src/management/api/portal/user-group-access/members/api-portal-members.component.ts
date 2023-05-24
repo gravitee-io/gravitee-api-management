@@ -57,6 +57,7 @@ export class ApiPortalMembersComponent implements OnInit {
   defaultRole?: Role;
   members: ApiMember[];
   membersToAdd: (ApiMember & { _viewId: string })[] = [];
+  groupIds: string[];
   isReadOnly = false;
 
   dataSource: MemberDataSource[];
@@ -93,6 +94,7 @@ export class ApiPortalMembersComponent implements OnInit {
           this.members = members;
           this.roles = roles;
           this.defaultRole = roles.find((role) => role.default);
+          this.groupIds = api.groups;
           this.initDataSource(members);
           this.initForm(api, members);
         }),
