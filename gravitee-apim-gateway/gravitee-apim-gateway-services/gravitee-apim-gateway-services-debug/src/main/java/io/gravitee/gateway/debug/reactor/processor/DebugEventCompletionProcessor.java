@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.definition.model.debug.DebugMetrics;
 import io.gravitee.definition.model.debug.PreprocessorStep;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -180,7 +181,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         eventRepository.update(debugEvent);
     }
 
-    private io.gravitee.definition.model.debug.DebugApi convert(DebugApi content) {
+    protected io.gravitee.definition.model.debug.DebugApi convert(DebugApi content) {
         io.gravitee.definition.model.debug.DebugApi debugAPI = new io.gravitee.definition.model.debug.DebugApi();
         debugAPI.setName(content.getName());
         debugAPI.setId(content.getId());
@@ -190,7 +191,14 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         debugAPI.setFlowMode(content.getDefinition().getFlowMode());
         debugAPI.setFlows(content.getDefinition().getFlows());
         debugAPI.setPathMappings(content.getDefinition().getPathMappings());
-        debugAPI.setPlans(content.getDefinition().getPlans());
+        debugAPI.setPlans(
+            content
+                .getDefinition()
+                .getPlans()
+                .stream()
+                .filter(plan -> !PlanStatus.CLOSED.getLabel().equalsIgnoreCase(plan.getStatus()))
+                .collect(Collectors.toList())
+        );
         debugAPI.setPaths(content.getDefinition().getPaths());
         debugAPI.setServices(content.getDefinition().getServices());
         debugAPI.setProxy(content.getDefinition().getProxy());
