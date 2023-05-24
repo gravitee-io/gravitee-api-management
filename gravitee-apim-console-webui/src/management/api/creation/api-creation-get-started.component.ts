@@ -77,8 +77,12 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  goToApiCreationWizard(definitionVersion = '2.0.0') {
-    this.ajsState.go('management.apis.create', { definitionVersion });
+  goToApiV2CreationWizard() {
+    this.ajsState.go('management.apis.create-v2');
+  }
+
+  goToApiv4CreationWizard() {
+    this.ajsState.go('management.apis.create-v4');
   }
 
   goToApiImport(definitionVersion = '2.0.0') {

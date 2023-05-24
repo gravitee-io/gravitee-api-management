@@ -166,23 +166,6 @@ function apisRouterConfig($stateProvider: StateProvider) {
         },
       },
     })
-    .state('management.apis.create', {
-      url: '/new/create/:definitionVersion',
-      component: 'apiCreation',
-      resolve: {
-        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
-        tenants: (TenantService: TenantService) => TenantService.list().then((response) => response.data),
-        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
-      },
-      data: {
-        perms: {
-          only: ['environment-api-c'],
-        },
-        docs: {
-          page: 'management-apis-create-steps',
-        },
-      },
-    })
     .state('management.apis.ng-list', {
       url: '/?q&page&size&order',
       component: 'ngApiList',
