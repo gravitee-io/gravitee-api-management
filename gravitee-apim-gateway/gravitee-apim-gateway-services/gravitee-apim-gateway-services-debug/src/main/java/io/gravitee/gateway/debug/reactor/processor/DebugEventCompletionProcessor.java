@@ -34,6 +34,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.Plan;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -170,7 +171,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         eventRepository.update(debugEvent);
     }
 
-    private io.gravitee.definition.model.debug.DebugApi convert(DebugApi content) {
+    protected io.gravitee.definition.model.debug.DebugApi convert(DebugApi content) {
         io.gravitee.definition.model.debug.DebugApi debugAPI = new io.gravitee.definition.model.debug.DebugApi();
         debugAPI.setName(content.getName());
         debugAPI.setId(content.getId());
@@ -180,7 +181,13 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         debugAPI.setFlowMode(content.getFlowMode());
         debugAPI.setFlows(content.getFlows());
         debugAPI.setPathMappings(content.getPathMappings());
-        debugAPI.setPlans(content.getPlans());
+        debugAPI.setPlans(
+            content
+                .getPlans()
+                .stream()
+                .filter(plan -> !Plan.Status.CLOSED.name().equalsIgnoreCase(plan.getStatus()))
+                .collect(Collectors.toList())
+        );
         debugAPI.setPaths(content.getPaths());
         debugAPI.setServices(content.getServices());
         debugAPI.setProxy(content.getProxy());
