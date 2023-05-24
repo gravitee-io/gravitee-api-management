@@ -43,7 +43,7 @@ describe('ApiCreationGetStartedComponent', () => {
 
   const initConfigureTestingModule = (currentUser: User) => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioPermissionModule, GioHttpTestingModule, ApiCreationModule, MatIconTestingModule],
+      imports: [GioPermissionModule, GioHttpTestingModule, ApiCreationModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         { provide: UIRouterState, useValue: fakeAjsState },
         {
@@ -105,10 +105,16 @@ describe('ApiCreationGetStartedComponent', () => {
       );
     });
 
-    it('should go to api creation wizard', async () => {
+    it('should go to api v2 creation wizard', async () => {
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`);
-      component.goToApiCreationWizard();
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create', { definitionVersion: '2.0.0' });
+      component.goToApiV2CreationWizard();
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v2');
+    });
+
+    it('should go to api v4 creation wizard', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`);
+      component.goToApiv4CreationWizard();
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4');
     });
 
     it('should open api import dialog', async () => {
