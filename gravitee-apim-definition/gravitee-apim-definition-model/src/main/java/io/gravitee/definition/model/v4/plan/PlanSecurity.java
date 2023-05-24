@@ -20,22 +20,21 @@ import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode
 @Schema(name = "PlanSecurityV4")
+@Builder(toBuilder = true)
+@With
 public class PlanSecurity {
 
     @JsonProperty(required = true)

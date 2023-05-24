@@ -25,11 +25,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Set;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -40,16 +37,19 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "ChannelSelectorV4")
+@SuperBuilder(toBuilder = true)
 public class ChannelSelector extends Selector {
 
     private Set<@NotNull Operation> operations;
 
     @JsonProperty(required = true)
     @NotEmpty
+    @Builder.Default
     private String channel = "/";
 
     @JsonProperty(required = true)
     @NotNull
+    @Builder.Default
     private Operator channelOperator = Operator.STARTS_WITH;
 
     private Set<String> entrypoints;
@@ -78,6 +78,14 @@ public class ChannelSelector extends Selector {
                 return MAP.get(connectorMode);
             }
             return null;
+        }
+    }
+
+    public abstract static class ChannelSelectorBuilder<C extends ChannelSelector, B extends ChannelSelectorBuilder<C, B>>
+        extends SelectorBuilder<C, B> {
+
+        ChannelSelectorBuilder() {
+            type(SelectorType.CHANNEL);
         }
     }
 }

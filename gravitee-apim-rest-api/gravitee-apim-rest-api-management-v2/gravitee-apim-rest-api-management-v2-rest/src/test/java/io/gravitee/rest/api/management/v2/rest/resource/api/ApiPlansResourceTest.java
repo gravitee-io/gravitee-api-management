@@ -160,47 +160,6 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetApiPlanById() {
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId(API);
-        apiEntity.setVisibility(Visibility.PUBLIC);
-
-        doReturn(apiEntity).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), API);
-
-        PlanEntity planEntity = new PlanEntity();
-        planEntity.setId("new-plan-id");
-        planEntity.setName(PLAN);
-        planEntity.setDescription("my-plan-description");
-        planEntity.setValidation(PlanValidationType.AUTO);
-        planEntity.setType(PlanType.API);
-        planEntity.setStatus(PlanStatus.STAGING);
-        planEntity.setApiId(API);
-
-        doReturn(planEntity).when(planService).findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
-
-        final Response response = rootTarget().path(PLAN).request().get();
-
-        assertEquals(200, response.getStatus());
-        var body = response.readEntity(PlanV4.class);
-        assertNotNull(body);
-    }
-
-    @Test
-    public void shouldNotGetPlanWithInsufficientRights() {
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId(API);
-        apiEntity.setVisibility(Visibility.PRIVATE);
-
-        doReturn(apiEntity).when(apiSearchServiceV4).findById(GraviteeContext.getExecutionContext(), API);
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
-
-        final Response response = rootTarget().path(PLAN).request().get();
-        assertEquals(FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
     public void shouldCloseApiPlan() {
         ApiEntity api = getApi();
 

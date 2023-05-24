@@ -19,6 +19,7 @@ import static java.util.Comparator.comparingInt;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.PlansResponse;
@@ -130,23 +131,16 @@ public class ApiPlansResource extends AbstractResource {
     @GET
     @Path("/{plan}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.READ }) })
     public Response getApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            Visibility.PUBLIC.equals(apiSearchService.findById(executionContext, apiId).getVisibility()) ||
-            hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_PLAN, apiId, RolePermissionAction.READ)
-        ) {
-            PlanEntity planEntity = planService.findById(executionContext, plan);
-            if (!planEntity.getApiId().equals(apiId)) {
-                return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'plan' parameter does not correspond to the current API")
-                    .build();
-            }
+        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, plan);
 
-            return Response.ok(PlanMapper.INSTANCE.convert(planEntity)).build();
+        if (!planEntity.getApiId().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(plan)).build();
         }
-        throw new ForbiddenAccessException();
+
+        return Response.ok(PlanMapper.INSTANCE.convert(planEntity)).build();
     }
 
     @PUT
@@ -268,5 +262,13 @@ public class ApiPlansResource extends AbstractResource {
         filtered.setGeneralConditions(entity.getGeneralConditions());
 
         return filtered;
+    }
+
+    private Error planNotFoundError(String plan) {
+        return new Error()
+            .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
+            .message("Plan [" + plan + "] can not be found.")
+            .putParametersItem("plan", plan)
+            .technicalCode("plan.notFound");
     }
 }

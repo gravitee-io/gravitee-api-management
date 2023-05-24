@@ -26,26 +26,27 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+
+import lombok.*;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode
 @Schema(name = "FlowV4")
+@Builder(toBuilder = true)
+@With
 public class Flow implements Serializable {
 
     private String name;
 
+    @Builder.Default
     private boolean enabled = true;
 
     @Valid
