@@ -19,10 +19,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -33,6 +31,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "ConditionSelectorV4")
+@SuperBuilder(toBuilder = true)
 public class ConditionSelector extends Selector implements ConditionSupplier {
 
     @JsonProperty(required = true)
@@ -41,5 +40,15 @@ public class ConditionSelector extends Selector implements ConditionSupplier {
 
     public ConditionSelector() {
         super(SelectorType.CONDITION);
+    }
+
+    public abstract static class ConditionSelectorBuilder<
+        C extends ConditionSelector, B extends ConditionSelector.ConditionSelectorBuilder<C, B>
+    >
+        extends SelectorBuilder<C, B> {
+
+        ConditionSelectorBuilder() {
+            type(SelectorType.CONDITION);
+        }
     }
 }

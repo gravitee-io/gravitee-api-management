@@ -18,6 +18,10 @@ package io.gravitee.definition.model.flow;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 
 /**
@@ -25,6 +29,9 @@ import java.io.Serializable;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class Step implements Serializable {
 
     @JsonProperty("name")
@@ -42,6 +49,7 @@ public class Step implements Serializable {
     private Object configuration;
 
     @JsonProperty("enabled")
+    @Builder.Default
     private boolean enabled = true;
 
     @JsonProperty("condition")

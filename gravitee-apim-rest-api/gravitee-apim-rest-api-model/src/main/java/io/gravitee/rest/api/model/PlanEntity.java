@@ -22,6 +22,10 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+
 import java.util.*;
 
 /**
@@ -29,6 +33,9 @@ import java.util.*;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class PlanEntity implements GenericPlanEntity {
 
     private String id;

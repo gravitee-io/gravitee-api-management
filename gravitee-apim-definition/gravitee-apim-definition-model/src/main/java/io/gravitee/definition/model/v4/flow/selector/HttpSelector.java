@@ -22,10 +22,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -36,19 +34,30 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "HttpSelectorV4")
+@SuperBuilder(toBuilder = true)
 public class HttpSelector extends Selector {
 
     @JsonProperty(required = true)
     @NotEmpty
+    @Builder.Default
     private String path = "/";
 
     @JsonProperty(required = true)
     @NotNull
+    @Builder.Default
     private Operator pathOperator = Operator.STARTS_WITH;
 
     private Set<HttpMethod> methods;
 
     public HttpSelector() {
         super(SelectorType.HTTP);
+    }
+
+    public abstract static class HttpSelectorBuilder<C extends HttpSelector, B extends HttpSelector.HttpSelectorBuilder<C, B>>
+        extends SelectorBuilder<C, B> {
+
+        HttpSelectorBuilder() {
+            type(SelectorType.HTTP);
+        }
     }
 }

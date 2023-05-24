@@ -19,6 +19,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.ConditionSupplier;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -27,6 +31,9 @@ import java.util.*;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class Flow implements Serializable, ConditionSupplier {
 
     @JsonProperty("id")
@@ -36,18 +43,23 @@ public class Flow implements Serializable, ConditionSupplier {
     private String name;
 
     @JsonProperty("path-operator")
+    @Builder.Default
     private PathOperator pathOperator = new PathOperator();
 
     @JsonProperty("pre")
+    @Builder.Default
     private List<Step> pre = new ArrayList<>();
 
     @JsonProperty("post")
+    @Builder.Default
     private List<Step> post = new ArrayList<>();
 
     @JsonProperty("enabled")
+    @Builder.Default
     private boolean enabled = true;
 
     @JsonProperty("methods")
+    @Builder.Default
     private Set<HttpMethod> methods = new HashSet<>();
 
     @JsonProperty("condition")

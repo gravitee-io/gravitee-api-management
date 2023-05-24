@@ -22,18 +22,14 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
@@ -47,6 +43,7 @@ import lombok.ToString;
         @JsonSubTypes.Type(value = ConditionSelector.class, name = CONDITION_LABEL),
     }
 )
+@SuperBuilder(toBuilder = true)
 public abstract class Selector implements Serializable {
 
     public static final String HTTP_LABEL = "http";

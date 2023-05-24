@@ -49,15 +49,14 @@ public interface PlanMapper {
         if (entities.isEmpty()) {
             return new ArrayList<>();
         }
-        if (entities.get(0) instanceof PlanEntity) {
-            return entities.stream().map(PlanEntity.class::cast).map(this::convert).map(Plan::new).collect(Collectors.toList());
+        return entities.stream().map(this::convert).collect(Collectors.toList());
+    }
+
+    default Plan convert(GenericPlanEntity entity) {
+        if (entity instanceof PlanEntity) {
+            return new Plan(this.convert((PlanEntity) entity));
         } else {
-            return entities
-                .stream()
-                .map(io.gravitee.rest.api.model.PlanEntity.class::cast)
-                .map(this::convert)
-                .map(Plan::new)
-                .collect(Collectors.toList());
+            return new Plan(this.convert((io.gravitee.rest.api.model.PlanEntity) entity));
         }
     }
 
@@ -91,6 +90,7 @@ public interface PlanMapper {
 
     // Rule -- for < V4 plans
     Rule map(io.gravitee.definition.model.Rule rule);
+
     List<Rule> map(List<io.gravitee.definition.model.Rule> rule);
 
     default Map<String, List<Rule>> map(Map<String, List<io.gravitee.definition.model.Rule>> paths) {

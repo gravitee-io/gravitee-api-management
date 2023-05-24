@@ -548,8 +548,9 @@ paths:
                 - APIs
                 - API Plans
             summary: Get one API's plan
-            description: |
-                # FIXME add a description
+            description: |-
+                Get the API's plan by its identifier
+                User must have the API_PLAN[READ] permission.
             operationId: getApiPlanById
             responses:
                 "200":
@@ -1913,6 +1914,7 @@ components:
                 totalCount:
                     type: integer
                     description: The total number of items.
+
         PathV4:
             type: object
             properties:
