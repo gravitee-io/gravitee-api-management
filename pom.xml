@@ -131,7 +131,7 @@
         <reactor-core.version>3.5.0</reactor-core.version>
         <reactor-adapter.version>3.5.0</reactor-adapter.version>
         <slf4j-mock.version>2.2.0</slf4j-mock.version>
-        <snakeyaml.version>1.32</snakeyaml.version>
+        <snakeyaml.version>2.0</snakeyaml.version>
         <swagger-jaxrs2.version>2.2.9</swagger-jaxrs2.version>
         <swagger-core.version>2.2.9</swagger-core.version>
         <swagger-parser.version>2.1.13</swagger-parser.version>
