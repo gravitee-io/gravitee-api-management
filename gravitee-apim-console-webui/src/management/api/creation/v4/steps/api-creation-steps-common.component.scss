@@ -15,7 +15,7 @@ $typography: map.get(gio.$mat-theme, typography);
       &__step-number {
         @include mat.typography-level($typography, 'subheading-1');
         color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
-        padding-bottom: 32px;
+        padding-bottom: 20px;
       }
 
       &__subtitle {

@@ -15,8 +15,8 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { of, Subject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -24,10 +24,6 @@ import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.
 import { Step2Entrypoints1ListComponent } from './step-2-entrypoints-1-list.component';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import {
-  GioConnectorDialogComponent,
-  GioConnectorDialogData,
-} from '../../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
 import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../../services-ngx/icon.service';
 import { ApiType, ConnectorPlugin } from '../../../../../../entities/management-api-v2';
@@ -153,69 +149,5 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
       groupNumber: 2,
       component: Step2Entrypoints1ListComponent,
     });
-  }
-
-  onMoreInfoClick(event, entrypoint: ConnectorPlugin) {
-    event.stopPropagation();
-
-    this.connectorPluginsV2Service
-      .getEntrypointPluginMoreInformation(entrypoint.id)
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        catchError(() =>
-          of({
-            description: `${entrypoint.description} <br/><br/> 🚧 More information coming soon 🚧 <br/>`,
-            documentationUrl: 'https://docs.gravitee.io',
-          }),
-        ),
-        tap((pluginMoreInformation) => {
-          this.matDialog
-            .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
-              data: {
-                name: entrypoint.name,
-                pluginMoreInformation,
-              },
-              role: 'alertdialog',
-              id: 'moreInfoDialog',
-            })
-            .afterClosed()
-            .pipe(takeUntil(this.unsubscribe$))
-            .subscribe();
-        }),
-      )
-      .subscribe();
-  }
-
-  onMoreInfoMessageClick(event) {
-    event.stopPropagation();
-
-    this.matDialog
-      .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
-        data: {
-          name: 'Message',
-          pluginMoreInformation: {
-            description: `
-              <p>
-                Includes asynchronous and event-driven API entrypoints. Typically used for streaming APIs. If you want to learn more about
-                Gravitee’s new capabilities, you can read about our Service Management Ecosystem.
-              </p>
-              <p>
-                Such as:
-                <span class="gio-badge-neutral">HTTP Get</span>
-                <span class="gio-badge-neutral">HTTP Post</span>
-                <span class="gio-badge-neutral">SSE</span>
-                <span class="gio-badge-neutral">Webhook</span>
-                <span class="gio-badge-neutral">Websocket</span>
-              </p>
-            `,
-            documentationUrl: 'https://docs.gravitee.io',
-          },
-        },
-        role: 'alertdialog',
-        id: 'moreInfoDialog',
-      })
-      .afterClosed()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe();
   }
 }

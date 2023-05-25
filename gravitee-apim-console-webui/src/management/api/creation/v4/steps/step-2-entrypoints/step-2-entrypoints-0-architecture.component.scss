@@ -1,3 +1,9 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$typography: map.get(gio.$mat-theme, typography);
+
 ::ng-deep {
   step-2-entrypoints-0-architecture {
     // Note for migration: Angular Material 15 automatically add radio. Try to remove this
@@ -15,7 +21,19 @@
   align-items: center;
   gap: 16px;
 
+  &__badges {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 12px;
+
+    .gio-badge-neutral {
+      text-transform: none;
+    }
+  }
+
   gio-selection-list-option-layout {
     flex: 1 1 auto;
+    margin: 0;
   }
 }
