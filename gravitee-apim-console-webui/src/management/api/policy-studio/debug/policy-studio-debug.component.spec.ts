@@ -129,9 +129,9 @@ describe('PolicyStudioDebugComponent', () => {
     it('should display timeline', () => {
       const timeLineCards = [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()].map((card) => ({
         content: card.querySelector('.policy-studio-debug-timeline-card__content').textContent,
-        state: card.querySelector('.policy-studio-debug-timeline-card__right').innerHTML.includes('gio:warning-circled-outline')
+        state: card.querySelector('.policy-studio-debug-timeline-card__right').innerHTML.includes('gio:alert-circle')
           ? 'ERROR'
-          : card.querySelector('.policy-studio-debug-timeline-card__right').innerHTML.includes('gio:warning-circled-outline')
+          : card.querySelector('.policy-studio-debug-timeline-card__right').innerHTML.includes('gio:alert-circle')
           ? 'SKIPPED'
           : undefined,
       }));

@@ -40,23 +40,23 @@ $typography: map.get(gio.$mat-theme, typography);
 
         &-started {
           background: mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
-          color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
+          color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
 
           border: 2px solid mat.get-color-from-palette(gio.$mat-accent-palette, 'darker20');
         }
 
         &-not-started {
-          background: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
+          background: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
           color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter60');
 
-          border-color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
+          border-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
         }
 
         &-invalid {
-          background: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
+          background: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
           color: mat.get-color-from-palette(gio.$mat-warning-palette, 'lighter60');
 
-          border-color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'lighter');
+          border-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
         }
       }
 

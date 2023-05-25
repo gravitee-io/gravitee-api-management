@@ -139,7 +139,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           stage: timelineStep.stage,
           rightIcon:
             timelineStep.executionStatus === 'ERROR'
-              ? 'gio:warning-circled-outline'
+              ? 'gio:alert-circle'
               : timelineStep.executionStatus === 'SKIPPED'
               ? 'gio:prohibition'
               : undefined,

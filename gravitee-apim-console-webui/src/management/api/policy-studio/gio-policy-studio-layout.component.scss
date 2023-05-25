@@ -12,7 +12,7 @@
     &__header {
       position: relative;
       display: flex;
-      background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+      background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
 
       &__nav {
         flex: 1;

@@ -25,7 +25,7 @@ $cardIconWidth: 32px;
   align-items: center;
   padding: 8px 8px 8px 4px;
   border-radius: 8px;
-  background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
 
   &.clickable.hover,
   &.clickable:hover {
@@ -80,7 +80,7 @@ $cardIconWidth: 32px;
 
     &__header-label {
       @include mat.typography-level($typography, caption);
-      color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       overflow: hidden;
       text-overflow: ellipsis;
       margin: 4px 0;
@@ -102,7 +102,7 @@ $cardIconWidth: 32px;
     }
 
     .skipped {
-      color: mat.get-color-from-palette(gio.$mat-content-palette, 'disabled-contrast');
+      color: mat.get-color-from-palette(gio.$mat-basic-palette, 'disabled-contrast');
     }
   }
 
