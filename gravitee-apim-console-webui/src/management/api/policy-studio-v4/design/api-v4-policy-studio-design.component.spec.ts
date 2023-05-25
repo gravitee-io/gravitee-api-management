@@ -17,6 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiV4PolicyStudioDesignComponent } from './api-v4-policy-studio-design.component';
 
@@ -30,7 +31,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiV4PolicyStudioModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule],
       providers: [],
     })
       .overrideProvider(InteractivityChecker, {
