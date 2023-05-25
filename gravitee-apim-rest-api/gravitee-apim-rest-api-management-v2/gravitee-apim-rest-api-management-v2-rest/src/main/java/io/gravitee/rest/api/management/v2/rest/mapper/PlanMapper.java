@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
@@ -64,6 +65,10 @@ public interface PlanMapper {
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     PlanEntity convert(PlanV4 plan);
 
+    UpdatePlanEntity convert(UpdatePlanV4 plan);
+
+    io.gravitee.rest.api.model.UpdatePlanEntity convert(UpdatePlanV2 plan);
+
     @Named("convertToSecurityType")
     default PlanSecurityType convertToSecurityType(String securityType) {
         if (Objects.isNull(securityType)) {
@@ -90,8 +95,10 @@ public interface PlanMapper {
 
     // Rule -- for < V4 plans
     Rule map(io.gravitee.definition.model.Rule rule);
+    io.gravitee.definition.model.Rule map(Rule rule);
 
     List<Rule> map(List<io.gravitee.definition.model.Rule> rule);
+    List<io.gravitee.definition.model.Rule> mapRule(List<Rule> rule);
 
     default Map<String, List<Rule>> map(Map<String, List<io.gravitee.definition.model.Rule>> paths) {
         if (Objects.isNull(paths)) {

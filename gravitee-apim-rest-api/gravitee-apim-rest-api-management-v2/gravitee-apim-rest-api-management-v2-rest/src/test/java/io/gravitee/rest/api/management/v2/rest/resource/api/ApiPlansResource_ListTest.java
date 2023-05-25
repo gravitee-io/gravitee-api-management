@@ -27,13 +27,9 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.PlansResponse;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -43,16 +39,10 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ApiPlansResource_GetPlansTest extends AbstractResourceTest {
-
-    private static final String API = "my-api";
-    private static final String ENVIRONMENT = "my-env";
+public class ApiPlansResource_ListTest extends ApiPlansResourceTest {
 
     @Override
     protected String contextPath() {
@@ -61,31 +51,6 @@ public class ApiPlansResource_GetPlansTest extends AbstractResourceTest {
 
     @Autowired
     private PlanSearchService planSearchService;
-
-    @Before
-    public void init() throws TechnicalException {
-        Mockito.reset(planService, planSearchService);
-        GraviteeContext.cleanContext();
-
-        Api api = new Api();
-        api.setId(API);
-        api.setEnvironmentId(ENVIRONMENT);
-        doReturn(Optional.of(api)).when(apiRepository).findById(API);
-
-        EnvironmentEntity environmentEntity = new EnvironmentEntity();
-        environmentEntity.setId(ENVIRONMENT);
-        environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
-
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
-        GraviteeContext.setCurrentOrganization(ORGANIZATION);
-    }
-
-    @After
-    public void tearDown() {
-        GraviteeContext.cleanContext();
-    }
 
     @Test
     public void should_return_empty_page_if_no_plans() {

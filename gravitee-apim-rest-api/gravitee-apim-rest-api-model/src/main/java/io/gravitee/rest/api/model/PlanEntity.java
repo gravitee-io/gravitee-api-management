@@ -22,11 +22,10 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import jakarta.validation.constraints.NotNull;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-
-import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

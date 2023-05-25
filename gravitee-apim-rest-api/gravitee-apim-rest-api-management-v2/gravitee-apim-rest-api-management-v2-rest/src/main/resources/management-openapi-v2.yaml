@@ -566,9 +566,16 @@ paths:
                 - APIs
                 - API Plans
             summary: Update one API's plan
-            description: |
-                # FIXME add a description
+            description: |-
+                Update the API's plan by its identifier
+                User must have the API_PLAN[UPDATE] permission.
             operationId: updateApiPlan
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdatePlan"
+                required: true
             responses:
                 "200":
                     description: API's plan successfully updated
@@ -1947,18 +1954,18 @@ components:
                 createdAt:
                     type: string
                     format: date-time
-                    description: The last date (as timestamp) when the API was created.
-                    example: 1581256457163
+                    description: The last datetime when the plan was created.
+                    example: 2023-05-25T12:40:46.184Z
                 crossId:
                     type: string
-                    description: API's crossId. Identifies API across environments.
+                    description: Plan's crossId. Identifies plan across environments.
                     example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
                 definitionVersion:
                     $ref: "#/components/schemas/DefinitionVersion"
                 description:
                     type: string
-                    description: API's description. A short description of your API.
-                    example: I can use a hundred characters to describe this API.
+                    description: Plan's description. A short description of your plan.
+                    example: I can use a hundred characters to describe this plan.
                 excludedGroups:
                     type: array
                     description: Groups of users which are not allowed to subscribe to this plan.
@@ -1982,8 +1989,8 @@ components:
                 publishedAt:
                     type: string
                     format: date-time
-                    description: The last date (as timestamp) when the API was published.
-                    example: 1581256457163
+                    description: The last datetime when the plan was published.
+                    example: 2023-05-25T12:40:46.184Z
                 security:
                     $ref: "#/components/schemas/PlanSecurity"
                 selectionRule:
@@ -2003,8 +2010,8 @@ components:
                 updatedAt:
                     type: string
                     format: date-time
-                    description: The last date (as timestamp) when the API was updated.
-                    example: 1581256457163
+                    description: The last datetime when the plan was updated.
+                    example: 2023-05-25T12:40:46.184Z
                 validation:
                     $ref: "#/components/schemas/PlanValidation"
             discriminator:
@@ -2067,6 +2074,98 @@ components:
             enum:
                 - AUTO
                 - MANUAL
+
+        UpdatePlan:
+            oneOf:
+                - $ref: "#/components/schemas/UpdatePlanV2"
+                - $ref: "#/components/schemas/UpdatePlanV4"
+
+        UpdateBasePlan:
+            type: object
+            properties:
+                crossId:
+                    type: string
+                    description: Plan's crossId. Identifies plan across environments.
+                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+                characteristics:
+                    type: array
+                    items:
+                        type: string
+                commentMessage:
+                    type: string
+                commentRequired:
+                    type: boolean
+                definitionVersion:
+                    $ref: "#/components/schemas/DefinitionVersion"
+                description:
+                    type: string
+                    description: Plan's description. A short description of your Plan.
+                    example: I can use a hundred characters to describe this plan.
+                excludedGroups:
+                    type: array
+                    description: Groups of users which are not allowed to subscribe to this plan.
+                    example:
+                        - MY_GROUP1
+                        - MY_GROUP2
+                    items:
+                        type: string
+                generalConditions:
+                    type: string
+                    description: This field contains the UUID of the documentation page that is used as General Conditions.
+                    example: 4e3de652-2301-48ba-bde6-522301e8ba3a
+                name:
+                    type: string
+                    description: Plan's name. Duplicate names can exists.
+                    example: My Api plan
+                order:
+                    type: integer
+                    description: Simple order that could be used by a front end to display plans in a certain order. To highlight a plan on the portal for instance.
+                    example: 0
+                selectionRule:
+                    type: string
+                    description: An optional EL expression that will be evaluated at request time to select this plan.
+                tags:
+                    type: array
+                    description: The list of sharding tags associated with this plan.
+                    example:
+                        - public
+                        - private
+                    items:
+                        type: string
+                validation:
+                    $ref: "#/components/schemas/PlanValidation"
+            discriminator:
+                propertyName: definitionVersion
+                mapping:
+                    V2: UpdatePlanV2
+                    V4: UpdatePlanV4
+
+        UpdatePlanV2:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/UpdateBasePlan"
+                - properties:
+                      flows:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/FlowV2"
+                      paths:
+                          type: object
+                          additionalProperties:
+                              type: array
+                              items:
+                                  $ref: "#/components/schemas/Rule"
+
+        UpdatePlanV4:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/UpdateBasePlan"
+                - properties:
+                      flows:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/FlowV4"
+
         Member:
             type: object
             properties:
@@ -2560,7 +2659,6 @@ components:
                     type: string
                     description: Flow's name.
                     example: My Flow
-                    minLength: 1
                 pathOperator:
                     $ref: "#/components/schemas/PathOperator"
                 pre:

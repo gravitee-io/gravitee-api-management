@@ -68,6 +68,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected PlanService planService;
 
     @Autowired
+    protected io.gravitee.rest.api.service.PlanService planServiceV2;
+
+    @Autowired
     protected EnvironmentService environmentService;
 
     @Autowired

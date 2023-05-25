@@ -98,8 +98,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public PlanService planService() {
+    public PlanService planServiceV4() {
         return mock(PlanService.class);
+    }
+
+    @Bean
+    public io.gravitee.rest.api.service.PlanService planService() {
+        return mock(io.gravitee.rest.api.service.PlanService.class);
     }
 
     @Bean

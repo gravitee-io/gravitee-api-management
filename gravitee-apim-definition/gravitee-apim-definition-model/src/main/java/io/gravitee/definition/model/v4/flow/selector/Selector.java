@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

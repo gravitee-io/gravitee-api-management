@@ -52,16 +52,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ApiPlansResourceTest extends AbstractResourceTest {
+public abstract class ApiPlansResourceTest extends AbstractResourceTest {
 
-    private static final String API = "my-api";
-    private static final String PLAN = "my-plan";
-    private static final String ENVIRONMENT = "my-env";
-
-    @Override
-    protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/apis/" + API + "/plans";
-    }
+    protected static final String API = "my-api";
+    protected static final String PLAN = "my-plan";
+    protected static final String ENVIRONMENT = "my-env";
 
     @Autowired
     private PlanSearchService planSearchService;
@@ -91,162 +86,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         GraviteeContext.cleanContext();
     }
 
-    @Test
-    public void shouldCreateApiPlan() {
-        NewPlanEntity newPlanEntity = new NewPlanEntity();
-        newPlanEntity.setName(PLAN);
-        newPlanEntity.setDescription("my-plan-description");
-        newPlanEntity.setValidation(PlanValidationType.AUTO);
-        var planSecurity = new PlanSecurity();
-        planSecurity.setType("api-key");
-        newPlanEntity.setSecurity(planSecurity);
-        newPlanEntity.setStatus(PlanStatus.STAGING);
-
-        var fullNewPlanEntity = newPlanEntity;
-        fullNewPlanEntity.setType(PlanType.API);
-        fullNewPlanEntity.setApiId(API);
-
-        PlanEntity createdPlanEntity = new PlanEntity();
-        createdPlanEntity.setId("new-plan-id");
-        createdPlanEntity.setName(PLAN);
-        createdPlanEntity.setDescription("my-plan-description");
-        createdPlanEntity.setValidation(PlanValidationType.AUTO);
-        createdPlanEntity.setSecurity(planSecurity);
-        createdPlanEntity.setType(PlanType.API);
-        createdPlanEntity.setStatus(PlanStatus.STAGING);
-        createdPlanEntity.setApiId(API);
-
-        Date createdAt = new Date();
-        createdPlanEntity.setCreatedAt(createdAt);
-
-        when(planService.create(eq(GraviteeContext.getExecutionContext()), eq(fullNewPlanEntity))).thenReturn(createdPlanEntity);
-
-        final Response response = rootTarget().request().post(Entity.json(newPlanEntity));
-
-        assertEquals(CREATED_201, response.getStatus());
-        assertEquals(rootTarget().path("new-plan-id").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
-        var body = response.readEntity(Plan.class);
-        var createdPlan = body.getPlanV4();
-
-        assertEquals(API, createdPlan.getApiId());
-        assertEquals(PLAN, createdPlan.getName());
-        assertEquals("my-plan-description", createdPlan.getDescription());
-        assertEquals(PlanValidation.AUTO, createdPlan.getValidation());
-        var createdPlanSecurity = createdPlan.getSecurity();
-        assertNotNull(createdPlanSecurity);
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY, createdPlanSecurity.getType());
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanType.API, createdPlan.getType());
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.STAGING, createdPlan.getStatus());
-        assertEquals(createdAt.toInstant().atOffset(ZoneOffset.UTC), createdPlan.getCreatedAt());
-    }
-
-    @Test
-    public void shouldNotCreatePlanWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
-
-        NewPlanEntity newPlanEntity = new NewPlanEntity();
-        newPlanEntity.setName(PLAN);
-        newPlanEntity.setDescription("my-plan-description");
-        newPlanEntity.setValidation(PlanValidationType.AUTO);
-        var planSecurity = new PlanSecurity();
-        planSecurity.setType("planType");
-        newPlanEntity.setSecurity(planSecurity);
-        newPlanEntity.setStatus(PlanStatus.STAGING);
-
-        final Response response = rootTarget().request().post(Entity.json(newPlanEntity));
-        assertEquals(FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
-    public void shouldCloseApiPlan() {
-        ApiEntity api = getApi();
-
-        PlanEntity existingPlan = new PlanEntity();
-        existingPlan.setName(PLAN);
-        existingPlan.setApiId(API);
-
-        PlanEntity closedPlan = new PlanEntity();
-        closedPlan.setId("closed-plan-id");
-        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
-        doReturn(existingPlan).when(planService).findById(GraviteeContext.getExecutionContext(), PLAN);
-        when(planService.close(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(closedPlan);
-
-        final Response response = rootTarget().path(PLAN).path("_close").request().post(Entity.json(""));
-
-        assertEquals(OK_200, response.getStatus());
-        verify(planService, times(1)).close(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
-    }
-
-    @Test
-    public void shouldNotClosePlanWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
-
-        final Response response = rootTarget().path(PLAN).path("_close").request().post(Entity.json(""));
-        assertEquals(FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
-    public void shouldDeleteApiPlan() {
-        ApiEntity api = getApi();
-
-        PlanEntity existingPlan = new PlanEntity();
-        existingPlan.setName(PLAN);
-        existingPlan.setApiId(API);
-
-        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
-        when(planService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(existingPlan);
-
-        final Response response = rootTarget().path(PLAN).request().delete();
-
-        assertEquals(NO_CONTENT_204, response.getStatus());
-        verify(planService, times(1)).delete(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
-    }
-
-    @Test
-    public void shouldNotDeletePlanWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
-
-        final Response response = rootTarget().path(PLAN).request().delete();
-        assertEquals(FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
-    public void shouldNotUpdatePlanWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
-
-        final Response response = rootTarget().path(PLAN).request().put(Entity.json(""));
-        assertEquals(FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
-    public void shouldNotPublishPlanWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
-
-        final Response response = rootTarget().path(PLAN).path("_publish").request().post(Entity.json(""));
-        assertEquals(FORBIDDEN_403, response.getStatus());
-    }
-
-    @Test
-    public void shouldNotDeprecatePlanWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
-
-        final Response response = rootTarget().path(PLAN).path("_deprecate").request().post(Entity.json(""));
-        assertEquals(FORBIDDEN_403, response.getStatus());
-    }
-
-    private ApiEntity getApi() {
+    protected ApiEntity getApi() {
         ApiEntity api = new ApiEntity();
         api.setId(API);
         api.setDefinitionVersion(DefinitionVersion.V4);

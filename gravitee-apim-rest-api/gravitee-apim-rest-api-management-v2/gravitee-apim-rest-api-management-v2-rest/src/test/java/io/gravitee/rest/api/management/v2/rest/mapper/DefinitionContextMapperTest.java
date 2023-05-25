@@ -20,10 +20,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionContext;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 public class DefinitionContextMapperTest {
 
-    private final DefinitionContextMapper definitionContextMapper = new DefinitionContextMapperImpl();
+    private final DefinitionContextMapper definitionContextMapper = Mappers.getMapper(DefinitionContextMapper.class);
 
     @Test
     void shouldMapDefinitionContextWithManagementOriginString() {
