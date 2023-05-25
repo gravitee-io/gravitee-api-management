@@ -226,9 +226,11 @@
 							<generateModelDocumentation>false</generateModelDocumentation>
 							<generateSupportingFiles>true</generateSupportingFiles>
 							<supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java</supportingFilesToGenerate>
+							<reservedWordsMappings>configuration=configuration</reservedWordsMappings>
 							<configOptions>
 								<dateLibrary>java8</dateLibrary>
 								<useBeanValidation>true</useBeanValidation>
+								<additionalModelTypeAnnotations>@lombok.experimental.SuperBuilder(toBuilder = true)</additionalModelTypeAnnotations>
 							</configOptions>
 							<typeMappings>
 								<typeMapping>BigDecimal=Number</typeMapping>

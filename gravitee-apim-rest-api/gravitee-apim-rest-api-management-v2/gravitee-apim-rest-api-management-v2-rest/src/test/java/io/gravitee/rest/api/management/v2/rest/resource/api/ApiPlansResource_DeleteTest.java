@@ -21,11 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import fixtures.PlanFixtures;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -33,18 +29,10 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.core.Response;
-import java.util.Optional;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ApiPlansResource_DeleteTest extends AbstractResourceTest {
-
-    private static final String API = "my-api";
-    private static final String PLAN = "my-plan";
-    private static final String ENVIRONMENT = "my-env";
+public class ApiPlansResource_DeleteTest extends ApiPlansResourceTest {
 
     @Override
     protected String contextPath() {
@@ -53,31 +41,6 @@ public class ApiPlansResource_DeleteTest extends AbstractResourceTest {
 
     @Autowired
     private PlanSearchService planSearchService;
-
-    @Before
-    public void init() throws TechnicalException {
-        Mockito.reset(planService, planSearchService);
-        GraviteeContext.cleanContext();
-
-        Api api = new Api();
-        api.setId(API);
-        api.setEnvironmentId(ENVIRONMENT);
-        doReturn(Optional.of(api)).when(apiRepository).findById(API);
-
-        EnvironmentEntity environmentEntity = new EnvironmentEntity();
-        environmentEntity.setId(ENVIRONMENT);
-        environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
-
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
-        GraviteeContext.setCurrentOrganization(ORGANIZATION);
-    }
-
-    @After
-    public void tearDown() {
-        GraviteeContext.cleanContext();
-    }
 
     @Test
     public void should_return_404_if_not_found() {
@@ -95,7 +58,7 @@ public class ApiPlansResource_DeleteTest extends AbstractResourceTest {
 
     @Test
     public void should_return_404_if_plan_associated_to_another_api() {
-        final PlanEntity planEntity = PlanFixtures.aPlanV4().toBuilder().id(PLAN).apiId("ANOTHER-API").build();
+        final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId("ANOTHER-API").build();
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
 
@@ -133,7 +96,7 @@ public class ApiPlansResource_DeleteTest extends AbstractResourceTest {
 
     @Test
     public void should_return_no_content_when_v4_plan_deleted() {
-        final PlanEntity planEntity = PlanFixtures.aPlanV4().toBuilder().id(PLAN).apiId(API).build();
+        final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
 
@@ -146,7 +109,7 @@ public class ApiPlansResource_DeleteTest extends AbstractResourceTest {
 
     @Test
     public void should_return_no_content_when_v2_plan_deleted() {
-        final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanV2().toBuilder().id(PLAN).api(API).build();
+        final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
 

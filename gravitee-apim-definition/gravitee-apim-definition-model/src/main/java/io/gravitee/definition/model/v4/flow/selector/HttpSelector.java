@@ -37,20 +37,25 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 public class HttpSelector extends Selector {
 
+    protected static final String DEFAULT_PATH = "/";
+    protected static final Operator DEFAULT_OPERATOR = Operator.STARTS_WITH;
+
     @JsonProperty(required = true)
     @NotEmpty
     @Builder.Default
-    private String path = "/";
+    private String path = DEFAULT_PATH;
 
     @JsonProperty(required = true)
     @NotNull
     @Builder.Default
-    private Operator pathOperator = Operator.STARTS_WITH;
+    private Operator pathOperator = DEFAULT_OPERATOR;
 
     private Set<HttpMethod> methods;
 
     public HttpSelector() {
         super(SelectorType.HTTP);
+        this.path = DEFAULT_PATH;
+        this.pathOperator = DEFAULT_OPERATOR;
     }
 
     public abstract static class HttpSelectorBuilder<C extends HttpSelector, B extends HttpSelector.HttpSelectorBuilder<C, B>>

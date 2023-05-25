@@ -19,22 +19,20 @@ import static java.util.Comparator.comparingInt;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
-import io.gravitee.rest.api.management.v2.rest.model.PlanStatus;
-import io.gravitee.rest.api.management.v2.rest.model.PlansResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
-import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.*;
+import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import jakarta.inject.Inject;
@@ -55,8 +53,13 @@ import java.util.stream.Collectors;
 @Path("/environments/{envId}/apis/{apiId}/plans")
 public class ApiPlansResource extends AbstractResource {
 
+    private final PlanMapper planMapper = PlanMapper.INSTANCE;
+
     @Inject
-    private PlanService planService;
+    private PlanService planServiceV4;
+
+    @Inject
+    private io.gravitee.rest.api.service.PlanService planService;
 
     @Inject
     private PlanSearchService planSearchService;
@@ -67,7 +70,6 @@ public class ApiPlansResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @SuppressWarnings("UnresolvedRestParam")
     @PathParam("apiId")
     private String apiId;
 
@@ -110,7 +112,7 @@ public class ApiPlansResource extends AbstractResource {
         List<GenericPlanEntity> paginationData = computePaginationData(plans, paginationParam);
 
         return new PlansResponse()
-            .data(PlanMapper.INSTANCE.convert(paginationData))
+            .data(planMapper.convert(paginationData))
             .pagination(computePaginationInfo(plans.size(), paginationData.size(), paginationParam))
             .links(computePaginationLinks(plans.size(), paginationParam));
     }
@@ -123,65 +125,75 @@ public class ApiPlansResource extends AbstractResource {
         newPlanEntity.setApiId(apiId);
         newPlanEntity.setType(PlanType.API);
 
-        PlanEntity planEntity = planService.create(GraviteeContext.getExecutionContext(), newPlanEntity);
+        PlanEntity planEntity = planServiceV4.create(GraviteeContext.getExecutionContext(), newPlanEntity);
 
-        return Response.created(this.getLocationHeader(planEntity.getId())).entity(PlanMapper.INSTANCE.convert(planEntity)).build();
+        return Response.created(this.getLocationHeader(planEntity.getId())).entity(planMapper.convert(planEntity)).build();
     }
 
     @GET
-    @Path("/{plan}")
+    @Path("/{planId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.READ }) })
-    public Response getApiPlan(@PathParam("plan") String plan) {
+    public Response getApiPlan(@PathParam("planId") String planId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, plan);
+        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
         if (!planEntity.getApiId().equals(apiId)) {
-            return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(plan)).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        return Response.ok(PlanMapper.INSTANCE.convert(planEntity)).build();
+        return Response.ok(planMapper.convert(planEntity)).build();
     }
 
     @PUT
-    @Path("/{plan}")
+    @Path("/{planId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
-    public Response updateApiPlan(@PathParam("plan") String plan, @Valid @NotNull UpdatePlanEntity updatePlanEntity) {
-        if (updatePlanEntity.getId() != null && !plan.equals(updatePlanEntity.getId())) {
-            return Response
-                .status(Response.Status.BAD_REQUEST)
-                .entity("'plan' parameter does not correspond to the plan to update")
-                .build();
-        }
-
-        // Force ID
-        updatePlanEntity.setId(plan);
-
+    public Response updateApiPlan(@PathParam("planId") String planId, @Valid @NotNull UpdateBasePlan updatePlan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
+
         if (!planEntity.getApiId().equals(apiId)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
+            return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        PlanEntity responseEntity = planService.update(executionContext, updatePlanEntity);
-        return Response.ok(PlanMapper.INSTANCE.convert(responseEntity)).build();
+        if (updatePlan.getDefinitionVersion() == DefinitionVersion.V4) {
+            if (!(planEntity instanceof PlanEntity)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
+            }
+
+            final UpdatePlanEntity updatePlanEntity = planMapper.convert((UpdatePlanV4) updatePlan);
+            updatePlanEntity.setId(planId);
+            PlanEntity responseEntity = planServiceV4.update(executionContext, updatePlanEntity);
+            return Response.ok(planMapper.convert(responseEntity)).build();
+        } else if (updatePlan.getDefinitionVersion() == DefinitionVersion.V2) {
+            if (!(planEntity instanceof io.gravitee.rest.api.model.PlanEntity)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
+            }
+
+            final io.gravitee.rest.api.model.UpdatePlanEntity updatePlanEntity = planMapper.convert((UpdatePlanV2) updatePlan);
+            updatePlanEntity.setId(planId);
+            io.gravitee.rest.api.model.PlanEntity responseEntity = planService.update(executionContext, updatePlanEntity);
+            return Response.ok(planMapper.convert(responseEntity)).build();
+        }
+
+        return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
     }
 
     @DELETE
-    @Path("/{plan}")
+    @Path("/{planId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.DELETE }) })
-    public Response deleteApiPlan(@PathParam("plan") String plan) {
+    public Response deleteApiPlan(@PathParam("planId") String planId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, plan);
+        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
         if (!planEntity.getApiId().equals(apiId)) {
-            return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(plan)).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        planService.delete(executionContext, plan);
+        planServiceV4.delete(executionContext, planId);
 
         return Response.noContent().build();
     }
@@ -192,14 +204,14 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response closeApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        PlanEntity planEntity = planServiceV4.findById(executionContext, plan);
         if (!planEntity.getApiId().equals(apiId)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        PlanEntity closedPlan = planService.close(executionContext, plan);
+        PlanEntity closedPlan = planServiceV4.close(executionContext, plan);
 
-        return Response.ok(PlanMapper.INSTANCE.convert(closedPlan)).build();
+        return Response.ok(planMapper.convert(closedPlan)).build();
     }
 
     @POST
@@ -208,14 +220,14 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response publishApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        PlanEntity planEntity = planServiceV4.findById(executionContext, plan);
         if (!planEntity.getApiId().equals(apiId)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        PlanEntity publishedPlan = planService.publish(executionContext, plan);
+        PlanEntity publishedPlan = planServiceV4.publish(executionContext, plan);
 
-        return Response.ok(PlanMapper.INSTANCE.convert(publishedPlan)).build();
+        return Response.ok(planMapper.convert(publishedPlan)).build();
     }
 
     @POST
@@ -224,12 +236,12 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
     public Response deprecateApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planService.findById(executionContext, plan);
+        PlanEntity planEntity = planServiceV4.findById(executionContext, plan);
         if (!planEntity.getApiId().equals(apiId)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
         }
 
-        PlanEntity deprecatedPlan = planService.deprecate(executionContext, plan);
+        PlanEntity deprecatedPlan = planServiceV4.deprecate(executionContext, plan);
 
         return Response.ok(deprecatedPlan).build();
     }
@@ -271,5 +283,13 @@ public class ApiPlansResource extends AbstractResource {
             .message("Plan [" + plan + "] can not be found.")
             .putParametersItem("plan", plan)
             .technicalCode("plan.notFound");
+    }
+
+    private Error planInvalid(String plan) {
+        return new Error()
+            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+            .message("Plan [" + plan + "] is not valid.")
+            .putParametersItem("plan", plan)
+            .technicalCode("plan.invalid");
     }
 }

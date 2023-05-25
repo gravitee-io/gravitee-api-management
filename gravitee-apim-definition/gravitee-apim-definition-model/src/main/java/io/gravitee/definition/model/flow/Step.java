@@ -18,11 +18,10 @@ package io.gravitee.definition.model.flow;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

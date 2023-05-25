@@ -19,12 +19,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.ConditionSupplier;
+import java.io.Serializable;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

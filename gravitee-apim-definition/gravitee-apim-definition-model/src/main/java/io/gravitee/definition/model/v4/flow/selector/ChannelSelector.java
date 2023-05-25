@@ -40,6 +40,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 public class ChannelSelector extends Selector {
 
+    protected static final String DEFAULT_CHANNEL = "/";
+    protected static final Operator DEFAULT_OPERATOR = Operator.STARTS_WITH;
+
     private Set<@NotNull Operation> operations;
 
     @JsonProperty(required = true)
@@ -56,6 +59,8 @@ public class ChannelSelector extends Selector {
 
     public ChannelSelector() {
         super(SelectorType.CHANNEL);
+        this.channel = DEFAULT_CHANNEL;
+        this.channelOperator = DEFAULT_OPERATOR;
     }
 
     @RequiredArgsConstructor

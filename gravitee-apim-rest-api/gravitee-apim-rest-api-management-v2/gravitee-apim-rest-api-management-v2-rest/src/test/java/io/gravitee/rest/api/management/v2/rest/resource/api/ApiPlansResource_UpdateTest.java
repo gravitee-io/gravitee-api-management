@@ -17,41 +17,35 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import fixtures.PlanFixtures;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.Optional;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ApiPlansResource_GetTest extends ApiPlansResourceTest {
-
-    @Autowired
-    private PlanSearchService planSearchService;
+public class ApiPlansResource_UpdateTest extends ApiPlansResourceTest {
 
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API + "/plans" + "/" + PLAN;
     }
+
+    @Autowired
+    private PlanSearchService planSearchService;
 
     @Test
     public void should_return_404_if_not_found() {
@@ -100,28 +94,81 @@ public class ApiPlansResource_GetTest extends ApiPlansResourceTest {
     }
 
     @Test
-    public void should_return_v4_plan() {
+    public void should_update_v4_plan() {
         final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
+        final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanV4();
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+        when(planService.update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class))).thenReturn(planEntity);
 
-        final Response response = rootTarget().request().get();
+        final Response response = rootTarget().request().put(Entity.entity(updatePlanV4, MediaType.APPLICATION_JSON_TYPE));
         assertEquals(OK_200, response.getStatus());
 
-        var plan = response.readEntity(PlanV4.class);
-        assertEquals(planEntity.getId(), plan.getId());
+        final PlanV4 planV4 = response.readEntity(PlanV4.class);
+        assertEquals(PLAN, planV4.getId());
+
+        verify(planService)
+            .update(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(updatePlanEntity -> {
+                    assertEquals(updatePlanV4.getName(), updatePlanEntity.getName());
+                    return true;
+                })
+            );
     }
 
     @Test
-    public void should_return_v2_plan() {
+    public void should_return_bad_request_when_setting_definition_to_v2_on_v4_plan() {
         final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
+        final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanV4();
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
 
-        final Response response = rootTarget().request().get();
+        final Response response = rootTarget().request().put(Entity.entity(updatePlanV4, MediaType.APPLICATION_JSON_TYPE));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+        assertEquals("Plan [" + PLAN + "] is not valid.", error.getMessage());
+    }
+
+    @Test
+    public void should_update_v2_plan() {
+        final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
+        final UpdatePlanV2 updatePlanV2 = PlanFixtures.anUpdatePlanV2();
+
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+        when(planServiceV2.update(eq(GraviteeContext.getExecutionContext()), any(io.gravitee.rest.api.model.UpdatePlanEntity.class)))
+            .thenReturn(planEntity);
+
+        final Response response = rootTarget().request().put(Entity.entity(updatePlanV2, MediaType.APPLICATION_JSON_TYPE));
         assertEquals(OK_200, response.getStatus());
 
-        var plan = response.readEntity(PlanV2.class);
-        assertEquals(planEntity.getId(), plan.getId());
+        final PlanV2 planV2 = response.readEntity(PlanV2.class);
+        assertEquals(PLAN, planV2.getId());
+
+        verify(planServiceV2)
+            .update(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(updatePlanEntity -> {
+                    assertEquals(updatePlanV2.getName(), updatePlanEntity.getName());
+                    return true;
+                })
+            );
+    }
+
+    @Test
+    public void should_return_bad_request_when_setting_definition_to_v4_on_v2_plan() {
+        final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
+        final UpdatePlanV2 updatePlanV2 = PlanFixtures.anUpdatePlanV2();
+
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+
+        final Response response = rootTarget().request().put(Entity.entity(updatePlanV2, MediaType.APPLICATION_JSON_TYPE));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+        assertEquals("Plan [" + PLAN + "] is not valid.", error.getMessage());
     }
 }

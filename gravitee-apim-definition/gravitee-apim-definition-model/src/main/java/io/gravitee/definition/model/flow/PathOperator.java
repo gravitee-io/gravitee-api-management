@@ -17,13 +17,21 @@ package io.gravitee.definition.model.flow;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class PathOperator implements Serializable {
 
     @JsonProperty("path")
+    @Builder.Default
     private String path = "";
 
     @JsonProperty("operator")
+    @Builder.Default
     private Operator operator = Operator.STARTS_WITH;
 
     public String getPath() {
