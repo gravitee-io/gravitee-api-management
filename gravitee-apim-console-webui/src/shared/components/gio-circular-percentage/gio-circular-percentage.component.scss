@@ -10,7 +10,7 @@
 .circular {
   &__circle-bg {
     fill: none;
-    stroke: mat.get-color-from-palette(gio.$mat-neutral-palette, 'default');
+    stroke: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     stroke-width: 2.8;
   }
 
@@ -22,7 +22,7 @@
   }
 
   &__percentage {
-    fill: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
+    fill: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     font-family: sans-serif;
     font-size: 0.7em;
     text-anchor: middle;

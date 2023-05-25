@@ -27,7 +27,7 @@ $typography: map.get(gio.$mat-theme, typography);
     &__row {
       gap: 20px;
       display: flex;
-      border-top: 1px mat.get-color-from-palette(gio.$mat-neutral-palette, 'default') solid;
+      border-top: 1px mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10') solid;
       padding: 2px 0;
 
       > span {

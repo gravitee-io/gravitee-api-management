@@ -23,7 +23,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__step {
     display: flex;
-    border: 1px solid mat.get-color-from-palette(gio.$mat-neutral-palette, 'default');
+    border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     border-radius: 6px;
     padding: 16px;
     flex-direction: column;

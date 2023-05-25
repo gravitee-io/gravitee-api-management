@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   min-width: 273px;
-  background-color: mat.get-color-from-palette(gio.$mat-content-palette, 'lighter');
+  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
 
   &__header {
     display: flex;

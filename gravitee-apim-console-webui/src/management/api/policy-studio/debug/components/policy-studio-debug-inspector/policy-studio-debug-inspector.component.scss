@@ -5,7 +5,7 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 :host {
-  background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -13,8 +13,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .policy-studio-debug-inspector {
   &__header {
-    background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'lighter-background');
-    border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
+    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+    border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
     height: 56px;
     padding: 16px;
     display: flex;
@@ -58,7 +58,7 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__tree-node {
-    border-top: 1px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
+    border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
 
     &__error-icon {
       color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');

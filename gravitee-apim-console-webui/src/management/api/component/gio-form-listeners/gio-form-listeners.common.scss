@@ -61,7 +61,7 @@ $typography: map.get(gio.$mat-theme, typography);
     &__field:focus-within {
       z-index: 100;
       height: auto;
-      background-color: mat.get-color-from-palette(gio.$mat-content-palette, 'lighter');
+      background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
 
       * {
         max-height: none;

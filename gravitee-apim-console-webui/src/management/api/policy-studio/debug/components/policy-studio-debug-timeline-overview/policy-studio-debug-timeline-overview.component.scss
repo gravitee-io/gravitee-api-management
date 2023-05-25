@@ -5,8 +5,8 @@
 $typography: map.get(gio.$mat-theme, typography);
 
 .policy-studio-debug-timeline-overview {
-  background-color: mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
-  border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'divider');
+  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+  border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
   height: 40px;
   display: flex;
   align-items: center;
@@ -14,7 +14,7 @@ $typography: map.get(gio.$mat-theme, typography);
   &__left-client-app,
   &__right-client-app,
   &__center-target-backend {
-    color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'darker');
+    color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker70');
     flex: 0 0 24px;
     margin: 0 8px;
   }
@@ -44,7 +44,7 @@ $typography: map.get(gio.$mat-theme, typography);
       }
 
       &.color-grey {
-        background-color: mat.get-color-from-palette(gio.$mat-content-palette, 'disabled');
+        background-color: mat.get-color-from-palette(gio.$mat-basic-palette, disabled);
       }
 
       &.color-red {
@@ -71,8 +71,8 @@ $typography: map.get(gio.$mat-theme, typography);
       &.selected-single::before,
       &.selected-content::before {
         margin-top: 9px;
-        background-color: mat.get-color-from-palette(gio.$mat-neutral-palette, 'default');
-        border: 1px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+        background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+        border: 1px solid mat.get-color-from-palette(gio.$mat-basic-palette, white);
         border-radius: 50%;
         padding: 2px;
       }
@@ -104,7 +104,7 @@ $typography: map.get(gio.$mat-theme, typography);
       .selected-none::before {
         margin-top: 9px;
         background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
-        border: 1px solid mat.get-color-from-palette(gio.$mat-decorative-palette, 'surface');
+        border: 1px solid mat.get-color-from-palette(gio.$mat-basic-palette, white);
         border-radius: 50%;
         padding: 2px;
       }

@@ -93,7 +93,7 @@ $typography: map.get(gio.$mat-theme, typography);
     }
 
     &__description {
-      color: mat.get-color-from-palette(gio.$mat-content-palette, 'default');
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     }
   }
 
