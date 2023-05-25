@@ -24,12 +24,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.TopHitsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
@@ -175,8 +178,8 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetEmptyCountAnalyticsWhenNotAdminAndNoApi() {
-        when(apiService.findByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(null), !eq(false)))
-            .thenReturn(Collections.emptySet());
+        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), any(), eq(false), any(Pageable.class)))
+            .thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
 
         Response response = envTarget()
             .queryParam("type", "count")
@@ -214,11 +217,14 @@ public class EnvironmentAnalyticsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCountAnalyticsWhenNotAdminAndApi() {
-        ApiEntity api = new ApiEntity();
+        GenericApiEntity api = new ApiEntity();
         api.setId("apiId");
 
         when(apiAuthorizationServiceV4.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), eq(true)))
             .thenReturn(Collections.singleton(api.getId()));
+        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), any(), eq(false), any(Pageable.class)))
+            .thenReturn(new Page<>(Collections.singletonList(api), 1, 1, 1));
+
         when(permissionService.hasPermission(GraviteeContext.getExecutionContext(), API_ANALYTICS, api.getId(), READ)).thenReturn(true);
 
         Response response = envTarget()

@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -76,6 +77,9 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
 
     @Inject
     ApiService apiService;
+
+    @Inject
+    io.gravitee.rest.api.service.v4.ApiService apiServiceV4;
 
     @Inject
     PermissionService permissionService;
@@ -145,16 +149,10 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
     private Analytics executeCount(final ExecutionContext executionContext, AnalyticsParam analyticsParam) {
         switch (analyticsParam.getField()) {
             case API_FIELD:
-                if (isAdmin()) {
-                    return buildCountStat(
-                        // FIXME: This should use a count method instead of a search one
-                        apiService
-                            .searchIds(executionContext, new ApiQuery(), new PageableImpl(1, Integer.MAX_VALUE), null)
-                            .getTotalElements()
-                    );
-                } else {
-                    return buildCountStat(apiAuthorizationService.findIdsByUser(executionContext, getAuthenticatedUser(), true).size());
-                }
+                return buildCountStat(
+                    // FIXME: This should use a count method instead of a search one
+                    apiServiceV4.findAll(executionContext, getAuthenticatedUser(), isAdmin(), new PageableImpl(1, 1)).getTotalElements()
+                );
             case APPLICATION_FIELD:
                 if (isAdmin()) {
                     ApplicationQuery applicationQuery = new ApplicationQuery();
