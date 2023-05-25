@@ -36,7 +36,9 @@
         </div>
 
         <div class="api-creation-get-started__row__card__action">
-          <button mat-stroked-button (click)="goToApiv4CreationWizard()">Create <mat-icon svgIcon="gio:right-circle"></mat-icon></button>
+          <button mat-flat-button color="primary" (click)="goToApiv4CreationWizard()">
+            Create <mat-icon svgIcon="gio:right-circle"></mat-icon>
+          </button>
         </div>
       </div>
 
@@ -57,8 +59,8 @@
 
         <div class="api-creation-get-started__row__card__action">
           <a [href]="cockpitLink" target="_blank" rel="noopener noreferrer" mat-stroked-button
-            >Try API Designer <mat-icon>open_in_new</mat-icon></a
-          >
+            >Try API Designer <mat-icon svgIcon="gio:external-link"></mat-icon
+          ></a>
         </div>
       </div>
 
