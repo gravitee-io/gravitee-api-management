@@ -84,7 +84,15 @@
     </table>
   </mat-card>
 
-  <api-portal-groups-members [groupIds]="groupIds"></api-portal-groups-members>
+  <div *ngIf="groupData">
+    <ng-container *ngFor="let group of groupData">
+      <api-portal-group-members
+        *ngIf="group.isVisible"
+        [groupId]="group.groupId"
+        (destroy)="group.isVisible = false"
+      ></api-portal-group-members>
+    </ng-container>
+  </div>
 
   <gio-save-bar [form]="form" (resetClicked)="onReset()" (submitted)="onSubmit()"></gio-save-bar>
 </form>
