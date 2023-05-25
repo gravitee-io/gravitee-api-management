@@ -49,6 +49,6 @@ public class DefaultOrganizationAdminRoleInitializer extends OrganizationInitial
 
     @Override
     public int getOrder() {
-        return 130;
+        return InitializerOrder.DEFAULT_ORGANIZATION_ADMIN_ROLE_INITIALIZER;
     }
 }

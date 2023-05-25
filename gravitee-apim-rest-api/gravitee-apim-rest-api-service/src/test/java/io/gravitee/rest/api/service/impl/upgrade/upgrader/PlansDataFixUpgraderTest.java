@@ -53,9 +53,6 @@ public class PlansDataFixUpgraderTest {
     private PlansDataFixUpgrader upgrader = new PlansDataFixUpgrader();
 
     @Mock
-    private InstallationService installationService;
-
-    @Mock
     private ApiRepository apiRepository;
 
     @Mock
@@ -71,67 +68,37 @@ public class PlansDataFixUpgraderTest {
     private EmailService emailService;
 
     @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        ReflectionTestUtils.setField(upgrader, "enabled", true);
+        when(apiRepository.search(any(), any(), any())).thenThrow(new RuntimeException());
+
+        assertFalse(upgrader.upgrade());
+
+        verify(apiRepository, times(1)).search(any(), any(), any());
+        verifyNoMoreInteractions(apiRepository);
+    }
+
+    @Test
     public void upgrade_should_not_run_cause_not_enabled() {
         ReflectionTestUtils.setField(upgrader, "enabled", false);
 
         boolean success = upgrader.upgrade();
 
-        assertFalse(success);
-        verifyNoInteractions(installationService);
+        assertTrue(success);
     }
 
     @Test
     public void upgrade_should_not_run_cause_already_executed_successfull() {
         ReflectionTestUtils.setField(upgrader, "enabled", true);
-        mockInstallationWithExecutionStatus("SUCCESS");
 
         boolean success = upgrader.upgrade();
 
         assertTrue(success);
-        verify(installationService, never()).setAdditionalInformation(any());
-    }
-
-    @Test
-    public void upgrade_should_not_run_cause_already_running() {
-        ReflectionTestUtils.setField(upgrader, "enabled", true);
-        mockInstallationWithExecutionStatus("RUNNING");
-
-        boolean success = upgrader.upgrade();
-
-        assertFalse(success);
-        verify(installationService, never()).setAdditionalInformation(any());
-    }
-
-    @Test
-    public void upgrade_should_run_and_set_failure_status_on_exception() throws Exception {
-        ReflectionTestUtils.setField(upgrader, "enabled", true);
-        InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doThrow(new Exception("test exception")).when(upgrader).processOneShotUpgrade();
-
-        boolean success = upgrader.upgrade();
-
-        assertFalse(success);
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "FAILURE");
-        verify(installationService, times(2)).setAdditionalInformation(installation.getAdditionalInformation());
-    }
-
-    @Test
-    public void upgrade_should_run_and_set_success_status() throws Exception {
-        ReflectionTestUtils.setField(upgrader, "enabled", true);
-        InstallationEntity installation = mockInstallationWithExecutionStatus(null);
-        doNothing().when(upgrader).processOneShotUpgrade();
-
-        boolean success = upgrader.upgrade();
-
-        assertTrue(success);
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "RUNNING");
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.PLANS_DATA_UPGRADER_STATUS, "SUCCESS");
-        verify(installationService, times(2)).setAdditionalInformation(installation.getAdditionalInformation());
     }
 
     @Test
     public void fixPlansData_should_fix_only_v2_apis() throws Exception {
+        ReflectionTestUtils.setField(upgrader, "enabled", true);
         ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
         doNothing().when(upgrader).fixApiPlans(any(), any(), any());
         when(environmentRepository.findById(any())).thenAnswer(i -> Optional.of(buildTestEnvironment(i.getArgument(0), "testOrgId")));
@@ -155,7 +122,7 @@ public class PlansDataFixUpgraderTest {
         when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
             .thenReturn(Stream.of(apiv1_1, apiv2_1, apiv1_2, apiv2_2));
 
-        upgrader.processOneShotUpgrade();
+        upgrader.upgrade();
 
         verify(upgrader, times(1)).fixApiPlans(any(), same(apiv2_1), any());
         verify(upgrader, times(1)).fixApiPlans(any(), same(apiv2_2), any());
@@ -165,6 +132,7 @@ public class PlansDataFixUpgraderTest {
 
     @Test
     public void fixPlansData_should_fix_apis_using_related_executionContext() throws Exception {
+        ReflectionTestUtils.setField(upgrader, "enabled", true);
         ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
         doNothing().when(upgrader).fixApiPlans(any(), any(), any());
 
@@ -186,7 +154,7 @@ public class PlansDataFixUpgraderTest {
         when(environmentRepository.findById("env1")).thenReturn(Optional.of(buildTestEnvironment("env1", "org1")));
         when(environmentRepository.findById("env2")).thenReturn(Optional.of(buildTestEnvironment("env2", "org2")));
 
-        upgrader.processOneShotUpgrade();
+        upgrader.upgrade();
 
         // assert that 2 environments have been retreived from repository
         verify(environmentRepository, times(1)).findById("env1");
@@ -204,6 +172,7 @@ public class PlansDataFixUpgraderTest {
 
     @Test
     public void fixPlansData_should_not_fix_apis_if_environment_search_throws_exception() throws Exception {
+        ReflectionTestUtils.setField(upgrader, "enabled", true);
         ReflectionTestUtils.setField(upgrader, "objectMapper", new ObjectMapper());
 
         Api api1 = new Api();
@@ -214,7 +183,7 @@ public class PlansDataFixUpgraderTest {
         when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(Stream.of(api1));
         when(environmentRepository.findById(any())).thenThrow(new TechnicalException("this is a test exception"));
 
-        upgrader.processOneShotUpgrade();
+        upgrader.upgrade();
 
         // assert that fixApiPlans has never been called as environment search failed
         verify(upgrader, never()).fixApiPlans(any(), any(), any());
@@ -312,13 +281,9 @@ public class PlansDataFixUpgraderTest {
             );
     }
 
-    private InstallationEntity mockInstallationWithExecutionStatus(String status) {
-        InstallationEntity installation = mock(InstallationEntity.class);
-        Map<String, String> installationAdditionalInformation = mock(Map.class);
-        when(installation.getAdditionalInformation()).thenReturn(installationAdditionalInformation);
-        when(installationAdditionalInformation.get(InstallationService.PLANS_DATA_UPGRADER_STATUS)).thenReturn(status);
-        when(installationService.getOrInitialize()).thenReturn(installation);
-        return installation;
+    @Test
+    public void test_order() {
+        assertEquals(UpgraderOrder.PLANS_DATA_FIX_UPGRADER, upgrader.getOrder());
     }
 
     private Environment buildTestEnvironment(String environmentId, String organizationId) {

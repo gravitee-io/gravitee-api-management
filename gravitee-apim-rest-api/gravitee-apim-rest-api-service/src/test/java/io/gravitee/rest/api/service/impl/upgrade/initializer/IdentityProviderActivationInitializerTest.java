@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -58,5 +59,10 @@ public class IdentityProviderActivationInitializerTest {
                 argThat(target -> target.getReferenceId().equals("DEFAULT")),
                 argThat(target -> target.getReferenceId().equals("DEFAULT"))
             );
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.IDENTITY_PROVIDER_ACTIVATION_INITIALIZER, initializer.getOrder());
     }
 }

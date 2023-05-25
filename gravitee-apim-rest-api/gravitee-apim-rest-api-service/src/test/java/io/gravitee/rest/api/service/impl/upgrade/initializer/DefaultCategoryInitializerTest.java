@@ -21,6 +21,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -46,5 +47,10 @@ public class DefaultCategoryInitializerTest {
         when(categoryRepository.findAll()).thenReturn(Set.of(category));
         initializer.initialize();
         verify(categoryRepository, times(1)).update(argThat(cat -> cat.getCreatedAt() != null && cat.getKey() != null));
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.DEFAULT_CATEGORY_INITIALIZER, initializer.getOrder());
     }
 }

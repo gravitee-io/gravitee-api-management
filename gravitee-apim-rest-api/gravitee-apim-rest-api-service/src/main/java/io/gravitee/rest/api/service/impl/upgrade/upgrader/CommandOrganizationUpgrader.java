@@ -15,15 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.management.model.Environment;
-import io.gravitee.rest.api.service.InstallationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -32,28 +31,33 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class CommandOrganizationUpgrader extends OneShotUpgrader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommandOrganizationUpgrader.class);
+@Slf4j
+public class CommandOrganizationUpgrader implements Upgrader {
 
     private final EnvironmentRepository environmentRepository;
     private final CommandRepository commandRepository;
 
     @Autowired
     public CommandOrganizationUpgrader(@Lazy EnvironmentRepository environmentRepository, @Lazy CommandRepository commandRepository) {
-        super(InstallationService.COMMAND_ORGANIZATION_UPGRADER);
         this.environmentRepository = environmentRepository;
         this.commandRepository = commandRepository;
     }
 
     @Override
     public int getOrder() {
-        return 500;
+        return UpgraderOrder.COMMAND_ORGANIZATION_UPGRADER;
     }
 
     @Override
-    protected void processOneShotUpgrade() throws Exception {
-        environmentRepository.findAll().forEach(this::updateCommands);
+    public boolean upgrade() {
+        try {
+            environmentRepository.findAll().forEach(this::updateCommands);
+        } catch (Exception e) {
+            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            return false;
+        }
+
+        return true;
     }
 
     private void updateCommands(Environment environment) {
@@ -66,7 +70,7 @@ public class CommandOrganizationUpgrader extends OneShotUpgrader {
             command.setOrganizationId(organizationId);
             commandRepository.update(command);
         } catch (TechnicalException e) {
-            LOGGER.error("An error as occurred while trying to update command organization", e);
+            log.error("An error as occurred while trying to update command organization", e);
         }
     }
 }

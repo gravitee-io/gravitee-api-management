@@ -142,6 +142,6 @@ public class DocumentationSystemFolderInitializer extends EnvironmentInitializer
 
     @Override
     public int getOrder() {
-        return 100;
+        return InitializerOrder.DOCUMENTATION_SYSTEM_FOLDER_INITIALIZER;
     }
 }

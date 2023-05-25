@@ -20,6 +20,7 @@ import static io.gravitee.repository.management.model.ApiKeyMode.UNSPECIFIED;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
 import static java.util.stream.Collectors.*;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -28,9 +29,9 @@ import io.gravitee.repository.management.model.ApiKeyMode;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.service.InstallationService;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class ApplicationApiKeyModeUpgrader extends OneShotUpgrader {
+@Slf4j
+public class ApplicationApiKeyModeUpgrader implements Upgrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationApiKeyModeUpgrader.class);
 
@@ -61,28 +63,31 @@ public class ApplicationApiKeyModeUpgrader extends OneShotUpgrader {
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
-    public ApplicationApiKeyModeUpgrader() {
-        super(InstallationService.APPLICATION_API_KEY_MODE_UPGRADER_STATUS);
-    }
-
     @Override
     public int getOrder() {
-        return 500;
+        return UpgraderOrder.APPLICATION_API_KEY_MODE_UPGRADER;
     }
 
     @Override
-    protected void processOneShotUpgrade() throws Exception {
-        List<String> apiKeyPlansIds = findAllApiKeyPlansId();
-        Map<String, Long> apiKeySubscriptionsCountByApplication = countApiKeySubscriptionsByApplication(apiKeyPlansIds);
+    public boolean upgrade() {
+        try {
+            List<String> apiKeyPlansIds = findAllApiKeyPlansId();
+            Map<String, Long> apiKeySubscriptionsCountByApplication = countApiKeySubscriptionsByApplication(apiKeyPlansIds);
 
-        applicationRepository
-            .findAll()
-            .forEach(application -> {
-                if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
-                    Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
-                    updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
-                }
-            });
+            applicationRepository
+                .findAll()
+                .forEach(application -> {
+                    if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
+                        Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
+                        updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
+                    }
+                });
+        } catch (Exception e) {
+            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            return false;
+        }
+
+        return true;
     }
 
     private List<String> findAllApiKeyPlansId() throws TechnicalException {

@@ -21,6 +21,7 @@ import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -31,20 +32,19 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiLoggingConditionUpgrader.class);
+@Slf4j
+public class ApiLoggingConditionUpgrader implements Upgrader {
 
     @Lazy
     @Autowired
@@ -67,34 +67,37 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
 
     private List<String> apisFixed = new ArrayList<>();
 
-    public ApiLoggingConditionUpgrader() {
-        super(InstallationService.API_LOGGING_CONDITION_UPGRADER);
-    }
-
     @Override
-    protected void processOneShotUpgrade() throws Exception {
-        for (Environment environment : environmentRepository.findAll()) {
-            fixApis(new ExecutionContext(environment));
+    public boolean upgrade() {
+        try {
+            for (Environment environment : environmentRepository.findAll()) {
+                fixApis(new ExecutionContext(environment));
+            }
+
+            if (!apisFixedAndDeployed.isEmpty()) {
+                log.info(
+                    "{} has updated and deployed {} API with the following identifiers: {}",
+                    this.getClass().getSimpleName(),
+                    apisFixedAndDeployed.size(),
+                    apisFixedAndDeployed
+                );
+            }
+
+            if (!apisFixed.isEmpty()) {
+                log.warn(
+                    "{} has updated {} API with the following identifiers: {}",
+                    this.getClass().getSimpleName(),
+                    apisFixed.size(),
+                    apisFixed
+                );
+                log.warn("They need to be redeployed manually to apply the patch.");
+            }
+        } catch (Exception e) {
+            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            return false;
         }
 
-        if (!apisFixedAndDeployed.isEmpty()) {
-            LOGGER.info(
-                "{} has updated and deployed {} API with the following identifiers: {}",
-                this.getClass().getSimpleName(),
-                apisFixedAndDeployed.size(),
-                apisFixedAndDeployed
-            );
-        }
-
-        if (!apisFixed.isEmpty()) {
-            LOGGER.warn(
-                "{} has updated {} API with the following identifiers: {}",
-                this.getClass().getSimpleName(),
-                apisFixed.size(),
-                apisFixed
-            );
-            LOGGER.warn("They need to be redeployed manually to apply the patch.");
-        }
+        return true;
     }
 
     protected void fixApis(ExecutionContext executionContext) {
@@ -122,7 +125,7 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
                         }
                     }
                 } catch (Exception e) {
-                    LOGGER.error("Unable to fix logging condition for API {}", api.getId(), e);
+                    log.error("Unable to fix logging condition for API {}", api.getId(), e);
                     throw new RuntimeException(e);
                 }
             });
@@ -149,7 +152,7 @@ public class ApiLoggingConditionUpgrader extends OneShotUpgrader {
 
     @Override
     public int getOrder() {
-        return 550;
+        return UpgraderOrder.API_LOGGING_CONDITION_UPGRADER;
     }
 
     private void updateApi(ExecutionContext executionContext, Api api, ApiDeploymentEntity apiDeploymentEntity) throws Exception {

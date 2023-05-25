@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toMap;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -30,15 +31,14 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.service.EmailService;
-import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -48,9 +48,9 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class PlansDataFixUpgrader extends OneShotUpgrader {
+@Slf4j
+public class PlansDataFixUpgrader implements Upgrader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlansDataFixUpgrader.class);
     private static final String PLAN_DESCRIPTION =
         "This plan has been recreated during a data fix process. See documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8";
     private static final String PLAN_NAME_SUFFIX = "-Recreated";
@@ -85,36 +85,46 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
 
     private boolean anomalyFound = false;
 
-    public PlansDataFixUpgrader() {
-        super(InstallationService.PLANS_DATA_UPGRADER_STATUS);
-    }
-
     @Override
     public int getOrder() {
-        return 500;
+        return UpgraderOrder.PLANS_DATA_FIX_UPGRADER;
     }
 
     @Override
-    protected void processOneShotUpgrade() throws Exception {
-        apiRepository
-            .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
-            .forEach(api -> {
-                try {
-                    io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                        api.getDefinition(),
-                        io.gravitee.definition.model.Api.class
-                    );
-                    ExecutionContext executionContext = getApiExecutionContext(api);
-                    if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion() && executionContext != null) {
-                        fixApiPlans(executionContext, api, apiDefinition);
-                    }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
+    public boolean upgrade() {
+        if (!enabled) {
+            log.info("Skipping {} execution cause it's not enabled in configuration", this.getClass().getSimpleName());
+            return true;
+        }
 
-        if (!anomalyFound) {
-            LOGGER.info("No plan data anomaly found");
+        try {
+            AtomicBoolean upgradeFailed = new AtomicBoolean(false);
+            apiRepository
+                .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
+                .forEach(api -> {
+                    try {
+                        io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                            api.getDefinition(),
+                            io.gravitee.definition.model.Api.class
+                        );
+                        ExecutionContext executionContext = getApiExecutionContext(api);
+                        if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion() && executionContext != null) {
+                            fixApiPlans(executionContext, api, apiDefinition);
+                        }
+                    } catch (Exception e) {
+                        upgradeFailed.set(true);
+                        throw new RuntimeException(e);
+                    }
+                });
+
+            if (!anomalyFound) {
+                log.info("No plan data anomaly found");
+            }
+
+            return !upgradeFailed.get();
+        } catch (Exception e) {
+            log.error("error applying upgrader {}", getClass().getSimpleName(), e);
+            return false;
         }
     }
 
@@ -124,7 +134,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
         List<io.gravitee.definition.model.Plan> definitionPlans = apiDefinition.getPlans();
 
         if (!hasPlansDataAnomaly(apiPlans, definitionPlans)) {
-            LOGGER.debug("Skipping API {} : no plans anomaly detected", api.getId());
+            log.debug("Skipping API {} : no plans anomaly detected", api.getId());
             return;
         }
 
@@ -133,7 +143,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
             anomalyFound = true;
         }
 
-        LOGGER.info("Plans anomalies found for API \"{}\" ({}) :", api.getName(), api.getId());
+        log.info("Plans anomalies found for API \"{}\" ({}) :", api.getName(), api.getId());
 
         Map<String, Plan> apiPlansMap = apiPlans.stream().collect(toMap(Plan::getId, plan -> plan));
         Map<String, io.gravitee.definition.model.Plan> definitionPlansMap = definitionPlans
@@ -166,7 +176,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
             if (!apiPlansMap.containsKey(planId)) {
                 io.gravitee.definition.model.Plan definitionPlan = definitionPlanEntry.getValue();
                 Plan newApiPlan = planFromDefinitionPlan(definitionPlan, api.getId());
-                LOGGER.info(
+                log.info(
                     "- Will create plan \"{}\" for API \"{}\" ({}), which is missing in plans table",
                     newApiPlan.getName(),
                     api.getName(),
@@ -195,7 +205,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
             .filter(apiPlan -> !definitionPlansMap.containsKey(apiPlan.getId()))
             .collect(toList());
         for (Plan plan : extraPlans) {
-            LOGGER.info("- Will close plan \"{}\" ({}), cause it's absent from api definition", plan.getName(), plan.getId());
+            log.info("- Will close plan \"{}\" ({}), cause it's absent from api definition", plan.getName(), plan.getId());
             plan.setStatus(Plan.Status.CLOSED);
 
             planRepository.update(plan);
@@ -248,7 +258,7 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     protected void sendEmailToApiOwner(ExecutionContext executionContext, Api api, List<Plan> createdPlans, List<Plan> closedPlans) {
         getApiOwnerEmail(executionContext, api)
             .ifPresent(apiOwnerEmail -> {
-                LOGGER.debug("Sending report email to api {} owner", api.getId());
+                log.debug("Sending report email to api {} owner", api.getId());
                 emailService.sendAsyncEmailNotification(
                     executionContext,
                     new EmailNotificationBuilder()
@@ -265,18 +275,18 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
     }
 
     private void logWarningHeaderBlock() {
-        LOGGER.warn("");
-        LOGGER.warn("##############################################################");
-        LOGGER.warn("#                           WARNING                          #");
-        LOGGER.warn("##############################################################");
-        LOGGER.warn("");
-        LOGGER.warn("We detected database anomalies in your plans data.");
-        LOGGER.warn("");
-        LOGGER.warn("Database anomalies will be fixed.");
-        LOGGER.warn("See related documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8");
-        LOGGER.warn("");
-        LOGGER.warn("##############################################################");
-        LOGGER.warn("");
+        log.warn("");
+        log.warn("##############################################################");
+        log.warn("#                           WARNING                          #");
+        log.warn("##############################################################");
+        log.warn("");
+        log.warn("We detected database anomalies in your plans data.");
+        log.warn("");
+        log.warn("Database anomalies will be fixed.");
+        log.warn("See related documentation : https://docs.gravitee.io/apim/3.x/apim_installguide_migration.html#upgrade_to_3_10_8");
+        log.warn("");
+        log.warn("##############################################################");
+        log.warn("");
     }
 
     private ExecutionContext getApiExecutionContext(Api api) {
@@ -286,15 +296,10 @@ public class PlansDataFixUpgrader extends OneShotUpgrader {
                 try {
                     return environmentRepository.findById(api.getEnvironmentId()).map(ExecutionContext::new).orElse(null);
                 } catch (TechnicalException e) {
-                    LOGGER.error("failed to find environment {}", api.getEnvironmentId(), e);
+                    log.error("failed to find environment {}", api.getEnvironmentId(), e);
                     return null;
                 }
             }
         );
-    }
-
-    @Override
-    protected boolean isEnabled() {
-        return enabled;
     }
 }

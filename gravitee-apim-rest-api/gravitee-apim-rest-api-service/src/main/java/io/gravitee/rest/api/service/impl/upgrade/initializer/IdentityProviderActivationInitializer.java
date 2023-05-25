@@ -75,6 +75,6 @@ public class IdentityProviderActivationInitializer implements Initializer {
 
     @Override
     public int getOrder() {
-        return 400;
+        return InitializerOrder.IDENTITY_PROVIDER_ACTIVATION_INITIALIZER;
     }
 }

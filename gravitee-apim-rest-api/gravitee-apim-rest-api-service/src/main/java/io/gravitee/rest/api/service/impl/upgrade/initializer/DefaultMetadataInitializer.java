@@ -69,6 +69,6 @@ public class DefaultMetadataInitializer implements Initializer {
 
     @Override
     public int getOrder() {
-        return 100;
+        return InitializerOrder.DEFAULT_METADATA_INITIALIZER;
     }
 }

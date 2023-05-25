@@ -29,14 +29,13 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
-import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import java.util.stream.Stream;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,9 +53,6 @@ public class ApiLoggingConditionUpgraderTest {
     @InjectMocks
     @Spy
     private ApiLoggingConditionUpgrader upgrader = new ApiLoggingConditionUpgrader();
-
-    @Mock
-    private InstallationService installationService;
 
     @Mock
     private ApiService apiService;
@@ -82,49 +78,38 @@ public class ApiLoggingConditionUpgraderTest {
     }
 
     @Test
-    public void upgrade_should_not_run_cause_already_executed_successfull() {
-        mockInstallationWithExecutionStatus("SUCCESS");
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        when(environmentRepository.findAll()).thenThrow(new RuntimeException());
 
-        boolean success = upgrader.upgrade();
+        assertFalse(upgrader.upgrade());
 
-        assertTrue(success);
-        verify(installationService, never()).setAdditionalInformation(any());
+        verify(environmentRepository, times(1)).findAll();
+        verifyNoMoreInteractions(environmentRepository);
     }
 
     @Test
-    public void upgrade_should_not_run_cause_already_running() {
-        mockInstallationWithExecutionStatus("RUNNING");
-
+    public void upgrade_should_not_run_cause_already_executed_successfully() {
         boolean success = upgrader.upgrade();
 
-        assertFalse(success);
-        verify(installationService, never()).setAdditionalInformation(any());
+        assertTrue(success);
     }
 
     @Test
     public void upgrade_should_run_and_set_failure_status_on_exception() {
-        InstallationEntity installation = mockInstallationWithExecutionStatus(null);
         doThrow(new RuntimeException("test exception")).when(upgrader).fixApis(any());
 
         boolean success = upgrader.upgrade();
 
         assertFalse(success);
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.API_LOGGING_CONDITION_UPGRADER, "RUNNING");
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.API_LOGGING_CONDITION_UPGRADER, "FAILURE");
-        verify(installationService, times(2)).setAdditionalInformation(installation.getAdditionalInformation());
     }
 
     @Test
     public void upgrade_should_run_and_set_success_status() throws Exception {
-        InstallationEntity installation = mockInstallationWithExecutionStatus(null);
         doNothing().when(upgrader).fixApis(any());
 
         boolean success = upgrader.upgrade();
 
         assertTrue(success);
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.API_LOGGING_CONDITION_UPGRADER, "RUNNING");
-        verify(installation.getAdditionalInformation(), times(1)).put(InstallationService.API_LOGGING_CONDITION_UPGRADER, "SUCCESS");
-        verify(installationService, times(2)).setAdditionalInformation(installation.getAdditionalInformation());
     }
 
     @Test
@@ -236,12 +221,8 @@ public class ApiLoggingConditionUpgraderTest {
             );
     }
 
-    private InstallationEntity mockInstallationWithExecutionStatus(String status) {
-        InstallationEntity installation = mock(InstallationEntity.class);
-        Map<String, String> installationAdditionalInformations = mock(Map.class);
-        when(installation.getAdditionalInformation()).thenReturn(installationAdditionalInformations);
-        when(installationAdditionalInformations.get(InstallationService.API_LOGGING_CONDITION_UPGRADER)).thenReturn(status);
-        when(installationService.getOrInitialize()).thenReturn(installation);
-        return installation;
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.API_LOGGING_CONDITION_UPGRADER, upgrader.getOrder());
     }
 }

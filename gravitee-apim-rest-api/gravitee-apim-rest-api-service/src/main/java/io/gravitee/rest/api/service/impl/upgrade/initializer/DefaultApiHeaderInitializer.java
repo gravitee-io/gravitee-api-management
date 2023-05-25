@@ -48,6 +48,6 @@ public class DefaultApiHeaderInitializer extends EnvironmentInitializer {
 
     @Override
     public int getOrder() {
-        return 300;
+        return InitializerOrder.DEFAULT_API_HEADER_INITIALIZER;
     }
 }

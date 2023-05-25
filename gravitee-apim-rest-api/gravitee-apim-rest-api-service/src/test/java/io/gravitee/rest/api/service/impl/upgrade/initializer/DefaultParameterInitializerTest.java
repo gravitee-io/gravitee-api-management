@@ -22,6 +22,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
 import java.util.Optional;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,5 +65,10 @@ public class DefaultParameterInitializerTest {
         initializer.initialize();
 
         verify(parameterRepository, times(1)).update(argThat(param -> param.getValue().equals(PORTAL_URL)));
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.DEFAULT_PARAMETER_INITIALIZER, initializer.getOrder());
     }
 }

@@ -18,13 +18,11 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import static io.gravitee.rest.api.model.permissions.RoleScope.API;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_REVIEWER;
 
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -35,9 +33,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultRolesUpgrader extends OneShotUpgrader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRolesUpgrader.class);
+@Slf4j
+public class DefaultRolesUpgrader implements Upgrader {
 
     private final RoleService roleService;
 
@@ -45,27 +42,33 @@ public class DefaultRolesUpgrader extends OneShotUpgrader {
 
     @Autowired
     public DefaultRolesUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
-        super(InstallationService.DEFAULT_ROLES_UPGRADER_STATUS);
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
 
     @Override
-    protected void processOneShotUpgrade() throws TechnicalException {
-        organizationRepository
-            .findAll()
-            .forEach(organization -> {
-                ExecutionContext executionContext = new ExecutionContext(organization);
-                initializeDefaultRoles(executionContext);
-                roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
-            });
+    public boolean upgrade() {
+        try {
+            organizationRepository
+                .findAll()
+                .forEach(organization -> {
+                    ExecutionContext executionContext = new ExecutionContext(organization);
+                    initializeDefaultRoles(executionContext);
+                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+                });
+        } catch (Exception e) {
+            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            return false;
+        }
+
+        return true;
     }
 
     private void initializeDefaultRoles(ExecutionContext executionContext) {
         if (roleService.findAllByOrganization(executionContext.getOrganizationId()).isEmpty()) {
             roleService.initialize(executionContext, executionContext.getOrganizationId());
         } else if (shouldCreateApiReviewerRole(executionContext)) {
-            LOGGER.info("     - <API> REVIEWER");
+            log.info("     - <API> REVIEWER");
             roleService.create(executionContext, ROLE_API_REVIEWER);
         }
     }
@@ -76,6 +79,6 @@ public class DefaultRolesUpgrader extends OneShotUpgrader {
 
     @Override
     public int getOrder() {
-        return 120;
+        return UpgraderOrder.DEFAULT_ROLES_UPGRADER;
     }
 }

@@ -49,6 +49,6 @@ public class DefaultOrganizationUpgrader implements Upgrader {
 
     @Override
     public int getOrder() {
-        return 100;
+        return UpgraderOrder.DEFAULT_ORGANIZATION_UPGRADER;
     }
 }

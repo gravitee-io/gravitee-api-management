@@ -15,17 +15,16 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -45,13 +44,23 @@ public class ClientIdInApiKeySubscriptionsUpgraderTest {
     SubscriptionRepository subscriptionRepository;
 
     @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        when(subscriptionRepository.search(any())).thenThrow(new RuntimeException());
+
+        assertFalse(upgrader.upgrade());
+
+        verify(subscriptionRepository, times(1)).search(any());
+        verifyNoMoreInteractions(subscriptionRepository);
+    }
+
+    @Test
     public void testUpgrade_shouldRemoveClientIdFromApiKeySubscriptionsOnly() throws TechnicalException {
         Subscription apiKeySubscriptionWithoutClientId = apiKeySubscription(null);
         Subscription apiKeySubscriptionWithClientId = apiKeySubscription("client-id");
 
         when(subscriptionRepository.search(any())).thenReturn(List.of(apiKeySubscriptionWithoutClientId, apiKeySubscriptionWithClientId));
 
-        upgrader.processOneShotUpgrade();
+        upgrader.upgrade();
 
         verify(subscriptionRepository, times(1))
             .update(
@@ -59,6 +68,11 @@ public class ClientIdInApiKeySubscriptionsUpgraderTest {
                     subscription.getId().equals(apiKeySubscriptionWithClientId.getId()) && subscription.getClientId() == null
                 )
             );
+    }
+
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER, upgrader.getOrder());
     }
 
     private static Subscription apiKeySubscription(String clientId) {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
@@ -22,21 +23,18 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Category;
-import io.gravitee.rest.api.service.InstallationService;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 @Component
-public class OrphanCategoryUpgrader extends OneShotUpgrader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(OrphanCategoryUpgrader.class);
+@Slf4j
+public class OrphanCategoryUpgrader implements Upgrader {
 
     @Lazy
     @Autowired
@@ -46,22 +44,25 @@ public class OrphanCategoryUpgrader extends OneShotUpgrader {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public OrphanCategoryUpgrader() {
-        super(InstallationService.ORPHAN_CATEGORY_UPGRADER_STATUS);
-    }
-
     @Override
     public int getOrder() {
-        return 100;
+        return UpgraderOrder.ORPHAN_CATEGORY_UPGRADER;
     }
 
     @Override
-    protected void processOneShotUpgrade() throws TechnicalException {
-        Set<Api> updatedApis = findAndFixApisWithOrphanCategories();
-        for (Api api : updatedApis) {
-            LOGGER.info("Removing orphan categories for API [{}]", api.getId());
-            apiRepository.update(api);
+    public boolean upgrade() {
+        try {
+            Set<Api> updatedApis = findAndFixApisWithOrphanCategories();
+            for (Api api : updatedApis) {
+                log.info("Removing orphan categories for API [{}]", api.getId());
+                apiRepository.update(api);
+            }
+        } catch (Exception e) {
+            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            return false;
         }
+
+        return true;
     }
 
     private Set<Api> findAndFixApisWithOrphanCategories() throws TechnicalException {

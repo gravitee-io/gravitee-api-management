@@ -19,20 +19,18 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -43,9 +41,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlansFlowsDefinitionUpgrader.class);
+@Slf4j
+public class PlansFlowsDefinitionUpgrader implements Upgrader {
 
     @Lazy
     @Autowired
@@ -61,36 +58,41 @@ public class PlansFlowsDefinitionUpgrader extends OneShotUpgrader {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public PlansFlowsDefinitionUpgrader() {
-        super(InstallationService.PLANS_FLOWS_UPGRADER_STATUS);
-    }
-
     @Override
     public int getOrder() {
-        return 550;
+        return UpgraderOrder.PLANS_FLOWS_DEFINITION_UPGRADER;
     }
 
     @Override
-    protected void processOneShotUpgrade() {
-        apiRepository
-            .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
-            .forEach(api -> {
-                try {
-                    io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                        api.getDefinition(),
-                        io.gravitee.definition.model.Api.class
-                    );
-                    if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion()) {
-                        migrateApiFlows(api.getId(), apiDefinition);
+    public boolean upgrade() {
+        try {
+            AtomicBoolean upgradeFailed = new AtomicBoolean(false);
+            apiRepository
+                .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
+                .forEach(api -> {
+                    try {
+                        io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                            api.getDefinition(),
+                            io.gravitee.definition.model.Api.class
+                        );
+                        if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion()) {
+                            migrateApiFlows(api.getId(), apiDefinition);
+                        }
+                    } catch (Exception e) {
+                        upgradeFailed.set(true);
+                        throw new RuntimeException(e);
                     }
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
+                });
+
+            return !upgradeFailed.get();
+        } catch (Exception e) {
+            log.error("unable to apply upgrader {}", getClass().getSimpleName(), e);
+            return false;
+        }
     }
 
     protected void migrateApiFlows(String apiId, io.gravitee.definition.model.Api apiDefinition) throws Exception {
-        LOGGER.debug("Migrate flows for api [{}]", apiId);
+        log.debug("Migrate flows for api [{}]", apiId);
         Map<String, Plan> plansById = planRepository.findByApi(apiId).stream().collect(toMap(Plan::getId, Function.identity()));
 
         flowService.save(FlowReferenceType.API, apiDefinition.getId(), apiDefinition.getFlows());

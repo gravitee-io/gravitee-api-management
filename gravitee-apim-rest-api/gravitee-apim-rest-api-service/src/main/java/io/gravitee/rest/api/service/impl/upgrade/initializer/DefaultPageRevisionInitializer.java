@@ -90,6 +90,6 @@ public class DefaultPageRevisionInitializer implements Initializer {
 
     @Override
     public int getOrder() {
-        return 200;
+        return InitializerOrder.DEFAULT_PAGE_REVISION_INITIALIZER;
     }
 }

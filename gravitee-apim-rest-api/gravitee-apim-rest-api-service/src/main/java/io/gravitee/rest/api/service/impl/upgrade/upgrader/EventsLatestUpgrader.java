@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -30,7 +31,6 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Organization;
-import io.gravitee.rest.api.service.InstallationService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class EventsLatestUpgrader extends OneShotUpgrader {
+public class EventsLatestUpgrader implements Upgrader {
 
     private static final int BULK_SIZE = 100;
     private final ApiRepository apiRepository;
@@ -67,7 +67,6 @@ public class EventsLatestUpgrader extends OneShotUpgrader {
         @Lazy EventLatestRepository eventLatestRepository,
         @Lazy ObjectMapper objectMapper
     ) {
-        super(InstallationService.EVENTS_LATEST_UPGRADER_STATUS);
         this.apiRepository = apiRepository;
         this.dictionaryRepository = dictionaryRepository;
         this.organizationRepository = organizationRepository;
@@ -78,14 +77,21 @@ public class EventsLatestUpgrader extends OneShotUpgrader {
 
     @Override
     public int getOrder() {
-        return 600;
+        return UpgraderOrder.EVENTS_LATEST_UPGRADER;
     }
 
     @Override
-    protected void processOneShotUpgrade() throws TechnicalException {
-        migrateApiEvents();
-        migrateDictionaryEvents();
-        migrateOrganizationEvents();
+    public boolean upgrade() {
+        try {
+            migrateApiEvents();
+            migrateDictionaryEvents();
+            migrateOrganizationEvents();
+        } catch (Exception e) {
+            log.error("error occurred while applying upgrader {}", this.getClass().getSimpleName());
+            return false;
+        }
+
+        return true;
     }
 
     private void migrateApiEvents() throws TechnicalException {

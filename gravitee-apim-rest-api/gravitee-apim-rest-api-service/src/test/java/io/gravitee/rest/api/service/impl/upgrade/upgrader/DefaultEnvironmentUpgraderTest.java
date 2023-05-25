@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.service.EnvironmentService;
 import java.util.List;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -38,11 +41,26 @@ public class DefaultEnvironmentUpgraderTest {
     private final DefaultEnvironmentUpgrader upgrader = new DefaultEnvironmentUpgrader();
 
     @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        when(environmentService.findByOrganization(any())).thenThrow(new RuntimeException());
+
+        assertFalse(upgrader.upgrade());
+
+        verify(environmentService, times(1)).findByOrganization(any());
+        verifyNoMoreInteractions(environmentService);
+    }
+
+    @Test
     public void shouldCreateDefaultEnvironment() {
         when(environmentService.findByOrganization(any())).thenReturn(List.of());
 
         upgrader.upgrade();
 
         verify(environmentService, times(1)).initialize();
+    }
+
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.DEFAULT_ENVIRONMENT_UPGRADER, upgrader.getOrder());
     }
 }

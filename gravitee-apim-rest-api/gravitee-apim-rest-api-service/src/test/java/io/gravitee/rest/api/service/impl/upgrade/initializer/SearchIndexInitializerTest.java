@@ -206,6 +206,11 @@ public class SearchIndexInitializerTest {
             );
     }
 
+    @Test
+    public void testOrder() {
+        assertEquals(InitializerOrder.SEARCH_INDEX_INITIALIZER, initializer.getOrder());
+    }
+
     private void mockTestApis() throws Exception {
         Stream<Api> apis = Stream.of(
             mockTestApi("api1", "env1"),
