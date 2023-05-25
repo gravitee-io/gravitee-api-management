@@ -138,7 +138,7 @@ public class DebugApiServiceImpl implements DebugApiService {
             .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(api.getId()));
     }
 
-    private DebugApi convert(DebugApiEntity debugApiEntity, String apiId) {
+    protected DebugApi convert(DebugApiEntity debugApiEntity, String apiId) {
         DebugApi debugApi = new DebugApi();
         debugApi.setId(apiId);
         debugApi.setRequest(debugApiEntity.getRequest());
@@ -155,6 +155,7 @@ public class DebugApiServiceImpl implements DebugApiService {
         debugApi.setPaths(debugApiEntity.getPaths());
         debugApi.setFlows(debugApiEntity.getFlows());
         debugApi.setPlans(planConverter.toPlansDefinitions(debugApiEntity.getPlans()));
+        debugApi.setFlowMode(debugApiEntity.getFlowMode());
 
         // Disable logging for the debugged API
         if (debugApiEntity.getProxy() != null && debugApiEntity.getProxy().getLogging() != null) {
