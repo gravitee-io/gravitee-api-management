@@ -149,6 +149,7 @@
                 <exclude>com.graviteesource.*:*:*</exclude>
                 <exclude>commons-logging:commons-logging:*</exclude>
                 <exclude>javax.mail:mailapi:*</exclude>
+                <exclude>com.sun.mail:mailapi:*</exclude>
             </excludes>
             <!-- Used to not include transitive dependencies for runtime dependency (All plugins) -->
             <scope>compile</scope>
