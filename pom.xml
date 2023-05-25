@@ -75,6 +75,7 @@
         <gravitee-kubernetes-mapper.version>2.0.1</gravitee-kubernetes-mapper.version>
         <gravitee-json-validation.version>1.0.0</gravitee-json-validation.version>
         <!-- Other dependencies version -->
+        <angus-mail.version>2.0.1</angus-mail.version>
         <asm.version>9.2</asm.version>
         <batik-transcoder.version>1.15</batik-transcoder.version>
         <bcpkix-jdk15on.version>1.70</bcpkix-jdk15on.version>
@@ -738,6 +739,11 @@
                 <groupId>com.sun.mail</groupId>
                 <artifactId>jakarta.mail</artifactId>
                 <version>${jakarta.mail.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.angus</groupId>
+                <artifactId>angus-mail</artifactId>
+                <version>${angus-mail.version}</version>
             </dependency>
             <dependency>
                 <groupId>jakarta.servlet</groupId>
