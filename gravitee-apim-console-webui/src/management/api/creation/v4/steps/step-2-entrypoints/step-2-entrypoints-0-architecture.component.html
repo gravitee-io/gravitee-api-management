@@ -18,8 +18,10 @@
 <mat-card class="api-creation-v4__step">
   <div class="api-creation-v4__step__header">
     <div class="api-creation-v4__step__header__step-number">Step 2</div>
-    <div class="api-creation-v4__step__header__subtitle">Select your API architecture</div>
-    <p class="api-creation-v4__step__header__paragraph-light">Choose how your users will consume your API</p>
+    <div class="api-creation-v4__step__header__subtitle">Select how you want your backend service exposed</div>
+    <p class="api-creation-v4__step__header__paragraph-light">
+      Choose the consumption style of your API based on your upstream backend service architecture
+    </p>
   </div>
 
   <form *ngIf="form" [formGroup]="form">
@@ -33,18 +35,21 @@
           <!-- Note for migration: Angular Material 15 automatically add radio -->
           <mat-radio-button [checked]="syncOption?.selected"></mat-radio-button>
           <gio-selection-list-option-layout>
-            <gio-selection-list-option-layout-title>{{ httpProxyEntrypoint?.name }}</gio-selection-list-option-layout-title>
+            <gio-selection-list-option-layout-title> Proxy upstream Protocol </gio-selection-list-option-layout-title>
 
             <gio-selection-list-option-layout-body>
-              <div>{{ httpProxyEntrypoint?.description }}</div>
+              <div>
+                This mode puts a proxy in front of upstream service. It passes the response through the gateway with policies on request and
+                response phases.
+              </div>
+              <div class="option__badges">
+                Can proxy
+                <span class="gio-badge-neutral gio-caption-2"> REST API </span>
+                <span class="gio-badge-neutral gio-caption-2"> SOAP API </span>
+                <span class="gio-badge-neutral gio-caption-2"> WebSocket Server </span>
+                <span class="gio-badge-neutral gio-caption-2"> gRPC Service </span>
+              </div>
             </gio-selection-list-option-layout-body>
-
-            <gio-selection-list-option-layout-action>
-              <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, httpProxyEntrypoint)">
-                <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-                More information
-              </button>
-            </gio-selection-list-option-layout-action>
           </gio-selection-list-option-layout>
         </div>
       </mat-list-option>
@@ -57,26 +62,21 @@
           <!-- Note form migration: Angular Material 15 automatically add radio -->
           <mat-radio-button [checked]="asyncOption?.selected"></mat-radio-button>
           <gio-selection-list-option-layout>
-            <gio-selection-list-option-layout-title> Message </gio-selection-list-option-layout-title>
+            <gio-selection-list-option-layout-title>
+              <div class="option__badges">Introspect Messages from Event-Driven Backend <span class="gio-badge-primary">NEW</span></div>
+            </gio-selection-list-option-layout-title>
 
             <gio-selection-list-option-layout-body>
-              <div>Includes asynchronous and event-driven API entrypoints. Typically used for streaming APIs.</div>
               <div>
-                Such as:
-                <span class="gio-badge-neutral">HTTP Get</span>
-                <span class="gio-badge-neutral">HTTP Post</span>
-                <span class="gio-badge-neutral">SSE</span>
-                <span class="gio-badge-neutral">Webhook</span>
-                <span class="gio-badge-neutral">Websocket</span>
+                This mode produces and consumes messages to event-driven services and allows for message transformation in between via
+                message policies and multiple entrypoints.
+              </div>
+              <div class="option__badges">
+                Can expose
+                <span class="gio-badge-neutral gio-caption-2">Kafka</span>
+                <span class="gio-badge-neutral gio-caption-2">MQTT</span>
               </div>
             </gio-selection-list-option-layout-body>
-
-            <gio-selection-list-option-layout-action>
-              <button type="button" mat-stroked-button (click)="onMoreInfoMessageClick($event)">
-                <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-                More information
-              </button>
-            </gio-selection-list-option-layout-action>
           </gio-selection-list-option-layout>
         </div>
       </mat-list-option>
