@@ -249,7 +249,7 @@
         <gravitee-policy-transform-avro-json.version>1.2.0-alpha.1</gravitee-policy-transform-avro-json.version>
         <gravitee-policy-data-logging-masking.version>2.0.3</gravitee-policy-data-logging-masking.version>
         <gravitee-policy-interrupt.version>1.1.0</gravitee-policy-interrupt.version>
-        <gravitee-entrypoint-sse-advanced.version>3.0.0-alpha.6</gravitee-entrypoint-sse-advanced.version>
+        <gravitee-entrypoint-sse.version>3.1.0-alpha.1</gravitee-entrypoint-sse.version>
         <gravitee-entrypoint-webhook-advanced.version>1.0.0-alpha.9</gravitee-entrypoint-webhook-advanced.version>
         <gravitee-endpoint-kafka.version>1.3.0-alpha.4</gravitee-endpoint-kafka.version>
         <gravitee-endpoint-mqtt5.version>1.2.0-alpha.2</gravitee-endpoint-mqtt5.version>

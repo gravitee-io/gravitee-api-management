@@ -100,13 +100,6 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
-            <artifactId>gravitee-apim-plugin-entrypoint-sse</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-            <type>zip</type>
-        </dependency>
-        <dependency>
-            <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
             <artifactId>gravitee-apim-plugin-entrypoint-webhook</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
@@ -708,8 +701,8 @@
                 <!-- Entrypoints -->
                 <dependency>
                     <groupId>com.graviteesource.entrypoint</groupId>
-                    <artifactId>gravitee-entrypoint-sse-advanced</artifactId>
-                    <version>${gravitee-entrypoint-sse-advanced.version}</version>
+                    <artifactId>gravitee-entrypoint-sse</artifactId>
+                    <version>${gravitee-entrypoint-sse.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
