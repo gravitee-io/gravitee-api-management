@@ -84,6 +84,6 @@ public class DefaultParameterInitializer implements Initializer {
 
     @Override
     public int getOrder() {
-        return 200;
+        return InitializerOrder.DEFAULT_PARAMETER_INITIALIZER;
     }
 }

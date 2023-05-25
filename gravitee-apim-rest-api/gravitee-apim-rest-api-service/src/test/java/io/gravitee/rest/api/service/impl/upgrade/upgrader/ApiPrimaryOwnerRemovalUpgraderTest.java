@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -91,6 +92,16 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
 
         Logger logger = (Logger) LoggerFactory.getLogger(ApiPrimaryOwnerRemovalUpgrader.class);
         logger.addAppender(appender);
+    }
+
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        when(organizationRepository.findAll()).thenThrow(new RuntimeException());
+
+        Assert.assertFalse(upgrader.upgrade());
+
+        verify(organizationRepository, times(1)).findAll();
+        verifyNoMoreInteractions(organizationRepository);
     }
 
     @Test
@@ -203,6 +214,11 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         verify(appender, never()).doAppend(argThat(event -> Level.WARN == event.getLevel() && "api-test".equals(event.getMessage())));
 
         verify(membershipRepository, never()).create(any());
+    }
+
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.API_PRIMARY_OWNER_REMOVAL_UPGRADER, upgrader.getOrder());
     }
 
     private static Organization organization() {

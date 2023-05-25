@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActiv
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.impl.configuration.identity.IdentityProviderNotFoundException;
 import java.util.List;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -155,5 +156,10 @@ public class IdentityProviderInitializerTest {
         IdentityProviderEntity idpEntity = new IdentityProviderEntity();
         idpEntity.setId(GOOGLE_ID);
         return idpEntity;
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.IDENTITY_PROVIDER_INITIALIZER, initializer.getOrder());
     }
 }

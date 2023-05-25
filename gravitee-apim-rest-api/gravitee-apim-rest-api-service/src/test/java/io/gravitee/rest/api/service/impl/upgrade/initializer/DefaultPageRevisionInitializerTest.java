@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.PageService;
 import java.util.List;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -52,5 +53,10 @@ public class DefaultPageRevisionInitializerTest {
         when(pageRevisionService.findAll(any())).thenReturn(new Page<>(List.of(), 1, 0, 0));
         initializer.initialize();
         verify(pageRevisionService, times(1)).create(any());
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.DEFAULT_PAGE_REVISION_INITIALIZER, initializer.getOrder());
     }
 }

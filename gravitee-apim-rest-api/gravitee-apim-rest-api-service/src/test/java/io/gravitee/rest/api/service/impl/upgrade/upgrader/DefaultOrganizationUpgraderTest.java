@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.service.OrganizationService;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -48,5 +49,10 @@ public class DefaultOrganizationUpgraderTest {
         when(organizationService.count()).thenReturn(1L);
         upgrader.upgrade();
         verify(organizationService, never()).initialize();
+    }
+
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.DEFAULT_ORGANIZATION_UPGRADER, upgrader.getOrder());
     }
 }

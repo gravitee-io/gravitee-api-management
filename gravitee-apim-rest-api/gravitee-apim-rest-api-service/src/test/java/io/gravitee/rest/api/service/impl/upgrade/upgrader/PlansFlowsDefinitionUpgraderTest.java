@@ -15,10 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -30,6 +32,7 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,7 +66,17 @@ public class PlansFlowsDefinitionUpgraderTest {
     }
 
     @Test
-    public void processOneShotUpgrade_should_convert_flows_of_every_v2_apis() throws Exception {
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        when(apiRepository.search(any(), any(), any())).thenThrow(new RuntimeException());
+
+        assertFalse(upgrader.upgrade());
+
+        verify(apiRepository, times(1)).search(any(), any(), any());
+        verifyNoMoreInteractions(apiRepository);
+    }
+
+    @Test
+    public void upgrade_should_convert_flows_of_every_v2_apis() throws Exception {
         doNothing().when(upgrader).migrateApiFlows(any(), any());
 
         Api api1 = buildApi("api1", "1.0.0");
@@ -73,11 +86,11 @@ public class PlansFlowsDefinitionUpgraderTest {
         when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
             .thenReturn(Stream.of(api1, api2, api3, api4));
 
-        upgrader.processOneShotUpgrade();
+        upgrader.upgrade();
 
         verify(upgrader, times(1)).migrateApiFlows(eq("api2"), argThat(api -> api.getId().equals("api2")));
         verify(upgrader, times(1)).migrateApiFlows(eq("api4"), argThat(api -> api.getId().equals("api4")));
-        verify(upgrader, times(1)).processOneShotUpgrade();
+        verify(upgrader, times(1)).upgrade();
         verifyNoMoreInteractions(upgrader);
     }
 
@@ -116,6 +129,11 @@ public class PlansFlowsDefinitionUpgraderTest {
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
 
         verifyNoMoreInteractions(flowService);
+    }
+
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.PLANS_FLOWS_DEFINITION_UPGRADER, upgrader.getOrder());
     }
 
     private Api buildApi(String id, String definitionVersion) {

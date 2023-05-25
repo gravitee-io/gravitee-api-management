@@ -25,6 +25,7 @@ import io.gravitee.rest.api.service.ApiHeaderService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -66,5 +67,10 @@ public class DefaultApiHeaderInitializerTest {
         Environment environment = new Environment();
         environment.setId("DEFAULT");
         return environment;
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.DEFAULT_API_HEADER_INITIALIZER, initializer.getOrder());
     }
 }

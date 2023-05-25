@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
@@ -25,6 +26,7 @@ import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.management.model.Environment;
 import java.util.List;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -47,6 +49,16 @@ public class CommandOrganizationUpgraderTest {
     CommandOrganizationUpgrader upgrader;
 
     @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        when(environmentRepository.findAll()).thenThrow(new RuntimeException());
+
+        assertFalse(upgrader.upgrade());
+
+        verify(environmentRepository, times(1)).findAll();
+        verifyNoMoreInteractions(environmentRepository);
+    }
+
+    @Test
     public void shouldSetCommandOrganizationIds() throws Exception {
         final Environment env1 = new Environment();
         env1.setId("env-1");
@@ -67,10 +79,15 @@ public class CommandOrganizationUpgraderTest {
                 return "env-1".equals(criteria.getEnvironmentId()) ? List.of(cmd1) : List.of(cmd2);
             });
 
-        upgrader.processOneShotUpgrade();
+        upgrader.upgrade();
 
         assertEquals("org-1", cmd1.getOrganizationId());
         assertEquals("org-2", cmd2.getOrganizationId());
         verify(commandRepository, times(2)).update(any());
+    }
+
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.COMMAND_ORGANIZATION_UPGRADER, upgrader.getOrder());
     }
 }

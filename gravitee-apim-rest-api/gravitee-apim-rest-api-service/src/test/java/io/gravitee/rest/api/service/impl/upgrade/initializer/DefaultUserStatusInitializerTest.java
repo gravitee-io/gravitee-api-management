@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -81,5 +82,10 @@ public class DefaultUserStatusInitializerTest {
         Organization organization = new Organization();
         organization.setId("DEFAULT");
         return organization;
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.DEFAULT_USER_STATUS_INITIALIZER, initializer.getOrder());
     }
 }

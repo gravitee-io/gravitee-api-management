@@ -316,6 +316,6 @@ public class IdentityProviderInitializer implements Initializer {
 
     @Override
     public int getOrder() {
-        return 350;
+        return InitializerOrder.IDENTITY_PROVIDER_INITIALIZER;
     }
 }

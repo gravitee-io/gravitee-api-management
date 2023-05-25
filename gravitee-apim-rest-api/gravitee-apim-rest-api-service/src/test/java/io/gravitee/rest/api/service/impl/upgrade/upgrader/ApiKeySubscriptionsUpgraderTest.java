@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -25,6 +26,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -44,6 +46,16 @@ public class ApiKeySubscriptionsUpgraderTest {
     ApiKeyRepository apiKeyRepository;
 
     @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        when(apiKeyRepository.findAll()).thenThrow(new RuntimeException());
+
+        assertFalse(upgrader.upgrade());
+
+        verify(apiKeyRepository, times(1)).findAll();
+        verifyNoMoreInteractions(apiKeyRepository);
+    }
+
+    @Test
     public void testUpgrade_shouldCreateListOfSubscriptionsFromSubscription() throws TechnicalException {
         ApiKey key1 = apiKeyWithSubscription("subscription-1");
         ApiKey key2 = apiKeyWithSubscription("subscription-2");
@@ -58,7 +70,7 @@ public class ApiKeySubscriptionsUpgraderTest {
 
         when(apiKeyRepository.findAll()).thenReturn(keys);
 
-        upgrader.processOneShotUpgrade();
+        upgrader.upgrade();
 
         verify(apiKeyRepository, times(1)).findAll();
         verify(apiKeyRepository, times(8)).update(argThat(keys::contains));
@@ -71,6 +83,11 @@ public class ApiKeySubscriptionsUpgraderTest {
         assertEquals(List.of("subscription-2", "subscription-3"), key6.getSubscriptions());
         assertEquals(List.of("subscription-2", "subscription-3", "subscription-4"), key7.getSubscriptions());
         assertEquals(List.of("subscription-2", "subscription-3"), key8.getSubscriptions());
+    }
+
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.API_KEY_SUBSCRIPTIONS_UPGRADER, upgrader.getOrder());
     }
 
     @SuppressWarnings("removal")

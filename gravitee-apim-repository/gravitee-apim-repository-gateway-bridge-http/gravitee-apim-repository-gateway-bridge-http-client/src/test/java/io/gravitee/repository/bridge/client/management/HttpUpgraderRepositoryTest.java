@@ -13,38 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl.upgrade.initializer;
+package io.gravitee.repository.bridge.client.management;
 
-import static org.mockito.Mockito.*;
-
-import io.gravitee.rest.api.service.MetadataService;
-import org.junit.Assert;
+import io.gravitee.node.api.upgrader.UpgradeRecord;
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultMetadataInitializerTest {
+public class HttpUpgraderRepositoryTest extends TestCase {
 
-    @Mock
-    private MetadataService metadataService;
+    private HttpUpgraderRepository cut = new HttpUpgraderRepository();
 
-    @InjectMocks
-    private final DefaultMetadataInitializer initializer = new DefaultMetadataInitializer();
-
-    @Test
-    public void shouldSetSupportEmail() {
-        initializer.initialize();
-        verify(metadataService, times(1)).create(any(), argThat(meta -> meta.getValue().equals("support@change.me")));
+    @Test(expected = IllegalStateException.class)
+    public void findById() {
+        cut.findById("test-id").blockingGet();
     }
 
-    @Test
-    public void testOrder() {
-        Assert.assertEquals(InitializerOrder.DEFAULT_METADATA_INITIALIZER, initializer.getOrder());
+    @Test(expected = IllegalStateException.class)
+    public void create() {
+        cut.create(new UpgradeRecord()).blockingGet();
     }
 }

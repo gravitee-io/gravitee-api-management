@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.upgrade.initializer;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.service.DashboardService;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -40,5 +41,10 @@ public class DefaultDashboardsInitializerTest {
     public void shouldCreateDashboards() {
         initializer.initialize();
         verify(dashboardService, times(9)).create(any(), any());
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.DEFAULT_DASHBOARDS_INITIALIZER, initializer.getOrder());
     }
 }

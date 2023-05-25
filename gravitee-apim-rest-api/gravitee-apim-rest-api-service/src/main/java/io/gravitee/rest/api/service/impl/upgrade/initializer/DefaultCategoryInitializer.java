@@ -91,6 +91,6 @@ public class DefaultCategoryInitializer implements Initializer {
 
     @Override
     public int getOrder() {
-        return 200;
+        return InitializerOrder.DEFAULT_CATEGORY_INITIALIZER;
     }
 }

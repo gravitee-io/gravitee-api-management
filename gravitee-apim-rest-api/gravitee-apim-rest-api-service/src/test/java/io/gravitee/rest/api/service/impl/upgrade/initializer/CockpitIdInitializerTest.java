@@ -23,6 +23,7 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -69,5 +70,10 @@ public class CockpitIdInitializerTest {
         verify(environmentService, times(1)).createOrUpdate(eq("org-1"), anyString(), argThat(env -> env.getCockpitId().equals("env-1")));
 
         verify(environmentService, times(1)).createOrUpdate(eq("org-1"), anyString(), argThat(env -> env.getCockpitId().equals("env-2")));
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.COCKPIT_ID_INITIALIZER, initializer.getOrder());
     }
 }

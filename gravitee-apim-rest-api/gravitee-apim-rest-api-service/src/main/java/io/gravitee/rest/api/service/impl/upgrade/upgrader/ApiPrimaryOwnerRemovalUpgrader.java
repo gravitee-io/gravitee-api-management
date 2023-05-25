@@ -16,17 +16,11 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.GroupRepository;
-import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.api.RoleRepository;
-import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -171,7 +165,7 @@ public class ApiPrimaryOwnerRemovalUpgrader implements Upgrader {
 
     @Override
     public int getOrder() {
-        return 140;
+        return UpgraderOrder.API_PRIMARY_OWNER_REMOVAL_UPGRADER;
     }
 
     private String findApiPrimaryOwnerRoleId(String organizationId) throws TechnicalException {

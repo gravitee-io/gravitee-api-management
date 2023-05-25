@@ -15,15 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.service.InstallationService;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -32,40 +31,45 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class ClientIdInApiKeySubscriptionsUpgrader extends OneShotUpgrader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClientIdInApiKeySubscriptionsUpgrader.class);
+@Slf4j
+public class ClientIdInApiKeySubscriptionsUpgrader implements Upgrader {
 
     private final SubscriptionRepository subscriptionRepository;
 
     @Autowired
     public ClientIdInApiKeySubscriptionsUpgrader(@Lazy SubscriptionRepository subscriptionRepository) {
-        super(InstallationService.CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS);
         this.subscriptionRepository = subscriptionRepository;
     }
 
     @Override
     public int getOrder() {
-        return 502;
+        return UpgraderOrder.CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER;
     }
 
     @Override
-    protected void processOneShotUpgrade() throws TechnicalException {
-        SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder();
-        criteriaBuilder.planSecurityTypes(List.of(Plan.PlanSecurityType.API_KEY.name()));
-        subscriptionRepository.search(criteriaBuilder.build()).forEach(this::updateApiKeySubscriptions);
+    public boolean upgrade() {
+        try {
+            SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder();
+            criteriaBuilder.planSecurityTypes(List.of(Plan.PlanSecurityType.API_KEY.name()));
+            subscriptionRepository.search(criteriaBuilder.build()).forEach(this::updateApiKeySubscriptions);
+        } catch (Exception e) {
+            log.error("failed to apply {}", getClass().getSimpleName(), e);
+            return false;
+        }
+
+        return true;
     }
 
     @SuppressWarnings("removal")
     private void updateApiKeySubscriptions(Subscription subscription) {
         try {
             if (subscription.getClientId() != null) {
-                LOGGER.debug("Removing clientId from API key subscription [{}]", subscription);
+                log.debug("Removing clientId from API key subscription [{}]", subscription);
                 subscription.setClientId(null);
                 subscriptionRepository.update(subscription);
             }
         } catch (TechnicalException e) {
-            LOGGER.error("Failed to remove clientID from API key subscriptions for API key [{}]", subscription, e);
+            log.error("Failed to remove clientID from API key subscriptions for API key [{}]", subscription, e);
         }
     }
 }

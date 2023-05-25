@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -63,5 +64,10 @@ public class DefaultOrganizationAdminRoleInitializerTest {
                 OrganizationPermission.values(),
                 organization.getId()
             );
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.DEFAULT_ORGANIZATION_ADMIN_ROLE_INITIALIZER, initializer.getOrder());
     }
 }

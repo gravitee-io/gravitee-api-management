@@ -15,12 +15,13 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
-import io.gravitee.rest.api.service.InstallationService;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class ApiKeySubscriptionsUpgrader extends OneShotUpgrader {
+@Slf4j
+public class ApiKeySubscriptionsUpgrader implements Upgrader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeySubscriptionsUpgrader.class);
 
@@ -39,18 +41,24 @@ public class ApiKeySubscriptionsUpgrader extends OneShotUpgrader {
 
     @Autowired
     public ApiKeySubscriptionsUpgrader(@Lazy ApiKeyRepository apiKeyRepository) {
-        super(InstallationService.API_KEY_SUBSCRIPTIONS_UPGRADER_STATUS);
         this.apiKeyRepository = apiKeyRepository;
     }
 
     @Override
     public int getOrder() {
-        return 501;
+        return UpgraderOrder.API_KEY_SUBSCRIPTIONS_UPGRADER;
     }
 
     @Override
-    protected void processOneShotUpgrade() throws TechnicalException {
-        apiKeyRepository.findAll().forEach(this::updateApiKeySubscriptions);
+    public boolean upgrade() {
+        try {
+            apiKeyRepository.findAll().forEach(this::updateApiKeySubscriptions);
+        } catch (Exception e) {
+            log.error("error applying upgrader {}", this.getClass().getSimpleName(), e);
+            return false;
+        }
+
+        return true;
     }
 
     @SuppressWarnings("removal")

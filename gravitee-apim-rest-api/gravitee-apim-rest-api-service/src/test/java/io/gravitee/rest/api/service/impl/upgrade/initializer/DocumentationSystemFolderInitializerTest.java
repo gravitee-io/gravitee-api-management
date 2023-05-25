@@ -38,6 +38,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -165,5 +166,10 @@ public class DocumentationSystemFolderInitializerTest {
         verify(apiRepository, times(3)).searchIds(any(), any(), any());
         verify(pageService, times(2))
             .createSystemFolder(any(ExecutionContext.class), anyString(), any(SystemFolderType.class), any(Integer.class));
+    }
+
+    @Test
+    public void testOrder() {
+        Assert.assertEquals(InitializerOrder.DOCUMENTATION_SYSTEM_FOLDER_INITIALIZER, initializer.getOrder());
     }
 }

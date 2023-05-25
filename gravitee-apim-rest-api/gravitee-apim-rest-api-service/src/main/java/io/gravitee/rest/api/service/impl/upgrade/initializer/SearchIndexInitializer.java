@@ -74,8 +74,6 @@ public class SearchIndexInitializer implements Initializer {
 
     private final ApiRepository apiRepository;
 
-    private final ApiService apiService;
-
     private final PageService pageService;
 
     private final UserRepository userRepository;
@@ -95,7 +93,6 @@ public class SearchIndexInitializer implements Initializer {
     @Autowired
     public SearchIndexInitializer(
         @Lazy ApiRepository apiRepository,
-        ApiService apiService,
         PageService pageService,
         @Lazy UserRepository userRepository,
         SearchEngineService searchEngineService,
@@ -106,7 +103,6 @@ public class SearchIndexInitializer implements Initializer {
         final PrimaryOwnerService primaryOwnerService
     ) {
         this.apiRepository = apiRepository;
-        this.apiService = apiService;
         this.pageService = pageService;
         this.userRepository = userRepository;
         this.searchEngineService = searchEngineService;
@@ -261,7 +257,7 @@ public class SearchIndexInitializer implements Initializer {
 
     @Override
     public int getOrder() {
-        return 250;
+        return InitializerOrder.SEARCH_INDEX_INITIALIZER;
     }
 
     private void authenticateAsAdmin() {

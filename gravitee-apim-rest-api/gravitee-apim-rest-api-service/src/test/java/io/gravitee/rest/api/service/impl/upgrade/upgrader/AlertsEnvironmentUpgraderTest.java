@@ -29,6 +29,7 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,6 +63,16 @@ public class AlertsEnvironmentUpgraderTest {
     }
 
     @Test
+    public void upgrade_should_failed_because_of_exception() throws Exception {
+        when(alertTriggerRepository.findAll()).thenThrow(new RuntimeException());
+
+        Assert.assertFalse(upgrader.upgrade());
+
+        verify(alertTriggerRepository, times(1)).findAll();
+        verifyNoMoreInteractions(alertTriggerRepository);
+    }
+
+    @Test
     public void upgrade_should_set_environment_id_of_api_alerts() throws Exception {
         when(alertTriggerRepository.findAll())
             .thenReturn(
@@ -76,17 +87,21 @@ public class AlertsEnvironmentUpgraderTest {
         api1.setEnvironmentId("env-id-1");
         when(apiRepository.findById("api-id-1")).thenReturn(Optional.of(api1));
 
-        when(apiRepository.findById("api-id-2")).thenReturn(Optional.empty());
+        Api api2 = new Api();
+        api2.setEnvironmentId("env-id-1");
+        when(apiRepository.findById("api-id-2")).thenReturn(Optional.of(api2));
 
         Api api3 = new Api();
         api3.setEnvironmentId("env-id-2");
         when(apiRepository.findById("api-id-3")).thenReturn(Optional.of(api3));
 
-        upgrader.processOneShotUpgrade();
+        Assert.assertTrue(upgrader.upgrade());
 
-        // 2 alerts have been updated with API environment
+        // 3 alerts have been updated with API environment
         verify(alertTriggerRepository, times(1))
             .update(argThat(alert -> alertMatches(alert, "alert-id-2", "alert-name-2", "API", "api-id-1", "env-id-1")));
+        verify(alertTriggerRepository, times(1))
+            .update(argThat(alert -> alertMatches(alert, "alert-id-3", "alert-name-4", "API", "api-id-2", "env-id-1")));
         verify(alertTriggerRepository, times(1))
             .update(argThat(alert -> alertMatches(alert, "alert-id-4", "alert-name-4", "API", "api-id-3", "env-id-2")));
 
@@ -100,8 +115,7 @@ public class AlertsEnvironmentUpgraderTest {
             .thenReturn(
                 Set.of(
                     buildTestAlert("alert-id-2", "alert-name-2", "APPLICATION", "app-id-1"),
-                    buildTestAlert("alert-id-3", "alert-name-4", "APPLICATION", "app-id-2"),
-                    buildTestAlert("alert-id-4", "alert-name-4", "APPLICATION", "app-id-3")
+                    buildTestAlert("alert-id-4", "alert-name-4", "APPLICATION", "app-id-2")
                 )
             );
 
@@ -109,22 +123,31 @@ public class AlertsEnvironmentUpgraderTest {
         application1.setEnvironmentId("env-id-1");
         when(applicationRepository.findById("app-id-1")).thenReturn(Optional.of(application1));
 
-        when(applicationRepository.findById("app-id-2")).thenReturn(Optional.empty());
-
         Application application3 = new Application();
         application3.setEnvironmentId("env-id-2");
-        when(applicationRepository.findById("app-id-3")).thenReturn(Optional.of(application3));
+        when(applicationRepository.findById("app-id-2")).thenReturn(Optional.of(application3));
 
-        upgrader.processOneShotUpgrade();
+        Assert.assertTrue(upgrader.upgrade());
 
         // 2 alerts have been updated with applications environment
         verify(alertTriggerRepository, times(1))
             .update(argThat(alert -> alertMatches(alert, "alert-id-2", "alert-name-2", "APPLICATION", "app-id-1", "env-id-1")));
         verify(alertTriggerRepository, times(1))
-            .update(argThat(alert -> alertMatches(alert, "alert-id-4", "alert-name-4", "APPLICATION", "app-id-3", "env-id-2")));
+            .update(argThat(alert -> alertMatches(alert, "alert-id-4", "alert-name-4", "APPLICATION", "app-id-2", "env-id-2")));
 
         verify(alertTriggerRepository, times(1)).findAll();
         verifyNoMoreInteractions(alertTriggerRepository);
+    }
+
+    @Test
+    public void upgrade_should_failed_because_of_missing_application() throws Exception {
+        when(alertTriggerRepository.findAll()).thenReturn(Set.of(buildTestAlert("alert-id-2", "alert-name-2", "APPLICATION", "app-id-1")));
+
+        when(applicationRepository.findById("app-id-1")).thenReturn(Optional.empty());
+
+        Assert.assertFalse(upgrader.upgrade());
+
+        verify(alertTriggerRepository, times(1)).findAll();
     }
 
     @Test
@@ -134,7 +157,7 @@ public class AlertsEnvironmentUpgraderTest {
                 Set.of(buildTestAlert("alert-id-2", "alert-name-2", "PLATFORM"), buildTestAlert("alert-id-4", "alert-name-4", "PLATFORM"))
             );
 
-        upgrader.processOneShotUpgrade();
+        upgrader.upgrade();
 
         // existing platform alert have been updated and linked to DEFAULT env
         verify(alertTriggerRepository, times(1))
@@ -144,6 +167,11 @@ public class AlertsEnvironmentUpgraderTest {
 
         verify(alertTriggerRepository, times(1)).findAll();
         verifyNoMoreInteractions(alertTriggerRepository);
+    }
+
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.ALERTS_ENVIRONMENT_UPGRADER, upgrader.getOrder());
     }
 
     private boolean alertMatches(

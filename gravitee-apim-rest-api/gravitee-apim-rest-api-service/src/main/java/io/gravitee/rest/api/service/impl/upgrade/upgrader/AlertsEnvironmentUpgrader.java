@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -24,14 +25,12 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
-import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
-import io.gravitee.rest.api.service.exceptions.AbstractNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -52,9 +51,8 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AlertsEnvironmentUpgrader.class);
+@Slf4j
+public class AlertsEnvironmentUpgrader implements Upgrader {
 
     private final AlertTriggerRepository alertTriggerRepository;
 
@@ -71,7 +69,6 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
         @Lazy ApiRepository apiRepository,
         @Lazy ApplicationRepository applicationRepository
     ) {
-        super(InstallationService.ALERTS_ENVIRONMENT_UPGRADER);
         this.alertTriggerRepository = alertTriggerRepository;
         this.alertTriggerConverter = alertTriggerConverter;
         this.apiRepository = apiRepository;
@@ -80,37 +77,42 @@ public class AlertsEnvironmentUpgrader extends OneShotUpgrader {
 
     @Override
     public int getOrder() {
-        return 500;
+        return UpgraderOrder.ALERTS_ENVIRONMENT_UPGRADER;
     }
 
     @Override
-    protected void processOneShotUpgrade() throws TechnicalException {
-        alertTriggerRepository
-            .findAll()
-            .forEach(alertTrigger -> {
-                try {
-                    switch (alertTrigger.getReferenceType()) {
-                        case "PLATFORM":
-                            handlePlatformAlert(alertTrigger);
-                            break;
-                        case "API":
-                            handleApiAlert(alertTrigger);
-                            break;
-                        case "APPLICATION":
-                            handleApplicationAlert(alertTrigger);
-                            break;
-                    }
-                } catch (AbstractNotFoundException | TechnicalException e) {
-                    LOGGER.error("Failed to update alert {}", alertTrigger.getId(), e);
+    public boolean upgrade() {
+        try {
+            Set<AlertTrigger> alertTriggers = alertTriggerRepository.findAll();
+            for (AlertTrigger alertTrigger : alertTriggers) {
+                switch (alertTrigger.getReferenceType()) {
+                    case "PLATFORM":
+                        handlePlatformAlert(alertTrigger);
+                        break;
+                    case "API":
+                        handleApiAlert(alertTrigger);
+                        break;
+                    case "APPLICATION":
+                        handleApplicationAlert(alertTrigger);
+                        break;
+                    default:
+                        log.error("unsupported reference type {}", alertTrigger.getReferenceType());
+                        break;
                 }
-            });
+            }
+        } catch (Exception e) {
+            log.error("Failed to apply upgrader {}", getClass().getSimpleName(), e);
+            return false;
+        }
+
+        return true;
     }
 
     private void handlePlatformAlert(AlertTrigger alertTrigger) {
         try {
             updateEnvironmentAlertReferences(GraviteeContext.getDefaultEnvironment(), alertTrigger);
         } catch (TechnicalException e) {
-            LOGGER.error("Failed to handle alert {}", alertTrigger.getId(), e);
+            log.error("Failed to handle alert {}", alertTrigger.getId(), e);
         }
     }
 

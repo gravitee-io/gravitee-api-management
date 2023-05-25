@@ -13,30 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl.upgrade.initializer;
+package io.gravitee.repository.bridge.client.management;
 
-import io.gravitee.rest.api.service.ThemeService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.gravitee.node.api.upgrader.UpgradeRecord;
+import io.gravitee.node.api.upgrader.UpgraderRepository;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class DefaultThemeInitializer extends EnvironmentInitializer {
-
-    @Autowired
-    private ThemeService themeService;
+public class HttpUpgraderRepository implements UpgraderRepository {
 
     @Override
-    public void initializeEnvironment(ExecutionContext executionContext) {
-        themeService.updateDefaultTheme(executionContext);
+    public Maybe<UpgradeRecord> findById(String s) {
+        throw new IllegalStateException();
     }
 
     @Override
-    public int getOrder() {
-        return InitializerOrder.DEFAULT_THEME_INITIALIZER;
+    public Single<UpgradeRecord> create(UpgradeRecord upgradeRecord) {
+        throw new IllegalStateException();
     }
 }

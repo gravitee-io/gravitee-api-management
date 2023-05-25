@@ -84,6 +84,6 @@ public class DefaultDashboardsInitializer implements Initializer {
 
     @Override
     public int getOrder() {
-        return 100;
+        return InitializerOrder.DEFAULT_DASHBOARDS_INITIALIZER;
     }
 }

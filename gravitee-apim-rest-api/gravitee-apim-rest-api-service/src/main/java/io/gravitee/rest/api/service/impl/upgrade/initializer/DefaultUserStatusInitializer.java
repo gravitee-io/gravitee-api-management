@@ -51,6 +51,6 @@ public class DefaultUserStatusInitializer extends OrganizationInitializer {
 
     @Override
     public int getOrder() {
-        return 200;
+        return InitializerOrder.DEFAULT_USER_STATUS_INITIALIZER;
     }
 }

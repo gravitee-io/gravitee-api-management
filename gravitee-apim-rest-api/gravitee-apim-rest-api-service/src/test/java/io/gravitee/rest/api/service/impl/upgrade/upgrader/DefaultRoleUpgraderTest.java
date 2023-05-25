@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.model.permissions.RoleScope.API;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_REVIEWER;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -29,6 +30,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -51,6 +53,16 @@ public class DefaultRoleUpgraderTest {
     OrganizationRepository organizationRepository;
 
     @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        when(organizationRepository.findAll()).thenThrow(new RuntimeException());
+
+        assertFalse(upgrader.upgrade());
+
+        verify(organizationRepository, times(1)).findAll();
+        verifyNoMoreInteractions(organizationRepository);
+    }
+
+    @Test
     public void shouldInitializeDefaultRoles() throws TechnicalException {
         final Organization organization = mock(Organization.class);
         when(organization.getId()).thenReturn(GraviteeContext.getDefaultOrganization());
@@ -59,7 +71,7 @@ public class DefaultRoleUpgraderTest {
         final ExecutionContext expectedExecutionContext = new ExecutionContext(organization);
 
         when(roleService.findAllByOrganization(expectedExecutionContext.getOrganizationId())).thenReturn(List.of());
-        upgrader.processOneShotUpgrade();
+        upgrader.upgrade();
         verify(roleService, times(1)).findAllByOrganization(expectedExecutionContext.getOrganizationId());
         verify(roleService, times(1)).initialize(expectedExecutionContext, expectedExecutionContext.getOrganizationId());
         verify(roleService, times(1)).createOrUpdateSystemRoles(expectedExecutionContext, organization.getId());
@@ -77,12 +89,17 @@ public class DefaultRoleUpgraderTest {
         when(roleService.findByScopeAndName(API, ROLE_API_REVIEWER.getName(), GraviteeContext.getCurrentOrganization()))
             .thenReturn(Optional.empty());
 
-        upgrader.processOneShotUpgrade();
+        upgrader.upgrade();
 
         verify(roleService, times(1)).findAllByOrganization(expectedExecutionContext.getOrganizationId());
         verify(roleService, never()).initialize(expectedExecutionContext, expectedExecutionContext.getOrganizationId());
         verify(roleService).findByScopeAndName(API, ROLE_API_REVIEWER.getName(), expectedExecutionContext.getOrganizationId());
         verify(roleService).create(expectedExecutionContext, ROLE_API_REVIEWER);
         verify(roleService, times(1)).createOrUpdateSystemRoles(expectedExecutionContext, organization.getId());
+    }
+
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.DEFAULT_ROLES_UPGRADER, upgrader.getOrder());
     }
 }

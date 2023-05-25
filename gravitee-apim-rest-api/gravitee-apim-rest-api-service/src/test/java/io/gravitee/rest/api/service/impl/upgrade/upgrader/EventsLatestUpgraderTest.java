@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -43,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -88,13 +90,23 @@ public class EventsLatestUpgraderTest {
     }
 
     @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        when(apiRepository.searchIds(any(), any(), any())).thenThrow(new RuntimeException());
+
+        assertFalse(cut.upgrade());
+
+        verify(apiRepository, times(1)).searchIds(any(), any(), any());
+        verifyNoMoreInteractions(apiRepository);
+    }
+
+    @Test
     public void should_order_equals_600() {
         assertThat(cut.getOrder()).isEqualTo(600);
     }
 
     @Test
     public void should_do_nothing_when_nothing_to_migrate() throws TechnicalException {
-        cut.processOneShotUpgrade();
+        cut.upgrade();
         verifyNoInteractions(eventLatestRepository);
     }
 
@@ -120,7 +132,7 @@ public class EventsLatestUpgraderTest {
             .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
 
-        cut.processOneShotUpgrade();
+        cut.upgrade();
 
         verify(eventLatestRepository).createOrUpdate(event1);
         verify(eventLatestRepository).createOrUpdate(event2);
@@ -153,7 +165,7 @@ public class EventsLatestUpgraderTest {
             .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
 
-        cut.processOneShotUpgrade();
+        cut.upgrade();
 
         verify(eventLatestRepository, times(2))
             .createOrUpdate(
@@ -197,7 +209,7 @@ public class EventsLatestUpgraderTest {
             .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
 
-        cut.processOneShotUpgrade();
+        cut.upgrade();
 
         verify(eventLatestRepository).createOrUpdate(event1);
         verify(eventLatestRepository).createOrUpdate(event2);
@@ -230,7 +242,7 @@ public class EventsLatestUpgraderTest {
             .thenReturn(new Page<>(List.of(event2), 0, 1, 1));
         when(eventLatestRepository.createOrUpdate(event2)).thenReturn(event2);
 
-        cut.processOneShotUpgrade();
+        cut.upgrade();
 
         verify(eventLatestRepository).createOrUpdate(event1);
         verify(eventLatestRepository).createOrUpdate(event2);
@@ -269,8 +281,13 @@ public class EventsLatestUpgraderTest {
                 .thenReturn(new Page<>(List.of(event), 0, 1, 1));
             when(eventLatestRepository.createOrUpdate(event)).thenReturn(event);
         }
-        cut.processOneShotUpgrade();
+        cut.upgrade();
 
         verify(eventLatestRepository, times(500)).createOrUpdate(any());
+    }
+
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.EVENTS_LATEST_UPGRADER, cut.getOrder());
     }
 }

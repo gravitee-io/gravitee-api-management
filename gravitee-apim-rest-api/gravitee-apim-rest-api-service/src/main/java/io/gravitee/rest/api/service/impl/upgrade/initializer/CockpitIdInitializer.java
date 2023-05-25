@@ -68,6 +68,6 @@ public class CockpitIdInitializer implements Initializer {
 
     @Override
     public int getOrder() {
-        return 200;
+        return InitializerOrder.COCKPIT_ID_INITIALIZER;
     }
 }

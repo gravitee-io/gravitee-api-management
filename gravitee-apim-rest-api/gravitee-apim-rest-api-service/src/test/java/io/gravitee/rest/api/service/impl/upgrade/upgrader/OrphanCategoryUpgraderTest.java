@@ -26,13 +26,10 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Category;
-import io.gravitee.rest.api.model.InstallationEntity;
-import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.UuidString;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -48,33 +45,19 @@ public class OrphanCategoryUpgraderTest {
     private OrphanCategoryUpgrader upgrader = new OrphanCategoryUpgrader();
 
     @Mock
-    private InstallationService installationService;
-
-    @Mock
     private ApiRepository apiRepository;
 
     @Mock
     private CategoryRepository categoryRepository;
 
     @Test
-    public void upgrade_should_not_run_cause_already_executed_with_success() {
-        setUpgradeStatus(UpgradeStatus.SUCCESS);
-        assertTrue(upgrader.upgrade());
-        verify(installationService, never()).setAdditionalInformation(any());
-    }
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        when(categoryRepository.findAll()).thenThrow(new RuntimeException());
 
-    @Test
-    public void upgrade_should_not_run_because_already_running() {
-        setUpgradeStatus(UpgradeStatus.RUNNING);
         assertFalse(upgrader.upgrade());
-        verify(installationService, never()).setAdditionalInformation(any());
-    }
 
-    @Test
-    public void upgrade_should_run_because_already_executed_but_failed() {
-        setUpgradeStatus(UpgradeStatus.FAILURE);
-        assertTrue(upgrader.upgrade());
-        verify(installationService, times(2)).setAdditionalInformation(any());
+        verify(categoryRepository, times(1)).findAll();
+        verifyNoMoreInteractions(categoryRepository);
     }
 
     @Test
@@ -90,21 +73,15 @@ public class OrphanCategoryUpgraderTest {
         when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
             .thenReturn(Stream.of(apiWithOrphanCategory));
 
-        setUpgradeStatus(null);
         assertTrue(upgrader.upgrade());
 
         assertEquals(1, apiWithOrphanCategory.getCategories().size());
         assertFalse(apiWithOrphanCategory.getCategories().contains(orphanCategoryId));
         assertTrue(apiWithOrphanCategory.getCategories().contains(existingCategory.getId()));
-
-        verify(installationService, times(2)).setAdditionalInformation(any());
     }
 
-    private void setUpgradeStatus(UpgradeStatus status) {
-        InstallationEntity installation = mock(InstallationEntity.class);
-        Map<String, String> statusData = new HashMap<>();
-        statusData.put(InstallationService.ORPHAN_CATEGORY_UPGRADER_STATUS, status == null ? null : status.name());
-        when(installation.getAdditionalInformation()).thenReturn(statusData);
-        when(installationService.getOrInitialize()).thenReturn(installation);
+    @Test
+    public void test_order() {
+        Assert.assertEquals(UpgraderOrder.ORPHAN_CATEGORY_UPGRADER, upgrader.getOrder());
     }
 }
