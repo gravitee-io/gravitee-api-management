@@ -16,13 +16,19 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-export class ApiPortalGroupsMembersHarness extends ComponentHarness {
-  static hostSelector = 'api-portal-groups-members';
+export class ApiPortalGroupMembersHarness extends ComponentHarness {
+  static hostSelector = 'api-portal-group-members';
 
   protected getGroupTable = (groupName: string) =>
     this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Group ' + groupName + ' members table"]' }))();
 
   public getGroupTableByGroupName(groupName: string): Promise<MatTableHarness> {
     return this.getGroupTable(groupName);
+  }
+
+  public groupTableExistsByGroupName(groupName: string): Promise<boolean> {
+    return this.getGroupTable(groupName)
+      .then((_) => true)
+      .catch((_) => false);
   }
 }

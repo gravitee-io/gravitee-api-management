@@ -22,8 +22,8 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { Component } from '@angular/core';
 
-import { ApiPortalGroupsMembersComponent } from './api-portal-groups-members.component';
-import { ApiPortalGroupsMembersHarness } from './api-portal-groups-members.harness';
+import { ApiPortalGroupMembersComponent } from './api-portal-group-members.component';
+import { ApiPortalGroupMembersHarness } from './api-portal-group-members.harness';
 
 import { User } from '../../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
@@ -34,12 +34,12 @@ import { fakeMember } from '../../../../../../entities/management-api-v2/member/
 
 @Component({
   selector: `host-component`,
-  template: `<api-portal-groups-members [groupIds]="groupIds"></api-portal-groups-members>`,
+  template: `<api-portal-group-members [groupId]="groupId"></api-portal-group-members>`,
 })
 class TestComponent {
-  groupIds = ['groupId1', 'groupId2'];
+  groupId = 'groupId1';
 }
-describe('ApiPortalMembersComponent', () => {
+describe('ApiPortalGroupMembersComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
@@ -49,7 +49,7 @@ describe('ApiPortalMembersComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiPortalUserGroupModule],
-      declarations: [ApiPortalGroupsMembersComponent, TestComponent],
+      declarations: [ApiPortalGroupMembersComponent, TestComponent],
       providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -70,31 +70,52 @@ describe('ApiPortalMembersComponent', () => {
     httpTestingController.verify();
   });
 
-  it('Display groups members tables', async () => {
+  it('should display group members tables', async () => {
     expectGroupsGetMembersRequest('groupId1', {
       data: [fakeMember({ roles: [{ name: 'USER', scope: 'API' }] })],
       metadata: { groupName: 'Group1' },
+      pagination: { totalCount: 1 },
     });
-    expectGroupsGetMembersRequest('groupId2', {
-      data: [fakeMember({ roles: [{ name: 'USER', scope: 'APPLICATION' }] })],
-      metadata: { groupName: 'Group2' },
-    });
+
     fixture.detectChanges();
 
-    const apiGroupsMembersComponent = await loader.getHarness(ApiPortalGroupsMembersHarness);
+    const apiGroupsMembersComponent = await loader.getHarness(ApiPortalGroupMembersHarness);
 
     const group1MembersTable = await apiGroupsMembersComponent.getGroupTableByGroupName('Group1');
-
     expect(await group1MembersTable.getCellTextByIndex()).toEqual([['', 'member-display-name', 'USER']]);
+  });
 
-    const group2MembersTable = await apiGroupsMembersComponent.getGroupTableByGroupName('Group2');
+  it('should group members tables -- no API role', async () => {
+    expectGroupsGetMembersRequest('groupId1', {
+      data: [fakeMember({ roles: [{ name: 'USER', scope: 'APPLICATION' }] })],
+      metadata: { groupName: 'Group1' },
+      pagination: { totalCount: 1 },
+    });
 
-    expect(await group2MembersTable.getCellTextByIndex()).toEqual([['', 'member-display-name', '']]);
+    fixture.detectChanges();
+
+    const apiGroupsMembersComponent = await loader.getHarness(ApiPortalGroupMembersHarness);
+
+    const group1MembersTable = await apiGroupsMembersComponent.getGroupTableByGroupName('Group1');
+    expect(await group1MembersTable.getCellTextByIndex()).toEqual([['', 'member-display-name', '']]);
+  });
+
+  it('should not display group members tables if no members', async () => {
+    expectGroupsGetMembersRequest('groupId1', {
+      data: [],
+      metadata: { groupName: 'Group1' },
+      pagination: { totalCount: 0 },
+    });
+
+    fixture.detectChanges();
+
+    const apiGroupsMembersComponent = await loader.getHarness(ApiPortalGroupMembersHarness);
+    expect(await apiGroupsMembersComponent.groupTableExistsByGroupName('Group1')).toEqual(false);
   });
 
   function expectGroupsGetMembersRequest(groupId: string, membersResponse: MembersResponse) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${groupId}/members?page=1&perPage=9999`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${groupId}/members?page=1&perPage=10`, method: 'GET' })
       .flush(membersResponse);
   }
 });

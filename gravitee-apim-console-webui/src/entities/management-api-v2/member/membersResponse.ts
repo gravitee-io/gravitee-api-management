@@ -26,5 +26,7 @@ export interface MembersResponse {
   data?: Member[];
   pagination?: Pagination;
   links?: Links;
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    groupName?: string;
+  };
 }

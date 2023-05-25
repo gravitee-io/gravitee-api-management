@@ -43,6 +43,10 @@ class MemberDataSource {
   displayName: string;
   picture: string;
 }
+interface GroupData {
+  groupId: string;
+  isVisible: boolean;
+}
 @Component({
   selector: 'api-portal-members',
   template: require('./api-portal-members.component.html'),
@@ -57,7 +61,7 @@ export class ApiPortalMembersComponent implements OnInit {
   defaultRole?: Role;
   members: ApiMember[];
   membersToAdd: (ApiMember & { _viewId: string })[] = [];
-  groupIds: string[];
+  groupData: GroupData[];
   isReadOnly = false;
 
   dataSource: MemberDataSource[];
@@ -94,7 +98,7 @@ export class ApiPortalMembersComponent implements OnInit {
           this.members = members;
           this.roles = roles;
           this.defaultRole = roles.find((role) => role.default);
-          this.groupIds = api.groups;
+          this.groupData = api.groups?.map((groupId) => ({ groupId, isVisible: true }));
           this.initDataSource(members);
           this.initForm(api, members);
         }),

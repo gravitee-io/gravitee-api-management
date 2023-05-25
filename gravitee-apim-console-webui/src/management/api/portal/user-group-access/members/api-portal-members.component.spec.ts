@@ -26,7 +26,6 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { ApiPortalMembersComponent } from './api-portal-members.component';
 import { ApiPortalMembersHarness } from './api-portal-members.harness';
-import { ApiPortalGroupsMembersComponent } from './api-portal-groups-members/api-portal-groups-members.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiPortalUserGroupModule } from '../api-portal-user-group.module';
@@ -62,18 +61,12 @@ describe('ApiPortalMembersComponent', () => {
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
-    })
-      .overrideProvider(InteractivityChecker, {
-        useValue: {
-          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
-          isTabbable: () => true,
-        },
-      })
-      .overrideModule(ApiPortalUserGroupModule, {
-        remove: {
-          declarations: [ApiPortalGroupsMembersComponent],
-        },
-      });
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+        isTabbable: () => true,
+      },
+    });
 
     fixture = TestBed.createComponent(ApiPortalMembersComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -93,6 +86,7 @@ describe('ApiPortalMembersComponent', () => {
       const api = fakeApi({ id: apiId, disable_membership_notifications: true });
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
+      expectGetGroupMembersRequest();
 
       expect(await harness.isNotificationsToggleChecked()).toEqual(false);
     });
@@ -101,6 +95,7 @@ describe('ApiPortalMembersComponent', () => {
       const api = fakeApi({ id: apiId, disable_membership_notifications: false });
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
+      expectGetGroupMembersRequest();
 
       expect(await harness.isNotificationsToggleChecked()).toEqual(true);
       await harness.toggleNotificationToggle();
@@ -112,6 +107,7 @@ describe('ApiPortalMembersComponent', () => {
       const api = fakeApi({ id: apiId, disable_membership_notifications: false });
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
+      expectGetGroupMembersRequest();
 
       await harness.toggleNotificationToggle();
 
@@ -126,6 +122,7 @@ describe('ApiPortalMembersComponent', () => {
       // init
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
+      expectGetGroupMembersRequest();
     });
   });
 
@@ -138,6 +135,7 @@ describe('ApiPortalMembersComponent', () => {
       ];
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
+      expectGetGroupMembersRequest();
 
       expect((await harness.getTableRows()).length).toEqual(2);
       expect(await harness.getMembersName()).toEqual(['Mufasa', 'Simba']);
@@ -148,6 +146,7 @@ describe('ApiPortalMembersComponent', () => {
       const members: ApiMember[] = [{ id: '1', displayName: 'admin', role: 'PRIMARY_OWNER' }];
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
+      expectGetGroupMembersRequest();
 
       expect(await harness.isMemberRoleSelectDisabled(0)).toEqual(true);
     });
@@ -157,6 +156,7 @@ describe('ApiPortalMembersComponent', () => {
       const members: ApiMember[] = [{ id: '1', displayName: 'owner', role: 'OWNER' }];
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
+      expectGetGroupMembersRequest();
 
       expect(await harness.isMemberRoleSelectDisabled(0)).toEqual(false);
       const roleOptions: MatOptionHarness[] = await harness.getMemberRoleSelectOptions(0);
@@ -177,6 +177,7 @@ describe('ApiPortalMembersComponent', () => {
       ];
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
+      expectGetGroupMembersRequest();
 
       await harness.getMemberRoleSelectForRowIndex(1).then(async (select) => {
         await select.open();
@@ -193,6 +194,7 @@ describe('ApiPortalMembersComponent', () => {
       // init
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
+      expectGetGroupMembersRequest();
     });
   });
 
@@ -202,6 +204,7 @@ describe('ApiPortalMembersComponent', () => {
       const members: ApiMember[] = [{ id: '1', displayName: 'owner', role: 'PRIMARY_OWNER' }];
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
+      expectGetGroupMembersRequest();
 
       expect(await harness.isMemberDeleteButtonVisible(0)).toEqual(false);
     });
@@ -214,6 +217,7 @@ describe('ApiPortalMembersComponent', () => {
       ];
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
+      expectGetGroupMembersRequest();
 
       expect(await harness.isMemberDeleteButtonVisible(1)).toEqual(true);
 
@@ -236,6 +240,7 @@ describe('ApiPortalMembersComponent', () => {
       ];
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
+      expectGetGroupMembersRequest();
 
       expect(await harness.isMemberDeleteButtonVisible(1)).toEqual(true);
 
@@ -258,6 +263,7 @@ describe('ApiPortalMembersComponent', () => {
       const members: ApiMember[] = [{ id: '1', displayName: 'Existing User', role: 'PRIMARY_OWNER' }];
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
+      expectGetGroupMembersRequest();
 
       const memberToAdd = fakeSearchableUser({ id: 'user', displayName: 'User Id' });
 
@@ -300,6 +306,7 @@ describe('ApiPortalMembersComponent', () => {
       const members: ApiMember[] = [{ id: '1', displayName: 'Existing User', role: 'PRIMARY_OWNER' }];
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
+      expectGetGroupMembersRequest();
 
       const memberToAdd = fakeSearchableUser({ id: undefined, displayName: 'User from LDAP' });
 
@@ -333,6 +340,15 @@ describe('ApiPortalMembersComponent', () => {
         method: 'DELETE',
       })
       .flush({});
+    fixture.detectChanges();
+  }
+
+  function expectGetGroupMembersRequest() {
+    // Call expected in child ApiPortalGroupMembers
+    const groupId = fakeApi().groups[0];
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${groupId}/members?page=1&perPage=10`, method: 'GET' })
+      .flush({ data: [], metadata: { groupName: 'group1' }, pagination: {} });
     fixture.detectChanges();
   }
 });
