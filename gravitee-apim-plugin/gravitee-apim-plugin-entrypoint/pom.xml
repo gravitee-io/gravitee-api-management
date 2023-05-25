@@ -37,7 +37,6 @@
         <module>gravitee-apim-plugin-entrypoint-http-get</module>
         <module>gravitee-apim-plugin-entrypoint-http-post</module>
         <module>gravitee-apim-plugin-entrypoint-http-proxy</module>
-        <module>gravitee-apim-plugin-entrypoint-webhook</module>
         <module>gravitee-apim-plugin-entrypoint-websocket</module>
     </modules>
 </project>
