@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -24,7 +25,9 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.HttpRequest;
+import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.*;
@@ -69,7 +72,7 @@ public class DebugApiServiceTest {
     @Mock
     private PlanService planService;
 
-    private DebugApiService debugApiService;
+    private DebugApiServiceImpl debugApiService;
 
     @Before
     public void setup() {
@@ -89,12 +92,14 @@ public class DebugApiServiceTest {
         debugApiService.debug(GraviteeContext.getExecutionContext(), API_ID, USER_ID, debugApiEntity);
 
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
+        DebugApi debugApi = debugApiService.convert(debugApiEntity, API_ID);
+
         verify(eventService)
             .createDebugApiEvent(
                 eq(GraviteeContext.getExecutionContext()),
                 any(),
                 eq(EventType.DEBUG_API),
-                any(),
+                eq(debugApi),
                 propertiesCaptor.capture()
             );
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anySet());
@@ -207,6 +212,16 @@ public class DebugApiServiceTest {
         verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anySet());
     }
 
+    @Test
+    public void debug_shouldConvertDebugApi() {
+        DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
+
+        DebugApi debugApi = debugApiService.convert(debugApiEntity, API_ID);
+
+        assertNotNull(debugApi.getFlowMode());
+        assertEquals(debugApiEntity.getFlowMode(), debugApi.getFlowMode());
+    }
+
     private DebugApiEntity prepareDebugApiEntity(PlanStatus planStatus, DefinitionVersion definitionVersion) {
         PlanEntity deprecatedPlan = new PlanEntity();
         deprecatedPlan.setSecurity(PlanSecurityType.KEY_LESS);
@@ -216,6 +231,7 @@ public class DebugApiServiceTest {
         debugApiEntity.setRequest(new HttpRequest());
         debugApiEntity.setGraviteeDefinitionVersion(definitionVersion.getLabel());
         debugApiEntity.setPlans(Set.of(deprecatedPlan));
+        debugApiEntity.setFlowMode(FlowMode.BEST_MATCH);
 
         return debugApiEntity;
     }
