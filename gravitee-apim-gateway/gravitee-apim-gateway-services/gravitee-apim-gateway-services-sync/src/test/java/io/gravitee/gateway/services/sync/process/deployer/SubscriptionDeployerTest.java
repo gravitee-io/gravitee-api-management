@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.deployer;
 
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -190,9 +191,13 @@ class SubscriptionDeployerTest {
             when(subscriptionDispatcher.dispatch(subscriptionToDispatch1)).thenReturn(Completable.error(new SyncException("error")));
             when(subscriptionDispatcher.dispatch(subscriptionToDispatch2)).thenReturn(Completable.complete());
             cut.doAfterDeployment(apiReactorDeployable).test().await().onComplete();
-            verify(subscriptionDispatcher).dispatch(subscriptionToDispatch1);
-            verify(commandRepository).create(any());
-            verify(subscriptionDispatcher).dispatch(subscriptionToDispatch2);
+
+            await()
+                .untilAsserted(() -> {
+                    verify(subscriptionDispatcher).dispatch(subscriptionToDispatch1);
+                    verify(commandRepository).create(any());
+                    verify(subscriptionDispatcher).dispatch(subscriptionToDispatch2);
+                });
         }
     }
 

@@ -98,7 +98,7 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
             // Dispatch subscription
             List<Subscription> subscriptions = dispatchableSubscription.remove(deployable.apiId());
             if (subscriptions != null) {
-                return Flowable.fromIterable(subscriptions).flatMapCompletable(this::dispatchSubscription);
+                subscriptions.forEach(s -> this.dispatchSubscription(s).subscribe());
             }
             return Completable.complete();
         });

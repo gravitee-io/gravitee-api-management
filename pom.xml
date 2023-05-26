@@ -115,6 +115,7 @@
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <javax.servlet-api.version>3.0.1</javax.servlet-api.version>
 
+        <awaitility.version>4.2.0</awaitility.version>
         <jmh.version>1.33</jmh.version>
         <jcstress.version>0.15</jcstress.version>
         <jsonassert.version>1.5.0</jsonassert.version>
@@ -883,6 +884,13 @@
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest-library</artifactId>
                 <version>${hamcrest.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${awaitility.version}</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>
