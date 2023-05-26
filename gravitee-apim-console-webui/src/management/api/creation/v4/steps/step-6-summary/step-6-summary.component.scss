@@ -60,13 +60,15 @@ $typography: map.get(gio.$mat-theme, typography);
         &__content {
           display: flex;
           gap: 16px;
+          flex-wrap: wrap;
           &__card {
-            flex: 0 0 50%;
             display: flex;
+            flex: 0 0 calc(50% - 8px); // Half the size of the parent container - half the gap between cards
             flex-direction: column;
             border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
             border-radius: 4px;
             padding: 16px;
+            min-width: 215px;
 
             &__title {
               flex: 1 1 auto;
