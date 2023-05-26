@@ -198,6 +198,10 @@
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.angus</groupId>
+            <artifactId>angus-activation</artifactId>
+        </dependency>
 
         <!-- 'javax' libraries may still be used by third party libraries. Spring 6 has migrated to jakarta but keeps detecting javax annotation. For that, the library must be present in the classpath.
         (see https://github.com/spring-projects/spring-framework/wiki/Upgrading-to-Spring-Framework-6.x)-->
