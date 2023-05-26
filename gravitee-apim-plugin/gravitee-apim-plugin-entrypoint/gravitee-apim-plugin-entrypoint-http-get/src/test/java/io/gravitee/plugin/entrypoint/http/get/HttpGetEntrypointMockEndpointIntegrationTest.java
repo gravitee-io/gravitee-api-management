@@ -19,7 +19,7 @@ import static io.gravitee.plugin.entrypoint.http.get.HttpGetEntrypointConnector.
 import static io.gravitee.plugin.entrypoint.http.get.HttpGetEntrypointConnector.LIMIT_QUERY_PARAM;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.graviteesouce.reactor.message.MessageApiReactorFactory;
+import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
