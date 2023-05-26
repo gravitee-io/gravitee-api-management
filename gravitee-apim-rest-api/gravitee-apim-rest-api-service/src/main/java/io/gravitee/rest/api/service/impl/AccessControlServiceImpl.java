@@ -16,17 +16,36 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.Visibility.PUBLIC;
+import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,35 +67,110 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
     private GroupService groupService;
 
     @Autowired
-    private ApiService apiService;
+    private ApiRepository apiRepository;
+
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private SubscriptionRepository subscriptionRepository;
 
     @Autowired
     private RoleService roleService;
-
-    @Autowired
-    private PermissionService permissionService;
 
     @Override
     public boolean canAccessApiFromPortal(ExecutionContext executionContext, ApiEntity apiEntity) {
         if (PUBLIC.equals(apiEntity.getVisibility())) {
             return true;
         } else if (isAuthenticated()) {
-            final ApiQuery apiQuery = new ApiQuery();
-            apiQuery.setIds(Collections.singletonList(apiEntity.getId()));
-            Set<ApiEntity> publishedByUser = apiService.findPublishedByUser(
-                executionContext,
-                getAuthenticatedUser().getUsername(),
-                apiQuery
-            );
-            return publishedByUser.contains(apiEntity);
+            return getAccessibleApiIdsFromPortal(executionContext, getAuthenticatedUser().getUsername())
+                .contains(apiEntity.getId());
         }
         return false;
     }
 
+    private Set<String> getAccessibleApiIdsFromPortal(ExecutionContext executionContext, String userId) {
+        try {
+            Stream<String> userApiIds = Stream.concat(streamUserApiIds(userId), streamUserGroupApiIds(executionContext, userId));
+            return Stream.concat(userApiIds, streamUserSubscriptionApiIds(executionContext, userId)).collect(toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
+    }
+
+    private Stream<String> streamUserApiIds(String userId) {
+        return membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+            .stream()
+            .map(MembershipEntity::getReferenceId);
+    }
+
+    private Stream<String> streamUserGroupApiIds(ExecutionContext executionContext, String userId) {
+        List<String> groupIds = membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
+            .stream()
+            .map(MembershipEntity::getReferenceId)
+            .collect(toList());
+
+        ApiCriteria apiQuery = new ApiCriteria.Builder().groups(groupIds).environmentId(executionContext.getEnvironmentId()).build();
+        return apiRepository.search(apiQuery, ApiFieldFilter.defaultFields()).stream().map(Api::getId);
+    }
+
+    private Stream<String> streamUserSubscriptionApiIds(ExecutionContext executionContext, String userId) throws TechnicalException {
+        Set<String> userApplicationIds = membershipService.getReferenceIdsByMemberAndReference(
+            MembershipMemberType.USER,
+            userId,
+            MembershipReferenceType.APPLICATION
+        );
+
+        Set<String> applicationIds = new HashSet<>(userApplicationIds);
+
+        Set<String> userGroupIds = membershipService.getReferenceIdsByMemberAndReference(
+            MembershipMemberType.USER,
+            userId,
+            MembershipReferenceType.GROUP
+        );
+
+        ApplicationCriteria appQuery = new ApplicationCriteria.Builder()
+            .groups(userGroupIds)
+            .environmentIds(executionContext.getEnvironmentId())
+            .status(ApplicationStatus.ACTIVE)
+            .build();
+
+        Set<String> userGroupApplicationIds = applicationRepository.searchIds(appQuery);
+
+        applicationIds.addAll(userGroupApplicationIds);
+
+        if (!applicationIds.isEmpty()) {
+            final SubscriptionCriteria query = new SubscriptionCriteria.Builder().applications(applicationIds).build();
+            List<Subscription> subscriptions = subscriptionRepository.search(query);
+            List<String> subscriptionIds = subscriptions.stream().map(Subscription::getApi).collect(toList());
+            return apiRepository
+                .search(
+                    new ApiCriteria.Builder().ids(subscriptionIds).build(),
+                    ApiFieldFilter.defaultFields()
+                )
+                .stream()
+                .map(Api::getId);
+        }
+
+        return Stream.of();
+    }
+
     @Override
     public boolean canAccessApiFromPortal(ExecutionContext executionContext, String apiId) {
-        ApiEntity apiEntity = apiService.findById(executionContext, apiId);
-        return canAccessApiFromPortal(executionContext, apiEntity);
+        try {
+            Api api = apiRepository.findById(apiId)
+                .orElseThrow(() ->  new ApiNotFoundException(apiId));
+
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setVisibility(Visibility.valueOf(api.getVisibility().name()));
+            apiEntity.setId(api.getId());
+            return canAccessApiFromPortal(executionContext, apiEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
+
     }
 
     private boolean canAccessPage(final ExecutionContext executionContext, ApiEntity apiEntity, PageEntity pageEntity) {
@@ -125,14 +219,21 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
 
     @Override
     public boolean canAccessPageFromPortal(final ExecutionContext executionContext, String apiId, PageEntity pageEntity) {
-        if (PageType.SYSTEM_FOLDER.name().equals(pageEntity.getType()) || PageType.MARKDOWN_TEMPLATE.name().equals(pageEntity.getType())) {
-            return false;
+        try {
+            if (PageType.SYSTEM_FOLDER.name().equals(pageEntity.getType()) || PageType.MARKDOWN_TEMPLATE.name().equals(pageEntity.getType())) {
+                return false;
+            }
+            if (apiId != null) {
+                final Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+                ApiEntity apiEntity = new ApiEntity();
+                apiEntity.setId(api.getId());
+                apiEntity.setGroups(api.getGroups());
+                return canAccessPage(executionContext, apiEntity, pageEntity);
+            }
+            return canAccessPage(executionContext, null, pageEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
         }
-        if (apiId != null) {
-            final ApiEntity apiEntity = apiService.findById(executionContext, apiId);
-            return canAccessPage(executionContext, apiEntity, pageEntity);
-        }
-        return canAccessPage(executionContext, null, pageEntity);
     }
 
     @Override

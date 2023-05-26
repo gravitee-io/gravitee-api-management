@@ -89,5 +89,9 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
 
     Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable, Sortable sortable) throws TechnicalException;
 
+    default Set<String> searchIds(ApplicationCriteria applicationCriteria) throws TechnicalException {
+        return searchIds(applicationCriteria, null);
+    }
+
     Set<String> searchIds(ApplicationCriteria applicationCriteria, Sortable sortable) throws TechnicalException;
 }

@@ -40,6 +40,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -72,7 +73,11 @@ public class ApiPagesResource extends AbstractResource {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        var watch = new StopWatch("getPagesByApiId");
+        watch.start("canAccessApiFromPortal");
         if (accessControlService.canAccessApiFromPortal(executionContext, apiId)) {
+            watch.stop();
+            watch.start("search");
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
             Stream<Page> pageStream = pageService
@@ -82,10 +87,15 @@ public class ApiPagesResource extends AbstractResource {
                     acceptedLocale
                 )
                 .stream()
-                .filter(page -> accessControlService.canAccessPageFromPortal(executionContext, apiId, page))
+                .filter(page -> {
+                    watch.start("canAccessPageFromPortal");
+                    var canAccess = accessControlService.canAccessPageFromPortal(executionContext, apiId, page);
+                    watch.stop();
+                    return canAccess;
+                })
                 .map(pageMapper::convert)
                 .map(page -> this.addPageLink(apiId, page));
-
+            watch.stop();
             List<Page> pages;
             if (parent != null) {
                 pages = new ArrayList<>();
@@ -102,7 +112,7 @@ public class ApiPagesResource extends AbstractResource {
             } else {
                 pages = pageStream.collect(Collectors.toList());
             }
-
+            LOGGER.info(watch.prettyPrint());
             return createListResponse(executionContext, pages, paginationParam);
         }
         throw new ApiNotFoundException(apiId);

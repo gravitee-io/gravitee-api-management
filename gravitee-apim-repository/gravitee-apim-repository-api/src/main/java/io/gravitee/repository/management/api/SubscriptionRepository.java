@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.management.api;
 
+import static java.util.stream.Collectors.*;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
@@ -24,6 +26,7 @@ import io.gravitee.repository.management.model.Subscription;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Subscription repository API.
