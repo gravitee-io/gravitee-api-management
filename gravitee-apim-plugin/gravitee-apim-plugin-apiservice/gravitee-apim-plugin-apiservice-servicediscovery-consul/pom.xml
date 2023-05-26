@@ -31,18 +31,6 @@
     <name>Gravitee.io APIM - Plugin - Api Service - Service Discovery Consul</name>
     <description>Api Service dedicated to manage Consul service discovery for apis</description>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers-bom</artifactId>
-                <version>${testcontainers.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <!-- Gravitee dependencies -->
         <dependency>
@@ -118,13 +106,7 @@
             <scope>test</scope>
         </dependency>
 
-
         <!-- Tests -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
