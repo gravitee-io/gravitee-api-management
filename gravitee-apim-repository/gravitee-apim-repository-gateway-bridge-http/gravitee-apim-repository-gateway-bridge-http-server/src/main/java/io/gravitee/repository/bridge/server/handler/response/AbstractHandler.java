@@ -100,7 +100,7 @@ public abstract class AbstractHandler {
     }
 
     protected Set<String> readListParam(String strList) {
-        if (!StringUtils.hasText(strList)) {
+        if (StringUtils.hasText(strList)) {
             return Stream.of(strList.split(",")).collect(Collectors.toSet());
         } else {
             return Collections.emptySet();
