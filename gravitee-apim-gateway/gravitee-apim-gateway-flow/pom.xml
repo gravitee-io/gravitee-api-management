@@ -40,11 +40,6 @@
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-cache-common</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <!-- JMH -->
         <dependency>
             <groupId>org.openjdk.jmh</groupId>

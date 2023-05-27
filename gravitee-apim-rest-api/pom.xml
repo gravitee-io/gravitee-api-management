@@ -85,13 +85,6 @@
             <artifactId>logback-core</artifactId>
         </dependency>
 
-        <!-- Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Unit Tests -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

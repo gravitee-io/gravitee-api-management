@@ -129,6 +129,8 @@
             <excludes>
                 <exclude>io.gravitee.*:*:*</exclude>
                 <exclude>com.graviteesource.*:*:*</exclude>
+                <exclude>org.projectlombok:*:*</exclude>
+                <exclude>org.mapstruct:mapstruct-processor:*</exclude>
             </excludes>
             <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>

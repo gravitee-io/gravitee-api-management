@@ -180,6 +180,13 @@
             <artifactId>jul-to-slf4j</artifactId>
         </dependency>
 
+        <!-- Mapstruct + Lombok -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- Guava -->
         <dependency>
             <groupId>com.google.guava</groupId>
