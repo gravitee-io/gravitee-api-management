@@ -31,12 +31,12 @@ public class OpenAPIResource {
     @Path("/openapi.yaml")
     @Produces("application/yaml")
     public Response getOpenApi() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("management-openapi-v2.yaml")).build();
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/management-openapi-v2.yaml")).build();
     }
 
     @GET
     @Produces("text/html")
     public Response getOpenApiDocumentation() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("index.html")).build();
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("openapi/index.html")).build();
     }
 }
