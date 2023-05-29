@@ -20,7 +20,8 @@
                 "^@angular/material",
                 "ng-packagr"
             ],
-            "groupName": "angular"
+            "groupName": "angular",
+            "enabled": false
         },
         {
             "packagePatterns": ["^@typescript-eslint/*", "^eslint*", "^@angular-eslint/*"],
