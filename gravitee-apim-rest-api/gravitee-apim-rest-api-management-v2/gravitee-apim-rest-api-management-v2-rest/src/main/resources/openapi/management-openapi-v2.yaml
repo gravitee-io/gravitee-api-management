@@ -28,11 +28,8 @@ security:
     - CookieAuth: []
 
 servers:
-    - url: https://apim-{version}-api.team-apim.gravitee.dev/management/v2
+    - url: /management/v2
       description: Gravitee.io APIM - Management API -v2
-      variables:
-          version:
-              default: 4-0-x
 paths:
     /organizations/{orgId}:
         parameters:

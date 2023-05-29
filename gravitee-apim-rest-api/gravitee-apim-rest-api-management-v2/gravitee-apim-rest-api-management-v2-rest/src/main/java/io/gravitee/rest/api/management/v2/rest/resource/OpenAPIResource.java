@@ -24,12 +24,19 @@ import jakarta.ws.rs.core.Response;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Path("/openapi.yaml")
+@Path("/")
 public class OpenAPIResource {
 
     @GET
+    @Path("/openapi.yaml")
     @Produces("application/yaml")
     public Response getOpenApi() {
         return Response.ok(this.getClass().getClassLoader().getResourceAsStream("management-openapi-v2.yaml")).build();
+    }
+
+    @GET
+    @Produces("text/html")
+    public Response getOpenApiDocumentation() {
+        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("index.html")).build();
     }
 }
