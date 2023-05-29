@@ -17,8 +17,8 @@ package io.gravitee.apim.integration.tests.messages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.graviteesouce.reactor.message.MessageApiReactorFactory;
 import com.graviteesource.endpoint.kafka.KafkaEndpointConnectorFactory;
+import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
