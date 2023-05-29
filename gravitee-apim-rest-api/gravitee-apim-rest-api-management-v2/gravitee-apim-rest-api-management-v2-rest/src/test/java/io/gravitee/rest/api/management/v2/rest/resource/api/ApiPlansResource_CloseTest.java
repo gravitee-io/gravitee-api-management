@@ -47,13 +47,13 @@ public class ApiPlansResource_CloseTest extends ApiPlansResourceTest {
         PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId("closed-plan-id");
         when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
-        doReturn(existingPlan).when(planService).findById(GraviteeContext.getExecutionContext(), PLAN);
-        when(planService.close(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(closedPlan);
+        doReturn(existingPlan).when(planServiceV4).findById(GraviteeContext.getExecutionContext(), PLAN);
+        when(planServiceV4.close(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(closedPlan);
 
         final Response response = rootTarget().path(PLAN).path("_close").request().post(Entity.json(""));
 
         assertEquals(OK_200, response.getStatus());
-        verify(planService, times(1)).close(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
+        verify(planServiceV4, times(1)).close(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
     }
 
     @Test

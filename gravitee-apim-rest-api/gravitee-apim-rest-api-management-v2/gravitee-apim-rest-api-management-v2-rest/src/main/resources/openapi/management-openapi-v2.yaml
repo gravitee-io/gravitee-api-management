@@ -1919,6 +1919,9 @@ components:
                         type: string
                 closedAt:
                     type: string
+                    format: date-time
+                    description: The datetime when the plan was closed.
+                    example: 2023-05-25T12:40:46.184Z
                 commentMessage:
                     type: string
                 commentRequired:
@@ -2047,6 +2050,93 @@ components:
                 - AUTO
                 - MANUAL
 
+        CreatePlan:
+            oneOf:
+                - $ref: "#/components/schemas/CreatePlanV2"
+                - $ref: "#/components/schemas/CreatePlanV4"
+
+        CreateBasePlan:
+            type: object
+            properties:
+                crossId:
+                    type: string
+                    description: Plan's crossId. Identifies plan across environments.
+                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+                characteristics:
+                    type: array
+                    items:
+                        type: string
+                commentMessage:
+                    type: string
+                commentRequired:
+                    type: boolean
+                definitionVersion:
+                    $ref: "#/components/schemas/DefinitionVersion"
+                description:
+                    type: string
+                    description: Plan's description. A short description of your Plan.
+                    example: I can use a hundred characters to describe this plan.
+                excludedGroups:
+                    type: array
+                    description: Groups of users which are not allowed to subscribe to this plan.
+                    example:
+                        - MY_GROUP1
+                        - MY_GROUP2
+                    items:
+                        type: string
+                generalConditions:
+                    type: string
+                    description: This field contains the UUID of the documentation page that is used as General Conditions.
+                    example: 4e3de652-2301-48ba-bde6-522301e8ba3a
+                name:
+                    type: string
+                    description: Plan's name. Duplicate names can exists.
+                    example: My Api plan
+                order:
+                    type: integer
+                    description: Simple order that could be used by a front end to display plans in a certain order. To highlight a plan on the portal for instance.
+                    example: 0
+                security:
+                    $ref: "#/components/schemas/PlanSecurity"
+                selectionRule:
+                    type: string
+                    description: An optional EL expression that will be evaluated at request time to select this plan.
+                tags:
+                    type: array
+                    description: The list of sharding tags associated with this plan.
+                    example:
+                        - public
+                        - private
+                    items:
+                        type: string
+                validation:
+                    $ref: "#/components/schemas/PlanValidation"
+            discriminator:
+                propertyName: definitionVersion
+                mapping:
+                    V2: CreatePlanV2
+                    V4: CreatePlanV4
+
+        CreatePlanV2:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/CreateBasePlan"
+                - properties:
+                      flows:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/FlowV2"
+
+        CreatePlanV4:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/CreateBasePlan"
+                - properties:
+                      flows:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/FlowV4"
+
         UpdatePlan:
             oneOf:
                 - $ref: "#/components/schemas/UpdatePlanV2"
@@ -2093,6 +2183,11 @@ components:
                     type: integer
                     description: Simple order that could be used by a front end to display plans in a certain order. To highlight a plan on the portal for instance.
                     example: 0
+                security:
+                    type: object
+                    properties:
+                        configuration:
+                            type: object
                 selectionRule:
                     type: string
                     description: An optional EL expression that will be evaluated at request time to select this plan.

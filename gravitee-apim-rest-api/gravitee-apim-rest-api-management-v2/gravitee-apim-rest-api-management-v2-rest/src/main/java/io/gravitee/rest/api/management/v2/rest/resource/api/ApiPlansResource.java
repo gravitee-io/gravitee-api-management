@@ -59,7 +59,7 @@ public class ApiPlansResource extends AbstractResource {
     private PlanService planServiceV4;
 
     @Inject
-    private io.gravitee.rest.api.service.PlanService planService;
+    private io.gravitee.rest.api.service.PlanService planServiceV2;
 
     @Inject
     private PlanSearchService planSearchService;
@@ -75,12 +75,7 @@ public class ApiPlansResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.READ }),
-            @Permission(value = RolePermission.API_LOG, acls = { RolePermissionAction.READ }),
-        }
-    )
+    @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.READ }) })
     public PlansResponse getApiPlans(
         @QueryParam("status") @DefaultValue("PUBLISHED") final Set<PlanStatus> planStatusParamList,
         @QueryParam("security") final Set<PlanSecurityType> planSecurityTypeParamList,
@@ -121,13 +116,27 @@ public class ApiPlansResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.CREATE }) })
-    public Response createApiPlan(@Valid @NotNull NewPlanEntity newPlanEntity) {
-        newPlanEntity.setApiId(apiId);
-        newPlanEntity.setType(PlanType.API);
+    public Response createApiPlan(@Valid @NotNull CreateBasePlan createPlan) {
+        if (createPlan.getDefinitionVersion() == DefinitionVersion.V4) {
+            final NewPlanEntity newPlanEntity = planMapper.convert((CreatePlanV4) createPlan);
+            newPlanEntity.setApiId(apiId);
+            newPlanEntity.setType(PlanType.API);
 
-        PlanEntity planEntity = planServiceV4.create(GraviteeContext.getExecutionContext(), newPlanEntity);
+            final PlanEntity planEntity = planServiceV4.create(GraviteeContext.getExecutionContext(), newPlanEntity);
+            return Response.created(this.getLocationHeader(planEntity.getId())).entity(planMapper.convert(planEntity)).build();
+        } else if (createPlan.getDefinitionVersion() == DefinitionVersion.V2) {
+            final io.gravitee.rest.api.model.NewPlanEntity newPlanEntity = planMapper.convert((CreatePlanV2) createPlan);
+            newPlanEntity.setApi(apiId);
+            newPlanEntity.setType(io.gravitee.rest.api.model.PlanType.API);
 
-        return Response.created(this.getLocationHeader(planEntity.getId())).entity(planMapper.convert(planEntity)).build();
+            final io.gravitee.rest.api.model.PlanEntity planEntity = planServiceV2.create(
+                GraviteeContext.getExecutionContext(),
+                newPlanEntity
+            );
+            return Response.created(this.getLocationHeader(planEntity.getId())).entity(planMapper.convert(planEntity)).build();
+        }
+
+        return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid()).build();
     }
 
     @GET
@@ -174,7 +183,7 @@ public class ApiPlansResource extends AbstractResource {
 
             final io.gravitee.rest.api.model.UpdatePlanEntity updatePlanEntity = planMapper.convert((UpdatePlanV2) updatePlan);
             updatePlanEntity.setId(planId);
-            io.gravitee.rest.api.model.PlanEntity responseEntity = planService.update(executionContext, updatePlanEntity);
+            io.gravitee.rest.api.model.PlanEntity responseEntity = planServiceV2.update(executionContext, updatePlanEntity);
             return Response.ok(planMapper.convert(responseEntity)).build();
         }
 
@@ -283,6 +292,13 @@ public class ApiPlansResource extends AbstractResource {
             .message("Plan [" + plan + "] cannot be found.")
             .putParametersItem("plan", plan)
             .technicalCode("plan.notFound");
+    }
+
+    private Error planInvalid() {
+        return new Error()
+            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+            .message("Plan is not valid.")
+            .technicalCode("plan.invalid");
     }
 
     private Error planInvalid(String plan) {
