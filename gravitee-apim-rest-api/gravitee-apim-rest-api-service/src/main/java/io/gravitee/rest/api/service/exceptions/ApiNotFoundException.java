@@ -33,7 +33,7 @@ public class ApiNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Api [" + apiName + "] can not be found.";
+        return "Api [" + apiName + "] cannot be found.";
     }
 
     @Override

@@ -33,7 +33,7 @@ public class PromotionNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Promotion [" + promotionId + "] can not be found.";
+        return "Promotion [" + promotionId + "] cannot be found.";
     }
 
     @Override

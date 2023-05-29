@@ -33,7 +33,7 @@ public class TenantNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Tenant [" + tenant + "] can not be found.";
+        return "Tenant [" + tenant + "] cannot be found.";
     }
 
     @Override

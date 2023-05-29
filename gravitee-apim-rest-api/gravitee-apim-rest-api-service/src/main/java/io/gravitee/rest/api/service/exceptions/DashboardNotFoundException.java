@@ -33,7 +33,7 @@ public class DashboardNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Dashboard [" + dashboard + "] can not be found.";
+        return "Dashboard [" + dashboard + "] cannot be found.";
     }
 
     @Override

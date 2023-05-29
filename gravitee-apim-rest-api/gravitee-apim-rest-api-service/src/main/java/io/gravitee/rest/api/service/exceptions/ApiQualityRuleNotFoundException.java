@@ -34,7 +34,7 @@ public class ApiQualityRuleNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "API quality rule [" + qualityRule + "] can not be found for api [" + api + "].";
+        return "API quality rule [" + qualityRule + "] cannot be found for api [" + api + "].";
     }
 
     @Override

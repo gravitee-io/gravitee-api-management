@@ -199,7 +199,7 @@ describe('API - Quality', () => {
           action: LifecycleAction.START,
         }),
         400,
-        'API can not be started without being reviewed',
+        'API cannot be started without being reviewed',
       );
     });
   });
@@ -352,7 +352,7 @@ describe('API - Quality', () => {
           action: LifecycleAction.START,
         }),
         400,
-        'API can not be started without being reviewed',
+        'API cannot be started without being reviewed',
       );
     });
   });

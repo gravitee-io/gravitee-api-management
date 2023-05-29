@@ -34,7 +34,7 @@ public class ClientRegistrationProviderNotFoundException extends AbstractNotFoun
 
     @Override
     public String getMessage() {
-        return "Client registration provider [" + id + "] can not be found.";
+        return "Client registration provider [" + id + "] cannot be found.";
     }
 
     @Override

@@ -56,7 +56,7 @@ public class ApiPlansResource_UpdateTest extends ApiPlansResourceTest {
 
         var error = response.readEntity(Error.class);
         assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("Plan [" + PLAN + "] can not be found.", error.getMessage());
+        assertEquals("Plan [" + PLAN + "] cannot be found.", error.getMessage());
     }
 
     @Test
@@ -70,7 +70,7 @@ public class ApiPlansResource_UpdateTest extends ApiPlansResourceTest {
 
         var error = response.readEntity(Error.class);
         assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("Plan [" + PLAN + "] can not be found.", error.getMessage());
+        assertEquals("Plan [" + PLAN + "] cannot be found.", error.getMessage());
     }
 
     @Test

@@ -33,7 +33,7 @@ public class CategoryNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Category [" + categoryId + "] can not be found.";
+        return "Category [" + categoryId + "] cannot be found.";
     }
 
     @Override

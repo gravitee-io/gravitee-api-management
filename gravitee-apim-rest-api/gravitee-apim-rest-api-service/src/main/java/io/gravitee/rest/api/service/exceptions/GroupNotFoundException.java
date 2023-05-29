@@ -33,7 +33,7 @@ public class GroupNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Group [" + groupId + "] can not be found.";
+        return "Group [" + groupId + "] cannot be found.";
     }
 
     @Override

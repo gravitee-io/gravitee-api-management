@@ -33,7 +33,7 @@ public class FetcherNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Fetcher [" + fetcher + "] can not be found.";
+        return "Fetcher [" + fetcher + "] cannot be found.";
     }
 
     @Override

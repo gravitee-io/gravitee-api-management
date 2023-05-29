@@ -22,7 +22,7 @@ const portalApiAsAdmin = new PortalApi(forPortalAsAdminUser());
 describe('Portal: Business Error - categories', () => {
   test('should return not found with unknown category', async () => {
     const categoryId = 'category';
-    const expectedError = { message: `Category [${categoryId}] can not be found.` };
+    const expectedError = { message: `Category [${categoryId}] cannot be found.` };
     await notFound(portalApiAsAdmin.getCategoryByCategoryIdRaw({ categoryId }), expectedError);
     await notFound(portalApiAsAdmin.getPictureByCategoryIdRaw({ categoryId }), expectedError);
   });

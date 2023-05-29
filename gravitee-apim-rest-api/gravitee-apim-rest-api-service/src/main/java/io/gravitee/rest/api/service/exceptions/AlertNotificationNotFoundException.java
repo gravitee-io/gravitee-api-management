@@ -33,7 +33,7 @@ public class AlertNotificationNotFoundException extends AbstractNotFoundExceptio
 
     @Override
     public String getMessage() {
-        return "Alert notification for [" + alert + "] can not be found";
+        return "Alert notification for [" + alert + "] cannot be found";
     }
 
     @Override

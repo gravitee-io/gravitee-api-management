@@ -26,7 +26,7 @@ public class RegisteredClientNotUpdatableException extends AbstractNotFoundExcep
 
     @Override
     public String getMessage() {
-        return "Client can not be updated because some information are missing from the client registration provider.";
+        return "Client cannot be updated because some information are missing from the client registration provider.";
     }
 
     @Override

@@ -21,7 +21,7 @@ public class ApplicationRedirectUrisNotFound extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Redirect Uris can not be found or empty";
+        return "Redirect Uris cannot be found or empty";
     }
 
     @Override

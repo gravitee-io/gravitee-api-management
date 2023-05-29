@@ -39,7 +39,7 @@ public class PageActionException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "This " + pageType + " page can not " + action;
+        return "This " + pageType + " page cannot " + action;
     }
 
     @Override

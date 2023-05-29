@@ -35,7 +35,7 @@ public class DefaultRoleNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Default roles for scopes [" + scopes + "] can not be found.";
+        return "Default roles for scopes [" + scopes + "] cannot be found.";
     }
 
     @Override

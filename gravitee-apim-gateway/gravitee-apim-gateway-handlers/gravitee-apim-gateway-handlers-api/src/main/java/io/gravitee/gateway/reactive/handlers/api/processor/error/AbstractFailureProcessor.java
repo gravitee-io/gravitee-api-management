@@ -62,7 +62,7 @@ public abstract class AbstractFailureProcessor implements Processor {
             ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         }
 
-        // If no application has been associated to the request (for example in case security chain can not be processed
+        // If no application has been associated to the request (for example in case security chain cannot be processed
         // correctly) set the default application to track it.
         if (ctx.metrics().getApplicationId() == null) {
             ctx.metrics().setApplicationId(APPLICATION_NAME_ANONYMOUS);

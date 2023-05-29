@@ -33,7 +33,7 @@ public class OrganizationNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Organization [" + organization + "] can not be found.";
+        return "Organization [" + organization + "] cannot be found.";
     }
 
     @Override

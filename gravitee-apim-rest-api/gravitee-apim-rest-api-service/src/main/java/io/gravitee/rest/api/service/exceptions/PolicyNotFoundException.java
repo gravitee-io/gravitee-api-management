@@ -33,7 +33,7 @@ public class PolicyNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Policy [" + policy + "] can not be found.";
+        return "Policy [" + policy + "] cannot be found.";
     }
 
     @Override

@@ -33,7 +33,7 @@ public class PluginNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Plugin [" + plugin + "] can not be found.";
+        return "Plugin [" + plugin + "] cannot be found.";
     }
 
     @Override

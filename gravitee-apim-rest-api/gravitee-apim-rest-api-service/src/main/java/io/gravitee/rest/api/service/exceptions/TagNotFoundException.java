@@ -32,7 +32,7 @@ public class TagNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Tag [" + tag + "] can not be found.";
+        return "Tag [" + tag + "] cannot be found.";
     }
 
     @Override

@@ -34,7 +34,7 @@ public class ApiMetadataNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "The metadata [" + metadataId + "] can not be found on the api [" + apiId + "].";
+        return "The metadata [" + metadataId + "] cannot be found on the api [" + apiId + "].";
     }
 
     @Override

@@ -33,7 +33,7 @@ public class SubscriptionNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Subscription [" + subscription + "] can not be found.";
+        return "Subscription [" + subscription + "] cannot be found.";
     }
 
     @Override

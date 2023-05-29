@@ -110,7 +110,7 @@ public class CategoryResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.category.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Category [" + UNKNOWN_CATEGORY + "] can not be found.", error.getMessage());
+        assertEquals("Category [" + UNKNOWN_CATEGORY + "] cannot be found.", error.getMessage());
     }
 
     @Test

@@ -32,7 +32,7 @@ public class PageNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Page [" + pageName + "] can not be found.";
+        return "Page [" + pageName + "] cannot be found.";
     }
 
     @Override

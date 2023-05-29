@@ -112,7 +112,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
         final ErrorEntity expectedErrorEntity = new ErrorEntity();
         expectedErrorEntity.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
-        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] can not be found.");
+        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] cannot be found.");
         expectedErrorEntity.setTechnicalCode("plugin.notFound");
         expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
 
@@ -153,7 +153,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
         final ErrorEntity expectedErrorEntity = new ErrorEntity();
         expectedErrorEntity.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
-        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] can not be found.");
+        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] cannot be found.");
         expectedErrorEntity.setTechnicalCode("plugin.notFound");
         expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
 
@@ -209,7 +209,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
         final ErrorEntity expectedErrorEntity = new ErrorEntity();
         expectedErrorEntity.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
-        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] can not be found.");
+        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] cannot be found.");
         expectedErrorEntity.setTechnicalCode("plugin.notFound");
         expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
 

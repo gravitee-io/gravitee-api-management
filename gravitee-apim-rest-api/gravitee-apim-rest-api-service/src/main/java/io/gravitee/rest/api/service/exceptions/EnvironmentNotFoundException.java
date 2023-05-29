@@ -33,7 +33,7 @@ public class EnvironmentNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Environment [" + environment + "] can not be found.";
+        return "Environment [" + environment + "] cannot be found.";
     }
 
     @Override

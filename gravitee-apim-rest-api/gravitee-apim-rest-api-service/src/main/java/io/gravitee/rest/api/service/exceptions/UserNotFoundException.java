@@ -33,7 +33,7 @@ public class UserNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "User [" + username + "] can not be found.";
+        return "User [" + username + "] cannot be found.";
     }
 
     @Override

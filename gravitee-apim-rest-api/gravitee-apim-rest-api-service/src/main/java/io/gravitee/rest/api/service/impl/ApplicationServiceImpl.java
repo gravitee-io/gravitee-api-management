@@ -735,8 +735,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 try {
                     subscriptionService.restore(executionContext, subscription.getId());
                 } catch (SubscriptionNotPausedException snce) {
-                    // Subscription can not be closed because it is already closed or not yet accepted
-                    LOGGER.debug("The subscription can not be closed: {}", snce.getMessage());
+                    // Subscription cannot be closed because it is already closed or not yet accepted
+                    LOGGER.debug("The subscription cannot be closed: {}", snce.getMessage());
                 }
             });
 
@@ -808,8 +808,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 try {
                     subscriptionService.close(executionContext, subscription.getId());
                 } catch (SubscriptionNotClosableException snce) {
-                    // Subscription can not be closed because it is already closed or not yet accepted
-                    LOGGER.debug("The subscription can not be closed: {}", snce.getMessage());
+                    // Subscription cannot be closed because it is already closed or not yet accepted
+                    LOGGER.debug("The subscription cannot be closed: {}", snce.getMessage());
                 }
             });
 

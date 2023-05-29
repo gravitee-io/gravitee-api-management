@@ -318,7 +318,7 @@ public class ApiResource extends AbstractResource {
 
     private void checkApiLifeCycle(ApiEntity api, LifecycleAction action) {
         if (ApiLifecycleState.ARCHIVED.equals(api.getLifecycleState())) {
-            throw new BadRequestException("Deleted API can not be " + action.name().toLowerCase());
+            throw new BadRequestException("Deleted API cannot be " + action.name().toLowerCase());
         }
         switch (api.getState()) {
             case STARTED:
@@ -337,7 +337,7 @@ public class ApiResource extends AbstractResource {
                     ParameterReferenceType.ENVIRONMENT
                 );
                 if (apiReviewEnabled && api.getWorkflowState() != null && !WorkflowState.REVIEW_OK.equals(api.getWorkflowState())) {
-                    throw new BadRequestException("API can not be started without being reviewed");
+                    throw new BadRequestException("API cannot be started without being reviewed");
                 }
                 break;
             default:

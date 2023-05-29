@@ -32,7 +32,7 @@ public class ThemeNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Theme [" + theme + "] can not be found.";
+        return "Theme [" + theme + "] cannot be found.";
     }
 
     @Override

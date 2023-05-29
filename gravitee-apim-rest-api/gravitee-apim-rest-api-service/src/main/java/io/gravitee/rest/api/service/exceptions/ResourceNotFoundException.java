@@ -33,7 +33,7 @@ public class ResourceNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Resource [" + resource + "] can not be found.";
+        return "Resource [" + resource + "] cannot be found.";
     }
 
     @Override

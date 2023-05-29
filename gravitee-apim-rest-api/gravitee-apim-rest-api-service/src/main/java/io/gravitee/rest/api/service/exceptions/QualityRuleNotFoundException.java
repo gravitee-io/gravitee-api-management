@@ -33,7 +33,7 @@ public class QualityRuleNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Quality rule [" + qualityRule + "] can not be found.";
+        return "Quality rule [" + qualityRule + "] cannot be found.";
     }
 
     @Override

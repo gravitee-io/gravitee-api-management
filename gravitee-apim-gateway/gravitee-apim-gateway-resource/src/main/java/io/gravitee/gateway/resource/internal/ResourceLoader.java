@@ -66,7 +66,7 @@ public class ResourceLoader {
         final ResourcePlugin<?> resourcePlugin = resourcePluginManager.get(resourceType);
 
         if (resourcePlugin == null) {
-            throw new IllegalStateException("Resource [" + resourceType + "] can not be found in plugin registry");
+            throw new IllegalStateException("Resource [" + resourceType + "] cannot be found in plugin registry");
         }
 
         classLoader.addClassLoader(

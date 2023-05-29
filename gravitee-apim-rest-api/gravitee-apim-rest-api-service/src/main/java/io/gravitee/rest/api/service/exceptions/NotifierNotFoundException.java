@@ -33,7 +33,7 @@ public class NotifierNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Notifier [" + notifier + "] can not be found.";
+        return "Notifier [" + notifier + "] cannot be found.";
     }
 
     @Override

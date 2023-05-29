@@ -33,7 +33,7 @@ public class EntrypointNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Entrypoint[" + entrypointId + "] can not be found.";
+        return "Entrypoint[" + entrypointId + "] cannot be found.";
     }
 
     @Override

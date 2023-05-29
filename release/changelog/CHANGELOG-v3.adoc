@@ -224,7 +224,7 @@ More information https://docs.gravitee.io/apim/3.x/apim_installguide_migration.h
 *_Console_*
 
 - Design studio's debug mode is not working in gateway bridge configuration https://github.com/gravitee-io/issues/issues/8373[#8373]
-- Subscription Page can not be displayed when having a lot of applications (more than 10k) https://github.com/gravitee-io/issues/issues/8421[#8421]
+- Subscription Page cannot be displayed when having a lot of applications (more than 10k) https://github.com/gravitee-io/issues/issues/8421[#8421]
 
 *_Gateway_*
 
@@ -298,7 +298,7 @@ More information https://docs.gravitee.io/apim/3.x/apim_installguide_migration.h
 
 *_Management_*
 
-- Exported paths based APIs can not be imported https://github.com/gravitee-io/issues/issues/8365[#8365]
+- Exported paths based APIs cannot be imported https://github.com/gravitee-io/issues/issues/8365[#8365]
 - [Debug Mode] Query params are not well displayed https://github.com/gravitee-io/issues/issues/7779[#7779]
 
 
@@ -1622,7 +1622,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 *_Console_*
 
 - Login Error after password reset https://github.com/gravitee-io/issues/issues/6488[#6488]
-- Resource can not be saved after being updated https://github.com/gravitee-io/issues/issues/6781[#6781]
+- Resource cannot be saved after being updated https://github.com/gravitee-io/issues/issues/6781[#6781]
 
 *_General_*
 
@@ -2015,7 +2015,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 
 *_Console_*
 
-- Documentation page configuration imported from external source can not be edited https://github.com/gravitee-io/issues/issues/6149[#6149]
+- Documentation page configuration imported from external source cannot be edited https://github.com/gravitee-io/issues/issues/6149[#6149]
 - Organization Settings get reinitialized after changing Authentication configuration. https://github.com/gravitee-io/issues/issues/6114[#6114]
 - Portal Settings get reinitialized after changing Portal Authentication configuration https://github.com/gravitee-io/issues/issues/6154[#6154]
 - Quality Metrics lost after upgrade https://github.com/gravitee-io/issues/issues/6290[#6290]
@@ -2023,7 +2023,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 
 *_Gateway_*
 
-- Can not start gateway if Hazelcast ratelimt enabled java.lang.ClassNotFoundExceptioncom.hazelcast.core.IMap https://github.com/gravitee-io/issues/issues/6117[#6117]
+- cannot start gateway if Hazelcast ratelimt enabled java.lang.ClassNotFoundExceptioncom.hazelcast.core.IMap https://github.com/gravitee-io/issues/issues/6117[#6117]
 - Health-check stops working after gateway is stopped/started. https://github.com/gravitee-io/issues/issues/6306[#6306]
 - Unable to start gateway when activating TLS and HTTP/2 https://github.com/gravitee-io/issues/issues/6232[#6232]
 - [policy] fix license management of data-logging-masking and assign-metrics policies https://github.com/gravitee-io/issues/issues/6435[#6435]
@@ -2074,7 +2074,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 - 500 error when importing definition of an API, null pointer exception https://github.com/gravitee-io/issues/issues/6052[#6052]
 - Change button labels (dashboard types) on Settings > Analytics page https://github.com/gravitee-io/issues/issues/6363[#6363]
 - Deleted plan is not removed from design studio https://github.com/gravitee-io/issues/issues/5942[#5942]
-- Documentation page configuration imported from external source can not be edited https://github.com/gravitee-io/issues/issues/6461[#6461]
+- Documentation page configuration imported from external source cannot be edited https://github.com/gravitee-io/issues/issues/6461[#6461]
 - Top failed APIs shows 100% Failed on 200 status in Application Analytics https://github.com/gravitee-io/issues/issues/5703[#5703]
 
 === Improvements
@@ -2652,7 +2652,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 
 *_Management_*
 
-- Can not Auto-fetch Documentation Page from an external source https://github.com/gravitee-io/issues/issues/5699[#5699]
+- cannot Auto-fetch Documentation Page from an external source https://github.com/gravitee-io/issues/issues/5699[#5699]
 - Inconsistent Sharding Tags behavior compared to the documentation https://github.com/gravitee-io/issues/issues/5600[#5600]
 - Newsletter subscribe link not working anymore https://github.com/gravitee-io/issues/issues/5720[#5720]
 
@@ -2761,7 +2761,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 *_General_*
 
 - Backport #5621 https://github.com/gravitee-io/issues/issues/5633[#5633]
-- Default_api_logo.png can not be overriden https://github.com/gravitee-io/issues/issues/5524[#5524]
+- Default_api_logo.png cannot be overriden https://github.com/gravitee-io/issues/issues/5524[#5524]
 - Merge 3.0.17 https://github.com/gravitee-io/issues/issues/5647[#5647]
 
 *_Helm_*
@@ -2846,7 +2846,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 - Backport #5558 https://github.com/gravitee-io/issues/issues/5568[#5568]
 - Backport #5564 https://github.com/gravitee-io/issues/issues/5590[#5590]
 - Backport #5567 https://github.com/gravitee-io/issues/issues/5589[#5589]
-- Default_api_logo.png can not be overriden https://github.com/gravitee-io/issues/issues/5524[#5524]
+- Default_api_logo.png cannot be overriden https://github.com/gravitee-io/issues/issues/5524[#5524]
 
 *_IdentityProvider_*
 
@@ -3166,7 +3166,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 
 *_Console_*
 
-- User can not access application analytics https://github.com/gravitee-io/issues/issues/4843[#4843]
+- User cannot access application analytics https://github.com/gravitee-io/issues/issues/4843[#4843]
 
 *_General_*
 
@@ -3280,7 +3280,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 
 *_Policy_*
 
-- [rest-to-soap] Can not use query parameters from SOAP envelope template https://github.com/gravitee-io/issues/issues/5209[#5209]
+- [rest-to-soap] cannot use query parameters from SOAP envelope template https://github.com/gravitee-io/issues/issues/5209[#5209]
 
 *_Portal_*
 
@@ -3606,7 +3606,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 *_Console_*
 
 - Contextual documentation `management-configuration-identityproviders.md` is missing https://github.com/gravitee-io/issues/issues/4890[#4890]
-- Revoked apikey can not be reactived https://github.com/gravitee-io/issues/issues/4850[#4850]
+- Revoked apikey cannot be reactived https://github.com/gravitee-io/issues/issues/4850[#4850]
 
 *_Gateway_*
 
@@ -3690,7 +3690,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 
 *_Management_*
 
-- An api-key can not be reactivated for a closed plan https://github.com/gravitee-io/issues/issues/4798[#4798]
+- An api-key cannot be reactivated for a closed plan https://github.com/gravitee-io/issues/issues/4798[#4798]
 - Cannot change an existing plan to add restrictions https://github.com/gravitee-io/issues/issues/4761[#4761]
 - Environment Role is not being set with Role Mapping https://github.com/gravitee-io/issues/issues/4762[#4762]
 
@@ -4123,7 +4123,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 - Align EN translations for rating https://github.com/gravitee-io/issues/issues/4388[#4388]
 - Cannot display payloads on a log https://github.com/gravitee-io/issues/issues/4048[#4048]
 - Fix typo in EN https://github.com/gravitee-io/issues/issues/4383[#4383]
-- In Prod mode, folders in documentation can not be expanded https://github.com/gravitee-io/issues/issues/4275[#4275]
+- In Prod mode, folders in documentation cannot be expanded https://github.com/gravitee-io/issues/issues/4275[#4275]
 - Log's title truncated https://github.com/gravitee-io/issues/issues/4054[#4054]
 - Redoc does not use gateway url but portal url https://github.com/gravitee-io/issues/issues/4389[#4389]
 - Remove the useless portal title from settings https://github.com/gravitee-io/issues/issues/4370[#4370]
@@ -4329,7 +4329,7 @@ The version 3.10.19 is the last version of the 3.10. We encourage everybody to m
 
 *_Policy_*
 
-- [rest-to-soap] Can not save the form after updating prefill soap envelope in some case https://github.com/gravitee-io/issues/issues/4087[#4087]
+- [rest-to-soap] cannot save the form after updating prefill soap envelope in some case https://github.com/gravitee-io/issues/issues/4087[#4087]
 
 === Improvements
 

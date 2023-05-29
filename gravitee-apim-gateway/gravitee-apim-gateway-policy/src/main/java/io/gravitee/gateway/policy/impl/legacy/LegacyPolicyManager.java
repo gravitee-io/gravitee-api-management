@@ -133,8 +133,8 @@ public abstract class LegacyPolicyManager extends AbstractLifecycleComponent<Pol
             .forEach(policy -> {
                 final PolicyPlugin<?> policyPlugin = policyPluginManager.get(policy.getName());
                 if (policyPlugin == null) {
-                    logger.error("Policy [{}] can not be found in policy registry", policy.getName());
-                    throw new IllegalStateException("Policy [" + policy.getName() + "] can not be found in policy registry");
+                    logger.error("Policy [{}] cannot be found in policy registry", policy.getName());
+                    throw new IllegalStateException("Policy [" + policy.getName() + "] cannot be found in policy registry");
                 }
 
                 PluginClassLoader policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin, parentClassLoader);

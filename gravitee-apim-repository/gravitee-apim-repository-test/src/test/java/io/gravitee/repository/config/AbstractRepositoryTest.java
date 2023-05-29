@@ -91,7 +91,7 @@ public abstract class AbstractRepositoryTest {
         try {
             return forName(getModelPackage() + className);
         } catch (final ClassNotFoundException e) {
-            throw new IllegalArgumentException("The entity can not be found for " + className, e);
+            throw new IllegalArgumentException("The entity cannot be found for " + className, e);
         }
     }
 

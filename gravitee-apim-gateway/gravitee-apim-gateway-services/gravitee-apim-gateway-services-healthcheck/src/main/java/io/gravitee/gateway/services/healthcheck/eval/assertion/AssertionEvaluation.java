@@ -53,7 +53,7 @@ public class AssertionEvaluation implements Evaluation {
 
             return expr.getValue(context, boolean.class);
         } catch (SpelEvaluationException spelex) {
-            throw new EvaluationException("Assertion can not be verified : " + assertion, spelex);
+            throw new EvaluationException("Assertion cannot be verified : " + assertion, spelex);
         }
     }
 

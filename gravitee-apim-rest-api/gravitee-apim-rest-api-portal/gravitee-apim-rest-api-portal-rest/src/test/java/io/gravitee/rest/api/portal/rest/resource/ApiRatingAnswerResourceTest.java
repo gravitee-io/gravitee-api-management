@@ -88,7 +88,7 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api [" + fakeId + "] can not be found.", error.getMessage());
+        assertEquals("Api [" + fakeId + "] cannot be found.", error.getMessage());
     }
 
     @Test
@@ -106,7 +106,7 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.rating.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Rating [" + fakeId + "] can not be found on the api [" + API + "]", error.getMessage());
+        assertEquals("Rating [" + fakeId + "] cannot be found on the api [" + API + "]", error.getMessage());
     }
 
     @Test
@@ -124,7 +124,7 @@ public class ApiRatingAnswerResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.rating.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Rating [" + fakeId + "] can not be found on the api [" + API + "]", error.getMessage());
+        assertEquals("Rating [" + fakeId + "] cannot be found on the api [" + API + "]", error.getMessage());
     }
 
     @Test

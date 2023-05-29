@@ -35,7 +35,7 @@ public class ApiDeprecatedException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return format("The api %s is deprecated and can not be modified.", api);
+        return format("The api %s is deprecated and cannot be modified.", api);
     }
 
     @Override

@@ -32,7 +32,7 @@ public class EventNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Event [" + eventId + "] can not be found.";
+        return "Event [" + eventId + "] cannot be found.";
     }
 
     @Override
