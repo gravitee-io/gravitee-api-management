@@ -53,7 +53,7 @@ public class ApiPlansResource_DeleteTest extends ApiPlansResourceTest {
         assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
         assertEquals("Plan [" + PLAN + "] cannot be found.", error.getMessage());
 
-        verify(planService, never()).delete(any(), any());
+        verify(planServiceV4, never()).delete(any(), any());
     }
 
     @Test
@@ -69,7 +69,7 @@ public class ApiPlansResource_DeleteTest extends ApiPlansResourceTest {
         assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
         assertEquals("Plan [" + PLAN + "] cannot be found.", error.getMessage());
 
-        verify(planService, never()).delete(any(), any());
+        verify(planServiceV4, never()).delete(any(), any());
     }
 
     @Test
@@ -91,7 +91,7 @@ public class ApiPlansResource_DeleteTest extends ApiPlansResourceTest {
         assertEquals(FORBIDDEN_403, (int) error.getHttpStatus());
         assertEquals("You do not have sufficient rights to access this resource", error.getMessage());
 
-        verify(planService, never()).delete(any(), any());
+        verify(planServiceV4, never()).delete(any(), any());
     }
 
     @Test
@@ -104,7 +104,7 @@ public class ApiPlansResource_DeleteTest extends ApiPlansResourceTest {
         assertEquals(NO_CONTENT_204, response.getStatus());
 
         assertEquals("", response.readEntity(String.class));
-        verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN);
+        verify(planServiceV4, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN);
     }
 
     @Test
@@ -117,6 +117,6 @@ public class ApiPlansResource_DeleteTest extends ApiPlansResourceTest {
         assertEquals(NO_CONTENT_204, response.getStatus());
 
         assertEquals("", response.readEntity(String.class));
-        verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN);
+        verify(planServiceV4, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN);
     }
 }

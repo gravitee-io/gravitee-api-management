@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import java.util.*;
@@ -63,10 +64,20 @@ public interface PlanMapper {
 
     @Mapping(target = "security.type", qualifiedByName = "convertFromSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    NewPlanEntity convert(CreatePlanV4 plan);
+
+    @Mapping(target = "security", source = "security.type")
+    @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    io.gravitee.rest.api.model.NewPlanEntity convert(CreatePlanV2 plan);
+
+    @Mapping(target = "security.type", qualifiedByName = "convertFromSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     PlanEntity convert(PlanV4 plan);
 
+    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     UpdatePlanEntity convert(UpdatePlanV4 plan);
 
+    @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
     io.gravitee.rest.api.model.UpdatePlanEntity convert(UpdatePlanV2 plan);
 
     @Named("convertToSecurityType")
