@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,7 +55,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
     private final NotificationTemplateService notificationTemplateService;
 
     public ApiTemplateServiceImpl(
-        final ApiSearchService apiSearchService,
+        @Lazy final ApiSearchService apiSearchService,
         final ApiMetadataService apiMetadataService,
         final PrimaryOwnerService primaryOwnerService,
         final NotificationTemplateService notificationTemplateService

@@ -78,16 +78,16 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final ApiMetadataService apiMetadataService;
 
     public ApiStateServiceImpl(
-        final ApiSearchService apiSearchService,
+        @Lazy final ApiSearchService apiSearchService,
         @Lazy final ApiRepository apiRepository,
         final ApiMapper apiMapper,
         final GenericApiMapper genericApiMapper,
-        final ApiNotificationService apiNotificationService,
-        final PrimaryOwnerService primaryOwnerService,
+        @Lazy final ApiNotificationService apiNotificationService,
+        @Lazy final PrimaryOwnerService primaryOwnerService,
         final AuditService auditService,
-        final EventService eventService,
+        @Lazy final EventService eventService,
         final ObjectMapper objectMapper,
-        final ApiMetadataService apiMetadataService
+        @Lazy final ApiMetadataService apiMetadataService
     ) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;

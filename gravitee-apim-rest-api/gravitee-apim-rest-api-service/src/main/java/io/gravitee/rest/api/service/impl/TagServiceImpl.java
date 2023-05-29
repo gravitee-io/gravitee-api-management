@@ -60,6 +60,7 @@ public class TagServiceImpl extends AbstractService implements TagService {
     private TagRepository tagRepository;
 
     @Autowired
+    @Lazy
     private ApiTagService apiTagService;
 
     @Autowired
