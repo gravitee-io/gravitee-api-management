@@ -69,7 +69,7 @@ function apisProxyRouterConfig($stateProvider) {
           only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-proxy-failover',
+          page: 'management-api-proxy',
         },
       },
     })
@@ -82,7 +82,7 @@ function apisProxyRouterConfig($stateProvider) {
           only: ['api-definition-r'],
         },
         docs: {
-          page: 'management-api-proxy-endpoint',
+          page: 'management-api-proxy-endpoints',
         },
       },
     })
