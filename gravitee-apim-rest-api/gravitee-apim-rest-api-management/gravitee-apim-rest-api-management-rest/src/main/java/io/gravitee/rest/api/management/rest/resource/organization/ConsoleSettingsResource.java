@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MaintenanceModeException;
@@ -55,6 +56,9 @@ public class ConsoleSettingsResource {
 
     @Inject
     private ConfigService configService;
+
+    @Inject
+    private OrganizationService organizationService;
 
     @Inject
     private ParameterService parameterService;
@@ -90,6 +94,9 @@ public class ConsoleSettingsResource {
     public Response saveConsoleSettings(@Parameter(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
         // reject settings update if maintenanceMode isn't disabled into the payload
         checkMaintenanceMode(consoleSettingsEntity);
+
+        // check that organization exists
+        organizationService.findById(GraviteeContext.getCurrentOrganization());
 
         configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
         return Response.ok().entity(consoleSettingsEntity).build();
