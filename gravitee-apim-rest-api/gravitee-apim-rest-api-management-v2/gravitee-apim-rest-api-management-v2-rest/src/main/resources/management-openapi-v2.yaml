@@ -23,6 +23,10 @@ tags:
     - name: Installation
       description: Base resources about the installation
 
+security:
+    - BasicAuth: []
+    - CookieAuth: []
+
 servers:
     - url: https://apim-{version}-api.team-apim.gravitee.dev/management/v2
       description: Gravitee.io APIM - Management API -v2
@@ -3563,3 +3567,12 @@ components:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/Error"
+
+    securitySchemes:
+        BasicAuth:
+            type: http
+            scheme: basic
+        CookieAuth:
+            type: apiKey
+            in: cookie
+            name: Auth-Graviteeio-APIM
