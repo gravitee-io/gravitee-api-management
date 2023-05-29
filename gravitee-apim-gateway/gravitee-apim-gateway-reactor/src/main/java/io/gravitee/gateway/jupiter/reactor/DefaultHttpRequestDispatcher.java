@@ -248,7 +248,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             if (context.response().ended()) {
                 emitter.onComplete();
             } else {
-                httpServerRequest.response().rxEnd().subscribe(emitter::onComplete, emitter::onError);
+                httpServerRequest.response().rxEnd().subscribe(emitter::onComplete, emitter::tryOnError);
             }
         };
     }
