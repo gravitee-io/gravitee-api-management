@@ -216,7 +216,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/management-openapi-v2.yaml</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/management-openapi-v2.yaml</inputSpec>
 							<generatorName>java</generatorName>
 							<library>jersey3</library>
 							<modelPackage>${openapi.modelPackage}</modelPackage>
