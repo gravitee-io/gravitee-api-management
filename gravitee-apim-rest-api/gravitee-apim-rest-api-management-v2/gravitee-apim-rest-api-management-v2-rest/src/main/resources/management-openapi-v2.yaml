@@ -436,7 +436,6 @@ paths:
                     $ref: "#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/background:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -454,7 +453,6 @@ paths:
                     $ref: "#/components/responses/ImageResponse"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/picture:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -472,8 +470,6 @@ paths:
                     $ref: "#/components/responses/ImageResponse"
                 default:
                     $ref: "#/components/responses/Error"
-
-
     /environments/{envId}/apis/{apiId}/plans:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -501,7 +497,6 @@ paths:
                   explode: false
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
-
             tags:
                 - APIs
                 - API Plans
@@ -1326,8 +1321,8 @@ components:
                         type: string
                     description: List of ids to find
                     example:
-                     - apiId-1
-                     - apiId-2
+                        - apiId-1
+                        - apiId-2
                 definitionVersion:
                     $ref: "#/components/schemas/DefinitionVersion"
         ApiType:
@@ -2024,10 +2019,10 @@ components:
             allOf:
                 - $ref: "#/components/schemas/BasePlan"
                 - properties:
-                    flows:
-                        type: array
-                        items:
-                            $ref: "#/components/schemas/FlowV4"
+                      flows:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/FlowV4"
         Plan:
             oneOf:
                 - $ref: "#/components/schemas/PlanV2"
@@ -3542,7 +3537,7 @@ components:
         ImageResponse:
             description: An image
             content:
-                'image/*':
+                "image/*":
                     schema:
                         type: string
                         format: binary
