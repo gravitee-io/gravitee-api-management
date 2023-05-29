@@ -10,18 +10,19 @@ info:
         url: http://www.apache.org/licenses/LICENSE-2.0.html
     version: 2.0.0
 tags:
-    - name: Installation
-      description: Base resources about the installation
-    - name: APIs
-      description: Everything about v4 APIs
-    - name: API Plans
-      description: Everything about v4 Plans
+    - name: API
+      description: Everything about APIs
     - name: API Members
       description: Everything about API members
+    - name: API Plans
+      description: Everything about API plans
     - name: Endpoints
-      description: Everything about v4 Endpoints
+      description: Everything about endpoint plugins
     - name: Entrypoints
-      description: Everything about v4 Entrypoints
+      description: Everything about entrypoint plugins
+    - name: Installation
+      description: Base resources about the installation
+
 servers:
     - url: https://apim-{version}-api.team-apim.gravitee.dev/management/v2
       description: Gravitee.io APIM - Management API -v2
@@ -336,7 +337,6 @@ paths:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:
-                - APIs
                 - API Members
             summary: Get the API's members
             description: |
@@ -350,7 +350,6 @@ paths:
                     $ref: "#/components/responses/Error"
         post:
             tags:
-                - APIs
                 - API Members
             summary: Add a member to an API.
             description: |
@@ -374,7 +373,6 @@ paths:
                     $ref: "#/components/responses/Error"
         put:
             tags:
-                - APIs
                 - API Members
             summary: Updates a membership for an API.
             description: |
@@ -403,7 +401,6 @@ paths:
             - $ref: "#/components/parameters/memberIdParam"
         delete:
             tags:
-                - APIs
                 - API Members
             summary: Delete one API member
             description: |
@@ -424,7 +421,6 @@ paths:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:
-                - APIs
                 - API Members
             summary: Get a group's members
             description: |
@@ -498,7 +494,6 @@ paths:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:
-                - APIs
                 - API Plans
             summary: Get the API's plans
             description: |
@@ -512,7 +507,6 @@ paths:
                     $ref: "#/components/responses/Error"
         post:
             tags:
-                - APIs
                 - API Plans
             summary: Create an API in a specific environment
             description: |-
@@ -540,7 +534,6 @@ paths:
             - $ref: "#/components/parameters/planIdParam"
         get:
             tags:
-                - APIs
                 - API Plans
             summary: Get one API's plan
             description: |-
@@ -558,7 +551,6 @@ paths:
                     $ref: "#/components/responses/Error"
         put:
             tags:
-                - APIs
                 - API Plans
             summary: Update one API's plan
             description: |-
@@ -582,7 +574,6 @@ paths:
                     $ref: "#/components/responses/Error"
         delete:
             tags:
-                - APIs
                 - API Plans
             summary: Delete one API's plan
             description: |-
@@ -601,7 +592,6 @@ paths:
             - $ref: "#/components/parameters/planIdParam"
         post:
             tags:
-                - APIs
                 - API Plans
             summary: Close an API's plan
             description: |-
@@ -623,7 +613,6 @@ paths:
             - $ref: "#/components/parameters/planIdParam"
         post:
             tags:
-                - APIs
                 - API Plans
             summary: Publish an API's plan
             description: |-
@@ -645,7 +634,6 @@ paths:
             - $ref: "#/components/parameters/planIdParam"
         post:
             tags:
-                - APIs
                 - API Plans
             summary: Deprecate an API's plan
             description: |-
@@ -663,7 +651,6 @@ paths:
     /plugins/endpoints:
         get:
             tags:
-                - Installation
                 - Endpoints
             summary: Get available endpoints on the platform
             description: |
@@ -686,7 +673,6 @@ paths:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
-                - Installation
                 - Endpoints
             summary: Get an endpoint
             description: |
@@ -707,7 +693,6 @@ paths:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
-                - Installation
                 - Endpoints
             summary: Get an endpoint schema
             description: |
@@ -724,7 +709,6 @@ paths:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
-                - Installation
                 - Endpoints
             summary: Get an endpoint documentation
             description: |
@@ -745,7 +729,6 @@ paths:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
-                - Installation
                 - Endpoints
             summary: Get more information about how to use a given endpoint
             description: |
@@ -766,7 +749,6 @@ paths:
             - $ref: "#/components/parameters/endpointIdParam"
         get:
             tags:
-                - Installation
                 - Endpoints
             summary: Get an endpoint shared configuration schema
             description: |
@@ -781,7 +763,6 @@ paths:
     /plugins/entrypoints:
         get:
             tags:
-                - Installation
                 - Entrypoints
             summary: Get available entrypoints on the platform
             description: |
@@ -804,7 +785,6 @@ paths:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
-                - Installation
                 - Entrypoints
             summary: Get an entrypoint
             description: |
@@ -825,7 +805,6 @@ paths:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
-                - Installation
                 - Entrypoints
             summary: Get an entrypoint schema
             description: |
@@ -842,7 +821,6 @@ paths:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
-                - Installation
                 - Entrypoints
             summary: Get an entrypoint subscription schema
             description: |
@@ -859,7 +837,6 @@ paths:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
-                - Installation
                 - Entrypoints
             summary: Get an entrypoint documentation
             description: |
@@ -880,7 +857,6 @@ paths:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
             tags:
-                - Installation
                 - Entrypoints
             summary: Get more information about how to use a given entrypoint
             description: |
