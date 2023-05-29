@@ -17,15 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREATED;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.same;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -39,9 +31,11 @@ import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -106,6 +100,9 @@ public class PlanService_CreateTest {
     @Mock
     private TagsValidationService tagsValidationService;
 
+    @Mock
+    private PolicyService policyService;
+
     @Before
     public void setup() throws Exception {
         when(newPlanEntity.getApiId()).thenReturn(API_ID);
@@ -147,6 +144,20 @@ public class PlanService_CreateTest {
 
         planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
         verifyNoMoreInteractions(planMapper);
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void should_throw_invalid_data_exception_when_security_configuration_is_invalid() throws Exception {
+        final String securityConfiguration = "{ \"foo\": \"bar\"}";
+        final PlanSecurity planSecurity = new PlanSecurity();
+        planSecurity.setType(PlanSecurityType.OAUTH2.getLabel());
+        planSecurity.setConfiguration(securityConfiguration);
+
+        when(newPlanEntity.getSecurity()).thenReturn(planSecurity);
+        when(policyService.validatePolicyConfiguration("oauth2", securityConfiguration))
+            .thenThrow(new InvalidDataException("Mock exception"));
+
+        planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
     }
 
     @Test

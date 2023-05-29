@@ -32,7 +32,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,12 +79,12 @@ public class ApiPlansResource_UpdateTest extends ApiPlansResourceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(RolePermission.API_PLAN),
                 eq(API),
-                eq(RolePermissionAction.READ)
+                eq(RolePermissionAction.UPDATE)
             )
         )
             .thenReturn(false);
 
-        final Response response = rootTarget().request().get();
+        final Response response = rootTarget().request().put(Entity.json(PlanFixtures.aPlanEntityV4()));
         assertEquals(FORBIDDEN_403, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -99,15 +98,15 @@ public class ApiPlansResource_UpdateTest extends ApiPlansResourceTest {
         final UpdatePlanV4 updatePlanV4 = PlanFixtures.anUpdatePlanV4();
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
-        when(planService.update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class))).thenReturn(planEntity);
+        when(planServiceV4.update(eq(GraviteeContext.getExecutionContext()), any(UpdatePlanEntity.class))).thenReturn(planEntity);
 
-        final Response response = rootTarget().request().put(Entity.entity(updatePlanV4, MediaType.APPLICATION_JSON_TYPE));
+        final Response response = rootTarget().request().put(Entity.json(updatePlanV4));
         assertEquals(OK_200, response.getStatus());
 
         final PlanV4 planV4 = response.readEntity(PlanV4.class);
         assertEquals(PLAN, planV4.getId());
 
-        verify(planService)
+        verify(planServiceV4)
             .update(
                 eq(GraviteeContext.getExecutionContext()),
                 argThat(updatePlanEntity -> {
@@ -124,7 +123,7 @@ public class ApiPlansResource_UpdateTest extends ApiPlansResourceTest {
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
 
-        final Response response = rootTarget().request().put(Entity.entity(updatePlanV4, MediaType.APPLICATION_JSON_TYPE));
+        final Response response = rootTarget().request().put(Entity.json(updatePlanV4));
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -141,7 +140,7 @@ public class ApiPlansResource_UpdateTest extends ApiPlansResourceTest {
         when(planServiceV2.update(eq(GraviteeContext.getExecutionContext()), any(io.gravitee.rest.api.model.UpdatePlanEntity.class)))
             .thenReturn(planEntity);
 
-        final Response response = rootTarget().request().put(Entity.entity(updatePlanV2, MediaType.APPLICATION_JSON_TYPE));
+        final Response response = rootTarget().request().put(Entity.json(updatePlanV2));
         assertEquals(OK_200, response.getStatus());
 
         final PlanV2 planV2 = response.readEntity(PlanV2.class);
@@ -164,7 +163,7 @@ public class ApiPlansResource_UpdateTest extends ApiPlansResourceTest {
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
 
-        final Response response = rootTarget().request().put(Entity.entity(updatePlanV2, MediaType.APPLICATION_JSON_TYPE));
+        final Response response = rootTarget().request().put(Entity.json(updatePlanV2));
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         var error = response.readEntity(Error.class);

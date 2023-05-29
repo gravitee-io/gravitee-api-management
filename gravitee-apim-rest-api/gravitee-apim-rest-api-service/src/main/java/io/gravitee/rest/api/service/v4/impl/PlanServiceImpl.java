@@ -25,6 +25,7 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDAT
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -41,10 +42,7 @@ import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
@@ -141,6 +139,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Autowired
     private TagsValidationService tagsValidationService;
 
+    @Autowired
+    private PolicyService policyService;
+
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String planId) {
         return (PlanEntity) planSearchService.findById(executionContext, planId);
@@ -157,6 +158,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApiId());
 
             assertPlanSecurityIsAllowed(executionContext, newPlan.getSecurity().getType());
+            validatePlanSecurity(newPlan.getSecurity().getType(), newPlan.getSecurity().getConfiguration());
 
             Api api = apiRepository.findById(newPlan.getApiId()).orElseThrow(() -> new ApiNotFoundException(newPlan.getApiId()));
 
@@ -226,6 +228,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             Plan oldPlan = planRepository.findById(updatePlan.getId()).orElseThrow(() -> new PlanNotFoundException(updatePlan.getId()));
             assertPlanSecurityIsAllowed(executionContext, PlanSecurityType.valueOf(oldPlan.getSecurity().name()).getLabel());
+            validatePlanSecurity(
+                PlanSecurityType.valueOf(oldPlan.getSecurity().name()).getLabel(),
+                updatePlan.getSecurity().getConfiguration()
+            );
 
             if (updatePlan.getFlows() == null) {
                 throw new PlanInvalidException(updatePlan.getId());
@@ -641,5 +647,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     public Map<String, Object> findByIdAsMap(String id) throws TechnicalException {
         Plan plan = planRepository.findById(id).orElseThrow(() -> new PlanNotFoundException(id));
         return objectMapper.convertValue(plan, Map.class);
+    }
+
+    private void validatePlanSecurity(String type, String configuration) {
+        policyService.validatePolicyConfiguration(type, configuration);
     }
 }

@@ -20,13 +20,14 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import fixtures.PlanFixtures;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.PlansResponse;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
 import org.junit.Test;
@@ -82,7 +84,7 @@ public class ApiPlansResource_ListTest extends ApiPlansResourceTest {
     }
 
     @Test
-    public void should_return_error_if_incorrect_permissions() {
+    public void should_return_403_if_incorrect_permissions() {
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -92,19 +94,13 @@ public class ApiPlansResource_ListTest extends ApiPlansResourceTest {
             )
         )
             .thenReturn(false);
-        when(
-            permissionService.hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.API_LOG),
-                eq(API),
-                eq(RolePermissionAction.READ)
-            )
-        )
-            .thenReturn(false);
 
         final Response response = rootTarget().request().get();
-
         assertEquals(FORBIDDEN_403, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(FORBIDDEN_403, (int) error.getHttpStatus());
+        assertEquals("You do not have sufficient rights to access this resource", error.getMessage());
     }
 
     @Test
@@ -114,8 +110,8 @@ public class ApiPlansResource_ListTest extends ApiPlansResourceTest {
         when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true)))
             .thenReturn(
                 List.of(
-                    fakeV4PlanEntity("plan-1", 3, PlanSecurityType.API_KEY, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED),
-                    fakeV4PlanEntity("plan-3", 1, null, "{\"nice\": \"config\"}", PlanStatus.PUBLISHED)
+                    PlanFixtures.aPlanEntityV4().toBuilder().id("plan-1").order(3).build(),
+                    PlanFixtures.aPlanEntityV4().toBuilder().id("plan-3").order(1).build()
                 )
             );
 
@@ -167,22 +163,21 @@ public class ApiPlansResource_ListTest extends ApiPlansResourceTest {
         when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true)))
             .thenReturn(
                 List.of(
-                    fakeV2PlanEntity(
-                        "plan-1",
-                        1,
-                        io.gravitee.rest.api.model.PlanSecurityType.JWT,
-                        "{\"nice\": \"config\"}",
-                        io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
-                        rules
-                    ),
-                    fakeV2PlanEntity(
-                        "plan-2",
-                        2,
-                        io.gravitee.rest.api.model.PlanSecurityType.JWT,
-                        "{\"nice\": \"config\"}",
-                        io.gravitee.rest.api.model.PlanStatus.DEPRECATED,
-                        null
-                    )
+                    PlanFixtures
+                        .aPlanEntityV2()
+                        .toBuilder()
+                        .id("plan-1")
+                        .order(1)
+                        .status(io.gravitee.rest.api.model.PlanStatus.DEPRECATED)
+                        .paths(Map.of("path", rules))
+                        .build(),
+                    PlanFixtures
+                        .aPlanEntityV2()
+                        .toBuilder()
+                        .id("plan-3")
+                        .order(2)
+                        .status(io.gravitee.rest.api.model.PlanStatus.DEPRECATED)
+                        .build()
                 )
             );
 
@@ -216,55 +211,5 @@ public class ApiPlansResource_ListTest extends ApiPlansResourceTest {
         assertNull(links.getPrevious());
         assert (Objects.nonNull(links.getNext()));
         assert (Objects.nonNull(links.getLast()));
-    }
-
-    private PlanEntity fakeV4PlanEntity(
-        String id,
-        Integer order,
-        PlanSecurityType planSecurityType,
-        String securityConfig,
-        PlanStatus planStatus
-    ) {
-        var plan = new PlanEntity();
-        plan.setId(id);
-        plan.setApiId(API);
-        plan.setOrder(order);
-
-        var planSecurity = new PlanSecurity();
-        planSecurity.setType(Objects.isNull(planSecurityType) ? null : planSecurityType.getLabel());
-        planSecurity.setConfiguration(securityConfig);
-
-        plan.setSecurity(planSecurity);
-
-        plan.setStatus(planStatus);
-
-        return plan;
-    }
-
-    private io.gravitee.rest.api.model.PlanEntity fakeV2PlanEntity(
-        String id,
-        Integer order,
-        io.gravitee.rest.api.model.PlanSecurityType planSecurityType,
-        String securityConfig,
-        io.gravitee.rest.api.model.PlanStatus planStatus,
-        List<Rule> rules
-    ) {
-        var plan = new io.gravitee.rest.api.model.PlanEntity();
-        plan.setId(id);
-        plan.setOrder(order);
-        plan.setApi(API);
-
-        plan.setSecurity(planSecurityType);
-        plan.setSecurityDefinition(securityConfig);
-
-        plan.setStatus(planStatus);
-
-        if (Objects.nonNull(rules)) {
-            var paths = new HashMap<String, List<Rule>>();
-            paths.put("path", rules);
-            plan.setPaths(paths);
-        }
-
-        return plan;
     }
 }

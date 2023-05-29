@@ -15,47 +15,25 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.common.http.HttpStatusCode.*;
+import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import fixtures.PlanFixtures;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.management.v2.rest.model.Plan;
-import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanType;
-import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.Optional;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class ApiPlansResource_CreateTest extends ApiPlansResourceTest {
-
-    @Autowired
-    private PlanSearchService planSearchService;
 
     @Override
     protected String contextPath() {
@@ -63,70 +41,71 @@ public class ApiPlansResource_CreateTest extends ApiPlansResourceTest {
     }
 
     @Test
-    public void shouldCreateApiPlan() {
-        NewPlanEntity newPlanEntity = new NewPlanEntity();
-        newPlanEntity.setName(PLAN);
-        newPlanEntity.setDescription("my-plan-description");
-        newPlanEntity.setValidation(PlanValidationType.AUTO);
-        var planSecurity = new PlanSecurity();
-        planSecurity.setType("api-key");
-        newPlanEntity.setSecurity(planSecurity);
-        newPlanEntity.setStatus(PlanStatus.STAGING);
+    public void should_return_403_if_incorrect_permissions() {
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_PLAN),
+                eq(API),
+                eq(RolePermissionAction.CREATE)
+            )
+        )
+            .thenReturn(false);
 
-        var fullNewPlanEntity = newPlanEntity;
-        fullNewPlanEntity.setType(PlanType.API);
-        fullNewPlanEntity.setApiId(API);
+        final Response response = rootTarget().request().post(Entity.json(PlanFixtures.aCreatePlanV4()));
+        assertEquals(FORBIDDEN_403, response.getStatus());
 
-        PlanEntity createdPlanEntity = new PlanEntity();
-        createdPlanEntity.setId("new-plan-id");
-        createdPlanEntity.setName(PLAN);
-        createdPlanEntity.setDescription("my-plan-description");
-        createdPlanEntity.setValidation(PlanValidationType.AUTO);
-        createdPlanEntity.setSecurity(planSecurity);
-        createdPlanEntity.setType(PlanType.API);
-        createdPlanEntity.setStatus(PlanStatus.STAGING);
-        createdPlanEntity.setApiId(API);
-
-        Date createdAt = new Date();
-        createdPlanEntity.setCreatedAt(createdAt);
-
-        when(planService.create(eq(GraviteeContext.getExecutionContext()), eq(fullNewPlanEntity))).thenReturn(createdPlanEntity);
-
-        final Response response = rootTarget().request().post(Entity.json(newPlanEntity));
-
-        assertEquals(CREATED_201, response.getStatus());
-        assertEquals(rootTarget().path("new-plan-id").getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
-        var body = response.readEntity(Plan.class);
-        var createdPlan = body.getPlanV4();
-
-        assertEquals(API, createdPlan.getApiId());
-        assertEquals(PLAN, createdPlan.getName());
-        assertEquals("my-plan-description", createdPlan.getDescription());
-        assertEquals(PlanValidation.AUTO, createdPlan.getValidation());
-        var createdPlanSecurity = createdPlan.getSecurity();
-        assertNotNull(createdPlanSecurity);
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY, createdPlanSecurity.getType());
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanType.API, createdPlan.getType());
-        assertEquals(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.STAGING, createdPlan.getStatus());
-        assertEquals(createdAt.toInstant().atOffset(ZoneOffset.UTC), createdPlan.getCreatedAt());
+        var error = response.readEntity(Error.class);
+        assertEquals(FORBIDDEN_403, (int) error.getHttpStatus());
+        assertEquals("You do not have sufficient rights to access this resource", error.getMessage());
     }
 
     @Test
-    public void shouldNotCreatePlanWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
+    public void should_create_v4_plan() {
+        final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanV4();
+        final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
 
-        NewPlanEntity newPlanEntity = new NewPlanEntity();
-        newPlanEntity.setName(PLAN);
-        newPlanEntity.setDescription("my-plan-description");
-        newPlanEntity.setValidation(PlanValidationType.AUTO);
-        var planSecurity = new PlanSecurity();
-        planSecurity.setType("planType");
-        newPlanEntity.setSecurity(planSecurity);
-        newPlanEntity.setStatus(PlanStatus.STAGING);
+        when(planServiceV4.create(eq(GraviteeContext.getExecutionContext()), any(NewPlanEntity.class))).thenReturn(planEntity);
 
-        final Response response = rootTarget().request().post(Entity.json(newPlanEntity));
-        assertEquals(FORBIDDEN_403, response.getStatus());
+        final Response response = rootTarget().request().post(Entity.json(createPlanV4));
+        assertEquals(CREATED_201, response.getStatus());
+
+        final PlanV4 planV4 = response.readEntity(PlanV4.class);
+        assertEquals(PLAN, planV4.getId());
+        assertEquals(API, planV4.getApiId());
+
+        verify(planServiceV4)
+            .create(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(newPlanEntity -> {
+                    assertEquals(planEntity.getName(), newPlanEntity.getName());
+                    return true;
+                })
+            );
+    }
+
+    @Test
+    public void should_create_v2_plan() {
+        final CreatePlanV2 createPlanV2 = PlanFixtures.aCreatePlanV2();
+        final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
+
+        when(planServiceV2.create(eq(GraviteeContext.getExecutionContext()), any(io.gravitee.rest.api.model.NewPlanEntity.class)))
+            .thenReturn(planEntity);
+
+        final Response response = rootTarget().request().post(Entity.json(createPlanV2));
+        assertEquals(CREATED_201, response.getStatus());
+
+        final PlanV2 planV2 = response.readEntity(PlanV2.class);
+        assertEquals(PLAN, planV2.getId());
+        assertEquals(API, planV2.getApiId());
+
+        verify(planServiceV2)
+            .create(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(newPlanEntity -> {
+                    assertEquals(planEntity.getName(), newPlanEntity.getName());
+                    return true;
+                })
+            );
     }
 }
