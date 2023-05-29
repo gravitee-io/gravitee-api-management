@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<button mat-icon-button [matMenuTriggerFor]="menu" class="gio-user-menu__button-avatar">
+<button mat-icon-button [matMenuTriggerFor]="menu" class="gio-user-menu__button-avatar" data-testid="top-nav-user-menu-button">
   <gio-avatar [roundedBorder]="true" [src]="userPicture" [name]="currentUser.displayName" size="36"></gio-avatar>
 </button>
 <span *ngIf="hasAlert" class="gio-user-menu__alert-badge gio-badge-accent"></span>
@@ -38,7 +38,7 @@
     <mat-icon svgIcon="gio:user"></mat-icon>
     <span>My account</span>
   </button>
-  <button mat-menu-item (click)="goToTask()">
+  <button mat-menu-item (click)="goToTask()" data-testid="user-menu-task-button">
     <mat-icon svgIcon="gio:check-circled-outline"></mat-icon>
     <span
       >Task <span *ngIf="hasAlert" class="gio-badge-accent">{{ userTaskCount }}</span>

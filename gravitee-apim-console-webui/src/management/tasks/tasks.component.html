@@ -19,7 +19,7 @@
   <div *ngIf="data && data.length > 0; else emptyBlock">
     <h2>My tasks ({{ tasks.page.total_elements }})</h2>
     <ng-container *ngFor="let task of data">
-      <mat-card class="task">
+      <mat-card class="task" data-testid="task-card">
         <div class="task__header">
           <div class="task__header__title">
             <mat-icon [svgIcon]="task.icon"></mat-icon>
