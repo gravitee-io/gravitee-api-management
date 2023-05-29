@@ -33,7 +33,7 @@ public class ApiHeaderNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Api header [" + id + "] can not be found.";
+        return "Api header [" + id + "] cannot be found.";
     }
 
     @Override

@@ -34,7 +34,7 @@ public class ApplicationMetadataNotFoundException extends AbstractNotFoundExcept
 
     @Override
     public String getMessage() {
-        return "The metadata [" + metadataId + "] can not be found on the application [" + applicationId + "].";
+        return "The metadata [" + metadataId + "] cannot be found on the application [" + applicationId + "].";
     }
 
     @Override

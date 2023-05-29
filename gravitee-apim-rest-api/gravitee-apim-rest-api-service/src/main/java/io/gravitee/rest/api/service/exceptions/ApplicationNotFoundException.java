@@ -33,7 +33,7 @@ public class ApplicationNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Application [" + applicationName + "] can not be found.";
+        return "Application [" + applicationName + "] cannot be found.";
     }
 
     @Override

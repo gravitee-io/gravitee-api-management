@@ -35,7 +35,7 @@ public class SubscriptionNotPausedException extends AbstractManagementException 
 
     @Override
     public String getMessage() {
-        return "Subscription [" + subscription.getId() + "] can not be resumed because currently not paused";
+        return "Subscription [" + subscription.getId() + "] cannot be resumed because currently not paused";
     }
 
     @Override

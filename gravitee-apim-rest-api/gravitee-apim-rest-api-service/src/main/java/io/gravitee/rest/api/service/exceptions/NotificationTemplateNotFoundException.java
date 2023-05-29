@@ -33,7 +33,7 @@ public class NotificationTemplateNotFoundException extends AbstractNotFoundExcep
 
     @Override
     public String getMessage() {
-        return "Notification template [" + id + "] can not be found.";
+        return "Notification template [" + id + "] cannot be found.";
     }
 
     @Override

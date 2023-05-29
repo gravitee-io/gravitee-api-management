@@ -36,7 +36,7 @@ public class SubscriptionConsumerStatusNotUpdatableException extends AbstractMan
 
     @Override
     public String getMessage() {
-        String message = "Subscription [" + subscription.getId() + "] consumer status can not be updated because ";
+        String message = "Subscription [" + subscription.getId() + "] consumer status cannot be updated because ";
         switch (cause) {
             case DEFINITION_NOT_V4:
                 return message + "API definition version should be V4";

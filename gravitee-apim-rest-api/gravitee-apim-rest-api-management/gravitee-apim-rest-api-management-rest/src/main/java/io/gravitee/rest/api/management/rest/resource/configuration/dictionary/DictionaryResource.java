@@ -125,7 +125,7 @@ public class DictionaryResource extends AbstractResource {
                 .build();
         }
 
-        return Response.status(Response.Status.BAD_REQUEST).entity("An automatic dictionary can not be deployed manually").build();
+        return Response.status(Response.Status.BAD_REQUEST).entity("An automatic dictionary cannot be deployed manually").build();
     }
 
     @POST
@@ -154,7 +154,7 @@ public class DictionaryResource extends AbstractResource {
                 .build();
         }
 
-        return Response.status(Response.Status.BAD_REQUEST).entity("An automatic dictionary can not be undeployed manually").build();
+        return Response.status(Response.Status.BAD_REQUEST).entity("An automatic dictionary cannot be undeployed manually").build();
     }
 
     @DELETE
@@ -210,7 +210,7 @@ public class DictionaryResource extends AbstractResource {
                 .build();
         }
 
-        return Response.status(Response.Status.BAD_REQUEST).entity("A manual dictionary can not be started/stopped manually").build();
+        return Response.status(Response.Status.BAD_REQUEST).entity("A manual dictionary cannot be started/stopped manually").build();
     }
 
     private void checkLifecycle(DictionaryEntity dictionary, LifecycleAction action) {

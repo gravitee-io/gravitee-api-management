@@ -83,7 +83,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
         Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
-        assertEquals("Api [fake] can not be found.", error.getMessage());
+        assertEquals("Api [fake] cannot be found.", error.getMessage());
     }
 
     @Test
@@ -102,7 +102,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
         Error error = errors.get(0);
         assertNotNull(error);
         assertEquals("errors.application.notFound", error.getCode());
-        assertEquals("Application [fake] can not be found.", error.getMessage());
+        assertEquals("Application [fake] cannot be found.", error.getMessage());
     }
 
     @Test

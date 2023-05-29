@@ -86,7 +86,7 @@ public class EndpointResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         final Map<String, Object> result = response.readEntity(Map.class);
         assertThat(result)
-            .containsEntry("message", "Plugin [" + FAKE_ENDPOINT + "] can not be found.")
+            .containsEntry("message", "Plugin [" + FAKE_ENDPOINT + "] cannot be found.")
             .containsEntry("parameters", Map.of("plugin", FAKE_ENDPOINT))
             .containsEntry("technicalCode", "plugin.notFound")
             .containsEntry("http_status", 404);
@@ -123,7 +123,7 @@ public class EndpointResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         final Map<String, Object> result = response.readEntity(Map.class);
         assertThat(result)
-            .containsEntry("message", "Plugin [" + FAKE_ENDPOINT + "] can not be found.")
+            .containsEntry("message", "Plugin [" + FAKE_ENDPOINT + "] cannot be found.")
             .containsEntry("parameters", Map.of("plugin", FAKE_ENDPOINT))
             .containsEntry("technicalCode", "plugin.notFound")
             .containsEntry("http_status", 404);
@@ -159,7 +159,7 @@ public class EndpointResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         final Map<String, Object> result = response.readEntity(Map.class);
         assertThat(result)
-            .containsEntry("message", "Plugin [" + FAKE_ENDPOINT + "] can not be found.")
+            .containsEntry("message", "Plugin [" + FAKE_ENDPOINT + "] cannot be found.")
             .containsEntry("parameters", Map.of("plugin", FAKE_ENDPOINT))
             .containsEntry("technicalCode", "plugin.notFound")
             .containsEntry("http_status", 404);

@@ -202,7 +202,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     @Override
     public Stream<Api> search(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter, int batchSize) {
-        // As in JDBC, we do not paginate, we can not use the batch size
+        // As in JDBC, we do not paginate, we cannot use the batch size
         return findByCriteria(apiCriteria, sortable, apiFieldFilter).stream();
     }
 

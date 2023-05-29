@@ -33,7 +33,7 @@ public class PlanNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Plan [" + plan + "] can not be found.";
+        return "Plan [" + plan + "] cannot be found.";
     }
 
     @Override

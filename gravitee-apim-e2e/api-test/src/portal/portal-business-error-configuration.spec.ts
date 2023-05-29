@@ -23,7 +23,7 @@ const portalApiAsAdmin = new PortalApi(forPortalAsAdminUser());
 describe('Portal: Business Error - configuration', () => {
   test('should return not found ', async () => {
     const identityProviderId = 'IDENTITY_PROVIDER';
-    const expectedMessage = { message: `Identity provider [${identityProviderId}] can not be found.` };
+    const expectedMessage = { message: `Identity provider [${identityProviderId}] cannot be found.` };
     await notFound(portalApiAsAdmin.getPortalIdentityProviderRaw({ identityProviderId }), expectedMessage);
   });
 });

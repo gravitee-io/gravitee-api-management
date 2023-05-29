@@ -121,7 +121,7 @@ public class EndpointInvoker implements Invoker {
                     return ctx.interruptWith(
                         new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
                             .key(INVALID_HTTP_METHOD)
-                            .message("Http method can not be overridden because ATTR_REQUEST_METHOD attribute is invalid")
+                            .message("Http method cannot be overridden because ATTR_REQUEST_METHOD attribute is invalid")
                     );
                 } else {
                     ctx.request().method(httpMethod);

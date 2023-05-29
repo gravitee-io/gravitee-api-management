@@ -45,7 +45,7 @@ public class EndpointHealthcheckService extends AbstractService {
             healthcheckVerticle,
             event -> {
                 if (event.failed()) {
-                    LOGGER.error("Health-check service can not be started", event.cause());
+                    LOGGER.error("Health-check service cannot be started", event.cause());
                 }
 
                 deploymentId = event.result();

@@ -33,7 +33,7 @@ public class TicketNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Ticket [" + ticketId + "] can not be found.";
+        return "Ticket [" + ticketId + "] cannot be found.";
     }
 
     @Override

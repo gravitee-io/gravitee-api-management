@@ -44,9 +44,9 @@ public class RoleNotFoundException extends AbstractNotFoundException {
     @Override
     public String getMessage() {
         if (id != null) {
-            return "Role [" + id + "] can not be found.";
+            return "Role [" + id + "] cannot be found.";
         } else {
-            return "Role [" + roleScope.name() + "_" + roleName + "] can not be found.";
+            return "Role [" + roleScope.name() + "_" + roleName + "] cannot be found.";
         }
     }
 

@@ -33,7 +33,7 @@ public class InvitationNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Invitation [" + invitation + "] can not be found";
+        return "Invitation [" + invitation + "] cannot be found";
     }
 
     @Override

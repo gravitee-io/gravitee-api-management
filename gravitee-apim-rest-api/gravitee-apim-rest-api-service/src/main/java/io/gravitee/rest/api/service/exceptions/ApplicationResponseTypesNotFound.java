@@ -21,7 +21,7 @@ public class ApplicationResponseTypesNotFound extends AbstractNotFoundException 
 
     @Override
     public String getMessage() {
-        return "Response types can not be found or empty";
+        return "Response types cannot be found or empty";
     }
 
     @Override

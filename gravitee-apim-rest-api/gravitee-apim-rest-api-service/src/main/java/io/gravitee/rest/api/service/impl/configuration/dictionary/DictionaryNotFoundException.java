@@ -34,7 +34,7 @@ public class DictionaryNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Dictionary [" + id + "] can not be found.";
+        return "Dictionary [" + id + "] cannot be found.";
     }
 
     @Override

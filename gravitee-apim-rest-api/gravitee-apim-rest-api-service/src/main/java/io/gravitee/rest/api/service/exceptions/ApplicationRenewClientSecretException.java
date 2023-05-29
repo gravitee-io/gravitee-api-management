@@ -39,7 +39,7 @@ public class ApplicationRenewClientSecretException extends AbstractManagementExc
 
     @Override
     public String getMessage() {
-        return "Client secret for application [" + applicationName + "] can not be renew.";
+        return "Client secret for application [" + applicationName + "] cannot be renewed.";
     }
 
     @Override

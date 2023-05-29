@@ -36,7 +36,7 @@ public class PageFolderActionException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "The folder page can not " + action;
+        return "The folder page cannot " + action;
     }
 
     @Override

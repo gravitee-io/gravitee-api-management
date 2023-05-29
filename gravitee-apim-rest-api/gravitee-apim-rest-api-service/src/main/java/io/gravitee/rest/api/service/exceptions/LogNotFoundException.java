@@ -33,7 +33,7 @@ public class LogNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Log [" + log + "] can not be found.";
+        return "Log [" + log + "] cannot be found.";
     }
 
     @Override

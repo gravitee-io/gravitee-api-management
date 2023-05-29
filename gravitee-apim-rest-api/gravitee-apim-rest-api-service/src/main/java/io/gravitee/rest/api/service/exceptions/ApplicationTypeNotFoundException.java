@@ -34,7 +34,7 @@ public class ApplicationTypeNotFoundException extends AbstractNotFoundException 
 
     @Override
     public String getMessage() {
-        return "ApplicationType [" + typeId + "] can not be found";
+        return "ApplicationType [" + typeId + "] cannot be found";
     }
 
     @Override

@@ -33,7 +33,7 @@ public class ServiceDiscoveryNotFoundException extends AbstractNotFoundException
 
     @Override
     public String getMessage() {
-        return "Service Discovery [" + pluginId + "] can not be found.";
+        return "Service Discovery [" + pluginId + "] cannot be found.";
     }
 
     @Override

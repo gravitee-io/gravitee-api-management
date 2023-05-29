@@ -51,7 +51,7 @@ public class ApiPlansResource_DeleteTest extends ApiPlansResourceTest {
 
         var error = response.readEntity(Error.class);
         assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("Plan [" + PLAN + "] can not be found.", error.getMessage());
+        assertEquals("Plan [" + PLAN + "] cannot be found.", error.getMessage());
 
         verify(planService, never()).delete(any(), any());
     }
@@ -67,7 +67,7 @@ public class ApiPlansResource_DeleteTest extends ApiPlansResourceTest {
 
         var error = response.readEntity(Error.class);
         assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
-        assertEquals("Plan [" + PLAN + "] can not be found.", error.getMessage());
+        assertEquals("Plan [" + PLAN + "] cannot be found.", error.getMessage());
 
         verify(planService, never()).delete(any(), any());
     }

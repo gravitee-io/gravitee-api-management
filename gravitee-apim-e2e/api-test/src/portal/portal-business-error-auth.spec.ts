@@ -23,7 +23,7 @@ const authenticationApiAsAdmin = new AuthenticationApi(forPortalAsAdminUser());
 describe('Portal: Business Error - auth', () => {
   test('should return not found with unknown identity provider', async () => {
     const identity = 'IDENTITY';
-    const expectedError = { message: `Identity provider [${identity}] can not be found.` };
+    const expectedError = { message: `Identity provider [${identity}] cannot be found.` };
     await notFound(authenticationApiAsAdmin.exchangeAuthorizationCodeRaw({ identity }), expectedError);
     await notFound(authenticationApiAsAdmin.tokenExchangeRaw({ identity, token: '' }), expectedError);
   });

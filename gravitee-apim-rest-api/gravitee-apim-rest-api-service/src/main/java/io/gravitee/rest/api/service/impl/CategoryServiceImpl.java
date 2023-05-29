@@ -224,12 +224,12 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
                     Category category = convert(categoryEntity, categoryToUpdate.getEnvironmentId());
                     // check if picture has been set
                     if (category.getPicture() == null) {
-                        // Picture can not be updated when re-ordering categories
+                        // Picture cannot be updated when re-ordering categories
                         category.setPicture(categoryToUpdate.getPicture());
                     }
                     // check if background has been set
                     if (category.getBackground() == null) {
-                        // Background can not be updated when re-ordering categories
+                        // Background cannot be updated when re-ordering categories
                         category.setBackground(categoryToUpdate.getBackground());
                     }
                     final Date updatedAt = new Date();

@@ -34,7 +34,7 @@ public class IdentityProviderNotFoundException extends AbstractNotFoundException
 
     @Override
     public String getMessage() {
-        return "Identity provider [" + id + "] can not be found.";
+        return "Identity provider [" + id + "] cannot be found.";
     }
 
     @Override

@@ -33,7 +33,7 @@ public class InstallationNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Installation [" + installationId + "] can not be found.";
+        return "Installation [" + installationId + "] cannot be found.";
     }
 
     @Override

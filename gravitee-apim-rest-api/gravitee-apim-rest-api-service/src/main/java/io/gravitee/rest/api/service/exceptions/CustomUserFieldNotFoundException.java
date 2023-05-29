@@ -49,6 +49,6 @@ public class CustomUserFieldNotFoundException extends AbstractNotFoundException 
 
     @Override
     public String getMessage() {
-        return "CustomUserField [" + key + "] can not be found.";
+        return "CustomUserField [" + key + "] cannot be found.";
     }
 }

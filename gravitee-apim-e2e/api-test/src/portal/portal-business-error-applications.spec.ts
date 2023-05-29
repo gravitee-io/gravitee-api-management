@@ -132,7 +132,7 @@ describe('Portal: Business Error - applications', () => {
     });
 
     test('should not renew application secret', async () => {
-      const expectedError = { message: `Client secret for application [${createApplication.name}] can not be renew.` };
+      const expectedError = { message: `Client secret for application [${createApplication.name}] cannot be renewed.` };
       await fail(applicationPortalApiAsAdminUser.renewApplicationSecretRaw({ applicationId: createApplication.id }), 400, expectedError);
     });
 
@@ -312,7 +312,7 @@ describe('Portal: Business Error - applications', () => {
           applicationPortalApiAsAdminUser.exportApplicationLogsByApplicationIdRaw({ applicationId }),
           applicationPortalApiAsAdminUser.getApplicationLogsRaw({ applicationId }),
           applicationPortalApiAsAdminUser.renewApplicationSecretRaw({ applicationId }),
-        ].map((p: Promise<ApiResponse<unknown>>) => notFound(p, { message: `Application [${applicationId}] can not be found.` })),
+        ].map((p: Promise<ApiResponse<unknown>>) => notFound(p, { message: `Application [${applicationId}] cannot be found.` })),
       );
     });
 
@@ -330,7 +330,7 @@ describe('Portal: Business Error - applications', () => {
             memberInput: {},
           }),
           applicationPortalApiAsAdminUser.deleteApplicationMemberRaw({ applicationId, memberId }),
-        ].map((p: Promise<ApiResponse<unknown>>) => notFound(p, { message: `User [${memberId}] can not be found.` })),
+        ].map((p: Promise<ApiResponse<unknown>>) => notFound(p, { message: `User [${memberId}] cannot be found.` })),
       );
     });
 
@@ -342,7 +342,7 @@ describe('Portal: Business Error - applications', () => {
             applicationId,
             logId,
           }),
-        ].map((p) => notFound(p, { message: `Log [${logId}] can not be found.` })),
+        ].map((p) => notFound(p, { message: `Log [${logId}] cannot be found.` })),
       );
     });
   });

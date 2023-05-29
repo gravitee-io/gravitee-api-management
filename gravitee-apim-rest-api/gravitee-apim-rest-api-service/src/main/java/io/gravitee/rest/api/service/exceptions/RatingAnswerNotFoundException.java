@@ -43,7 +43,7 @@ public class RatingAnswerNotFoundException extends AbstractNotFoundException {
         return (
             "Answer [" +
             answer +
-            "] can not be found" +
+            "] cannot be found" +
             (rating == null ? "" : " on rating [" + rating + "]") +
             (rating != null && api != null ? " and" : "") +
             (api == null ? "" : " on api [" + api + "]")

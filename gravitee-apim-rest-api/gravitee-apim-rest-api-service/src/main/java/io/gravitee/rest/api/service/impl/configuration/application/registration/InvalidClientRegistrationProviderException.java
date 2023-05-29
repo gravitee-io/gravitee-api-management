@@ -32,7 +32,7 @@ public class InvalidClientRegistrationProviderException extends AbstractManageme
 
     @Override
     public String getMessage() {
-        return "Client Registration provider is invalid or can not be reach, making impossible to create an oauth-based application.";
+        return "Client Registration provider is invalid or cannot be reached, making it impossible to create an oauth-based application.";
     }
 
     @Override

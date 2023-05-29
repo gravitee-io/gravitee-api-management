@@ -143,7 +143,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                             List<Rule> rules = jsonNode.getValue().traverse(jp.getCodec()).readValueAs(new TypeReference<List<Rule>>() {});
                             paths.put(jsonNode.getKey(), rules);
                         } catch (IOException e) {
-                            logger.error("Path {} can not be de-serialized", jsonNode.getKey());
+                            logger.error("Path {} cannot be de-serialized", jsonNode.getKey());
                         }
                     });
 
@@ -167,7 +167,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                             flow.setStage(FlowStage.API);
                             flows.add(flow);
                         } catch (IOException e) {
-                            logger.error("Flow {} can not be de-serialized", jsonNode.asText());
+                            logger.error("Flow {} cannot be de-serialized", jsonNode.asText());
                         }
                     });
                 api.setFlows(flows);
@@ -187,7 +187,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                             }
                             plans.add(plan);
                         } catch (IOException e) {
-                            logger.error("Plan {} can not be de-serialized", jsonNode.asText());
+                            logger.error("Plan {} cannot be de-serialized", jsonNode.asText());
                         }
                     });
                 api.setPlans(plans);
@@ -229,7 +229,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                             .readValueAs(new TypeReference<Map<String, ResponseTemplate>>() {});
                         responseTemplates.put(jsonNode.getKey(), templates);
                     } catch (IOException e) {
-                        logger.error("Response templates {} can not be de-serialized", jsonNode.getKey());
+                        logger.error("Response templates {} cannot be de-serialized", jsonNode.getKey());
                     }
                 });
 

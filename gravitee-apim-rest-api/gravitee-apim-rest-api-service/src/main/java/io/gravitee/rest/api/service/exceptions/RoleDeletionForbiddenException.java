@@ -35,7 +35,7 @@ public class RoleDeletionForbiddenException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Role [" + scope + "," + name + "] can not be deleted because marked as System or Default role.";
+        return "Role [" + scope + "," + name + "] cannot be deleted because marked as System or Default role.";
     }
 
     @Override

@@ -34,7 +34,7 @@ public class SubscriptionNotUpdatableException extends AbstractManagementExcepti
 
     @Override
     public String getMessage() {
-        return "Subscription [" + subscription + "] can not be updated because of its status.";
+        return "Subscription [" + subscription + "] cannot be updated because of its status.";
     }
 
     @Override

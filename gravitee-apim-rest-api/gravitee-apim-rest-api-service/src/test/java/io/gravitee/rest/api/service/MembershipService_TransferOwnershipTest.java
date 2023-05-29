@@ -169,7 +169,7 @@ public class MembershipService_TransferOwnershipTest {
                     )
         );
 
-        assertEquals("Role [API_PRIMARY_OWNER] can not be found.", exception.getMessage());
+        assertEquals("Role [API_PRIMARY_OWNER] cannot be found.", exception.getMessage());
     }
 
     @Test
@@ -200,7 +200,7 @@ public class MembershipService_TransferOwnershipTest {
                     )
         );
 
-        assertEquals("Role [API_PRIMARY_OWNER] can not be found.", exception.getMessage());
+        assertEquals("Role [API_PRIMARY_OWNER] cannot be found.", exception.getMessage());
     }
 
     @Test

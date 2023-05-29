@@ -1162,7 +1162,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         }
                     }
                 } else if (newResourceRef != null && newResourceRef.equals(actualResourceRef)) {
-                    // can not publish or unpublish a Link. LINK publication state is changed when the related page is updated.
+                    // cannot publish or unpublish a Link. LINK publication state is changed when the related page is updated.
                     updatePageEntity.setPublished(pageToUpdate.isPublished());
                 }
             }

@@ -47,7 +47,7 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
     public void handle(ExecutionContext context) {
         final ProcessorFailure failure = (ProcessorFailure) context.getAttribute(ATTR_FAILURE_ATTRIBUTE);
 
-        // If no application has been associated to the request (for example in case security chain can not be processed
+        // If no application has been associated to the request (for example in case security chain cannot be processed
         // correctly) set the default application to track it.
         if (context.request().metrics().getApplication() == null) {
             context.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);

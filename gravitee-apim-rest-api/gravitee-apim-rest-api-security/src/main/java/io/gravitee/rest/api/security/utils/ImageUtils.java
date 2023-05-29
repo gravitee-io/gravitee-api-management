@@ -78,7 +78,7 @@ public final class ImageUtils {
         final Image image = decodePicture(picture);
 
         if (image == null) {
-            throw new InvalidImageException("The image can not be decoded");
+            throw new InvalidImageException("The image cannot be decoded");
         }
 
         // Then check that the image is not too big
@@ -141,9 +141,9 @@ public final class ImageUtils {
                 return new Image(image.getType(), image.getMimeType(), bos.toByteArray());
             }
 
-            throw new InvalidImageException("Image can not be rescaled");
+            throw new InvalidImageException("Image cannot be rescaled");
         } catch (IOException ioe) {
-            throw new InvalidImageException("Image can not be rescaled", ioe);
+            throw new InvalidImageException("Image cannot be rescaled", ioe);
         }
     }
 

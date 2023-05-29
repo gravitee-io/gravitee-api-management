@@ -88,7 +88,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
                 "{\n" +
                 "  \"message\" : \"Plugin [" +
                 FAKE_ENTRYPOINT +
-                "] can not be found.\",\n" +
+                "] cannot be found.\",\n" +
                 "  \"parameters\" : {\n" +
                 "    \"plugin\" : \"fake-entrypoint\"\n" +
                 "  },\n" +
@@ -134,7 +134,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
                 "{\n" +
                 "  \"message\" : \"Plugin [" +
                 FAKE_ENTRYPOINT +
-                "] can not be found.\",\n" +
+                "] cannot be found.\",\n" +
                 "  \"parameters\" : {\n" +
                 "    \"plugin\" : \"fake-entrypoint\"\n" +
                 "  },\n" +
@@ -180,7 +180,7 @@ public class EntrypointResourceTest extends AbstractResourceTest {
                 "{\n" +
                 "  \"message\" : \"Plugin [" +
                 FAKE_ENTRYPOINT +
-                "] can not be found.\",\n" +
+                "] cannot be found.\",\n" +
                 "  \"parameters\" : {\n" +
                 "    \"plugin\" : \"fake-entrypoint\"\n" +
                 "  },\n" +

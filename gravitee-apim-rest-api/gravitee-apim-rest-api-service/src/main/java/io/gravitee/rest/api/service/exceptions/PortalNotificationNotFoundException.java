@@ -32,7 +32,7 @@ public class PortalNotificationNotFoundException extends AbstractNotFoundExcepti
 
     @Override
     public String getMessage() {
-        return "Portal notification [" + portalNotification + "] can not be found.";
+        return "Portal notification [" + portalNotification + "] cannot be found.";
     }
 
     @Override

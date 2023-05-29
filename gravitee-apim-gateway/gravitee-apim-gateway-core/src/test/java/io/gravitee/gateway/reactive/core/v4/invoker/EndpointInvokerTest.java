@@ -242,7 +242,7 @@ class EndpointInvokerTest {
                 assertThat(failureException.getExecutionFailure().statusCode()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
                 assertThat(failureException.getExecutionFailure().message())
                     .isNotNull()
-                    .isEqualTo("Http method can not be overridden because ATTR_REQUEST_METHOD attribute is invalid");
+                    .isEqualTo("Http method cannot be overridden because ATTR_REQUEST_METHOD attribute is invalid");
                 assertThat(failureException.getExecutionFailure().key()).isEqualTo(EndpointInvoker.INVALID_HTTP_METHOD);
                 return true;
             });

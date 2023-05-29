@@ -124,8 +124,8 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
         resourceDeps.forEach(resource -> {
             final ResourcePlugin resourcePlugin = resourcePluginManager.get(resource.getType());
             if (resourcePlugin == null) {
-                logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
-                throw new IllegalStateException("Resource [" + resource.getType() + "] can not be found in plugin registry");
+                logger.error("Resource [{}] cannot be found in plugin registry", resource.getType());
+                throw new IllegalStateException("Resource [" + resource.getType() + "] cannot be found in plugin registry");
             }
 
             PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(

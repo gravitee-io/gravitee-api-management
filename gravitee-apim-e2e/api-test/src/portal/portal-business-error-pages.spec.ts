@@ -209,7 +209,7 @@ describe('Portal: Business Error - pages', () => {
         404,
         {
           code: 'errors.page.notFound',
-          message: `Page [${pageId}] can not be found.`,
+          message: `Page [${pageId}] cannot be found.`,
           parameters: {
             page: pageId,
           },

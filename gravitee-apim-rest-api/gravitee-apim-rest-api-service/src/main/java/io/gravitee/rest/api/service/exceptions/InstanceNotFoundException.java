@@ -37,7 +37,7 @@ public class InstanceNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "Gateway [" + instanceId + "] can not be found.";
+        return "Gateway [" + instanceId + "] cannot be found.";
     }
 
     @Override

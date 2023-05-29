@@ -181,6 +181,6 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
+        assertEquals("Api [" + API + "] cannot be found.", error.getMessage());
     }
 }

@@ -46,7 +46,7 @@ public class EndpointDiscoveryService extends AbstractService {
             discoveryVerticle,
             event -> {
                 if (event.failed()) {
-                    LOGGER.error("Endpoints Discovery service can not be started", event.cause());
+                    LOGGER.error("Endpoints Discovery service cannot be started", event.cause());
                 }
 
                 deploymentId = event.result();

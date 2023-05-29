@@ -280,7 +280,7 @@ public class ApiPlansResource extends AbstractResource {
     private Error planNotFoundError(String plan) {
         return new Error()
             .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
-            .message("Plan [" + plan + "] can not be found.")
+            .message("Plan [" + plan + "] cannot be found.")
             .putParametersItem("plan", plan)
             .technicalCode("plan.notFound");
     }

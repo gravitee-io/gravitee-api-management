@@ -34,7 +34,7 @@ public class SubscriptionNotClosableException extends AbstractManagementExceptio
 
     @Override
     public String getMessage() {
-        return "Subscription [" + subscription.getId() + "] can not be closed because of its status: " + subscription.getStatus();
+        return "Subscription [" + subscription.getId() + "] cannot be closed because of its status: " + subscription.getStatus();
     }
 
     @Override

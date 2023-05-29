@@ -34,7 +34,7 @@ public class SubscriptionNotPausableException extends AbstractManagementExceptio
 
     @Override
     public String getMessage() {
-        return "Subscription [" + subscription.getId() + "] can not be paused because of its status: " + subscription.getStatus();
+        return "Subscription [" + subscription.getId() + "] cannot be paused because of its status: " + subscription.getStatus();
     }
 
     @Override

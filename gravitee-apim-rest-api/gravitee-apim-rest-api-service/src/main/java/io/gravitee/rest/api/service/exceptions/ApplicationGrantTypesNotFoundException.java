@@ -21,7 +21,7 @@ public class ApplicationGrantTypesNotFoundException extends AbstractNotFoundExce
 
     @Override
     public String getMessage() {
-        return "Grant types can not be found or empty";
+        return "Grant types cannot be found or empty";
     }
 
     @Override

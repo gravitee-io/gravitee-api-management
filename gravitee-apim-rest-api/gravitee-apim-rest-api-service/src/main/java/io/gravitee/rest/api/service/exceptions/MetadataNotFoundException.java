@@ -32,7 +32,7 @@ public class MetadataNotFoundException extends AbstractNotFoundException {
 
     @Override
     public String getMessage() {
-        return "The metadata [" + metadataId + "] can not be found.";
+        return "The metadata [" + metadataId + "] cannot be found.";
     }
 
     @Override

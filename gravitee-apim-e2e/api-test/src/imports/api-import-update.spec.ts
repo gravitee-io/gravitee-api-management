@@ -39,7 +39,7 @@ describe('Update API by importing it', () => {
           body: api,
         }),
         404,
-        'Api [unknown-test-id] can not be found.',
+        'Api [unknown-test-id] cannot be found.',
       );
     });
   });
