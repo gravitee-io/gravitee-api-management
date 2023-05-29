@@ -23,6 +23,7 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -51,6 +52,9 @@ public class PortalSettingsResource {
 
     @Inject
     private ConfigService configService;
+
+    @Inject
+    private EnvironmentService environmentService;
 
     @Context
     private ResourceContext resourceContext;
@@ -81,6 +85,9 @@ public class PortalSettingsResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
     public Response savePortalSettings(@Parameter(name = "config", required = true) @NotNull PortalSettingsEntity portalSettingsEntity) {
+        // check that environment exists
+        environmentService.findById(GraviteeContext.getCurrentEnvironment());
+
         configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
         return Response.ok().entity(portalSettingsEntity).build();
     }
