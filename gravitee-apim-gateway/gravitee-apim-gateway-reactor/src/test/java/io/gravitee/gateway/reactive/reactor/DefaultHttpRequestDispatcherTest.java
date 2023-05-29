@@ -38,6 +38,7 @@ import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -302,6 +303,35 @@ class DefaultHttpRequestDispatcherTest {
         final TestObserver<Void> obs = cut.dispatch(rxRequest, SERVER_ID).test();
 
         obs.assertResult();
+    }
+
+    @Test
+    void shouldEndResponseWhenClientConnexionIsClosed() {
+        final ReactorHandler apiReactor = mock(ReactorHandler.class);
+
+        this.prepareV3Mock(handlerEntrypoint, apiReactor);
+        when(gatewayConfiguration.tenant()).thenReturn(Optional.of("TENANT"));
+        when(gatewayConfiguration.zone()).thenReturn(Optional.of("ZONE"));
+        when(response.ended()).thenReturn(false);
+        when(rxResponse.rxEnd()).thenReturn(Completable.error(new RuntimeException()));
+
+        doAnswer(i -> {
+                final ExecutionContext ctx = i.getArgument(0, ExecutionContext.class);
+
+                assertEquals("TENANT", ctx.request().metrics().getTenant());
+                assertEquals("ZONE", ctx.request().metrics().getZone());
+                simulateEndHandlerCall(i);
+                return null;
+            })
+            .when(apiReactor)
+            .handle(any(ExecutionContext.class), any(Handler.class));
+
+        cut
+            .dispatch(rxRequest, SERVER_ID)
+            // Simulate when the client is ending the connection before the gateway got a response from the endpoint
+            .doOnSubscribe(Disposable::dispose)
+            .test()
+            .assertNoErrors();
     }
 
     @Test
