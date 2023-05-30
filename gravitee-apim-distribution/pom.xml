@@ -694,6 +694,13 @@
                 <!-- Entrypoints -->
                 <dependency>
                     <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-http-post</artifactId>
+                    <version>${gravitee-entrypoint-http-post.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
                     <artifactId>gravitee-entrypoint-sse</artifactId>
                     <version>${gravitee-entrypoint-sse.version}</version>
                     <type>zip</type>

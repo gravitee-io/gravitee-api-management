@@ -18,6 +18,7 @@ package io.gravitee.apim.integration.tests.messages;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.endpoint.kafka.KafkaEndpointConnectorFactory;
+import com.graviteesource.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -33,7 +34,6 @@ import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
-import io.gravitee.plugin.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
