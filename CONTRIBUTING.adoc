@@ -148,13 +148,13 @@ You can, for instance, use docker.
 MongoDB::
 [source, bash]
 ----
-docker run -p 27017:27017 --name local-mongo -d mongo:3
+docker run -p 27017:27017 --name local-mongo -d mongo:6
 ----
 
 ElasticSearch::
 [source, bash]
 ----
-docker run -d --name local-es7 -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+docker run -d --name local-es7 -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.17.10
 ----
 
 === Run Configuration
@@ -168,16 +168,6 @@ NOTE:  `${GRAVITEE_HOME}` refers to the `target/distribution` folder created bef
 IntelliJ configuration::
 The project includes by default the configuration `Gateway - MongoDB` to run the Gateway.
 
-It contains by default the following configuration:
-
-. *Use classpath of module*: `gravitee-apim-gateway-standalone-container`.
-. *Main class*: `io.gravitee.gateway.standalone.GatewayContainer`.
-. In the VM options, add the following (change the path to point to your project):
-+
-[source, bash]
-----
--Dgravitee.home="/home/user/dev/gravitee-api-management/gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution"
-----
 
 ==== APIM Management API (gravitee-apim-rest-api)
 CLI Version::
@@ -188,23 +178,13 @@ NOTE:  `${GRAVITEE_HOME}` refers to the `target/distribution` folder created bef
 IntelliJ configuration::
 The project includes by default the configuration `Rest API - MongoDB` to run the Rest API.
 
-It contains by default the following configuration:
-
-. *Use classpath of module*: `gravitee-apim-rest-api-standalone-container`.
-. *Main class*: `io.gravitee.rest.api.standalone.GraviteeApisContainer`.
-. In the VM options, add the following (change the path to point to your project):
-[source, bash]
-----
--Dgravitee.home="/home/user/dev/gravitee-api-management/gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution"
-----
-
-
 ==== APIM Console (gravitee-apim-console-webui)
 
 CLI Version::
 Run `npm run serve` from the `gravitee-api-management/gravitee-apim-console-webui` directory to start the UI.
 
 IntelliJ configuration::
+
 Create a new Run configuration in IntelliJ:
 
 . Click *Run -> Edit configurations -> ✚ -> npm*.
