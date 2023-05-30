@@ -251,6 +251,7 @@
         <gravitee-policy-transform-avro-json.version>1.2.0-alpha.2</gravitee-policy-transform-avro-json.version>
         <gravitee-policy-data-logging-masking.version>2.0.3</gravitee-policy-data-logging-masking.version>
         <gravitee-policy-interrupt.version>1.1.0</gravitee-policy-interrupt.version>
+        <gravitee-entrypoint-http-get.version>1.0.0-alpha.1</gravitee-entrypoint-http-get.version>
         <gravitee-entrypoint-http-post.version>1.0.0-alpha.1</gravitee-entrypoint-http-post.version>
         <gravitee-entrypoint-sse.version>3.1.0-alpha.1</gravitee-entrypoint-sse.version>
         <gravitee-entrypoint-webhook.version>1.1.0-alpha.1</gravitee-entrypoint-webhook.version>
