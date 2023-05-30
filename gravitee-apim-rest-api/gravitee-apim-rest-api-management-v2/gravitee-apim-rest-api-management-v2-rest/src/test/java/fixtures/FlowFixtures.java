@@ -19,7 +19,9 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.model.*;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -58,7 +60,7 @@ public class FlowFixtures {
         .policy("policy")
         .condition("{#context.attribute['condition'] == true}")
         .messageCondition("{#context.attribute['messageCondition'] == true}")
-        .configuration("{\"nice\": \"config\"}");
+        .configuration("{\n  \"nice\" : \"config\"\n}");
 
     private static final StepV4.StepV4Builder BASE_STEP_V4 = StepV4
         .builder()
@@ -68,7 +70,7 @@ public class FlowFixtures {
         .policy("policy")
         .condition("{#context.attribute['condition'] == true}")
         .messageCondition("{#context.attribute['messageCondition'] == true}")
-        .configuration("{\"nice\": \"config\"}");
+        .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
 
     private static final Flow.FlowBuilder BASE_MODEL_FLOW_V4 = Flow
         .builder()
@@ -88,7 +90,8 @@ public class FlowFixtures {
         .request(List.of(BASE_STEP_V4.name("step_request").build()))
         .publish(List.of(BASE_STEP_V4.name("step_publish").build()))
         .response(List.of(BASE_STEP_V4.name("step_response").build()))
-        .subscribe(List.of(BASE_STEP_V4.name("step_subscribe").build()));
+        .subscribe(List.of(BASE_STEP_V4.name("step_subscribe").build()))
+        .tags(Set.of("tag1", "tag2"));
 
     private static final io.gravitee.definition.model.flow.Step.StepBuilder BASE_MODEL_STEP_V2 = io.gravitee.definition.model.flow.Step
         .builder()
@@ -97,7 +100,7 @@ public class FlowFixtures {
         .enabled(true)
         .policy("policy")
         .condition("{#context.attribute['condition'] == true}")
-        .configuration("{\"nice\": \"config\"}");
+        .configuration("{\n  \"nice\" : \"config\"\n}");
 
     private static final StepV2.StepV2Builder BASE_STEP_V2 = StepV2
         .builder()
@@ -106,7 +109,7 @@ public class FlowFixtures {
         .enabled(true)
         .policy("policy")
         .condition("{#context.attribute['condition'] == true}")
-        .configuration("{\"nice\": \"config\"}");
+        .configuration(new LinkedHashMap<>(Map.of("nice", "config")));
 
     private static final io.gravitee.definition.model.flow.Flow.FlowBuilder BASE_MODEL_FLOW_V2 = io.gravitee.definition.model.flow.Flow
         .builder()

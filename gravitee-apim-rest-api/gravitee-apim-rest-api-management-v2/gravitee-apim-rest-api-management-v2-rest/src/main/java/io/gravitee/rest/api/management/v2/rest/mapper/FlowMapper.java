@@ -27,22 +27,24 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(uses = { ConfigurationSerializationMapper.class })
 public interface FlowMapper {
     FlowMapper INSTANCE = Mappers.getMapper(FlowMapper.class);
 
-    // Flow
+    // Flow V4
     @Mapping(target = "selectors", qualifiedByName = "fromSelectors")
-    FlowV4 map(io.gravitee.definition.model.v4.flow.Flow flow);
+    FlowV4 mapFromFlowEntityV4(io.gravitee.definition.model.v4.flow.Flow flow);
+
+    List<FlowV4> mapFromFlowEntityV4List(List<io.gravitee.definition.model.v4.flow.Flow> flow);
 
     @Mapping(target = "selectors", qualifiedByName = "toSelectors")
-    io.gravitee.definition.model.v4.flow.Flow map(FlowV4 flow);
+    io.gravitee.definition.model.v4.flow.Flow mapToFlowEntityV4(FlowV4 flow);
 
-    List<FlowV4> convert(List<io.gravitee.definition.model.v4.flow.Flow> flow);
+    @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
+    StepV4 mapFromStepEntityV4(Step step);
 
-    StepV4 map(Step step);
-
-    Step map(StepV4 stepV4);
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    Step mapToStepEntityV4(StepV4 stepV4);
 
     // Selectors
     HttpSelector map(io.gravitee.definition.model.v4.flow.selector.HttpSelector selector);
@@ -54,7 +56,7 @@ public interface FlowMapper {
     io.gravitee.definition.model.v4.flow.selector.ChannelSelector map(ChannelSelector selector);
 
     @Named("toSelectors")
-    default List<io.gravitee.definition.model.v4.flow.selector.Selector> toSelectors(List<Selector> selectors) {
+    default List<io.gravitee.definition.model.v4.flow.selector.Selector> mapToSelectorEntityV4List(List<Selector> selectors) {
         if (Objects.isNull(selectors)) {
             return new ArrayList<>();
         }
@@ -79,7 +81,7 @@ public interface FlowMapper {
     }
 
     @Named("fromSelectors")
-    default List<Selector> fromSelectors(List<io.gravitee.definition.model.v4.flow.selector.Selector> selectors) {
+    default List<Selector> mapFromSelectorEntityV4List(List<io.gravitee.definition.model.v4.flow.selector.Selector> selectors) {
         if (Objects.isNull(selectors)) {
             return new ArrayList<>();
         }
@@ -102,4 +104,17 @@ public interface FlowMapper {
             })
             .collect(Collectors.toList());
     }
+
+    // Flow V2
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    io.gravitee.definition.model.flow.Step mapToStepEntityV2(StepV2 stepV2);
+
+    io.gravitee.definition.model.flow.Flow mapToFlowEntityV2(FlowV2 flowV2);
+    List<io.gravitee.definition.model.flow.Flow> mapToFlowEntityV2List(List<FlowV2> flowV2List);
+
+    @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
+    StepV2 mapFromStepEntityV2(io.gravitee.definition.model.flow.Step stepV2);
+
+    FlowV2 mapFromFlowEntityV2(io.gravitee.definition.model.flow.Flow flowV2);
+    List<FlowV2> mapFromFlowEntityV2List(List<io.gravitee.definition.model.flow.Flow> flowV2List);
 }
