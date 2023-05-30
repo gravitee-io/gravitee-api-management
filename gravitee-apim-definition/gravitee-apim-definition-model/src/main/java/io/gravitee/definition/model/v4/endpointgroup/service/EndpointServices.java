@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.service.Service;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,11 +32,13 @@ import lombok.ToString;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode
 @Schema(name = "EndpointServicesV4")
+@Builder
 public class EndpointServices implements Serializable {
 
     @JsonProperty("healthCheck")

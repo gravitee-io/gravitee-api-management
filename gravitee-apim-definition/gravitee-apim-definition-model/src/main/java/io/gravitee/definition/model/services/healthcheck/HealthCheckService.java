@@ -18,11 +18,13 @@ package io.gravitee.definition.model.services.healthcheck;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.services.schedule.ScheduledService;
 import java.util.List;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuperBuilder
 public class HealthCheckService extends ScheduledService {
 
     public static final String SERVICE_KEY = "health-check";

@@ -17,11 +17,13 @@ package io.gravitee.definition.model.services.schedule;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Service;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuperBuilder
 public abstract class ScheduledService extends Service {
 
     @JsonProperty("schedule")

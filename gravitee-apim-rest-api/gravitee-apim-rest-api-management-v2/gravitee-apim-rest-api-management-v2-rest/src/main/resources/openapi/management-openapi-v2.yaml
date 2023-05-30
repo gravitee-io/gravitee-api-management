@@ -1518,6 +1518,15 @@ components:
                     type: object
                 services:
                     $ref: "#/components/schemas/EndpointServices"
+                secondary:
+                    type: boolean
+                    description: Is the endpoint a secondary endpoint.
+                    default: false
+                tenants:
+                    type: array
+                    description: The list of tenants associated to the endpoint.
+                    items:
+                        type: string
             required:
                 - type
         EndpointGroupV4:
@@ -2663,6 +2672,14 @@ components:
                     $ref: "#/components/schemas/HttpClientOptions"
                 httpClientSslOptions:
                     $ref: "#/components/schemas/HttpClientSslOptions"
+                headers:
+                    type: array
+                    description: The list of headers associated with this endpoint group.
+                    example:
+                        - name: X-My-Header
+                          value: my-value
+                    items:
+                        $ref: "#/components/schemas/HttpHeader"
         EndpointHealthCheckService:
             allOf:
                 - $ref: "#/components/schemas/HealthCheckService"

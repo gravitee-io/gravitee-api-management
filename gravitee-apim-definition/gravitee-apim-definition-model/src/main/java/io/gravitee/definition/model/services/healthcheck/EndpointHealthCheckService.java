@@ -16,12 +16,14 @@
 package io.gravitee.definition.model.services.healthcheck;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 // TODO not deserialize if inherit
+@SuperBuilder
 public class EndpointHealthCheckService extends HealthCheckService {
 
     @JsonProperty("inherit")
