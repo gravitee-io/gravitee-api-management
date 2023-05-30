@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,11 +35,13 @@ import lombok.ToString;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode
 @Schema(name = "ResourceV4")
+@Builder
 public class Resource implements Serializable {
 
     @JsonProperty(required = true)
@@ -52,6 +56,7 @@ public class Resource implements Serializable {
     @JsonRawValue
     private String configuration;
 
+    @Builder.Default
     private boolean enabled = true;
 
     @JsonSetter

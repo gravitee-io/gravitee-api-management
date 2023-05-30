@@ -2385,7 +2385,7 @@ components:
                 type:
                     type: string
                 configuration:
-                    type: string
+                    type: object
                 enabled:
                     type: boolean
         ResponseTemplate:

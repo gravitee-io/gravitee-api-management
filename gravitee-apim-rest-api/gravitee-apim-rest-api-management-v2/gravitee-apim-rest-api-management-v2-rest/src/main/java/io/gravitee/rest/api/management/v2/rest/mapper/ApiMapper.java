@@ -33,7 +33,7 @@ import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mapper(uses = { DateMapper.class, FlowMapper.class, ConnectorMapper.class, DefinitionContextMapper.class, EntrypointMapper.class })
+@Mapper(uses = { DateMapper.class, FlowMapper.class, ConnectorMapper.class, DefinitionContextMapper.class, EntrypointMapper.class, ResourceMapper.class })
 public interface ApiMapper {
     Logger logger = LoggerFactory.getLogger(ApiMapper.class);
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
