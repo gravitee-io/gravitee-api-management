@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.property.Property;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author GraviteeSource Team
@@ -29,9 +30,11 @@ import lombok.*;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "PropertyEntityV4")
+@SuperBuilder
 public class PropertyEntity extends Property {
 
     @JsonProperty(value = "encryptable")
+    @Builder.Default
     private boolean encryptable = false;
 
     public PropertyEntity(String key, String value) {

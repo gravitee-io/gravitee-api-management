@@ -20,11 +20,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -37,6 +39,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @Schema(name = "PropertyV4")
+@SuperBuilder
 public class Property implements Serializable {
 
     @JsonProperty(required = true)

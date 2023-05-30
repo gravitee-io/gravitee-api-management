@@ -2363,6 +2363,9 @@ components:
                     type: boolean
                 dynamic:
                     type: boolean
+                encryptable:
+                    type: boolean
+                    writeOnly: true
         Qos:
             type: string
             description: Type of the quality of service.

@@ -19,11 +19,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@SuperBuilder
 public class Property implements Serializable {
 
     @JsonProperty(value = "key", required = true)
@@ -33,9 +38,11 @@ public class Property implements Serializable {
     private String value;
 
     @JsonProperty("dynamic")
+    @Builder.Default
     protected boolean dynamic = false;
 
     @JsonProperty(value = "encrypted")
+    @Builder.Default
     private boolean encrypted = false;
 
     public Property() {}
