@@ -18,11 +18,13 @@ package io.gravitee.definition.model.ssl.jks;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.ssl.KeyStore;
 import io.gravitee.definition.model.ssl.KeyStoreType;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuperBuilder
 public class JKSKeyStore extends KeyStore {
 
     @JsonProperty("path")

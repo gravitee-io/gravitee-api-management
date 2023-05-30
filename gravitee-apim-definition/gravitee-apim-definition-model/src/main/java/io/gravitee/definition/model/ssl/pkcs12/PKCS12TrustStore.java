@@ -18,11 +18,13 @@ package io.gravitee.definition.model.ssl.pkcs12;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.ssl.TrustStore;
 import io.gravitee.definition.model.ssl.TrustStoreType;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuperBuilder
 public class PKCS12TrustStore extends TrustStore {
 
     @JsonProperty("path")

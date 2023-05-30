@@ -25,6 +25,7 @@ import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -51,6 +52,7 @@ import java.io.Serializable;
         @JsonSubTypes.Type(name = "pkcs12", value = PKCS12TrustStore.class),
     }
 )
+@SuperBuilder
 public abstract class TrustStore implements Serializable {
 
     @JsonProperty("type")

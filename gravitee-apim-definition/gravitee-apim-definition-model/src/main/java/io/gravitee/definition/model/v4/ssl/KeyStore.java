@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore;
 import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore;
 import java.io.Serializable;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -39,6 +40,7 @@ import lombok.Getter;
     }
 )
 @Getter
+@SuperBuilder
 public abstract class KeyStore implements Serializable {
 
     private static final long serialVersionUID = -917896495926741784L;

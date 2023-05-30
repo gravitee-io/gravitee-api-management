@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.ssl.TrustStore;
 import io.gravitee.definition.model.v4.ssl.TrustStoreType;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -27,6 +28,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@SuperBuilder
 public class PKCS12TrustStore extends TrustStore {
 
     private static final long serialVersionUID = 3915578060196536545L;

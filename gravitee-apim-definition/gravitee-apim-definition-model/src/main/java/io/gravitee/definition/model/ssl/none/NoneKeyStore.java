@@ -17,7 +17,9 @@ package io.gravitee.definition.model.ssl.none;
 
 import io.gravitee.definition.model.ssl.KeyStore;
 import io.gravitee.definition.model.ssl.KeyStoreType;
+import lombok.experimental.SuperBuilder;
 
+@SuperBuilder
 public class NoneKeyStore extends KeyStore {
 
     public NoneKeyStore(KeyStoreType type) {
