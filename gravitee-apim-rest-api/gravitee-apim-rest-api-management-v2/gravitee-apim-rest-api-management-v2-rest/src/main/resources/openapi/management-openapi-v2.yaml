@@ -31,6 +31,24 @@ servers:
     - url: /management/v2
       description: Gravitee.io APIM - Management API -v2
 paths:
+    /license:
+        get:
+            tags:
+                - Installation
+            summary: Get the license gravitee is running on.
+            description: |-
+                Returns the license information of the gravitee instance.
+            operationId: getLicense
+            responses:
+                "200":
+                    description: |-
+                        The license and its features. If there is no license, then the features will be empty.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GraviteeLicense"
+                default:
+                    $ref: "#/components/responses/Error"
     /organizations/{orgId}:
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
@@ -879,6 +897,29 @@ paths:
                     $ref: "#/components/responses/Error"
 components:
     schemas:
+        GraviteeLicense:
+            type: object
+            properties:
+                tier:
+                    type: string
+                    description:  The tier gravitee is running on.
+                    example: "tier-planet"
+                packs:
+                    type: array
+                    items:
+                        type: string
+                    description: The packs included in the tier gravitee is running on.
+                    example:
+                        - "pack-observability"
+                        - "pack-event-native"
+                features:
+                    type: array
+                    items:
+                        type: string
+                    description: The features included in the tier gravitee is running on.
+                    example:
+                        - feature-debug-mode
+                        - feature-datadog-reporter
         Analytics:
             type: object
             properties:
