@@ -1,0 +1,78 @@
+{
+  "id": "http-post-entrypoint-mqtt5-endpoint-failure",
+  "name": "http-post-entrypoint-mqtt5-endpoint-failure",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "Api v4 using HTTP POST entrypoint and mqtt5 endpoint with failure",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/http-post-entrypoint-mqtt5-endpoint-failure"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-post",
+          "configuration": {
+            "requestHeadersToMessage": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mqtt5",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mqtt5",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "serverHost": "localhost",
+            "serverPort": "mqtt5-port"
+          },
+          "sharedConfigurationOverride": {
+            "producer": {
+              "enabled": true,
+              "topic": "test-topic-failure"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "STARTS_WITH"
+        }
+      ],
+      "request": [],
+      "response": [],
+      "subscribe": [],
+      "publish": [
+        {
+          "name": "failure",
+          "description": "failure",
+          "enabled": true,
+          "policy": "interrupt-message-request-phase",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
