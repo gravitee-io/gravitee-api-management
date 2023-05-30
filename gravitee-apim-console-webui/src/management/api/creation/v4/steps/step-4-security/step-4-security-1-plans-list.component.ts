@@ -14,32 +14,39 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step5DocumentationComponent } from '../step-5-documentation/step-5-documentation.component';
 import { NewPlan } from '../../../../../../entities/plan-v4';
+import { ConstantsService, PlanSecurityVM } from '../../../../../../services-ngx/constants.service';
 
 @Component({
   selector: 'step-4-security-1-plans-list',
   template: require('./step-4-security-1-plans-list.component.html'),
   styles: [require('./step-4-security-1-plans-list.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
-export class Step4Security1PlansListComponent {
+export class Step4Security1PlansListComponent implements OnInit {
   @Input()
   plans: NewPlan[] = [];
 
   @Output()
-  addPlanClicked = new EventEmitter<void>();
+  addPlanClicked = new EventEmitter<PlanSecurityVM>();
 
   @Output()
   editPlanClicked = new EventEmitter<NewPlan>();
 
+  planSecurityOptions: PlanSecurityVM[];
+
   public form = new FormGroup({});
   displayedColumns: string[] = ['name', 'security', 'actions'];
 
-  constructor(private readonly stepService: ApiCreationStepService) {}
+  constructor(private readonly stepService: ApiCreationStepService, private readonly constantsService: ConstantsService) {}
+
+  ngOnInit(): void {
+    this.planSecurityOptions = this.constantsService.getEnabledPlanSecurityTypes();
+  }
 
   save(): void {
     this.stepService.validStep((previousPayload) => ({
@@ -54,8 +61,8 @@ export class Step4Security1PlansListComponent {
     this.stepService.goToPreviousStep();
   }
 
-  addPlan() {
-    this.addPlanClicked.next();
+  addPlan(securityType: PlanSecurityVM) {
+    this.addPlanClicked.emit(securityType);
   }
 
   editPlan(plan: NewPlan) {

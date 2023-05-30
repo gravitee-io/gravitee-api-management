@@ -18,6 +18,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { NewPlan, PlanSecurityType, PlanValidation } from '../../../../../../entities/plan-v4';
+import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../../../services-ngx/constants.service';
 
 @Component({
   selector: 'step-4-security-1-plans',
@@ -30,6 +31,8 @@ export class Step4Security1PlansComponent implements OnInit {
   public plans: NewPlan[] = [];
 
   public planToEdit: NewPlan | undefined = undefined;
+
+  securityType: PlanSecurityVM;
 
   constructor(private readonly stepService: ApiCreationStepService) {}
 
@@ -52,8 +55,9 @@ export class Step4Security1PlansComponent implements OnInit {
     }
   }
 
-  onAddPlanClicked() {
+  onAddPlanClicked(securityType: PlanSecurityVM) {
     this.planToEdit = undefined;
+    this.securityType = securityType;
     this.view = 'add';
   }
 
@@ -68,6 +72,7 @@ export class Step4Security1PlansComponent implements OnInit {
 
   onEditPlanClicked(plan: NewPlan) {
     this.planToEdit = plan;
+    this.securityType = PLAN_SECURITY_TYPES.find((vm) => vm.id === plan.security.type);
     this.view = 'edit';
   }
 

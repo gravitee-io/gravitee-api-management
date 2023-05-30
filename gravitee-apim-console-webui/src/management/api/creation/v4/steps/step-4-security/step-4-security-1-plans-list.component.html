@@ -18,7 +18,12 @@
 <div class="step-4-security-1-plans-list__header">
   <div class="step-4-security-1-plans-list__header__title">Your API plans</div>
 
-  <button mat-stroked-button type="button" (click)="addPlan()">Add plan</button>
+  <button mat-stroked-button type="button" aria-label="Add new plan" [matMenuTriggerFor]="menu">
+    <mat-icon svgIcon="gio:plus"></mat-icon>Add plan
+  </button>
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item *ngFor="let planSecurity of planSecurityOptions" (click)="addPlan(planSecurity)">{{ planSecurity.name }}</button>
+  </mat-menu>
 </div>
 <form [formGroup]="form" (ngSubmit)="save()">
   <table mat-table class="step-4-security-1-plans-list__table" [dataSource]="plans" aria-label="security plans">
