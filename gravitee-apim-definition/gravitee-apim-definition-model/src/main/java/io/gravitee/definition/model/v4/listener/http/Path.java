@@ -22,6 +22,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,6 +40,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @Schema(name = "PathV4")
+@Builder
 public class Path implements Serializable {
 
     public static final String DEFAULT_PATH = "/";

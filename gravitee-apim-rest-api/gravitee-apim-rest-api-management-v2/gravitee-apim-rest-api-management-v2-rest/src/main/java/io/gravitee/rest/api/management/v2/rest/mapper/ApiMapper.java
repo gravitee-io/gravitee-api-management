@@ -15,10 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
-import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -36,10 +32,11 @@ import org.slf4j.LoggerFactory;
 @Mapper(
     uses = {
         DateMapper.class,
-        FlowMapper.class,
         DefinitionContextMapper.class,
         EndpointMapper.class,
         EntrypointMapper.class,
+        FlowMapper.class,
+        ListenerMapper.class,
         PropertiesMapper.class,
         ResourceMapper.class,
     }
@@ -142,14 +139,6 @@ public interface ApiMapper {
         return convertedMap;
     }
 
-    // Listeners
-    io.gravitee.rest.api.management.v2.rest.model.HttpListener map(HttpListener httpListener);
-    io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener map(SubscriptionListener subscriptionListener);
-    io.gravitee.rest.api.management.v2.rest.model.TcpListener map(TcpListener tcpListener);
-    HttpListener map(io.gravitee.rest.api.management.v2.rest.model.HttpListener listener);
-    SubscriptionListener map(io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener listener);
-    TcpListener map(io.gravitee.rest.api.management.v2.rest.model.TcpListener listener);
-
     @Named("fromPaths")
     default Map<String, List<Rule>> fromPath(Map<String, List<io.gravitee.definition.model.Rule>> paths) {
         if (Objects.isNull(paths)) {
@@ -160,51 +149,6 @@ public interface ApiMapper {
             .stream()
             .map(entry -> Pair.of(entry.getKey(), this.mapRuleList(entry.getValue())))
             .collect(Collectors.toMap(m -> m.getKey(), m -> m.getValue()));
-    }
-
-    @Named("toListeners")
-    default List<Listener> toListeners(List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners) {
-        if (Objects.isNull(listeners)) {
-            return new ArrayList<>();
-        }
-        return listeners
-            .stream()
-            .map(listener -> {
-                if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.HttpListener) {
-                    return this.map(listener.getHttpListener());
-                }
-                if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener) {
-                    return this.map(listener.getSubscriptionListener());
-                }
-                if (listener.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.TcpListener) {
-                    return this.map(listener.getTcpListener());
-                }
-                return null;
-            })
-            .collect(Collectors.toList());
-    }
-
-    @Named("fromListeners")
-    default List<io.gravitee.rest.api.management.v2.rest.model.Listener> fromListeners(List<Listener> listeners) {
-        if (Objects.isNull(listeners)) {
-            return new ArrayList<>();
-        }
-
-        return listeners
-            .stream()
-            .map(listener -> {
-                if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.HTTP) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(this.map((HttpListener) listener));
-                }
-                if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.SUBSCRIPTION) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(this.map((SubscriptionListener) listener));
-                }
-                if (listener.getType() == io.gravitee.definition.model.v4.listener.ListenerType.TCP) {
-                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(this.map((TcpListener) listener));
-                }
-                return null;
-            })
-            .collect(Collectors.toList());
     }
 
     @Named("computeLinksFromApi")
