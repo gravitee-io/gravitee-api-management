@@ -27,9 +27,9 @@ import {
   Optional,
   ViewChild,
 } from '@angular/core';
-import { AbstractControl, ControlValueAccessor, FormGroup, NgControl, ValidationErrors, Validator } from '@angular/forms';
+import { AbstractControl, ControlValueAccessor, FormControl, FormGroup, NgControl, ValidationErrors, Validator } from '@angular/forms';
 import { asyncScheduler, Subject } from 'rxjs';
-import { distinctUntilChanged, map, observeOn, startWith, takeUntil, tap } from 'rxjs/operators';
+import { distinctUntilChanged, map, observeOn, takeUntil, tap } from 'rxjs/operators';
 import { MatStepper } from '@angular/material/stepper';
 import { GIO_FORM_FOCUS_INVALID_IGNORE_SELECTOR } from '@gravitee/ui-particles-angular';
 import { isEmpty, isEqual } from 'lodash';
@@ -39,7 +39,7 @@ import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-st
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 
 import { Api as ApiV3 } from '../../../../entities/api';
-import { ApiV4 } from '../../../../entities/management-api-v2';
+import { ApiV4, PlanSecurityType as PlanSecurityTypeRestV2 } from '../../../../entities/management-api-v2';
 import {
   NewPlan as NewPlanV3,
   Plan as PlanV3,
@@ -56,6 +56,7 @@ import {
 } from '../../../../entities/plan-v4';
 import { Flow, Step } from '../../../../entities/flow/flow';
 import { isApiV1V2FromMAPIV1 } from '../../../../util';
+import { PlanSecurityVM } from '../../../../services-ngx/constants.service';
 
 type InternalPlanFormValue = {
   general: {
@@ -70,7 +71,6 @@ type InternalPlanFormValue = {
     excludedGroups: string[];
   };
   secure: {
-    securityType: string;
     securityConfig: unknown;
     selectionRule: string;
   };
@@ -111,6 +111,9 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   @Input()
   mode: 'create' | 'edit';
+
+  @Input()
+  securityType: PlanSecurityVM;
 
   public isInit = false;
 
@@ -256,7 +259,12 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
     this.planForm = new FormGroup({
       general: this.planEditGeneralStepComponent.generalForm,
-      secure: this.planEditSecureStepComponent.secureForm,
+      secure:
+        this.planEditSecureStepComponent?.secureForm ??
+        new FormGroup({
+          securityConfig: new FormControl({}),
+          selectionRule: new FormControl(),
+        }),
       ...(this.mode === 'create' ? { restriction: this.planEditRestrictionStepComponent.restrictionForm } : {}),
     });
 
@@ -270,33 +278,23 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     }
     this.initialPlanFormValue = this.planForm.getRawValue();
 
-    if (this.mode === 'edit') {
-      this.planForm.get('secure').get('securityType').disable();
-    }
-
     if (this.isDisabled) {
       this.planForm.disable();
     }
 
-    this.planForm
-      .get('secure')
-      .get('securityType')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.planForm.get('secure').get('securityType').value))
-      .subscribe((securityType) => {
-        // Display subscriptions section only for none KEY_LESS security type
-        this.displaySubscriptionsSection = securityType !== 'KEY_LESS';
+    // Display subscriptions section only for none KEY_LESS security type
+    this.displaySubscriptionsSection = this.securityType.id !== 'KEY_LESS';
 
-        // Disable unnecessary fields with KEY_LESS security type
-        if (securityType === 'KEY_LESS') {
-          this.planForm.get('general').get('commentRequired').disable();
-          this.planForm.get('general').get('commentRequired').setValue(false);
-          this.planForm.get('general').get('autoValidation').disable();
-          this.planForm.get('general').get('autoValidation').setValue(false);
-          return;
-        }
-        !this.isDisabled && this.planForm.get('general').get('commentRequired').enable();
-        !this.isDisabled && this.planForm.get('general').get('autoValidation').enable();
-      });
+    // Disable unnecessary fields with KEY_LESS security type
+    if (this.securityType.id === 'KEY_LESS') {
+      this.planForm.get('general').get('commentRequired').disable();
+      this.planForm.get('general').get('commentRequired').setValue(false);
+      this.planForm.get('general').get('autoValidation').disable();
+      this.planForm.get('general').get('autoValidation').setValue(false);
+    } else {
+      !this.isDisabled && this.planForm.get('general').get('commentRequired').enable();
+      !this.isDisabled && this.planForm.get('general').get('autoValidation').enable();
+    }
 
     // After init internal planForm. Subscribe to it and emit changes when needed
     this.planForm.valueChanges
@@ -317,8 +315,8 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   private getPlan() {
     return this.isV3Api
-      ? internalFormValueToPlanV3(this.planForm.getRawValue(), this.mode)
-      : internalFormValueToPlanV4(this.planForm.getRawValue(), this.mode);
+      ? internalFormValueToPlanV3(this.planForm.getRawValue(), this.mode, this.securityType.id)
+      : internalFormValueToPlanV4(this.planForm.getRawValue(), this.mode, this.securityType.id);
   }
 
   private isPlanV3(plan: InternalPlanValue): plan is InternalPlanV3Value {
@@ -344,7 +342,6 @@ const planV3ToInternalFormValue = (plan: InternalPlanV3Value | undefined): Inter
       excludedGroups: plan.excluded_groups,
     },
     secure: {
-      securityType: plan.security,
       securityConfig: plan.securityDefinition,
       selectionRule: plan.selection_rule,
     },
@@ -369,14 +366,17 @@ const planV4ToInternalFormValue = (plan: InternalPlanV4Value | undefined): Inter
       excludedGroups: plan.excluded_groups,
     },
     secure: {
-      securityType: plan.security.type,
       securityConfig: plan.security.configuration,
       selectionRule: plan.selection_rule,
     },
   };
 };
 
-const internalFormValueToPlanV3 = (value: InternalPlanFormValue, mode: 'create' | 'edit'): InternalPlanV3Value => {
+const internalFormValueToPlanV3 = (
+  value: InternalPlanFormValue,
+  mode: 'create' | 'edit',
+  securityType: PlanSecurityTypeRestV2,
+): InternalPlanV3Value => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): Flow[] => {
     const restrictionPolicies: Step[] = [
@@ -437,7 +437,7 @@ const internalFormValueToPlanV3 = (value: InternalPlanFormValue, mode: 'create' 
     excluded_groups: value.general.excludedGroups,
 
     // Secure
-    security: value.secure.securityType as PlanSecurityTypeV3,
+    security: securityType as PlanSecurityTypeV3,
     securityDefinition: JSON.stringify(value.secure.securityConfig), // TODO: remove stringify when rest-api-v2 implemented
     selection_rule: value.secure.selectionRule,
 
@@ -446,7 +446,11 @@ const internalFormValueToPlanV3 = (value: InternalPlanFormValue, mode: 'create' 
   };
 };
 
-const internalFormValueToPlanV4 = (value: InternalPlanFormValue, mode: 'create' | 'edit'): InternalPlanV4Value => {
+const internalFormValueToPlanV4 = (
+  value: InternalPlanFormValue,
+  mode: 'create' | 'edit',
+  securityType: PlanSecurityTypeRestV2,
+): InternalPlanV4Value => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): FlowV4[] => {
     const restrictionPolicies: FlowStep[] = [
@@ -504,7 +508,7 @@ const internalFormValueToPlanV4 = (value: InternalPlanFormValue, mode: 'create' 
 
     // Secure
     security: {
-      type: value.secure.securityType as PlanSecurityTypeV4,
+      type: securityType as PlanSecurityTypeV4,
       configuration: value.secure.securityConfig,
     },
     selection_rule: value.secure.selectionRule,

@@ -29,12 +29,12 @@
     ></plan-edit-general-step>
   </mat-step>
 
-  <mat-step state="secure" [stepControl]="planForm.get('secure')">
+  <mat-step *ngIf="securityType.id !== 'KEY_LESS'" state="secure" [stepControl]="planForm.get('secure')">
     <ng-template matStepperIcon="secure">
       <mat-icon svgIcon="gio:lock"></mat-icon>
     </ng-template>
-    <ng-template matStepLabel>Secure</ng-template>
-    <plan-edit-secure-step matStepContent [api]="api"></plan-edit-secure-step>
+    <ng-template matStepLabel>{{ securityType.name }} authentication configuration</ng-template>
+    <plan-edit-secure-step matStepContent [api]="api" [securityType]="securityType"></plan-edit-secure-step>
   </mat-step>
 
   <mat-step *ngIf="mode === 'create'" state="restriction" [stepControl]="planForm.get('restriction')">

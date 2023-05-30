@@ -16,15 +16,8 @@
 
 -->
 <ng-container *ngIf="secureForm" [formGroup]="secureForm">
-  <mat-form-field class="securityType-field">
-    <mat-label>Authentication type</mat-label>
-    <mat-select formControlName="securityType" required>
-      <mat-option *ngFor="let type of securityTypes" [value]="type.id">{{ type.name }}</mat-option>
-    </mat-select>
-  </mat-form-field>
-
-  <ng-container *ngIf="securityConfigSchema$ | async as securityConfigSchema">
-    <h2>Authentication configuration</h2>
+  <ng-container>
+    <h2 id="security-configuration-title">{{ securityType.name }} authentication configuration</h2>
 
     <gio-form-json-schema
       *ngIf="securityConfigSchema"
