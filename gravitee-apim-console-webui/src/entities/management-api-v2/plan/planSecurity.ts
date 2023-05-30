@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+import { PlanSecurityType } from './planSecurityType';
+
 export interface PlanSecurity {
   /**
    * The type of the plan security
    */
-  type: string;
+  type: PlanSecurityType;
   configuration?: any;
 }
