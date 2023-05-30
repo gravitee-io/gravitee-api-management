@@ -80,7 +80,7 @@ import org.junit.Test;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
+public class ApiResource_ExportApiDefinitionTest extends AbstractResourceTest {
 
     private static final String API_ID = "my-api";
     private static final String ENVIRONMENT_ID = "my-env";
@@ -111,7 +111,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         doReturn(false)
             .when(permissionService)
             .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API_ID, RolePermissionAction.READ);
-        Response response = rootTarget().request().post(null);
+        Response response = rootTarget().request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
@@ -120,7 +120,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         doThrow(new ApiDefinitionVersionNotSupportedException("2.0.0"))
             .when(apiImportExportService)
             .exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
-        Response response = rootTarget().request().post(null);
+        Response response = rootTarget().request().get();
         assertEquals(BAD_REQUEST_400, response.getStatus());
     }
 
@@ -130,7 +130,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
             .when(apiImportExportService)
             .exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
 
-        Response response = rootTarget().request().post(null);
+        Response response = rootTarget().request().get();
         assertEquals(OK_200, response.getStatus());
 
         final ExportApiV4 export = response.readEntity(ExportApiV4.class);

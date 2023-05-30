@@ -176,9 +176,9 @@ public class ApiResource extends AbstractResource {
     }
 
     @POST
+    @Path("/deployments")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/deployments")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response deployApi(@PathParam("apiId") String apiId, @Valid final ApiDeploymentEntity apiDeploymentEntity) {
         try {
@@ -198,9 +198,9 @@ public class ApiResource extends AbstractResource {
         }
     }
 
+    @GET
     @Path("/_export/definition")
     @Produces(MediaType.APPLICATION_JSON)
-    @POST
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
     public Response exportApiDefinition(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
         ExportApiEntity exportApiEntity = apiImportExportService.exportApi(
@@ -215,8 +215,8 @@ public class ApiResource extends AbstractResource {
             .build();
     }
 
-    @Path("/_start")
     @POST
+    @Path("/_start")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response startAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
         GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
@@ -232,8 +232,8 @@ public class ApiResource extends AbstractResource {
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
     }
 
-    @Path("/_stop")
     @POST
+    @Path("/_stop")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response stopAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
         GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
