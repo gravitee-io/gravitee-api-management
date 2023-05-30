@@ -42,6 +42,7 @@ public class Entrypoint implements Serializable {
     @NotEmpty
     private String type;
 
+    @Builder.Default
     private Qos qos = Qos.AUTO;
 
     private Dlq dlq;
