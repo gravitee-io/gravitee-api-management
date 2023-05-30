@@ -44,7 +44,7 @@ public abstract class ApiPlansResourceTest extends AbstractResourceTest {
 
     @Before
     public void init() throws TechnicalException {
-        Mockito.reset(planServiceV4, apiSearchServiceV4, planSearchService);
+        Mockito.reset(planServiceV4, planServiceV2, apiSearchServiceV4, planSearchService);
         GraviteeContext.cleanContext();
 
         Api api = new Api();

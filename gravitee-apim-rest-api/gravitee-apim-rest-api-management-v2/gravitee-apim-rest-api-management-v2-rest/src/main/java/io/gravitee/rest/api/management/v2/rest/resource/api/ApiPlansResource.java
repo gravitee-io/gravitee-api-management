@@ -208,19 +208,22 @@ public class ApiPlansResource extends AbstractResource {
     }
 
     @POST
-    @Path("/{plan}/_close")
+    @Path("/{planId}/_close")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
-    public Response closeApiPlan(@PathParam("plan") String plan) {
+    public Response closeApiPlan(@PathParam("planId") String planId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planServiceV4.findById(executionContext, plan);
+        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
+
         if (!planEntity.getApiId().equals(apiId)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
+            return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        PlanEntity closedPlan = planServiceV4.close(executionContext, plan);
+        if (planEntity instanceof PlanEntity) {
+            return Response.ok(planMapper.convert(planServiceV4.close(executionContext, planId))).build();
+        }
 
-        return Response.ok(planMapper.convert(closedPlan)).build();
+        return Response.ok(planMapper.convert(planServiceV2.close(executionContext, planId))).build();
     }
 
     @POST
