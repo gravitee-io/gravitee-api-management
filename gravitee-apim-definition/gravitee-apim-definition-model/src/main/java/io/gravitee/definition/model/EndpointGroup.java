@@ -20,11 +20,18 @@ import io.gravitee.common.http.HttpHeader;
 import io.gravitee.definition.model.services.Services;
 import java.io.Serializable;
 import java.util.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 public class EndpointGroup implements Serializable {
 
     @JsonProperty("name")
@@ -34,15 +41,18 @@ public class EndpointGroup implements Serializable {
     private Set<Endpoint> endpoints;
 
     @JsonProperty("load_balancing")
+    @Builder.Default
     private LoadBalancer loadBalancer = new LoadBalancer();
 
     @JsonProperty("services")
+    @Builder.Default
     private Services services = new Services();
 
     @JsonProperty("proxy")
     private HttpProxy httpProxy;
 
     @JsonProperty("http")
+    @Builder.Default
     private HttpClientOptions httpClientOptions = new HttpClientOptions();
 
     @JsonProperty("ssl")

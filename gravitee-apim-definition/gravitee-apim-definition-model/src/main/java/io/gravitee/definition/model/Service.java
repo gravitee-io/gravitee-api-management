@@ -18,11 +18,13 @@ package io.gravitee.definition.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.util.Objects;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuperBuilder
 public abstract class Service implements Serializable {
 
     private final String name;

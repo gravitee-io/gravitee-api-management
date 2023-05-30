@@ -17,11 +17,15 @@ package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuperBuilder
+@NoArgsConstructor
 public class LoadBalancer implements Serializable {
 
     @JsonProperty("type")

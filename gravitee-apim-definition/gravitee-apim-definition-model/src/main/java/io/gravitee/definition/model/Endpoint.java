@@ -23,11 +23,15 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@AllArgsConstructor
 public class Endpoint implements Serializable {
 
     private static final String DEFAULT_TYPE = "http";
@@ -49,6 +53,7 @@ public class Endpoint implements Serializable {
     private boolean backup;
 
     @JsonIgnore
+    @Builder.Default
     private Status status = Status.UP;
 
     @JsonProperty("tenants")
@@ -65,6 +70,10 @@ public class Endpoint implements Serializable {
 
     @JsonIgnore
     private transient String configuration;
+
+    public Endpoint() {
+        this(null, null, null);
+    }
 
     public Endpoint(String name, String target) {
         this(null, name, target);
