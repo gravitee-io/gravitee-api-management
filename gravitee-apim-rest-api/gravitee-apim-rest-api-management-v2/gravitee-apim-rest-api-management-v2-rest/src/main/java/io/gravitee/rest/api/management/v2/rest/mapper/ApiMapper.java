@@ -33,7 +33,7 @@ import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mapper(uses = { DateMapper.class, FlowMapper.class, ConnectorMapper.class, DefinitionContextMapper.class, EntrypointMapper.class, ResourceMapper.class })
+@Mapper(uses = { DateMapper.class, FlowMapper.class, ConnectorMapper.class, DefinitionContextMapper.class, EntrypointMapper.class, PropertiesMapper.class, ResourceMapper.class })
 public interface ApiMapper {
     Logger logger = LoggerFactory.getLogger(ApiMapper.class);
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
@@ -130,16 +130,6 @@ public interface ApiMapper {
         Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> convertedMap = new HashMap<>();
         value.forEach((key, map) -> convertedMap.put(key, convertToResponseTemplateModel(map)));
         return convertedMap;
-    }
-
-    // Properties
-    List<Property> map(List<io.gravitee.definition.model.Property> properties);
-
-    default List<Property> map(io.gravitee.definition.model.Properties properties) {
-        if (properties == null) {
-            return null;
-        }
-        return this.map(properties.getProperties());
     }
 
     // Listeners

@@ -17,13 +17,17 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Property;
+import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author GraviteeSource Team
  */
+@SuperBuilder
 public class PropertyEntity extends Property {
 
     @JsonProperty(value = "encryptable")
+    @Builder.Default
     private boolean encryptable = false;
 
     public PropertyEntity() {

@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Builder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,6 +35,13 @@ public class Properties implements Serializable {
 
     @JsonIgnore
     private Map<String, String> entries;
+
+    public Properties() {}
+
+    @Builder
+    public Properties(List<Property> properties) {
+        this.properties = properties;
+    }
 
     public void setProperties(List<Property> properties) {
         this.properties = properties;
