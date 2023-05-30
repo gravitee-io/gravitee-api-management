@@ -35,6 +35,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -63,6 +64,7 @@ import lombok.ToString;
     },
     oneOf = { HttpListener.class, TcpListener.class, SubscriptionListener.class }
 )
+@SuperBuilder
 public abstract class Listener implements Serializable {
 
     public static final String HTTP_LABEL = "http";
