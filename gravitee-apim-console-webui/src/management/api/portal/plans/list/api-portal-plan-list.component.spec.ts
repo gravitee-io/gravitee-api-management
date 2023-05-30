@@ -25,7 +25,8 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
-import { castArray } from 'lodash';
+import { castArray, set } from 'lodash';
+import { MatMenuHarness } from '@angular/material/menu/testing';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list.component';
 
@@ -65,12 +66,40 @@ describe('ApiPortalPlanListComponent', () => {
             isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
           },
         },
+        {
+          provide: 'Constants',
+          useFactory: () => {
+            const constants = CONSTANTS_TESTING;
+            set(constants, 'env.settings.plan.security', {
+              apikey: {
+                enabled: true,
+              },
+              jwt: {
+                enabled: true,
+              },
+              keyless: {
+                enabled: true,
+              },
+              oauth2: {
+                enabled: true,
+              },
+              customApiKey: {
+                enabled: true,
+              },
+              sharedApiKey: {
+                enabled: true,
+              },
+            });
+            return constants;
+          },
+        },
       ],
     }).compileComponents();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    httpTestingController.verify();
   });
 
   describe('plansTable tests', () => {
@@ -181,7 +210,11 @@ describe('ApiPortalPlanListComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());
 
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plan.new');
+      const planSecurityDropdown = await loader.getHarness(MatMenuHarness);
+      expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
+
+      await planSecurityDropdown.clickItem({ text: 'Keyless (public)' });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plan.new', { securityType: 'KEY_LESS' });
     });
 
     it('should navigate to edit when click on the name', async () => {

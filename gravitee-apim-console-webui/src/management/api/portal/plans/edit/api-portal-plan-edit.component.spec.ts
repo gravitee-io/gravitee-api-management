@@ -52,7 +52,7 @@ describe('ApiPortalPlanEditComponent', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalPlansModule, MatIconTestingModule],
       providers: [
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, planId } },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID, planId, securityType: 'JWT' } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         {
           provide: 'Constants',
@@ -100,11 +100,9 @@ describe('ApiPortalPlanEditComponent', () => {
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [{ id: 'doc-1', name: 'Doc 1' }]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('jwt', {});
 
-      await planForm.fillRequiredFields({
-        name: 'My plan',
-        securityTypeLabel: /Keyless/,
-      });
+      await planForm.getNameInput().then((i) => i.setValue('My new plan'));
 
       // Click on Next buttons to display Save one
       await loader.getHarness(MatButtonHarness.with({ text: 'Next' })).then((b) => b.click());
@@ -115,7 +113,7 @@ describe('ApiPortalPlanEditComponent', () => {
       const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans`, method: 'POST' });
 
       expect(req.request.body).toEqual({
-        name: 'My plan',
+        name: 'My new plan',
         description: '',
         comment_message: '',
         comment_required: false,
@@ -124,7 +122,7 @@ describe('ApiPortalPlanEditComponent', () => {
         characteristics: [],
         excluded_groups: [],
         tags: [],
-        security: 'KEY_LESS',
+        security: 'JWT',
         securityDefinition: '{}',
         selection_rule: null,
         flows: [
@@ -223,9 +221,6 @@ describe('ApiPortalPlanEditComponent', () => {
 
       const nameInput = await planForm.getNameInput();
       expect(await nameInput.isDisabled()).toEqual(true);
-
-      const securityTypeInput = await planForm.getSecurityTypeInput();
-      expect(await securityTypeInput.isDisabled()).toEqual(true);
     });
   });
 
