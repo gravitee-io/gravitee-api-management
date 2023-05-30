@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore;
 import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore;
 import java.io.Serializable;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -39,6 +40,7 @@ import lombok.Getter;
     }
 )
 @Getter
+@SuperBuilder
 public abstract class TrustStore implements Serializable {
 
     private static final long serialVersionUID = -9209765483153309314L;

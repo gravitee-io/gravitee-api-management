@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.KeyStoreType;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -27,6 +28,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@SuperBuilder
 public class PEMKeyStore extends KeyStore {
 
     private static final long serialVersionUID = 1051430527272519608L;

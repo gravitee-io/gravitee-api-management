@@ -17,7 +17,9 @@ package io.gravitee.definition.model.ssl.none;
 
 import io.gravitee.definition.model.ssl.TrustStore;
 import io.gravitee.definition.model.ssl.TrustStoreType;
+import lombok.experimental.SuperBuilder;
 
+@SuperBuilder
 public class NoneTrustStore extends TrustStore {
 
     public NoneTrustStore(TrustStoreType type) {

@@ -2954,6 +2954,7 @@ components:
                 - $ref: "#/components/schemas/JKSKeyStore"
                 - $ref: "#/components/schemas/PEMKeyStore"
                 - $ref: "#/components/schemas/PKCS12KeyStore"
+                - $ref: "#/components/schemas/NoneKeyStore"
         KeyStoreType:
             type: string
             description: The type of the key store.
@@ -2974,11 +2975,14 @@ components:
                     JKS: "#/components/schemas/JKSKeyStore"
                     PEM: "#/components/schemas/PEMKeyStore"
                     PKCS12: "#/components/schemas/PKCS12KeyStore"
-                    None: "#/components/schemas/NoneKeyStore"
+                    NONE: "#/components/schemas/NoneKeyStore"
         JKSKeyStore:
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
                 - properties:
+                      alias:
+                          type: string
+                          description: The alias of the key store
                       path:
                           type: string
                           description: The path of the key store
@@ -2989,21 +2993,35 @@ components:
                       password:
                           type: string
                           description: The password of the key store
+                      keyPassword:
+                          type: string
+                          description: The key password of the key store
+
         PEMKeyStore:
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
                 - properties:
-                      path:
+                      keyPath:
                           type: string
                           description: The path of the key store
                           example: /path/to/KeyStore.pem
-                      content:
+                      keyContent:
+                          type: string
+                          description: The content of the key store
+                      certPath:
+                          type: string
+                          description: The path of the key store
+                          example: /path/to/KeyStore.pem
+                      certContent:
                           type: string
                           description: The content of the key store
         PKCS12KeyStore:
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
                 - properties:
+                      alias:
+                          type: string
+                          description: The alias of the key store
                       path:
                           type: string
                           description: The path of the key store
@@ -3014,6 +3032,9 @@ components:
                       password:
                           type: string
                           description: The password of the key store
+                      keyPassword:
+                          type: string
+                          description: The key password of the key store
         NoneKeyStore:
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
@@ -3136,6 +3157,7 @@ components:
                 - $ref: "#/components/schemas/JKSTrustStore"
                 - $ref: "#/components/schemas/PEMTrustStore"
                 - $ref: "#/components/schemas/PKCS12TrustStore"
+                - $ref: "#/components/schemas/NoneTrustStore"
         TrustStoreType:
             type: string
             description: The type of the trust store.
@@ -3156,11 +3178,14 @@ components:
                     JKS: "#/components/schemas/JKSTrustStore"
                     PEM: "#/components/schemas/PEMTrustStore"
                     PKCS12: "#/components/schemas/PKCS12TrustStore"
-                    None: "#/components/schemas/NoneTrustStore"
+                    NONE: "#/components/schemas/NoneTrustStore"
         JKSTrustStore:
             allOf:
                 - $ref: "#/components/schemas/BaseTrustStore"
                 - properties:
+                      alias:
+                          type: string
+                          description: The alias of the trust store
                       path:
                           type: string
                           description: The path of the trust store
@@ -3186,6 +3211,9 @@ components:
             allOf:
                 - $ref: "#/components/schemas/BaseTrustStore"
                 - properties:
+                      alias:
+                          type: string
+                          description: The alias of the trust store
                       path:
                           type: string
                           description: The path of the trust store
