@@ -66,7 +66,7 @@ function apisPortalRouterConfig($stateProvider) {
       url: '/plan',
     })
     .state('management.apis.detail.portal.plan.new', {
-      url: '/new',
+      url: '/new?securityType',
       component: 'ngApiPortalPlanEdit',
       data: {
         useAngularMaterial: true,
@@ -75,6 +75,11 @@ function apisPortalRouterConfig($stateProvider) {
         },
         docs: {
           page: 'management-api-plans-wizard',
+        },
+      },
+      params: {
+        securityType: {
+          dynamic: true,
         },
       },
     })

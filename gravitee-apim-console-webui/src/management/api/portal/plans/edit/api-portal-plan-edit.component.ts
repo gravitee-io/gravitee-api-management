@@ -27,6 +27,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { NewPlan, Plan } from '../../../../../entities/plan';
 import { ApiPlanFormComponent } from '../../../component/plan/api-plan-form.component';
+import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../../services-ngx/constants.service';
 
 @Component({
   selector: 'api-portal-plan-edit',
@@ -42,7 +43,7 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
   public initialPlanFormValue: unknown;
   public api: Api;
   public isReadOnly = false;
-  public displaySubscriptionsSection = true;
+  public planSecurity: PlanSecurityVM;
 
   @ViewChild('apiPlanForm')
   private apiPlanForm: ApiPlanFormComponent;
@@ -78,14 +79,20 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
               disabled: this.isReadOnly,
             }),
           });
-          this.changeDetectorRef.detectChanges();
         }),
         catchError((error) => {
-          this.snackBarService.error(error.error?.message ?? 'An ');
+          this.snackBarService.error(error.error?.message ?? 'An error occurred.');
           return EMPTY;
         }),
       )
-      .subscribe();
+      .subscribe(() => {
+        if (this.mode === 'edit') {
+          this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === this.planForm.value.plan.security);
+        } else {
+          this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === this.ajsStateParams.securityType);
+        }
+        this.changeDetectorRef.detectChanges();
+      });
   }
 
   ngOnDestroy() {

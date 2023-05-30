@@ -36,6 +36,7 @@ import { SubscriptionService } from '../../../../../services-ngx/subscription.se
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { Plan, PlanSecurityType, PlanStatus, PLAN_STATUS } from '../../../../../entities/plan';
+import { ConstantsService, PlanSecurityVM } from '../../../../../services-ngx/constants.service';
 
 @Component({
   selector: 'api-portal-plan-list',
@@ -52,12 +53,14 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   public status: PlanStatus;
   public isReadOnly = false;
   public isV2Api: boolean;
+  public planSecurityOptions: PlanSecurityVM[];
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(AjsRootScope) private readonly ajsRootScope: IRootScopeService,
     private readonly plansService: PlanService,
+    private readonly constantsService: ConstantsService,
     private readonly apiService: ApiService,
     private readonly subscriptionService: SubscriptionService,
     private readonly permissionService: GioPermissionService,
@@ -67,6 +70,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.status = this.ajsStateParams.status ?? 'PUBLISHED';
+    this.planSecurityOptions = this.constantsService.getEnabledPlanSecurityTypes();
 
     this.apiService
       .get(this.ajsStateParams.apiId)
@@ -127,8 +131,8 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.detail.portal.plan.edit', { planId });
   }
 
-  public navigateToNewPlan(): void {
-    this.ajsState.go('management.apis.detail.portal.plan.new');
+  public navigateToNewPlan(securityType: string): void {
+    this.ajsState.go('management.apis.detail.portal.plan.new', { securityType });
   }
 
   public designPlan(planId: string): void {

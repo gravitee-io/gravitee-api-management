@@ -26,6 +26,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { ApiPortalPlanListComponent } from './list/api-portal-plan-list.component';
 import { ApiPortalPlanEditComponent } from './edit/api-portal-plan-edit.component';
@@ -57,6 +58,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     GioFormFocusInvalidModule,
 
     ApiPlanFormModule,
+    MatMenuModule,
   ],
 })
 export class ApiPortalPlansModule {}
