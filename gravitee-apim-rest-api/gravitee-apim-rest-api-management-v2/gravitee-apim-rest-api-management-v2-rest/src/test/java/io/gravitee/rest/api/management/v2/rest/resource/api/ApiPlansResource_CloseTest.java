@@ -15,54 +15,120 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import fixtures.PlanFixtures;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV2;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ApiPlansResource_CloseTest extends ApiPlansResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/apis/" + API + "/plans";
+        return "/environments/" + ENVIRONMENT + "/apis/" + API + "/plans" + "/" + PLAN + "/_close";
+    }
+
+    @Autowired
+    private PlanSearchService planSearchService;
+
+    @Test
+    public void should_return_404_if_not_found() {
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenThrow(new PlanNotFoundException(PLAN));
+
+        final Response response = rootTarget().request().post(Entity.json(null));
+        assertEquals(NOT_FOUND_404, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
+        assertEquals("Plan [" + PLAN + "] cannot be found.", error.getMessage());
+
+        verify(planServiceV4, never()).close(any(), any());
+        verify(planServiceV2, never()).close(any(), any());
     }
 
     @Test
-    public void shouldCloseApiPlan() {
-        ApiEntity api = getApi();
+    public void should_return_404_if_plan_associated_to_another_api() {
+        final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId("ANOTHER-API").build();
 
-        PlanEntity existingPlan = new PlanEntity();
-        existingPlan.setName(PLAN);
-        existingPlan.setApiId(API);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
 
-        PlanEntity closedPlan = new PlanEntity();
-        closedPlan.setId("closed-plan-id");
-        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(api);
-        doReturn(existingPlan).when(planServiceV4).findById(GraviteeContext.getExecutionContext(), PLAN);
-        when(planServiceV4.close(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(closedPlan);
+        final Response response = rootTarget().request().post(Entity.json(null));
+        assertEquals(NOT_FOUND_404, response.getStatus());
 
-        final Response response = rootTarget().path(PLAN).path("_close").request().post(Entity.json(""));
+        var error = response.readEntity(Error.class);
+        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
+        assertEquals("Plan [" + PLAN + "] cannot be found.", error.getMessage());
 
-        assertEquals(OK_200, response.getStatus());
-        verify(planServiceV4, times(1)).close(eq(GraviteeContext.getExecutionContext()), eq(PLAN));
+        verify(planServiceV4, never()).close(any(), any());
+        verify(planServiceV2, never()).close(any(), any());
     }
 
     @Test
-    public void shouldNotClosePlanWithInsufficientRights() {
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_PLAN), eq(API), any());
+    public void should_return_403_if_incorrect_permissions() {
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_PLAN),
+                eq(API),
+                eq(RolePermissionAction.UPDATE)
+            )
+        )
+            .thenReturn(false);
 
-        final Response response = rootTarget().path(PLAN).path("_close").request().post(Entity.json(""));
+        final Response response = rootTarget().request().post(Entity.json(null));
         assertEquals(FORBIDDEN_403, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(FORBIDDEN_403, (int) error.getHttpStatus());
+        assertEquals("You do not have sufficient rights to access this resource", error.getMessage());
+
+        verify(planServiceV4, never()).close(any(), any());
+        verify(planServiceV2, never()).close(any(), any());
+    }
+
+    @Test
+    public void should_return_plan_when_v4_plan_closed() {
+        final PlanEntity planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).apiId(API).build();
+
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+        when(planServiceV4.close(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+
+        final Response response = rootTarget().request().post(Entity.json(null));
+        assertEquals(OK_200, response.getStatus());
+
+        var plan = response.readEntity(PlanV4.class);
+        assertEquals(planEntity.getId(), plan.getId());
+
+        verify(planServiceV4, times(1)).close(GraviteeContext.getExecutionContext(), PLAN);
+    }
+
+    @Test
+    public void should_return_plan_when_v2_plan_closed() {
+        final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
+
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+        when(planServiceV2.close(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+
+        final Response response = rootTarget().request().post(Entity.json(null));
+        assertEquals(OK_200, response.getStatus());
+
+        var plan = response.readEntity(PlanV2.class);
+        assertEquals(planEntity.getId(), plan.getId());
+
+        verify(planServiceV2, times(1)).close(GraviteeContext.getExecutionContext(), PLAN);
     }
 }

@@ -596,7 +596,8 @@ paths:
                 - API Plans
             summary: Close an API's plan
             description: |-
-                # FIXME add a description
+                Close the API's plan by its identifier
+                User must have the API_PLAN[UPDATE] permission.
             operationId: closeApiPlan
             responses:
                 "200":
