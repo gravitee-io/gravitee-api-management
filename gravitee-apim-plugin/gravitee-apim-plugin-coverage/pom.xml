@@ -45,7 +45,7 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
-            <artifactId>gravitee-apim-plugin-entrypoint-http-get</artifactId>
+            <artifactId>gravitee-apim-plugin-entrypoint-webhook</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

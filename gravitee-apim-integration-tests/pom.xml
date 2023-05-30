@@ -122,12 +122,6 @@
         <!-- Entrypoints -->
         <dependency>
             <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
-            <artifactId>gravitee-apim-plugin-entrypoint-http-get</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
             <artifactId>gravitee-apim-plugin-entrypoint-websocket</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -464,6 +458,12 @@
             <scope>test</scope>
         </dependency>
         <!-- Entrypoints -->
+        <dependency>
+            <groupId>com.graviteesource.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-http-get</artifactId>
+            <version>${gravitee-entrypoint-http-get.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.graviteesource.entrypoint</groupId>
             <artifactId>gravitee-entrypoint-http-post</artifactId>

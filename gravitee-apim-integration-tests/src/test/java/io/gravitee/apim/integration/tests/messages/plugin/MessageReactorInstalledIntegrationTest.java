@@ -17,6 +17,7 @@ package io.gravitee.apim.integration.tests.messages.plugin;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -28,7 +29,6 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
-import io.gravitee.plugin.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
