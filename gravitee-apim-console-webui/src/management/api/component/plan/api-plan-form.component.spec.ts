@@ -35,18 +35,22 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { fakeGroup } from '../../../../entities/group/group.fixture';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
 import { fakeApi as fakeApiV3 } from '../../../../entities/api/Api.fixture';
-import { fakeApiV4, ApiV4 } from '../../../../entities/management-api-v2';
+import { fakeApiV4, ApiV4, PlanSecurityType as PlanSecurityTypeV2 } from '../../../../entities/management-api-v2';
 import { Api as ApiV3 } from '../../../../entities/api';
 import { Plan, PlanSecurityType } from '../../../../entities/plan';
 import { fakePlan as fakePlanV3 } from '../../../../entities/plan/plan.fixture';
 import { fakeV4Plan as fakePlanV4 } from '../../../../entities/plan-v4/plan.fixture';
+import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../services-ngx/constants.service';
 
 @Component({
-  template: ` <api-plan-form #apiPlanForm [formControl]="planControl" [mode]="mode" [api]="api"></api-plan-form> `,
+  template: `
+    <api-plan-form #apiPlanForm [formControl]="planControl" [mode]="mode" [api]="api" [securityType]="securityType"></api-plan-form>
+  `,
 })
 class TestComponent {
   @ViewChild('apiPlanForm') apiPlanForm: ApiPlanFormComponent;
   mode: 'create' | 'edit' = 'create';
+  securityType: PlanSecurityVM;
   planControl = new FormControl();
   api?: ApiV3 | ApiV4;
   plan?: Plan;
@@ -73,7 +77,7 @@ describe('ApiPlanFormComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const configureTestingModule = (mode: 'create' | 'edit', api?: ApiV3 | ApiV4) => {
+  const configureTestingModule = (mode: 'create' | 'edit', securityType: PlanSecurityTypeV2, api?: ApiV3 | ApiV4) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [ReactiveFormsModule, NoopAnimationsModule, GioHttpTestingModule, ApiPlanFormModule, MatIconTestingModule],
@@ -99,6 +103,7 @@ describe('ApiPlanFormComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     testComponent = fixture.componentInstance;
     testComponent.mode = mode;
+    testComponent.securityType = PLAN_SECURITY_TYPES.find((vm) => vm.id === securityType);
     testComponent.api = api;
   };
 
@@ -107,212 +112,507 @@ describe('ApiPlanFormComponent', () => {
   });
 
   describe('Create mode V3 with API', () => {
-    const TAG_1_ID = 'tag-1';
-    const API = fakeApiV3({
-      tags: [TAG_1_ID],
-      resources: [
-        {
-          name: 'OAuth2 AM Resource',
-          enabled: true,
-          type: 'oauth2-am',
-          configuration: {},
-        },
-      ],
-    });
-    beforeEach(async () => {
-      configureTestingModule('create', API);
-      fixture.detectChanges();
-    });
-
-    it('should add new plan', async () => {
-      loader = TestbedHarnessEnvironment.loader(fixture);
-      const planForm = await loader.getHarness(ApiPlanFormHarness);
-
-      planForm
-        .httpRequest(httpTestingController)
-        .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
-      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      fixture.detectChanges();
-
-      expect(testComponent.planControl.touched).toEqual(false);
-      expect(testComponent.planControl.dirty).toEqual(false);
-      expect(testComponent.planControl.valid).toEqual(false);
-
-      // 1- General Step
-      const nameInput = await planForm.getNameInput();
-      await nameInput.setValue('🗺');
-
-      const descriptionInput = await planForm.getDescriptionInput();
-      await descriptionInput.setValue('Description');
-
-      const characteristicsInput = await planForm.getCharacteristicsInput();
-      await characteristicsInput.addTag('C1');
-
-      const generalConditionsInput = await planForm.getGeneralConditionsInput();
-      await generalConditionsInput.clickOptions({ text: 'Doc 1' });
-
-      const validationToggle = await planForm.getValidationToggle();
-      await validationToggle.toggle();
-
-      const commentRequired = await planForm.getCommentRequiredToggle();
-      await commentRequired.toggle();
-
-      const commentMessageInput = await planForm.getCommentMessageInput();
-      await commentMessageInput.setValue('Comment message');
-
-      const shardingTagsInput = await planForm.getShardingTagsInput();
-      await shardingTagsInput.clickOptions({ text: /Tag 1/ });
-      await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
-
-      const excludedGroupsInput = await planForm.getExcludedGroupsInput();
-      await excludedGroupsInput.clickOptions({ text: 'Group A' });
-
-      expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
-      expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(false);
-      testComponent.apiPlanForm.nextStep();
-      fixture.detectChanges();
-
-      // 2- Secure Step
-      const securityTypeInput = await planForm.getSecurityTypeInput();
-      await securityTypeInput.clickOptions({ text: /JWT/ });
-      await securityTypeInput.getOptions({ text: /OAuth2/ }).then((options) => expect(options.length).toBe(0));
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('jwt', {});
-
-      const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
-      await selectionRuleInput.setValue('{ #el ...}');
-
-      expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
-      expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
-      testComponent.apiPlanForm.nextStep();
-
-      // 3- Restriction Step
-
-      const rateLimitEnabledInput = await planForm.getRateLimitEnabledInput();
-      await rateLimitEnabledInput.toggle();
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('rate-limit', {});
-
-      const quotaEnabledInput = await planForm.getQuotaEnabledInput();
-      await quotaEnabledInput.toggle();
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('quota', {});
-
-      const resourceFilteringEnabledInput = await planForm.getResourceFilteringEnabledInput();
-      await resourceFilteringEnabledInput.toggle();
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('resource-filtering', {});
-
-      expect(testComponent.apiPlanForm.hasNextStep()).toEqual(false);
-      expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
-
-      expect(testComponent.planControl.touched).toEqual(true);
-      expect(testComponent.planControl.dirty).toEqual(true);
-      expect(testComponent.planControl.valid).toEqual(true);
-      expect(testComponent.planControl.value).toEqual({
-        name: '🗺',
-        description: 'Description',
-        characteristics: ['C1'],
-        comment_message: 'Comment message',
-        comment_required: true,
-        excluded_groups: ['group-a'],
-        general_conditions: 'doc-1',
-        security: 'JWT',
-        securityDefinition: '{}',
-        selection_rule: '{ #el ...}',
+    describe('OAuth2 plan', () => {
+      const TAG_1_ID = 'tag-1';
+      const API = fakeApiV3({
         tags: [TAG_1_ID],
-        validation: 'AUTO',
-        flows: [
+        resources: [
           {
+            name: 'OAuth2 AM Resource',
             enabled: true,
-            'path-operator': {
-              operator: 'STARTS_WITH',
-              path: '/',
-            },
-            post: [],
-            pre: [
-              {
-                configuration: {},
-                enabled: true,
-                name: 'Rate Limiting',
-                policy: 'rate-limit',
-              },
-              {
-                configuration: {},
-                enabled: true,
-                name: 'Quota',
-                policy: 'quota',
-              },
-              {
-                configuration: {},
-                enabled: true,
-                name: 'Resource Filtering',
-                policy: 'resource-filtering',
-              },
-            ],
+            type: 'oauth2-am',
+            configuration: {},
           },
         ],
       });
-    });
+      beforeEach(async () => {
+        configureTestingModule('create', 'OAUTH2', API);
+        fixture.detectChanges();
+      });
 
-    it('should add new  OAuth2 plan', async () => {
-      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      it('should be added', async () => {
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
 
-      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, []);
-      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
-      planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
-      fixture.detectChanges();
+        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, []);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+        planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
+        fixture.detectChanges();
 
-      expect(testComponent.planControl.touched).toEqual(false);
-      expect(testComponent.planControl.dirty).toEqual(false);
-      expect(testComponent.planControl.valid).toEqual(false);
+        expect(testComponent.planControl.touched).toEqual(false);
+        expect(testComponent.planControl.dirty).toEqual(false);
+        expect(testComponent.planControl.valid).toEqual(false);
 
-      // 1- General Step
-      const nameInput = await planForm.getNameInput();
-      await nameInput.setValue('🗺');
+        // 1- General Step
+        const nameInput = await planForm.getNameInput();
+        await nameInput.setValue('🗺');
 
-      // 2- Secure Step
-      const securityTypeInput = await planForm.getSecurityTypeInput();
-      await securityTypeInput.clickOptions({ text: /OAuth2/ });
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('oauth2', {});
-      planForm.httpRequest(httpTestingController).expectResourceGetRequest();
+        // 2- Secure Step
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('oauth2', {});
+        planForm.httpRequest(httpTestingController).expectResourceGetRequest();
 
-      // 3- Restriction Step
-      // Skip
+        // 3- Restriction Step
+        // Skip
 
-      expect(testComponent.planControl.touched).toEqual(true);
-      expect(testComponent.planControl.dirty).toEqual(true);
-      expect(testComponent.planControl.valid).toEqual(true);
-      expect(testComponent.planControl.value).toEqual({
-        name: '🗺',
-        description: '',
-        characteristics: [],
-        comment_message: '',
-        comment_required: false,
-        excluded_groups: [],
-        general_conditions: '',
-        tags: [],
-        security: 'OAUTH2',
-        securityDefinition: '{}',
-        selection_rule: null,
-        validation: 'MANUAL',
-        flows: [
-          {
-            enabled: true,
-            'path-operator': {
-              operator: 'STARTS_WITH',
-              path: '/',
+        expect(testComponent.planControl.touched).toEqual(true);
+        expect(testComponent.planControl.dirty).toEqual(true);
+        expect(testComponent.planControl.valid).toEqual(true);
+        expect(testComponent.planControl.value).toEqual({
+          name: '🗺',
+          description: '',
+          characteristics: [],
+          comment_message: '',
+          comment_required: false,
+          excluded_groups: [],
+          general_conditions: '',
+          tags: [],
+          security: 'OAUTH2',
+          securityDefinition: '{}',
+          selection_rule: null,
+          validation: 'MANUAL',
+          flows: [
+            {
+              enabled: true,
+              'path-operator': {
+                operator: 'STARTS_WITH',
+                path: '/',
+              },
+              post: [],
+              pre: [],
             },
-            post: [],
-            pre: [],
+          ],
+        });
+      });
+    });
+    describe('JWT plan', () => {
+      const TAG_1_ID = 'tag-1';
+      const API = fakeApiV3({
+        tags: [TAG_1_ID],
+        resources: [
+          {
+            name: 'OAuth2 AM Resource',
+            enabled: true,
+            type: 'oauth2-am',
+            configuration: {},
           },
         ],
+      });
+
+      beforeEach(async () => {
+        configureTestingModule('create', 'JWT', API);
+        fixture.detectChanges();
+      });
+
+      it('should be added', async () => {
+        loader = TestbedHarnessEnvironment.loader(fixture);
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm
+          .httpRequest(httpTestingController)
+          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        fixture.detectChanges();
+
+        expect(testComponent.planControl.touched).toEqual(false);
+        expect(testComponent.planControl.dirty).toEqual(false);
+        expect(testComponent.planControl.valid).toEqual(false);
+
+        // 1- General Step
+        const nameInput = await planForm.getNameInput();
+        await nameInput.setValue('🗺');
+
+        const descriptionInput = await planForm.getDescriptionInput();
+        await descriptionInput.setValue('Description');
+
+        const characteristicsInput = await planForm.getCharacteristicsInput();
+        await characteristicsInput.addTag('C1');
+
+        const generalConditionsInput = await planForm.getGeneralConditionsInput();
+        await generalConditionsInput.clickOptions({ text: 'Doc 1' });
+
+        const validationToggle = await planForm.getValidationToggle();
+        await validationToggle.toggle();
+
+        const commentRequired = await planForm.getCommentRequiredToggle();
+        await commentRequired.toggle();
+
+        const commentMessageInput = await planForm.getCommentMessageInput();
+        await commentMessageInput.setValue('Comment message');
+
+        const shardingTagsInput = await planForm.getShardingTagsInput();
+        await shardingTagsInput.clickOptions({ text: /Tag 1/ });
+        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+
+        const excludedGroupsInput = await planForm.getExcludedGroupsInput();
+        await excludedGroupsInput.clickOptions({ text: 'Group A' });
+
+        expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
+        expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(false);
+        testComponent.apiPlanForm.nextStep();
+        fixture.detectChanges();
+
+        // 2- Secure Step
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('jwt', {});
+
+        const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
+        await selectionRuleInput.setValue('{ #el ...}');
+
+        expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
+        expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
+        testComponent.apiPlanForm.nextStep();
+
+        // 3- Restriction Step
+
+        const rateLimitEnabledInput = await planForm.getRateLimitEnabledInput();
+        await rateLimitEnabledInput.toggle();
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('rate-limit', {});
+
+        const quotaEnabledInput = await planForm.getQuotaEnabledInput();
+        await quotaEnabledInput.toggle();
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('quota', {});
+
+        const resourceFilteringEnabledInput = await planForm.getResourceFilteringEnabledInput();
+        await resourceFilteringEnabledInput.toggle();
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('resource-filtering', {});
+
+        expect(testComponent.apiPlanForm.hasNextStep()).toEqual(false);
+        expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
+
+        expect(testComponent.planControl.touched).toEqual(true);
+        expect(testComponent.planControl.dirty).toEqual(true);
+        expect(testComponent.planControl.valid).toEqual(true);
+        expect(testComponent.planControl.value).toEqual({
+          name: '🗺',
+          description: 'Description',
+          characteristics: ['C1'],
+          comment_message: 'Comment message',
+          comment_required: true,
+          excluded_groups: ['group-a'],
+          general_conditions: 'doc-1',
+          security: 'JWT',
+          securityDefinition: '{}',
+          selection_rule: '{ #el ...}',
+          tags: [TAG_1_ID],
+          validation: 'AUTO',
+          flows: [
+            {
+              enabled: true,
+              'path-operator': {
+                operator: 'STARTS_WITH',
+                path: '/',
+              },
+              post: [],
+              pre: [
+                {
+                  configuration: {},
+                  enabled: true,
+                  name: 'Rate Limiting',
+                  policy: 'rate-limit',
+                },
+                {
+                  configuration: {},
+                  enabled: true,
+                  name: 'Quota',
+                  policy: 'quota',
+                },
+                {
+                  configuration: {},
+                  enabled: true,
+                  name: 'Resource Filtering',
+                  policy: 'resource-filtering',
+                },
+              ],
+            },
+          ],
+        });
+      });
+    });
+    describe('API Key plan', () => {
+      const TAG_1_ID = 'tag-1';
+      const API = fakeApiV3({
+        tags: [TAG_1_ID],
+        resources: [
+          {
+            name: 'OAuth2 AM Resource',
+            enabled: true,
+            type: 'oauth2-am',
+            configuration: {},
+          },
+        ],
+      });
+
+      beforeEach(async () => {
+        configureTestingModule('create', 'API_KEY', API);
+        fixture.detectChanges();
+      });
+
+      it('should be added', async () => {
+        loader = TestbedHarnessEnvironment.loader(fixture);
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm
+          .httpRequest(httpTestingController)
+          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        fixture.detectChanges();
+
+        expect(testComponent.planControl.touched).toEqual(false);
+        expect(testComponent.planControl.dirty).toEqual(false);
+        expect(testComponent.planControl.valid).toEqual(false);
+
+        // 1- General Step
+        const nameInput = await planForm.getNameInput();
+        await nameInput.setValue('🗺');
+
+        const descriptionInput = await planForm.getDescriptionInput();
+        await descriptionInput.setValue('Description');
+
+        const characteristicsInput = await planForm.getCharacteristicsInput();
+        await characteristicsInput.addTag('C1');
+
+        const generalConditionsInput = await planForm.getGeneralConditionsInput();
+        await generalConditionsInput.clickOptions({ text: 'Doc 1' });
+
+        const validationToggle = await planForm.getValidationToggle();
+        await validationToggle.toggle();
+
+        const commentRequired = await planForm.getCommentRequiredToggle();
+        await commentRequired.toggle();
+
+        const commentMessageInput = await planForm.getCommentMessageInput();
+        await commentMessageInput.setValue('Comment message');
+
+        const shardingTagsInput = await planForm.getShardingTagsInput();
+        await shardingTagsInput.clickOptions({ text: /Tag 1/ });
+        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+
+        const excludedGroupsInput = await planForm.getExcludedGroupsInput();
+        await excludedGroupsInput.clickOptions({ text: 'Group A' });
+
+        expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
+        expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(false);
+        testComponent.apiPlanForm.nextStep();
+        fixture.detectChanges();
+
+        // 2- Secure Step
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', fakeApiKeySchema);
+
+        const jsonSchemaPropagateApiKeyToggle = await loader.getHarness(
+          MatSlideToggleHarness.with({ selector: '[id*="propagateApiKey"]' }),
+        );
+        expect(await jsonSchemaPropagateApiKeyToggle.isChecked()).toEqual(false);
+        await jsonSchemaPropagateApiKeyToggle.toggle();
+
+        expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
+        expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
+        testComponent.apiPlanForm.nextStep();
+
+        // 3- Restriction Step
+
+        const rateLimitEnabledInput = await planForm.getRateLimitEnabledInput();
+        await rateLimitEnabledInput.toggle();
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('rate-limit', {});
+
+        const quotaEnabledInput = await planForm.getQuotaEnabledInput();
+        await quotaEnabledInput.toggle();
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('quota', {});
+
+        const resourceFilteringEnabledInput = await planForm.getResourceFilteringEnabledInput();
+        await resourceFilteringEnabledInput.toggle();
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('resource-filtering', {});
+
+        expect(testComponent.apiPlanForm.hasNextStep()).toEqual(false);
+        expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
+
+        expect(testComponent.planControl.touched).toEqual(true);
+        expect(testComponent.planControl.dirty).toEqual(true);
+        expect(testComponent.planControl.valid).toEqual(true);
+        expect(testComponent.planControl.value).toEqual({
+          name: '🗺',
+          description: 'Description',
+          characteristics: ['C1'],
+          comment_message: 'Comment message',
+          comment_required: true,
+          excluded_groups: ['group-a'],
+          general_conditions: 'doc-1',
+          security: 'API_KEY',
+          securityDefinition: '{}',
+          selection_rule: null,
+          tags: [TAG_1_ID],
+          validation: 'AUTO',
+          flows: [
+            {
+              enabled: true,
+              'path-operator': {
+                operator: 'STARTS_WITH',
+                path: '/',
+              },
+              post: [],
+              pre: [
+                {
+                  configuration: {},
+                  enabled: true,
+                  name: 'Rate Limiting',
+                  policy: 'rate-limit',
+                },
+                {
+                  configuration: {},
+                  enabled: true,
+                  name: 'Quota',
+                  policy: 'quota',
+                },
+                {
+                  configuration: {},
+                  enabled: true,
+                  name: 'Resource Filtering',
+                  policy: 'resource-filtering',
+                },
+              ],
+            },
+          ],
+        });
+      });
+    });
+    describe('API Keyless plan', () => {
+      const TAG_1_ID = 'tag-1';
+      const API = fakeApiV3({
+        tags: [TAG_1_ID],
+        resources: [
+          {
+            name: 'OAuth2 AM Resource',
+            enabled: true,
+            type: 'oauth2-am',
+            configuration: {},
+          },
+        ],
+      });
+
+      beforeEach(async () => {
+        configureTestingModule('create', 'KEY_LESS', API);
+        fixture.detectChanges();
+      });
+      it('should be created', async () => {
+        loader = TestbedHarnessEnvironment.loader(fixture);
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm
+          .httpRequest(httpTestingController)
+          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        fixture.detectChanges();
+
+        expect(testComponent.planControl.touched).toEqual(false);
+        expect(testComponent.planControl.dirty).toEqual(false);
+        expect(testComponent.planControl.valid).toEqual(false);
+
+        // 1- General Step
+        const nameInput = await planForm.getNameInput();
+        await nameInput.setValue('🗺');
+
+        const descriptionInput = await planForm.getDescriptionInput();
+        await descriptionInput.setValue('Description');
+
+        const characteristicsInput = await planForm.getCharacteristicsInput();
+        await characteristicsInput.addTag('C1');
+
+        const generalConditionsInput = await planForm.getGeneralConditionsInput();
+        await generalConditionsInput.clickOptions({ text: 'Doc 1' });
+
+        expect(await planForm.validationTogglePresent()).toEqual(false);
+        expect(await planForm.commentRequiredTogglePresent()).toEqual(false);
+
+        const shardingTagsInput = await planForm.getShardingTagsInput();
+        await shardingTagsInput.clickOptions({ text: /Tag 1/ });
+        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+
+        const excludedGroupsInput = await planForm.getExcludedGroupsInput();
+        await excludedGroupsInput.clickOptions({ text: 'Group A' });
+
+        expect(testComponent.apiPlanForm.hasNextStep()).toEqual(true);
+        expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(false);
+        testComponent.apiPlanForm.nextStep();
+        fixture.detectChanges();
+
+        // 2- Secure Step
+        // DISABLED
+
+        // 3- Restriction Step
+
+        const rateLimitEnabledInput = await planForm.getRateLimitEnabledInput();
+        await rateLimitEnabledInput.toggle();
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('rate-limit', {});
+
+        const quotaEnabledInput = await planForm.getQuotaEnabledInput();
+        await quotaEnabledInput.toggle();
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('quota', {});
+
+        const resourceFilteringEnabledInput = await planForm.getResourceFilteringEnabledInput();
+        await resourceFilteringEnabledInput.toggle();
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('resource-filtering', {});
+
+        expect(testComponent.apiPlanForm.hasNextStep()).toEqual(false);
+        expect(testComponent.apiPlanForm.hasPreviousStep()).toEqual(true);
+
+        expect(testComponent.planControl.touched).toEqual(true);
+        expect(testComponent.planControl.dirty).toEqual(true);
+        expect(testComponent.planControl.valid).toEqual(true);
+        expect(testComponent.planControl.value).toEqual({
+          name: '🗺',
+          description: 'Description',
+          characteristics: ['C1'],
+          comment_message: '',
+          comment_required: false,
+          excluded_groups: ['group-a'],
+          general_conditions: 'doc-1',
+          security: 'KEY_LESS',
+          securityDefinition: '{}',
+          selection_rule: null,
+          tags: [TAG_1_ID],
+          validation: 'MANUAL',
+          flows: [
+            {
+              enabled: true,
+              'path-operator': {
+                operator: 'STARTS_WITH',
+                path: '/',
+              },
+              post: [],
+              pre: [
+                {
+                  configuration: {},
+                  enabled: true,
+                  name: 'Rate Limiting',
+                  policy: 'rate-limit',
+                },
+                {
+                  configuration: {},
+                  enabled: true,
+                  name: 'Quota',
+                  policy: 'quota',
+                },
+                {
+                  configuration: {},
+                  enabled: true,
+                  name: 'Resource Filtering',
+                  policy: 'resource-filtering',
+                },
+              ],
+            },
+          ],
+        });
       });
     });
   });
 
   describe('Create mode V4 without API', () => {
     beforeEach(async () => {
-      configureTestingModule('create');
+      configureTestingModule('create', 'JWT');
       fixture.detectChanges();
     });
 
@@ -355,9 +655,6 @@ describe('ApiPlanFormComponent', () => {
       await excludedGroupsInput.clickOptions({ text: 'Group A' });
 
       // 2- Secure Step
-      const securityTypeInput = await planForm.getSecurityTypeInput();
-      await securityTypeInput.clickOptions({ text: /JWT/ });
-      await securityTypeInput.getOptions({ text: /OAuth2/ }).then((options) => expect(options.length).toBe(0));
       planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('jwt', {});
 
       const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
@@ -439,7 +736,7 @@ describe('ApiPlanFormComponent', () => {
     const PLAN_ID = 'plan-1';
 
     beforeEach(async () => {
-      configureTestingModule('edit', API);
+      configureTestingModule('edit', 'KEY_LESS', API);
     });
 
     it('should edit plan', async () => {
@@ -485,9 +782,6 @@ describe('ApiPlanFormComponent', () => {
       await excludedGroupsInput.clickOptions({ text: 'Group A' });
 
       // 2- Secure Step
-      const securityTypeInput = await planForm.getSecurityTypeInput();
-      expect(await securityTypeInput.isDisabled()).toEqual(true);
-      expect(await securityTypeInput.getValueText()).toEqual('Keyless (public)');
 
       const selectionRuleInput = await planForm.getSelectionRuleInput();
       expect(selectionRuleInput).toEqual(null); // no selection rule for keyless
@@ -511,56 +805,6 @@ describe('ApiPlanFormComponent', () => {
         general_conditions: 'doc-1',
       });
     });
-
-    it('should display api-key plan', async () => {
-      const planToUpdate = fakePlanV3({
-        id: PLAN_ID,
-        name: 'Old 🗺',
-        description: 'Old Description',
-        security: PlanSecurityType.API_KEY,
-        securityDefinition: { propagateApiKey: true },
-        tags: [TAG_1_ID],
-      });
-      testComponent.planControl = new FormControl(planToUpdate);
-      fixture.detectChanges();
-
-      const planForm = await loader.getHarness(ApiPlanFormHarness);
-
-      planForm
-        .httpRequest(httpTestingController)
-        .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
-      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', fakeApiKeySchema);
-      fixture.detectChanges();
-
-      expect(testComponent.planControl.touched).toEqual(false);
-      expect(testComponent.planControl.dirty).toEqual(false);
-      expect(testComponent.planControl.valid).toEqual(false);
-
-      // 1- General Step
-      const nameInput = await planForm.getNameInput();
-      expect(await nameInput.getValue()).toBe('Old 🗺');
-
-      const descriptionInput = await planForm.getDescriptionInput();
-      expect(await descriptionInput.getValue()).toBe('Old Description');
-
-      const shardingTagsInput = await planForm.getShardingTagsInput();
-      expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
-
-      // 2- Secure Step
-      const securityTypeInput = await planForm.getSecurityTypeInput();
-      expect(await securityTypeInput.isDisabled()).toEqual(true);
-      expect(await securityTypeInput.getValueText()).toEqual('API Key');
-
-      // Expect the security config value to be completed correctly
-      const jsonSchemaPropagateApiKeyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[id*="propagateApiKey"]' }));
-      expect(await jsonSchemaPropagateApiKeyToggle.isChecked()).toEqual(true);
-
-      const selectionRuleInput = await planForm.getSelectionRuleInput();
-      expect(selectionRuleInput).toBeDefined();
-    });
   });
 
   describe('Edit mode V3 with disabled control', () => {
@@ -572,7 +816,7 @@ describe('ApiPlanFormComponent', () => {
     const PLAN_ID = 'plan-1';
 
     beforeEach(async () => {
-      configureTestingModule('edit', API);
+      configureTestingModule('edit', 'KEY_LESS', API);
     });
 
     it('should access plan in read only ', async () => {
@@ -620,8 +864,6 @@ describe('ApiPlanFormComponent', () => {
       expect(await excludedGroupsInput.isDisabled()).toBe(true);
 
       // 2- Secure Step
-      const securityTypeInput = await planForm.getSecurityTypeInput();
-      expect(await securityTypeInput.isDisabled()).toEqual(true);
 
       const selectionRuleInput = await planForm.getSelectionRuleInput();
       expect(selectionRuleInput).toEqual(null); // no selection rule for keyless
@@ -635,131 +877,131 @@ describe('ApiPlanFormComponent', () => {
     });
     const PLAN_ID = 'plan-1';
 
-    beforeEach(async () => {
-      configureTestingModule('edit', API);
-    });
+    describe('Keyless plan', () => {
+      beforeEach(async () => {
+        configureTestingModule('edit', 'KEY_LESS', API);
+      });
+      it('should edit plan', async () => {
+        const planToUpdate = fakePlanV4({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
+        testComponent.planControl = new FormControl(planToUpdate);
+        fixture.detectChanges();
 
-    it('should edit plan', async () => {
-      const planToUpdate = fakePlanV4({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
-      testComponent.planControl = new FormControl(planToUpdate);
-      fixture.detectChanges();
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
 
-      const planForm = await loader.getHarness(ApiPlanFormHarness);
+        planForm
+          .httpRequest(httpTestingController)
+          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        fixture.detectChanges();
 
-      planForm
-        .httpRequest(httpTestingController)
-        .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
-      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      fixture.detectChanges();
+        expect(testComponent.planControl.touched).toEqual(false);
+        expect(testComponent.planControl.dirty).toEqual(false);
+        expect(testComponent.planControl.valid).toEqual(false);
 
-      expect(testComponent.planControl.touched).toEqual(false);
-      expect(testComponent.planControl.dirty).toEqual(false);
-      expect(testComponent.planControl.valid).toEqual(false);
+        // 1- General Step
+        const nameInput = await planForm.getNameInput();
+        expect(await nameInput.getValue()).toBe('Old 🗺');
+        await nameInput.setValue('🗺');
 
-      // 1- General Step
-      const nameInput = await planForm.getNameInput();
-      expect(await nameInput.getValue()).toBe('Old 🗺');
-      await nameInput.setValue('🗺');
+        const descriptionInput = await planForm.getDescriptionInput();
+        expect(await descriptionInput.getValue()).toBe('Old Description');
+        await descriptionInput.setValue('Description');
 
-      const descriptionInput = await planForm.getDescriptionInput();
-      expect(await descriptionInput.getValue()).toBe('Old Description');
-      await descriptionInput.setValue('Description');
+        const characteristicsInput = await planForm.getCharacteristicsInput();
+        await characteristicsInput.addTag('C1');
 
-      const characteristicsInput = await planForm.getCharacteristicsInput();
-      await characteristicsInput.addTag('C1');
+        const generalConditionsInput = await planForm.getGeneralConditionsInput();
+        await generalConditionsInput.clickOptions({ text: 'Doc 1' });
 
-      const generalConditionsInput = await planForm.getGeneralConditionsInput();
-      await generalConditionsInput.clickOptions({ text: 'Doc 1' });
+        const shardingTagsInput = await planForm.getShardingTagsInput();
+        expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
+        await shardingTagsInput.clickOptions({ text: /Tag 1/ }); // Unselect Tag 1
+        await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
 
-      const shardingTagsInput = await planForm.getShardingTagsInput();
-      expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
-      await shardingTagsInput.clickOptions({ text: /Tag 1/ }); // Unselect Tag 1
-      await shardingTagsInput.getOptions({ text: /Tag 2/ }).then((options) => options[0].isDisabled());
+        const excludedGroupsInput = await planForm.getExcludedGroupsInput();
+        await excludedGroupsInput.clickOptions({ text: 'Group A' });
 
-      const excludedGroupsInput = await planForm.getExcludedGroupsInput();
-      await excludedGroupsInput.clickOptions({ text: 'Group A' });
+        // 2- Secure Step
+        const selectionRuleInput = await planForm.getSelectionRuleInput();
+        expect(selectionRuleInput).toEqual(null); // no selection rule for keyless
 
-      // 2- Secure Step
-      const securityTypeInput = await planForm.getSecurityTypeInput();
-      expect(await securityTypeInput.isDisabled()).toEqual(true);
-      expect(await securityTypeInput.getValueText()).toEqual('Keyless (public)');
-
-      const selectionRuleInput = await planForm.getSelectionRuleInput();
-      expect(selectionRuleInput).toEqual(null); // no selection rule for keyless
-
-      // Save
-      expect(testComponent.planControl.touched).toEqual(true);
-      expect(testComponent.planControl.dirty).toEqual(true);
-      expect(testComponent.planControl.valid).toEqual(true);
-      expect(testComponent.planControl.value).toEqual({
-        name: '🗺',
-        description: 'Description',
-        characteristics: ['C1'],
-        tags: [],
-        validation: 'manual',
-        comment_message: undefined,
-        comment_required: false,
-        excluded_groups: ['group-a'],
-        security: {
-          configuration: {},
-          type: 'KEY_LESS',
-        },
-        general_conditions: 'doc-1',
+        // Save
+        expect(testComponent.planControl.touched).toEqual(true);
+        expect(testComponent.planControl.dirty).toEqual(true);
+        expect(testComponent.planControl.valid).toEqual(true);
+        expect(testComponent.planControl.value).toEqual({
+          name: '🗺',
+          description: 'Description',
+          characteristics: ['C1'],
+          tags: [],
+          validation: 'manual',
+          comment_message: undefined,
+          comment_required: false,
+          excluded_groups: ['group-a'],
+          security: {
+            configuration: {},
+            type: 'KEY_LESS',
+          },
+          general_conditions: 'doc-1',
+        });
       });
     });
-
-    it('should display api-key plan', async () => {
-      const planToUpdate = fakePlanV4({
-        id: PLAN_ID,
-        name: 'Old 🗺',
-        description: 'Old Description',
-        security: {
-          type: PlanSecurityType.API_KEY,
-          configuration: { propagateApiKey: true },
-        },
-        tags: [TAG_1_ID],
+    describe('API Key plan', () => {
+      beforeEach(async () => {
+        configureTestingModule('edit', 'API_KEY', API);
       });
-      testComponent.planControl = new FormControl(planToUpdate);
-      fixture.detectChanges();
+      it('should display api-key plan', async () => {
+        const planToUpdate = fakePlanV4({
+          id: PLAN_ID,
+          name: 'Old 🗺',
+          description: 'Old Description',
+          security: {
+            type: PlanSecurityType.API_KEY,
+            configuration: { propagateApiKey: true },
+          },
+          tags: [TAG_1_ID],
+        });
+        testComponent.planControl = new FormControl(planToUpdate);
+        fixture.detectChanges();
 
-      const planForm = await loader.getHarness(ApiPlanFormHarness);
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
 
-      planForm
-        .httpRequest(httpTestingController)
-        .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-      planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
-      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', fakeApiKeySchema);
-      fixture.detectChanges();
+        planForm
+          .httpRequest(httpTestingController)
+          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', fakeApiKeySchema);
+        fixture.detectChanges();
 
-      expect(testComponent.planControl.touched).toEqual(false);
-      expect(testComponent.planControl.dirty).toEqual(false);
-      expect(testComponent.planControl.valid).toEqual(false);
+        expect(testComponent.planControl.touched).toEqual(false);
+        expect(testComponent.planControl.dirty).toEqual(false);
+        expect(testComponent.planControl.valid).toEqual(false);
 
-      // 1- General Step
-      const nameInput = await planForm.getNameInput();
-      expect(await nameInput.getValue()).toBe('Old 🗺');
+        // 1- General Step
+        const nameInput = await planForm.getNameInput();
+        expect(await nameInput.getValue()).toBe('Old 🗺');
 
-      const descriptionInput = await planForm.getDescriptionInput();
-      expect(await descriptionInput.getValue()).toBe('Old Description');
+        const descriptionInput = await planForm.getDescriptionInput();
+        expect(await descriptionInput.getValue()).toBe('Old Description');
 
-      const shardingTagsInput = await planForm.getShardingTagsInput();
-      expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
+        const shardingTagsInput = await planForm.getShardingTagsInput();
+        expect(await shardingTagsInput.getValueText()).toContain('Tag 1');
 
-      // 2- Secure Step
-      const securityTypeInput = await planForm.getSecurityTypeInput();
-      expect(await securityTypeInput.isDisabled()).toEqual(true);
-      expect(await securityTypeInput.getValueText()).toEqual('API Key');
+        // 2- Secure Step
 
-      // Expect the security config value to be completed correctly
-      const jsonSchemaPropagateApiKeyToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[id*="propagateApiKey"]' }));
-      expect(await jsonSchemaPropagateApiKeyToggle.isChecked()).toEqual(true);
+        // Expect the security config value to be completed correctly
+        const jsonSchemaPropagateApiKeyToggle = await loader.getHarness(
+          MatSlideToggleHarness.with({ selector: '[id*="propagateApiKey"]' }),
+        );
+        expect(await jsonSchemaPropagateApiKeyToggle.isChecked()).toEqual(true);
 
-      const selectionRuleInput = await planForm.getSelectionRuleInput();
-      expect(selectionRuleInput).toBeDefined();
+        const selectionRuleInput = await planForm.getSelectionRuleInput();
+        expect(selectionRuleInput).toBeDefined();
+      });
     });
   });
 });

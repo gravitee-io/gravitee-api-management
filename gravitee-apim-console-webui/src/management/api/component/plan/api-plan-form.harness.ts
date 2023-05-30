@@ -34,13 +34,22 @@ export class ApiPlanFormHarness extends ComponentHarness {
   public getCharacteristicsInput = this.locatorFor(GioFormTagsInputHarness.with({ selector: '[formControlName="characteristics"]' }));
   public getGeneralConditionsInput = this.locatorForOptional(MatSelectHarness.with({ selector: '[formControlName="generalConditions"]' }));
   public getValidationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="autoValidation"]' }));
+  public validationTogglePresent(): Promise<boolean> {
+    return this.getValidationToggle()
+      .then((_) => true)
+      .catch((_) => false);
+  }
   public getCommentRequiredToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName="commentRequired"]' }));
+  public commentRequiredTogglePresent(): Promise<boolean> {
+    return this.getCommentRequiredToggle()
+      .then((_) => true)
+      .catch((_) => false);
+  }
   public getCommentMessageInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="commentMessage"]' }));
   public getShardingTagsInput = this.locatorForOptional(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
   public getExcludedGroupsInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="excludedGroups"]' }));
 
   // 2- Secure Step
-  public getSecurityTypeInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="securityType"]' }));
   public getSelectionRuleInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
 
   // 3- Restriction Step
@@ -49,14 +58,6 @@ export class ApiPlanFormHarness extends ComponentHarness {
   public getResourceFilteringEnabledInput = this.locatorFor(
     MatSlideToggleHarness.with({ selector: '[formControlName="resourceFilteringEnabled"]' }),
   );
-
-  async fillRequiredFields(fieldsValue: { name: string; securityTypeLabel: string | RegExp }) {
-    const nameInput = await this.getNameInput();
-    await nameInput.setValue(fieldsValue.name);
-
-    const securityTypeInput = await this.getSecurityTypeInput();
-    await securityTypeInput.clickOptions({ text: fieldsValue.securityTypeLabel });
-  }
 
   httpRequest(httpTestingController: HttpTestingController) {
     function expectTagsListRequest(tags: Tag[] = []) {
