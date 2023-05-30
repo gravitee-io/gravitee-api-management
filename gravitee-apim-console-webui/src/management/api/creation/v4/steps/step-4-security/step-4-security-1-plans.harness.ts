@@ -17,6 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { MatMenuHarness } from '@angular/material/menu/testing';
 
 import { ApiPlanFormHarness } from '../../../../component/plan/api-plan-form.harness';
 import { fakeGroup } from '../../../../../../entities/group/group.fixture';
@@ -66,15 +67,17 @@ export class Step4Security1PlansHarness extends ComponentHarness {
   }
 
   async addApiKeyPlan(planName: string, httpTestingController: HttpTestingController): Promise<void> {
-    await this.getButtonByText('Add plan').then((b) => b.click());
+    await this.getButtonBySelector('[aria-label="Add new plan"]').then((b) => b.click());
+    const planSecurityDropdown = await this.locatorFor(MatMenuHarness)();
+    expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
+
+    await planSecurityDropdown.clickItem({ text: 'API Key' });
 
     const apiPlanFormHarness = await this.locatorFor(ApiPlanFormHarness)();
 
     apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    await apiPlanFormHarness.fillRequiredFields({
-      name: planName,
-      securityTypeLabel: 'API Key',
-    });
+    await apiPlanFormHarness.getNameInput().then((i) => i.setValue(planName));
+
     apiPlanFormHarness.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', {});
 
     await (await this.getButtonByText('Next')).click();
@@ -100,7 +103,6 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     await apiPlanFormHarness.getNameInput().then((i) => i.setValue(newPlanName));
 
     await (await this.getButtonByText('Next')).click();
-    await (await this.getButtonByText('Next')).click();
     await (await this.getButtonByText('Save changes')).click();
   }
 
@@ -118,7 +120,6 @@ export class Step4Security1PlansHarness extends ComponentHarness {
 
     apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
 
-    await (await this.getButtonByText('Next')).click();
     await (await this.getButtonByText('Next')).click();
 
     const rateLimitToggle = await apiPlanFormHarness.getRateLimitEnabledInput();

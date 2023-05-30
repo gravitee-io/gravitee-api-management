@@ -21,6 +21,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { set } from 'lodash';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsHarness } from './steps/step-1-api-details/step-1-api-details.harness';
@@ -63,7 +64,36 @@ describe('ApiCreationV4Component', () => {
   const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiCreationV4Component],
-      providers: [{ provide: UIRouterState, useValue: fakeAjsState }],
+      providers: [
+        { provide: UIRouterState, useValue: fakeAjsState },
+        {
+          provide: 'Constants',
+          useFactory: () => {
+            const constants = CONSTANTS_TESTING;
+            set(constants, 'env.settings.plan.security', {
+              apikey: {
+                enabled: true,
+              },
+              jwt: {
+                enabled: true,
+              },
+              keyless: {
+                enabled: true,
+              },
+              oauth2: {
+                enabled: true,
+              },
+              customApiKey: {
+                enabled: true,
+              },
+              sharedApiKey: {
+                enabled: true,
+              },
+            });
+            return constants;
+          },
+        },
+      ],
       imports: [NoopAnimationsModule, ApiCreationV4Module, GioHttpTestingModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
@@ -958,7 +988,6 @@ describe('ApiCreationV4Component', () => {
 
         await step4Security1PlansHarness.editDefaultKeylessPlanName('Update name', httpTestingController);
         await step4Security1PlansHarness.addRateLimitToPlan(httpTestingController);
-
         await step4Security1PlansHarness.clickValidate();
 
         expect(component.currentStep.payload.plans).toEqual([
@@ -999,6 +1028,7 @@ describe('ApiCreationV4Component', () => {
 
     it('should be reinitialized if no plans saved in payload after going back to step 3', async () => {
       let step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+
       expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(1);
 
       await step4Security1PlansHarness.clickRemovePlanButton();

@@ -34,6 +34,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTableModule } from '@angular/material/table';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
@@ -91,6 +92,7 @@ import { GioFormListenersVirtualHostModule } from '../../component/gio-form-list
     ApiPlanFormModule,
     GioFormFocusInvalidModule,
     GioPermissionModule,
+    MatMenuModule,
   ],
   declarations: [
     ApiCreationV4Component,

@@ -25,18 +25,23 @@
   <ng-container *ngIf="view === 'list'">
     <step-4-security-1-plans-list
       [plans]="plans"
-      (addPlanClicked)="onAddPlanClicked()"
+      (addPlanClicked)="onAddPlanClicked($event)"
       (editPlanClicked)="onEditPlanClicked($event)"
     ></step-4-security-1-plans-list>
   </ng-container>
 
   <ng-container *ngIf="view === 'add'">
-    <step-4-security-1-plans-add (planChanges)="addPlan($event)" (exitPlanCreation)="onExitPlanCreation()"></step-4-security-1-plans-add>
+    <step-4-security-1-plans-add
+      [securityType]="securityType"
+      (planChanges)="addPlan($event)"
+      (exitPlanCreation)="onExitPlanCreation()"
+    ></step-4-security-1-plans-add>
   </ng-container>
 
   <ng-container *ngIf="view === 'edit'">
     <step-4-security-1-plans-add
       [plan]="planToEdit"
+      [securityType]="securityType"
       (planChanges)="editPlan($event)"
       (exitPlanCreation)="onExitPlanCreation()"
     ></step-4-security-1-plans-add>
