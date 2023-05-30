@@ -37,7 +37,7 @@ public class DefaultPolicyFactory implements PolicyFactory {
     private final ConcurrentMap<String, Policy> policies = new ConcurrentHashMap<>();
     private final PolicyPluginFactory policyPluginFactory;
     private final io.gravitee.gateway.policy.PolicyFactory v3PolicyFactory;
-    private final ExpressionLanguageConditionFilter<ConditionalPolicy> filter;
+    protected final ExpressionLanguageConditionFilter<ConditionalPolicy> filter;
 
     public DefaultPolicyFactory(
         final PolicyPluginFactory policyPluginFactory,
@@ -95,6 +95,12 @@ public class DefaultPolicyFactory implements PolicyFactory {
             );
         }
 
+        policy = createConditionalPolicy(policyMetadata, policy);
+
+        return policy;
+    }
+
+    protected Policy createConditionalPolicy(PolicyMetadata policyMetadata, Policy policy) {
         if (policy != null) {
             final String condition = policyMetadata.getCondition();
 
@@ -103,7 +109,6 @@ public class DefaultPolicyFactory implements PolicyFactory {
                 policy = new ConditionalPolicy(policy, condition, filter);
             }
         }
-
         return policy;
     }
 
@@ -132,7 +137,7 @@ public class DefaultPolicyFactory implements PolicyFactory {
         );
     }
 
-    private boolean isNotBlank(String s) {
+    protected boolean isNotBlank(String s) {
         return s != null && !s.isBlank();
     }
 }
