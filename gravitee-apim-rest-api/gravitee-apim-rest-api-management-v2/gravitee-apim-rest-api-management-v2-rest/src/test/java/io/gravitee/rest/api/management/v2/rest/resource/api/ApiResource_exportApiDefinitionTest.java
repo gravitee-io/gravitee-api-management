@@ -206,7 +206,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         entrypoint.setType("Entrypoint type");
         entrypoint.setQos(Qos.AT_LEAST_ONCE);
         entrypoint.setDlq(new Dlq("my-endpoint"));
-        entrypoint.setConfiguration("{\"nice\": \"configuration\"}");
+        entrypoint.setConfiguration("{\n \"nice\" : \"configuration\"\n}");
         subscriptionListener.setEntrypoints(List.of(entrypoint));
         subscriptionListener.setType(ListenerType.SUBSCRIPTION);
 
@@ -343,7 +343,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
         Step step = new Step();
         step.setName("stepName");
         step.setDescription("stepDescription");
-        step.setConfiguration("stepConfiguration");
+        step.setConfiguration("{\n \"nice\" : \"configuration\"\n}");
         step.setCondition("stepCondition");
         step.setPolicy("stepPolicy");
         step.setEnabled(true);
@@ -609,7 +609,7 @@ public class ApiResource_exportApiDefinitionTest extends AbstractResourceTest {
 
         var step = flowV4.getRequest().get(0);
         assertEquals(true, step.getEnabled());
-        assertEquals("stepConfiguration", step.getConfiguration());
+        assertEquals(new LinkedHashMap<>(Map.of("nice", "configuration")), step.getConfiguration());
         assertEquals("stepDescription", step.getDescription());
         assertEquals("stepName", step.getName());
         assertEquals("stepCondition", step.getCondition());
