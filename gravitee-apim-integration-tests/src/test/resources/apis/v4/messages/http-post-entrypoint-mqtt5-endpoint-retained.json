@@ -1,0 +1,55 @@
+{
+  "id": "http-post-endpoint-mqtt5-endpoint-retained",
+  "name": "my-api",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using HTTP POST entrypoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/http-post-endpoint-mqtt5-endpoint-retained"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-post",
+          "configuration": {
+            "requestHeadersToMessage": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mqtt5",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mqtt5",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "serverHost": "localhost",
+            "serverPort": "mqtt5-port"
+          },
+          "sharedConfigurationOverride": {
+            "producer": {
+              "enabled": true,
+              "topic": "test-topic-retained",
+              "retained": true
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}

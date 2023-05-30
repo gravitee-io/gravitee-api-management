@@ -1,0 +1,87 @@
+{
+  "id": "http-post-entrypoint-mqtt5-endpoint-attribute",
+  "name": "http-post-entrypoint-mqtt5-endpoint-attribute",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "Api v4 using HTTP POST entrypoint and mqtt5 endpoint with topic overriding from attribute",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/topic-from-attribute"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-post",
+          "configuration": {
+            "requestHeadersToMessage": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mqtt5",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mqtt5",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "serverHost": "localhost",
+            "serverPort": "mqtt5-port"
+          },
+          "sharedConfigurationOverride": {
+            "producer": {
+              "enabled": true,
+              "topic": "test-topic"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "STARTS_WITH"
+        }
+      ],
+      "request": [
+        {
+          "name": "Assign Attributes",
+          "description": "Assign 'test-topic-attribute' as new topic",
+          "enabled": true,
+          "policy": "assign-attributes",
+          "condition": "{#request.headers['X-New-Topic'] != null}",
+          "configuration": {
+            "scope": "REQUEST",
+            "attributes": [
+              {
+                "name": "gravitee.attribute.mqtt5.topic",
+                "value": "{#request.headers['X-New-Topic'][0]}"
+              }
+            ]
+          }
+        }
+      ],
+      "response": [],
+      "subscribe": [],
+      "publish": []
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
