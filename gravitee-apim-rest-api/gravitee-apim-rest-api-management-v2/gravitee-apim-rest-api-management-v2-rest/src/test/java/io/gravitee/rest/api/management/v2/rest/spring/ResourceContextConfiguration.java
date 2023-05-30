@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import org.springframework.context.annotation.Bean;
@@ -150,5 +151,10 @@ public class ResourceContextConfiguration {
     @Bean
     public WorkflowService workflowService() {
         return mock(WorkflowService.class);
+    }
+
+    @Bean
+    public GraviteeLicenseService licenseService() {
+        return mock(GraviteeLicenseService.class);
     }
 }
