@@ -310,12 +310,12 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractGatewayTest
         client
                .rxRequest(HttpMethod.POST, "/http-post-entrypoint-mqtt5-endpoint-failure")
                .flatMap(request -> request.rxSend(requestBody.toString()))
-               .flatMapPublisher(response -> {
+               .flatMap(response -> {
                    assertThat(response.statusCode()).isEqualTo(412);
-                   return response.toFlowable();
+                   return response.body();
                })
                .test()
-               .awaitCount(1)
+               .awaitDone(5, TimeUnit.SECONDS)
                .assertComplete()
                .assertValue(buffer -> {
                    assertThat(buffer).hasToString("An error occurred");
