@@ -1265,6 +1265,145 @@ components:
                     items:
                         $ref: "#/components/schemas/Media"
 
+        UpdateApi:
+            oneOf:
+                - $ref: "#/components/schemas/UpdateApiV2"
+                - $ref: "#/components/schemas/UpdateApiV4"
+        UpdateBaseApi:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: API's name. Duplicate names can exists.
+                    example: My Api
+                    minLength: 1
+                apiVersion:
+                    type: string
+                    description: API's version. It's a simple string only used in the portal.
+                    example: v1.0
+                    minLength: 1
+                description:
+                    type: string
+                    description: API's description. A short description of your API.
+                    example: I can use many characters to describe this API.
+                definitionVersion:
+                    $ref: "#/components/schemas/DefinitionVersion"
+                groups:
+                    type: array
+                    description: API's groups. Used to add team in your API.
+                    example:
+                        - MY_GROUP1
+                        - MY_GROUP2
+                    items:
+                        type: string
+                tags:
+                    type: array
+                    description: The list of sharding tags associated with this API.
+                    example:
+                        - public
+                        - private
+                    items:
+                        type: string
+                resources:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Resource"
+                responseTemplates:
+                    type: object
+                    additionalProperties:
+                        type: object
+                        additionalProperties:
+                            $ref: "#/components/schemas/ResponseTemplate"
+                visibility:
+                    $ref: "#/components/schemas/Visibility"
+                categories:
+                    type: array
+                    description: The list of category ids associated with this API.
+                    example:
+                        - 6c530064-0b2c-4004-9300-640b2ce0047b
+                        - 12559b64-0b2c-4004-9300-640b2ce0047b
+                    items:
+                        type: string
+                labels:
+                    type: array
+                    description: The free list of labels associated with this API.
+                    example:
+                        - json
+                        - read_only
+                        - awesome
+                    items:
+                        type: string
+                lifecycleState:
+                    $ref: "#/components/schemas/ApiLifecycleState"
+                disableMembershipNotifications:
+                    type: boolean
+                    description: Disable membership notifications.
+                    default: false
+                properties:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Property"
+            required: [name, apiVersion, definitionVersion]
+            discriminator:
+                propertyName: definitionVersion
+                mapping:
+                    V2: UpdateApiV2
+                    V4: UpdateApiV4
+        UpdateApiV2:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/UpdateBaseApi"
+                - properties:
+                      proxy:
+                          $ref: "#/components/schemas/Proxy"
+                      flowMode:
+                          $ref: "#/components/schemas/FlowMode"
+                      flows:
+                          type: array
+                          description: The list of flows associated with this API.
+                          items:
+                              $ref: "#/components/schemas/FlowV2"
+                      services:
+                          $ref: "#/components/schemas/ServicesV2"
+                      pathMappings:
+                          type: array
+                          description: The list of path mappings associated with this API.
+                          items:
+                              type: string
+                      executionMode:
+                          $ref: "#/components/schemas/ExecutionMode"
+
+                  required: [contextPath, endpoint]
+        UpdateApiV4:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/UpdateBaseApi"
+                - properties:
+                      type:
+                          $ref: "#/components/schemas/ApiType"
+                      listeners:
+                          type: array
+                          description: The list of listeners associated with this API.
+                          items:
+                              $ref: "#/components/schemas/Listener"
+                          minItems: 1
+                      endpointGroups:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/EndpointGroupV4"
+                          minItems: 1
+                      analytics:
+                          $ref: "#/components/schemas/Analytics"
+                      flowExecution:
+                          $ref: "#/components/schemas/FlowExecution"
+                      flows:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/FlowV4"
+                      services:
+                          $ref: "#/components/schemas/ApiServices"
+                  required: [listeners, endpointGroups, type]
+
         ApiDeployment:
             type: object
             properties:

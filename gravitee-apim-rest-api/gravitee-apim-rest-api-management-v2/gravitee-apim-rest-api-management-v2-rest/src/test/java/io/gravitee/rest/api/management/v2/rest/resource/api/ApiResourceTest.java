@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fixtures.ApiFixtures;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -45,12 +46,18 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.WorkflowService;
@@ -208,59 +215,107 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldUpdateApi() {
-        UpdateApiEntity updateApiEntity = prepareValidUpdateApiEntity();
+    public void should_return_404_if_not_found() {
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
 
-        ApiEntity updatedApiEntity = new ApiEntity();
-        updatedApiEntity.setAnalytics(new Analytics());
-        updatedApiEntity.setUpdatedAt(new Date());
-        updatedApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        when(apiServiceV4.update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME))
-            .thenReturn(updatedApiEntity);
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(NOT_FOUND_404, response.getStatus());
 
-        final Response response = rootTarget(API).request().put(Entity.json(updateApiEntity));
+        var error = response.readEntity(Error.class);
+        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
+        assertEquals("Api [" + API + "] cannot be found.", error.getMessage());
+    }
 
+    @Test
+    public void should_return_403_if_incorrect_permissions() {
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_DEFINITION),
+                eq(API),
+                eq(RolePermissionAction.UPDATE)
+            )
+        )
+            .thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_GATEWAY_DEFINITION),
+                eq(API),
+                eq(RolePermissionAction.UPDATE)
+            )
+        )
+            .thenReturn(false);
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(FORBIDDEN_403, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(FORBIDDEN_403, (int) error.getHttpStatus());
+        assertEquals("You do not have sufficient rights to access this resource", error.getMessage());
+    }
+
+    @Test
+    public void should_update_v4_api() {
+        ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME)))
+            .thenReturn(apiEntity);
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
         assertEquals(OK_200, response.getStatus());
-        verify(apiServiceV4, times(1)).update(GraviteeContext.getExecutionContext(), API, updateApiEntity, true, USER_NAME);
 
-        final ApiV4 responseApi = response.readEntity(ApiV4.class);
-        assertNotNull(responseApi.getLinks());
-        assertNotNull(responseApi.getLinks().getPictureUrl());
-        assertNotNull(responseApi.getLinks().getBackgroundUrl());
+        final ApiV4 apiV4 = response.readEntity(ApiV4.class);
+        assertEquals(API, apiV4.getId());
+
+        verify(apiServiceV4)
+            .update(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API),
+                argThat(updateApiEntity -> {
+                    assertEquals(updateApiV4.getName(), updateApiEntity.getName());
+                    return true;
+                }),
+                eq(false),
+                eq(USER_NAME)
+            );
     }
 
     @Test
-    public void shouldNotUpdateApiBecauseWrongApiId() {
-        UpdateApiEntity updateApiEntity = prepareValidUpdateApiEntity();
-        updateApiEntity.setId(UNKNOWN_API);
-        final Response response = rootTarget(API).request().put(Entity.json(updateApiEntity));
+    public void should_update_v2_api() {
+        io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
+        UpdateApiV2 updateApiV2 = ApiFixtures.anUpdateApiV2();
 
-        assertEquals(BAD_REQUEST_400, response.getStatus());
-    }
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(
+            apiService.update(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API),
+                any(io.gravitee.rest.api.model.api.UpdateApiEntity.class),
+                eq(false)
+            )
+        )
+            .thenReturn(apiEntity);
 
-    @Test
-    public void shouldNotUpdateApiBecausePictureInvalid() {
-        UpdateApiEntity updateApiEntity = prepareValidUpdateApiEntity();
-        updateApiEntity.setPicture("not-an-image");
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV2));
+        assertEquals(OK_200, response.getStatus());
 
-        final Response response = rootTarget(API).request().put(entity(updateApiEntity, MediaType.APPLICATION_JSON));
-        assertEquals(BAD_REQUEST_400, response.getStatus());
-    }
+        final ApiV2 apiV2 = response.readEntity(ApiV2.class);
+        assertEquals(API, apiV2.getId());
 
-    @Test
-    public void shouldNotUpdateApiWithInsufficientRights() {
-        UpdateApiEntity updateApiEntity = prepareValidUpdateApiEntity();
-
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
-        doReturn(false)
-            .when(permissionService)
-            .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_GATEWAY_DEFINITION), eq(API), any());
-
-        final Response response = rootTarget(API).request().put(Entity.json(updateApiEntity));
-
-        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+        verify(apiService)
+            .update(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API),
+                argThat(updateApiEntity -> {
+                    assertEquals(updateApiV2.getName(), updateApiEntity.getName());
+                    return true;
+                }),
+                eq(false)
+            );
     }
 
     @Test
@@ -286,33 +341,5 @@ public class ApiResourceTest extends AbstractResourceTest {
             .hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any());
         final Response response = rootTarget(API).request().delete();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
-    }
-
-    @NotNull
-    private UpdateApiEntity prepareValidUpdateApiEntity() {
-        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        updateApiEntity.setId(API);
-        updateApiEntity.setApiVersion("v1");
-        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(ApiType.MESSAGE);
-        updateApiEntity.setName("api-name");
-        updateApiEntity.setDescription("api-description");
-        updateApiEntity.setVisibility(Visibility.PUBLIC);
-        updateApiEntity.setAnalytics(new Analytics());
-
-        HttpListener httpListener = new HttpListener();
-        httpListener.setEntrypoints(List.of(new Entrypoint()));
-        httpListener.setPaths(List.of(new Path()));
-        updateApiEntity.setListeners(List.of(httpListener));
-
-        Endpoint endpoint = new Endpoint();
-        endpoint.setName("endpointName");
-        endpoint.setType("http");
-        EndpointGroup endpointGroup = new EndpointGroup();
-        endpointGroup.setName("endpointGroupName");
-        endpointGroup.setType("http");
-        endpointGroup.setEndpoints(List.of(endpoint));
-        updateApiEntity.setEndpointGroups(List.of(endpointGroup));
-        return updateApiEntity;
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.definition.model;
 
 import java.io.Serializable;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 
 /**
@@ -23,6 +24,7 @@ import lombok.EqualsAndHashCode;
  * @author GraviteeSource Team
  */
 @EqualsAndHashCode
+@Builder
 public class DefinitionContext implements Serializable {
 
     private static final long serialVersionUID = -8942499479175567992L;

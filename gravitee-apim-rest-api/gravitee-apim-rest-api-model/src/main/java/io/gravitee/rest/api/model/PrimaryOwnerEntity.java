@@ -16,8 +16,11 @@
 package io.gravitee.rest.api.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -29,6 +32,9 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode
 @ToString
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PrimaryOwnerEntity {
 
     @Schema(description = "The user or group id.", example = "005197cc-cc84-86a6-a75a-88f9772c67db")
@@ -42,8 +48,6 @@ public class PrimaryOwnerEntity {
 
     @Schema(description = "The primary owner type", example = "USER")
     private String type;
-
-    public PrimaryOwnerEntity() {}
 
     public PrimaryOwnerEntity(UserEntity user) {
         this.id = user.getId();
