@@ -509,23 +509,24 @@ paths:
         post:
             tags:
                 - API Plans
-            summary: Create an API in a specific environment
+            summary: Create an API's plan
             description: |-
-                # FIXME add a description
+                Create a new plan on a given API.
+                User must have the API_PLAN[CREATE] permission.
             operationId: createAPIPlan
             requestBody:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/Api"
+                            $ref: "#/components/schemas/CreatePlan"
                 required: true
             responses:
                 "201":
-                    description: API successfully created
+                    description: Plan successfully created
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Api"
+                                $ref: "#/components/schemas/Plan"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/plans/{planId}:
