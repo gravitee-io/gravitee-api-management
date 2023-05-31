@@ -1,0 +1,87 @@
+{
+  "id": "all-entrypoints-mock-endpoint",
+  "name": "all-entrypoints-mock-endpoint",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "API v4 using all entrypoints to verify entrypoint selection depending on the request",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount":  12,
+            "messagesLimitDurationMs": 500,
+            "headersInPayload":  true,
+            "metadataInPayload": true
+          }
+        },
+        {
+          "type": "http-post",
+          "configuration": {
+            "requestHeadersToMessage": true
+          }
+        },
+        {
+          "type": "sse"
+        },
+        {
+          "type": "websocket"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default-endpoint",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1,
+            "messageContent": "Mock data",
+            "messageCount": 15
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+    "name": "flow-1",
+    "enabled": true,
+    "selectors": [
+      {
+        "type": "http",
+        "path": "/",
+        "pathOperator": "STARTS_WITH"
+      }
+    ],
+    "request": [],
+    "response": [
+      {
+        "name": "connector-to-header",
+        "description": "Add connectors id to response headers",
+        "enabled": true,
+        "policy": "connector-to-header",
+        "configuration": {}
+      }
+    ],
+    "subscribe": [],
+    "publish": []
+  }],
+  "analytics": {
+     "enabled" : true
+  }
+}
