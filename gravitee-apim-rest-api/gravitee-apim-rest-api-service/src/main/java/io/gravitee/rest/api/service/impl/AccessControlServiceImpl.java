@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.Visibility.PUBLIC;
+import static java.util.Collections.singletonList;
 
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -24,7 +25,6 @@ import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -53,22 +53,22 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
     @Autowired
     private RoleService roleService;
 
-    @Autowired
-    private PermissionService permissionService;
-
     @Override
     public boolean canAccessApiFromPortal(ExecutionContext executionContext, ApiEntity apiEntity) {
         if (PUBLIC.equals(apiEntity.getVisibility())) {
             return true;
         } else if (isAuthenticated()) {
             final ApiQuery apiQuery = new ApiQuery();
-            apiQuery.setIds(Collections.singletonList(apiEntity.getId()));
-            Set<ApiEntity> publishedByUser = apiService.findPublishedByUser(
+            apiQuery.setIds(singletonList(apiEntity.getId()));
+            apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
+            Set<String> publishedByUser = apiService.findIdsByUser(
                 executionContext,
                 getAuthenticatedUser().getUsername(),
-                apiQuery
+                apiQuery,
+                null,
+                false
             );
-            return publishedByUser.contains(apiEntity);
+            return publishedByUser.contains(apiEntity.getId());
         }
         return false;
     }
