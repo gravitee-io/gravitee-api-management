@@ -115,6 +115,21 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
     }
 
     @Test
+    public void should_return_bad_request_when_updating_v2_api_with_v4_defition() {
+        final io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
+        final UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+        assertEquals("Api [" + API + "] is not valid.", error.getMessage());
+    }
+
+    @Test
     public void should_update_v2_api() {
         io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
         UpdateApiV2 updateApiV2 = ApiFixtures.anUpdateApiV2();
@@ -146,5 +161,20 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
                 }),
                 eq(false)
             );
+    }
+
+    @Test
+    public void should_return_bad_request_when_updating_v4_api_with_v2_defition() {
+        final ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        final UpdateApiV2 updateApiV2 = ApiFixtures.anUpdateApiV2();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV2));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+        assertEquals("Api [" + API + "] is not valid.", error.getMessage());
     }
 }
