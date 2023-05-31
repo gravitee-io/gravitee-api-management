@@ -463,7 +463,7 @@ public class ApiResource extends AbstractResource {
     private Error apiInvalid(String apiId) {
         return new Error()
             .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-            .message("API [" + apiId + "] is not valid.")
+            .message("Api [" + apiId + "] is not valid.")
             .putParametersItem("apiId", apiId)
             .technicalCode("api.invalid");
     }
