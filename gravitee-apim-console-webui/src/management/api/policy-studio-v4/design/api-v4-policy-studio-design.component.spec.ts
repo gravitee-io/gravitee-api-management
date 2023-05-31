@@ -21,10 +21,18 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiV4PolicyStudioDesignComponent } from './api-v4-policy-studio-design.component';
 
-import {CONSTANTS_TESTING, GioHttpTestingModule} from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ApiV4PolicyStudioModule } from '../api-v4-policy-studio.module';
-import {Api, ConnectorPlugin, fakeApiV4, fakeConnectorPlugin} from "../../../../entities/management-api-v2";
-import { UIRouterStateParams} from "../../../../ajs-upgraded-providers";
+import {
+  Api,
+  ApiPlansResponse,
+  ConnectorPlugin,
+  fakeApiV4,
+  fakeConnectorPlugin,
+  fakePlanV4,
+  PlanV4,
+} from '../../../../entities/management-api-v2';
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 
 describe('ApiV4PolicyStudioDesignComponent', () => {
   const API_ID = 'api-id';
@@ -36,9 +44,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule],
-      providers: [
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
-      ],
+      providers: [{ provide: UIRouterStateParams, useValue: { apiId: API_ID } }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -58,21 +64,22 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     httpTestingController.verify();
   });
 
-
   describe('ngOnInit', () => {
     it('should fetch initial data', async () => {
-      const api = fakeApiV4({ id: API_ID, name: 'my brand new API',
+      const api = fakeApiV4({
+        id: API_ID,
+        name: 'my brand new API',
         type: 'MESSAGE',
-      listeners: [
-        {
-          type: 'SUBSCRIPTION',
-          entrypoints: [
-            {
-              type: 'webhook',
-            },
-          ],
-        },
-      ],
+        listeners: [
+          {
+            type: 'SUBSCRIPTION',
+            entrypoints: [
+              {
+                type: 'webhook',
+              },
+            ],
+          },
+        ],
         endpointGroups: [
           {
             name: 'default-group',
@@ -90,31 +97,28 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
             ],
           },
         ],
-        flows: [{
-          name: 'my flow',
-          enabled: true,
-        }],
+        flows: [
+          {
+            name: 'my flow',
+            enabled: true,
+          },
+        ],
       });
 
       expectGetApi(api);
 
-      expectEntrypointsGetRequest([
-        { id: 'webhook', name: 'Webhook' },
-      ]);
-      expectEndpointsGetRequest([
-        { id: 'kafka', name: 'Kafka' },
-      ]);
+      expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook' }]);
+      expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka' }]);
+
+      expectListApiPlans(API_ID, [fakePlanV4()]);
 
       expect(component.apiType).toEqual('MESSAGE');
       expect(component.commonFlows.length).toEqual(1);
       expect(component.endpointsInfo.length).toEqual(1);
       expect(component.entrypointsInfo.length).toEqual(1);
-
-
+      expect(component.plans.length).toEqual(1);
     });
   });
-
-
 
   function expectGetApi(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
@@ -128,5 +132,14 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   function expectEndpointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
     const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush(fullConnectors);
+  }
+
+  function expectListApiPlans(apiId: string, plans: PlanV4[]) {
+    const fakeApiPlansResponse: ApiPlansResponse = {
+      data: [...plans],
+    };
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans?page=1&perPage=9999&status=PUBLISHED`, method: 'GET' })
+      .flush(fakeApiPlansResponse);
   }
 });
