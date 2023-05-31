@@ -29,7 +29,7 @@ describe('API metadata screen', () => {
   before(() => {
     cy.request({
       method: 'POST',
-      url: `${Cypress.config().baseUrl}/management/organizations/${orgId}/environments/${envId}/apis/import`,
+      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/import`,
       auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
       body: ApisFaker.apiImport({
         plans: [PlansFaker.plan({ status: PlanStatus.PUBLISHED })],
@@ -42,8 +42,8 @@ describe('API metadata screen', () => {
 
   beforeEach(function () {
     cy.loginInAPIM(API_PUBLISHER_USER.username, API_PUBLISHER_USER.password);
-    cy.visit(`${Cypress.env('managementUI')}/#!/environments/${envId}/apis/${api.id}/metadata`, { timeout: 30000 });
-    cy.get('h2', { timeout: 30000 }).contains('API metadata').should('be.visible');
+    cy.visit(`/#!/environments/${envId}/apis/${api.id}/metadata`);
+    cy.get('h2', { timeout: 40000 }).contains('API metadata').should('be.visible');
   });
 
   after(function () {
@@ -51,16 +51,14 @@ describe('API metadata screen', () => {
     // delete (close) Plan
     cy.request({
       method: 'POST',
-      url: `${Cypress.config().baseUrl}/management/organizations/${orgId}/environments/${envId}/apis/${api.id}/plans/${
-        api.plans[0].id
-      }/_close`,
+      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${api.id}/plans/${api.plans[0].id}/_close`,
       auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
     });
 
     // delete API
     cy.request({
       method: 'DELETE',
-      url: `${Cypress.config().baseUrl}/management/organizations/${orgId}/environments/${envId}/apis/${api.id}`,
+      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${api.id}`,
       auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
     });
   });
@@ -220,7 +218,7 @@ describe('API metadata screen', () => {
     before(() => {
       cy.request({
         method: 'POST',
-        url: `${Cypress.config().baseUrl}/management/organizations/${orgId}/environments/${envId}/configuration/metadata`,
+        url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/configuration/metadata`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
         body: {
           format: 'STRING',
@@ -263,7 +261,7 @@ describe('API metadata screen', () => {
       const key = globalMetadataName.toLowerCase();
       cy.request({
         method: 'DELETE',
-        url: `${Cypress.config().baseUrl}/management/organizations/${orgId}/environments/${envId}/configuration/metadata/${key}`,
+        url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/configuration/metadata/${key}`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
       });
     });

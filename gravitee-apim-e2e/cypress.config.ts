@@ -1,6 +1,9 @@
 import { defineConfig } from 'cypress';
 
 export default defineConfig({
+  env: {
+    managementApi: 'http://localhost:8083',
+  },
   e2e: {
     baseUrl: 'http://localhost:8083',
     watchForFileChanges: false,

@@ -27,7 +27,7 @@ import { requestGateway } from 'ui-test/support/common/http.commands';
 export function createApi(auth: BasicAuthentication, body: Api, failOnStatusCode = false) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis`,
     body,
     auth,
     failOnStatusCode,
@@ -47,7 +47,7 @@ export function publishApi(auth: BasicAuthentication, createdApi: Api, failOnSta
   delete apiToPublish.contextPath;
   return cy.request({
     method: 'PUT',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${createdApi.id}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${createdApi.id}`,
     body: apiToPublish,
     auth,
     failOnStatusCode,
@@ -57,7 +57,7 @@ export function publishApi(auth: BasicAuthentication, createdApi: Api, failOnSta
 export function deleteApi(auth: BasicAuthentication, apiId: string, failOnStatusCode = false) {
   return cy.request({
     method: 'DELETE',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}`,
     auth,
     failOnStatusCode,
   });
@@ -66,7 +66,7 @@ export function deleteApi(auth: BasicAuthentication, apiId: string, failOnStatus
 export function deployApi(auth: BasicAuthentication, apiId: string, failOnStatusCode = false) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/deploy`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/deploy`,
     auth,
     failOnStatusCode,
   });
@@ -75,7 +75,7 @@ export function deployApi(auth: BasicAuthentication, apiId: string, failOnStatus
 export function startApi(auth: BasicAuthentication, apiId: string, failOnStatusCode = false) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}?action=START`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}?action=START`,
     auth,
     failOnStatusCode,
   });
@@ -84,7 +84,7 @@ export function startApi(auth: BasicAuthentication, apiId: string, failOnStatusC
 export function stopApi(auth: BasicAuthentication, apiId: string, failOnStatusCode = false) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}?action=STOP`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}?action=STOP`,
     auth,
     failOnStatusCode,
   });
@@ -93,7 +93,7 @@ export function stopApi(auth: BasicAuthentication, apiId: string, failOnStatusCo
 export function importCreateApi(auth: BasicAuthentication, body: ApiImport) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/import`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/import`,
     body,
     auth,
     failOnStatusCode: false,
@@ -103,7 +103,7 @@ export function importCreateApi(auth: BasicAuthentication, body: ApiImport) {
 export function importSwaggerApi(auth: BasicAuthentication, swaggerImport: string, attributes?: Partial<ImportSwaggerDescriptorEntity>) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/import/swagger`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/import/swagger`,
     qs: { definitionVersion: '2.0.0' },
     body: {
       payload: swaggerImport,
@@ -117,7 +117,7 @@ export function importSwaggerApi(auth: BasicAuthentication, swaggerImport: strin
 export function importUpdateApi(auth: BasicAuthentication, apiId: string, body: ApiImport) {
   return cy.request({
     method: 'PUT',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/import`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/import`,
     body,
     auth,
     failOnStatusCode: false,
@@ -127,7 +127,7 @@ export function importUpdateApi(auth: BasicAuthentication, apiId: string, body: 
 export function exportApi(auth: BasicAuthentication, apiId: string) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/export`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/export`,
     auth,
     failOnStatusCode: false,
   });
@@ -136,7 +136,7 @@ export function exportApi(auth: BasicAuthentication, apiId: string) {
 export function getApiById(auth: BasicAuthentication, apiId: string) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}`,
     auth,
     failOnStatusCode: false,
   });
@@ -145,7 +145,7 @@ export function getApiById(auth: BasicAuthentication, apiId: string) {
 export function getApiMetadata(auth: BasicAuthentication, apiId: string) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/metadata`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/metadata`,
     auth,
     failOnStatusCode: false,
   });
@@ -154,7 +154,7 @@ export function getApiMetadata(auth: BasicAuthentication, apiId: string) {
 export function addMemberToApi(auth: BasicAuthentication, apiId: string, body: ApiMember) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/members`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/members`,
     body,
     auth,
     failOnStatusCode: false,
@@ -164,7 +164,7 @@ export function addMemberToApi(auth: BasicAuthentication, apiId: string, body: A
 export function getApiMembers(auth: BasicAuthentication, apiId: string) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/members`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/members`,
     auth,
     failOnStatusCode: false,
   });
@@ -173,7 +173,7 @@ export function getApiMembers(auth: BasicAuthentication, apiId: string) {
 export function updateApi(auth: BasicAuthentication, apiId: string, apiUpdate: UpdateApiEntity, failOnStatusCode = false) {
   return cy.request({
     method: 'PUT',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}`,
     auth,
     body: apiUpdate,
     failOnStatusCode,
@@ -188,7 +188,7 @@ export function updateApiSubscription(
 ) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/subscriptions/${subscriptionId}/_process`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/subscriptions/${subscriptionId}/_process`,
     auth,
     body: subscription,
     failOnStatusCode: false,
@@ -198,7 +198,7 @@ export function updateApiSubscription(
 export function getApiKeys(auth: BasicAuthentication, apiId: string, subscriptionId: string) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/subscriptions/${subscriptionId}/apikeys`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/subscriptions/${subscriptionId}/apikeys`,
     auth,
     failOnStatusCode: false,
   });
@@ -207,7 +207,7 @@ export function getApiKeys(auth: BasicAuthentication, apiId: string, subscriptio
 export function getApiAnalytics(auth: BasicAuthentication, apiId: string, field = 'mapped-path') {
   return requestGateway(
     {
-      url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/analytics`,
+      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/analytics`,
       auth,
       headers: {
         'Cache-Control': 'no-cache, no-store',

@@ -18,7 +18,7 @@ import { BasicAuthentication, ApiUser } from '@model/users';
 export function getCurrentUser(auth: BasicAuthentication) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/user`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/user`,
     auth,
     failOnStatusCode: false,
   });
@@ -27,7 +27,7 @@ export function getCurrentUser(auth: BasicAuthentication) {
 export function createUser(auth: BasicAuthentication, body: ApiUser) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/users`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/users`,
     body,
     auth,
     failOnStatusCode: false,
@@ -37,7 +37,7 @@ export function createUser(auth: BasicAuthentication, body: ApiUser) {
 export function deleteUser(auth: BasicAuthentication, userId: string) {
   return cy.request({
     method: 'DELETE',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/users/${userId}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/users/${userId}`,
     auth,
     failOnStatusCode: false,
   });

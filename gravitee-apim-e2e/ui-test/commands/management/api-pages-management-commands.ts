@@ -25,7 +25,7 @@ class ApiPagesQueryParams {
 export function getPages(auth: BasicAuthentication, apiId: string, params = new ApiPagesQueryParams()) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/pages`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/pages`,
     auth,
     failOnStatusCode: false,
     qs: params,
@@ -35,7 +35,7 @@ export function getPages(auth: BasicAuthentication, apiId: string, params = new 
 export function getPage(auth: BasicAuthentication, apiId: string, pageId: string) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/pages/${pageId}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/pages/${pageId}`,
     auth,
     failOnStatusCode: false,
   });
@@ -44,7 +44,7 @@ export function getPage(auth: BasicAuthentication, apiId: string, pageId: string
 export function deletePage(auth: BasicAuthentication, apiId: string, pageId: string) {
   return cy.request({
     method: 'DELETE',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/pages/${pageId}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/pages/${pageId}`,
     auth,
     failOnStatusCode: false,
   });

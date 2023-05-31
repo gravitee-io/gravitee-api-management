@@ -22,7 +22,7 @@ class GraviteeCommands {
   static management(auth?: BasicAuthentication): ManagementCommands {
     const requestInfo: RequestInfo = {
       auth,
-      baseUrl: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}`,
+      baseUrl: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}`,
     };
     return new ManagementCommands(requestInfo);
   }
@@ -30,7 +30,7 @@ class GraviteeCommands {
   static portal(auth?: BasicAuthentication): PortalCommands {
     const requestInfo: RequestInfo = {
       auth,
-      baseUrl: `${Cypress.config().baseUrl}${Cypress.env('portalApi')}`,
+      baseUrl: `${Cypress.env('managementApi')}${Cypress.env('portalApi')}`,
     };
     return new PortalCommands(requestInfo);
   }

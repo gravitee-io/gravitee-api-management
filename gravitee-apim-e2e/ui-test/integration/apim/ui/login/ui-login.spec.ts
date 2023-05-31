@@ -20,7 +20,7 @@ describe('Login Feature', () => {
   // otherwise we are sometimes redirected or face XRCF issues
   beforeEach(() => {
     cy.clearCookie('Auth-Graviteeio-APIM');
-    cy.visit(`${Cypress.env('managementUI')}/#!/login`);
+    cy.visit('/');
   });
 
   it(`should launch the login page`, () => {
