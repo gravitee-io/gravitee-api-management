@@ -18,6 +18,7 @@ import cypressConfig from '../../cypress.config';
 
 export default defineConfig({
   env: {
+    ...cypressConfig.env,
     failOnStatusCode: false,
     api_publisher_user_login: 'api1',
     api_publisher_user_password: 'api1',
@@ -29,8 +30,8 @@ export default defineConfig({
     admin_user_password: 'admin',
     am_admin_user_login: 'admin',
     am_admin_user_password: 'adminadmin',
-    managementOrganizationApi: '/management/organizations/DEFAULT',
-    managementApi: '/management/organizations/DEFAULT/environments/DEFAULT',
+    defaultOrg: '/management/organizations/DEFAULT',
+    defaultOrgEnv: '/management/organizations/DEFAULT/environments/DEFAULT',
     managementUI: 'https://apim.gravitee.io/console',
     gatewayServer: 'https://apim.gravitee.io',
     am_gatewayServer: 'https://am.gravitee.io',

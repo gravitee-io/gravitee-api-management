@@ -19,7 +19,7 @@ import { BasicAuthentication } from '@model/users';
 export function createApplication(auth: BasicAuthentication, body: Application) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/applications`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/applications`,
     body,
     auth,
     failOnStatusCode: false,
@@ -29,7 +29,7 @@ export function createApplication(auth: BasicAuthentication, body: Application) 
 export function deleteApplication(auth: BasicAuthentication, applicationId: string) {
   return cy.request({
     method: 'DELETE',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/applications/${applicationId}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/applications/${applicationId}`,
     auth,
     failOnStatusCode: false,
   });
@@ -38,7 +38,7 @@ export function deleteApplication(auth: BasicAuthentication, applicationId: stri
 export function subscribeApplication(auth: BasicAuthentication, applicationId: string, planId: string) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/applications/${applicationId}/subscriptions`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/applications/${applicationId}/subscriptions`,
     auth,
     qs: {
       plan: `${planId}`,
@@ -50,7 +50,7 @@ export function subscribeApplication(auth: BasicAuthentication, applicationId: s
 export function closeApplicationSubscription(auth: BasicAuthentication, applicationId: string, subscriptionId: string) {
   return cy.request({
     method: 'DELETE',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/applications/${applicationId}/subscriptions/${subscriptionId}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/applications/${applicationId}/subscriptions/${subscriptionId}`,
     auth,
     failOnStatusCode: false,
   });

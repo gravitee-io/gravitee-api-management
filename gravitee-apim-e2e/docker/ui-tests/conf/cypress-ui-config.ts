@@ -11,9 +11,9 @@ export default defineConfig({
         low_permission_user_password: "password",
         admin_user_login: "admin",
         admin_user_password: "admin",
-        managementOrganizationApi: "/management/organizations/DEFAULT",
-        managementApi: "/management/organizations/DEFAULT/environments/DEFAULT",
-        managementUI: "http://nginx/console",
+        defaultOrg: "/management/organizations/DEFAULT",
+        defaultOrgEnv: "/management/organizations/DEFAULT/environments/DEFAULT",
+        managementApi: 'http://nginx',
         gatewayServer: "http://nginx/gateway",
         portalApi: "/portal/environments/DEFAULT",
     },
@@ -28,7 +28,7 @@ export default defineConfig({
         videosFolder: "./ui-test/videos",
         video: false,
         screenshotOnRunFailure: false,
-        baseUrl: "http://nginx",
+        baseUrl: "http://nginx/console",
         setupNodeEvents(on, config) {
             // implement node event listeners here
         },

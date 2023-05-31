@@ -23,7 +23,7 @@ describe('Tenants', () => {
 
   beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-    cy.visit(`${Cypress.env('managementUI')}/#!/organization/settings/tenants`);
+    cy.visit('/#!/organization/settings/tenants');
   });
 
   it('should create a tenant', () => {

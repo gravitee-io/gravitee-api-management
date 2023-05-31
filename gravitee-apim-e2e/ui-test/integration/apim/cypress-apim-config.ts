@@ -19,7 +19,6 @@ import cypressConfig from '../cypress-integration-config';
 export default defineConfig({
   env: {
     ...cypressConfig.env,
-    managementUI: 'http://localhost:8084',
     gatewayServer: 'http://localhost:8082',
     portalApi: '/portal/environments/DEFAULT',
   },

@@ -19,7 +19,7 @@ import { PlanStatus } from '@model/plan';
 export function getPlans(auth: BasicAuthentication, apiId: string, status: PlanStatus) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/plans`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/plans`,
     auth,
     failOnStatusCode: false,
     qs: {
@@ -31,7 +31,7 @@ export function getPlans(auth: BasicAuthentication, apiId: string, status: PlanS
 export function getPlan(auth: BasicAuthentication, apiId: string, planId: string) {
   return cy.request({
     method: 'GET',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/plans/${planId}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/plans/${planId}`,
     auth,
     failOnStatusCode: false,
   });

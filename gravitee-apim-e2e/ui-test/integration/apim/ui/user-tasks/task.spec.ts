@@ -36,7 +36,7 @@ describe('Task screen', () => {
   describe('Go to tasks by clicking on profile picture', () => {
     it('should open Task page with no tasks to be done', () => {
       cy.loginInAPIM(API_PUBLISHER_USER.username, API_PUBLISHER_USER.password);
-      cy.visit(`${Cypress.env('managementUI')}`);
+      cy.visit('/');
       cy.getByDataTestId('top-nav-user-menu-button').click();
       cy.getByDataTestId('user-menu-task-button').click();
       cy.url().should('include', 'tasks');
@@ -48,7 +48,7 @@ describe('Task screen', () => {
   describe('Check appearance for different kind of tasks', () => {
     beforeEach(() => {
       cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-      cy.visit(`${Cypress.env('managementUI')}/#!/environments/${envId}/tasks`);
+      cy.visit(`/#!/environments/${envId}/tasks`);
       cy.url().should('include', 'tasks');
     });
 
@@ -59,7 +59,7 @@ describe('Task screen', () => {
         // create API
         cy.request({
           method: 'POST',
-          url: `/management/organizations/${orgId}/environments/${envId}/apis/import`,
+          url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/apis/import`,
           auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
           body: ApisFaker.apiImport({
             plans: [PlansFaker.plan({ status: PlanStatus.PUBLISHED })],
@@ -71,7 +71,7 @@ describe('Task screen', () => {
           // change API review state to 'ASK'
           cy.request({
             method: 'POST',
-            url: `/management/organizations/${orgId}/environments/${envId}/apis/${api.id}/reviews`,
+            url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/apis/${api.id}/reviews`,
             auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
             body: { message: 'my test message' },
             qs: { action: ReviewAction.ASK },
@@ -105,7 +105,7 @@ describe('Task screen', () => {
         // create API with key plan and manual validation
         cy.request({
           method: 'POST',
-          url: `/management/organizations/${orgId}/environments/${envId}/apis/import`,
+          url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/apis/import`,
           auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
           body: ApisFaker.apiImport({
             plans: [
@@ -119,7 +119,7 @@ describe('Task screen', () => {
           // create an application to subscribe to the API key plan
           cy.request({
             method: 'POST',
-            url: `/management/organizations/${orgId}/environments/${envId}/applications`,
+            url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/applications`,
             auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
             body: ApplicationsFaker.newApplication(),
           }).then((response) => {
@@ -129,7 +129,9 @@ describe('Task screen', () => {
             // subscribe application to plan
             cy.request({
               method: 'POST',
-              url: `/management/organizations/${orgId}/environments/${envId}/applications/${application.id}/subscriptions`,
+              url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/applications/${
+                application.id
+              }/subscriptions`,
               auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
               qs: {
                 plan: api.plans[0].id,
@@ -169,7 +171,7 @@ describe('Task screen', () => {
       before(() => {
         cy.request({
           method: 'POST',
-          url: `/management/organizations/${orgId}/settings`,
+          url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/settings`,
           auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
           body: {
             management: {
@@ -181,7 +183,7 @@ describe('Task screen', () => {
 
           cy.request({
             method: 'POST',
-            url: `/management/organizations/${orgId}/users/registration`,
+            url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/users/registration`,
             body: { email, firstname, lastname },
           }).then((response) => {
             expect(response.status).to.eq(200);
@@ -205,7 +207,7 @@ describe('Task screen', () => {
         cy.request({
           method: 'DELETE',
           auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
-          url: `/management/organizations/${orgId}/users/${userId}`,
+          url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/users/${userId}`,
         });
       });
     });

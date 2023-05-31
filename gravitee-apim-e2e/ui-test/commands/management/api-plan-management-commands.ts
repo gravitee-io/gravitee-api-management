@@ -19,7 +19,7 @@ import { BasicAuthentication } from '@model/users';
 export function createPlan(auth: BasicAuthentication, apiId: string, body: Partial<NewPlanEntity>, failOnStatusCode = false) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/plans`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/plans`,
     auth,
     body,
     failOnStatusCode,
@@ -29,7 +29,7 @@ export function createPlan(auth: BasicAuthentication, apiId: string, body: Parti
 export function deletePlan(auth: BasicAuthentication, apiId: string, planId: string, failOnStatusCode = false) {
   return cy.request({
     method: 'DELETE',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/plans/${planId}`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/plans/${planId}`,
     auth,
     failOnStatusCode,
   });
@@ -38,7 +38,7 @@ export function deletePlan(auth: BasicAuthentication, apiId: string, planId: str
 export function closePlan(auth: BasicAuthentication, apiId: string, planId: string) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/plans/${planId}/_close`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/plans/${planId}/_close`,
     auth,
     failOnStatusCode: false,
   });
@@ -47,7 +47,7 @@ export function closePlan(auth: BasicAuthentication, apiId: string, planId: stri
 export function publishPlan(auth: BasicAuthentication, apiId: string, planId: string, failOnStatusCode = false) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.config().baseUrl}${Cypress.env('managementApi')}/apis/${apiId}/plans/${planId}/_publish`,
+    url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}/plans/${planId}/_publish`,
     auth,
     failOnStatusCode,
   });

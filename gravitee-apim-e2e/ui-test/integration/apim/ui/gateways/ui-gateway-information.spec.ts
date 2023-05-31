@@ -18,7 +18,7 @@ import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 describe('Get Gateway instance information as admin', () => {
   beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-    cy.visit(`${Cypress.env('managementUI')}/#!/environments/DEFAULT/instances/`);
+    cy.visit('/#!/environments/DEFAULT/instances/');
     cy.url().should('contain', 'instances');
   });
 
@@ -90,7 +90,7 @@ describe('Get Gateway instance information as non-admin', () => {
   });
 
   it('should not be able to call gateway instances', function () {
-    cy.visit(`${Cypress.env('managementUI')}/#!/environments/DEFAULT/instances/`);
+    cy.visit('/#!/environments/DEFAULT/instances/');
     cy.wait(1000);
     cy.url().should('not.contain', 'instances');
   });
