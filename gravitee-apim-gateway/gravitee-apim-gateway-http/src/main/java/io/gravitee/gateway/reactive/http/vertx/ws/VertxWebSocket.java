@@ -77,6 +77,14 @@ public class VertxWebSocket implements WebSocket {
         return Completable.complete();
     }
 
+    @Override
+    public Completable writePing() {
+        if (isValid()) {
+            return webSocket.writePing(io.vertx.rxjava3.core.buffer.Buffer.buffer("ping_pong"));
+        }
+        return Completable.complete();
+    }
+
     public Completable writeFrame(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
         if (isValid()) {
             final WebSocketFrame webSocketFrame = convert(frame);
