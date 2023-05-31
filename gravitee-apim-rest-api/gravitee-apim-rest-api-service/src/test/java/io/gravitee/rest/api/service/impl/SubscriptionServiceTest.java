@@ -23,6 +23,7 @@ import static io.gravitee.rest.api.service.impl.AbstractService.ENVIRONMENT_ADMI
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -113,6 +114,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -1582,6 +1584,23 @@ public class SubscriptionServiceTest {
     @Test
     public void update_should_override_clientId_if_present_and_new_clientId_is_not_null() throws Exception {
         testUpdateSubscriptionDependingOnClientIdSituation("client-id", "new-client-id", "new-client-id");
+    }
+
+    @Test
+    public void should_search_and_exclude_apis() throws Exception {
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setExcludedApis(List.of(API_ID));
+
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+
+        when(subscriptionRepository.search(any())).thenReturn(List.of(subscription));
+
+        Collection<SubscriptionEntity> result = subscriptionService.search(GraviteeContext.getExecutionContext(), query);
+
+        assertThat(result).isNotNull();
+        assertThat(result.size()).isEqualTo(1);
+
+        verify(subscriptionRepository).search(argThat(criteria -> criteria.getExcludedApis().contains(API_ID)));
     }
 
     private void testUpdateSubscriptionDependingOnClientIdSituation(
