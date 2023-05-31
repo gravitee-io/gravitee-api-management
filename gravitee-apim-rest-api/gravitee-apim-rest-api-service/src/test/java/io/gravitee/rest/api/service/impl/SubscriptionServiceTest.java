@@ -1892,6 +1892,23 @@ public class SubscriptionServiceTest {
         testUpdateSubscriptionDependingOnClientIdSituation("client-id", "new-client-id", "new-client-id");
     }
 
+    @Test
+    public void should_search_and_exclude_apis() throws Exception {
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setExcludedApis(List.of(API_ID));
+
+        Subscription subscription = buildTestSubscription(ACCEPTED);
+
+        when(subscriptionRepository.search(any())).thenReturn(List.of(subscription));
+
+        Collection<SubscriptionEntity> result = subscriptionService.search(GraviteeContext.getExecutionContext(), query);
+
+        assertThat(result).isNotNull();
+        assertThat(result.size()).isEqualTo(1);
+
+        verify(subscriptionRepository).search(argThat(criteria -> criteria.getExcludedApis().contains(API_ID)));
+    }
+
     private void testUpdateSubscriptionDependingOnClientIdSituation(
         String initialClientId,
         String updatedClientId,

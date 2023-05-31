@@ -1373,7 +1373,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .from(query.getFrom())
             .to(query.getTo())
             .endingAtAfter(query.getEndingAtAfter())
-            .endingAtBefore(query.getEndingAtBefore());
+            .endingAtBefore(query.getEndingAtBefore())
+            .excludedApis(query.getExcludedApis());
 
         if (query.getStatuses() != null) {
             builder.statuses(

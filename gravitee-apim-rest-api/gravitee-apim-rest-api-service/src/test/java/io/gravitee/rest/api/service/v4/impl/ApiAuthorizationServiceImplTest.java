@@ -17,12 +17,13 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,10 +36,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -390,5 +388,44 @@ public class ApiAuthorizationServiceImplTest {
 
         assertNotNull(apis);
         assertEquals(1, apis.size());
+    }
+
+    @Test
+    public void shouldSearchSubscriptionWithExcludedApis() {
+        String apiId = "apiId";
+        String applicationId = "applicationId";
+        ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Set.of(apiId));
+
+        Map<String, char[]> userPermissions = ImmutableMap.of("MEMBER", "CRUD".toCharArray());
+        RoleEntity userRole = new RoleEntity();
+        userRole.setId("USER_ROLE_ID");
+        userRole.setPermissions(userPermissions);
+        userRole.setScope(RoleScope.API);
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId("PO_ROLE_ID");
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
+
+        when(applicationService.searchIds(any(), any(), isNull())).thenReturn(Set.of(applicationId));
+
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId("subscriptionId");
+        subscriptionEntity.setApi("anotherApi");
+        when(subscriptionService.search(any(), any())).thenReturn(List.of(subscriptionEntity));
+
+        List<ApiCriteria> result = apiAuthorizationService.computeApiCriteriaForUser(
+            GraviteeContext.getExecutionContext(),
+            USER_NAME,
+            apiQuery,
+            false
+        );
+
+        assertThat(result).isNotNull();
+        assertThat(result.size()).isEqualTo(2);
+        verify(subscriptionService).search(any(), argThat(argument -> argument.getExcludedApis().contains(apiId)));
     }
 }
