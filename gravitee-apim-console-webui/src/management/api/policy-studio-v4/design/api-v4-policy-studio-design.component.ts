@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
+import {combineLatest, Subject} from 'rxjs';
+import {takeUntil, map} from "rxjs/operators";
+import {ConnectorsInfo, Flow as PSFlow} from "@gravitee/ui-policy-studio-angular";
+
+import { UIRouterStateParams} from "../../../../ajs-upgraded-providers";
+import {ApiV2Service} from "../../../../services-ngx/api-v2.service";
+import { ApiType, ApiV4} from "../../../../entities/management-api-v2";
+import {IconService} from "../../../../services-ngx/icon.service";
+import {ConnectorPluginsV2Service} from "../../../../services-ngx/connector-plugins-v2.service";
 
 @Component({
   selector: 'api-v4-policy-studio-design',
@@ -25,11 +33,54 @@ import { Subject } from 'rxjs';
 export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  constructor() {}
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  ngOnInit(): void {}
+  public apiType: ApiType;
+  public entrypointsInfo: ConnectorsInfo[];
+  public endpointsInfo: ConnectorsInfo[]
+  public commonFlows: PSFlow[]
+
+
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
+    private readonly iconService: IconService,
+    private readonly apiV2Service: ApiV2Service,) {}
+
+  ngOnInit(): void {
+
+    combineLatest([
+      this.apiV2Service.get(this.ajsStateParams.apiId).pipe(map((api) => api as ApiV4)),
+      this.connectorPluginsV2Service.listEntrypointPlugins(),
+      this.connectorPluginsV2Service.listEndpointPlugins(),
+    ])
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe(([api,  entrypoints, endpoints]) => {
+        this.apiType = api.type;
+
+        this.entrypointsInfo = api.listeners.flatMap(listener =>
+          listener.entrypoints.map(entrypoint => {
+            const entrypointPlugin = entrypoints.find(entrypointPlugin => entrypointPlugin.id === entrypoint.type);
+            return {
+              type: entrypoint.type,
+              icon: this.iconService.registerSvg(entrypoint.type, entrypointPlugin.icon),
+            }
+          }
+        ));
+
+        this.endpointsInfo = api.endpointGroups.flatMap(endpointGroup =>
+          endpointGroup.endpoints.map(endpoint => {
+            const endpointPlugin = endpoints.find(endpointPlugin => endpointPlugin.id === endpoint.type);
+            return {
+              type: endpoint.type,
+              icon: this.iconService.registerSvg(endpoint.type, endpointPlugin.icon),
+            }
+          })
+        );
+
+        this.commonFlows = api.flows
+
+      });
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
