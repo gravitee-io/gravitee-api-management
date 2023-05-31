@@ -49,12 +49,9 @@ import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -62,51 +59,33 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiResource_getApiByIdTest extends AbstractResourceTest {
-
-    private static final String API_ID = "my-api";
-    private static final String ENVIRONMENT_ID = "my-env";
+public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
     private final ObjectMapper mapper = new GraviteeMapper(false);
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT_ID + "/apis";
-    }
-
-    @Before
-    public void init() throws TechnicalException {
-        reset(apiServiceV4);
-        GraviteeContext.cleanContext();
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
-        GraviteeContext.setCurrentOrganization(ORGANIZATION);
-
-        EnvironmentEntity environmentEntity = new EnvironmentEntity();
-        environmentEntity.setId(ENVIRONMENT_ID);
-        environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT_ID);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID);
+        return "/environments/" + ENVIRONMENT + "/apis";
     }
 
     @Test
     public void should_get_api_V4() throws JsonProcessingException {
-        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
+        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
 
-        final Response response = rootTarget(API_ID).request().get();
+        final Response response = rootTarget(API).request().get();
 
         assertEquals(OK_200, response.getStatus());
 
         final ApiV4 responseApi = response.readEntity(ApiV4.class);
 
         assertNotNull(responseApi);
-        assertEquals(API_ID, responseApi.getName());
+        assertEquals(API, responseApi.getName());
         assertNotNull(responseApi.getLinks());
         assertNotNull(responseApi.getLinks().getPictureUrl());
         assertTrue(responseApi.getLinks().getPictureUrl().contains("environments/my-env/apis/my-api/picture"));
@@ -221,18 +200,18 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
 
     @Test
     public void should_get_filtered_api_V4() {
-        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
+        doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
         doReturn(false)
             .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API_ID, RolePermissionAction.READ);
+            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API, RolePermissionAction.READ);
 
-        final Response response = rootTarget(API_ID).request().get();
+        final Response response = rootTarget(API).request().get();
 
         assertEquals(OK_200, response.getStatus());
 
         final ApiV4 responseApi = response.readEntity(ApiV4.class);
         assertNotNull(responseApi);
-        assertEquals(API_ID, responseApi.getName());
+        assertEquals(API, responseApi.getName());
         assertNotNull(responseApi.getLinks());
         assertNotNull(responseApi.getLinks().getPictureUrl());
         assertNotNull(responseApi.getLinks().getBackgroundUrl());
@@ -249,16 +228,16 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
 
     @Test
     public void should_get_api_V3() throws JsonProcessingException {
-        doReturn(this.fakeApiEntityV2()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
+        doReturn(this.fakeApiEntityV2()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
 
-        final Response response = rootTarget(API_ID).request().get();
+        final Response response = rootTarget(API).request().get();
 
         assertEquals(OK_200, response.getStatus());
 
         final ApiV2 responseApi = response.readEntity(ApiV2.class);
 
         assertNotNull(responseApi);
-        assertEquals(API_ID, responseApi.getName());
+        assertEquals(API, responseApi.getName());
         assertNotNull(responseApi.getLinks());
         assertNotNull(responseApi.getLinks().getPictureUrl());
         assertTrue(responseApi.getLinks().getPictureUrl().contains("environments/my-env/apis/my-api/picture"));
@@ -279,19 +258,19 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
 
     @Test
     public void should_get_filtered_api_V3() {
-        doReturn(this.fakeApiEntityV2()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
+        doReturn(this.fakeApiEntityV2()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
 
         doReturn(false)
             .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API_ID, RolePermissionAction.READ);
+            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API, RolePermissionAction.READ);
 
-        final Response response = rootTarget(API_ID).request().get();
+        final Response response = rootTarget(API).request().get();
 
         assertEquals(OK_200, response.getStatus());
 
         final ApiV2 responseApi = response.readEntity(ApiV2.class);
         assertNotNull(responseApi);
-        assertEquals(API_ID, responseApi.getName());
+        assertEquals(API, responseApi.getName());
         assertNotNull(responseApi.getLinks());
         assertNotNull(responseApi.getLinks().getPictureUrl());
         assertNotNull(responseApi.getLinks().getBackgroundUrl());
@@ -319,8 +298,8 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
     private ApiEntity fakeApiEntityV4() {
         var apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        apiEntity.setId(API_ID);
-        apiEntity.setName(API_ID);
+        apiEntity.setId(API);
+        apiEntity.setName(API);
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
         httpListener.setPathMappings(Set.of("/test"));
@@ -404,8 +383,8 @@ public class ApiResource_getApiByIdTest extends AbstractResourceTest {
     private io.gravitee.rest.api.model.api.ApiEntity fakeApiEntityV2() {
         var apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        apiEntity.setId(API_ID);
-        apiEntity.setName(API_ID);
+        apiEntity.setId(API);
+        apiEntity.setName(API);
 
         var proxy = new Proxy();
         proxy.setVirtualHosts(List.of(new VirtualHost("host.io", "/test")));

@@ -20,10 +20,8 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Proxy;
@@ -51,10 +49,8 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.PageType;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.Visibility;
@@ -73,44 +69,24 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiResource_ExportApiDefinitionTest extends AbstractResourceTest {
-
-    private static final String API_ID = "my-api";
-    private static final String ENVIRONMENT_ID = "my-env";
-
-    private final ObjectMapper mapper = new GraviteeMapper(false);
+public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT_ID + "/apis/" + API_ID + "/_export/definition";
-    }
-
-    @Before
-    public void init() throws TechnicalException {
-        reset(apiServiceV4);
-        GraviteeContext.cleanContext();
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
-        GraviteeContext.setCurrentOrganization(ORGANIZATION);
-
-        EnvironmentEntity environmentEntity = new EnvironmentEntity();
-        environmentEntity.setId(ENVIRONMENT_ID);
-        environmentEntity.setOrganizationId(ORGANIZATION);
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT_ID);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT_ID);
+        return "/environments/" + ENVIRONMENT + "/apis/" + API + "/_export/definition";
     }
 
     @Test
     public void should_not_export_when_no_definition_permission() {
         doReturn(false)
             .when(permissionService)
-            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API_ID, RolePermissionAction.READ);
+            .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, API, RolePermissionAction.READ);
         Response response = rootTarget().request().get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
@@ -119,16 +95,14 @@ public class ApiResource_ExportApiDefinitionTest extends AbstractResourceTest {
     public void should_not_export_v2_apis() {
         doThrow(new ApiDefinitionVersionNotSupportedException("2.0.0"))
             .when(apiImportExportService)
-            .exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
+            .exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME);
         Response response = rootTarget().request().get();
         assertEquals(BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void should_export() throws JsonProcessingException {
-        doReturn(this.fakeExportApiEntity())
-            .when(apiImportExportService)
-            .exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_NAME);
+        doReturn(this.fakeExportApiEntity()).when(apiImportExportService).exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME);
 
         Response response = rootTarget().request().get();
         assertEquals(OK_200, response.getStatus());
@@ -162,8 +136,8 @@ public class ApiResource_ExportApiDefinitionTest extends AbstractResourceTest {
     private io.gravitee.rest.api.model.api.ApiEntity fakeApiEntityV2() {
         var apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        apiEntity.setId(API_ID);
-        apiEntity.setName(API_ID);
+        apiEntity.setId(API);
+        apiEntity.setName(API);
 
         var proxy = new Proxy();
         proxy.setVirtualHosts(List.of(new VirtualHost("host.io", "/test")));
@@ -194,8 +168,8 @@ public class ApiResource_ExportApiDefinitionTest extends AbstractResourceTest {
     private ApiEntity fakeApiEntityV4() {
         var apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        apiEntity.setId(API_ID);
-        apiEntity.setName(API_ID);
+        apiEntity.setId(API);
+        apiEntity.setName(API);
         apiEntity.setApiVersion("v1.0");
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
@@ -298,7 +272,7 @@ public class ApiResource_ExportApiDefinitionTest extends AbstractResourceTest {
 
     private Set<ApiMetadataEntity> fakeApiMetadata() {
         ApiMetadataEntity firstMetadata = new ApiMetadataEntity();
-        firstMetadata.setApiId(API_ID);
+        firstMetadata.setApiId(API);
         firstMetadata.setKey("my-metadata-1");
         firstMetadata.setName("My first metadata");
         firstMetadata.setFormat(MetadataFormat.NUMERIC);
@@ -306,7 +280,7 @@ public class ApiResource_ExportApiDefinitionTest extends AbstractResourceTest {
         firstMetadata.setDefaultValue("5");
 
         ApiMetadataEntity secondMetadata = new ApiMetadataEntity();
-        secondMetadata.setApiId(API_ID);
+        secondMetadata.setApiId(API);
         secondMetadata.setKey("my-metadata-2");
         secondMetadata.setName("My second metadata");
         secondMetadata.setFormat(MetadataFormat.STRING);
@@ -318,7 +292,7 @@ public class ApiResource_ExportApiDefinitionTest extends AbstractResourceTest {
 
     private Set<PlanEntity> fakeApiPlans() {
         PlanEntity planEntity = new PlanEntity();
-        planEntity.setApiId(API_ID);
+        planEntity.setApiId(API);
         planEntity.setCharacteristics(List.of("characteristic1", "characteristic2"));
         planEntity.setCommentMessage("commentMessage");
         planEntity.setCommentRequired(true);
@@ -434,8 +408,8 @@ public class ApiResource_ExportApiDefinitionTest extends AbstractResourceTest {
     // Tests
     private void testReturnedApi(ApiV4 responseApi) throws JsonProcessingException {
         assertNotNull(responseApi);
-        assertEquals(API_ID, responseApi.getName());
-        assertEquals(API_ID, responseApi.getId());
+        assertEquals(API, responseApi.getName());
+        assertEquals(API, responseApi.getId());
         assertNull(responseApi.getLinks());
         assertNotNull(responseApi.getProperties());
         assertEquals(1, responseApi.getProperties().size());
@@ -574,7 +548,7 @@ public class ApiResource_ExportApiDefinitionTest extends AbstractResourceTest {
         assertEquals(1, plans.size());
 
         var plan = plans.iterator().next();
-        assertEquals(API_ID, plan.getApiId());
+        assertEquals(API, plan.getApiId());
         assertEquals(List.of("characteristic1", "characteristic2"), plan.getCharacteristics());
         assertEquals("commentMessage", plan.getCommentMessage());
         assertEquals(true, plan.getCommentRequired());
