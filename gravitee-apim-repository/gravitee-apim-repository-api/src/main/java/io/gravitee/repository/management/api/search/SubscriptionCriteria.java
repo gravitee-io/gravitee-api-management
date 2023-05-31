@@ -33,6 +33,8 @@ public class SubscriptionCriteria {
 
     private final Collection<String> ids;
 
+    private final Collection<String> excludedApis;
+
     private final Collection<String> apis;
 
     private final Collection<String> plans;

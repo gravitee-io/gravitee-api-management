@@ -277,6 +277,15 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
                 if (!applicationIds.isEmpty()) {
                     final SubscriptionQuery query = new SubscriptionQuery();
                     query.setApplications(applicationIds);
+                    query.setExcludedApis(
+                        apiCriteriaList
+                            .stream()
+                            .map(ApiCriteria::getIds)
+                            .filter(Objects::nonNull)
+                            .flatMap(Collection::stream)
+                            .collect(toSet())
+                    );
+
                     final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(executionContext, query);
                     if (subscriptions != null && !subscriptions.isEmpty()) {
                         apiCriteriaList.add(
