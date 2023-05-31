@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
@@ -112,14 +113,15 @@ public class AccessControlServiceTest {
 
     @Test
     public void shouldAccessPrivateApiAsAuthenticatedUser() {
-        final ApiEntity apiEntityMock = mock(ApiEntity.class);
-        when(apiEntityMock.getVisibility()).thenReturn(Visibility.PRIVATE);
+        final ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId(API_ID);
+        apiEntity.setVisibility(Visibility.PRIVATE);
 
-        when(apiService.findPublishedByUser(eq(GraviteeContext.getExecutionContext()), any(), any()))
-            .thenReturn(new HashSet(Collections.singleton(apiEntityMock)));
+        when(apiService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), eq(USERNAME), any(ApiQuery.class), isNull(), eq(false)))
+            .thenReturn(Set.of(API_ID));
         connectUser();
 
-        boolean canAccess = accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiEntityMock);
+        boolean canAccess = accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertTrue(canAccess);
     }
