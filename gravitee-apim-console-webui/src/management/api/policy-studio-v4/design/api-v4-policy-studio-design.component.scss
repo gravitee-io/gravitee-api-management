@@ -3,4 +3,5 @@
 :host {
   @include gio-layout.gio-full-width-content-container;
   height: 100%;
+  padding: 8px;
 }

@@ -32,7 +32,7 @@ export class ConnectorPluginsV2Service {
     return this.http.get<ConnectorPlugin[]>(`${this.constants.v2BaseURL}/plugins/endpoints`);
   }
 
-  private listEntrypointPlugins(): Observable<ConnectorPlugin[]> {
+  listEntrypointPlugins(): Observable<ConnectorPlugin[]> {
     return this.http.get<ConnectorPlugin[]>(`${this.constants.v2BaseURL}/plugins/entrypoints`);
   }
 

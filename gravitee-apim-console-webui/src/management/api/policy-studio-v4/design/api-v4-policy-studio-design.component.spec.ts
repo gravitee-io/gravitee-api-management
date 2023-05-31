@@ -21,10 +21,14 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ApiV4PolicyStudioDesignComponent } from './api-v4-policy-studio-design.component';
 
-import { GioHttpTestingModule } from '../../../../shared/testing';
+import {CONSTANTS_TESTING, GioHttpTestingModule} from '../../../../shared/testing';
 import { ApiV4PolicyStudioModule } from '../api-v4-policy-studio.module';
+import {Api, ConnectorPlugin, fakeApiV4, fakeConnectorPlugin} from "../../../../entities/management-api-v2";
+import { UIRouterStateParams} from "../../../../ajs-upgraded-providers";
 
 describe('ApiV4PolicyStudioDesignComponent', () => {
+  const API_ID = 'api-id';
+
   let fixture: ComponentFixture<ApiV4PolicyStudioDesignComponent>;
   let component: ApiV4PolicyStudioDesignComponent;
   let httpTestingController: HttpTestingController;
@@ -32,7 +36,9 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule],
-      providers: [],
+      providers: [
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -48,13 +54,79 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     fixture.detectChanges();
   });
 
-  describe('ngOnInit', () => {
-    it('should work', async () => {
-      expect(component).toBeTruthy();
-    });
-  });
-
   afterEach(() => {
     httpTestingController.verify();
   });
+
+
+  describe('ngOnInit', () => {
+    it('should fetch initial data', async () => {
+      const api = fakeApiV4({ id: API_ID, name: 'my brand new API',
+        type: 'MESSAGE',
+      listeners: [
+        {
+          type: 'SUBSCRIPTION',
+          entrypoints: [
+            {
+              type: 'webhook',
+            },
+          ],
+        },
+      ],
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'kafka',
+            endpoints: [
+              {
+                name: 'default',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+            ],
+          },
+        ],
+        flows: [{
+          name: 'my flow',
+          enabled: true,
+        }],
+      });
+
+      expectGetApi(api);
+
+      expectEntrypointsGetRequest([
+        { id: 'webhook', name: 'Webhook' },
+      ]);
+      expectEndpointsGetRequest([
+        { id: 'kafka', name: 'Kafka' },
+      ]);
+
+      expect(component.apiType).toEqual('MESSAGE');
+      expect(component.commonFlows.length).toEqual(1);
+      expect(component.endpointsInfo.length).toEqual(1);
+      expect(component.entrypointsInfo.length).toEqual(1);
+
+
+    });
+  });
+
+
+
+  function expectGetApi(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  }
+
+  function expectEntrypointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
+    const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints` }).flush(fullConnectors);
+  }
+
+  function expectEndpointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
+    const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush(fullConnectors);
+  }
 });
