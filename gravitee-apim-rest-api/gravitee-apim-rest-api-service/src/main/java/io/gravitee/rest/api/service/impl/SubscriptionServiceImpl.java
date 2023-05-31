@@ -1457,7 +1457,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .to(query.getTo())
             .endingAtAfter(query.getEndingAtAfter())
             .endingAtBefore(query.getEndingAtBefore())
-            .includeWithoutEnd(query.isIncludeWithoutEnd());
+            .includeWithoutEnd(query.isIncludeWithoutEnd())
+            .excludedApis(query.getExcludedApis());
 
         if (query.getStatuses() != null) {
             builder.statuses(query.getStatuses().stream().map(Enum::name).collect(toSet()));
