@@ -1,0 +1,150 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.rest.api.management.v2.rest.resource.api;
+
+import static io.gravitee.common.http.HttpStatusCode.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+import fixtures.ApiFixtures;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
+import org.junit.Test;
+
+public class ApiResource_UpdateApiTest extends ApiResourceTest {
+
+    @Override
+    protected String contextPath() {
+        return "/environments/" + ENVIRONMENT + "/apis";
+    }
+
+    @Test
+    public void should_return_404_if_not_found() {
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(NOT_FOUND_404, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(NOT_FOUND_404, (int) error.getHttpStatus());
+        assertEquals("Api [" + API + "] cannot be found.", error.getMessage());
+    }
+
+    @Test
+    public void should_return_403_if_incorrect_permissions() {
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_DEFINITION),
+                eq(API),
+                eq(RolePermissionAction.UPDATE)
+            )
+        )
+            .thenReturn(false);
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(RolePermission.API_GATEWAY_DEFINITION),
+                eq(API),
+                eq(RolePermissionAction.UPDATE)
+            )
+        )
+            .thenReturn(false);
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(FORBIDDEN_403, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(FORBIDDEN_403, (int) error.getHttpStatus());
+        assertEquals("You do not have sufficient rights to access this resource", error.getMessage());
+    }
+
+    @Test
+    public void should_update_v4_api() {
+        ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME)))
+            .thenReturn(apiEntity);
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
+        assertEquals(OK_200, response.getStatus());
+
+        final ApiV4 apiV4 = response.readEntity(ApiV4.class);
+        assertEquals(API, apiV4.getId());
+
+        verify(apiServiceV4)
+            .update(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API),
+                argThat(updateApiEntity -> {
+                    assertEquals(updateApiV4.getName(), updateApiEntity.getName());
+                    return true;
+                }),
+                eq(false),
+                eq(USER_NAME)
+            );
+    }
+
+    @Test
+    public void should_update_v2_api() {
+        io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
+        UpdateApiV2 updateApiV2 = ApiFixtures.anUpdateApiV2();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+        when(
+            apiService.update(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API),
+                any(io.gravitee.rest.api.model.api.UpdateApiEntity.class),
+                eq(false)
+            )
+        )
+            .thenReturn(apiEntity);
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiV2));
+        assertEquals(OK_200, response.getStatus());
+
+        final ApiV2 apiV2 = response.readEntity(ApiV2.class);
+        assertEquals(API, apiV2.getId());
+
+        verify(apiService)
+            .update(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(API),
+                argThat(updateApiEntity -> {
+                    assertEquals(updateApiV2.getName(), updateApiEntity.getName());
+                    return true;
+                }),
+                eq(false)
+            );
+    }
+}

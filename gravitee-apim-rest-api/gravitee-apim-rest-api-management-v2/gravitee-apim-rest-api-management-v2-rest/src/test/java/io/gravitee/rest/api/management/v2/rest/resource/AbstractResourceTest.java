@@ -94,6 +94,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected MediaService mediaService;
 
+    @Autowired
+    protected ParameterService parameterService;
+
+    @Autowired
+    protected WorkflowService workflowService;
+
     @Before
     public void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
