@@ -285,6 +285,29 @@ class VertxWebSocketTest {
     }
 
     @Nested
+    class WritePing {
+
+        @Test
+        void should_write_ping_frame() {
+            ReflectionTestUtils.setField(cut, "upgraded", true);
+            ReflectionTestUtils.setField(cut, "webSocket", webSocket);
+
+            when(webSocket.writePing(any(Buffer.class))).thenReturn(Completable.complete());
+
+            cut.writePing().test().assertComplete();
+            verify(webSocket).writePing(eq(Buffer.buffer("ping_pong")));
+        }
+
+        @Test
+        void should_not_write_ping_frame_if_not_upgraded() {
+            ReflectionTestUtils.setField(cut, "upgraded", false);
+
+            cut.writePing().test().assertComplete();
+            verifyNoInteractions(webSocket);
+        }
+    }
+
+    @Nested
     class Read {
 
         @Test
