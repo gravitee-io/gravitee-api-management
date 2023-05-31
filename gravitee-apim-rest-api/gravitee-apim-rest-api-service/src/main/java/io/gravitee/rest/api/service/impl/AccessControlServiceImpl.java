@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.Visibility.PUBLIC;
+import static java.util.Collections.singletonList;
 
 import io.gravitee.rest.api.model.AccessControlEntity;
 import io.gravitee.rest.api.model.AccessControlReferenceType;
@@ -34,8 +35,11 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+<<<<<<< HEAD
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+=======
+>>>>>>> 988c10fd68 (fix: avoid to load api entity pages to check only ids)
 import java.util.Iterator;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -72,12 +76,26 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
         if (PUBLIC.equals(genericApiEntity.getVisibility())) {
             return true;
         } else if (isAuthenticated()) {
+<<<<<<< HEAD
             Set<String> publishedByUser = apiAuthorizationService.findAccessibleApiIdsForUser(
                 executionContext,
                 getAuthenticatedUser().getUsername(),
                 Set.of(genericApiEntity.getId())
             );
             return publishedByUser.contains(genericApiEntity.getId());
+=======
+            final ApiQuery apiQuery = new ApiQuery();
+            apiQuery.setIds(singletonList(apiEntity.getId()));
+            apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
+            Set<String> publishedByUser = apiService.findIdsByUser(
+                executionContext,
+                getAuthenticatedUser().getUsername(),
+                apiQuery,
+                null,
+                false
+            );
+            return publishedByUser.contains(apiEntity.getId());
+>>>>>>> 988c10fd68 (fix: avoid to load api entity pages to check only ids)
         }
         return false;
     }
