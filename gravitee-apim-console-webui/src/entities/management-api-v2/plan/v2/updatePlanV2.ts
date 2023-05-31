@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api';
-export * from './connector';
-export * from './createApi';
-export * from './member';
-export * from './plan';
+import { FlowV2, Rule } from '../../api';
+import { UpdateBasePlan } from '../updateBasePlan';
 
-export * from './apiDeployment';
-export * from './apiPlansResponse';
-export * from './apiSearchQuery';
-export * from './apiSortByParam';
-export * from './apisResponse';
-export * from './environment';
-export * from './links';
-export * from './metadataResponse';
-export * from './modelError';
-export * from './organization';
-export * from './pagedResult';
-export * from './pagination';
+export interface UpdatePlanV2 extends UpdateBasePlan {
+  definitionVersion: 'V2';
+  flows?: FlowV2[];
+  paths?: Record<string, Rule[] | undefined>;
+}

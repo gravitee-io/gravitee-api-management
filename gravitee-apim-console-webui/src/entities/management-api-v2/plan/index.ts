@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export * from './v2';
+export * from './v4';
+
 export * from './plan';
+export * from './plan.fixture';
 export * from './planSecurity';
 export * from './planSecurityType';
 export * from './planStatus';
