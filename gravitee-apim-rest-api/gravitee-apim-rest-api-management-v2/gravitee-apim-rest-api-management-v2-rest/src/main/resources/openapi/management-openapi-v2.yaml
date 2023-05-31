@@ -639,7 +639,8 @@ paths:
                 - API Plans
             summary: Deprecate an API's plan
             description: |-
-                # FIXME add a description
+                Deprecate the API's plan by its identifier
+                User must have the API_PLAN[UPDATE] permission.
             operationId: deprecateApiPlan
             responses:
                 "200":
