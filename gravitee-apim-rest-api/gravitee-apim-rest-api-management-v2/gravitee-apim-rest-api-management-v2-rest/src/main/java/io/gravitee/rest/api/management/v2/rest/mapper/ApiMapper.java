@@ -20,6 +20,7 @@ import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -100,6 +101,12 @@ public interface ApiMapper {
     @Mapping(target = "paths", qualifiedByName = "fromPaths")
     @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
     io.gravitee.rest.api.management.v2.rest.model.ApiV1 mapV1(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
+
+    // UpdateApi
+    @Mapping(target = "listeners", qualifiedByName = "toListeners")
+    UpdateApiEntity map(UpdateApiV4 updateApi);
+
+    io.gravitee.rest.api.model.api.UpdateApiEntity map(UpdateApiV2 updateApi);
 
     // DefinitionVersion
     io.gravitee.definition.model.DefinitionVersion map(DefinitionVersion definitionVersion);

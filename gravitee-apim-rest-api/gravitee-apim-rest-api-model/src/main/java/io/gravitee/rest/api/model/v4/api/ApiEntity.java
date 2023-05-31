@@ -45,6 +45,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -56,11 +58,13 @@ import lombok.ToString;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode
 @Schema(name = "ApiEntityV4")
+@Builder(toBuilder = true)
 public class ApiEntity implements GenericApiEntity {
 
     @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
@@ -98,6 +102,7 @@ public class ApiEntity implements GenericApiEntity {
 
     @Schema(description = "The list of sharding tags associated with this API.", example = "public, private")
     @DeploymentRequired
+    @Builder.Default
     private Set<String> tags = new HashSet<>();
 
     @Schema(description = "A list of listeners used to describe our you api could be reached.")
@@ -114,14 +119,17 @@ public class ApiEntity implements GenericApiEntity {
 
     @Schema(description = "A dictionary (could be dynamic) of properties available in the API context.")
     @DeploymentRequired
+    @Builder.Default
     private List<Property> properties = new ArrayList<>();
 
     @Schema(description = "The list of API resources used by policies like cache resources or oauth2")
     @DeploymentRequired
+    @Builder.Default
     private List<Resource> resources = new ArrayList<>();
 
     @Schema(description = "A list of plans to apply on the API")
     @DeploymentRequired
+    @Builder.Default
     private Set<PlanEntity> plans = new HashSet<>();
 
     @Schema(description = "API's flow execution.")
@@ -135,6 +143,7 @@ public class ApiEntity implements GenericApiEntity {
     @Schema(
         description = "A map that allows you to configure the output of a request based on the event throws by the gateway. Example : Quota exceeded, api-key is missing, ..."
     )
+    @Builder.Default
     private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
 
     @DeploymentRequired
@@ -172,6 +181,7 @@ public class ApiEntity implements GenericApiEntity {
     private DefinitionContext definitionContext;
 
     @JsonIgnore
+    @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
 
     private ApiLifecycleState lifecycleState;

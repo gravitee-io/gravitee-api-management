@@ -29,9 +29,12 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.management.model.Workflow;
-import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateBaseApi;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
@@ -48,11 +51,11 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
-import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
@@ -101,11 +104,7 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiById(@PathParam("apiId") String apiId) {
         final GenericApiEntity apiEntity = getGenericApiEntityById(apiId, true);
-        return Response
-            .ok(ApiMapper.INSTANCE.convert(apiEntity, uriInfo))
-            .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
-            .lastModified(apiEntity.getUpdatedAt())
-            .build();
+        return apiResponse(apiEntity);
     }
 
     @PUT
@@ -120,29 +119,38 @@ public class ApiResource extends AbstractResource {
     public Response updateApi(
         @Context HttpHeaders headers,
         @PathParam("apiId") String apiId,
-        @Valid @NotNull final UpdateApiEntity apiToUpdate
+        @Valid @NotNull final UpdateBaseApi updateApi
     ) {
-        if (!apiId.equals(apiToUpdate.getId())) {
-            throw new BadRequestException("'apiId' is not the same as the API in payload");
-        }
-
-        final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, true);
+        final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
         evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
 
-        try {
-            ImageUtils.verify(apiToUpdate.getPicture());
-            ImageUtils.verify(apiToUpdate.getBackground());
-        } catch (InvalidImageException e) {
-            throw new BadRequestException("Invalid image format");
+        GenericApiEntity updatedApi;
+        var definitionVersion = updateApi.getDefinitionVersion();
+        if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4) {
+            if (!(currentEntity instanceof ApiEntity)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
+            }
+            updatedApi = updateApiV4(currentEntity, (UpdateApiV4) updateApi);
+        } else if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V2) {
+            if (!(currentEntity instanceof io.gravitee.rest.api.model.api.ApiEntity)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
+            }
+            updatedApi = updateApiV2(currentEntity, (UpdateApiV2) updateApi);
+        } else {
+            throw new ApiDefinitionVersionNotSupportedException(definitionVersion.name());
         }
 
+        return apiResponse(updatedApi);
+    }
+
+    private GenericApiEntity updateApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {
+        UpdateApiEntity apiToUpdate = ApiMapper.INSTANCE.map(updateApiV4);
         // Force listeners if user is not the primary_owner or an administrator
         if (
-            currentEntity instanceof ApiEntity &&
             !hasPermission(
                 GraviteeContext.getExecutionContext(),
                 RolePermission.API_GATEWAY_DEFINITION,
-                apiId,
+                currentEntity.getId(),
                 RolePermissionAction.UPDATE
             ) &&
             !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
@@ -153,18 +161,38 @@ public class ApiResource extends AbstractResource {
 
         final ApiEntity updatedApi = apiServiceV4.update(
             GraviteeContext.getExecutionContext(),
-            apiId,
+            currentEntity.getId(),
             apiToUpdate,
-            true,
+            false, //TODO as plans should be updated in a separate endpoint, we don't need to check for plans. Once "/v4" resources in MAPI V1 are removed, we can remove this parameter.
             getAuthenticatedUser()
         );
         setPicturesUrl(updatedApi);
+        return updatedApi;
+    }
 
-        return Response
-            .ok(ApiMapper.INSTANCE.convert(updatedApi, uriInfo))
-            .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
-            .lastModified(updatedApi.getUpdatedAt())
-            .build();
+    private GenericApiEntity updateApiV2(GenericApiEntity currentEntity, UpdateApiV2 updateApiV2) {
+        io.gravitee.rest.api.model.api.UpdateApiEntity apiToUpdate = ApiMapper.INSTANCE.map(updateApiV2);
+        // Force context-path if user is not the primary_owner or an administrator
+        if (
+            !hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_GATEWAY_DEFINITION,
+                currentEntity.getId(),
+                RolePermissionAction.UPDATE
+            ) &&
+            !Objects.equals(currentEntity.getPrimaryOwner().getId(), getAuthenticatedUser()) &&
+            !isAdmin()
+        ) {
+            apiToUpdate.getProxy().setVirtualHosts(((io.gravitee.rest.api.model.api.ApiEntity) currentEntity).getProxy().getVirtualHosts());
+        }
+        final io.gravitee.rest.api.model.api.ApiEntity updatedApi = apiService.update(
+            GraviteeContext.getExecutionContext(),
+            currentEntity.getId(),
+            apiToUpdate,
+            false
+        );
+        setPicturesUrl(updatedApi);
+        return updatedApi;
     }
 
     @DELETE
@@ -253,14 +281,14 @@ public class ApiResource extends AbstractResource {
     @Path("picture")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApiPicture(@Context Request request, @Context HttpHeaders headers, @PathParam("apiId") String apiId) {
-        return getImageResponse(request, apiImagesService.getApiPicture(GraviteeContext.getExecutionContext(), apiId));
+        return imageResponse(request, apiImagesService.getApiPicture(GraviteeContext.getExecutionContext(), apiId));
     }
 
     @GET
     @Path("background")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
     public Response getApiBackground(@Context Request request, @Context HttpHeaders headers, @PathParam("apiId") String apiId) {
-        return getImageResponse(request, apiImagesService.getApiBackground(GraviteeContext.getExecutionContext(), apiId));
+        return imageResponse(request, apiImagesService.getApiBackground(GraviteeContext.getExecutionContext(), apiId));
     }
 
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
@@ -400,7 +428,7 @@ public class ApiResource extends AbstractResource {
             .replaceAll("-+", "-");
     }
 
-    private Response getImageResponse(final Request request, InlinePictureEntity image) {
+    private Response imageResponse(final Request request, InlinePictureEntity image) {
         CacheControl cc = new CacheControl();
         cc.setNoTransform(true);
         cc.setMustRevalidate(false);
@@ -422,5 +450,21 @@ public class ApiResource extends AbstractResource {
         baos.write(image.getContent(), 0, image.getContent().length);
 
         return Response.ok(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
+    }
+
+    private Response apiResponse(GenericApiEntity apiEntity) {
+        return Response
+            .ok(ApiMapper.INSTANCE.convert(apiEntity, uriInfo))
+            .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
+            .lastModified(apiEntity.getUpdatedAt())
+            .build();
+    }
+
+    private Error apiInvalid(String apiId) {
+        return new Error()
+            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+            .message("API [" + apiId + "] is not valid.")
+            .putParametersItem("apiId", apiId)
+            .technicalCode("api.invalid");
     }
 }
