@@ -38,7 +38,7 @@ services:
       - storage
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.7.0}
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-7.17.10}
     container_name: gio_apim_elasticsearch
     restart: always
     volumes:
@@ -48,6 +48,7 @@ services:
       - transport.host=0.0.0.0
       - xpack.security.enabled=false
       - xpack.monitoring.enabled=false
+      - xpack.ml.enabled=false
       - cluster.name=elasticsearch
       - bootstrap.memory_lock=true
       - discovery.type=single-node
@@ -71,8 +72,8 @@ services:
     volumes:
       - ./.logs/apim-gateway-server:/opt/graviteeio-gateway/logs
     environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_management_mongodb_uri=${MONGODB_URL}
+      - gravitee_ratelimit_mongodb_uri=${MONGODB_URL}
       - gravitee_reporters_elasticsearch_enabled=false
       - gravitee_services_bridge_http_enabled=true
       - gravitee_services_bridge_http_port=18092
@@ -105,7 +106,6 @@ services:
       - gravitee_management_type=http
       - gravitee_management_http_url=http://gateway-server:18092
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_ds_mongodb_host=mongodb
       - gravitee_reporters_elasticsearch_enabled=true
       - gravitee_management_http_authentication_basic_username=admin
       - gravitee_management_http_authentication_basic_password=adminadmin
@@ -129,7 +129,7 @@ services:
     volumes:
       - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
     environment:
-      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_management_mongodb_uri=${MONGODB_URL}
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
     networks:
       - storage
