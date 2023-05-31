@@ -243,19 +243,22 @@ public class ApiPlansResource extends AbstractResource {
     }
 
     @POST
-    @Path("/{plan}/_deprecate")
+    @Path("/{planId}/_deprecate")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
-    public Response deprecateApiPlan(@PathParam("plan") String plan) {
+    public Response deprecateApiPlan(@PathParam("planId") String planId) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        PlanEntity planEntity = planServiceV4.findById(executionContext, plan);
+        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
+
         if (!planEntity.getApiId().equals(apiId)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'plan' parameter does not correspond to the current API").build();
+            return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        PlanEntity deprecatedPlan = planServiceV4.deprecate(executionContext, plan);
+        if (planEntity instanceof PlanEntity) {
+            return Response.ok(planMapper.convert(planServiceV4.deprecate(executionContext, planId))).build();
+        }
 
-        return Response.ok(deprecatedPlan).build();
+        return Response.ok(planMapper.convert(planServiceV2.deprecate(executionContext, planId))).build();
     }
 
     private GenericPlanEntity filterSensitiveData(GenericPlanEntity entity) {
