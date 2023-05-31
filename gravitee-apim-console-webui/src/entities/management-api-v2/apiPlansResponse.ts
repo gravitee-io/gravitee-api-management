@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api';
-export * from './connector';
-export * from './createApi';
-export * from './member';
-export * from './plan';
 
-export * from './apiDeployment';
-export * from './apiPlansResponse';
-export * from './apiSearchQuery';
-export * from './apiSortByParam';
-export * from './apisResponse';
-export * from './environment';
-export * from './links';
-export * from './metadataResponse';
-export * from './modelError';
-export * from './organization';
-export * from './pagedResult';
-export * from './pagination';
+import { Links } from './links';
+import { Pagination } from './pagination';
+import { Plan } from './plan';
+
+export interface ApiPlansResponse {
+  /**
+   * List of Api plans.
+   */
+  data?: Plan[];
+  pagination?: Pagination;
+  links?: Links;
+}

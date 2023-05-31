@@ -14,61 +14,7 @@
  * limitations under the License.
  */
 
-import { PlanSecurity } from './planSecurity';
-import { PlanStatus } from './planStatus';
-import { PlanType } from './planType';
-import { PlanValidation } from './planValidation';
+import { PlanV4 } from './v4';
+import { PlanV2 } from './v2';
 
-export interface Plan {
-  /**
-   * Id of the API owning the plan.
-   */
-  apiId?: string;
-  characteristics?: string[];
-  closedAt?: string;
-  commentMessage?: string;
-  commentRequired?: boolean;
-  /**
-   * The last date (as timestamp) when the API was created.
-   */
-  createdAt?: Date;
-  /**
-   * API's crossId. Identifies API across environments.
-   */
-  crossId?: string;
-  /**
-   * API's description. A short description of your API.
-   */
-  description?: string;
-  /**
-   * Groups of users which are not allowed to subscribe to this plan.
-   */
-  excludedGroups?: string[];
-  generalConditions?: string;
-  /**
-   * Plan's uuid.
-   */
-  id?: string;
-  /**
-   * Plan's name. Duplicate names can exists.
-   */
-  name?: string;
-  order?: number;
-  /**
-   * The last date (as timestamp) when the API was published.
-   */
-  publishedAt?: Date;
-  security?: PlanSecurity;
-  selectionRule?: string;
-  status?: PlanStatus;
-  /**
-   * The list of sharding tags associated with this plan.
-   */
-  tags?: string[];
-  type?: PlanType;
-  /**
-   * The last date (as timestamp) when the API was updated.
-   */
-  updatedAt?: Date;
-  validation?: PlanValidation;
-}
+export type Plan = PlanV4 | PlanV2;

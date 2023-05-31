@@ -13,21 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api';
-export * from './connector';
-export * from './createApi';
-export * from './member';
-export * from './plan';
+import { CreatePlanV2 } from './v2';
+import { CreatePlanV4 } from './v4';
 
-export * from './apiDeployment';
-export * from './apiPlansResponse';
-export * from './apiSearchQuery';
-export * from './apiSortByParam';
-export * from './apisResponse';
-export * from './environment';
-export * from './links';
-export * from './metadataResponse';
-export * from './modelError';
-export * from './organization';
-export * from './pagedResult';
-export * from './pagination';
+export type CreatePlan = CreatePlanV2 | CreatePlanV4;
