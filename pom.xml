@@ -877,6 +877,7 @@
                         <exclude>gravitee-apim-portal-webui/**</exclude>
                         <exclude>gravitee-apim-console-webui/**</exclude>
                         <exclude>gravitee-apim-e2e/**</exclude>
+                        <exclude>helm/**</exclude>
                     </excludes>
                     <mapping>
                         <ts>SLASHSTAR_STYLE</ts>

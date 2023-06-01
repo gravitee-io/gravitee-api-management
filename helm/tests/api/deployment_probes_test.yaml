@@ -1,0 +1,99 @@
+suite: Test API management default deployment
+templates:
+  - "api/api-deployment.yaml"
+  - "api/api-configmap.yaml"
+tests:
+  - it: Check default readinessProbe
+    template: api/api-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
+          value: http
+      - isEmpty:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+
+  - it: Check default livenessProbe
+    template: api/api-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
+          value: http
+      - isEmpty:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+
+  - it: Check default startupProbe
+    template: api/api-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
+          value: http
+      - isEmpty:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+
+  - it: Check custom readinessProbe
+    template: api/api-deployment.yaml
+    set:
+      api:
+        deployment:
+          readinessProbe:
+            enabled: false
+          customReadinessProbe:
+            httpGet:
+              path: /_node/health?probes=api-sync
+              scheme: HTTP
+              port: 18082
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=api-sync
+      - isEmpty:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket
+
+  - it: Check custom livenessProbe
+    template: api/api-deployment.yaml
+    set:
+      api:
+        deployment:
+          livenessProbe:
+            enabled: false
+          customLivenessProbe:
+            httpGet:
+              path: /_node/health?probes=api-sync
+              scheme: HTTP
+              port: 18082
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /_node/health?probes=api-sync
+      - isEmpty:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket
+
+  - it: Check custom startupProbe
+    template: api/api-deployment.yaml
+    set:
+      api:
+        deployment:
+          startupProbe:
+            enabled: false
+          customStartupProbe:
+            httpGet:
+              path: /_node/health?probes=api-sync
+              scheme: HTTP
+              port: 18082
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /_node/health?probes=api-sync
+      - isEmpty:
+          path: spec.template.spec.containers[0].startupProbe.tcpSocket
+
+  - it: Check default startupProbe with Kubernetes >= 1.18-0
+    template: api/api-deployment.yaml
+    capabilities:
+      KubeVersion: "1.18-0"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
+          value: http
+      - isEmpty:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet

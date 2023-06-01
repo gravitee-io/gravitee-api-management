@@ -1,0 +1,55 @@
+{{- if and (.Values.api.enabled) (.Values.api.autoscaling.enabled) -}}
+{{- $apiVersion := include "common.capabilities.autoscaling.apiVersion" . -}}
+apiVersion: {{ $apiVersion }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ template "gravitee.api.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.api.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.api.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "gravitee.api.fullname" . }}
+  minReplicas: {{ .Values.api.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.api.autoscaling.maxReplicas }}
+  metrics:
+{{- if .Values.api.autoscaling.targetMemoryAverageUtilization }}
+  - type: Resource
+    resource:
+      name: memory
+      {{- if (ne $apiVersion "autoscaling/v2beta1") }}
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.api.autoscaling.targetMemoryAverageUtilization }}
+      {{ else }}
+      targetAverageUtilization: {{ .Values.api.autoscaling.targetMemoryAverageUtilization }}
+      {{- end -}}
+{{- end }}
+  - type: Resource
+    resource:
+      name: cpu
+      {{- if (ne $apiVersion "autoscaling/v2beta1") }}
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.api.autoscaling.targetAverageUtilization }}
+      {{ else }}
+      targetAverageUtilization: {{ .Values.api.autoscaling.targetAverageUtilization }}
+      {{- end -}}
+{{- end -}}

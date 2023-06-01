@@ -7,6 +7,7 @@ orbs:
     aws-cli: circleci/aws-cli@2.0.6
     artifactory-orb: jfrog/artifactory-orb@1.0.1
     aws-s3: circleci/aws-s3@3.0
+    helm: circleci/helm@2.0.1
 
 executors:
     node-lts:
@@ -243,6 +244,39 @@ commands:
                       export SANITIZED_BRANCH=$(echo "${CIRCLE_BRANCH}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9\.]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
                       # Workaround for sharing this variable to the next steps
                       echo "export SANITIZED_BRANCH=$SANITIZED_BRANCH" >> $BASH_ENV
+
+    cmd-helm-tests:
+      description: execute the unit tests of the helm chart
+      parameters:
+        folder:
+          type: string
+          default: ''
+          description: The name of the folder where tests to execute are.
+        files:
+          type: string
+          default: ''
+          description: The test suites files.
+        output-file:
+          type: string
+          default: ''
+          description: The name of the test result file.
+      steps:
+        - run:
+            name: execute the units tests in << parameters.folder >>.
+            command: helm unittest -3 -f '<< parameters.files >>' << parameters.folder >> -t JUnit -o << parameters.output-file >>
+
+    cmd-helm-lint:
+      description: Lint the helm charts available in the folder
+      parameters:
+        folder:
+          type: string
+          default: ''
+          description: The name of the folder to check.
+      steps:
+        - run:
+            name: Lint the helm charts available in << parameters.folder >>
+            command: helm lint << parameters.folder >>
+
 parameters:
     gio_action:
         type: enum
@@ -256,6 +290,7 @@ parameters:
                 build_rpm_&_docker_images,
                 release_notes_apim,
                 publish_docker_images,
+                release_helm
             ]
         default: pull_requests
     dry_run:
@@ -1398,6 +1433,100 @@ jobs:
                                   ]
                                 }
 
+    job-release_helm:
+      executor:
+        name: node-lts
+        class: medium
+      environment:
+        VERSION: << pipeline.parameters.graviteeio_version >>
+      steps:
+        - checkout
+        - keeper/env-export:
+            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+            var-name: GIT_USER_NAME
+        - keeper/env-export:
+            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+            var-name: GIT_USER_EMAIL
+        - keeper/env-export:
+            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+            var-name: GITHUB_TOKEN
+        - add_ssh_keys:
+            fingerprints:
+              - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
+        - run:
+            name: Git config
+            command: |
+              git config --global user.name "${GIT_USER_NAME}"
+              git config --global user.email "${GIT_USER_EMAIL}"
+        - gh/setup
+        - run:
+            name: Install Helm
+            command: |
+              curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+              helm version
+        - run:
+            name: Update version
+            command: |
+              wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && chmod +x ./yq_linux_amd64
+              ./yq_linux_amd64 -i '.version = strenv(VERSION)' helm/Chart.yaml
+              ./yq_linux_amd64 -i '.appVersion = strenv(VERSION)' helm/Chart.yaml
+        - run:
+            name: "build the Charts"
+            working_directory: "./helm"
+            command: |
+              helm dependency update
+              helm package -d charts .
+              
+              /home/circleci/project/yq_linux_amd64 -i '.name = "apim3"' Chart.yaml
+              helm package -d charts .
+        - run:
+            name: Install dependencies
+            command: npm install
+            working_directory: "./release"
+        - when:
+            condition:
+              not: << pipeline.parameters.dry_run>>
+            steps:
+              - run:
+                  name: "Open a PR to publish helm chart release into helm-charts repository"
+                  working_directory: "./release"
+                  command: npm run zx -- ci-steps/release-helm.mjs --version=${VERSION}
+        - when:
+            condition: << pipeline.parameters.dry_run>>
+            steps:
+              - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+                  var-name: ACR_USER_NAME
+              - keeper/env-export:
+                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+                  var-name: ACR_PASSWORD
+              - run:
+                  name: "Publish helm chart release in azure repository DRY-RUN mode"
+                  working_directory: "./helm"
+                  command: |
+                    helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
+                    helm push charts/apim-${VERSION}.tgz oci://graviteeio.azurecr.io/helm/
+
+    job-lint-test-charts:
+      docker:
+        - image: cimg/base:stable
+      resource_class: small
+      steps:
+        - checkout
+        - helm/install-helm-client:
+            version: v3.7.1
+        - run:
+            name: install helm-unittest plugin
+            command: helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11
+        - cmd-helm-lint:
+            folder: helm/
+        - cmd-helm-tests:
+            folder: helm/
+            files: tests/**/*.yaml
+            output-file: apim-result.xml
+        - store_test_results:
+            path: apim-result.xml
+
     job-publish-pr-env-urls:
         executor:
             name: node-lts
@@ -1898,6 +2027,17 @@ workflows:
                   matrix:
                       parameters:
                           version: ["3", "4", "5"]
+
+    release_helm:
+      when:
+        equal: [release_helm, << pipeline.parameters.gio_action >>]
+      jobs:
+        - job-lint-test-charts:
+            name: APIM - Lint & Test
+        - job-release_helm:
+            context: cicd-orchestrator
+            requires:
+              - APIM - Lint & Test
 
     release_notes_apim:
         when:

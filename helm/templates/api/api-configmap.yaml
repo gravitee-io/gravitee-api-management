@@ -1,0 +1,565 @@
+{{- if and (.Values.api.enabled) (or (not (include "api.externalConfig" .)) (.Values.api.logging.debug)) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "gravitee.api.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.api.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.api.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+data:
+{{- if not (include "api.externalConfig" .)}}
+  gravitee.yml: |
+    {{- if .Values.api.ssl.enabled }}
+    jetty:
+      secured: true
+      ssl:
+        keystore:
+          {{- if .Values.api.ssl.keystore.type }}
+          type: {{ .Values.api.ssl.keystore.type }}
+          {{- end }}
+          path: {{ .Values.api.ssl.keystore.path }}
+          password: {{ .Values.api.ssl.keystore.password | quote }}
+        clientAuth: {{ .Values.api.ssl.clientAuth }}
+        {{- if .Values.api.ssl.truststore }}
+        truststore:
+          {{- if .Values.api.ssl.truststore.type }}
+          type: {{ .Values.api.ssl.truststore.type }}
+          {{- end }}
+          path: {{ .Values.api.ssl.truststore.path }}
+          password: {{ .Values.api.ssl.truststore.password | quote }}
+        {{- end }}
+    {{- end }}
+
+    management:
+      {{- if .Values.management.url }}
+      url: {{ .Values.management.url}}
+      {{- else if .Values.ui.ingress.enabled }}
+      url: https://{{ index .Values.ui.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z-_.~]+" .Values.ui.ingress.path }}/
+      {{- end }}
+      type: {{ .Values.management.type | default "mongodb" }}
+      {{- if or (eq .Values.management.type "mongodb") (kindIs "invalid" .Values.management.type) }}
+      mongodb:
+        sslEnabled: {{ .Values.mongo.sslEnabled }}
+        socketKeepAlive: {{ .Values.mongo.socketKeepAlive }}
+        {{- if .Values.mongo.uri }}
+        uri: {{ .Values.mongo.uri }}
+        {{- else if .Values.mongo.servers }}
+        servers:
+          {{- .Values.mongo.servers | nindent 10 }}
+        dbname: {{ .Values.mongo.dbname }}
+        {{- if (eq .Values.mongo.auth.enabled true) }}
+        username: {{ .Values.mongo.auth.username }}
+        password: {{ .Values.mongo.auth.password }}
+        authSource: {{ .Values.mongo.auth.source | default "gravitee" }}
+        {{- end }}
+        {{- else }}
+        uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
+        {{- end }}
+        {{- if .Values.mongo.keystore }}
+        keystore:
+        {{- toYaml .Values.mongo.keystore | nindent 10 }}
+        {{- end }}
+        {{- if .Values.mongo.truststore }}
+        truststore:
+        {{- toYaml .Values.mongo.truststore | nindent 10 }}
+        {{- end }}
+      {{- else if (eq .Values.management.type "jdbc") }}
+      jdbc:
+        url: {{ .Values.jdbc.url }}
+        {{- if .Values.jdbc.username }}
+        username: {{ .Values.jdbc.username }}
+        {{- end }}
+        {{- if .Values.jdbc.password }}
+        password: {{ .Values.jdbc.password }}
+        {{- end }}
+        schema: {{ .Values.jdbc.schema | default "public" }}
+        liquibase: {{ .Values.jdbc.liquibase | default true }}
+        {{- if .Values.jdbc.pool }}
+        pool:
+          {{ toYaml .Values.jdbc.pool | nindent 10 | trim -}}
+        {{- end }}
+      {{- end }}
+
+    console:
+      api:
+        url: "https://{{index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}"
+      ui:
+        url: "https://{{index .Values.ui.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z]+" .Values.ui.ingress.path }}"
+      {{- if (((.Values.ui).analytics).pendo).enabled }}
+      analytics:
+        {{ toYaml .Values.ui.analytics | indent 8 | trim -}}
+      {{- end }}
+    services:
+      core:
+        http:
+          enabled: {{ .Values.api.http.services.core.http.enabled | default true }}
+          port: {{ .Values.api.http.services.core.http.port | default "18083" }}
+          host: {{ .Values.api.http.services.core.http.host | default "localhost" }}
+          authentication:
+            type: {{ .Values.api.http.services.core.http.authentication.type | default "basic" }}
+            users:
+              admin: {{ .Values.api.http.services.core.http.authentication.password | default "adminadmin"}}
+
+      {{- if .Values.api.services.bridge.enabled }}
+      bridge:
+        http:
+          enabled: true
+          port: {{ .Values.api.services.bridge.service.internalPort | default 18092}}
+          host: {{ .Values.api.services.bridge.host | default "localhost" }}
+          authentication:
+            type: basic
+            {{- if .Values.api.services.bridge.username }}
+            users:
+              {{ .Values.api.services.bridge.username }}: {{ .Values.api.services.bridge.password }}
+            {{- end }}
+          {{- if .Values.api.services.bridge.ssl }}
+          secured: {{ .Values.api.services.bridge.ssl.enabled | default false }}
+          alpn: true
+          ssl:
+            {{- if .Values.api.services.bridge.ssl.keystore}}
+            keystore:
+              {{- if .Values.api.services.bridge.ssl.keystore.type }}
+              type: {{ .Values.api.services.bridge.ssl.keystore.type }}
+              {{- end }}
+              path: {{ .Values.api.services.bridge.ssl.keystore.path }}
+              password: {{ .Values.api.services.bridge.ssl.keystore.password | quote }}
+            {{- end }}
+            clientAuth: {{ .Values.api.services.bridge.ssl.clientAuth | default false }}
+            {{- if .Values.api.services.bridge.ssl.truststore }}
+            truststore:
+              {{- if .Values.api.services.bridge.ssl.truststore.type }}
+              type: {{ .Values.api.services.bridge.ssl.truststore.type }}
+              {{- end }}
+              path: {{ .Values.api.services.bridge.ssl.truststore.path }}
+              password: {{ .Values.api.services.bridge.ssl.truststore.password | quote }}
+            {{- end }}
+          {{- end }}
+      {{- end }}
+
+      {{- if .Values.api.services.metrics.enabled }}
+      metrics: {{- toYaml .Values.api.services.metrics | nindent 10 }}
+      {{- end }}
+      {{- if .Values.api.services.subscription.enabled }}
+      subscription:
+        {{- toYaml .Values.api.services.subscription | nindent 8 }}
+      {{- end }}
+
+    {{- if and .Values.api.http .Values.api.http.client }}
+    httpClient:
+      {{- if .Values.api.http.client.timeout }}
+      timeout: {{ .Values.api.http.client.timeout }}
+      {{- end }}
+      {{- if .Values.api.http.client.proxy }}
+      proxy:
+        type: {{ .Values.api.http.client.proxy.type }}
+        {{- if .Values.api.http.client.proxy.http }}
+        http:
+          host: {{ .Values.api.http.client.proxy.http.host }}
+          port: {{ .Values.api.http.client.proxy.http.port }}
+          {{- if or .Values.api.http.client.proxy.http.username .Values.api.http.client.proxy.http.password }}
+          username: {{ .Values.api.http.client.proxy.http.username }}
+          password: {{ .Values.api.http.client.proxy.http.password }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.api.http.client.proxy.https }}
+        https:
+          host: {{ .Values.api.http.client.proxy.https.host }}
+          port: {{ .Values.api.http.client.proxy.https.port }}
+          {{- if or .Values.api.http.client.proxy.https.username .Values.api.http.client.proxy.https.password }}
+          username: {{ .Values.api.http.client.proxy.https.username }}
+          password: {{ .Values.api.http.client.proxy.https.password }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+
+    {{- if and .Values.api.http .Values.api.http.api }}
+    http:
+      api:
+        entrypoint: {{ .Values.api.http.api.entrypoint }}
+        management:
+          entrypoint: ${http.api.entrypoint}management
+        portal:
+          entrypoint: ${http.api.entrypoint}portal
+    {{- end }}
+
+    analytics:
+      {{- if (eq .Values.api.analytics.type "elasticsearch") }}
+      type: elasticsearch
+      elasticsearch:
+        {{- with .Values.es.endpoints }}
+        endpoints:
+          {{ toYaml . | nindent 10 | trim -}}
+        {{- end }}
+        {{- if .Values.es.index_mode }}
+        index_mode: {{ .Values.es.index_mode }}
+        {{- end }}
+        {{- if .Values.es.http }}
+        http:
+          {{- if .Values.es.http.timeout }}
+          timeout: {{ .Values.es.http.timeout }}
+          {{- end }}
+        {{- end }}
+        {{- if (eq .Values.es.security.enabled true) }}
+        security:
+          username: {{ .Values.es.security.username }}
+          password: {{ .Values.es.security.password }}
+        {{- end }}
+        {{- if (eq .Values.es.ssl.enabled true) }}
+        ssl:
+          keystore:
+            type: {{ .Values.es.ssl.keystore.type }}
+            {{- if or .Values.es.ssl.keystore.path .Values.es.ssl.keystore.password }}
+            path: {{ .Values.es.ssl.keystore.path }}
+            password: {{ .Values.es.ssl.keystore.password }}
+            {{- end }}
+            {{- if or .Values.es.ssl.keystore.certs .Values.es.ssl.keystore.keys }}
+            certs: {{ .Values.es.ssl.keystore.certs }}
+            keys: {{ .Values.es.ssl.keystore.keys }}
+            {{- end }}
+        {{- end }}
+        index: {{ .Values.es.index }}
+      {{- else if (eq .Values.api.analytics.type "none") }}
+      type: none
+      {{- end }}
+    security:
+      trustAll: {{ .Values.security.trustAll | default false }}
+      providers:
+        {{- if and .Values.security.providers }}
+        {{ toYaml .Values.security.providers | nindent 8 | trim -}}
+        {{- end }}
+        {{- if .Values.graviteeRepoAuth.enabled }}
+        - type: gravitee
+        {{- end }}
+        {{- if .Values.inMemoryAuth.enabled }}
+        - type: memory
+          # password encoding/hashing algorithm. One of:
+          # - bcrypt : passwords are hashed with bcrypt
+          # - none : passwords are not hashed/encrypted
+          # default value is bcrypt
+          password-encoding-algo: {{ .Values.inMemoryAuth.passwordEncodingAlgo | default "bcrypt" }}
+          allow-email-in-search-results: {{ .Values.inMemoryAuth.allowEmailInSearchResults }}
+          users:
+            - user:
+            {{- if .Values.adminAccountEnable }}
+              username: admin
+              password: {{ .Values.adminPasswordBcrypt }}
+              roles: ORGANIZATION:ADMIN, ENVIRONMENT:ADMIN
+              email: {{ .Values.adminEmail }}
+              firstName: {{ .Values.adminFirstName }}
+              lastName: {{ .Values.adminLastName }}
+            {{- end }}
+          {{- if .Values.extraInMemoryUsers -}}
+          {{ .Values.extraInMemoryUsers | nindent 12 }}
+          {{- end -}}
+        {{- end }}
+        {{- if .Values.ldap.enabled }}
+        - type: ldap
+          context:
+            username: {{ .Values.ldap.context.user | quote }}
+            password: {{ .Values.ldap.context.password | quote }}
+            url: {{ .Values.ldap.context.url | quote }}
+            base: {{ .Values.ldap.context.base | quote }}
+          authentication:
+            user: 
+              base: {{ .Values.ldap.authentication.user.base | quote }}
+              filter: {{ .Values.ldap.authentication.user.filter | quote }}
+              {{- if .Values.ldap.authentication.user.photo }}
+              photo-attribute: {{ .Values.ldap.authentication.user.photo | quote }}
+              {{- end }}
+            group:
+              base: {{ .Values.ldap.authentication.group.base | quote }} 
+              filter: {{ .Values.ldap.authentication.group.filter | quote }} 
+              role:
+                attribute: {{ .Values.ldap.authentication.group.role.attribute | quote }}
+                mapper: {
+                  {{ .Values.ldap.authentication.group.role.consumer }}: API_CONSUMER,
+                  {{ .Values.ldap.authentication.group.role.publisher }}: API_PUBLISHER,
+                  {{ .Values.ldap.authentication.group.role.admin }}: ADMIN,
+                  {{ .Values.ldap.authentication.group.role.user }}: USER
+                }
+          lookup:
+            allow-email-in-search-results: {{ .Values.ldap.lookup.allowEmailInSearchResults }}
+            user:
+              base: {{ .Values.ldap.lookup.user.base | quote }} 
+              filter: {{ .Values.ldap.lookup.user.filter | quote }} 
+        {{- end }}
+        {{- if .Values.oidcAuth.enabled }}
+        - type: oidc
+          {{- if .Values.oidcAuth.id }}
+          id: {{ .Values.oidcAuth.id }}
+          {{- end }}
+          clientId: {{ .Values.oidcAuth.clientId }}
+          clientSecret: {{ .Values.oidcAuth.clientSecret }}
+          tokenIntrospectionEndpoint: {{ .Values.oidcAuth.tokenIntrospectionEndpoint | quote }}
+          tokenEndpoint: {{ .Values.oidcAuth.tokenEndpoint | quote }}
+          authorizeEndpoint: {{ .Values.oidcAuth.authorizeEndpoint | quote }}
+          userInfoEndpoint: {{ .Values.oidcAuth.userInfoEndpoint | quote }}
+          userLogoutEndpoint: {{ .Values.oidcAuth.userLogoutEndpoint | quote }}
+          {{- if .Values.oidcAuth.color }}
+          color: {{ .Values.oidcAuth.color | quote }}
+          {{- end }}
+          syncMappings: {{ .Values.oidcAuth.syncMappings | default false }}
+          {{- if .Values.oidcAuth.scopes }}
+          scopes:
+            {{- range $scope := .Values.oidcAuth.scopes }}
+            - {{ $scope }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.oidcAuth.userMapping }}
+          userMapping:
+            {{- if .Values.oidcAuth.userMapping.id }}
+            id: {{ .Values.oidcAuth.userMapping.id }}
+            {{- end }}
+            {{- if .Values.oidcAuth.userMapping.email }}
+            email: {{ .Values.oidcAuth.userMapping.email }}
+            {{- end }}
+            {{- if .Values.oidcAuth.userMapping.lastname }}
+            lastname: {{ .Values.oidcAuth.userMapping.lastname }}
+            {{- end }}
+            {{- if .Values.oidcAuth.userMapping.firstname }}
+            firstname: {{ .Values.oidcAuth.userMapping.firstname }}
+            {{- end }}
+            {{- if .Values.oidcAuth.userMapping.picture }}
+            picture: {{ .Values.oidcAuth.userMapping.picture }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.oidcAuth.groupMapping }}
+          groupMapping:
+            {{- range $groupMapping := .Values.oidcAuth.groupMapping }}
+            - condition: {{ $groupMapping.condition | quote }}
+              groups:
+              {{- range $group := $groupMapping.groups }}
+                - {{ $group | quote }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.oidcAuth.roleMapping }}
+          roleMapping:
+            {{- range $roleMapping := .Values.oidcAuth.roleMapping }}
+            - condition: {{ $roleMapping.condition | quote }}
+              roles:
+              {{- range $role := $roleMapping.roles }}
+                - {{ $role | quote }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+    # SMTP configuration used to send mails
+    {{- if .Values.smtp }}
+    email:
+      enabled: {{ .Values.smtp.enabled }}
+      host: {{ .Values.smtp.host }}
+      subject: {{ .Values.smtp.subject | quote }}
+      port: {{ .Values.smtp.port }}
+      from: {{ .Values.smtp.from }}
+      {{- if or .Values.smtp.username .Values.smtp.password }}
+      username: {{ .Values.smtp.username }}
+      password: {{ .Values.smtp.password }}
+      {{- end }}
+      {{- with .Values.smtp.properties }}
+      properties:
+        {{ toYaml . | nindent 8 | trim -}}
+      {{- end }}
+    {{- end }}
+    # SMTP configuration used to send notifications / alerts
+    notifiers:
+      email:
+        enabled: {{ .Values.notifiers.smtp.enabled }}
+        {{- if .Values.notifiers.smtp.enabled }}
+        host: {{ .Values.notifiers.smtp.host }}
+        subject: {{ .Values.notifiers.smtp.subject | quote }}
+        port: {{ .Values.notifiers.smtp.port }}
+        from: {{ .Values.notifiers.smtp.from }}
+        {{- if or .Values.notifiers.smtp.username .Values.notifiers.smtp.password }}
+        username: {{ .Values.notifiers.smtp.username }}
+        password: {{ .Values.notifiers.smtp.password }}
+        {{- end }}
+        starttls.enabled: {{ .Values.notifiers.smtp.starttlsEnabled | default false }}
+        {{- if .Values.notifiers.smtp.ssl }}
+        ssl:
+          trustAll: {{ .Values.notifiers.smtp.ssl.trustAll }}
+          keyStore: {{ .Values.notifiers.smtp.ssl.keyStore }}
+          keyStorePassword: {{ .Values.notifiers.smtp.ssl.keyStorePassword }}
+        {{- end }}
+        {{- end }}
+
+    # Mail templates
+    templates:
+      path: ${gravitee.home}/templates
+
+    jwt:
+      secret: {{ .Values.jwtSecret }}
+      {{- if .Values.jwt }}
+      # Allows to define the end of validity of the token in seconds (default 604800 = a week)
+      expire-after: {{ .Values.jwt.expireAfter | default 604800 }}
+      # Allows to define the end of validity of the token in seconds for email registration (default 86400 = a day)
+      email-registration-expire-after: {{ .Values.jwt.emailRegistrationExpireAfter | default 86400 }}
+      # Allows to define issuer (default gravitee-management-auth)
+      issuer: {{ .Values.jwt.issuer | default "gravitee-management-auth" }}
+      # Allows to define cookie context path (default /)
+      cookie-path: {{ ((.Values.jwt.cookie).path) | default "/" }}
+      # Allows to define cookie domain (default "")
+      {{- if .Values.jwt.cookie }}
+      cookie-domain: {{ .Values.jwt.cookie.domain }}
+      {{- else }}
+      cookie-domain: {{ index .Values.ui.ingress.hosts 0 }}
+      {{- end }}
+      # Allows to define if cookie secure only (default false)
+      cookie-secure: {{ ((.Values.jwt.cookie).secure) | default false }}
+      {{- end }}
+
+    swagger:
+      # Default scheme used when creating an API from a Swagger descriptor if there is no scheme specified.
+      scheme: https
+
+    user:
+      login:
+        # Create a default application when user connects to the portal for the very first time (default true)
+        defaultApplication: {{ .Values.api.user.login.defaultApplication }}
+
+      {{- if .Values.api.user.password }}
+      password: {{ toYaml .Values.api.user.password | nindent 8 }}
+      {{- end }}
+
+      creation:
+        # Allows to register new users from portal (default false)
+        #enabled: true
+        token:
+          #expire-after: 86400
+        anonymize-on-delete:
+          enabled: {{ .Values.api.user.anynomizeOnDelete }}
+    # The portal URL used in emails
+    {{- if .Values.api.portalURL }}
+    portalURL: {{ .Values.api.portalURL }}
+    {{- else }}
+    portalURL: https://{{ index .Values.ui.ingress.hosts 0 }}
+    {{- end }}
+
+    # Allows to create support ticket (default value: false)
+    support:
+      enabled: {{ .Values.api.supportEnabled }}
+
+    # Allows to rate an API (default value: false)
+    rating :
+      enabled: {{ .Values.api.ratingEnabled }}
+
+    # Set the Subscribe to newsletter feature (default value: true)
+    newsletter :
+      enabled: {{ .Values.api.newsletterEnabled }}
+
+    # Alert Engine communication
+    {{ if .Values.alerts.enabled }}
+    alerts:
+      alert-engine-connector-ws:
+        enabled: true
+      alert-engine:
+        enabled: true
+        {{- if .Values.alerts.engines }}
+        engines:
+          {{ toYaml .Values.alerts.engines | nindent 10 | trim -}}
+        {{- end }}
+        ws:
+          discovery: true
+          {{- if .Values.alerts.options }}
+          {{ toYaml .Values.alerts.options | nindent 10 | trim -}}
+          {{- end }}
+          {{- with .Values.alerts.endpoints }}
+          endpoints:
+            {{ toYaml . | nindent 12 | trim -}}
+          {{- end }}
+          {{- if (eq .Values.alerts.security.enabled true) }}
+          security:
+            username: {{ .Values.alerts.security.username }}
+            password: {{ .Values.alerts.security.password }}
+          {{- end }}
+    {{- else }}
+    alerts:
+      alert-engine-connector-ws:
+        enabled: false
+    {{- end }}
+    # APIs specific configuration
+    {{- if .Values.api.api }}
+      api: {{- toYaml .Values.api.api | nindent 6 -}}
+    {{- end}}
+    {{- end }}
+    {{- if .Values.api.logging.debug }}
+  logback.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!--
+      ~ Copyright (c) 2015-2016, The Gravitee team (http://www.gravitee.io)
+      ~
+      ~  Licensed under the Apache License, Version 2.0 (the "License");
+      ~  you may not use this file except in compliance with the License.
+      ~  You may obtain a copy of the License at
+      ~
+      ~  http://www.apache.org/licenses/LICENSE-2.0
+      ~
+      ~  Unless required by applicable law or agreed to in writing, software
+      ~  distributed under the License is distributed on an "AS IS" BASIS,
+      ~  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+      ~  See the License for the specific language governing permissions and
+      ~  limitations under the License.
+      -->
+      <configuration>
+          <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+              {{- if .Values.api.logging.stdout.json }}
+              <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                  <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+                      <jsonFormatter
+                              class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
+                      </jsonFormatter>
+                      <appendLineSeparator>true</appendLineSeparator>
+                      <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSXX</timestampFormat>
+                  </layout>
+              </encoder>
+              {{- else }}
+              <!-- encoders are assigned the type
+                  ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+              <encoder>
+                  <pattern>{{ .Values.api.logging.stdout.encoderPattern }}</pattern>
+              </encoder>
+               {{- end }}
+          </appender>
+          {{- if .Values.api.logging.file.enabled }}
+          <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+              <file>${gravitee.management.log.dir}/gravitee.log</file>
+{{ .Values.api.logging.file.rollingPolicy | indent 14 }}
+              <encoder>
+                  <pattern>{{ .Values.api.logging.file.encoderPattern }}</pattern>
+              </encoder>
+          </appender>
+          {{- end }}
+
+          <logger name="io.gravitee" level="{{ .Values.api.logging.graviteeLevel }}" />
+          <logger name="org.eclipse.jetty" level="{{ .Values.api.logging.jettyLevel }}" />
+          {{- range $additionalLogger := .Values.api.logging.additionalLoggers }}
+          <logger name="{{ $additionalLogger.name }}" level="{{ $additionalLogger.level }}" />
+          {{- end }}
+
+          <!-- Strictly speaking, the level attribute is not necessary since -->
+          <!-- the level of the root level is set to DEBUG by default.       -->
+          <root level="WARN">
+              <appender-ref ref="STDOUT" />
+              {{- if .Values.api.logging.file.enabled }}
+              <appender-ref ref="FILE" />
+              {{- end }}
+          </root>
+      </configuration>
+  {{- end }}
+{{- end -}}

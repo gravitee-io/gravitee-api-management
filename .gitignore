@@ -36,6 +36,9 @@ docker/quick-setup/**/.plugins
 docker/quick-setup/**/.license
 docker/quick-setup/**/.driver
 
+# used by helm charts
+helm/**/*.tgz
+
 # secrets (password to artifactory)
 gpg.script.snippet.sh
 # -- Cicd : The [graviteebot.gpg.priv.key] file contains secrets

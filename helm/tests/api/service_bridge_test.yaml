@@ -1,0 +1,133 @@
+suite: Test Management API Service with Hybrid Bridge enabled
+templates:
+  - "api/api-service.yaml"
+tests:
+  - it: Check bridge service
+    template: api/api-service.yaml
+    set:
+      api:
+        services:
+          bridge:
+            enabled: true
+            service:
+              externalPort: 92
+              internalPort: 18092
+            ingress:
+              enabled: true
+            ssl:
+              enabled: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - contains:
+          path: spec.ports
+          content:
+            port: 92
+            targetPort: 18092
+            protocol: TCP
+            name: api-bridge
+            appProtocol: http
+      - isNull:
+          path: spec.externalTrafficPolicy
+
+  - it: Check bridge service with ssl enabled
+    template: api/api-service.yaml
+    set:
+      api:
+        services:
+          bridge:
+            enabled: true
+            service:
+              externalPort: 92
+              internalPort: 18092
+            ingress:
+              enabled: true
+            ssl:
+              enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - contains:
+          path: spec.ports
+          content:
+            port: 92
+            targetPort: 18092
+            protocol: TCP
+            name: api-bridge
+            appProtocol: https
+
+  - it: Check bridge service with custom appProtocol
+    template: api/api-service.yaml
+    set:
+      api:
+        services:
+          bridge:
+            enabled: true
+            service:
+              externalPort: 92
+              internalPort: 18092
+              appProtocol: http-test
+            ingress:
+              enabled: true
+            ssl:
+              enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - contains:
+          path: spec.ports
+          content:
+            port: 92
+            targetPort: 18092
+            protocol: TCP
+            name: api-bridge
+            appProtocol: http-test
+
+  - it: Deploy with NodePort and externalTrafficPolicy
+    template: api/api-service.yaml
+    set:
+      api:
+        service:
+          type: NodePort
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
+
+  - it: Deploy with LoadBalancer and externalTrafficPolicy
+    template: api/api-service.yaml
+    set:
+      api:
+        service:
+          type: LoadBalancer
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local

@@ -1,0 +1,66 @@
+suite: Test deployment and configmap with a volumeMount named config defined
+templates:
+  - "ui/ui-deployment.yaml"
+  - "ui/ui-configmap.yaml"
+tests:
+  - it: Should NOT generate ui-configmap.yaml
+    template: ui/ui-configmap.yaml
+    set:
+      ui:
+        extraVolumes: |
+          - name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Should generate ui-configmap.yaml
+    template: ui/ui-configmap.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  - it: Should generate a volume named config in ui-deployment.yaml
+    template: ui/ui-deployment.yaml
+    set:
+      ui:
+        extraVolumes: |
+          - name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /usr/share/nginx/html/constants.json
+            subPath: constants.json
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+
+  - it: Should NOT generate a volume named config in ui-deployment.yaml
+    template: ui/ui-deployment.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /usr/share/nginx/html/constants.json
+            subPath: constants.json
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            secret:
+              secretName: gravitee-yml-secret-name
