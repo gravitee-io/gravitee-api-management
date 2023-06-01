@@ -44,9 +44,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
-import { PlanSecurityType } from '../../../../entities/plan-v4';
-import { fakeV4Plan } from '../../../../entities/plan-v4/plan.fixture';
-import { ApiType, ConnectorPlugin, fakeApiV4, getEntrypointConnectorSchema } from '../../../../entities/management-api-v2';
+import { fakePlanV4, ApiType, ConnectorPlugin, fakeApiV4, getEntrypointConnectorSchema } from '../../../../entities/management-api-v2';
 import { fakeConnectorPlugin } from '../../../../entities/management-api-v2/connector/connectorPlugin.fixture';
 
 describe('ApiCreationV4Component', () => {
@@ -899,13 +897,14 @@ describe('ApiCreationV4Component', () => {
         await step4Security1PlansHarness.clickValidate();
         expect(component.currentStep.payload.plans).toEqual([
           {
+            definitionVersion: 'V4',
             name: 'Default Keyless (UNSECURED)',
             description: 'Default unsecured plan',
             security: {
-              type: PlanSecurityType.KEY_LESS,
+              type: 'KEY_LESS',
               configuration: {},
             },
-            validation: 'manual',
+            validation: 'MANUAL',
           },
         ]);
       });
@@ -944,25 +943,26 @@ describe('ApiCreationV4Component', () => {
 
         expect(component.currentStep.payload.plans).toEqual([
           {
+            definitionVersion: 'V4',
             name: 'Default Keyless (UNSECURED)',
             description: 'Default unsecured plan',
             security: {
-              type: PlanSecurityType.KEY_LESS,
+              type: 'KEY_LESS',
               configuration: {},
             },
-            validation: 'manual',
+            validation: 'MANUAL',
           },
           {
             characteristics: [],
-            comment_message: '',
-            comment_required: false,
+            commentMessage: '',
+            commentRequired: false,
             description: '',
-            excluded_groups: [],
+            excludedGroups: [],
             flows: [
               {
                 selectors: [
                   {
-                    type: 'http',
+                    type: 'HTTP',
                     path: '/',
                     pathOperator: 'STARTS_WITH',
                   },
@@ -971,15 +971,15 @@ describe('ApiCreationV4Component', () => {
                 request: [],
               },
             ],
-            general_conditions: '',
+            generalConditions: '',
             name: 'Secure by ApiKey',
             security: {
               configuration: {},
               type: 'API_KEY',
             },
-            selection_rule: null,
+            selectionRule: null,
             tags: [],
-            validation: 'manual',
+            validation: 'MANUAL',
           },
         ]);
       });
@@ -995,17 +995,22 @@ describe('ApiCreationV4Component', () => {
             name: 'Update name',
             description: 'Default unsecured plan',
             security: {
-              type: PlanSecurityType.KEY_LESS,
+              type: 'KEY_LESS',
               configuration: {},
             },
-            validation: 'manual',
-            comment_required: false,
-
+            validation: 'MANUAL',
+            commentRequired: false,
+            characteristics: undefined,
+            commentMessage: undefined,
+            excludedGroups: undefined,
+            generalConditions: undefined,
+            selectionRule: undefined,
+            tags: undefined,
             flows: [
               {
                 selectors: [
                   {
-                    type: 'http',
+                    type: 'HTTP',
                     path: '/',
                     pathOperator: 'STARTS_WITH',
                   },
@@ -1359,7 +1364,7 @@ describe('ApiCreationV4Component', () => {
     createApiRequest.flush(fakeApiV4({ id: apiId }));
 
     const createPlansRequest = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiId}/plans`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans`,
       method: 'POST',
     });
     expect(createPlansRequest.request.body).toEqual(
@@ -1367,14 +1372,14 @@ describe('ApiCreationV4Component', () => {
         name: 'Default Keyless (UNSECURED)',
       }),
     );
-    createPlansRequest.flush(fakeV4Plan({ apiId: apiId, id: planId }));
+    createPlansRequest.flush(fakePlanV4({ apiId: apiId, id: planId }));
   }
 
   function expectCallsForApiDeployment(apiId: string, planId: string) {
     expectCallsForApiCreation(apiId, planId);
 
     const publishPlansRequest = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.baseURL}/v4/apis/${apiId}/plans/${planId}/_publish`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`,
       method: 'POST',
     });
     publishPlansRequest.flush({});

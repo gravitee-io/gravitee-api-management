@@ -17,7 +17,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 
 import { MENU_ITEM_PAYLOAD } from '../../components/api-creation-stepper-menu/api-creation-stepper-menu.component';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { PlanSecurityType } from '../../../../../../entities/plan-v4';
+import { PlanSecurityType } from '../../../../../../entities/management-api-v2';
 
 interface MenuItemVM {
   name: string;
