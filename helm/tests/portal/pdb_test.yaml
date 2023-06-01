@@ -1,0 +1,47 @@
+suite: Test APIM Portal default PDB
+templates:
+  - "portal/portal-pdb.yaml"
+tests:
+  - it: should generate nothing when Portal is disabled
+    template: portal/portal-pdb.yaml
+    set:
+      portal:
+        enabled: false
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should generate PDB when Portal is enabled and PDB is enabled
+    template: portal/portal-pdb.yaml
+    set:
+      portal:
+        pdb:
+          enabled: true
+    release:
+      name: my-apim
+      namespace: unittest
+    chart:
+      version: 1.0.0-chart
+      appVersion: 1.0.0-app
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: PodDisruptionBudget
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/component: portal
+            app.kubernetes.io/instance: my-apim
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: apim
+            app.kubernetes.io/version: 1.0.0-app
+            helm.sh/chart: apim-1.0.0-chart
+      - equal:
+          path: spec.maxUnavailable
+          value: 50%
+      - isEmpty:
+          path: spec.minAvailable

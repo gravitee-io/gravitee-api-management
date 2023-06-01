@@ -1,0 +1,69 @@
+suite: Test API ui default deployment
+templates:
+  - "ui/ui-deployment.yaml"
+  - "ui/ui-configmap.yaml"
+tests:
+  - it: Check default readinessProbe
+    template: ui/ui-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: http
+
+  - it: Check default livenessProbe
+    template: ui/ui-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: http
+
+  - it: Check custom readinessProbe
+    template: ui/ui-deployment.yaml
+    set:
+      ui:
+        deployment:
+          readinessProbe:
+            enabled: false
+          customReadinessProbe:
+            httpGet:
+              path: /_node/health?probes=api-sync
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=api-sync
+      - isEmpty:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket
+
+  - it: Check custom livenessProbe
+    template: ui/ui-deployment.yaml
+    set:
+      ui:
+        deployment:
+          livenessProbe:
+            enabled: false
+          customLivenessProbe:
+            httpGet:
+              path: /_node/health?probes=api-sync
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /_node/health?probes=api-sync
+      - isEmpty:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket
+
+  - it: Check custom startupProbe
+    template: ui/ui-deployment.yaml
+    set:
+      ui:
+        deployment:
+          startupProbe:
+            enabled: false
+          customStartupProbe:
+            httpGet:
+              path: /_node/health?probes=api-sync
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /_node/health?probes=api-sync
+      - isEmpty:
+          path: spec.template.spec.containers[0].startupProbe.tcpSocket

@@ -1,0 +1,49 @@
+suite: Test portal deployment
+templates:
+  - "portal/portal-deployment.yaml"
+  - "portal/portal-configmap.yaml"
+tests:
+  - it: Should generate a CONSOLE_BASE_HREF environment variable
+    template: portal/portal-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "PORTAL_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/"
+
+  - it: Should generate a PORTAL_BASE_HREF environment variable when modifying ingress path
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        ingress:
+          path: /portal
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "PORTAL_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/portal"
+
+  - it: Should override generated CONSOLE_BASE_HREF environment variable
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        env:
+        - name: PORTAL_BASE_HREF
+          value: /test/
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "PORTAL_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/test/"
