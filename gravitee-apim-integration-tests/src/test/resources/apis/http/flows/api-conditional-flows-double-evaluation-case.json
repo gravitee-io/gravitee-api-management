@@ -1,0 +1,68 @@
+{
+  "id": "my-api-double-evaluation",
+  "name": "my-api-double-evaluation",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/test-double-evaluation",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/endpoint",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "Flow /",
+      "methods": [
+        "GET"
+      ],
+      "condition": "{#request.headers['X-Condition-Flow-Selection'][0] == 'root-condition'} ",
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "REQUEST",
+            "addHeaders": [
+              {
+                "name": "X-Request-Flow-0",
+                "value": "Flow /"
+              }
+            ],
+            "removeHeaders": ["X-Condition-Flow-Selection"]
+          }
+        }
+      ],
+      "post": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Response-Flow-0",
+                "value": "Flow /"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "resources": []
+}

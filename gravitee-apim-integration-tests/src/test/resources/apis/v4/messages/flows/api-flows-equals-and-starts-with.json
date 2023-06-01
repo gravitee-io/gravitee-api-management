@@ -1,0 +1,145 @@
+{
+  "id": "my-api-v4",
+  "name": "my-api-v4",
+  "gravitee": "4.0.0",
+  "type": "message",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount":  12,
+            "messagesLimitDurationMs": 500,
+            "headersInPayload":  true,
+            "metadataInPayload": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default-endpoint",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1,
+            "messageContent": "Mock data",
+            "messageCount": 1
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Flow /",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "channel",
+          "operation": [ "SUBSCRIBE" ],
+          "channel": "/",
+          "channel-operator": "EQUALS"
+        }
+      ],
+      "request": [
+        {
+        "name": "Transform headers",
+        "description": "",
+        "enabled": true,
+        "policy": "transform-headers",
+        "configuration": {
+          "scope": "REQUEST",
+          "addHeaders": [
+            {
+              "name": "X-Request-Flow-0",
+              "value": "Flow /"
+            }
+          ]
+        }
+      }],
+      "response": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Response-Flow-0",
+                "value": "Flow /"
+              }
+            ]
+          }
+        }
+      ],
+      "subscribe": [],
+      "publish": []
+    },
+    {
+      "name": "Flow /products",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "channel",
+          "operation": [ "SUBSCRIBE" ],
+          "channel": "/",
+          "channel-operator": "STARTS_WITH"
+        }
+      ],
+      "request": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "REQUEST",
+            "addHeaders": [
+              {
+                "name": "X-Request-Flow-1",
+                "value": "Flow /products"
+              }
+            ]
+          }
+        }],
+      "response": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Response-Flow-1",
+                "value": "Flow /products"
+              }
+            ]
+          }
+        }
+      ],
+      "subscribe": [],
+      "publish": []
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
