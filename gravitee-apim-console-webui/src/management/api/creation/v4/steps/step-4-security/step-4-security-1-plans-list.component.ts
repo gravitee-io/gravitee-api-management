@@ -19,8 +19,8 @@ import { FormGroup } from '@angular/forms';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step5DocumentationComponent } from '../step-5-documentation/step-5-documentation.component';
-import { NewPlan } from '../../../../../../entities/plan-v4';
 import { ConstantsService, PlanSecurityVM } from '../../../../../../services-ngx/constants.service';
+import { CreatePlanV4 } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'step-4-security-1-plans-list',
@@ -29,13 +29,13 @@ import { ConstantsService, PlanSecurityVM } from '../../../../../../services-ngx
 })
 export class Step4Security1PlansListComponent implements OnInit {
   @Input()
-  plans: NewPlan[] = [];
+  plans: CreatePlanV4[] = [];
 
   @Output()
   addPlanClicked = new EventEmitter<PlanSecurityVM>();
 
   @Output()
-  editPlanClicked = new EventEmitter<NewPlan>();
+  editPlanClicked = new EventEmitter<CreatePlanV4>();
 
   planSecurityOptions: PlanSecurityVM[];
 
@@ -65,11 +65,11 @@ export class Step4Security1PlansListComponent implements OnInit {
     this.addPlanClicked.emit(securityType);
   }
 
-  editPlan(plan: NewPlan) {
+  editPlan(plan: CreatePlanV4) {
     this.editPlanClicked.emit(this.plans.find((listedPlan) => listedPlan === plan));
   }
 
-  removePlan(plan: NewPlan) {
+  removePlan(plan: CreatePlanV4) {
     this.plans = this.plans.filter((listedPlan) => listedPlan !== plan);
   }
 }

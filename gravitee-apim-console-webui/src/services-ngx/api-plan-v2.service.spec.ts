@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ApiPlanV2Service } from './api-plan-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { ApiPlansResponse, fakePlanV4 } from '../entities/management-api-v2';
+import { ApiPlansResponse, fakePlanV4, CreatePlanV4 } from '../entities/management-api-v2';
 
 describe('ApiPlanV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -65,6 +65,49 @@ describe('ApiPlanV2Service', () => {
       });
 
       req.flush(fakeApiPlansResponse);
+    });
+  });
+
+  describe('create', () => {
+    it('should create api plans', (done) => {
+      const apiId = 'fox';
+      const plan: CreatePlanV4 = {
+        description: '',
+        definitionVersion: 'V4',
+        flows: [],
+        validation: 'AUTO',
+        name: 'free',
+        security: { type: 'API_KEY', configuration: '{}' },
+      };
+
+      apiPlanV2Service.create(apiId, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        done();
+      });
+
+      const planReq = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans`,
+      });
+      expect(planReq.request.body).toEqual(plan);
+      planReq.flush(plan);
+    });
+  });
+
+  describe('publish', () => {
+    it('should publish api plans', (done) => {
+      const apiId = 'api-1';
+      const planId = 'plan-1';
+
+      apiPlanV2Service.publish(apiId, planId).subscribe(() => {
+        done();
+      });
+
+      const publishPlanReq = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`,
+      });
+      publishPlanReq.flush({});
     });
   });
 });

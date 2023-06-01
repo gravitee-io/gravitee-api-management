@@ -17,7 +17,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { NewPlan, PlanSecurityType, PlanValidation } from '../../../../../../entities/plan-v4';
+import { CreatePlanV4 } from '../../../../../../entities/management-api-v2';
 import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../../../services-ngx/constants.service';
 
 @Component({
@@ -28,9 +28,9 @@ import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../../../services-
 export class Step4Security1PlansComponent implements OnInit {
   public view: 'list' | 'add' | 'edit' = 'list';
 
-  public plans: NewPlan[] = [];
+  public plans: CreatePlanV4[] = [];
 
-  public planToEdit: NewPlan | undefined = undefined;
+  public planToEdit: CreatePlanV4 | undefined = undefined;
 
   securityType: PlanSecurityVM;
 
@@ -42,13 +42,14 @@ export class Step4Security1PlansComponent implements OnInit {
     // For first pass-through of creation workflow
     if (!currentStepPayload.plans) {
       this.plans.push({
+        definitionVersion: 'V4',
         name: 'Default Keyless (UNSECURED)',
         description: 'Default unsecured plan',
         security: {
-          type: PlanSecurityType.KEY_LESS,
+          type: 'KEY_LESS',
           configuration: {},
         },
-        validation: PlanValidation.MANUAL,
+        validation: 'MANUAL',
       });
     } else {
       this.plans = currentStepPayload.plans;
@@ -61,7 +62,7 @@ export class Step4Security1PlansComponent implements OnInit {
     this.view = 'add';
   }
 
-  addPlan(plan: NewPlan) {
+  addPlan(plan: CreatePlanV4) {
     this.plans.push(plan);
     this.view = 'list';
   }
@@ -70,13 +71,13 @@ export class Step4Security1PlansComponent implements OnInit {
     this.view = 'list';
   }
 
-  onEditPlanClicked(plan: NewPlan) {
+  onEditPlanClicked(plan: CreatePlanV4) {
     this.planToEdit = plan;
     this.securityType = PLAN_SECURITY_TYPES.find((vm) => vm.id === plan.security.type);
     this.view = 'edit';
   }
 
-  editPlan(plan: NewPlan) {
+  editPlan(plan: CreatePlanV4) {
     const planToEditIndex = this.plans.findIndex((plan) => plan === this.planToEdit);
     this.plans.splice(planToEditIndex, 1, plan);
     this.view = 'list';

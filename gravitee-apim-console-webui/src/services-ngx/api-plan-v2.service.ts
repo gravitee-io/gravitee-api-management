@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApiPlansResponse, PlanStatus } from '../entities/management-api-v2';
+import { ApiPlansResponse, PlanStatus, CreatePlanV4, Plan } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -34,5 +34,13 @@ export class ApiPlanV2Service {
         ...(status ? { status } : {}),
       },
     });
+  }
+
+  public create(apiId: string, plan: CreatePlanV4): Observable<Plan> {
+    return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans`, plan);
+  }
+
+  public publish(apiId: string, planId: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`, {});
   }
 }

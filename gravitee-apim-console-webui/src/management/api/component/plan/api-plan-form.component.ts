@@ -38,22 +38,13 @@ import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 
-import { Api as ApiV3 } from '../../../../entities/api';
-import { ApiV4, PlanSecurityType as PlanSecurityTypeRestV2 } from '../../../../entities/management-api-v2';
+import { ApiV2, ApiV4, PlanV4, CreatePlanV4, FlowV4, StepV4, PlanSecurityType } from '../../../../entities/management-api-v2';
 import {
-  NewPlan as NewPlanV3,
-  Plan as PlanV3,
-  PlanSecurityType as PlanSecurityTypeV3,
-  PlanValidation as PlanValidationV3,
+  NewPlan as NewPlanV2,
+  Plan as PlanV2,
+  PlanSecurityType as PlanSecurityTypeV2,
+  PlanValidation as PlanValidationV2,
 } from '../../../../entities/plan';
-import {
-  NewPlan as NewPlanV4,
-  Plan as PlanV4,
-  PlanSecurityType as PlanSecurityTypeV4,
-  PlanValidation as PlanValidationV4,
-  Flow as FlowV4,
-  FlowStep,
-} from '../../../../entities/plan-v4';
 import { Flow, Step } from '../../../../entities/flow/flow';
 import { isApiV1V2FromMAPIV1 } from '../../../../util';
 import { PlanSecurityVM } from '../../../../services-ngx/constants.service';
@@ -85,9 +76,9 @@ type InternalPlanFormValue = {
   };
 };
 
-type InternalPlanV3Value = Partial<PlanV3 | NewPlanV3>;
-type InternalPlanV4Value = Partial<NewPlanV4 | PlanV4>;
-type InternalPlanValue = InternalPlanV3Value | InternalPlanV4Value;
+type InternalPlanV2Value = Partial<PlanV2 | NewPlanV2>;
+type InternalPlanV4Value = Partial<CreatePlanV4 | PlanV4>;
+type InternalPlanValue = InternalPlanV2Value | InternalPlanV4Value;
 
 @Component({
   selector: 'api-plan-form',
@@ -107,7 +98,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   private gioFormFocusInvalidIgnore = true;
 
   @Input()
-  api?: ApiV3 | ApiV4;
+  api?: ApiV2 | ApiV4;
 
   @Input()
   mode: 'create' | 'edit';
@@ -136,7 +127,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   private controlValue?: InternalPlanValue;
   private isDisabled = false;
-  private get isV3Api(): boolean {
+  private get isV2Api(): boolean {
     // If no api defined, considered it's a v4 by default
     if (!this.api) {
       return false;
@@ -253,8 +244,8 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   }
 
   private initPlanForm() {
-    const value = this.isPlanV3(this.controlValue)
-      ? planV3ToInternalFormValue(this.controlValue)
+    const value = this.isPlanV2(this.controlValue)
+      ? planV2ToInternalFormValue(this.controlValue)
       : planV4ToInternalFormValue(this.controlValue);
 
     this.planForm = new FormGroup({
@@ -314,17 +305,17 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   }
 
   private getPlan() {
-    return this.isV3Api
-      ? internalFormValueToPlanV3(this.planForm.getRawValue(), this.mode, this.securityType.id)
+    return this.isV2Api
+      ? internalFormValueToPlanV2(this.planForm.getRawValue(), this.mode, this.securityType.id)
       : internalFormValueToPlanV4(this.planForm.getRawValue(), this.mode, this.securityType.id);
   }
 
-  private isPlanV3(plan: InternalPlanValue): plan is InternalPlanV3Value {
-    return this.isV3Api;
+  private isPlanV2(plan: InternalPlanValue): plan is InternalPlanV2Value {
+    return this.isV2Api;
   }
 }
 
-const planV3ToInternalFormValue = (plan: InternalPlanV3Value | undefined): InternalPlanFormValue | undefined => {
+const planV2ToInternalFormValue = (plan: InternalPlanV2Value | undefined): InternalPlanFormValue | undefined => {
   if (!plan) {
     return undefined;
   }
@@ -338,7 +329,7 @@ const planV3ToInternalFormValue = (plan: InternalPlanV3Value | undefined): Inter
       shardingTags: plan.tags,
       commentRequired: plan.comment_required,
       commentMessage: plan.comment_message,
-      autoValidation: plan.validation === PlanValidationV3.AUTO,
+      autoValidation: plan.validation === PlanValidationV2.AUTO,
       excludedGroups: plan.excluded_groups,
     },
     secure: {
@@ -358,25 +349,25 @@ const planV4ToInternalFormValue = (plan: InternalPlanV4Value | undefined): Inter
       name: plan.name,
       description: plan.description,
       characteristics: plan.characteristics,
-      generalConditions: plan.general_conditions,
+      generalConditions: plan.generalConditions,
       shardingTags: plan.tags,
-      commentRequired: plan.comment_required,
-      commentMessage: plan.comment_message,
-      autoValidation: plan.validation === PlanValidationV4.AUTO,
-      excludedGroups: plan.excluded_groups,
+      commentRequired: plan.commentRequired,
+      commentMessage: plan.commentMessage,
+      autoValidation: plan.validation === 'AUTO',
+      excludedGroups: plan.excludedGroups,
     },
     secure: {
       securityConfig: plan.security.configuration,
-      selectionRule: plan.selection_rule,
+      selectionRule: plan.selectionRule,
     },
   };
 };
 
-const internalFormValueToPlanV3 = (
+const internalFormValueToPlanV2 = (
   value: InternalPlanFormValue,
   mode: 'create' | 'edit',
-  securityType: PlanSecurityTypeRestV2,
-): InternalPlanV3Value => {
+  securityType: PlanSecurityType,
+): InternalPlanV2Value => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): Flow[] => {
     const restrictionPolicies: Step[] = [
@@ -433,11 +424,11 @@ const internalFormValueToPlanV3 = (
     tags: value.general.shardingTags,
     comment_required: value.general.commentRequired,
     comment_message: value.general.commentMessage,
-    validation: value.general.autoValidation ? PlanValidationV3.AUTO : PlanValidationV3.MANUAL,
+    validation: value.general.autoValidation ? PlanValidationV2.AUTO : PlanValidationV2.MANUAL,
     excluded_groups: value.general.excludedGroups,
 
     // Secure
-    security: securityType as PlanSecurityTypeV3,
+    security: securityType as PlanSecurityTypeV2,
     securityDefinition: JSON.stringify(value.secure.securityConfig), // TODO: remove stringify when rest-api-v2 implemented
     selection_rule: value.secure.selectionRule,
 
@@ -449,11 +440,11 @@ const internalFormValueToPlanV3 = (
 const internalFormValueToPlanV4 = (
   value: InternalPlanFormValue,
   mode: 'create' | 'edit',
-  securityType: PlanSecurityTypeRestV2,
+  securityType: PlanSecurityType,
 ): InternalPlanV4Value => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): FlowV4[] => {
-    const restrictionPolicies: FlowStep[] = [
+    const restrictionPolicies: StepV4[] = [
       ...(restriction.rateLimitEnabled
         ? [
             {
@@ -488,7 +479,7 @@ const internalFormValueToPlanV4 = (
 
     return [
       {
-        selectors: [{ type: 'http', path: '/', pathOperator: 'STARTS_WITH' }],
+        selectors: [{ type: 'HTTP', path: '/', pathOperator: 'STARTS_WITH' }],
         enabled: true,
         request: [...restrictionPolicies],
       },
@@ -499,19 +490,19 @@ const internalFormValueToPlanV4 = (
     name: value.general.name,
     description: value.general.description,
     characteristics: value.general.characteristics,
-    general_conditions: value.general.generalConditions,
+    generalConditions: value.general.generalConditions,
     tags: value.general.shardingTags,
-    comment_required: value.general.commentRequired,
-    comment_message: value.general.commentMessage,
-    validation: value.general.autoValidation ? PlanValidationV4.AUTO : PlanValidationV4.MANUAL,
-    excluded_groups: value.general.excludedGroups,
+    commentRequired: value.general.commentRequired,
+    commentMessage: value.general.commentMessage,
+    validation: value.general.autoValidation ? 'AUTO' : 'MANUAL',
+    excludedGroups: value.general.excludedGroups,
 
     // Secure
     security: {
-      type: securityType as PlanSecurityTypeV4,
+      type: securityType,
       configuration: value.secure.securityConfig,
     },
-    selection_rule: value.secure.selectionRule,
+    selectionRule: value.secure.selectionRule,
 
     // Restriction (only for create mode)
     ...(mode === 'edit' ? {} : { flows: initFlowsWithRestriction(value.restriction) }),

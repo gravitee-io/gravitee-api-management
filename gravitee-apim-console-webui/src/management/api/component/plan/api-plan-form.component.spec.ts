@@ -34,12 +34,8 @@ import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeGroup } from '../../../../entities/group/group.fixture';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
-import { fakeApi as fakeApiV3 } from '../../../../entities/api/Api.fixture';
-import { fakeApiV4, ApiV4, PlanSecurityType as PlanSecurityTypeV2 } from '../../../../entities/management-api-v2';
-import { Api as ApiV3 } from '../../../../entities/api';
-import { Plan, PlanSecurityType } from '../../../../entities/plan';
-import { fakePlan as fakePlanV3 } from '../../../../entities/plan/plan.fixture';
-import { fakeV4Plan as fakePlanV4 } from '../../../../entities/plan-v4/plan.fixture';
+import { fakeApiV4, fakeApiV2, PlanSecurityType, fakePlanV4, fakePlanV2, Api } from '../../../../entities/management-api-v2';
+import { Plan } from '../../../../entities/plan';
 import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../services-ngx/constants.service';
 
 @Component({
@@ -52,7 +48,7 @@ class TestComponent {
   mode: 'create' | 'edit' = 'create';
   securityType: PlanSecurityVM;
   planControl = new FormControl();
-  api?: ApiV3 | ApiV4;
+  api?: Api;
   plan?: Plan;
 }
 
@@ -77,7 +73,7 @@ describe('ApiPlanFormComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const configureTestingModule = (mode: 'create' | 'edit', securityType: PlanSecurityTypeV2, api?: ApiV3 | ApiV4) => {
+  const configureTestingModule = (mode: 'create' | 'edit', securityType: PlanSecurityType, api?: Api) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [ReactiveFormsModule, NoopAnimationsModule, GioHttpTestingModule, ApiPlanFormModule, MatIconTestingModule],
@@ -111,17 +107,17 @@ describe('ApiPlanFormComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('Create mode V3 with API', () => {
+  describe('Create mode V2 with API', () => {
     describe('OAuth2 plan', () => {
       const TAG_1_ID = 'tag-1';
-      const API = fakeApiV3({
+      const API = fakeApiV2({
         tags: [TAG_1_ID],
         resources: [
           {
             name: 'OAuth2 AM Resource',
             enabled: true,
-            type: 'oauth2-am',
-            configuration: {},
+            type: 'OAUTH2',
+            configuration: '',
           },
         ],
       });
@@ -186,14 +182,14 @@ describe('ApiPlanFormComponent', () => {
     });
     describe('JWT plan', () => {
       const TAG_1_ID = 'tag-1';
-      const API = fakeApiV3({
+      const API = fakeApiV2({
         tags: [TAG_1_ID],
         resources: [
           {
             name: 'OAuth2 AM Resource',
             enabled: true,
             type: 'oauth2-am',
-            configuration: {},
+            configuration: '',
           },
         ],
       });
@@ -331,14 +327,14 @@ describe('ApiPlanFormComponent', () => {
     });
     describe('API Key plan', () => {
       const TAG_1_ID = 'tag-1';
-      const API = fakeApiV3({
+      const API = fakeApiV2({
         tags: [TAG_1_ID],
         resources: [
           {
             name: 'OAuth2 AM Resource',
             enabled: true,
             type: 'oauth2-am',
-            configuration: {},
+            configuration: '',
           },
         ],
       });
@@ -479,14 +475,14 @@ describe('ApiPlanFormComponent', () => {
     });
     describe('API Keyless plan', () => {
       const TAG_1_ID = 'tag-1';
-      const API = fakeApiV3({
+      const API = fakeApiV2({
         tags: [TAG_1_ID],
         resources: [
           {
             name: 'OAuth2 AM Resource',
             enabled: true,
             type: 'oauth2-am',
-            configuration: {},
+            configuration: '',
           },
         ],
       });
@@ -681,22 +677,22 @@ describe('ApiPlanFormComponent', () => {
         name: '🗺',
         description: 'Description',
         characteristics: ['C1'],
-        comment_message: 'Comment message',
-        comment_required: true,
-        excluded_groups: ['group-a'],
-        general_conditions: '',
+        commentMessage: 'Comment message',
+        commentRequired: true,
+        excludedGroups: ['group-a'],
+        generalConditions: '',
         tags: [],
         security: {
           configuration: {},
           type: 'JWT',
         },
-        selection_rule: '{ #el ...}',
-        validation: 'auto',
+        selectionRule: '{ #el ...}',
+        validation: 'AUTO',
         flows: [
           {
             selectors: [
               {
-                type: 'http',
+                type: 'HTTP',
                 path: '/',
                 pathOperator: 'STARTS_WITH',
               },
@@ -728,9 +724,9 @@ describe('ApiPlanFormComponent', () => {
     });
   });
 
-  describe('Edit mode V3', () => {
+  describe('Edit mode V2', () => {
     const TAG_1_ID = 'tag-1';
-    const API = fakeApiV3({
+    const API = fakeApiV2({
       tags: [TAG_1_ID],
     });
     const PLAN_ID = 'plan-1';
@@ -740,7 +736,7 @@ describe('ApiPlanFormComponent', () => {
     });
 
     it('should edit plan', async () => {
-      const planToUpdate = fakePlanV3({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
+      const planToUpdate = fakePlanV2({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
       testComponent.planControl = new FormControl(planToUpdate);
       fixture.detectChanges();
 
@@ -801,17 +797,17 @@ describe('ApiPlanFormComponent', () => {
         excluded_groups: ['group-a'],
         selection_rule: undefined,
         security: 'KEY_LESS',
-        securityDefinition: '{}',
+        securityDefinition: undefined,
         general_conditions: 'doc-1',
       });
     });
   });
 
-  describe('Edit mode V3 with disabled control', () => {
+  describe('Edit mode V2 with disabled control', () => {
     const TAG_1_ID = 'tag-1';
-    const API = fakeApiV3({
+    const API = fakeApiV2({
       tags: [TAG_1_ID],
-      definition_context: { origin: 'kubernetes' },
+      definitionContext: { origin: 'KUBERNETES' },
     });
     const PLAN_ID = 'plan-1';
 
@@ -820,7 +816,7 @@ describe('ApiPlanFormComponent', () => {
     });
 
     it('should access plan in read only ', async () => {
-      const planToUpdate = fakePlanV3({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
+      const planToUpdate = fakePlanV2({ id: PLAN_ID, name: 'Old 🗺', description: 'Old Description', tags: [TAG_1_ID] });
       testComponent.planControl = new FormControl({
         value: planToUpdate,
         disabled: true,
@@ -936,15 +932,16 @@ describe('ApiPlanFormComponent', () => {
           description: 'Description',
           characteristics: ['C1'],
           tags: [],
-          validation: 'manual',
-          comment_message: undefined,
-          comment_required: false,
-          excluded_groups: ['group-a'],
+          validation: 'MANUAL',
+          commentMessage: 'comment message',
+          commentRequired: false,
+          excludedGroups: ['group-a'],
           security: {
             configuration: {},
             type: 'KEY_LESS',
           },
-          general_conditions: 'doc-1',
+          generalConditions: 'doc-1',
+          selectionRule: undefined,
         });
       });
     });
@@ -958,7 +955,7 @@ describe('ApiPlanFormComponent', () => {
           name: 'Old 🗺',
           description: 'Old Description',
           security: {
-            type: PlanSecurityType.API_KEY,
+            type: 'API_KEY',
             configuration: { propagateApiKey: true },
           },
           tags: [TAG_1_ID],

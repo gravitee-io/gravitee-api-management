@@ -15,16 +15,16 @@
  */
 import { isFunction } from 'lodash';
 
-import { Plan, PlanSecurityType } from './plan';
+import { PlanV4 } from './planV4';
 
-export function fakeV4Plan(modifier?: Partial<Plan> | ((baseApi: Plan) => Plan)): Plan {
-  const base: Plan = {
+export function fakeV4Plan(modifier?: Partial<PlanV4> | ((baseApi: PlanV4) => PlanV4)): PlanV4 {
+  const base: PlanV4 = {
+    definitionVersion: 'V4',
     id: '45ff00ef-8256-3218-bf0d-b289735d84bb',
     name: 'Free Spaceshuttle',
-    security: { type: PlanSecurityType.KEY_LESS, configuration: {} },
-    paths: {},
+    security: { type: 'KEY_LESS', configuration: {} },
     flows: [],
-    status: 'published',
+    status: 'PUBLISHED',
     apiId: 'api#1',
     order: 0,
   };

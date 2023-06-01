@@ -32,9 +32,8 @@ import { Step4MenuItemComponent } from './steps/step-4-menu-item/step-4-menu-ite
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
-import { PlanV4Service } from '../../../../services-ngx/plan-v4.service';
-import { Plan } from '../../../../entities/plan-v4';
-import { Api, CreateApiV4, EndpointGroupV4, Entrypoint, Listener } from '../../../../entities/management-api-v2';
+import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
+import { PlanV4, Api, CreateApiV4, EndpointGroupV4, Entrypoint, Listener } from '../../../../entities/management-api-v2';
 
 // TODO: Make better... Add apiId as req ?
 export interface Result {
@@ -43,7 +42,7 @@ export interface Result {
   message?: string;
   result?: {
     api?: Api;
-    plans?: Plan[];
+    plans?: PlanV4[];
   };
 }
 
@@ -113,7 +112,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
   constructor(
     private readonly injector: Injector,
     private readonly apiV2Service: ApiV2Service,
-    private readonly planV4Service: PlanV4Service,
+    private readonly apiPlanV2Service: ApiPlanV2Service,
     private readonly snackBarService: SnackBarService,
     @Inject(UIRouterState) readonly ajsState: StateService,
   ) {}
@@ -243,8 +242,8 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   private createPlans$(apiCreationStatus: Result): Observable<Result> {
     const api = apiCreationStatus.result.api;
-    return forkJoin(apiCreationStatus.apiCreationPayload.plans.map((plan) => this.planV4Service.create(api.id, plan))).pipe(
-      map((plans: Plan[]) => ({ ...apiCreationStatus, result: { ...apiCreationStatus.result, plans }, status: 'success' as const })),
+    return forkJoin(apiCreationStatus.apiCreationPayload.plans.map((plan) => this.apiPlanV2Service.create(api.id, plan))).pipe(
+      map((plans: PlanV4[]) => ({ ...apiCreationStatus, result: { ...apiCreationStatus.result, plans }, status: 'success' as const })),
       catchError((err) => {
         return of({
           ...apiCreationStatus,
@@ -258,8 +257,8 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   private publishPlans$(apiCreationStatus: Result): Observable<Result> {
     return forkJoin(
-      apiCreationStatus.result.plans.map((p: Plan) => {
-        return this.planV4Service.publish(apiCreationStatus.result.api.id, p.id);
+      apiCreationStatus.result.plans.map((p: PlanV4) => {
+        return this.apiPlanV2Service.publish(apiCreationStatus.result.api.id, p.id);
       }),
     ).pipe(
       map(() => apiCreationStatus),
