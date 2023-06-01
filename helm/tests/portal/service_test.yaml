@@ -1,0 +1,99 @@
+suite: Test API Portal default Service
+templates:
+  - "portal/portal-service.yaml"
+  - "portal/portal-configmap.yaml"
+tests:
+  - it: Check default service
+    template: portal/portal-service.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - isNull:
+          path: spec.externalTrafficPolicy
+      - contains:
+          path: spec.ports
+          content:
+            port: 8003
+            targetPort: 8080
+            protocol: TCP
+            name: portal
+            appProtocol: http
+
+  - it: Check service with custom appProtocol
+    template: portal/portal-service.yaml
+    set:
+      portal:
+        service:
+          appProtocol: http
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - contains:
+          path: spec.ports
+          content:
+            port: 8003
+            targetPort: 8080
+            protocol: TCP
+            name: portal
+            appProtocol: http
+
+  - it: Deploy with long portal name
+    template: portal/portal-service.yaml
+    set:
+      portal:
+        name: "I-am-a-very-long-name-Neque-porro-quisquam-est-qui-dolorem-ipsum-quia-dolor-sit"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.ports
+          value: 
+            - appProtocol: http
+              name: I-am-a-very-long-name-Neque-porro-quisquam-est-qui-dolorem-ipsu
+              port: 8003
+              protocol: TCP
+              targetPort: 8080
+
+  - it: Deploy with NodePort and externalTrafficPolicy
+    template: portal/portal-service.yaml
+    set:
+      portal:
+        service:
+          type: NodePort
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
+
+  - it: Deploy with LoadBalancer and externalTrafficPolicy
+    template: portal/portal-service.yaml
+    set:
+      portal:
+        service:
+          type: LoadBalancer
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
