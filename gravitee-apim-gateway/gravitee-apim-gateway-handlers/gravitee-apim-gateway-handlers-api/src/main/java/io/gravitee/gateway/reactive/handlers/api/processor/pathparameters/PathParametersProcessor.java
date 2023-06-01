@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.processor.pathparameters;
+package io.gravitee.gateway.reactive.handlers.api.processor.pathparameters;
 
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;

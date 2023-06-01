@@ -22,7 +22,6 @@ import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
-import io.gravitee.gateway.jupiter.handlers.api.processor.pathparameters.PathParametersProcessor;
 import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
@@ -33,6 +32,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.error.SimpleFailurePr
 import io.gravitee.gateway.reactive.handlers.api.processor.error.template.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.pathmapping.PathMappingProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.pathparameters.PathParametersProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;

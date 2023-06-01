@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.jupiter.handlers.api.processor.pathparameters;
+package io.gravitee.gateway.reactive.handlers.api.processor.pathparameters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,6 +24,7 @@ import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
+import io.gravitee.gateway.reactive.handlers.api.processor.pathparameters.PathParametersProcessor;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
