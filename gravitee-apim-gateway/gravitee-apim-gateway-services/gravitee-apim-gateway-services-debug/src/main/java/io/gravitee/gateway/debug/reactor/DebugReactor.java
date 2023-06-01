@@ -32,6 +32,7 @@ import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
+import io.gravitee.repository.management.model.Plan;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -42,11 +43,10 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.core.net.OpenSSLEngineOptions;
-import io.vertx.core.net.ProxyOptions;
-import io.vertx.core.net.ProxyType;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,6 +150,19 @@ public class DebugReactor extends DefaultReactor {
             DebugApi debugApi = new DebugApi(event.getId(), eventPayload);
             debugApi.setEnabled(true);
             debugApi.setDeployedAt(new Date());
+
+            debugApi.setPlans(
+                debugApi
+                    .getPlans()
+                    .stream()
+                    .filter(plan ->
+                        !(
+                            Plan.Status.CLOSED.name().equalsIgnoreCase(plan.getStatus()) ||
+                            Plan.Status.STAGING.name().equalsIgnoreCase(plan.getStatus())
+                        )
+                    )
+                    .collect(Collectors.toList())
+            );
 
             return debugApi;
         } catch (Exception e) {
