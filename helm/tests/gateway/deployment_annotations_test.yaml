@@ -1,0 +1,36 @@
+suite: Test API Gateway deployment - annotations 
+templates:
+  - "gateway/gateway-deployment.yaml"
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Sets common deployment annotations
+    template: gateway/gateway-deployment.yaml
+    set:
+      common:
+        annotations:
+          acme.com/team: api
+          acme.com/feature: products
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            acme.com/team: api
+            acme.com/feature: products
+  - it: Sets common deployment annotations and gateway deployment annotations
+    template: gateway/gateway-deployment.yaml
+    set:
+      common:
+        annotations:
+          acme.com/team: api
+          acme.com/feature: products
+      gateway:
+        deployment:
+          annotations:
+            acme.com/metrics: "true"
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            acme.com/team: api
+            acme.com/feature: products
+            acme.com/metrics: "true"

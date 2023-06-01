@@ -1,0 +1,60 @@
+{{- if .Values.portal.enabled -}}
+{{- if .Values.portal.ingress.enabled -}}
+{{- $serviceAPIName := include "gravitee.portal.fullname" . -}}
+{{- $serviceAPIPort := .Values.portal.service.externalPort -}}
+{{- $ingressPath   := .Values.portal.ingress.path -}}
+{{- $ingressPathType   := .Values.portal.ingress.pathType -}}
+{{- $apiVersion := include "common.capabilities.ingress.apiVersion" . -}}
+apiVersion: {{ $apiVersion }}
+kind: Ingress
+metadata:
+  name: {{ template "gravitee.portal.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.portal.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.portal.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if .Values.portal.ingress.annotations }}
+    {{- include "common.ingress.annotations.render" (dict "annotations" .Values.portal.ingress.annotations "ingressClassName" .Values.portal.ingress.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
+    {{- end }}
+    {{- if .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  {{- if and (eq (include "common.ingress.supportsIngressClassname" .) "true") (.Values.portal.ingress.ingressClassName) (ne .Values.portal.ingress.ingressClassName "none") }}
+  ingressClassName: {{ .Values.portal.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+  {{- range $host := .Values.portal.ingress.hosts }}
+  - host: {{ $host }}
+    http:
+      paths:
+      - pathType: {{ $ingressPathType }}
+        path: {{ $ingressPath }}
+        backend:
+          {{- if (eq $apiVersion "networking.k8s.io/v1") }}
+          service:
+            name: {{ $serviceAPIName }}
+            port:
+              number: {{ $serviceAPIPort }}
+          {{ else }}
+          serviceName: {{ $serviceAPIName }}
+          servicePort: {{ $serviceAPIPort }}
+          {{- end -}}
+  {{- end -}}
+  {{- if .Values.portal.ingress.tls }}
+  tls:
+{{ toYaml .Values.portal.ingress.tls | indent 4 }}
+  {{- end -}}
+{{- end -}}
+{{- end -}}

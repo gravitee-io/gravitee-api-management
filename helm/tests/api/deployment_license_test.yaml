@@ -1,0 +1,54 @@
+suite: Test Management API deployment with startupProbe
+templates:
+  - "api/api-deployment.yaml"
+  - "api/api-configmap.yaml"
+tests:
+  - it: Deploy use licensekey secret if given
+    template: api/api-deployment.yaml
+    set:
+      license:
+        name: licensekey_apim
+        key: unleashThePowerOfYourAPIs
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: licensekey
+            mountPath: /opt/graviteeio-management-api/license
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: licensekey
+            secret:
+              secretName: licensekey_apim
+              items:
+                - key: licensekey
+                  path: license.key
+
+  - it: Deploy not use licensekey secret by default
+    template: api/api-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: licensekey
+            mountPath: /opt/graviteeio-management-api/license
+            readOnly: true
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: licensekey
+            secret:
+              secretName: licensekey
+              items:
+                - key: licensekey
+                  path: license.key

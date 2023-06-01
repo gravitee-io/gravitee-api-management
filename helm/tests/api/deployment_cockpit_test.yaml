@@ -1,0 +1,118 @@
+suite: Test Management API with Cockpit
+templates:
+  - "api/api-deployment.yaml"
+  - "api/api-configmap.yaml"
+tests:
+  - it: Check cockpit deployment
+    template: api/api-deployment.yaml
+    set:
+      cockpit:
+        enabled: true
+        keystore: 
+          password: 
+            value: my_password
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - isAPIVersion:
+          of: apps/v1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: gravitee-cockpit-certificates
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /opt/graviteeio-management-api/cockpit
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: gravitee_cockpit_enabled
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "true"
+      - equal:
+          path: spec.template.spec.containers[0].env[5].name
+          value: gravitee_cockpit_keystore_password
+      - equal:
+          path: spec.template.spec.containers[0].env[5].value
+          value: "my_password"
+
+  - it: Check cockpit deployment with keystore from secretKeyRef
+    template: api/api-deployment.yaml
+    set:
+      cockpit:
+        enabled: true
+        keystore: 
+          password:
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: password-key
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - isAPIVersion:
+          of: apps/v1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: gravitee-cockpit-certificates
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /opt/graviteeio-management-api/cockpit
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: gravitee_cockpit_enabled
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "true"
+      - equal:
+          path: spec.template.spec.containers[0].env[5].name
+          value: gravitee_cockpit_keystore_password
+      - equal:
+          path: spec.template.spec.containers[0].env[5].valueFrom
+          value:
+            secretKeyRef:
+              name: mysecret
+              key: password-key
+
+  - it: Check cockpit deployment with keystore from secretKeyRef
+    template: api/api-deployment.yaml
+    set:
+      cockpit:
+        enabled: true
+        keystore: 
+          password:
+            valueFrom: 
+              configMapKeyRef:
+                name: special-config
+                key: password-key
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - isAPIVersion:
+          of: apps/v1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: gravitee-cockpit-certificates
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /opt/graviteeio-management-api/cockpit
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: gravitee_cockpit_enabled
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: "true"
+      - equal:
+          path: spec.template.spec.containers[0].env[5].name
+          value: gravitee_cockpit_keystore_password
+      - equal:
+          path: spec.template.spec.containers[0].env[5].valueFrom
+          value:
+            configMapKeyRef:
+              name: special-config
+              key: password-key

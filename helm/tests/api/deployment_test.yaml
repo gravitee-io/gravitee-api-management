@@ -1,0 +1,175 @@
+suite: Test Management API default deployment
+templates:
+  - "api/api-deployment.yaml"
+  - "api/api-configmap.yaml"
+tests:
+  - it: Check default deployment
+    template: api/api-deployment.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 1.0.0-app
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - isAPIVersion:
+          of: apps/v1
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: graviteeio/apim-management-api:1.0.0-app
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: portal.entrypoint
+              value: https://apim.example.com/
+      - isEmpty:
+          # It should not contain init containers by default
+          path: spec.template.spec.initContainers
+
+  - it: Check deployment with revisionHistoryLimit
+    template: api/api-deployment.yaml
+    set:
+      api:
+        deployment:
+          revisionHistoryLimit: 5
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - isAPIVersion:
+          of: apps/v1
+      - equal:
+          path: spec.revisionHistoryLimit
+          value: 5
+
+  - it: Check deployment with JDBC support
+    template: api/api-deployment.yaml
+    set:
+      management:
+        type: "jdbc"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: graviteeio-apim-repository-jdbc-ext
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /opt/graviteeio-management-api/plugins/ext/repository-jdbc
+
+  - it: Set containerPort with custom port if core service is enabled
+    template: api/api-deployment.yaml
+    set:
+      api:
+        http:
+          services:
+            core:
+              http:
+                enabled: true
+                port: 20202
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].ports
+          value:
+            - name: http
+              containerPort: 8083
+            - name: api-techapi
+              containerPort: 20202
+      - matchRegex:
+          path: spec.template.spec.containers[0].ports[1].name
+          # There is a k8s limitation that port names must be 15 characters or less
+          pattern: ^.{0,15}$
+
+  - it: Deploy with managed ServiceAccount
+    template: api/api-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: ""
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "RELEASE-NAME-apim"
+
+  - it: Deploy with custom ServiceAccount
+    template: api/api-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: false
+        serviceAccount: "test-sa"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "test-sa"
+
+  - it: Deploy without ServiceAccount
+    template: api/api-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: false
+        serviceAccount: ""
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: null
+
+  - it: Deploy with custom managed ServiceAccount
+    template: api/api-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: "test-sa"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "test-sa"
+
+  - it: Deploy with long api name
+    template: api/api-deployment.yaml
+    set:
+      api:
+        name: "I-am-a-very-long-name"
+        services:
+          bridge:
+            enabled: true
+            service:
+              externalPort: 92
+              internalPort: 18092
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].ports
+          value: 
+            - containerPort: 8083
+              name: http
+            - containerPort: 18083
+              name: I-am-a-techapi
+            - containerPort: 18092
+              name: I-am-a-v-bridge

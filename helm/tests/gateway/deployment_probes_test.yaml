@@ -1,0 +1,90 @@
+suite: Test API Gateway default deployment
+templates:
+  - "gateway/gateway-deployment.yaml"
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Check default readinessProbe
+    template: gateway/gateway-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=api-sync
+      - isEmpty:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket
+
+  - it: Check default livenessProbe
+    template: gateway/gateway-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /_node/health?probes=http-server
+      - isEmpty:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket
+
+  - it: Check default startupProbe
+    template: gateway/gateway-deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /_node/health?probes=http-server
+      - isEmpty:
+          path: spec.template.spec.containers[0].startupProbe.tcpSocket
+
+  - it: Check custom readinessProbe
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        deployment:
+          readinessProbe:
+            enabled: false
+          customReadinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
+          value: http
+      - isEmpty:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+
+  - it: Check custom livenessProbe
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        deployment:
+          livenessProbe:
+            enabled: false
+          customLivenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket.port
+          value: http
+      - isEmpty:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet
+
+  - it: Check custom startupProbe
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        deployment:
+          startupProbe:
+            enabled: false
+          customStartupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+            failureThreshold: 3
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.tcpSocket.port
+          value: http
+      - isEmpty:
+          path: spec.template.spec.containers[0].startupProbe.httpGet

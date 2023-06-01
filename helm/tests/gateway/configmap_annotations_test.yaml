@@ -1,0 +1,16 @@
+suite: Test Gateway configmap - labels
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Sets common configmap annotations
+    set:
+      common:
+        annotations:
+          acme.com/team: api
+          acme.com/feature: products
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            acme.com/team: api
+            acme.com/feature: products

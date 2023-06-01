@@ -1,0 +1,81 @@
+suite: Test Management API configmap with tracining enabled
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Enable jaeger tracing
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          tracing:
+            enabled: true
+            type: jaeger
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * tracing:\n
+                     *  enabled: true"
+  - it: Enable jaeger tracing and set common values
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          tracing:
+            enabled: true
+            type: jaeger
+            jaeger:
+              host: localhost
+              port: 14250
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * tracing:\n
+                     *  enabled: true\n
+                     *  type: \"jaeger\"\n
+                     *  jaeger:\n
+                     *    host: localhost\n
+                     *    port: 14250"
+  - it: Enable jaeger tracing and set ssl values
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          tracing:
+            enabled: true
+            type: jaeger
+            jaeger:
+              host: some-remote.host.com
+              port: 14222
+              ssl:
+                enabled: true
+                trustall: false
+                verifyHostname: true
+                keystore:
+                  password: "password-key"
+                  path: "/keystore"
+                  type: "jks"
+                truststore:
+                  password: "password-trust"
+                  path: "/truststore"
+                  type: "pem"
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * tracing:\n
+                     *  enabled: true\n
+                     *  type: \"jaeger\"\n
+                     *  jaeger:\n
+                     *    host: some-remote.host.com\n
+                     *    port: 14222\n
+                     *    ssl:\n
+                     *      enabled: true\n
+                     *      keystore:\n
+                     *        password: password-key\n
+                     *        path: /keystore\n
+                     *        type: jks\n
+                     *      trustall: false\n
+                     *      truststore:\n
+                     *        password: password-trust\n
+                     *        path: /truststore\n
+                     *        type: pem\n
+                     *      verifyHostname: true"

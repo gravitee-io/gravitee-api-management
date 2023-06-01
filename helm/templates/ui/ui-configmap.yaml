@@ -1,0 +1,79 @@
+{{- if and (.Values.ui.enabled) (not (include "ui.externalConfig" .)) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "gravitee.ui.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.ui.image.tag | default .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ .Values.ui.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    {{- if .Values.common.labels }}
+    {{- range $key, $value := .Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if .Values.common.annotations }}
+    {{- range $key, $value := .Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+data:
+  use-gzip: "true"
+  gzip-level: "5"
+  gzip-types: "*"
+  constants.json: |
+    {
+      {{- if .Values.ui.baseURL }}
+      "baseURL": "{{ .Values.ui.baseURL }}"
+      {{- else }}
+      {{- if hasSuffix "/" .Values.api.ingress.management.path }}
+      "baseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}organizations/DEFAULT/environments/DEFAULT/"
+      {{- else }}
+      "baseURL": "{{ .Values.api.ingress.management.scheme }}://{{ index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}/organizations/DEFAULT/environments/DEFAULT/"
+      {{- end }}
+      {{- end }}
+      {{- if .Values.ui.managementTitle }},
+      "management": {
+        "title": "{{ .Values.ui.managementTitle }}"
+      }
+      {{- end }}
+      {{- if .Values.ui.companyName }},
+      "company": {
+        "name": "{{ .Values.ui.companyName }}"
+      }
+      {{- end }}
+      {{- if .Values.ui.documentationLink }},
+      "documentation": {
+        "url": "{{ .Values.ui.documentationLink }}"
+      }
+      {{- end }}
+      {{- if or .Values.gateway.enabled .Values.ui.title .Values.ui.portal }},
+      "portal": {
+        {{- if .Values.gateway.enabled }}
+        "entrypoint": "https://{{ index .Values.gateway.ingress.hosts 0 }}{{ .Values.gateway.ingress.path }}"
+        {{- end }}
+        {{- if .Values.ui.title }}{{ if .Values.gateway.enabled }},{{ end }}
+        "title": "{{ .Values.ui.title }}"
+        {{- end }}
+        {{- if .Values.ui.portal }}{{ if or .Values.gateway.enabled .Values.ui.title }},{{ end }}
+          {{- $local := dict "first" true -}}
+          {{- range $key, $value := .Values.ui.portal }}
+          {{- if not $local.first -}},{{- end -}}
+          {{- $key | quote | nindent 8 }}: {{ toJson $value }}
+          {{- $_ := set $local "first" false -}}
+          {{- end -}}
+        {{- end }}
+      }
+      {{- end }}
+      {{- if .Values.ui.theme }},
+      "theme": {{ toJson .Values.ui.theme }}
+      {{- end }}
+      {{- if .Values.ui.scheduler }},
+      "scheduler": {{ toJson .Values.ui.scheduler }}
+      {{- end }}
+    }
+{{- end -}}
