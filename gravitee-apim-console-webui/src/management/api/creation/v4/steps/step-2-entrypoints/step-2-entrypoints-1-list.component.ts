@@ -121,7 +121,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     event.stopPropagation();
 
     this.connectorPluginsV2Service
-      .getEndpointPluginMoreInformation(entrypoint.id)
+      .getEntrypointPluginMoreInformation(entrypoint.id)
       .pipe(
         takeUntil(this.unsubscribe$),
         catchError(() => of({})),

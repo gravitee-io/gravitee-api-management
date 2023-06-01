@@ -69,6 +69,6 @@ export class ConnectorPluginsV2Service {
   }
 
   getEntrypointPluginMoreInformation(entrypointId: string): Observable<MoreInformation> {
-    return this.http.get<MoreInformation>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}/moreInformation`);
+    return this.http.get<MoreInformation>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}/more-information`);
   }
 }
