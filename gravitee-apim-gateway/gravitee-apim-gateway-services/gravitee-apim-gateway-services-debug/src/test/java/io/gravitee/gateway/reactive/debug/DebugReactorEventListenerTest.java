@@ -21,8 +21,7 @@ import static io.gravitee.gateway.debug.utils.Stubs.getAnEvent;
 import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -34,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.definition.model.HttpRequest;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
@@ -396,5 +396,69 @@ class DebugReactorEventListenerTest {
         assertThat(result.getAll("accept-encoding")).containsAll(List.of("deflate", "gzip", "compress"));
         // Implementation returned by convertHeaders(headers) will return the first value when using get(key)
         assertThat(result.get("accept-encoding")).contains("deflate");
+    }
+
+    @Test
+    public void shouldDebugApiAndFilterClosedPlan() throws TechnicalException, JsonProcessingException {
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        Plan keylessPlan = new Plan();
+        keylessPlan.setId("keyless-plan");
+        keylessPlan.setSecurity("KEY_LESS");
+        keylessPlan.setStatus("CLOSED");
+
+        Plan stagingKeylessPlan = new Plan();
+        keylessPlan.setId("keyless-plan");
+        keylessPlan.setSecurity("KEY_LESS");
+        keylessPlan.setStatus("STAGING");
+
+        Plan apiKeyPlan = new Plan();
+        apiKeyPlan.setId("api-key-plan");
+        apiKeyPlan.setSecurity("API_KEY");
+        apiKeyPlan.setStatus("PUBLISHED");
+        debugApiModel.setPlans(List.of(keylessPlan, apiKeyPlan));
+
+        final HttpRequest httpRequest = new HttpRequest();
+        httpRequest.setMethod("GET");
+        httpRequest.setPath("/path1");
+        httpRequest.setBody("request body");
+        debugApiModel.setRequest(httpRequest);
+        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
+
+        Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
+        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+
+        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
+
+        final HttpClient mockHttpClient = mock(HttpClient.class);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
+
+        // Mock successful Buffer body in HttpClientResponse
+        final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
+        when(httpClientResponse.statusCode()).thenReturn(200);
+        final Buffer bodyBuffer = mock(Buffer.class);
+        when(bodyBuffer.toString()).thenReturn("response body");
+        final Future<Buffer> bodyFuture = Future.succeededFuture(bodyBuffer);
+        when(httpClientResponse.body()).thenReturn(bodyFuture);
+
+        // Mock successful HttpClientResponse future
+        final Future<HttpClientResponse> responseFuture = Future.succeededFuture(httpClientResponse);
+        final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
+        when(httpClientRequest.setChunked(true)).thenReturn(httpClientRequest);
+        when(httpClientRequest.send(any(String.class))).thenReturn(responseFuture);
+
+        // Mock successful HttpClientRequest future
+        final Future<HttpClientRequest> requestFuture = Future.succeededFuture(httpClientRequest);
+        when(mockHttpClient.request(any())).thenReturn(requestFuture);
+
+        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
+
+        verify(reactorHandlerRegistry, times(1))
+            .contains(
+                argThat(debugApi ->
+                    ((DebugApi) debugApi).getPlans()
+                        .stream()
+                        .noneMatch(plan -> plan.getStatus().equals("CLOSED") || plan.getStatus().equals("STAGING"))
+                )
+            );
     }
 }
