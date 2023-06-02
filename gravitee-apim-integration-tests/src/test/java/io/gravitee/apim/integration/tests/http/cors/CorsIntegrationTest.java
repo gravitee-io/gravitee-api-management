@@ -17,6 +17,7 @@ package io.gravitee.apim.integration.tests.http.cors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static io.gravitee.apim.gateway.tests.sdk.utils.HttpClientUtils.extractHeaders;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;

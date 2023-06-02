@@ -52,8 +52,4 @@ public class AbstractCorsIntegrationTest extends AbstractGatewayTest {
             PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
         );
     }
-
-    protected static Map<String, String> extractHeaders(HttpClientResponse response) {
-        return response.headers().entries().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
 }
