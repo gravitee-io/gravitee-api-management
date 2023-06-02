@@ -155,12 +155,7 @@ public class DebugReactor extends DefaultReactor {
                 debugApi
                     .getPlans()
                     .stream()
-                    .filter(plan ->
-                        !(
-                            Plan.Status.CLOSED.name().equalsIgnoreCase(plan.getStatus()) ||
-                            Plan.Status.STAGING.name().equalsIgnoreCase(plan.getStatus())
-                        )
-                    )
+                    .filter(plan -> !Plan.Status.CLOSED.name().equalsIgnoreCase(plan.getStatus()))
                     .collect(Collectors.toList())
             );
 
