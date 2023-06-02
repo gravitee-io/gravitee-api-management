@@ -144,7 +144,7 @@ public class ApiResource extends AbstractResource {
     }
 
     private GenericApiEntity updateApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {
-        UpdateApiEntity apiToUpdate = ApiMapper.INSTANCE.map(updateApiV4);
+        UpdateApiEntity apiToUpdate = ApiMapper.INSTANCE.map(updateApiV4, currentEntity.getId());
         // Force listeners if user is not the primary_owner or an administrator
         if (
             !hasPermission(

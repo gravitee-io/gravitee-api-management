@@ -16,7 +16,6 @@
 package fixtures;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
@@ -33,6 +32,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ExecutionMode;
 import io.gravitee.rest.api.management.v2.rest.model.FlowMode;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.Proxy;
+import io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Visibility;
@@ -84,7 +84,7 @@ public class ApiFixtures {
             .properties(PropertyFixtures.aModelPropertiesV2())
             .services(new Services())
             .resources(List.of(ResourceFixtures.aResourceEntityV2()))
-            .responseTemplates(Map.of("template-id", Map.of("application/json", new ResponseTemplate())))
+            .responseTemplates(Map.of("template-id", Map.of("application/json", new io.gravitee.definition.model.ResponseTemplate())))
             .updatedAt(new Date())
             .flows(List.of(FlowFixtures.aModelFlowV2()));
 
@@ -114,7 +114,7 @@ public class ApiFixtures {
         .resources(List.of(ResourceFixtures.aResourceEntityV4()))
         .flowExecution(new FlowExecution())
         .flows(List.of(FlowFixtures.aModelFlowV4()))
-        .responseTemplates(Map.of("template-id", Map.of("application/json", new ResponseTemplate())))
+        .responseTemplates(Map.of("template-id", Map.of("application/json", new io.gravitee.definition.model.ResponseTemplate())))
         .services(new io.gravitee.definition.model.v4.service.ApiServices())
         .groups(Set.of("my-group1", "my-group2"))
         .visibility(io.gravitee.rest.api.model.Visibility.PUBLIC)
@@ -193,9 +193,20 @@ public class ApiFixtures {
         .name("api-name")
         .description("api-description")
         .visibility(Visibility.PUBLIC)
+        .tags(List.of("tag1", "tag2"))
+        .groups(List.of("group1", "group2"))
+        .labels(List.of("label1", "label2"))
+        .categories(List.of("category1", "category2"))
         .analytics(new Analytics())
         .listeners(List.of(new Listener(ListenerFixtures.aHttpListener())))
-        .endpointGroups(List.of(EndpointFixtures.anEndpointGroupV4()));
+        .endpointGroups(List.of(EndpointFixtures.anEndpointGroupV4()))
+        .resources(List.of(ResourceFixtures.aResource()))
+        .properties(List.of(PropertyFixtures.aProperty()))
+        .flows(List.of(FlowFixtures.aFlowV4()))
+        .services(new ApiServices())
+        .lifecycleState(ApiLifecycleState.ARCHIVED)
+        .disableMembershipNotifications(true)
+        .responseTemplates(Map.of("template-id", Map.of("application/json", new ResponseTemplate())));
 
     public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV1() {
         return BASE_MODEL_API_V1.build();
