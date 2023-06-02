@@ -20,14 +20,13 @@ import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/angularjs';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { Api } from '../../../../../entities/api';
-import { ApiService } from '../../../../../services-ngx/api.service';
-import { PlanService } from '../../../../../services-ngx/plan.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { NewPlan, Plan } from '../../../../../entities/plan';
-import { ApiPlanFormComponent } from '../../../component/plan/api-plan-form.component';
+import { ApiPlanFormComponent, PlanFormValue } from '../../../component/plan/api-plan-form.component';
 import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../../services-ngx/constants.service';
+import { Api, Plan } from '../../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
 @Component({
   selector: 'api-portal-plan-edit',
@@ -51,8 +50,8 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly apiService: ApiService,
-    private readonly planService: PlanService,
+    private readonly apiService: ApiV2Service,
+    private readonly planService: ApiPlanV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     private readonly changeDetectorRef: ChangeDetectorRef,
@@ -67,12 +66,12 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         tap((api) => {
           this.api = api;
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || this.api.definition_context?.origin === 'kubernetes';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || this.api.definitionContext?.origin === 'KUBERNETES';
         }),
         switchMap(() =>
           this.mode === 'edit' ? this.planService.get(this.ajsStateParams.apiId, this.ajsStateParams.planId) : of(undefined),
         ),
-        tap((plan) => {
+        tap((plan: Plan) => {
           this.planForm = new FormGroup({
             plan: new FormControl({
               value: plan,
@@ -87,7 +86,7 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         if (this.mode === 'edit') {
-          this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === this.planForm.value.plan.security);
+          this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === this.planForm.value.plan.security.type);
         } else {
           this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === this.ajsStateParams.securityType);
         }
@@ -105,7 +104,7 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const planToSave: NewPlan | Plan = {
+    const planFormValue: PlanFormValue = {
       ...this.planForm.get('plan').value,
     };
 
@@ -113,8 +112,12 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
       this.mode === 'edit'
         ? this.planService
             .get(this.ajsStateParams.apiId, this.ajsStateParams.planId)
-            .pipe(switchMap((planToUpdate) => this.planService.update(this.api, { ...planToUpdate, ...planToSave })))
-        : this.planService.create(this.api, { ...planToSave });
+            .pipe(switchMap((planToUpdate) => this.planService.update(this.api.id, planToUpdate.id, { ...planToUpdate, ...planFormValue })))
+        : this.planService.create(this.api.id, {
+            ...planFormValue,
+            definitionVersion: this.api.definitionVersion === 'V4' ? 'V4' : 'V2',
+            security: { type: this.planSecurity.id, configuration: planFormValue.security.configuration },
+          });
 
     savePlan$
       .pipe(
