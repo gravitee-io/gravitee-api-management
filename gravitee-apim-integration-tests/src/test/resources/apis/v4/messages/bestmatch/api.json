@@ -1,0 +1,295 @@
+{
+  "id": "my-api-v4",
+  "name": "my-api-v4",
+  "gravitee": "4.0.0",
+  "type": "message",
+  "flowExecution": {
+    "mode": "best-match"
+  },
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount":  12,
+            "messagesLimitDurationMs": 500,
+            "headersInPayload":  true,
+            "metadataInPayload": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default-endpoint",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1,
+            "messageContent": "Mock data",
+            "messageCount": 1
+          }
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan-id",
+      "name": "Keyless",
+      "description": "keyless",
+      "security": {
+        "type": "key-less"
+      },
+      "flows": [
+        {
+          "name": "Everything",
+          "selectors": [
+            {
+              "type": "channel",
+              "operation": ["SUBSCRIBE"],
+              "channel": "/",
+              "channel-operator": "STARTS_WITH"
+            }
+          ],
+          "condition": "",
+          "response": [
+            {
+              "name": "Transform headers",
+              "description": "",
+              "enabled": true,
+              "policy": "transform-headers",
+              "configuration": {
+                "scope": "RESPONSE",
+                "addHeaders": [
+                  {
+                    "name": "X-Plan-Flow-Selected",
+                    "value": "/"
+                  }
+                ]
+              }
+            }
+          ],
+          "request": [],
+          "subscribe": [],
+          "publish": [],
+          "enabled": true
+        },
+        {
+          "name": "All books",
+          "selectors": [
+            {
+              "type": "channel",
+              "operation": ["SUBSCRIBE"],
+              "channel": "/books",
+              "channel-operator": "STARTS_WITH"
+            }
+          ],
+          "condition": "",
+          "response": [
+            {
+              "name": "Transform headers",
+              "description": "",
+              "enabled": true,
+              "policy": "transform-headers",
+              "configuration": {
+                "scope": "RESPONSE",
+                "addHeaders": [
+                  {
+                    "name": "X-Plan-Flow-Selected",
+                    "value": "/books"
+                  }
+                ]
+              }
+            }
+          ],
+          "subscribe": [],
+          "publish": [],
+          "enabled": true
+        },
+        {
+          "name": "A book",
+          "selectors": [
+            {
+              "type": "channel",
+              "operation": ["SUBSCRIBE"],
+              "channel": "/books/:bookId",
+              "channel-operator": "STARTS_WITH"
+            }
+          ],
+          "condition": "",
+          "response": [
+            {
+              "name": "Transform headers",
+              "description": "",
+              "enabled": true,
+              "policy": "transform-headers",
+              "configuration": {
+                "scope": "RESPONSE",
+                "addHeaders": [
+                  {
+                    "name": "X-Plan-Flow-Selected",
+                    "value": "/books/:bookId"
+                  }
+                ]
+              }
+            }
+          ],
+          "request": [],
+          "subscribe": [],
+          "publish": [],
+          "enabled": true
+        }
+      ],
+      "comment_required": false
+    }
+  ],
+  "flows": [
+    {
+      "name": "All books",
+      "selectors": [
+        {
+          "type": "channel",
+          "operation": ["SUBSCRIBE"],
+          "channel": "/books",
+          "channel-operator": "STARTS_WITH"
+        }
+      ],
+      "condition": "",
+      "response": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/books"
+              }
+            ]
+          }
+        }
+      ],
+      "request": [],
+      "subscribe": [],
+      "publish": [],
+      "enabled": true
+    },
+    {
+      "name": "A chapter of a book",
+      "selectors": [
+        {
+          "type": "channel",
+          "operation": ["SUBSCRIBE"],
+          "channel": "/books/:bookId/chapters/:chapterId",
+          "channel-operator": "STARTS_WITH"
+        }
+      ],
+      "condition": "",
+      "response": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/books/:bookId/chapters/:chapterId"
+              }
+            ]
+          }
+        }
+      ],
+      "request": [],
+      "subscribe": [],
+      "publish": [],
+      "enabled": true
+    },
+    {
+      "name": "A page of a chapter of a book",
+      "selectors": [
+        {
+          "type": "channel",
+          "operation": ["SUBSCRIBE"],
+          "channel": "/books/:bookId/chapters/:chapterId/pages/:pageId",
+          "channel-operator": "STARTS_WITH"
+        }
+      ],
+      "condition": "",
+      "response": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/books/:bookId/chapters/:chapterId/pages/:pageId"
+              }
+            ]
+          }
+        }
+      ],
+      "request": [],
+      "subscribe": [],
+      "publish": [],
+      "enabled": true
+    },
+    {
+      "name": "All chapters of book 9999",
+      "selectors": [
+        {
+          "type": "channel",
+          "operation": ["SUBSCRIBE"],
+          "channel": "/books/9999/chapters",
+          "channel-operator": "STARTS_WITH"
+        }
+      ],
+      "condition": "",
+      "response": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/books/9999/chapters"
+              }
+            ]
+          }
+        }
+      ],
+      "request": [],
+      "subscribe": [],
+      "publish": [],
+      "enabled": true
+    }
+  ],
+  "resources": []
+}
