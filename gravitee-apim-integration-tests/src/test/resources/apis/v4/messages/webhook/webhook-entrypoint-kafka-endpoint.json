@@ -1,0 +1,51 @@
+{
+  "id": "webhook-entrypoint-kafka-endpoint",
+  "name": "my-api-auto",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using Webhook entrypoint",
+  "listeners": [
+    {
+      "type": "subscription",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "webhook"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "kafka",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "kafka",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "bootstrapServers": "bootstrap-server"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topics": ["test-topic"],
+              "autoOffsetReset": "earliest"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}
