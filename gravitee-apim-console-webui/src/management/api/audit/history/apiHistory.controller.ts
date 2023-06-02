@@ -186,7 +186,11 @@ class ApiHistoryController {
     this.$scope.$on('apiChangeSuccess', (event, args) => {
       if (this.$state.current.name.endsWith('history')) {
         // reload API
-        this.api = JSON.parse(angular.toJson(_.cloneDeep(args.api)));
+        if (args.api) {
+          this.api = JSON.parse(angular.toJson(_.cloneDeep(args.api)));
+        } else {
+          this.ApiService.get(args.apiId).then((response) => (this.api = response.data));
+        }
         // reload API events
         this.ApiService.getApiEvents(this.api.id, this.eventTypes).then((response) => {
           this.events = response.data;
