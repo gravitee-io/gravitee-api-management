@@ -1,0 +1,228 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "gravitee": "2.0.0",
+  "flow_mode": "BEST_MATCH",
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/endpoint",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ]
+  },
+  "plans": [
+    {
+      "name": "Keyless",
+      "description": "keyless",
+      "security": "KEY_LESS",
+      "flows": [
+        {
+          "name": "Everything",
+          "path-operator": {
+            "path": "/",
+            "operator": "STARTS_WITH"
+          },
+          "condition": "",
+          "methods": [],
+          "pre": [
+            {
+              "name": "Transform headers",
+              "description": "",
+              "enabled": true,
+              "policy": "transform-headers",
+              "configuration": {
+                "scope": "REQUEST",
+                "addHeaders": [
+                  {
+                    "name": "X-Plan-Flow-Selected",
+                    "value": "/"
+                  }
+                ]
+              }
+            }
+          ],
+          "post": [],
+          "enabled": true
+        },
+        {
+          "name": "All books",
+          "path-operator": {
+            "path": "/books",
+            "operator": "STARTS_WITH"
+          },
+          "condition": "",
+          "methods": [],
+          "pre": [
+            {
+              "name": "Transform headers",
+              "description": "",
+              "enabled": true,
+              "policy": "transform-headers",
+              "configuration": {
+                "scope": "REQUEST",
+                "addHeaders": [
+                  {
+                    "name": "X-Plan-Flow-Selected",
+                    "value": "/books"
+                  }
+                ]
+              }
+            }
+          ],
+          "post": [],
+          "enabled": true
+        },
+        {
+          "name": "A book",
+          "path-operator": {
+            "path": "/books/:bookId",
+            "operator": "STARTS_WITH"
+          },
+          "condition": "",
+          "methods": [],
+          "pre": [
+            {
+              "name": "Transform headers",
+              "description": "",
+              "enabled": true,
+              "policy": "transform-headers",
+              "configuration": {
+                "scope": "REQUEST",
+                "addHeaders": [
+                  {
+                    "name": "X-Plan-Flow-Selected",
+                    "value": "/books/:bookId"
+                  }
+                ]
+              }
+            }
+          ],
+          "post": [],
+          "enabled": true
+        }
+      ],
+      "comment_required": false
+    }
+  ],
+  "flows": [
+    {
+      "name": "All books",
+      "path-operator": {
+        "path": "/books",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "",
+      "methods": [],
+      "pre": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "REQUEST",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/books"
+              }
+            ]
+          }
+        }
+      ],
+      "post": [],
+      "enabled": true
+    },
+    {
+      "name": "A chapter of a book",
+      "path-operator": {
+        "path": "/books/:bookId/chapters/:chapterId",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "",
+      "methods": [],
+      "pre": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "REQUEST",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/books/:bookId/chapters/:chapterId"
+              }
+            ]
+          }
+        }
+      ],
+      "post": [],
+      "enabled": true
+    },
+    {
+      "name": "A page of a chapter of a book",
+      "path-operator": {
+        "path": "/books/:bookId/chapters/:chapterId/pages/:pageId",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "",
+      "methods": [],
+      "pre": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "REQUEST",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/books/:bookId/chapters/:chapterId/pages/:pageId"
+              }
+            ]
+          }
+        }
+      ],
+      "post": [],
+      "enabled": true
+    },
+    {
+      "name": "All chapters of book 9999",
+      "path-operator": {
+        "path": "/books/9999/chapters",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "",
+      "methods": [],
+      "pre": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "REQUEST",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/books/9999/chapters"
+              }
+            ]
+          }
+        }
+      ],
+      "post": [],
+      "enabled": true
+    }
+  ],
+  "resources": []
+}
