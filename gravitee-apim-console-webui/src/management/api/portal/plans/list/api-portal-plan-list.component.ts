@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, of, Subject } from 'rxjs';
+import { EMPTY, Observable, of, Subject } from 'rxjs';
 import { StateService } from '@uirouter/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { orderBy } from 'lodash';
@@ -30,13 +30,13 @@ import { IRootScopeService } from 'angular';
 
 import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { PlanService } from '../../../../../services-ngx/plan.service';
-import { Api, ApiPlan } from '../../../../../entities/api';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { SubscriptionService } from '../../../../../services-ngx/subscription.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { Plan, PlanSecurityType, PlanStatus, PLAN_STATUS } from '../../../../../entities/plan';
 import { ConstantsService, PlanSecurityVM } from '../../../../../services-ngx/constants.service';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { Api, PLAN_STATUS, Plan, PlanStatus } from '../../../../../entities/management-api-v2';
+import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
 @Component({
   selector: 'api-portal-plan-list',
@@ -59,9 +59,10 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(AjsRootScope) private readonly ajsRootScope: IRootScopeService,
-    private readonly plansService: PlanService,
+    private readonly plansV1Service: PlanService,
+    private readonly plansService: ApiPlanV2Service,
     private readonly constantsService: ConstantsService,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly subscriptionService: SubscriptionService,
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
@@ -78,8 +79,8 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         tap((api) => {
           this.api = api;
-          this.isV2Api = api && api.gravitee === '2.0.0';
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || api.definition_context?.origin === 'kubernetes';
+          this.isV2Api = api && api.definitionVersion === 'V2';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
           if (!this.isReadOnly && !this.displayedColumns.includes('drag-icon')) {
             this.displayedColumns.unshift('drag-icon');
@@ -115,7 +116,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     movedPlan.order = event.currentIndex + 1;
 
     this.plansService
-      .update(this.api, movedPlan)
+      .update(this.api.id, movedPlan.id, movedPlan)
       .pipe(
         takeUntil(this.unsubscribe$),
         catchError(({ error }) => {
@@ -139,7 +140,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     this.ajsState.go('management.apis.detail.design.flowsNg', { apiId: this.api.id, flows: `${planId}_0` });
   }
 
-  public publishPlan(plan: ApiPlan): void {
+  public publishPlan(plan: Plan): void {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
@@ -155,27 +156,23 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
-        switchMap(() => this.plansService.get(plan.api, plan.id)),
-        switchMap((plan) =>
-          this.plansService.publish(this.api, {
-            ...plan,
-            status: 'PUBLISHED',
-          }),
-        ),
+        switchMap(() => this.plansService.publish(this.api.id, plan.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
         map((plan) => {
+          if (plan.definitionVersion === 'V2') {
+            this.ajsRootScope.$broadcast('apiChangeSuccess', { apiId: plan.apiId });
+          }
           this.snackBarService.success(`The plan ${plan.name} has been published with success.`);
-          this.ajsRootScope.$broadcast('planChangeSuccess', { state: 'PUBLISHED' });
           this.onInit(this.status, true);
         }),
       )
       .subscribe();
   }
 
-  public deprecatePlan(plan: ApiPlan): void {
+  public deprecatePlan(plan: Plan): void {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
@@ -191,20 +188,16 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
-        switchMap(() => this.plansService.get(plan.api, plan.id)),
-        switchMap((plan) =>
-          this.plansService.deprecate(this.api, {
-            ...plan,
-            status: 'DEPRECATED',
-          }),
-        ),
+        switchMap(() => this.plansService.deprecate(this.api.id, plan.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
         map((plan) => {
+          if (plan.definitionVersion === 'V2') {
+            this.ajsRootScope.$broadcast('apiChangeSuccess', { apiId: plan.apiId });
+          }
           this.snackBarService.success(`The plan ${plan.name} has been deprecated with success.`);
-          this.ajsRootScope.$broadcast('planChangeSuccess', { state: 'DEPRECATED' });
           this.onInit(this.status, true);
         }),
       )
@@ -213,12 +206,12 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
 
   public closePlan(plan: Plan): void {
     this.subscriptionService
-      .getApiSubscriptionsByPlan(plan.api, plan.id)
+      .getApiSubscriptionsByPlan(plan.apiId, plan.id)
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap((subscriptions) => {
           let content = '';
-          if (plan.security === PlanSecurityType.KEY_LESS) {
+          if (plan.security.type === 'KEY_LESS') {
             content = 'A keyless plan may have consumers. <br/>' + 'By closing this plan you will remove free access to this API.';
           } else {
             if (subscriptions.page.size === 0) {
@@ -228,7 +221,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
             }
           }
           let confirmButton = 'Yes, close this plan.';
-          if (subscriptions.page.size === 0 && plan.security === PlanSecurityType.API_KEY) {
+          if (subscriptions.page.size === 0 && plan.security.type === 'API_KEY') {
             confirmButton = 'Yes, delete this plan';
           }
           return this.matDialog
@@ -248,19 +241,17 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
             .afterClosed();
         }),
         filter((confirm) => confirm === true),
-        switchMap(() =>
-          this.plansService.close(this.api, {
-            ...plan,
-            status: 'CLOSED',
-          }),
-        ),
+        switchMap(() => this.plansService.close(this.api.id, plan.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
         map((plan) => {
+          if (plan.definitionVersion === 'V2') {
+            this.ajsRootScope.$broadcast('apiChangeSuccess', { apiId: plan.apiId });
+          }
+
           this.snackBarService.success(`The plan ${plan.name} has been closed with success.`);
-          this.ajsRootScope.$broadcast('planChangeSuccess', { state: 'CLOSED' });
           this.onInit(this.status, true);
         }),
       )
@@ -269,11 +260,11 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
 
   private onInit(selectedStatus: PlanStatus, fullReload = false): void {
     // For full reload, we need to reset the number of plans for each status
-    const getApiPlan$ = fullReload
-      ? this.plansService.getApiPlans(this.ajsStateParams.apiId, [...PLAN_STATUS]).pipe(
+    const getApiPlans$: Observable<Plan[]> = fullReload
+      ? this.plansService.list(this.ajsStateParams.apiId, undefined, [...PLAN_STATUS], 1, 9999).pipe(
           map((plans) => {
             // Update the number of plans for each status
-            const plansNumber = plans.reduce((acc, plan) => {
+            const plansNumber = plans.data.reduce((acc, plan) => {
               const status = plan.status.toUpperCase();
               acc[status] = acc[status] ? acc[status] + 1 : 1;
               return acc;
@@ -284,12 +275,12 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
             });
 
             // Filter plans by status
-            return plans.filter((p) => p.status === selectedStatus);
+            return plans.data.filter((p) => p.status === selectedStatus);
           }),
         )
-      : this.plansService.getApiPlans(this.ajsStateParams.apiId, selectedStatus);
+      : this.plansService.list(this.ajsStateParams.apiId, undefined, [selectedStatus], 1, 9999).pipe(map((response) => response.data));
 
-    getApiPlan$
+    getApiPlans$
       .pipe(
         takeUntil(this.unsubscribe$),
         tap((plans) => {

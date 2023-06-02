@@ -17,4 +17,5 @@
 /**
  * Plan status.
  */
-export type PlanStatus = 'STAGING' | 'PUBLISHED' | 'DEPRECATED' | 'CLOSED';
+export const PLAN_STATUS = ['STAGING', 'PUBLISHED', 'DEPRECATED', 'CLOSED'] as const;
+export type PlanStatus = (typeof PLAN_STATUS)[number];

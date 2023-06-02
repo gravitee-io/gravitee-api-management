@@ -31,19 +31,16 @@ import { MatMenuHarness } from '@angular/material/menu/testing';
 import { ApiPortalPlanListComponent } from './api-portal-plan-list.component';
 
 import { ApiPortalPlansModule } from '../api-portal-plans.module';
-import { Api, ApiPlan } from '../../../../../entities/api';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { fakePlan } from '../../../../../entities/plan/plan.fixture';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
+import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import { Subscription } from '../../../../../entities/subscription/subscription';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { PlanSecurityType, PLAN_STATUS } from '../../../../../entities/plan';
+import { Api, ApiPlansResponse, fakeApiV2, fakePlanV2, fakePlanV4, Plan, PLAN_STATUS } from '../../../../../entities/management-api-v2';
 
 describe('ApiPortalPlanListComponent', () => {
   const API_ID = 'api#1';
-  const anAPi = fakeApi({ id: API_ID });
+  const anAPi = fakeApiV2({ id: API_ID });
   const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['api-plan-u', 'api-plan-r', 'api-plan-d'];
@@ -54,10 +51,13 @@ describe('ApiPortalPlanListComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
+  const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ApiPortalPlansModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
+        { provide: AjsRootScope, useValue: fakeRootScope },
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
         {
@@ -121,7 +121,7 @@ describe('ApiPortalPlanListComponent', () => {
     }));
 
     it('should display a table with one row', fakeAsync(async () => {
-      const plan = fakePlan({ tags: ['🙅', '🔑'] });
+      const plan = fakePlanV2({ tags: ['🙅', '🔑'] });
       await initComponent([plan]);
 
       const { headerCells, rowCells } = await computePlansTableCells();
@@ -135,24 +135,24 @@ describe('ApiPortalPlanListComponent', () => {
           actions: '',
         },
       ]);
-      expect(rowCells).toEqual([['', 'Free Spaceshuttle', 'KEY_LESS', 'PUBLISHED', '🙅, 🔑', '']]);
+      expect(rowCells).toEqual([['', 'Default plan', 'API_KEY', 'PUBLISHED', '🙅, 🔑', '']]);
     }));
 
     it('should search closed plan on click', fakeAsync(async () => {
-      const goldPlan = fakePlan({ name: 'gold plan ⭐️' });
+      const goldPlan = fakePlanV2({ name: 'gold plan ⭐️' });
       await initComponent([goldPlan]);
 
       await loader.getHarness(MatButtonToggleHarness.with({ text: /CLOSED/ })).then((btn) => btn.toggle());
 
-      const closedPlan = fakePlan({ name: 'closed plan 🚪', status: 'CLOSED' });
+      const closedPlan = fakePlanV2({ name: 'closed plan 🚪', status: 'CLOSED' });
       expectApiPlansListRequest([closedPlan], 'CLOSED');
 
       const { rowCells } = await computePlansTableCells();
-      expect(rowCells).toEqual([['', 'closed plan 🚪', 'KEY_LESS', 'CLOSED', '', '']]);
+      expect(rowCells).toEqual([['', 'closed plan 🚪', 'API_KEY', 'CLOSED', 'tag1', '']]);
     }));
 
     it('should search and not find any plan', fakeAsync(async () => {
-      await initComponent([fakePlan()]);
+      await initComponent([fakePlanV2()]);
 
       await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then((btn) => btn.toggle());
 
@@ -165,8 +165,8 @@ describe('ApiPortalPlanListComponent', () => {
 
   describe('drop tests', () => {
     it('should drop a plan and update his order', async () => {
-      const plan1 = fakePlan({ name: 'Plan 1️⃣', order: 1 });
-      const plan2 = fakePlan({ name: 'Plan 2️⃣', order: 2 });
+      const plan1 = fakePlanV2({ name: 'Plan 1️⃣', order: 1 });
+      const plan2 = fakePlanV2({ name: 'Plan 2️⃣', order: 2 });
       await initComponent([plan1, plan2]);
 
       component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
@@ -179,8 +179,8 @@ describe('ApiPortalPlanListComponent', () => {
     });
 
     it('should fail to update and reload plans', async () => {
-      const plan1 = fakePlan({ name: 'Plan 1️⃣', order: 1 });
-      const plan2 = fakePlan({ name: 'Plan 2️⃣', order: 2 });
+      const plan1 = fakePlanV2({ name: 'Plan 1️⃣', order: 1 });
+      const plan2 = fakePlanV2({ name: 'Plan 2️⃣', order: 2 });
       await initComponent([plan1, plan2]);
       const snackBarSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
 
@@ -194,7 +194,7 @@ describe('ApiPortalPlanListComponent', () => {
 
   describe('actions tests', () => {
     it('should navigate to edit when click on the action button', async () => {
-      const plan = fakePlan();
+      const plan = fakePlanV2();
       await initComponent([plan]);
       fakeUiRouter.go.mockReset();
 
@@ -218,7 +218,7 @@ describe('ApiPortalPlanListComponent', () => {
     });
 
     it('should navigate to edit when click on the name', async () => {
-      const plan = fakePlan();
+      const plan = fakePlanV2();
       await initComponent([plan]);
       fakeUiRouter.go.mockReset();
 
@@ -231,7 +231,7 @@ describe('ApiPortalPlanListComponent', () => {
     });
 
     it('should navigate to design when click on the design button', async () => {
-      const plan = fakePlan();
+      const plan = fakePlanV2();
       await initComponent([plan]);
       fakeUiRouter.go.mockReset();
 
@@ -240,82 +240,159 @@ describe('ApiPortalPlanListComponent', () => {
       expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.design.flowsNg', { apiId: API_ID, flows: `${plan.id}_0` });
     });
 
-    it('should publish the staging plan', async () => {
-      const plan = fakePlan({ name: 'publish me ☁️️', status: 'STAGING' });
-      await initComponent([plan]);
-
-      await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then((btn) => btn.toggle());
-      expectApiPlansListRequest([plan], 'STAGING');
-
-      let table = await computePlansTableCells();
-      expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'KEY_LESS', 'STAGING', '', '']]);
-
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then((btn) => btn.click());
-
-      const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
-      const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
-      await confirmDialogSwitchButton.click();
-
-      const updatedPlan: ApiPlan = { ...plan, status: 'PUBLISHED' };
-      expectPlanGetRequest(updatedPlan);
-      expectApiPlanPublishRequest(updatedPlan);
-      expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
-
-      table = await computePlansTableCells();
-      expect(table.rowCells).toEqual([['There is no plan (yet).']]);
-    });
-
-    it('should deprecate the published plan', async () => {
-      const plan = fakePlan({ name: 'deprecate me 😥️', status: 'PUBLISHED' });
-      await initComponent([plan]);
-
-      let table = await computePlansTableCells();
-      expect(table.rowCells).toEqual([['', 'deprecate me 😥️', 'KEY_LESS', 'PUBLISHED', '', '']]);
-
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then((btn) => btn.click());
-
-      const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#deprecatePlanDialog' }));
-      const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Deprecate' }));
-      await confirmDialogSwitchButton.click();
-
-      const updatedPlan: ApiPlan = { ...plan, status: 'DEPRECATED' };
-      expectPlanGetRequest(updatedPlan);
-      expectApiPlanDeprecateRequest(updatedPlan);
-      expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
-
-      table = await computePlansTableCells();
-      expect(table.rowCells).toEqual([['There is no plan (yet).']]);
-    });
-
-    describe('close plan', () => {
-      it('should close the published plan', async () => {
-        const plan = fakePlan({ name: 'close me 🚪️', status: 'PUBLISHED' });
+    describe('should publish the staging plan', () => {
+      it('With a plan V2', async () => {
+        const plan = fakePlanV2({ apiId: API_ID, name: 'publish me ☁️️', status: 'STAGING' });
         await initComponent([plan]);
 
+        await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then((btn) => btn.toggle());
+        expectApiPlansListRequest([plan], 'STAGING');
+
         let table = await computePlansTableCells();
-        expect(table.rowCells).toEqual([['', 'close me 🚪️', 'KEY_LESS', 'PUBLISHED', '', '']]);
+        expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'API_KEY', 'STAGING', 'tag1', '']]);
 
-        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then((btn) => btn.click());
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then((btn) => btn.click());
 
-        expectGetApiPlanSubscriptionsRequest(plan.id);
+        const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
+        const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
+        await confirmDialogSwitchButton.click();
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
-        await confirmDialog.confirm();
-
-        const updatedPlan: ApiPlan = { ...plan, status: 'CLOSED' };
-        expectApiPlanCloseRequest(updatedPlan);
+        const updatedPlan: Plan = { ...plan, status: 'PUBLISHED' };
+        expectApiPlanPublishRequest(updatedPlan);
+        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
 
         table = await computePlansTableCells();
         expect(table.rowCells).toEqual([['There is no plan (yet).']]);
       });
 
+      it('With a plan V4', async () => {
+        const plan = fakePlanV4({ apiId: API_ID, name: 'publish me ☁️️', status: 'STAGING' });
+        await initComponent([plan]);
+
+        await loader.getHarness(MatButtonToggleHarness.with({ text: /STAGING/ })).then((btn) => btn.toggle());
+        expectApiPlansListRequest([plan], 'STAGING');
+
+        let table = await computePlansTableCells();
+        expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'API_KEY', 'STAGING', 'tag1', '']]);
+
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Publish the plan"]' })).then((btn) => btn.click());
+
+        const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#publishPlanDialog' }));
+        const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
+        await confirmDialogSwitchButton.click();
+
+        const updatedPlan: Plan = { ...plan, status: 'PUBLISHED' };
+        expectApiPlanPublishRequest(updatedPlan);
+        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
+        expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
+
+        table = await computePlansTableCells();
+        expect(table.rowCells).toEqual([['There is no plan (yet).']]);
+      });
+    });
+
+    describe('should deprecate the published plan V2', () => {
+      it('With a plan V2', async () => {
+        const plan = fakePlanV2({ apiId: API_ID, name: 'deprecate me 😥️', status: 'PUBLISHED' });
+        await initComponent([plan]);
+
+        let table = await computePlansTableCells();
+        expect(table.rowCells).toEqual([['', 'deprecate me 😥️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
+
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then((btn) => btn.click());
+
+        const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#deprecatePlanDialog' }));
+        const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Deprecate' }));
+        await confirmDialogSwitchButton.click();
+
+        const updatedPlan: Plan = { ...plan, status: 'DEPRECATED' };
+        expectApiPlanDeprecateRequest(updatedPlan);
+        expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
+        expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
+
+        table = await computePlansTableCells();
+        expect(table.rowCells).toEqual([['There is no plan (yet).']]);
+      });
+
+      it('With a plan V4', async () => {
+        const plan = fakePlanV4({ apiId: API_ID, name: 'deprecate me 😥️', status: 'PUBLISHED' });
+        await initComponent([plan]);
+
+        let table = await computePlansTableCells();
+        expect(table.rowCells).toEqual([['', 'deprecate me 😥️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
+
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Deprecate the plan"]' })).then((btn) => btn.click());
+
+        const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#deprecatePlanDialog' }));
+        const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Deprecate' }));
+        await confirmDialogSwitchButton.click();
+
+        const updatedPlan: Plan = { ...plan, status: 'DEPRECATED' };
+        expectApiPlanDeprecateRequest(updatedPlan);
+        expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
+        expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
+
+        table = await computePlansTableCells();
+        expect(table.rowCells).toEqual([['There is no plan (yet).']]);
+      });
+    });
+
+    describe('close plan', () => {
+      describe('should close the published plan', () => {
+        it('With a plan V2', async () => {
+          const plan = fakePlanV2({ apiId: API_ID, name: 'close me 🚪️', status: 'PUBLISHED' });
+          await initComponent([plan]);
+
+          let table = await computePlansTableCells();
+          expect(table.rowCells).toEqual([['', 'close me 🚪️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
+
+          await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then((btn) => btn.click());
+
+          expectGetApiPlanSubscriptionsRequest(plan.id);
+
+          const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+          await confirmDialog.confirm();
+
+          const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
+          expectApiPlanCloseRequest(updatedPlan);
+          expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
+          expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
+
+          table = await computePlansTableCells();
+          expect(table.rowCells).toEqual([['There is no plan (yet).']]);
+        });
+
+        it('With a plan V4', async () => {
+          const plan = fakePlanV4({ apiId: API_ID, name: 'close me 🚪️', status: 'PUBLISHED' });
+          await initComponent([plan]);
+
+          let table = await computePlansTableCells();
+          expect(table.rowCells).toEqual([['', 'close me 🚪️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
+
+          await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then((btn) => btn.click());
+
+          expectGetApiPlanSubscriptionsRequest(plan.id);
+
+          const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+          await confirmDialog.confirm();
+
+          const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
+          expectApiPlanCloseRequest(updatedPlan);
+          expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
+          expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
+
+          table = await computePlansTableCells();
+          expect(table.rowCells).toEqual([['There is no plan (yet).']]);
+        });
+      });
+
       it('should change delete plan button message', async () => {
-        const plan = fakePlan({ name: 'key plan 🔑️', status: 'PUBLISHED', security: PlanSecurityType.API_KEY });
+        const plan = fakePlanV2({ apiId: API_ID, name: 'key plan 🔑️', status: 'PUBLISHED', security: { type: 'API_KEY' } });
         await initComponent([plan]);
 
         const table = await computePlansTableCells();
-        expect(table.rowCells).toEqual([['', 'key plan 🔑️', 'API_KEY', 'PUBLISHED', '', '']]);
+        expect(table.rowCells).toEqual([['', 'key plan 🔑️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
 
         await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Close the plan"]' })).then((btn) => btn.click());
 
@@ -325,7 +402,7 @@ describe('ApiPortalPlanListComponent', () => {
         expect(await rootLoader.getHarness(MatButtonHarness.with({ text: 'Yes, delete this plan' }))).toBeTruthy();
         await confirmDialog.confirm();
 
-        const updatedPlan: ApiPlan = { ...plan, status: 'CLOSED' };
+        const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
         expectApiPlanCloseRequest(updatedPlan);
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
       });
@@ -334,8 +411,8 @@ describe('ApiPortalPlanListComponent', () => {
 
   describe('kubernetes api tests', () => {
     it('should access plan in read only', async () => {
-      const kubernetesApi = fakeApi({ id: API_ID, definition_context: { origin: 'kubernetes' } });
-      const plan = fakePlan({ api: API_ID, tags: ['tag1', 'tag2'] });
+      const kubernetesApi = fakeApiV2({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } });
+      const plan = fakePlanV2({ apiId: API_ID, tags: ['tag1', 'tag2'] });
       await initComponent([plan], kubernetesApi);
 
       expect(component.isReadOnly).toBe(true);
@@ -355,11 +432,11 @@ describe('ApiPortalPlanListComponent', () => {
           actions: '',
         },
       ]);
-      expect(rowCells).toEqual([['Free Spaceshuttle', 'KEY_LESS', 'PUBLISHED', 'tag1, tag2', '']]);
+      expect(rowCells).toEqual([['Default plan', 'API_KEY', 'PUBLISHED', 'tag1, tag2', '']]);
     });
   });
 
-  async function initComponent(plans: ApiPlan[], api: Api = anAPi) {
+  async function initComponent(plans: Plan[], api: Api = anAPi) {
     await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id } }).compileComponents();
     fixture = TestBed.createComponent(ApiPortalPlanListComponent);
     component = fixture.componentInstance;
@@ -385,60 +462,56 @@ describe('ApiPortalPlanListComponent', () => {
     return { headerCells, rowCells };
   }
 
-  function expectApiPlansListRequest(plans: ApiPlan[] = [], status?: string | string[], security?: string) {
+  function expectApiPlansListRequest(plans: Plan[] = [], status?: string | string[], security?: string) {
+    const response: ApiPlansResponse = { data: plans };
     httpTestingController
       .expectOne(
-        `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans?${status ? `status=${castArray(status).join(',')}` : 'status=PUBLISHED'}${
-          security ? `security=${security}` : ''
-        }`,
+        `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&${
+          status ? `status=${castArray(status).join('&status=')}` : 'status=PUBLISHED'
+        }${security ? `security=${security}` : ''}`,
         'GET',
       )
-      .flush(plans);
+      .flush(response);
     fixture.detectChanges();
   }
 
-  function expectApiPlanUpdateRequest(plan: ApiPlan) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}`, 'PUT');
+  function expectApiPlanUpdateRequest(plan: Plan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${plan.id}`, 'PUT');
     expect(req.request.body).toEqual(plan);
     req.flush(plan);
     fixture.detectChanges();
   }
 
-  function expectApiPlanUpdateRequestFail(plan: ApiPlan) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}`, 'PUT');
+  function expectApiPlanUpdateRequestFail(plan: Plan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${plan.id}`, 'PUT');
     expect(req.request.body).toEqual(plan);
     req.error(new ErrorEvent('error'), { status: 400 });
     fixture.detectChanges();
   }
 
-  function expectApiPlanPublishRequest(plan: ApiPlan) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}/_publish`, 'POST');
-    expect(req.request.body).toEqual(plan);
+  function expectApiPlanPublishRequest(plan: Plan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${plan.id}/_publish`, 'POST');
+    expect(req.request.body).toEqual({});
     req.flush(plan);
     fixture.detectChanges();
   }
 
-  function expectApiPlanDeprecateRequest(plan: ApiPlan) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}/_deprecate`, 'POST');
-    expect(req.request.body).toEqual(plan);
+  function expectApiPlanDeprecateRequest(plan: Plan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${plan.id}/_deprecate`, 'POST');
+    expect(req.request.body).toEqual({});
     req.flush(plan);
     fixture.detectChanges();
   }
 
-  function expectApiPlanCloseRequest(plan: ApiPlan) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}/_close`, 'POST');
+  function expectApiPlanCloseRequest(plan: Plan) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${plan.id}/_close`, 'POST');
     expect(req.request.body).toEqual({});
     req.flush(plan);
     fixture.detectChanges();
   }
 
   function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);
-    fixture.detectChanges();
-  }
-
-  function expectPlanGetRequest(plan: ApiPlan) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/plans/${plan.id}`, method: 'GET' }).flush(plan);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 
