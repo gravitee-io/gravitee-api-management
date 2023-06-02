@@ -411,11 +411,6 @@ public class DebugReactorTest {
         keylessPlan.setSecurity("KEY_LESS");
         keylessPlan.setStatus("CLOSED");
 
-        Plan stagingKeylessPlan = new Plan();
-        keylessPlan.setId("keyless-plan");
-        keylessPlan.setSecurity("KEY_LESS");
-        keylessPlan.setStatus("STAGING");
-
         Plan apiKeyPlan = new Plan();
         apiKeyPlan.setId("api-key-plan");
         apiKeyPlan.setSecurity("API_KEY");
