@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.messages;
+package io.gravitee.apim.integration.tests.messages.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.endpoint.kafka.KafkaEndpointConnectorFactory;
-import com.graviteesource.entrypoint.sse.SseEntrypointConnectorFactory;
-import com.graviteesource.reactor.message.MessageApiReactorFactory;
-import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
-import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
-import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
-import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
-import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
-import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.kafka.client.producer.RecordMetadata;
@@ -45,7 +37,6 @@ import io.vertx.rxjava3.kafka.client.producer.KafkaProducerRecord;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -70,21 +61,11 @@ import org.testcontainers.utility.DockerImageName;
  */
 @Testcontainers
 @GatewayTest
-@DeployApi({ "/apis/v4/messages/sse-entrypoint-kafka-endpoint.json" })
-class SseEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest {
+@DeployApi({"/apis/v4/messages/sse-entrypoint-kafka-endpoint.json"})
+class SseEntrypointKafkaEndpointIntegrationTest extends AbstractSseGatewayTest {
 
     @Container
     private static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
-
-    @Override
-    public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
-        reactors.add(ReactorBuilder.build(MessageApiReactorFactory.class));
-    }
-
-    @Override
-    public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("sse", EntrypointBuilder.build("sse", SseEntrypointConnectorFactory.class));
-    }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
@@ -154,21 +135,21 @@ class SseEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest {
             .assertValueAt(
                 1,
                 chunk -> {
-                    assertOnMessage(chunk, 1);
+                    assertOnMessage(chunk, "message1");
                     return true;
                 }
             )
             .assertValueAt(
                 2,
                 chunk -> {
-                    assertOnMessage(chunk, 2);
+                    assertOnMessage(chunk, "message2");
                     return true;
                 }
             )
             .assertValueAt(
                 3,
                 chunk -> {
-                    assertOnMessage(chunk, 3);
+                    assertOnMessage(chunk, "message3");
                     return true;
                 }
             )
@@ -197,18 +178,5 @@ class SseEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest {
         return producer
             .rxSend(KafkaProducerRecord.create("test-topic", "key", io.gravitee.gateway.api.buffer.Buffer.buffer(message1).getBytes()))
             .blockingGet();
-    }
-
-    private void assertRetry(Buffer chunk) {
-        final String[] splitMessage = chunk.toString().split("\n");
-        assertThat(splitMessage).hasSize(1);
-        assertThat(splitMessage[0]).startsWith("retry: ");
-    }
-
-    private void assertOnMessage(Buffer chunk, int messageNumber) {
-        final String[] splitMessage = chunk.toString().split("\n");
-        assertThat(splitMessage).hasSize(2);
-        assertThat(splitMessage[0]).isEqualTo("event: message");
-        assertThat(splitMessage[1]).isEqualTo("data: message" + messageNumber);
     }
 }

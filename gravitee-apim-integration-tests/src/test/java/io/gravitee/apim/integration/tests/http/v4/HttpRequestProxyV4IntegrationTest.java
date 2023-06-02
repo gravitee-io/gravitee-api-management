@@ -44,9 +44,9 @@ import org.junit.jupiter.api.Test;
  * @author Gravitee Team
  */
 @GatewayTest
-@DeployApi({ "/apis/v4/http/api.json" })
+@DeployApi({"/apis/v4/http/api.json"})
 @DeployOrganization("/organizations/organization-add-header.json")
-class HttpRequestKeylessProxyV4IntegrationTest extends AbstractGatewayTest {
+class HttpRequestProxyV4IntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
