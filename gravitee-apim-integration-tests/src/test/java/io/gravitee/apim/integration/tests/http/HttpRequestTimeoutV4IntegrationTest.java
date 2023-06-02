@@ -13,30 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.http.pathparams;
+package io.gravitee.apim.integration.tests.http;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
-import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.integration.tests.http.HttpRequestTimeoutIntegrationTest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
-import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
-import java.util.Set;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
+ * @author Benoit Bordigoni (benoit.bordigoni at graviteesource.com)
+ * @author Gravitee Team
  */
-@GatewayTest
-public class PathParametersV4IntegrationTest extends PathParametersIntegrationTest {
+
+@DeployApi({ "/apis/v4/http/api.json", "/apis/v4/http/api-latency.json" })
+class HttpRequestTimeoutV4IntegrationTest extends HttpRequestTimeoutIntegrationTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -46,26 +41,5 @@ public class PathParametersV4IntegrationTest extends PathParametersIntegrationTe
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
         endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
-    }
-
-    @Override
-    @Test
-    @DeployApi("/apis/v4/http/pathparams/api-no-path-param.json")
-    void should_not_add_path_param_to_headers_when_no_param(HttpClient httpClient) throws InterruptedException {
-        super.should_not_add_path_param_to_headers_when_no_param(httpClient);
-    }
-
-    @Override
-    @ParameterizedTest
-    @DeployApi("/apis/v4/http/pathparams/api-path-param.json")
-    @MethodSource("io.gravitee.apim.integration.tests.http.pathparams.PathParametersIntegrationTest#provideParameters")
-    void should_add_path_param_to_headers_when_no_param(
-        String method,
-        String path,
-        Map<String, String> expectedHeaders,
-        Set<String> excludedHeaders,
-        HttpClient httpClient
-    ) throws InterruptedException {
-        super.should_add_path_param_to_headers_when_no_param(method, path, expectedHeaders, excludedHeaders, httpClient);
     }
 }

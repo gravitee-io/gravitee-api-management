@@ -33,12 +33,10 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.producer.KafkaHeader;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -53,7 +51,6 @@ import org.junit.jupiter.api.Test;
     { "/apis/v4/messages/http-post-entrypoint-kafka-endpoint.json", "/apis/v4/messages/http-post-entrypoint-kafka-endpoint-failure.json" }
 )
 class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpointIntegrationTest {
-
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {

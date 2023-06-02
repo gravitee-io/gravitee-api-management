@@ -15,6 +15,11 @@
  */
 package io.gravitee.apim.integration.tests.messages.flows;
 
+import static io.gravitee.apim.gateway.tests.sdk.utils.HttpClientUtils.extractHeaders;
+import static io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionParameterProviders.headerValue;
+import static io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionParameterProviders.responseFlowHeader;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
@@ -43,6 +48,9 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -51,15 +59,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import static io.gravitee.apim.gateway.tests.sdk.utils.HttpClientUtils.extractHeaders;
-import static io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionParameterProviders.headerValue;
-import static io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionParameterProviders.responseFlowHeader;
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
@@ -67,12 +66,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class FlowPhaseExecutionIntegrationTest {
 
-    public static final String PARAMETERS_PROVIDERS_CLASS = "io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionParameterProviders#";
+    public static final String PARAMETERS_PROVIDERS_CLASS =
+        "io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionParameterProviders#";
 
     /**
      * Inherit from this class to have the required configuration to run each tests of this class
      */
     class TestPreparer extends AbstractGatewayTest {
+
         @Override
         public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
             reactors.add(ReactorBuilder.build(MessageApiReactorFactory.class));
@@ -86,47 +87,47 @@ public class FlowPhaseExecutionIntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.putIfAbsent(
-                   "transform-headers",
-                   PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
+                "transform-headers",
+                PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
             );
         }
     }
-
 
     @Nested
     @GatewayTest
     @DeployApi("/apis/v4/messages/flows/api.json")
     @DisplayName("Flows without condition and operator 'STARTS_WITH'")
     class NoConditionOperatorStartsWith extends TestPreparer {
+
         @ParameterizedTest
         @MethodSource(PARAMETERS_PROVIDERS_CLASS + "parametersStartsWithOperatorCase")
         void should_pass_through_correct_flows(
-               String path,
-               Map<String, String> expectedRequestHeaders,
-               Map<String, String> expectedResponseHeaders,
-               HttpClient client
+            String path,
+            Map<String, String> expectedRequestHeaders,
+            Map<String, String> expectedResponseHeaders,
+            HttpClient client
         ) {
             client
-                   .rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       expectedResponseHeaders.forEach((name, value) -> {
-                           assertThat(extractHeaders(response)).contains(Map.entry(name, value));
-                       });
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(2, TimeUnit.SECONDS)
-                   .assertComplete()
-                   .assertValue(response -> {
-                       final JsonObject jsonResponse = new JsonObject(response.toString());
-                       final JsonArray items = jsonResponse.getJsonArray("items");
-                       assertThat(items).hasSize(1);
-                       final JsonObject message = items.getJsonObject(0);
-                       assertThat(message.getString("content")).isEqualTo("Mock data");
-                       return true;
-                   });
+                .rxRequest(HttpMethod.GET, "/test" + path)
+                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    expectedResponseHeaders.forEach((name, value) -> {
+                        assertThat(extractHeaders(response)).contains(Map.entry(name, value));
+                    });
+                    return response.body();
+                })
+                .test()
+                .awaitDone(2, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    final JsonObject jsonResponse = new JsonObject(response.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("Mock data");
+                    return true;
+                });
         }
     }
 
@@ -140,44 +141,45 @@ public class FlowPhaseExecutionIntegrationTest {
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
-                definition.getFlows().forEach(flow -> {
-                    flow.selectorByType(SelectorType.CHANNEL)
-                           .ifPresent(selector ->
-                                  ((ChannelSelector) selector).setChannelOperator(Operator.EQUALS)
-                           );
-                });
+                definition
+                    .getFlows()
+                    .forEach(flow -> {
+                        flow
+                            .selectorByType(SelectorType.CHANNEL)
+                            .ifPresent(selector -> ((ChannelSelector) selector).setChannelOperator(Operator.EQUALS));
+                    });
             }
         }
 
         @ParameterizedTest
         @MethodSource(PARAMETERS_PROVIDERS_CLASS + "parametersEqualsOperatorCase")
         void should_pass_through_correct_flows(
-               String path,
-               Map<String, String> expectedRequestHeaders,
-               Map<String, String> expectedResponseHeaders,
-               HttpClient client
+            String path,
+            Map<String, String> expectedRequestHeaders,
+            Map<String, String> expectedResponseHeaders,
+            HttpClient client
         ) {
             client
-                   .rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       expectedResponseHeaders.forEach((name, value) -> {
-                           assertThat(extractHeaders(response)).contains(Map.entry(name, value));
-                       });
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(2, TimeUnit.SECONDS)
-                   .assertComplete()
-                   .assertValue(response -> {
-                       final JsonObject jsonResponse = new JsonObject(response.toString());
-                       final JsonArray items = jsonResponse.getJsonArray("items");
-                       assertThat(items).hasSize(1);
-                       final JsonObject message = items.getJsonObject(0);
-                       assertThat(message.getString("content")).isEqualTo("Mock data");
-                       return true;
-                   });
+                .rxRequest(HttpMethod.GET, "/test" + path)
+                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    expectedResponseHeaders.forEach((name, value) -> {
+                        assertThat(extractHeaders(response)).contains(Map.entry(name, value));
+                    });
+                    return response.body();
+                })
+                .test()
+                .awaitDone(2, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    final JsonObject jsonResponse = new JsonObject(response.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("Mock data");
+                    return true;
+                });
         }
     }
 
@@ -186,100 +188,113 @@ public class FlowPhaseExecutionIntegrationTest {
     @DeployApi("/apis/v4/messages/flows/api-flows-equals-and-starts-with.json")
     @DisplayName("Flows without condition and mixed operators")
     class NoConditionOperatorMixed extends TestPreparer {
+
         @ParameterizedTest
         @MethodSource(PARAMETERS_PROVIDERS_CLASS + "parametersMixedOperatorCase")
         void should_pass_through_correct_flows(
-               String path,
-               Map<String, String> expectedRequestHeaders,
-               Map<String, String> expectedResponseHeaders,
-               HttpClient client
+            String path,
+            Map<String, String> expectedRequestHeaders,
+            Map<String, String> expectedResponseHeaders,
+            HttpClient client
         ) {
             client
-                   .rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       expectedResponseHeaders.forEach((name, value) -> {
-                           assertThat(extractHeaders(response)).contains(Map.entry(name, value));
-                       });
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(2, TimeUnit.SECONDS)
-                   .assertComplete()
-                   .assertValue(response -> {
-                       final JsonObject jsonResponse = new JsonObject(response.toString());
-                       final JsonArray items = jsonResponse.getJsonArray("items");
-                       assertThat(items).hasSize(1);
-                       final JsonObject message = items.getJsonObject(0);
-                       assertThat(message.getString("content")).isEqualTo("Mock data");
-                       return true;
-                   });
+                .rxRequest(HttpMethod.GET, "/test" + path)
+                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    expectedResponseHeaders.forEach((name, value) -> {
+                        assertThat(extractHeaders(response)).contains(Map.entry(name, value));
+                    });
+                    return response.body();
+                })
+                .test()
+                .awaitDone(2, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    final JsonObject jsonResponse = new JsonObject(response.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("Mock data");
+                    return true;
+                });
         }
     }
 
     @Nested
     @GatewayTest
-    @DeployApi({"/apis/v4/messages/flows/api-conditional-flows.json", "/apis/v4/messages/flows/api-conditional-flows-double-evaluation-case.json"})
+    @DeployApi(
+        {
+            "/apis/v4/messages/flows/api-conditional-flows.json",
+            "/apis/v4/messages/flows/api-conditional-flows-double-evaluation-case.json",
+        }
+    )
     @DisplayName("Flows with condition")
     class ConditionalFlows extends TestPreparer {
+
         @ParameterizedTest
         @MethodSource(PARAMETERS_PROVIDERS_CLASS + "parametersConditionalFlowsCase")
         void should_pass_through_correct_flows(
-               String path,
-               String conditionalHeader,
-               Map<String, String> expectedRequestHeaders,
-               Map<String, String> expectedResponseHeaders,
-               HttpClient client
+            String path,
+            String conditionalHeader,
+            Map<String, String> expectedRequestHeaders,
+            Map<String, String> expectedResponseHeaders,
+            HttpClient client
         ) {
             client
-                   .rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON)
-                          .putHeader("X-Condition-Flow-Selection", conditionalHeader)
-                          .rxSend())
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       expectedResponseHeaders.forEach((name, value) -> {
-                           assertThat(extractHeaders(response)).contains(Map.entry(name, value));
-                       });
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(2, TimeUnit.SECONDS)
-                   .assertComplete()
-                   .assertValue(response -> {
-                       final JsonObject jsonResponse = new JsonObject(response.toString());
-                       final JsonArray items = jsonResponse.getJsonArray("items");
-                       assertThat(items).hasSize(1);
-                       final JsonObject message = items.getJsonObject(0);
-                       assertThat(message.getString("content")).isEqualTo("Mock data");
-                       return true;
-                   });
+                .rxRequest(HttpMethod.GET, "/test" + path)
+                .flatMap(request ->
+                    request
+                        .putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON)
+                        .putHeader("X-Condition-Flow-Selection", conditionalHeader)
+                        .rxSend()
+                )
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    expectedResponseHeaders.forEach((name, value) -> {
+                        assertThat(extractHeaders(response)).contains(Map.entry(name, value));
+                    });
+                    return response.body();
+                })
+                .test()
+                .awaitDone(2, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    final JsonObject jsonResponse = new JsonObject(response.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("Mock data");
+                    return true;
+                });
         }
 
         @Test
         void should_pass_through_correct_flow_condition_remove_header_on_request(HttpClient client) {
             client
-                   .rxRequest(HttpMethod.GET, "/test-double-evaluation")
-                   .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON)
-                          .putHeader("X-Condition-Flow-Selection", "root-condition")
-                          .rxSend())
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       assertThat(extractHeaders(response)).contains(Map.entry(responseFlowHeader(0), headerValue("/")));
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(2, TimeUnit.SECONDS)
-                   .assertComplete()
-                   .assertValue(response -> {
-                       final JsonObject jsonResponse = new JsonObject(response.toString());
-                       final JsonArray items = jsonResponse.getJsonArray("items");
-                       assertThat(items).hasSize(1);
-                       final JsonObject message = items.getJsonObject(0);
-                       assertThat(message.getString("content")).isEqualTo("Mock data");
-                       return true;
-                   });
+                .rxRequest(HttpMethod.GET, "/test-double-evaluation")
+                .flatMap(request ->
+                    request
+                        .putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON)
+                        .putHeader("X-Condition-Flow-Selection", "root-condition")
+                        .rxSend()
+                )
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(extractHeaders(response)).contains(Map.entry(responseFlowHeader(0), headerValue("/")));
+                    return response.body();
+                })
+                .test()
+                .awaitDone(2, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    final JsonObject jsonResponse = new JsonObject(response.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("Mock data");
+                    return true;
+                });
         }
     }
 }

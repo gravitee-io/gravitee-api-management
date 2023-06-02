@@ -31,9 +31,7 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.kafka.client.producer.KafkaProducer;
-
 import java.util.Map;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -79,44 +77,31 @@ class SseEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpointInt
             .assertValueAt(
                 0,
                 chunk -> {
-                    assertRetry(chunk);
+                    SseAssertions.assertRetry(chunk);
                     return true;
                 }
             )
             .assertValueAt(
                 1,
                 chunk -> {
-                    assertOnMessage(chunk, 1);
+                    SseAssertions.assertOnMessage(chunk, "message1");
                     return true;
                 }
             )
             .assertValueAt(
                 2,
                 chunk -> {
-                    assertOnMessage(chunk, 2);
+                    SseAssertions.assertOnMessage(chunk, "message2");
                     return true;
                 }
             )
             .assertValueAt(
                 3,
                 chunk -> {
-                    assertOnMessage(chunk, 3);
+                    SseAssertions.assertOnMessage(chunk, "message3");
                     return true;
                 }
             )
             .assertNoErrors();
-    }
-
-    private void assertRetry(Buffer chunk) {
-        final String[] splitMessage = chunk.toString().split("\n");
-        assertThat(splitMessage).hasSize(1);
-        assertThat(splitMessage[0]).startsWith("retry: ");
-    }
-
-    private void assertOnMessage(Buffer chunk, int messageNumber) {
-        final String[] splitMessage = chunk.toString().split("\n");
-        assertThat(splitMessage).hasSize(2);
-        assertThat(splitMessage[0]).isEqualTo("event: message");
-        assertThat(splitMessage[1]).isEqualTo("data: message" + messageNumber);
     }
 }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.plugin.endpoint.mock;
 
+import io.gravitee.common.http.HttpHeader;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.connector.endpoint.async.EndpointAsyncConnector;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
@@ -27,10 +29,15 @@ import io.gravitee.plugin.endpoint.mock.configuration.MockEndpointConnectorConfi
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author GraviteeSource Team
@@ -117,7 +124,19 @@ public class MockEndpointConnector extends EndpointAsyncConnector {
                         // And the entrypoint has no limit or state minus lastId is less than limit, then emit a message
                         (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount)
                     ) {
-                        emitter.onNext(new DefaultMessage(configuration.getMessageContent()).id(Long.toString(state)));
+                        DefaultMessage message = new DefaultMessage(configuration.getMessageContent()).id(Long.toString(state));
+                        // handle optional params
+                        if (configuration.getHeaders() != null) {
+                            HttpHeaders headers = HttpHeaders.create();
+                            configuration.getHeaders().forEach(h -> headers.add(h.getName(), h.getValue()));
+                            message.headers(headers);
+                        }
+                        if (configuration.getMetadata() != null) {
+                            message.metadata(
+                                configuration.getMetadata().stream().collect(Collectors.toMap(HttpHeader::getName, HttpHeader::getValue))
+                            );
+                        }
+                        emitter.onNext(message);
                     } else {
                         emitter.onComplete();
                     }

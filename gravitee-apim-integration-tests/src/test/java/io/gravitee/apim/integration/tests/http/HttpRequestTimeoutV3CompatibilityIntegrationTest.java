@@ -27,7 +27,7 @@ import io.vertx.rxjava3.core.http.HttpClientResponse;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpRequestTimeoutV3CompatibilityIntegrationTest extends HttpRequestTimeoutIntegrationTest {
+class HttpRequestTimeoutV3CompatibilityIntegrationTest extends HttpRequestTimeoutIntegrationTest {
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {

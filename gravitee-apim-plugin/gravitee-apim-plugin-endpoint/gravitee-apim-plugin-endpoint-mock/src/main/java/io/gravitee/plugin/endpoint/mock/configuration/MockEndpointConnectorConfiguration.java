@@ -15,7 +15,9 @@
  */
 package io.gravitee.plugin.endpoint.mock.configuration;
 
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -41,4 +43,14 @@ public class MockEndpointConnectorConfiguration implements EndpointConnectorConf
      * If null, there is no limit.
      */
     private Integer messageCount;
+
+    /**
+     * A list of headers to publish
+     */
+    private List<HttpHeader> headers;
+
+    /**
+     * A list of metadata to publish
+     */
+    private List<HttpHeader> metadata;
 }

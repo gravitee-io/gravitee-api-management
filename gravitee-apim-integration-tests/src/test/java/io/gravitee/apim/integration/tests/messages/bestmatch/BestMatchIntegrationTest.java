@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.integration.tests.messages.bestmatch;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -40,19 +42,16 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.http.HttpClient;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -68,6 +67,7 @@ public class BestMatchIntegrationTest {
      * Inherit from this class to have the required configuration to run each tests of this class
      */
     class TestPreparer extends AbstractGatewayTest {
+
         @Override
         public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
             reactors.add(ReactorBuilder.build(MessageApiReactorFactory.class));
@@ -81,8 +81,8 @@ public class BestMatchIntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.putIfAbsent(
-                   "transform-headers",
-                   PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
+                "transform-headers",
+                PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
             );
         }
     }
@@ -97,43 +97,43 @@ public class BestMatchIntegrationTest {
          */
         Stream<Arguments> provideParameters() {
             return Stream.of(
-              Arguments.of("/books", "/books", "/books"),
-              Arguments.of("/books", "/books", "/books"),
-              Arguments.of("/books/145/chapters/12", "/books/:bookId", "/books/:bookId/chapters/:chapterId"),
-              Arguments.of("/books/9999/chapters", "/books/:bookId", "/books/9999/chapters"),
-              Arguments.of("/books/9999/chapters/random", "/books/:bookId", "/books/9999/chapters"),
-              Arguments.of("/random", "/", null),
-              Arguments.of("/books/145", "/books/:bookId", null)
+                Arguments.of("/books", "/books", "/books"),
+                Arguments.of("/books", "/books", "/books"),
+                Arguments.of("/books/145/chapters/12", "/books/:bookId", "/books/:bookId/chapters/:chapterId"),
+                Arguments.of("/books/9999/chapters", "/books/:bookId", "/books/9999/chapters"),
+                Arguments.of("/books/9999/chapters/random", "/books/:bookId", "/books/9999/chapters"),
+                Arguments.of("/random", "/", null),
+                Arguments.of("/books/145", "/books/:bookId", null)
             );
         }
 
         @ParameterizedTest
         @MethodSource("provideParameters")
         void should_use_best_matching_flow(String path, String planFlowSelected, String apiFlowSelected, HttpClient client) {
-
-            client.rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       if (planFlowSelected != null) {
-                           assertThat(response.getHeader(PLAN_FLOW_SELECTED)).isEqualTo(planFlowSelected);
-                       }
-                       if (apiFlowSelected != null) {
-                           assertThat(response.getHeader(API_FLOW_SELECTED)).isEqualTo(apiFlowSelected);
-                       }
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(10, TimeUnit.SECONDS)
-                   .assertValue(response -> {
-                       final JsonObject jsonResponse = new JsonObject(response.toString());
-                       final JsonArray items = jsonResponse.getJsonArray("items");
-                       assertThat(items).hasSize(1);
-                       final JsonObject message = items.getJsonObject(0);
-                       assertThat(message.getString("content")).isEqualTo("Mock data");
-                       return true;
-                   })
-                   .assertComplete();
+            client
+                .rxRequest(HttpMethod.GET, "/test" + path)
+                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    if (planFlowSelected != null) {
+                        assertThat(response.getHeader(PLAN_FLOW_SELECTED)).isEqualTo(planFlowSelected);
+                    }
+                    if (apiFlowSelected != null) {
+                        assertThat(response.getHeader(API_FLOW_SELECTED)).isEqualTo(apiFlowSelected);
+                    }
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(response -> {
+                    final JsonObject jsonResponse = new JsonObject(response.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("Mock data");
+                    return true;
+                })
+                .assertComplete();
         }
     }
 
@@ -146,19 +146,23 @@ public class BestMatchIntegrationTest {
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
                 final io.gravitee.definition.model.v4.Api definition = (Api) api.getDefinition();
-                definition.getFlows().stream()
-                       .flatMap(flow -> flow.selectorByType(SelectorType.CHANNEL).stream())
-                       .forEach(selector -> {
-                           ChannelSelector channelSelector = (ChannelSelector) selector;
-                           channelSelector.setChannelOperator(Operator.EQUALS);
-                       });
                 definition
-                       .getPlans().stream().flatMap(plan -> plan.getFlows().stream())
-                       .flatMap(flow -> flow.selectorByType(SelectorType.CHANNEL).stream())
-                       .forEach(selector -> {
-                           ChannelSelector channelSelector = (ChannelSelector) selector;
-                           channelSelector.setChannelOperator(Operator.EQUALS);
-                       });
+                    .getFlows()
+                    .stream()
+                    .flatMap(flow -> flow.selectorByType(SelectorType.CHANNEL).stream())
+                    .forEach(selector -> {
+                        ChannelSelector channelSelector = (ChannelSelector) selector;
+                        channelSelector.setChannelOperator(Operator.EQUALS);
+                    });
+                definition
+                    .getPlans()
+                    .stream()
+                    .flatMap(plan -> plan.getFlows().stream())
+                    .flatMap(flow -> flow.selectorByType(SelectorType.CHANNEL).stream())
+                    .forEach(selector -> {
+                        ChannelSelector channelSelector = (ChannelSelector) selector;
+                        channelSelector.setChannelOperator(Operator.EQUALS);
+                    });
             }
         }
 
@@ -167,45 +171,44 @@ public class BestMatchIntegrationTest {
          */
         Stream<Arguments> provideParameters() {
             return Stream.of(
-                   Arguments.of("/books", "/books", "/books"),
-                   Arguments.of("/books", "/books", "/books"),
-                   Arguments.of("/books/145/chapters/12", null, "/books/:bookId/chapters/:chapterId"),
-                   Arguments.of("/books/9999/chapters", null, "/books/9999/chapters"),
-                   Arguments.of("/books/9999/chapters/random", null, "/books/:bookId/chapters/:chapterId"),
-                   Arguments.of("/random", null, null),
-                   Arguments.of("/", "/", null),
-                   Arguments.of("/books/145", "/books/:bookId", null)
+                Arguments.of("/books", "/books", "/books"),
+                Arguments.of("/books", "/books", "/books"),
+                Arguments.of("/books/145/chapters/12", null, "/books/:bookId/chapters/:chapterId"),
+                Arguments.of("/books/9999/chapters", null, "/books/9999/chapters"),
+                Arguments.of("/books/9999/chapters/random", null, "/books/:bookId/chapters/:chapterId"),
+                Arguments.of("/random", null, null),
+                Arguments.of("/", "/", null),
+                Arguments.of("/books/145", "/books/:bookId", null)
             );
         }
 
         @ParameterizedTest
         @MethodSource("provideParameters")
         void should_use_best_matching_flow(String path, String planFlowSelected, String apiFlowSelected, HttpClient client) {
-
-            client.rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       if (planFlowSelected != null) {
-                           assertThat(response.getHeader(PLAN_FLOW_SELECTED)).isEqualTo(planFlowSelected);
-                       }
-                       if (apiFlowSelected != null) {
-                           assertThat(response.getHeader(API_FLOW_SELECTED)).isEqualTo(apiFlowSelected);
-                       }
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(10, TimeUnit.SECONDS)
-                   .assertValue(response -> {
-                       final JsonObject jsonResponse = new JsonObject(response.toString());
-                       final JsonArray items = jsonResponse.getJsonArray("items");
-                       assertThat(items).hasSize(1);
-                       final JsonObject message = items.getJsonObject(0);
-                       assertThat(message.getString("content")).isEqualTo("Mock data");
-                       return true;
-                   })
-                   .assertComplete();
+            client
+                .rxRequest(HttpMethod.GET, "/test" + path)
+                .flatMap(request -> request.putHeader(HttpHeaderNames.ACCEPT, MediaType.APPLICATION_JSON).rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    if (planFlowSelected != null) {
+                        assertThat(response.getHeader(PLAN_FLOW_SELECTED)).isEqualTo(planFlowSelected);
+                    }
+                    if (apiFlowSelected != null) {
+                        assertThat(response.getHeader(API_FLOW_SELECTED)).isEqualTo(apiFlowSelected);
+                    }
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(response -> {
+                    final JsonObject jsonResponse = new JsonObject(response.toString());
+                    final JsonArray items = jsonResponse.getJsonArray("items");
+                    assertThat(items).hasSize(1);
+                    final JsonObject message = items.getJsonObject(0);
+                    assertThat(message.getString("content")).isEqualTo("Mock data");
+                    return true;
+                })
+                .assertComplete();
         }
     }
-
 }

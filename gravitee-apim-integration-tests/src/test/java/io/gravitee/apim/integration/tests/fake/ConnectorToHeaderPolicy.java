@@ -29,6 +29,7 @@ import io.reactivex.rxjava3.core.Completable;
 public class ConnectorToHeaderPolicy implements Policy {
 
     public static String ID = "connector-to-header";
+
     @Override
     public String id() {
         return ID;
@@ -37,9 +38,17 @@ public class ConnectorToHeaderPolicy implements Policy {
     @Override
     public Completable onResponse(HttpExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
-                   ctx.response().headers().add("X-Entrypoint-Used", ((EntrypointConnector) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).id());
-                   ctx.response().headers().add("X-Endpoint-Used", (String) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID));
-               }
-        );
+            ctx
+                .response()
+                .headers()
+                .add(
+                    "X-Entrypoint-Used",
+                    ((EntrypointConnector) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).id()
+                );
+            ctx
+                .response()
+                .headers()
+                .add("X-Endpoint-Used", (String) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID));
+        });
     }
 }

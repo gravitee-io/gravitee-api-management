@@ -28,9 +28,8 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
-import org.junit.jupiter.api.Nested;
-
 import java.util.Map;
+import org.junit.jupiter.api.Nested;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -38,11 +37,11 @@ import java.util.Map;
  */
 public class BestMatchV4IntegrationTest extends BestMatchIntegrationTest {
 
-
     @Nested
     @GatewayTest
     @DeployApi("/apis/v4/http/bestmatch/api.json")
     class StartsWithOperator extends BestMatchIntegrationTest.StartsWithOperator {
+
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
             entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
@@ -73,21 +72,24 @@ public class BestMatchV4IntegrationTest extends BestMatchIntegrationTest {
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
-                definition.getFlows().stream()
-                       .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
-                       .forEach(selector -> {
-                    HttpSelector httpSelector = (HttpSelector) selector;
-                    httpSelector.setPathOperator(Operator.EQUALS);
-                });
                 definition
-                       .getPlans().stream().flatMap(plan -> plan.getFlows().stream())
-                       .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
-                       .forEach(selector -> {
-                           HttpSelector httpSelector = (HttpSelector) selector;
-                           httpSelector.setPathOperator(Operator.EQUALS);
-                       });
+                    .getFlows()
+                    .stream()
+                    .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
+                    .forEach(selector -> {
+                        HttpSelector httpSelector = (HttpSelector) selector;
+                        httpSelector.setPathOperator(Operator.EQUALS);
+                    });
+                definition
+                    .getPlans()
+                    .stream()
+                    .flatMap(plan -> plan.getFlows().stream())
+                    .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
+                    .forEach(selector -> {
+                        HttpSelector httpSelector = (HttpSelector) selector;
+                        httpSelector.setPathOperator(Operator.EQUALS);
+                    });
             }
         }
     }
-
 }

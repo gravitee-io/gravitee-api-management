@@ -15,21 +15,20 @@
  */
 package io.gravitee.apim.integration.tests.http.flows;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.TimeUnit;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -70,22 +69,23 @@ class FlowPhaseExecutionV3IntegrationTest extends FlowPhaseExecutionIntegrationT
             wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             client
-                   .rxRequest(HttpMethod.GET, "/test-double-evaluation")
-                   .flatMap(request ->
-                          request.putHeader("X-Condition-Flow-Selection", "root-condition").rxSend()
-                   )
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(500);
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(2, TimeUnit.SECONDS)
-                   .assertComplete()
-                   .assertValue(response -> {
-                       assertThat(response).hasToString("The template evaluation returns an error. Expression:\n" +
-                              "{##request.headers['X-Condition-Flow-Selection'][0] == 'root-condition'} ");
-                       return true;
-                   });
+                .rxRequest(HttpMethod.GET, "/test-double-evaluation")
+                .flatMap(request -> request.putHeader("X-Condition-Flow-Selection", "root-condition").rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(500);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(2, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response)
+                        .hasToString(
+                            "The template evaluation returns an error. Expression:\n" +
+                            "{##request.headers['X-Condition-Flow-Selection'][0] == 'root-condition'} "
+                        );
+                    return true;
+                });
         }
     }
 }

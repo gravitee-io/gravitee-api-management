@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
@@ -35,9 +36,12 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import org.assertj.core.data.MapEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -222,5 +226,73 @@ class MockEndpointConnectorTest {
         messages.assertValueCount(2);
         messages.assertValueAt(0, message -> message.id().equals("2"));
         messages.assertValueAt(1, message -> message.id().equals("3"));
+    }
+
+    @Test
+    @DisplayName("Should generate message with metadata")
+    void shouldGenerateMessageWithMetadata() throws InterruptedException {
+        configuration.setMessageCount(1);
+        configuration.setMetadata(List.of(new HttpHeader("mock-metadata1", "foo"), new HttpHeader("mock-metadata2", "bar")));
+
+        cut.connect(ctx).test().assertComplete();
+
+        ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).messages(messagesCaptor.capture());
+
+        messagesCaptor
+            .getValue()
+            .test()
+            .await()
+            .assertValue(message -> {
+                assertThat(message.metadata()).containsExactlyInAnyOrderEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
+                assertThat(message.headers()).isEmpty();
+                return true;
+            });
+    }
+
+    @Test
+    @DisplayName("Should generate message with headers")
+    void shouldGenerateMessageWithHeaders() throws InterruptedException {
+        configuration.setMessageCount(1);
+        configuration.setHeaders(List.of(new HttpHeader("header1", "foo"), new HttpHeader("header2", "bar")));
+
+        cut.connect(ctx).test().assertComplete();
+
+        ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).messages(messagesCaptor.capture());
+
+        messagesCaptor
+            .getValue()
+            .test()
+            .await()
+            .assertValue(message -> {
+                assertThat(message.headers().toSingleValueMap())
+                    .containsExactlyInAnyOrderEntriesOf(Map.of("header1", "foo", "header2", "bar"));
+                assertThat(message.metadata()).isEmpty();
+                return true;
+            });
+    }
+
+    @Test
+    @DisplayName("Should generate message with headers and metadata")
+    void shouldGenerateMessageWithHeadersAndMetadata() throws InterruptedException {
+        configuration.setMessageCount(1);
+        configuration.setMetadata(List.of(new HttpHeader("mock-metadata1", "foo"), new HttpHeader("mock-metadata2", "bar")));
+        configuration.setHeaders(List.of(new HttpHeader("header1", "foo"), new HttpHeader("header2", "bar")));
+        cut.connect(ctx).test().assertComplete();
+
+        ArgumentCaptor<Flowable<Message>> messagesCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).messages(messagesCaptor.capture());
+
+        messagesCaptor
+            .getValue()
+            .test()
+            .await()
+            .assertValue(message -> {
+                assertThat(message.metadata()).containsExactlyInAnyOrderEntriesOf(Map.of("mock-metadata1", "foo", "mock-metadata2", "bar"));
+                assertThat(message.headers().toSingleValueMap())
+                    .containsExactlyInAnyOrderEntriesOf(Map.of("header1", "foo", "header2", "bar"));
+                return true;
+            });
     }
 }
