@@ -38,15 +38,19 @@ import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
 
-import { ApiV2, ApiV4, PlanV4, CreatePlanV4, FlowV4, StepV4, PlanSecurityType } from '../../../../entities/management-api-v2';
 import {
-  NewPlan as NewPlanV2,
-  Plan as PlanV2,
-  PlanSecurityType as PlanSecurityTypeV2,
-  PlanValidation as PlanValidationV2,
-} from '../../../../entities/plan';
-import { Flow, Step } from '../../../../entities/flow/flow';
-import { isApiV1V2FromMAPIV1 } from '../../../../util';
+  ApiV2,
+  ApiV4,
+  FlowV2,
+  FlowV4,
+  StepV2,
+  StepV4,
+  PlanSecurityType,
+  CreatePlan,
+  Plan,
+  UpdatePlan,
+} from '../../../../entities/management-api-v2';
+import { isApiV2FromMAPIV2 } from '../../../../util';
 import { PlanSecurityVM } from '../../../../services-ngx/constants.service';
 
 type InternalPlanFormValue = {
@@ -76,9 +80,21 @@ type InternalPlanFormValue = {
   };
 };
 
-type InternalPlanV2Value = Partial<PlanV2 | NewPlanV2>;
-type InternalPlanV4Value = Partial<CreatePlanV4 | PlanV4>;
-type InternalPlanValue = InternalPlanV2Value | InternalPlanV4Value;
+export type PlanFormValue = Pick<
+  CreatePlan | UpdatePlan | Plan,
+  | 'name'
+  | 'description'
+  | 'characteristics'
+  | 'generalConditions'
+  | 'tags'
+  | 'commentRequired'
+  | 'commentMessage'
+  | 'validation'
+  | 'excludedGroups'
+  | 'security'
+  | 'selectionRule'
+  | 'flows'
+>;
 
 @Component({
   selector: 'api-plan-form',
@@ -122,17 +138,18 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   @ViewChild('stepper', { static: true })
   private matStepper: MatStepper;
 
-  private _onChange: (_: InternalPlanValue) => void;
+  private _onChange: (_: PlanFormValue) => void;
   private _onTouched: () => void;
 
-  private controlValue?: InternalPlanValue;
+  private controlValue?: PlanFormValue;
   private isDisabled = false;
+
   private get isV2Api(): boolean {
     // If no api defined, considered it's a v4 by default
     if (!this.api) {
       return false;
     }
-    return isApiV1V2FromMAPIV1(this.api);
+    return isApiV2FromMAPIV2(this.api);
   }
   constructor(private readonly changeDetectorRef: ChangeDetectorRef, @Host() @Optional() public readonly ngControl?: NgControl) {
     if (ngControl) {
@@ -188,7 +205,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   }
 
   // From ControlValueAccessor interface
-  writeValue(obj: InternalPlanValue): void {
+  writeValue(obj: PlanFormValue): void {
     this.controlValue = obj;
 
     // Update if the form is already initialized
@@ -244,10 +261,6 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   }
 
   private initPlanForm() {
-    const value = this.isPlanV2(this.controlValue)
-      ? planV2ToInternalFormValue(this.controlValue)
-      : planV4ToInternalFormValue(this.controlValue);
-
     this.planForm = new FormGroup({
       general: this.planEditGeneralStepComponent.generalForm,
       secure:
@@ -259,14 +272,13 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
       ...(this.mode === 'create' ? { restriction: this.planEditRestrictionStepComponent.restrictionForm } : {}),
     });
 
+    const value = planToInternalFormValue(this.controlValue);
+
     if (value) {
-      // TODO: Delete if-check once rest-api-v2 is implemented
-      if (typeof value.secure?.securityConfig === 'string') {
-        value.secure.securityConfig = JSON.parse(<string>value.secure.securityConfig);
-      }
       this.planForm.patchValue(value);
       this.planForm.updateValueAndValidity();
     }
+
     this.initialPlanFormValue = this.planForm.getRawValue();
 
     if (this.isDisabled) {
@@ -291,7 +303,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     this.planForm.valueChanges
       .pipe(
         takeUntil(this.unsubscribe$),
-        map(() => this.getPlan()),
+        map(() => this.getPlanFormValue()),
         distinctUntilChanged(isEqual),
         tap((plan) => {
           this._onChange(plan);
@@ -304,42 +316,14 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
       });
   }
 
-  private getPlan() {
+  private getPlanFormValue(): PlanFormValue {
     return this.isV2Api
       ? internalFormValueToPlanV2(this.planForm.getRawValue(), this.mode, this.securityType.id)
       : internalFormValueToPlanV4(this.planForm.getRawValue(), this.mode, this.securityType.id);
   }
-
-  private isPlanV2(plan: InternalPlanValue): plan is InternalPlanV2Value {
-    return this.isV2Api;
-  }
 }
 
-const planV2ToInternalFormValue = (plan: InternalPlanV2Value | undefined): InternalPlanFormValue | undefined => {
-  if (!plan) {
-    return undefined;
-  }
-
-  return {
-    general: {
-      name: plan.name,
-      description: plan.description,
-      characteristics: plan.characteristics,
-      generalConditions: plan.general_conditions,
-      shardingTags: plan.tags,
-      commentRequired: plan.comment_required,
-      commentMessage: plan.comment_message,
-      autoValidation: plan.validation === PlanValidationV2.AUTO,
-      excludedGroups: plan.excluded_groups,
-    },
-    secure: {
-      securityConfig: plan.securityDefinition,
-      selectionRule: plan.selection_rule,
-    },
-  };
-};
-
-const planV4ToInternalFormValue = (plan: InternalPlanV4Value | undefined): InternalPlanFormValue | undefined => {
+const planToInternalFormValue = (plan: PlanFormValue | undefined): InternalPlanFormValue | undefined => {
   if (!plan) {
     return undefined;
   }
@@ -367,10 +351,10 @@ const internalFormValueToPlanV2 = (
   value: InternalPlanFormValue,
   mode: 'create' | 'edit',
   securityType: PlanSecurityType,
-): InternalPlanV2Value => {
+): PlanFormValue => {
   // Init flows with restriction step. Only used in create mode
-  const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): Flow[] => {
-    const restrictionPolicies: Step[] = [
+  const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): FlowV2[] => {
+    const restrictionPolicies: StepV2[] = [
       ...(restriction.rateLimitEnabled
         ? [
             {
@@ -405,7 +389,7 @@ const internalFormValueToPlanV2 = (
 
     return [
       {
-        'path-operator': {
+        pathOperator: {
           path: '/',
           operator: 'STARTS_WITH',
         },
@@ -420,17 +404,19 @@ const internalFormValueToPlanV2 = (
     name: value.general.name,
     description: value.general.description,
     characteristics: value.general.characteristics,
-    general_conditions: value.general.generalConditions,
+    generalConditions: value.general.generalConditions,
     tags: value.general.shardingTags,
-    comment_required: value.general.commentRequired,
-    comment_message: value.general.commentMessage,
-    validation: value.general.autoValidation ? PlanValidationV2.AUTO : PlanValidationV2.MANUAL,
-    excluded_groups: value.general.excludedGroups,
+    commentRequired: value.general.commentRequired,
+    commentMessage: value.general.commentMessage,
+    validation: value.general.autoValidation ? 'AUTO' : 'MANUAL',
+    excludedGroups: value.general.excludedGroups,
 
     // Secure
-    security: securityType as PlanSecurityTypeV2,
-    securityDefinition: JSON.stringify(value.secure.securityConfig), // TODO: remove stringify when rest-api-v2 implemented
-    selection_rule: value.secure.selectionRule,
+    security: {
+      type: securityType,
+      configuration: value.secure.securityConfig,
+    },
+    selectionRule: value.secure.selectionRule,
 
     // Restriction (only for create mode)
     ...(mode === 'edit' ? {} : { flows: initFlowsWithRestriction(value.restriction) }),
@@ -441,7 +427,7 @@ const internalFormValueToPlanV4 = (
   value: InternalPlanFormValue,
   mode: 'create' | 'edit',
   securityType: PlanSecurityType,
-): InternalPlanV4Value => {
+): PlanFormValue => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): FlowV4[] => {
     const restrictionPolicies: StepV4[] = [

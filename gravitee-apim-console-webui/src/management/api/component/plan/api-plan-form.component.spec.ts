@@ -34,8 +34,19 @@ import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeGroup } from '../../../../entities/group/group.fixture';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
-import { fakeApiV4, fakeApiV2, PlanSecurityType, fakePlanV4, fakePlanV2, Api } from '../../../../entities/management-api-v2';
-import { Plan } from '../../../../entities/plan';
+import {
+  Api,
+  CreatePlanV2,
+  CreatePlanV4,
+  fakeApiV2,
+  fakeApiV4,
+  fakePlanV2,
+  fakePlanV4,
+  Plan,
+  PlanV2,
+  PlanV4,
+  PlanSecurityType,
+} from '../../../../entities/management-api-v2';
 import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../services-ngx/constants.service';
 
 @Component({
@@ -157,19 +168,21 @@ describe('ApiPlanFormComponent', () => {
           name: '🗺',
           description: '',
           characteristics: [],
-          comment_message: '',
-          comment_required: false,
-          excluded_groups: [],
-          general_conditions: '',
+          commentMessage: '',
+          commentRequired: false,
+          excludedGroups: [],
+          generalConditions: '',
           tags: [],
-          security: 'OAUTH2',
-          securityDefinition: '{}',
-          selection_rule: null,
+          security: {
+            type: 'OAUTH2',
+            configuration: {},
+          },
+          selectionRule: null,
           validation: 'MANUAL',
           flows: [
             {
               enabled: true,
-              'path-operator': {
+              pathOperator: {
                 operator: 'STARTS_WITH',
                 path: '/',
               },
@@ -177,7 +190,7 @@ describe('ApiPlanFormComponent', () => {
               pre: [],
             },
           ],
-        });
+        } as CreatePlanV2);
       });
     });
     describe('JWT plan', () => {
@@ -283,19 +296,21 @@ describe('ApiPlanFormComponent', () => {
           name: '🗺',
           description: 'Description',
           characteristics: ['C1'],
-          comment_message: 'Comment message',
-          comment_required: true,
-          excluded_groups: ['group-a'],
-          general_conditions: 'doc-1',
-          security: 'JWT',
-          securityDefinition: '{}',
-          selection_rule: '{ #el ...}',
+          commentMessage: 'Comment message',
+          commentRequired: true,
+          excludedGroups: ['group-a'],
+          generalConditions: 'doc-1',
+          security: {
+            type: 'JWT',
+            configuration: {},
+          },
+          selectionRule: '{ #el ...}',
           tags: [TAG_1_ID],
           validation: 'AUTO',
           flows: [
             {
               enabled: true,
-              'path-operator': {
+              pathOperator: {
                 operator: 'STARTS_WITH',
                 path: '/',
               },
@@ -322,7 +337,7 @@ describe('ApiPlanFormComponent', () => {
               ],
             },
           ],
-        });
+        } as CreatePlanV2);
       });
     });
     describe('API Key plan', () => {
@@ -431,19 +446,21 @@ describe('ApiPlanFormComponent', () => {
           name: '🗺',
           description: 'Description',
           characteristics: ['C1'],
-          comment_message: 'Comment message',
-          comment_required: true,
-          excluded_groups: ['group-a'],
-          general_conditions: 'doc-1',
-          security: 'API_KEY',
-          securityDefinition: '{}',
-          selection_rule: null,
+          commentMessage: 'Comment message',
+          commentRequired: true,
+          excludedGroups: ['group-a'],
+          generalConditions: 'doc-1',
+          security: {
+            type: 'API_KEY',
+            configuration: {},
+          },
+          selectionRule: null,
           tags: [TAG_1_ID],
           validation: 'AUTO',
           flows: [
             {
               enabled: true,
-              'path-operator': {
+              pathOperator: {
                 operator: 'STARTS_WITH',
                 path: '/',
               },
@@ -470,7 +487,7 @@ describe('ApiPlanFormComponent', () => {
               ],
             },
           ],
-        });
+        } as CreatePlanV2);
       });
     });
     describe('API Keyless plan', () => {
@@ -562,19 +579,21 @@ describe('ApiPlanFormComponent', () => {
           name: '🗺',
           description: 'Description',
           characteristics: ['C1'],
-          comment_message: '',
-          comment_required: false,
-          excluded_groups: ['group-a'],
-          general_conditions: 'doc-1',
-          security: 'KEY_LESS',
-          securityDefinition: '{}',
-          selection_rule: null,
+          commentMessage: '',
+          commentRequired: false,
+          excludedGroups: ['group-a'],
+          generalConditions: 'doc-1',
+          security: {
+            type: 'KEY_LESS',
+            configuration: {},
+          },
+          selectionRule: null,
           tags: [TAG_1_ID],
           validation: 'MANUAL',
           flows: [
             {
               enabled: true,
-              'path-operator': {
+              pathOperator: {
                 operator: 'STARTS_WITH',
                 path: '/',
               },
@@ -601,7 +620,7 @@ describe('ApiPlanFormComponent', () => {
               ],
             },
           ],
-        });
+        } as CreatePlanV2);
       });
     });
   });
@@ -720,7 +739,7 @@ describe('ApiPlanFormComponent', () => {
             ],
           },
         ],
-      });
+      } as CreatePlanV4);
     });
   });
 
@@ -792,14 +811,16 @@ describe('ApiPlanFormComponent', () => {
         characteristics: ['C1'],
         tags: [],
         validation: 'MANUAL',
-        comment_message: undefined,
-        comment_required: false,
-        excluded_groups: ['group-a'],
-        selection_rule: undefined,
-        security: 'KEY_LESS',
-        securityDefinition: undefined,
-        general_conditions: 'doc-1',
-      });
+        commentMessage: 'comment message',
+        commentRequired: false,
+        excludedGroups: ['group-a'],
+        selectionRule: undefined,
+        security: {
+          type: 'KEY_LESS',
+          configuration: {},
+        },
+        generalConditions: 'doc-1',
+      } as PlanV2);
     });
   });
 
@@ -937,12 +958,12 @@ describe('ApiPlanFormComponent', () => {
           commentRequired: false,
           excludedGroups: ['group-a'],
           security: {
-            configuration: {},
             type: 'KEY_LESS',
+            configuration: {},
           },
           generalConditions: 'doc-1',
           selectionRule: undefined,
-        });
+        } as PlanV4);
       });
     });
     describe('API Key plan', () => {
