@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM graviteeio/nginx:1.23
+FROM graviteeio/nginx:1.25
 LABEL maintainer="contact@graviteesource.com"
 
 ADD ./docker/config /etc/confd
