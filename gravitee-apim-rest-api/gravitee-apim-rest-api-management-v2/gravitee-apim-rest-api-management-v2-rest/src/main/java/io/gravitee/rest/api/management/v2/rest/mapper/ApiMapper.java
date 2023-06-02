@@ -104,7 +104,8 @@ public interface ApiMapper {
 
     // UpdateApi
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
-    UpdateApiEntity map(UpdateApiV4 updateApi);
+    @Mapping(target = "id", expression = "java(apiId)")
+    UpdateApiEntity map(UpdateApiV4 updateApi, String apiId);
 
     io.gravitee.rest.api.model.api.UpdateApiEntity map(UpdateApiV2 updateApi);
 

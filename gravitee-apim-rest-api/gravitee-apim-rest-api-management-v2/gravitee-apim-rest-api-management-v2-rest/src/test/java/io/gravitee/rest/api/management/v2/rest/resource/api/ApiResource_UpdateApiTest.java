@@ -107,6 +107,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
                 eq(API),
                 argThat(updateApiEntity -> {
                     assertEquals(updateApiV4.getName(), updateApiEntity.getName());
+                    assertEquals(API, updateApiEntity.getId());
                     return true;
                 }),
                 eq(false),
