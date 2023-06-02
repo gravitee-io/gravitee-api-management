@@ -19,11 +19,13 @@ import { TestBed } from '@angular/core/testing';
 import { ApiPlanV2Service } from './api-plan-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { ApiPlansResponse, fakePlanV4, CreatePlanV4 } from '../entities/management-api-v2';
+import { ApiPlansResponse, CreatePlanV4, fakePlanV2, fakePlanV4, fakeUpdatePlanV2, fakeUpdatePlanV4 } from '../entities/management-api-v2';
 
 describe('ApiPlanV2Service', () => {
   let httpTestingController: HttpTestingController;
   let apiPlanV2Service: ApiPlanV2Service;
+  const API_ID = 'api-id';
+  const PLAN_ID = 'plan-id';
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -40,27 +42,25 @@ describe('ApiPlanV2Service', () => {
 
   describe('list', () => {
     it('should call the API', (done) => {
-      const apiId = 'api-id';
-
       const fakeApiPlansResponse: ApiPlansResponse = {
         data: [
           fakePlanV4({
-            id: 'plan-id',
+            id: PLAN_ID,
           }),
         ],
       };
 
-      apiPlanV2Service.list(apiId).subscribe((apiPlansResponse) => {
+      apiPlanV2Service.list(API_ID).subscribe((apiPlansResponse) => {
         expect(apiPlansResponse.data).toEqual([
           fakePlanV4({
-            id: 'plan-id',
+            id: PLAN_ID,
           }),
         ]);
         done();
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans?page=1&perPage=10`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=10`,
         method: 'GET',
       });
 
@@ -70,7 +70,6 @@ describe('ApiPlanV2Service', () => {
 
   describe('create', () => {
     it('should create api plans', (done) => {
-      const apiId = 'fox';
       const plan: CreatePlanV4 = {
         description: '',
         definitionVersion: 'V4',
@@ -80,14 +79,14 @@ describe('ApiPlanV2Service', () => {
         security: { type: 'API_KEY', configuration: '{}' },
       };
 
-      apiPlanV2Service.create(apiId, plan).subscribe((response) => {
+      apiPlanV2Service.create(API_ID, plan).subscribe((response) => {
         expect(response).toMatchObject(plan);
         done();
       });
 
       const planReq = httpTestingController.expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans`,
       });
       expect(planReq.request.body).toEqual(plan);
       planReq.flush(plan);
@@ -96,18 +95,143 @@ describe('ApiPlanV2Service', () => {
 
   describe('publish', () => {
     it('should publish api plans', (done) => {
-      const apiId = 'api-1';
-      const planId = 'plan-1';
+      const plan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
 
-      apiPlanV2Service.publish(apiId, planId).subscribe(() => {
+      apiPlanV2Service.publish(API_ID, PLAN_ID).subscribe(() => {
         done();
       });
 
       const publishPlanReq = httpTestingController.expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}/_publish`,
       });
-      publishPlanReq.flush({});
+      publishPlanReq.flush(plan);
+    });
+  });
+
+  describe('update', () => {
+    it('should update api plans V2', (done) => {
+      const updatePlan = fakeUpdatePlanV2();
+      const plan = fakePlanV2({ id: PLAN_ID, apiId: API_ID });
+
+      apiPlanV2Service.update(API_ID, PLAN_ID, updatePlan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        done();
+      });
+
+      const planReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}`,
+      });
+      expect(planReq.request.body).toEqual(updatePlan);
+      planReq.flush(plan);
+    });
+
+    it('should update api plans V4', (done) => {
+      const updatePlan = fakeUpdatePlanV4();
+      const plan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
+
+      apiPlanV2Service.update(API_ID, PLAN_ID, updatePlan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        done();
+      });
+
+      const planReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}`,
+      });
+      expect(planReq.request.body).toEqual(updatePlan);
+      planReq.flush(plan);
+    });
+  });
+
+  describe('get', () => {
+    it('should get the api plan', (done) => {
+      const plan = fakePlanV2({ id: PLAN_ID, apiId: API_ID });
+
+      apiPlanV2Service.get(API_ID, PLAN_ID).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}`,
+        })
+        .flush(plan);
+    });
+  });
+
+  describe('deprecate', () => {
+    it('should deprecate the api plan V2', (done) => {
+      const plan = fakePlanV2({ id: PLAN_ID, apiId: API_ID });
+
+      apiPlanV2Service.deprecate(API_ID, PLAN_ID).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}/_deprecate`,
+      });
+
+      expect(req.request.body).toEqual({});
+      req.flush(plan);
+    });
+
+    it('should deprecate the api plan V4', (done) => {
+      const plan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
+
+      apiPlanV2Service.deprecate(API_ID, PLAN_ID).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}/_deprecate`,
+      });
+
+      expect(req.request.body).toEqual({});
+      req.flush(plan);
+    });
+  });
+
+  describe('close', () => {
+    it('should close the api plan V2', (done) => {
+      const plan = fakePlanV2({ id: PLAN_ID, apiId: API_ID });
+
+      apiPlanV2Service.close(API_ID, PLAN_ID).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}/_close`,
+      });
+
+      expect(req.request.body).toEqual({});
+      req.flush(plan);
+    });
+
+    it('should close the api plan V4', (done) => {
+      const plan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
+
+      apiPlanV2Service.close(API_ID, PLAN_ID).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}/_close`,
+      });
+
+      expect(req.request.body).toEqual({});
+      req.flush(plan);
     });
   });
 });

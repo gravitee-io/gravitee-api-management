@@ -16,6 +16,7 @@
 export * from './v2';
 export * from './v4';
 
+export * from './createPlan';
 export * from './plan';
 export * from './plan.fixture';
 export * from './planSecurity';
@@ -23,3 +24,4 @@ export * from './planSecurityType';
 export * from './planStatus';
 export * from './planType';
 export * from './planValidation';
+export * from './updatePlan';

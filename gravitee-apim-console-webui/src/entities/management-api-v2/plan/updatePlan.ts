@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CreatePlanV4 } from './v4';
-import { CreatePlanV2 } from './v2';
 
-export type CreatePlan = CreatePlanV2 | CreatePlanV4;
+import { UpdatePlanV2 } from './v2';
+import { UpdatePlanV4 } from './v4';
+
+export type UpdatePlan = UpdatePlanV2 | UpdatePlanV4;
