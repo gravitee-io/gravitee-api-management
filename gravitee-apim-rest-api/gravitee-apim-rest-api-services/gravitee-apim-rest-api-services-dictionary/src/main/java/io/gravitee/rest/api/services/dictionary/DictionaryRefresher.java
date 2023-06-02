@@ -71,7 +71,23 @@ public class DictionaryRefresher implements Handler<Long> {
             .collect(
                 Collectors.toMap(
                     Property::getKey,
-                    dynamicProperty -> (dynamicProperty.getValue() == null) ? "" : dynamicProperty.getValue()
+                    dynamicProperty -> (dynamicProperty.getValue() == null) ? "" : dynamicProperty.getValue(),
+                    (oldValue, newValue) -> {
+                        logger.error(
+                            "Duplicate key found (attempted merging values {} and {}) for dictionary {}",
+                            oldValue,
+                            newValue,
+                            dictionary.getName()
+                        );
+                        throw new IllegalStateException(
+                            String.format(
+                                "Duplicate key found (attempted merging values {} and {}) for dictionary {}",
+                                oldValue,
+                                newValue,
+                                dictionary.getName()
+                            )
+                        );
+                    }
                 )
             );
 
