@@ -92,7 +92,11 @@ class ApiPropertiesController {
     }
 
     this.$scope.$on('apiChangeSuccess', (event, args) => {
-      this.api = args.api;
+      if (args.api) {
+        this.api = args.api;
+      } else {
+        this.ApiService.get(args.apiId).then((response) => (this.api = response.data));
+      }
     });
   }
 

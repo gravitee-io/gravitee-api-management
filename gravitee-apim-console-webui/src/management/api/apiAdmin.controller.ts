@@ -64,8 +64,13 @@ class ApiAdminController {
 
   init() {
     this.$scope.$on('apiChangeSuccess', (event, args) => {
-      this.api = args.api;
-      this.checkAPISynchronization(this.api);
+      if (args.api) {
+        this.api = args.api;
+        this.checkAPISynchronization(this.api.id);
+      } else {
+        this.ApiService.get(args.apiId).then((response) => (this.api = response.data));
+        this.checkAPISynchronization(args.apiId);
+      }
     });
 
     this.FlowService.getConfiguration().then((response) => {
@@ -73,8 +78,8 @@ class ApiAdminController {
     });
   }
 
-  checkAPISynchronization(api) {
-    this.ApiService.isAPISynchronized(api.id).then((response) => {
+  checkAPISynchronization(apiId: string) {
+    this.ApiService.isAPISynchronized(apiId).then((response) => {
       this.apiJustDeployed = false;
       this.apiIsSynchronized = !!response.data.is_synchronized;
       this.$rootScope.$broadcast('checkAPISynchronizationSucceed');
