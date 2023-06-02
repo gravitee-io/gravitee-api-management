@@ -2140,18 +2140,20 @@ workflows:
                   name: Setup
                   context: cicd-orchestrator
             - job-validate:
+                  name: Validate
                   context: cicd-orchestrator
                   requires:
                       - Setup
             - job-build:
+                  name: Build
                   context: cicd-orchestrator
                   requires:
-                      - validate
+                      - Validate
             - job-e2e-lint-build:
                   name: Lint & Build APIM e2e
                   context: cicd-orchestrator
                   requires:
-                      - build
+                      - Build
             - job-e2e-test:
                   context: cicd-orchestrator
                   name: E2E - << matrix.execution_mode >> - << matrix.apim_client_tag >>
