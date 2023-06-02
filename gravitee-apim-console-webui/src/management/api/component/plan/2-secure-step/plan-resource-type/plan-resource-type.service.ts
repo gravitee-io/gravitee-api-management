@@ -19,10 +19,7 @@ import { Observable, of } from 'rxjs';
 import { isEmpty } from 'lodash';
 
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
-import { Api as ApiV3 } from '../../../../../../entities/api';
-import { Api as ApiV4 } from '../../../../../../entities/management-api-v2';
-
-type ApiResources = ApiV3['resources'] | ApiV4['resources'];
+import { Resource } from '../../../../../../entities/management-api-v2';
 
 export type PlanOAuth2Resource = {
   name: string;
@@ -34,11 +31,11 @@ export type PlanOAuth2Resource = {
 export class PlanResourceTypeService extends FieldType<FieldTypeConfig> {
   private resources: PlanOAuth2Resource[] = [];
 
-  public setResources(apiResources: ApiResources, resourceTypes: ResourceListItem[]) {
-    this.resources = [...apiResources].map((apiResource) => {
-      const resourceType = resourceTypes.find((type) => type.id === apiResource.type);
+  public setResources(resources: Resource[], resourceTypes: ResourceListItem[]) {
+    this.resources = [...resources].map((resource) => {
+      const resourceType = resourceTypes.find((type) => type.id === resource.type);
       const icon = resourceType?.icon ? resourceType.icon : null;
-      return { icon, name: apiResource.name, type: apiResource.type };
+      return { icon, name: resource.name, type: resource.type };
     });
   }
 

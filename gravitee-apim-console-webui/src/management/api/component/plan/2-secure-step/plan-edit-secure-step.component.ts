@@ -25,8 +25,7 @@ import { Constants } from '../../../../../entities/Constants';
 import { PolicyService } from '../../../../../services-ngx/policy.service';
 import { ResourceService } from '../../../../../services-ngx/resource.service';
 import { ResourceListItem } from '../../../../../entities/resource/resourceListItem';
-import { Api as ApiV3 } from '../../../../../entities/api';
-import { ApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV2, ApiV4 } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { PlanSecurityVM } from '../../../../../services-ngx/constants.service';
 
@@ -45,7 +44,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   private resourceTypes: ResourceListItem[];
 
   @Input()
-  public api: ApiV3 | ApiV4;
+  public api: ApiV2 | ApiV4;
 
   @Input()
   securityType: PlanSecurityVM;
