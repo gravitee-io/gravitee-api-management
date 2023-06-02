@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.HttpRequest;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
@@ -42,6 +43,7 @@ import io.vertx.rxjava3.core.Vertx;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,6 +149,14 @@ public class DebugReactorEventListener extends ReactorEventListener {
             io.gravitee.definition.model.debug.DebugApi eventPayload = objectMapper.readValue(
                 event.getPayload(),
                 io.gravitee.definition.model.debug.DebugApi.class
+            );
+
+            eventPayload.setPlans(
+                eventPayload
+                    .getPlans()
+                    .stream()
+                    .filter(plan -> !PlanStatus.CLOSED.name().equalsIgnoreCase(plan.getStatus()))
+                    .collect(Collectors.toList())
             );
 
             DebugApi debugApi = new DebugApi(event.getId(), eventPayload);

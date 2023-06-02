@@ -21,8 +21,7 @@ import static io.gravitee.gateway.debug.utils.Stubs.getAnEvent;
 import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -34,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.definition.model.HttpRequest;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
@@ -396,5 +396,50 @@ class DebugReactorEventListenerTest {
         assertThat(result.getAll("accept-encoding")).containsAll(List.of("deflate", "gzip", "compress"));
         // Implementation returned by convertHeaders(headers) will return the first value when using get(key)
         assertThat(result.get("accept-encoding")).contains("deflate");
+    }
+
+    @Test
+    public void shouldDebugApiAndFilterClosedPlan() throws TechnicalException, JsonProcessingException {
+        io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
+        Plan keylessPlan = new Plan();
+        keylessPlan.setId("keyless-plan");
+        keylessPlan.setSecurity("KEY_LESS");
+        keylessPlan.setStatus("CLOSED");
+
+        final HttpRequest httpRequest = new HttpRequest();
+        httpRequest.setMethod("GET");
+        httpRequest.setPath("/path1");
+        httpRequest.setBody("request body");
+        debugApiModel.setRequest(httpRequest);
+        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
+
+        Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
+        final ReactableWrapper<Event> reactableWrapper = new ReactableWrapper(anEvent);
+
+        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
+
+        final HttpClient mockHttpClient = mock(HttpClient.class);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
+
+        // Mock successful Buffer body in HttpClientResponse
+        final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
+        when(httpClientResponse.statusCode()).thenReturn(200);
+        final Buffer bodyBuffer = Buffer.buffer("response body");
+        when(httpClientResponse.rxBody()).thenReturn(Single.just(bodyBuffer));
+
+        // Mock successful HttpClientRequest
+        final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
+        when(mockHttpClient.rxRequest(any())).thenReturn(Single.just(httpClientRequest));
+        when(httpClientRequest.setChunked(true)).thenReturn(httpClientRequest);
+        when(httpClientRequest.rxSend(any(String.class))).thenReturn(Single.just(httpClientResponse));
+
+        debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
+
+        verify(reactorHandlerRegistry, times(1))
+            .contains(
+                argThat(debugApi ->
+                    ((DebugApi) debugApi).getDefinition().getPlans().stream().noneMatch(plan -> plan.getStatus().equals("CLOSED"))
+                )
+            );
     }
 }
