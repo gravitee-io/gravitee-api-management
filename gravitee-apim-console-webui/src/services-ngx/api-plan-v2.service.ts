@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApiPlansResponse, PlanStatus, CreatePlanV4, Plan } from '../entities/management-api-v2';
+import { ApiPlansResponse, CreatePlan, Plan, PlanStatus, UpdatePlan } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -36,11 +36,27 @@ export class ApiPlanV2Service {
     });
   }
 
-  public create(apiId: string, plan: CreatePlanV4): Observable<Plan> {
+  public create(apiId: string, plan: CreatePlan): Observable<Plan> {
     return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans`, plan);
   }
 
-  public publish(apiId: string, planId: string): Observable<void> {
-    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`, {});
+  public publish(apiId: string, planId: string): Observable<Plan> {
+    return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`, {});
+  }
+
+  public get(apiId: string, planId: string): Observable<Plan> {
+    return this.http.get<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}`);
+  }
+
+  public deprecate(apiId: string, planId: string): Observable<Plan> {
+    return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_deprecate`, {});
+  }
+
+  public close(apiId: string, planId: string): Observable<Plan> {
+    return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_close`, {});
+  }
+
+  public update(apiId: string, planId: string, plan: UpdatePlan): Observable<Plan> {
+    return this.http.put<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}`, plan);
   }
 }
