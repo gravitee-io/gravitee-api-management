@@ -87,10 +87,6 @@ public class AbstractAttributesIntegrationTest extends AbstractGatewayTest {
         }
     }
 
-    protected static Map<String, String> extractHeaders(HttpClientResponse response) {
-        return response.headers().entries().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
     protected ApiKey anApiKey(ReactableApi<?> api) {
         final ApiKey apiKey = new ApiKey();
         apiKey.setApi(api.getId());
