@@ -71,6 +71,8 @@ class MockEndpointConnectorFactoryTest {
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getMessageContent()).isNotNull();
         assertThat(connector.configuration.getMessageInterval()).isNotNull();
+        assertThat(connector.configuration.isPopulateHeaders()).isFalse();
+        assertThat(connector.configuration.isPopulateMetadata()).isFalse();
     }
 
     @Test
@@ -80,5 +82,7 @@ class MockEndpointConnectorFactoryTest {
         assertThat(connector.configuration).isNotNull();
         assertThat(connector.configuration.getMessageContent()).isNotNull();
         assertThat(connector.configuration.getMessageInterval()).isNotNull();
+        assertThat(connector.configuration.isPopulateHeaders()).isFalse();
+        assertThat(connector.configuration.isPopulateMetadata()).isFalse();
     }
 }

@@ -37,6 +37,16 @@ public class MockEndpointConnectorConfiguration implements EndpointConnectorConf
     private String messageContent = "mock message";
 
     /**
+     * Copy message content into a header. The header name will be 'X-Mock-Header'.
+     */
+    private boolean populateHeaders;
+
+    /**
+     * Copy message content into a metadata entry. The entry key will be 'mock-metadata'.
+     */
+    private boolean populateMetadata;
+
+    /**
      * Count of published messages.
      * If null, there is no limit.
      */

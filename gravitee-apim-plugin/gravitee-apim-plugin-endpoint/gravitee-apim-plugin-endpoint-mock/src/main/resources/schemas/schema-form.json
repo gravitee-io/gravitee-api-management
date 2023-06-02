@@ -9,17 +9,29 @@
             "default": 1000
         },
         "messageContent": {
-            "title": "Content of published messages",
-            "description": "Content of published messages. Will be suffixed with message index.",
-            "type": "string",
-            "format": "text",
-            "default": "mock message"
+          "title": "Content of published messages",
+          "description": "Content of published messages. Will be suffixed with message index.",
+          "type": "string",
+          "format": "text",
+          "default": "mock message"
         },
-        "messageCount": {
-            "title": "Count of published messages",
-            "description": "Count of published messages. If not specified, there is no limit.",
-            "type": "integer"
-        }
+      "messageCount": {
+        "title": "Count of published messages",
+        "description": "Count of published messages. If not specified, there is no limit.",
+        "type": "integer"
+      },
+      "populateMetadata": {
+        "title": "Populate Metadata",
+        "description": "Copy message content into a metadata entry. The entry key will be 'mock-metadata'.",
+        "type": "boolean",
+        "default": false
+      },
+      "populateHeaders": {
+        "title": "Populate Headers",
+        "description": "Copy message content into a header. The header name will be 'X-Mock-Header'.",
+        "type": "boolean",
+        "default": false
+      }
     },
     "required": ["messageContent", "messageInterval"],
     "additionalProperties": false
