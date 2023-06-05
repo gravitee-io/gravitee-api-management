@@ -145,6 +145,10 @@ spec:
             - name: GRAVITEE_PLUGINS_PATH_1
               value: '${gravitee.home}/plugins-ext'
             {{- end }}
+            {{- if .Values.upgrader }}
+            - name: "upgrade.mode"
+              value: "false"
+            {{- end }}
             {{- if .Values.cockpit.enabled }}
             - name: gravitee_cockpit_enabled
               value: "true"

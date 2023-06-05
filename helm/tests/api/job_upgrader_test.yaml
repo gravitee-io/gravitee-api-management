@@ -21,14 +21,57 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].image
           value: graviteeio/apim-management-api:1.0.0-app
-      - equal:
+      - contains:
           path: spec.template.spec.containers[0].env
-          value:
-            - name: gravitee_upgrade_mode
+          content:
+            - name: GRAVITEE_UPGRADE_MODE
               value: "true"
       - isEmpty:
           # It should not contain init containers by default
           path: spec.template.spec.initContainers
+
+
+  - it: Check that sync services have been disabled
+    template: api/api-upgrader-job.yaml
+    set:
+      api:
+        upgrader: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            - name: GRAVITEE_SYNC_ENABLED
+              value: "false"
+
+  - it: Check that alerts have been disabled
+    template: api/api-upgrader-job.yaml
+    set:
+      api:
+        upgrader: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            - name: GRAVITEE_ALERTS_ENABLED
+              value: "false"
+
+  - it: Check that cockpit has been disabled
+    template: api/api-upgrader-job.yaml
+    set:
+      api:
+        upgrader: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[3].env
+          content:
+            - name: GRAVITEE_COCKPIT_ENABLED
+              value: "false"
 
   - it: Check if the helm hook annotations are present
     set:

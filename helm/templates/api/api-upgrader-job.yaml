@@ -111,8 +111,14 @@ spec:
             - name: {{ .Values.api.service.internalPortName }}
               containerPort: {{ .Values.api.service.internalPort }}
           env:
-            - name: gravitee_upgrade_mode
+            - name: GRAVITEE_UPGRADE_MODE
               value: "true"
+            - name: GRAVITEE_SERVICES_SYNC_ENABLED
+              value: "false"
+            - name: GRAVITEE_ALERTS_ENABLED
+              value: "false"
+            - name: GRAVITEE_COCKPIT_ENABLED
+              value: "false"
             {{- if $plugins }}
             - name: GRAVITEE_PLUGINS_PATH_0
               value: '${gravitee.home}/plugins'
