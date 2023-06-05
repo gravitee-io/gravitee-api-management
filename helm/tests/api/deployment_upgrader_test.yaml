@@ -1,0 +1,28 @@
+suite: Test Management API default deployment
+templates:
+  - "api/api-deployment.yaml"
+  - "api/api-configmap.yaml"
+tests:
+  - it: Check that upgrade.mode is not defined by default
+    template: api/api-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            - name: "upgrade.mode"
+              value: "false"
+  - it: Check that upgrade.mode is false if upgrader is true
+    template: api/api-deployment.yaml
+    set:
+      api:
+        upgrader: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            - name: "upgrade.mode"
+              value: "false"
