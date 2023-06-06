@@ -38,3 +38,6 @@ Inside a path, operations are sorted by this order:
  - post
  - put
  - delete
+
+Description of the operations must be written in Markdown format.<br>
+Must contain the needed permissions <br>
