@@ -10,7 +10,7 @@ info:
         url: http://www.apache.org/licenses/LICENSE-2.0.html
     version: 2.0.0
 tags:
-    - name: API
+    - name: APIs
       description: Everything about APIs
     - name: API Members
       description: Everything about API members

@@ -29,3 +29,6 @@ In the test java package, can be found:
  - `fixtures`: a package containing the fixtures of the tests. They are helpers to create entities.
  - `security`: a package containing the tests of the security layer of the API.
 
+## Development guidelines
+### OpenAPI specification
+Tags are sorted by name.<br>
