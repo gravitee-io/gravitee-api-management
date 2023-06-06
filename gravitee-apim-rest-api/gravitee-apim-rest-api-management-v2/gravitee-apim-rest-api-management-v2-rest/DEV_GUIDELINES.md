@@ -33,3 +33,8 @@ In the test java package, can be found:
 ### OpenAPI specification
 Tags are sorted by name.<br>
 Paths are sorted by tag and by name.<br>
+Inside a path, operations are sorted by this order:
+ - get
+ - post
+ - put
+ - delete
