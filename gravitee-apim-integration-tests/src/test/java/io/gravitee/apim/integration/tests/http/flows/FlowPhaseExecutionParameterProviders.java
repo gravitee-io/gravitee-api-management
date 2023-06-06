@@ -17,7 +17,6 @@ package io.gravitee.apim.integration.tests.http.flows;
 
 import java.util.Map;
 import java.util.stream.Stream;
-
 import org.junit.jupiter.params.provider.Arguments;
 
 /**
