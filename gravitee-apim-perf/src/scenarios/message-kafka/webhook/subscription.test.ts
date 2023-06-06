@@ -66,6 +66,7 @@ if (__VU == 0) {
 }
 
 export const options = k6Options;
+options['teardownTimeout'] = `${k6Options.apim.webhook.waitDurationInSec + 120}s`;
 options['thresholds'] = {
   // Base thresholds to see if the writer or reader is working
   kafka_writer_error_count: ['count == 0'],
@@ -197,6 +198,9 @@ export function setup(): GatewayTestData {
             callbackUrl: `${k6Options.apim.webhook.callbackBaseUrl}/subscription_${i}`,
           },
         },
+        metadata: {
+          consumerGroup: `subscription_${i}`,
+        },
       },
       {
         headers: {
@@ -243,6 +247,9 @@ export default (data: GatewayTestData) => {
 };
 
 export function teardown(data: GatewayTestData) {
+  // wait a given time to let the consumers consume the topic
+  sleep(k6Options.apim.webhook.waitDurationInSec);
+
   if (data.subscriptions) {
     data.subscriptions.forEach((sub) => {
       ApisV4Client.stopSubscription(data.api.id, sub.id, {

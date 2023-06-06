@@ -54,6 +54,7 @@ const k6DefaultOptions: Configuration = {
       compression: 'snappy',
       withJsontoJson: true,
       acks: 1,
+      waitDurationInSec: 60,
     },
     kafkaInjector: {
       messageSizeInKB: 1,

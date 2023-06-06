@@ -62,6 +62,7 @@ interface Webhook {
   compression: string;
   acks: number;
   withJsontoJson: boolean;
+  waitDurationInSec: number;
 }
 
 interface KafkaInjector {
