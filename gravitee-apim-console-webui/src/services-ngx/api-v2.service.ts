@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { Api, ApiSearchQuery, ApiSortByParam, ApisResponse, CreateApi } from '../entities/management-api-v2';
+import { Api, ApiSearchQuery, ApiSortByParam, ApisResponse, CreateApi, UpdateApi } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -32,6 +32,10 @@ export class ApiV2Service {
 
   get(id: string): Observable<Api> {
     return this.http.get<Api>(`${this.constants.env.v2BaseURL}/apis/${id}`);
+  }
+
+  update(apiId: string, api: UpdateApi): Observable<Api> {
+    return this.http.put<Api>(`${this.constants.env.v2BaseURL}/apis/${apiId}`, api);
   }
 
   start(apiId: string): Observable<void> {

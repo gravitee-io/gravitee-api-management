@@ -40,12 +40,16 @@ export class ApiPlanV2Service {
     return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans`, plan);
   }
 
-  public publish(apiId: string, planId: string): Observable<Plan> {
-    return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`, {});
-  }
-
   public get(apiId: string, planId: string): Observable<Plan> {
     return this.http.get<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}`);
+  }
+
+  public update(apiId: string, planId: string, plan: UpdatePlan): Observable<Plan> {
+    return this.http.put<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}`, plan);
+  }
+
+  public publish(apiId: string, planId: string): Observable<Plan> {
+    return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_publish`, {});
   }
 
   public deprecate(apiId: string, planId: string): Observable<Plan> {
@@ -54,9 +58,5 @@ export class ApiPlanV2Service {
 
   public close(apiId: string, planId: string): Observable<Plan> {
     return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}/_close`, {});
-  }
-
-  public update(apiId: string, planId: string, plan: UpdatePlan): Observable<Plan> {
-    return this.http.put<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans/${planId}`, plan);
   }
 }
