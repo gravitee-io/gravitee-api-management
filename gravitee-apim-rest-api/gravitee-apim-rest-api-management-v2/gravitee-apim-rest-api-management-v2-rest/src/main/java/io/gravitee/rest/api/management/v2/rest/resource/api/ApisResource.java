@@ -101,11 +101,6 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response createApiWithDefinition(@Valid ExportApiV4 apiToImport) {
-        // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
-        if (apiToImport.getApi().getActualInstance() instanceof ApiV2) {
-            throw new ApiDefinitionVersionNotSupportedException(DefinitionVersion.V2.getLabel());
-        }
-
         ExportApiEntity exportApiEntity = ImportExportApiMapper.INSTANCE.map(apiToImport);
         GenericApiEntity fromExportedApi = apiImportExportService.createFromExportedApi(
             GraviteeContext.getExecutionContext(),

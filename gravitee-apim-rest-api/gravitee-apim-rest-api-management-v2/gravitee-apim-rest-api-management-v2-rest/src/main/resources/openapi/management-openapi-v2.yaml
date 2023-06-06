@@ -79,7 +79,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/Api"
+                                $ref: "#/components/schemas/ApiV4"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/_import/definition:
@@ -174,7 +174,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/Api"
+                            $ref: "#/components/schemas/UpdateApi"
                 required: true
             responses:
                 "200":
@@ -1363,7 +1363,7 @@ components:
             type: object
             properties:
                 api:
-                    $ref: "#/components/schemas/Api"
+                    $ref: "#/components/schemas/ApiV4"
                 members:
                     type: array
                     description: The list of members associated with this API.
