@@ -40,7 +40,7 @@ public interface PlanMapper {
 
     @Mapping(target = "status", qualifiedByName = "convertPlanStatusV2")
     @Mapping(source = "security", target = "security.type")
-    @Mapping(source = "securityDefinition", target = "security.configuration")
+    @Mapping(source = "securityDefinition", target = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(constant = "V2", target = "definitionVersion")
     PlanV2 convert(io.gravitee.rest.api.model.PlanEntity planEntity);
 
