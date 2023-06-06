@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './api';
-export * from './connector';
-export * from './createApi';
-export * from './member';
-export * from './plan';
-export * from './updateApi';
+import { UpdateBaseApi } from './updateBaseApi';
 
-export * from './apiDeployment';
-export * from './apiPlansResponse';
-export * from './apiSearchQuery';
-export * from './apiSortByParam';
-export * from './apisResponse';
-export * from './environment';
-export * from './links';
-export * from './metadataResponse';
-export * from './modelError';
-export * from './organization';
-export * from './pagedResult';
-export * from './pagination';
+import { ExecutionMode, FlowV2, Proxy, ServicesV2 } from '../api/v2';
+import { FlowMode } from '../api';
+
+export interface UpdateApiV2 extends UpdateBaseApi {
+  definitionVersion: 'V2';
+  proxy?: Proxy;
+  flowMode?: FlowMode;
+  /** @description The list of flows associated with this API. */
+  flows?: FlowV2[];
+  services?: ServicesV2;
+  /** @description The list of path mappings associated with this API. */
+  pathMappings?: string[];
+  executionMode?: ExecutionMode;
+}

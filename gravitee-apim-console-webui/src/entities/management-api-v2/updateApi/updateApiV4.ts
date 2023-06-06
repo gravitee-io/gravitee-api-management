@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { UpdateBaseApi } from './updateBaseApi';
 
-import { Analytics } from './analytics';
-import { ApiServices } from './apiServices';
-import { ApiType } from './apiType';
-import { Listener } from './listener';
-import { FlowV4 } from './flowV4';
-import { EndpointGroupV4 } from './endpointGroupV4';
-import { FlowExecution } from './flowExecution';
+import { Analytics, ApiServices, ApiType, EndpointGroupV4, FlowExecution, FlowV4, Listener } from '../api/v4';
 
-import { BaseApi } from '../baseApi';
-
-export interface ApiV4 extends BaseApi {
+export interface UpdateApiV4 extends UpdateBaseApi {
   definitionVersion: 'V4';
   type: ApiType;
-  /**
-   * The list of listeners associated with this API.
-   */
+  /** @description The list of listeners associated with this API. */
   listeners?: Listener[];
   endpointGroups?: EndpointGroupV4[];
   analytics?: Analytics;

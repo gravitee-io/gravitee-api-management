@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'lodash';
 
-import { Api, BaseApi, ApiV2, ApiV4 } from '.';
+import { BaseApi, ApiV2, ApiV4 } from '.';
 
 export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) => BaseApi)): BaseApi {
   const base: BaseApi = {
@@ -85,9 +85,10 @@ export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) =>
   };
 }
 
-export function fakeApiV2(modifier?: Partial<Api> | ((baseApi: Api) => Api)): Api {
+export function fakeApiV2(modifier?: Partial<ApiV2> | ((baseApi: ApiV2) => ApiV2)): ApiV2 {
   const base: ApiV2 = {
     ...fakeBaseApi(modifier),
+    definitionVersion: 'V2',
     entrypoints: [
       {
         target: 'https://api.company.com/planets',
@@ -193,9 +194,10 @@ export function fakeApiV2(modifier?: Partial<Api> | ((baseApi: Api) => Api)): Ap
   };
 }
 
-export function fakeApiV4(modifier?: Partial<Api> | ((baseApi: Api) => Api)): Api {
+export function fakeApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => ApiV4)): ApiV4 {
   const base: ApiV4 = {
-    ...fakeBaseApi({ ...modifier, definitionVersion: 'V4' }),
+    ...fakeBaseApi({ ...modifier }),
+    definitionVersion: 'V4',
     type: 'MESSAGE',
     listeners: [
       {

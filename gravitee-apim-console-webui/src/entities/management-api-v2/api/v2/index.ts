@@ -27,6 +27,7 @@ export * from './endpointGroupV2';
 export * from './endpointHealthCheckService';
 export * from './endpointStatus';
 export * from './endpointV2';
+export * from './executionMode';
 export * from './failover';
 export * from './failoverCase';
 export * from './flowStage';

@@ -17,10 +17,10 @@ import { PathV1 } from './pathV1';
 
 import { BaseApi } from '../baseApi';
 import { ApiEntrypoint } from '../apiEntrypoint';
-import { ExecutionMode } from '../executionMode';
-import { Proxy, ServicesV2 } from '../v2';
+import { ExecutionMode, Proxy, ServicesV2 } from '../v2';
 
 export interface ApiV1 extends BaseApi {
+  definitionVersion: 'V1';
   /**
    * The environment's uuid.
    */

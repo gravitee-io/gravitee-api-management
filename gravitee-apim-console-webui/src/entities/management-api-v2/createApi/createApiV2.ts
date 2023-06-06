@@ -15,9 +15,11 @@
  */
 import { CreateBaseApi } from './createBaseApi';
 
-import { FlowMode, FlowV2 } from '../api';
+import { FlowV2 } from '../api/v2';
+import { FlowMode } from '../api';
 
 export interface CreateApiV2 extends CreateBaseApi {
+  definitionVersion: 'V2';
   /**
    * API's context path. It's the base path of your API.
    */
