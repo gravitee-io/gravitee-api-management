@@ -16,9 +16,10 @@
 
 import { CreateBaseApi } from './createBaseApi';
 
-import { Analytics, ApiType, EndpointGroupV4, FlowExecution, FlowV4, Listener } from '../api';
+import { Analytics, ApiType, EndpointGroupV4, FlowExecution, FlowV4, Listener } from '../api/v4';
 
 export interface CreateApiV4 extends CreateBaseApi {
+  definitionVersion: 'V4';
   type?: ApiType;
   /**
    * The list of sharding tags associated with this API.

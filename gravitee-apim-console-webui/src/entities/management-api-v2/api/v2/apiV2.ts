@@ -17,13 +17,14 @@
 import { Proxy } from './proxy';
 import { ServicesV2 } from './servicesV2';
 import { FlowV2 } from './flowV2';
+import { ExecutionMode } from './executionMode';
 
-import { FlowMode } from '../flowMode';
 import { BaseApi } from '../baseApi';
 import { ApiEntrypoint } from '../apiEntrypoint';
-import { ExecutionMode } from '../executionMode';
+import { FlowMode } from '../flowMode';
 
 export interface ApiV2 extends BaseApi {
+  definitionVersion: 'V2';
   /**
    * The environment's uuid.
    */

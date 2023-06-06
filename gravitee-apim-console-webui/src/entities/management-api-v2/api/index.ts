@@ -26,7 +26,6 @@ export * from './baseApi';
 export * from './cors';
 export * from './definitionContext';
 export * from './definitionVersion';
-export * from './executionMode';
 export * from './flowMode';
 export * from './httpMethod';
 export * from './loadBalancer';

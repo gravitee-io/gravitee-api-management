@@ -15,11 +15,11 @@
  */
 import { isFunction } from 'lodash';
 
-import { CreateApiV4 } from './createApiV4';
-import { CreateBaseApi } from './createBaseApi';
+import { UpdateBaseApi } from './updateBaseApi';
+import { UpdateApiV4 } from './updateApiV4';
 
-export function fakeCreateBaseApi(modifier?: Partial<CreateBaseApi> | ((baseApi: CreateBaseApi) => CreateBaseApi)): CreateBaseApi {
-  const base: CreateBaseApi = {
+export function fakeUpdateBaseApi(modifier?: Partial<UpdateBaseApi> | ((base: UpdateBaseApi) => UpdateBaseApi)): UpdateBaseApi {
+  const base: UpdateBaseApi = {
     name: '\uD83E\uDE90 Planets',
     description: 'The whole universe in your hand.',
     apiVersion: '1.0',
@@ -37,9 +37,9 @@ export function fakeCreateBaseApi(modifier?: Partial<CreateBaseApi> | ((baseApi:
   };
 }
 
-export function fakeCreateApiV4(modifier?: Partial<CreateApiV4> | ((baseApi: CreateApiV4) => CreateApiV4)): CreateApiV4 {
-  const base: CreateApiV4 = {
-    ...fakeCreateBaseApi({ ...modifier }),
+export function fakeUpdateApiV4(modifier?: Partial<UpdateApiV4> | ((base: UpdateApiV4) => UpdateApiV4)): UpdateApiV4 {
+  const base: UpdateApiV4 = {
+    ...fakeUpdateBaseApi({ ...modifier }),
     definitionVersion: 'V4',
     type: 'MESSAGE',
     listeners: [

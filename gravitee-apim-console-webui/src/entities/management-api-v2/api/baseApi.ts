@@ -28,7 +28,7 @@ export interface BaseApi {
   /**
    * API's uuid.
    */
-  id?: string;
+  id: string;
   /**
    * API's crossId. Identifies API across environments.
    */
@@ -36,7 +36,7 @@ export interface BaseApi {
   /**
    * API's name. Duplicate names can exists.
    */
-  name?: string;
+  name: string;
   /**
    * API's description. A short description of your API.
    */
@@ -44,7 +44,7 @@ export interface BaseApi {
   /**
    * API's version. It's a simple string only used in the portal.
    */
-  apiVersion?: string;
+  apiVersion: string;
   definitionVersion?: DefinitionVersion;
   /**
    * The last date (as timestamp) when the API was deployed.
