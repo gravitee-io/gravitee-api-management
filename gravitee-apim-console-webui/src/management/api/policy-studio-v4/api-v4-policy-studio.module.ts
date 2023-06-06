@@ -16,11 +16,12 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiV4PolicyStudioDesignComponent } from './design/api-v4-policy-studio-design.component';
 
 @NgModule({
-  imports: [CommonModule, GioPolicyStudioModule],
+  imports: [CommonModule, GioPolicyStudioModule, MatSnackBarModule],
   declarations: [ApiV4PolicyStudioDesignComponent],
 })
 export class ApiV4PolicyStudioModule {}
