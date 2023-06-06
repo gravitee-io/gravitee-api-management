@@ -1,0 +1,1159 @@
+[[graviteeio-api-management-helm-chart]]
+[[graviteeio-api-management-helm-chart]]
+== Gravitee.io API Management Helm Chart
+
+Installing APIM on Kubernetes is easy with the help of our Helm Chart. **This Helm Chart supports versions: 3.0.x and higher** and will deploy the following:
+
+* Gravitee Management API.
+* Gravitee Management UI.
+* Gravitee Portal UI.
+* Gravitee Gateway.
+* MongoDB replica set or PostgresSQL (optional dependency).
+* Elasticsearch Cluster (optional dependency).
+
+=== Prerequisites
+
+. https://kubernetes.io/docs/tasks/tools/#kubectl[Kubectl].
+. https://helm.sh/docs/intro/install/[Helm v3].
+. MongoDB or PostgreSQL. (Not to worry, this Helm Chart will deploy these.)
+. Elasticsearch. (This Helm Chart will also deploy this.)
+
+
+
+=== Install the Helm Chart repo
+
+Add the Gravitee.io Helm charts repo using the commmand below:
+
+....
+$ helm repo add graviteeio https://helm.gravitee.io
+....
+
+
+=== Install the Helm Chart
+
+
+Now, install the chart from the Helm repo with the release name
+
+`+graviteeio-apim3x+`.
+
+To prevent potential issues in the future, it is best practice to create a separate namespace for your installation in order to prevent the use of the default Kubernetes namespace. The installation command provided immediately below assumes that such best practice is followed, however this is not a mandatory requirement.
+
+To install the Helm Chart using a dedicated namespace (we use `+gravitee-apim+` as an example), run the following command:
+
+[source,bash]
+----
+helm install graviteeio-apim3x graviteeio/apim3 --create-namespace --namespace gravitee-apim
+----
+
+To install the Helm Chart using the default namespace (not recommended), run the following command:
+
+[source,bash]
+----
+helm install graviteeio-apim3x graviteeio/apim3
+----
+
+NOTE: If you choose to modify the `values.yml` configuration file prior to the installation, make sure to
+include it by adding `-f values.yaml` as an argument. For example: **`$ helm install graviteeio-apim3x graviteeio/apim3 --create-namespace --namespace gravitee-apim -f values.yaml`.**
+
+
+=== Create a Helm Chart archive
+
+You can also package this chart directory into a chart archive by running:
+
+....
+$ helm package .
+....
+
+
+Now, to install the chart using the chart archive, run:
+
+....
+$ helm install apim3-3.0.0.tgz
+....
+
+=== Helm Install Command Tips
+
+Specify each parameter using the `+--set key=value[,key=value]+`
+argument to `+helm install+`.
+
+Alternatively, a YAML file that specifies the values for the parameters
+can be provided while installing the chart. For example,
+
+[source,bash]
+----
+$ helm install my-release -f values.yaml gravitee
+----
+
+____
+*Tip*: You can use the default values.yaml.
+____
+
+NOTE: When you install APIM, it automatically uses the default values from the 'values.yml` config file which can be modified using the parameters in the tables the end of this page. For example, you can change the default value of host name from `apim.exmaple.com` to your specific host name by searching through our documentation and replacing the values you want to modify.
+
+
+=== Configuration
+
+The following tables list the configurable parameters of the Gravitee
+chart and their default values.
+
+You can rely on kubernetes _ConfigMaps_ and _Secrets_ to initialize Gravitee settings since APIM 3.15.0.
+To use this feature, you have to create the ServiceAccount that allows APIM to connect to the Kubernetes API (the helm chart should do it by default) and then you simply have to define your application settings like this:
+
+* for a Secret : `kubernetes://<namespace>/secrets/<my-secret-name>/<my-secret-key>`
+* for a ConfigMap : `kubernetes://<namespace>/configmaps/<my-configmap-name>/<my-configmap-key>`
+
+
+Here is an example for the mongodb uri initialized from the `mongo` secret deployed in the `default` namespace:
+
+[source,yaml]
+----
+mongo:
+  uri: kubernetes://default/secrets/mongo/mongouri
+----
+
+[TIP]
+====
+If you need to access a secret, you have to create a role within your namespace.
+
+If you are deploying in another namespace and you need to access a secret there, you have to create a separate role in that namespace. The two roles can have the same name, but they are completely separate objects - each role only gives access to the namespace it is created in.
+
+For more information about roles, see link:https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole[Role and ClusterRole] in the link:https://kubernetes.io/docs/[Kubernetes documentation].
+====
+
+==== External configuration file
+
+If you want to use an external configuration file, such as `gravitee.yml` for the gateway or API management, or `constant.json` for the UI, add the following lines to the helm chart.
+
+[code,yml]
+----
+extraVolumes: |
+    - name: config
+      configMap:
+        name: gravitee-config-configmap-name
+----
+
+Where `gravitee-config-configmap-name` is the configmap name containing the external configuration file.
+
+External configuration files are only available for the AE Helm chart 1.1.42 and above, the AM Helm chart 1.0.53 and above, and the APIM Helm chart 3.1.60 and above.
+
+==== Shared Configuration
+
+To configure common features such as:
+
+* chaos testing (see
+https://github.com/kubernetes/charts/tree/master/stable/chaoskube[chaoskube]
+chart).
+* configuration database (see
+https://github.com/bitnami/charts/tree/master/bitnami/mongodb[mongodb]
+chart).
+* logs database (see
+https://github.com/bitnami/charts/tree/master/bitnami/elasticsearch[elasticsearch]
+chart).
+
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+chaos.enabled+` |Enable Chaos test |false
+|`+inMemoryAuth.enabled+` |Enable oauth login |true
+|`+ldap.enabled+` |Enable LDAP login |false
+|===
+
+==== MongoDB
+To install MongoDB via Helm command, run the following:
+`helm install mongodb bitnami/mongodb --set auth.rootPassword=r00t`
+
+===== MongoDB Connections
+
+There are three ways to configure MongoDB connections.
+
+. The simplest way is to provide the
+https://docs.mongodb.com/manual/reference/connection-string/[MongoDB
+URI].
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+mongo.uri+` |Mongo URI |`+null+`
+|===
+
+[start=2]
+. If no `+mongo.uri+` is provided, you can provide a `+mongo.servers+` raw
+definition in combination with `+mongo.dbname+`, plus eventual
+authentication configuration:
+
+[source,yaml]
+----
+mongo:
+  servers: |
+    - host: mongo1
+      port: 27017
+    - host: mongo2
+      port: 27017
+  dbname: gravitee
+  auth:
+    enabled: false
+    username:
+    password:
+----
+
+[start=3]
+. If neither `+mongo.uri+` or `+mongo.servers+` are provided, you must
+define the following configuration options:
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+mongo.rsEnabled+` |Whether Mongo replicaset is enabled or not
+|`+true+`
+
+|`+mongo.rs+` |Mongo replicaset name |`+rs0+`
+
+|`+mongo.dbhost+` |Mongo host address |`+mongo-mongodb-replicaset+`
+
+|`+mongo.dbport+` |Mongo host port |`+27017+`
+
+|`+mongo.dbname+` |Mongo DB name |`+gravitee+`
+
+|`+mongo.auth.enabled+` |Enable Mongo DB authentication |`+false+`
+
+|`+mongo.auth.username+` |Mongo DB username |`+null+`
+
+|`+mongo.auth.password+` |Mongo DB password |`+null+`
+|===
+
+===== Other Keys
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+mongo.sslEnabled+` |Enable SSL connection to MongoDB |`+false+`
+|`+mongo.socketKeepAlive+` |Enable keep alive for socket |`+false+`
+|===
+
+==== Mongo Replica Set
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+mongodb-replicaset.enabled+` |Enable deployment of Mongo replicaset
+|`+false+`
+|===
+
+See
+https://github.com/bitnami/charts/tree/master/bitnami/mongodb[MongoDB] for detailed documentation on helm chart.
+
+Please be aware that the mongodb-replicaset installed by Gravitee is NOT recommended in production and it is just for testing purpose and running APIM locally.
+
+NOTE: You may encounter issues while running this Helm Charts on Apple Silicon M1 (see https://github.com/bitnami/charts/issues/7305). If you want to deploy MongoDB on M1 we encourage you to switch to an other Helm Charts for deploying MongoDB.
+
+==== PostgresSQL (via JDBC Connection)
+To install a new PostgresSQL database, use the command below and update the `username`, `password`, and `databasename` parameters:
+----
+helm install --set postgresqlUsername=postgres --set postgresqlPassword=P@ssw0rd
+--set postgresqlDatabase=graviteeapim postgres-apim bitnami/postgresql
+----
+
+
+Check that PostgreSQL pod is up and running before proceeding by running `kubectl get pods` as indicated below.
+
+----
+$ kubectl get pods
+NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
+postgres-apim-postgresql-0                1/1     Running      0           98s
+----
+
+
+For PostgrestSQL, use the information below in `values.yml` and replace the `username`, `password`,
+`URL` and `database name` with details for your specific instance.
+
+----
+jdbc:
+  driver: https://jdbc.postgresql.org/download/postgresql-42.2.23.jar
+  url: jdbc:postgresql://postgres-apim-postgresql:5432/graviteeapim
+  username: postgres
+  password: P@ssw0rd
+management:
+  type: jdbc
+----
+
+
+==== Elasticsearch
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+es.security.enabled+` |Elasticsearch username and password enabled
+|false
+
+|`+es.security.username+` |Elasticsearch username |`+example+`
+
+|`+es.security.password+` |Elasticsearch password |`+example+`
+
+|`+es.tls.enabled+` |Elasticsearch TLS enabled |false
+
+|`+es.tls.keystore.type+` |Elasticsearch TLS keystore type (jks, pem or
+pfx) |`+null+`
+
+|`+es.tls.keystore.path+` |Elasticsearch TLS keystore path (jks, pfx)
+|`+null+`
+
+|`+es.tls.keystore.password+` |Elasticsearch TLS keystore password (jks,
+pfx) |`+null+`
+
+|`+es.tls.keystore.certs+` |Elasticsearch TLS certs (only pems)
+|`+null+`
+
+|`+es.tls.keystore.keys+` |Elasticsearch TLS keys (only pems) |`+null+`
+
+|`+es.index+` |Elasticsearch index |`+gravitee+`
+
+|`+es.endpoints+` |Elasticsearch endpoint array
+|`+[http://elastic-elasticsearch-client.default.svc.cluster.local:9200]+`
+|===
+
+==== Elasticsearch Cluster
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+elasticsearch.enabled+` |Enable deployment of Elasticsearch cluster
+|`+false+`
+|===
+
+See
+https://artifacthub.io/packages/helm/bitnami/elasticsearch[Elasticsearch]
+for detailed documentation on optional requirements Helm chart.
+
+Please be aware that the Elasticsearch installed by Gravitee is NOT recommended in production and it is just for testing purpose and running APIM locally.
+
+==== Redis
+To install Redis, use the command below :
+----
+helm install --set auth.password=p@ssw0rd redis-apim bitnami/redis
+----
+
+See
+https://github.com/bitnami/charts/tree/main/bitnami/redis[Redis] for detailed documentation on helm chart (like how to use Sentinel).
+
+
+Check that Redis pod is up and running before proceeding by running `kubectl get pods` as indicated below.
+
+----
+$ kubectl get pod
+NAME                    READY   STATUS    RESTARTS   AGE
+redis-apim-master-0     1/1     Running   0          105s
+redis-apim-replicas-0   1/1     Running   0          105s
+redis-apim-replicas-1   1/1     Running   0          68s
+redis-apim-replicas-2   1/1     Running   0          40s
+----
+
+
+To use Redis for rate limit policy, use the information below in `values.yml` and replace the `host`, `port` and `password` with details for your specific instance.
+You can enable ssl by setting `ssl` to true.
+
+----
+ratelimit:
+  type: redis
+gateway:
+  ratelimit:
+    redis:
+      host: redis-apim-master
+      port: 6379
+      password: p@ssw0rd
+      ssl: false
+----
+
+If you want to connect to a Sentinel cluster, you need to specify the `master` and the `nodes`.
+
+----
+gateway:
+  ratelimit:
+      password: p@ssw0rd
+      ssl: false
+      sentinel:
+        master: redis-master
+        nodes:
+          - host: sentinel1
+            port: 26379
+          - host: sentinel2
+            port: 26379
+----
+
+===== Other Keys
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+gateway.ratelimit.redis.ssl+` |Enable SSL connection to Redis |`+false+`
+|`+gateway.ratelimit.redis.password+` |Redis password |`+false+`
+|===
+
+
+==== Gravitee UI
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+ui.name+` |UI service name |`+ui+`
+
+|`+ui.baseURL+` |Base URL to access to the Management API _(if set to
+`+null+`, defaults to Management API ingress value)_
+|`+[apim.example.com]/management+`
+
+|`+ui.title+` |UI Portal title _(if set to `+null+`, retrieved from the
+management repository)_ |`+API Portal+`
+
+|`+ui.managementTitle+` |UI Management title _(if set to `+null+`,
+retrieved from the management repository)_ |`+API Management+`
+
+|`+ui.documentationLink+` |UI link to documentation _(if set to
+`+null+`, retrieved from the management repository)_
+|`+http://docs.gravitee.io/+`
+
+|`+ui.portal.apikeyHeader+` |API key header name _(if set to `+null+`,
+retrieved from the management repository)_ |`+X-Gravitee-Api-Key+`
+
+|`+ui.portal.devMode.enabled+` |Whether to enable developer mode _(if
+set to `+null+`, retrieved from the management repository)_ |`+false+`
+
+|`+ui.portal.userCreation.enabled+` |Whether to enable user creation
+_(if set to `+null+`, retrieved from the management repository)_
+|`+false+`
+
+|`+ui.portal.support.enabled+` |Whether to enable support features _(if
+set to `+null+`, retrieved from the management repository)_ |`+true+`
+
+|`+ui.portal.rating.enabled+` |Whether to enable API rating _(if set to
+`+null+`, retrieved from the management repository)_ |`+false+`
+
+|`+ui.portal.analytics.enabled+` |Whether to enable analytics features
+_(if set to `+null+`, retrieved from the management repository)_
+|`+false+`
+
+|`+ui.portal.analytics.trackingId+` |Tracking ID used for analytics _(if
+set to `+null+`, retrieved from the management repository)_ |`+""+`
+
+|`+ui.replicaCount+` |How many replicas of the UI pod |`+1+`
+
+|`+ui.image.repository+` |Gravitee UI image repository
+|`+graviteeio/management-ui+`
+
+|`+ui.image.tag+` |Gravitee UI image tag |`+1.29.5+`
+
+|`+ui.image.pullPolicy+` |K8s image pull policy |`+Always+`
+
+|`+ui.image.pullSecrets+` |K8s image pull secrets, used to pull both
+Gravitee UI image and `+extraInitContainers+` |`+null+`
+
+|`+ui.autoscaling.enabled+` |Whether auto-scaling is enabled or not
+|`+true+`
+
+|`+ui.autoscaling.minReplicas+` |If `+ui.autoscaling.enabled+` is
+`+true+`, what's the minimum number of replicas |`+2+`
+
+|`+ui.autoscaling.maxReplicas+` |If `+ui.autoscaling.enabled+` is
+`+true+`, what's the maximum number of replicas |`+3+`
+
+|`+ui.autoscaling.targetAverageUtilization+` |If
+`+ui.autoscaling.enabled+` what's the average target utilization (in %)
+before it auto-scale |`+50+`
+
+|`+ui.service.name+` |UI service name |`+nginx+`
+
+|`+ui.service.type+` |K8s publishing
+https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types[service
+type] |`+ClusterIP+`
+
+|`+ui.service.externalPort+` |K8s UI service external port |`+8082+`
+
+|`+ui.service.internalPort+` |K8s UI service internal port (container)
+|`+80+`
+
+|`+ui.service.internalPortName+` |K8s UI service internal port name
+(container) |`+http+`
+
+|`+ui.ingress.enabled+` |Whether Ingress is enabled or not |`+true+`
+
+|`+ui.ingress.hosts+` |If `+ui.ingress.enabled+` is enabled, set
+possible ingress hosts |`+[apim.example.com]+`
+
+|`+ui.ingress.annotations+` |Supported Ingress annotations to configure
+ingress controller
+|`+[kubernetes.io/ingress.class: nginx, kubernetes.io/app-root: /management, kubernetes.io/rewrite-target: /management, ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\n"]+`
+
+|`+ui.ingress.tls.hosts+`
+|https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress
+TLS termination] |`+[apim.example.com]+`
+
+|`+ui.ingress.tls.secretName+` |Ingress TLS K8s secret name containing
+the TLS private key and certificate |`+api-custom-cert+`
+
+|`+ui.resources.limits.cpu+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/[limits
+definition for CPU] |`+100m+`
+
+|`+ui.resources.limits.memory+` |K8s pod deployment limits definition
+for memory |`+128Mi+`
+
+|`+ui.resources.requests.cpu+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/#specify-a-cpu-request-and-a-cpu-limit[requests
+definition for CPU] |`+50m+`
+
+|`+ui.resources.requests.memory+` |K8s pod deployment requests
+definition for memory |`+64Mi+`
+
+|`+ui.lifecycle.postStart+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/#define-poststart-and-prestop-handlers[postStart]
+command definition |`+null+`
+
+|`+ui.lifecycle.preStop+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/#define-poststart-and-prestop-handlers[preStop]
+command definition |`+null+`
+|===
+
+==== Gravitee API
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+api.name+` |API service name |`+api+`
+
+|`+api.logging.debug+` |Whether to enable API debug logging or not
+|`+false+`
+
+|`+api.logging.graviteeLevel+` |Logging level for Gravitee classes
+|`+DEBUG+`
+
+|`+api.logging.jettyLevel+` |Logging level for Jetty classes |`+INFO+`
+
+|`+api.logging.stdout.encoderPattern+` |Logback standard output encoder
+pattern |`+%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n+`
+
+|`+api.logging.file.enabled+` |Whether to enable file logging or not
+|`+true+`
+
+|`+api.logging.file.rollingPolicy+` |Logback file rolling policy
+configuration |`+TimeBasedRollingPolicy+` for 30 days
+
+|`+api.logging.file.encoderPattern+` |Logback file encoder pattern
+|`+%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n+`
+
+|`+api.logging.additionalLoggers+` |List of additional logback loggers. Each logger is defined by a `name` and `level` (TRACE, DEBUG, INFO, WARN, or ERROR)
+|`+empty+`
+
+|`+api.ssl.enabled+` |API exposition through HTTPS protocol activation
+|`+false+`
+
+|`+api.ssl.keystore.type+` |Keystore type for API exposition through
+HTTPS protocol |`+jks+`
+
+|`+api.ssl.keystore.path+` |Keystore path for API exposition through
+HTTPS protocol |`+null+`
+
+|`+api.ssl.keystore.password+` |Keystore password for API exposition
+through HTTPS protocol |`+null+`
+
+|`+api.ssl.truststore.type+` |Truststore type for client authentication
+through 2 way TLS |`+jks+`
+
+|`+api.ssl.truststore.path+` |Truststore path for client authentication
+through 2 way TLS |`+null+`
+
+|`+api.ssl.truststore.password+` |Truststore password for client
+authentication through 2 way TLS |`+null+`
+
+|`+api.http.services.core.http.authentication.password+` |HTTP core
+service authentication password |`+adminadmin+`
+
+|`+api.http.services.core.http.port+` |HTTP core service port exposed in
+container |`+18083+`
+
+|`+api.http.services.core.http.host+` |HTTP core service bind IP or host
+inside container (0.0.0.0 for exposure on every interfaces)
+|`+localhost+`
+
+|`+api.http.services.core.http.authentication.password+` |HTTP core
+service authentication password |`+adminadmin+`
+
+|`+api.http.services.core.http.ingress.enabled+` |Ingress for HTTP core
+service authentication (requires
+`+api.http.services.core.service.enabled+` to be true) |`+false+`
+
+|`+api.http.services.core.http.ingress.path+` |The ingress path which
+should match for incoming requests to the management technical API.
+|`+/management/_(.*)+`
+
+|`+api.http.services.core.http.ingress.hosts+` |If
+`+api.ingress.enabled+` is enabled, set possible ingress hosts
+|`+[apim.example.com]+`
+
+|`+api.http.services.core.http.ingress.annotations+` |Supported Ingress
+annotations to configure ingress controller
+|`+[kubernetes.io/ingress.class: nginx, nginx.ingress.kubernetes.io/rewrite-target: /_$1]+`
+
+|`+api.http.services.core.http.ingress.tls.hosts+`
+|https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress
+TLS termination] |`+[apim.example.com]+`
+
+|`+api.http.services.core.http.ingress.tls.secretName+` |Ingress TLS K8s
+secret name containing the TLS private key and certificate
+|`+api-custom-cert+`
+
+|`+api.http.services.core.http.service.enabled+` |Whether a service is
+added or not for technical API |`+false+`
+
+|`+api.http.services.core.http.service.externalPort+` |K8s service
+external port (internal port is defined by
+`+api.http.services.core.http.port+` ) |`+18083+`
+
+|`+api.http.api.entrypoint+` |Listening path for the API
+|`+/management+`
+
+|`+api.http.client.timeout+` |HTTP client global timeout |`+10000+`
+
+|`+api.http.client.proxy.type+` |HTTP client proxy type |`+HTTP+`
+
+|`+api.http.client.proxy.http.host+` |HTTP client proxy host for HTTP
+protocol |`+localhost+`
+
+|`+api.http.client.proxy.http.port+` |HTTP client proxy port for HTTP
+protocol |`+3128+`
+
+|`+api.http.client.proxy.http.username+` |HTTP client proxy username for
+HTTP protocol |`+null+`
+
+|`+api.http.client.proxy.http.password+` |HTTP client proxy password for
+HTTP protocol |`+null+`
+
+|`+api.http.client.proxy.https.host+` |HTTP client proxy host for HTTPS
+protocol |`+localhost+`
+
+|`+api.http.client.proxy.https.port+` |HTTP client proxy port for HTTPS
+protocol |`+3128+`
+
+|`+api.http.client.proxy.https.username+` |HTTP client proxy username
+for HTTPS protocol |`+null+`
+
+|`+api.http.client.proxy.https.password+` |HTTP client proxy password
+for HTTPS protocol |`+null+`
+
+|`+api.user.login.defaultApplication+` |Whether to enable default
+application creation on first user authentication |`+true+`
+
+|`+api.user.anonymizeOnDelete+` |Whether to enable user anonymization on
+deletion |`+false+`
+
+|`+api.supportEnabled+` |Whether to enable support feature |`+true+`
+
+|`+api.ratingEnabled+` |Whether to enable API rating feature |`+true+`
+
+|`+smtp.enabled+` |Email sending activation |`+true+`
+
+|`+smtp.host+` |SMTP server host |`+smtp.example.com+`
+
+|`+smtp.port+` |SMTP server port |`+25+`
+
+|`+smtp.from+` |Email sending address |`+info@example.com+`
+
+|`+smtp.username+` |SMTP server username |`+info@example.com+`
+
+|`+smtp.password+` |SMTP server password |`+example.com+`
+
+|`+smtp.subject+` |Email subjects template |`+[gravitee] %s+`
+
+|`+smtp.auth+` |SMTP server authentication activation |`+true+`
+
+|`+smtp.starttlsEnable+` |SMTP server TLS activation |`+false+`
+
+|`+smtp.localhost+` |Hostname that is resolvable by the SMTP server
+|`+null+`
+
+|`+api.portalURL+` |The portal URL used in emails
+|`+https://{{ index .Values.ui.ingress.hosts 0 }}+`
+
+|`+api.restartPolicy+` |Policy to
+https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-and-container-status[restart
+K8 pod] |`+OnFailure+`
+
+|`+api.updateStrategy.type+`
+|https://kubernetes.io/zh/docs/concepts/workloads/controllers/deployment/[K8s
+deployment strategy type] |`+RollingUpdate+`
+
+|`+api.updateStrategy.rollingUpdate.maxUnavailable+` |If
+api.updateStrategy.type is set to `+RollingUpdate+`, **you must set a value here
+or your deployment can default to 100% unavailability.**
+
+The deployment controller will stop the bad rollout automatically and
+will stop scaling up the new replica set. This depends on the
+`rollingUpdate` parameters (specifically on `maxUnavailable`) that you have
+specified. By default, Kubernetes sets the value to 1 and sets spec.replicas
+to 1, **so if you don't set those parameters, your
+deployment can have 100% unavailability by default!** |`+1+`
+
+|`+api.replicaCount+` |How many replicas for the API pod |`+1+`
+
+|`+api.image.repository+` |Gravitee API image repository
+|`+graviteeio/management-api+`
+
+|`+api.image.tag+` |Gravitee API image tag |`+1.29.5+`
+
+|`+api.image.pullPolicy+` |K8s image pull policy |`+Always+`
+
+|`+api.image.pullSecrets+` |K8s image pull secrets, used to pull both
+Gravitee Management API image and `+extraInitContainers+` |`+null+`
+
+|`+api.env+` |Environment variables, defined as a list of `+name+` and
+`+value+` as specified in
+https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/[Kubernetes
+documentation] |`+null+`
+
+|`+api.service.type+` |K8s publishing
+https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types[service
+type] |`+ClusterIP+`
+
+|`+api.service.externalPort+` |K8s service external port |`+83+`
+
+|`+api.service.internalPort+` |K8s service internal port (container)
+|`+8083+`
+
+|`+api.service.internalPortName+` |K8s service internal port name
+(container) |`+http+`
+
+|`+api.autoscaling.enabled+` |Whether auto-scaling is enabled or not
+|`+true+`
+
+|`+api.autoscaling.minReplicas+` |If `+api.autoscaling.enabled+` is
+`+true+`, what's the minimum number of replicas |`+2+`
+
+|`+api.autoscaling.maxReplicas+` |If `+api.autoscaling.enabled+` is
+`+true+`, what's the maximum number of replicas |`+3+`
+
+|`+api.autoscaling.targetAverageUtilization+` |If
+`+api.autoscaling.enabled+` what's the average target utilization (in %)
+before it auto-scale |`+50+`
+
+|`+api.ingress.enabled+` |Whether Ingress is enabled or not |`+true+`
+
+|`+api.ingress.path+` |The ingress path which should match for incoming
+requests to the management API. |`+/management+`
+
+|`+api.ingress.hosts+` |If `+api.ingress.enabled+` is enabled, set
+possible ingress hosts |`+[apim.example.com]+`
+
+|`+api.ingress.annotations+` |Supported Ingress annotations to configure
+ingress controller
+|`+[kubernetes.io/ingress.class: nginx, ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_set_header if-match \"\";\n"]+`
+
+|`+api.ingress.tls.hosts+`
+|https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress
+TLS termination] |`+[apim.example.com]+`
+
+|`+api.ingress.tls.secretName+` |Ingress TLS K8s secret name containing
+the TLS private key and certificate |`+api-custom-cert+`
+
+|`+api.ingress.management.scheme+` |Whether to use HTTP or HTTPS to communicate with Management API,
+defaults to https
+|`https`
+
+|`+api.ingress.portal.scheme+` |Whether to use HTTP or HTTPS to communicate with Management API,
+defaults to https
+|`https`
+
+|`+api.resources.limits.cpu+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/[limits
+definition for CPU] |`+500m+`
+
+|`+api.resources.limits.memory+` |K8s pod deployment limits definition
+for memory |`+1024Mi+`
+
+|`+api.resources.requests.cpu+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/#specify-a-cpu-request-and-a-cpu-limit[requests
+definition for CPU] |`+200m+`
+
+|`+api.resources.requests.memory+` |K8s pod deployment requests
+definition for memory |`+512Mi+`
+
+|`+api.lifecycle.postStart+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/#define-poststart-and-prestop-handlers[postStart]
+command definition |`+null+`
+
+|`+api.lifecycle.preStop+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/#define-poststart-and-prestop-handlers[preStop]
+command definition |`+null+`
+|===
+
+==== Gravitee Gateway
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|`+gateway.name+` |Gateway service name |`+gateway+`
+
+|`+gateway.logging.debug+` |Whether to enable Gateway debug logging or
+not |`+false+`
+
+|`+api.logging.additionalLoggers+` |List of additional logback loggers. Each logger is defined by a `name` and `level` (TRACE, DEBUG, INFO, WARN, or ERROR)
+|`+empty+`
+
+|`+gateway.ssl.enabled+` |API exposition through HTTPS protocol
+activation |`+false+`
+
+|`+gateway.ssl.keystore.type+` |Keystore type for API exposition through
+HTTPS protocol |`+jks+`
+
+|`+gateway.ssl.keystore.path+` |Keystore path for API exposition through
+HTTPS protocol |`+null+`
+
+|`+gateway.ssl.keystore.password+` |Keystore password for API exposition
+through HTTPS protocol |`+null+`
+
+|`+gateway.ssl.clientAuth+` |Client authentication through 2 way TLS
+activation |`+false+`
+
+|`+gateway.ssl.truststore.type+` |Truststore type for client
+authentication through 2 way TLS |`+jks+`
+
+|`+gateway.ssl.truststore.path+` |Truststore path for client
+authentication through 2 way TLS |`+null+`
+
+|`+gateway.ssl.truststore.password+` |Truststore password for client
+authentication through 2 way TLS |`+null+`
+
+|`+gateway.logging.graviteeLevel+` |Logging level for Gravitee classes
+|`+DEBUG+`
+
+|`+gateway.logging.jettyLevel+` |Logging level for Jetty classes
+|`+INFO+`
+
+|`+gateway.logging.stdout.encoderPattern+` |Logback standard output
+encoder pattern
+|`+%d{HH:mm:ss.SSS} [%thread] [%X{api}] %-5level %logger{36} - %msg%n+`
+
+|`+gateway.logging.file.enabled+` |Whether to enable file logging or not
+|`+true+`
+
+|`+gateway.logging.file.rollingPolicy+` |Logback file rolling policy
+configuration |`+TimeBasedRollingPolicy+` for 30 days
+
+|`+gateway.logging.file.encoderPattern+` |Logback file encoder pattern
+|`+%d{HH:mm:ss.SSS} [%thread] [%X{api}] %-5level %logger{36} - %msg%n+`
+
+|`+gateway.type+` |Gateway deployment type: `+deployment+` or
+`+statefulSet+` |`+deployment+`
+
+|`+gateway.replicaCount+` |How many replicas of the Gateway pod |`+2+`
+
+|`+gateway.image.repository+` |Gravitee Gateway image repository
+|`+graviteeio/gateway+`
+
+|`+gateway.image.tag+` |Gravitee Gateway image tag |`+1.29.5+`
+
+|`+gateway.image.pullPolicy+` |K8s image pull policy |`+Always+`
+
+|`+gateway.image.pullSecrets+` |K8s image pull secrets, used to pull
+both Gravitee Gateway image and `+extraInitContainers+` |`+null+`
+
+|`+gateway.env+` |Environment variables, defined as a list of `+name+`
+and `+value+` as specified in
+https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/[Kubernetes
+documentation] |`+null+`
+
+|`+gateway.service.type+` |K8s publishing
+https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types[service
+type] |`+ClusterIP+`
+
+|`+gateway.service.externalPort+` |K8s Gateway service external port
+|`+82+`
+
+|`+gateway.service.internalPort+` |K8s Gateway service internal port
+(container) |`+8082+`
+
+|`+gateway.service.internalPortName+` |K8s Gateway service internal port
+name (container) |`+http+`
+
+|`+gateway.autoscaling.enabled+` |Whether auto-scaling is enabled or not
+|`+true+`
+
+|`+gateway.autoscaling.minReplicas+` |If `+gateway.autoscaling.enabled+`
+is `+true+`, what's the minimum number of replicas |`+2+`
+
+|`+gateway.autoscaling.maxReplicas+` |If `+gateway.autoscaling.enabled+`
+is `+true+`, what's the maximum number of replicas |`+3+`
+
+|`+gateway.autoscaling.targetAverageUtilization+` |If
+`+gateway.autoscaling.enabled+` what's the average target utilization
+(in %) before it auto-scale |`+50+`
+
+|`+gateway.websocket+` |Whether websocket protocol is enabled or not
+|`+false+`
+
+|`+gateway.apiKey.header+` |Header used for the API Key. Set an empty
+value to prohibit its use. |`+X-Gravitee-Api-Key+`
+
+|`+gateway.apiKey.param+` |Query parameter used for the API Key. Set an
+empty value to prohibit its use. |`+api-key+`
+
+|`+gateway.sharding_tags+` |Sharding tags (comma separated list) |``
+
+|`+gateway.ingress.enabled+` |Whether Ingress is enabled or not
+|`+true+`
+
+|`+gateway.ingress.path+` |The ingress path which should match for
+incoming requests to the gateway. |`+/gateway+`
+
+|`+gateway.ingress.hosts+` |If `+gateway.ingress.enabled+` is enabled,
+set possible ingress hosts |`+[apim.example.com]+`
+
+|`+gateway.ingress.annotations+` |Supported Ingress annotations to
+configure ingress controller
+|`+[kubernetes.io/ingress.class: nginx, nginx.ingress.kubernetes.io/ssl-redirect: "false", nginx.ingress.kubernetes.io/enable-rewrite-log: "true", kubernetes.io/app-root: /gateway, kubernetes.io/rewrite-target: /gateway]+`
+
+|`+gateway.ingress.tls.hosts+`
+|https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress
+TLS termination] |`+[apim.example.com]+`
+
+|`+gateway.ingress.tls.secretName+` |Ingress TLS K8s secret name
+containing the TLS private key and certificate |`+api-custom-cert+`
+
+|`+gateway.resources.limits.cpu+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/[limits
+definition for CPU] |`+500m+`
+
+|`+gateway.resources.limits.memory+` |K8s pod deployment limits
+definition for memory |`+512Mi+`
+
+|`+gateway.resources.requests.cpu+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/#specify-a-cpu-request-and-a-cpu-limit[requests
+definition for CPU] |`+200m+`
+
+|`+gateway.resources.requests.memory+` |K8s pod deployment requests
+definition for memory |`+256Mi+`
+
+|`+gateway.lifecycle.postStart+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/#define-poststart-and-prestop-handlers[postStart]
+command definition |`+null+`
+
+|`+gateway.lifecycle.preStop+` |K8s pod deployment
+https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/#define-poststart-and-prestop-handlers[preStop]
+command definition |`+null+`
+|===
+
+==== Alert Engine
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+|alerts.enabled |Enables AE connectivity |`+true+`
+
+|alerts.endpoints |Defines AE endpoints |`+- http://localhost:8072/+`
+
+|alerts.security.enabled |Enables AE secure connectivity |`+false+`
+
+|alerts.security.username |The AE username |`+"admin"+`
+
+|alerts.security.password |The AE password |`+"password"+`
+
+|alerts.options.sendEventsOnHttp |Send event on http to AE (websocket otherwise) |`+true+`
+
+|alerts.options.useSystemProxy |Use system proxy to connect to AE |`+false+`
+
+|alerts.options.connectTimeout |AE connection timeout |`+2000+`
+
+|alerts.options.idleTimeout |AE idleTimeout timeout |`+120000+`
+
+|alerts.options.keepAlive |Keep the connection alive  |`+true+`
+
+|alerts.options.pipelining |Enables event pipelining |`+true+`
+
+|alerts.options.tryCompression |Enables event compression |`+true+`
+
+|alerts.options.maxPoolSize |Set the maximum numner of connection |`+50+`
+
+|alerts.options.bulkEventsSize |Send events by packets |`+100+`
+
+|alerts.options.bulkEventsWait |Duration for events to be ready to be sent |`+100+`
+
+|alerts.options.ssl.trustall |Ssl trust all  |`+false+`
+
+|alerts.options.ssl.keystore.type |Type of the keystore  (jks, pkcs12, pem)|`+null+`
+
+|alerts.options.ssl.keystore.path |Path to the keystore |`+null+`
+
+|alerts.options.ssl.keystore.password |Path to the keystore |`+null+`
+
+|alerts.options.ssl.keystore.certs |Keystore cert paths (array, only for pem) |`+null+`
+
+|alerts.options.ssl.keystore.keys |Keystore key paths (array, only for pem) |`+null+`
+
+|alerts.options.ssl.truststore.type |Type of the truststore |`+null+`
+
+|alerts.options.ssl.truststore.path |Path to the truststore |`+null+`
+
+|alerts.options.ssl.truststore.password |Password of the truststore |`+null+`
+
+|alerts.engines.<cluster-name>.endpoints |Defines AE endpoints on the cluster <cluster-name> |`+- http://localhost:8072/+`
+
+|alerts.engines.<cluster-name>.security.username |The AE username on the cluster <cluster-name> |`+"admin"+`
+
+|alerts.engines.<cluster-name>.security.password |The AE password on the cluster <cluster-name> |`+"password"+`
+
+|alerts.engines.<cluster-name>.ssl.trustall |Ssl trust all on the cluster <cluster-name>|`+false+`
+
+|alerts.engines.<cluster-name>.ssl.keystore.type |Type of the keystore  (jks, pkcs12, pem) on the cluster <cluster-name> |`+null+`
+
+|alerts.engines.<cluster-name>.ssl.keystore.path |Path to the keystore (jks, pkcs12, pem) on the cluster <cluster-name> |`+null+`
+
+|alerts.engines.<cluster-name>.ssl.keystore.password |Path to the keystore on the cluster <cluster-name> |`+null+`
+
+|alerts.engines.<cluster-name>.ssl.keystore.certs |Keystore cert paths (array, only for pem) on the cluster <cluster-name> |`+null+`
+
+|alerts.engines.<cluster-name>.ssl.keystore.keys |Keystore key paths (array, only for pem) on the cluster <cluster-name> |`+null+`
+
+|alerts.engines.<cluster-name>.ssl.truststore.type |Type of the truststore on the cluster <cluster-name> |`+null+`
+
+|alerts.engines.<cluster-name>.ssl.truststore.path |Path to the truststore on the cluster <cluster-name> |`+null+`
+
+|alerts.engines.<cluster-name>.ssl.truststore.password |Password of the truststore on the cluster <cluster-name> |`+null+`
+
+|===
+
+==== License
+
+For Enterprise plugin, and only for them, you have to include a https://docs.gravitee.io/ee/ee_license.html[license] in APIM. You can define it by:
+
+* fill the `license.key` field in the `values.yml` file.
+* add helm arg: `--set license.key=<license.key in base64>`
+
+To get the license.key value, encode your file `license.key` in `base64`:
+
+* linux: `base64 -w 0 license.key`
+* macOS: `base64 license.key`
+
+Example:
+
+[source,bash]
+----
+export GRAVITEESOURCE_LICENSE_B64="$(base64 -w 0 license.key)"
+
+helm install \
+  --set license.key=${GRAVITEESOURCE_LICENSE_B64} \
+  --create-namespace --namespace gravitee-apim \
+  graviteeio-apim3x \
+  graviteeio/apim3
+----
+
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Default
+
+|license.key |string |license.key file encoded in base64 |
+
+|===
+
+
+== OpenShift
+
+The Gravitee.io API Management Helm Chart supports OpenShift > 3.10
+This chart is only supporting Ingress standard objects and not the specific OpenShift Routes, reason why OpenShift is supported started from 3.10.
+
+There are two major considerations to have in mind when deploying Gravitee.io API Management within OpenShift:
+1_ Use full host domain instead of paths for all the components (ingress paths are not well supported by OpenShift)
+2_ Override the security context to let OpenShift to define automatically the user-id and the group-id to run the containers.
+
+Also, for Openshift to automatically create Routes from Ingress, you must define the ingressClassName to "none".
+
+Here is a standard values.yaml used to deploy Gravitee.io APIM into OpenShift:
+
+[source,yaml]
+----
+api:
+  ingress:
+    management:
+      ingressClassName: none
+      path: /management
+      hosts:
+        - api-graviteeio.apps.openshift-test.l8e4.p1.openshiftapps.com
+      annotations:
+        route.openshift.io/termination: edge
+    portal:
+      ingressClassName: none
+      path: /portal
+      hosts:
+        - api-graviteeio.apps.openshift-test.l8e4.p1.openshiftapps.com
+      annotations:
+        route.openshift.io/termination: edge
+  securityContext: null
+  deployment:
+    securityContext:
+      runAsUser: null
+      runAsGroup: null
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: RuntimeDefault
+
+gateway:
+  ingress:
+    ingressClassName: none
+    path: /
+    hosts:
+      - gw-graviteeio.apps.openshift-test.l8e4.p1.openshiftapps.com
+    annotations:
+      route.openshift.io/termination: edge
+  securityContext: null
+  deployment:
+    securityContext:
+      runAsUser: null
+      runAsGroup: null
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: RuntimeDefault
+
+portal:
+  ingress:
+    ingressClassName: none
+    path: /
+    hosts:
+      - portal-graviteeio.apps.openshift-test.l8e4.p1.openshiftapps.com
+    annotations:
+      route.openshift.io/termination: edge
+  securityContext: null
+  deployment:
+    securityContext:
+      runAsUser: null
+      runAsGroup: null
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: RuntimeDefault
+
+ui:
+  ingress:
+    ingressClassName: none
+    path: /
+    hosts:
+      - console-graviteeio.apps.openshift-test.l8e4.p1.openshiftapps.com
+    annotations:
+      route.openshift.io/termination: edge
+  securityContext: null
+  deployment:
+    securityContext:
+      runAsUser: null
+      runAsGroup: null
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+      seccompProfile:
+        type: RuntimeDefault
+----
+By setting the value to `null` for `runAsUser` and `runAsGroup` it forces OpenShift to define the correct values for you while deploying the Helm Chart.

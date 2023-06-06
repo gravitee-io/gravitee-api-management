@@ -1,0 +1,70 @@
+suite: Test Gateway default configmap - Redis
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Set host and port without password and ssl disabled
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: redis
+      gateway:
+        ratelimit:
+          redis:
+            host: redis
+            port: 6379
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * redis:\n
+                     *  host: redis\n
+                     *  port: 6379\n"
+  - it: Set host and port with password and ssl enabled
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: redis
+      gateway:
+        ratelimit:
+          redis:
+            host: redis
+            port: 6379
+            password: mypassword
+            ssl: true
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * redis:\n
+                     *  host: redis\n
+                     *  port: 6379\n
+                     *  password: mypassword\n
+                     *  ssl: true\n"
+  - it: Set configuration with sentinels
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: redis
+      gateway:
+        ratelimit:
+          redis:
+            host: redis
+            port: 6379
+            sentinel:
+              master: redismaster
+              nodes:
+                - host: sent1
+                  port: 26379
+                - host: sent2
+                  port: 26379
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * redis:\n
+                     *  host: redis\n
+                     *  port: 6379\n
+                     *  sentinel:\n
+                     *  master: redismaster\n
+                     *  nodes:\n
+                     *    - host: sent1\n
+                     *      port: 26379\n
+                     *    - host: sent2\n
+                     *      port: 26379\n"

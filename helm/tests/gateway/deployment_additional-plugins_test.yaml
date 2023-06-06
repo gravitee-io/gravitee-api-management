@@ -1,0 +1,47 @@
+suite: Test that API Gateway deployment with additional plugins
+templates:
+  - "gateway/gateway-deployment.yaml"
+  - "gateway/gateway-configmap.yaml"
+
+tests:
+  - it: Check that volumes are defined
+    template: gateway/gateway-deployment.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 3.15.2
+    set:
+        gateway:
+            additionalPlugins:
+            - https://d.g.io/toto.zip
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: graviteeio/apim-gateway:3.15.2
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].mountPath
+          value: /opt/graviteeio-gateway/plugins-ext
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: graviteeio-apim-plugins
+      - equal:
+          path: spec.template.spec.volumes[1].emptyDir
+          value: {}
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: GRAVITEE_PLUGINS_PATH_0
+      - equal:
+          path: spec.template.spec.containers[0].env[0].value
+          value: '${gravitee.home}/plugins'
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: GRAVITEE_PLUGINS_PATH_1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: '${gravitee.home}/plugins-ext'
