@@ -5,16 +5,16 @@
         "messageInterval": {
             "title": "Interval between messages publication",
             "description": "Interval between messages publication, in milliseconds.",
-            "type": "integer",
-            "default": 1000
+          "type": "integer",
+          "default": 1000
         },
-        "messageContent": {
-          "title": "Content of published messages",
-          "description": "Content of published messages. Will be suffixed with message index.",
-          "type": "string",
-          "format": "text",
-          "default": "mock message"
-        },
+      "messageContent": {
+        "title": "Content of published messages",
+        "description": "Content of published messages. Will be suffixed with message index.",
+        "type": "string",
+        "format": "text",
+        "default": "mock message"
+      },
       "messageCount": {
         "title": "Count of published messages",
         "description": "Count of published messages. If not specified, there is no limit.",
