@@ -35,12 +35,10 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
 import org.assertj.core.data.MapEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -240,14 +238,14 @@ class MockEndpointConnectorTest {
         verify(response).messages(messagesCaptor.capture());
 
         messagesCaptor
-                .getValue()
-                .test()
-                .await()
-                .assertValue(message -> {
-                    assertThat(message.metadata()).containsExactly(MapEntry.entry("mock-metadata", MESSAGE_CONTENT));
-                    assertThat(message.headers()).isEmpty();
-                    return true;
-                });
+            .getValue()
+            .test()
+            .await()
+            .assertValue(message -> {
+                assertThat(message.metadata()).containsExactly(MapEntry.entry("mock-metadata", MESSAGE_CONTENT));
+                assertThat(message.headers()).isEmpty();
+                return true;
+            });
     }
 
     @Test
@@ -262,14 +260,14 @@ class MockEndpointConnectorTest {
         verify(response).messages(messagesCaptor.capture());
 
         messagesCaptor
-                .getValue()
-                .test()
-                .await()
-                .assertValue(message -> {
-                    assertThat(message.headers().toSingleValueMap()).containsExactly(MapEntry.entry("X-Mock-Header", MESSAGE_CONTENT));
-                    assertThat(message.metadata()).isEmpty();
-                    return true;
-                });
+            .getValue()
+            .test()
+            .await()
+            .assertValue(message -> {
+                assertThat(message.headers().toSingleValueMap()).containsExactly(MapEntry.entry("X-Mock-Header", MESSAGE_CONTENT));
+                assertThat(message.metadata()).isEmpty();
+                return true;
+            });
     }
 
     @Test
@@ -285,13 +283,13 @@ class MockEndpointConnectorTest {
         verify(response).messages(messagesCaptor.capture());
 
         messagesCaptor
-                .getValue()
-                .test()
-                .await()
-                .assertValue(message -> {
-                    assertThat(message.headers().toSingleValueMap()).containsExactly(MapEntry.entry("X-Mock-Header", MESSAGE_CONTENT));
-                    assertThat(message.metadata()).containsExactly(MapEntry.entry("mock-metadata", MESSAGE_CONTENT));
-                    return true;
-                });
+            .getValue()
+            .test()
+            .await()
+            .assertValue(message -> {
+                assertThat(message.headers().toSingleValueMap()).containsExactly(MapEntry.entry("X-Mock-Header", MESSAGE_CONTENT));
+                assertThat(message.metadata()).containsExactly(MapEntry.entry("mock-metadata", MESSAGE_CONTENT));
+                return true;
+            });
     }
 }
