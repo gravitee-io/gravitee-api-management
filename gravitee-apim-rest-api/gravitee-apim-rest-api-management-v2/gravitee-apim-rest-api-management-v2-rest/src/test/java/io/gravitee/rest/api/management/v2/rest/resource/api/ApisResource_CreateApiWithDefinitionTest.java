@@ -26,6 +26,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import fixtures.PropertyFixtures;
+import fixtures.ResourceFixtures;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -63,8 +65,6 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
     private static final String API_ID = "my-api";
     private static final String ENVIRONMENT_ID = "my-env";
 
-    private final ObjectMapper mapper = new GraviteeMapper(false);
-
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT_ID + "/apis/_import/definition";
@@ -99,12 +99,6 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
     }
 
     @Test
-    public void should_not_import_v2_apis() {
-        Response response = rootTarget().request().post(json(fakeExportApiV2()));
-        assertEquals(BAD_REQUEST_400, response.getStatus());
-    }
-
-    @Test
     public void should_import() throws JsonProcessingException {
         doReturn(fakeApiEntityV4()).when(apiImportExportService).createFromExportedApi(any(), any(), anyString());
 
@@ -123,20 +117,9 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
     }
 
     // Fakers
-    private ExportApiV4 fakeExportApiV2() {
-        var exportApi = new ExportApiV4();
-        var apiV2 = new ApiV2();
-        apiV2.setDefinitionVersion(DefinitionVersion.V2);
-        apiV2.setId(API_ID);
-        apiV2.setName(API_ID);
-
-        exportApi.setApi(new Api(apiV2));
-        return exportApi;
-    }
-
     private ExportApiV4 fakeExportApiV4() {
         var exportApiV4 = new ExportApiV4();
-        exportApiV4.setApi(fakeApi());
+        exportApiV4.setApi(fakeApiV4());
         exportApiV4.setApiMedia(fakeApiMedia());
         exportApiV4.setMembers(fakeApiMembers());
         exportApiV4.setMetadata(fakeApiMetadata());
@@ -146,7 +129,7 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         return exportApiV4;
     }
 
-    private Api fakeApi() {
+    private ApiV4 fakeApiV4() {
         var apiV4 = new ApiV4();
         apiV4.setDefinitionVersion(DefinitionVersion.V4);
         apiV4.setId(API_ID);
@@ -170,9 +153,9 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         tcpListener.setEntrypoints(List.of(entrypoint));
 
         apiV4.setListeners(List.of(new Listener(httpListener), new Listener(subscriptionListener), new Listener(tcpListener)));
-        apiV4.setProperties(List.of(new Property()));
+        apiV4.setProperties(List.of(PropertyFixtures.aProperty()));
         apiV4.setServices(new ApiServices());
-        apiV4.setResources(List.of(new Resource()));
+        apiV4.setResources(List.of(ResourceFixtures.aResource()));
         apiV4.setResponseTemplates(Map.of("key", new HashMap<>()));
         apiV4.setUpdatedAt(OffsetDateTime.parse("1970-01-01T00:00:00Z"));
         apiV4.setAnalytics(new Analytics());
@@ -220,7 +203,7 @@ public class ApisResource_CreateApiWithDefinitionTest extends AbstractResourceTe
         flow.setSelectors(List.of(new Selector(httpSelector), new Selector(channelSelector), new Selector(conditionSelector)));
         apiV4.setFlows(List.of(flow));
 
-        return new Api(apiV4);
+        return apiV4;
     }
 
     private Set<Member> fakeApiMembers() {

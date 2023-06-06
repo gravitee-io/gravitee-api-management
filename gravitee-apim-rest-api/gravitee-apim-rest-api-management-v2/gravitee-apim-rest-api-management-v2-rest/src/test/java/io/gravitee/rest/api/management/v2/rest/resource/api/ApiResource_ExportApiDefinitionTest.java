@@ -112,9 +112,9 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         assertNotNull(export.getMetadata());
         assertNotNull(export.getPlans());
         assertNotNull(export.getPages());
-        assertNotNull(export.getApi().getApiV4());
+        assertNotNull(export.getApi());
 
-        final ApiV4 api = export.getApi().getApiV4();
+        final ApiV4 api = export.getApi();
         testReturnedApi(api);
 
         final Set<Member> members = export.getMembers();

@@ -39,35 +39,13 @@ public interface ImportExportApiMapper {
 
     @Mapping(target = "apiPicture", source = "apiEntity.picture")
     @Mapping(target = "apiBackground", source = "apiEntity.background")
-    @Mapping(target = "api", source = "apiEntity", qualifiedByName = "mapApiEntity")
+    @Mapping(target = "api", source = "apiEntity")
     ExportApiV4 map(ExportApiEntity exportApiEntityV4);
 
-    @Mapping(target = "apiEntity", source = "api", qualifiedByName = "mapApi")
+    @Mapping(target = "apiEntity", source = "api")
     @Mapping(target = "members", expression = "java(buildMembers(exportApiV4))")
     @Mapping(target = "metadata", expression = "java(buildMetadata(exportApiV4))")
     ExportApiEntity map(ExportApiV4 exportApiV4);
-
-    @Named("mapApiEntity")
-    default Api exportApiEntityToApi(ApiEntity apiEntity) {
-        if (apiEntity == null) {
-            return null;
-        }
-        if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
-            return new Api(ApiMapper.INSTANCE.convert(apiEntity));
-        }
-        return null;
-    }
-
-    @Named("mapApi")
-    default ApiEntity exportApiToApiEntity(Api api) {
-        if (api == null) {
-            return null;
-        }
-        if (api.getActualInstance() instanceof ApiV4) {
-            return ApiMapper.INSTANCE.convert(api.getApiV4());
-        }
-        return null;
-    }
 
     @Mapping(target = "type", constant = "USER")
     @Mapping(target = "referenceType", constant = "API")
@@ -75,21 +53,13 @@ public interface ImportExportApiMapper {
     MemberEntity map(Member member, String apiId);
 
     default Set<MemberEntity> buildMembers(ExportApiV4 exportApiV4) {
-        return exportApiV4
-            .getMembers()
-            .stream()
-            .map(member -> map(member, exportApiV4.getApi().getApiV4().getId()))
-            .collect(Collectors.toSet());
+        return exportApiV4.getMembers().stream().map(member -> map(member, exportApiV4.getApi().getId())).collect(Collectors.toSet());
     }
 
     @Mapping(target = "apiId", expression = "java(apiId)")
     ApiMetadataEntity map(Metadata metadata, String apiId);
 
     default Set<ApiMetadataEntity> buildMetadata(ExportApiV4 exportApiV4) {
-        return exportApiV4
-            .getMetadata()
-            .stream()
-            .map(metadata -> map(metadata, exportApiV4.getApi().getApiV4().getId()))
-            .collect(Collectors.toSet());
+        return exportApiV4.getMetadata().stream().map(metadata -> map(metadata, exportApiV4.getApi().getId())).collect(Collectors.toSet());
     }
 }
