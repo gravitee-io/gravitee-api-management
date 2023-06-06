@@ -50,7 +50,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({"/apis/http/api.json", "/apis/http/api-latency.json"})
+@DeployApi({ "/apis/http/api.json", "/apis/http/api-latency.json" })
 @DeployOrganization("/organizations/organization-add-header.json")
 public class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
 

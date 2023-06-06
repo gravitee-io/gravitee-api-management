@@ -69,23 +69,23 @@ class FlowPhaseExecutionV3IntegrationTest extends FlowPhaseExecutionIntegrationT
             wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             client
-                    .rxRequest(HttpMethod.GET, "/test-double-evaluation")
-                    .flatMap(request -> request.putHeader("X-Condition-Flow-Selection", "root-condition").rxSend())
-                    .flatMap(response -> {
-                        assertThat(response.statusCode()).isEqualTo(500);
-                        return response.body();
-                    })
-                    .test()
-                    .awaitDone(2, TimeUnit.SECONDS)
-                    .assertComplete()
-                    .assertValue(response -> {
-                        assertThat(response)
-                                .hasToString(
-                                        "The template evaluation returns an error. Expression:\n" +
-                                                "{##request.headers['X-Condition-Flow-Selection'][0] == 'root-condition'} "
-                                );
-                        return true;
-                    });
+                .rxRequest(HttpMethod.GET, "/test-double-evaluation")
+                .flatMap(request -> request.putHeader("X-Condition-Flow-Selection", "root-condition").rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(500);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(2, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response)
+                        .hasToString(
+                            "The template evaluation returns an error. Expression:\n" +
+                            "{##request.headers['X-Condition-Flow-Selection'][0] == 'root-condition'} "
+                        );
+                    return true;
+                });
         }
     }
 }

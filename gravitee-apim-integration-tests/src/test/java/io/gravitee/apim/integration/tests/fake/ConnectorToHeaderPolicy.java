@@ -39,16 +39,16 @@ public class ConnectorToHeaderPolicy implements Policy {
     public Completable onResponse(HttpExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
             ctx
-                    .response()
-                    .headers()
-                    .add(
-                            "X-Entrypoint-Used",
-                            ((EntrypointConnector) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).id()
-                    );
+                .response()
+                .headers()
+                .add(
+                    "X-Entrypoint-Used",
+                    ((EntrypointConnector) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).id()
+                );
             ctx
-                    .response()
-                    .headers()
-                    .add("X-Endpoint-Used", (String) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID));
+                .response()
+                .headers()
+                .add("X-Endpoint-Used", (String) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID));
         });
     }
 }

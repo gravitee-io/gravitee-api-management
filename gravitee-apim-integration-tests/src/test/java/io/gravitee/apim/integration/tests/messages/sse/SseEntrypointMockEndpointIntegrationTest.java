@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- * <p>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,101 +51,101 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractSseGateway
     @DeployApi("/apis/v4/messages/sse-entrypoint-mock-endpoint.json")
     void shouldGetMessagesWithDefaultConfiguration(HttpClient httpClient) {
         startSeeStream(httpClient)
-                // expect 3 chunks: retry, two messages
-                .awaitCount(3)
-                .assertValueAt(
-                        0,
-                        chunk -> {
-                            assertRetry(chunk);
-                            return true;
-                        }
-                )
-                .assertValueAt(
-                        1,
-                        chunk -> {
-                            assertOnMessage(chunk, 0L, MESSAGE);
-                            return true;
-                        }
-                )
-                .assertValueAt(
-                        2,
-                        chunk -> {
-                            assertOnMessage(chunk, 1L, MESSAGE);
-                            return true;
-                        }
-                );
+            // expect 3 chunks: retry, two messages
+            .awaitCount(3)
+            .assertValueAt(
+                0,
+                chunk -> {
+                    assertRetry(chunk);
+                    return true;
+                }
+            )
+            .assertValueAt(
+                1,
+                chunk -> {
+                    assertOnMessage(chunk, 0L, MESSAGE);
+                    return true;
+                }
+            )
+            .assertValueAt(
+                2,
+                chunk -> {
+                    assertOnMessage(chunk, 1L, MESSAGE);
+                    return true;
+                }
+            );
     }
 
     @Test
     @DeployApi("/apis/v4/messages/sse-entrypoint-with-comments-mock-endpoint.json")
     void shouldGetMessagesWithDefaultComments(HttpClient httpClient) {
         startSeeStream(httpClient)
-                // expect 3 chunks: retry, two messages
-                .awaitCount(3)
-                .assertValueAt(
-                        0,
-                        chunk -> {
-                            assertRetry(chunk);
-                            return true;
-                        }
-                )
-                .assertValueAt(
-                        1,
-                        chunk -> {
-                            assertOnMessage(chunk, 0L, MESSAGE, "X-Mock-Header: " + MESSAGE, "mock-metadata: " + MESSAGE);
-                            return true;
-                        }
-                )
-                .assertValueAt(
-                        2,
-                        chunk -> {
-                            assertOnMessage(chunk, 1L, MESSAGE, "X-Mock-Header: " + MESSAGE, "mock-metadata: " + MESSAGE);
-                            return true;
-                        }
-                );
+            // expect 3 chunks: retry, two messages
+            .awaitCount(3)
+            .assertValueAt(
+                0,
+                chunk -> {
+                    assertRetry(chunk);
+                    return true;
+                }
+            )
+            .assertValueAt(
+                1,
+                chunk -> {
+                    assertOnMessage(chunk, 0L, MESSAGE, "X-Mock-Header: " + MESSAGE, "mock-metadata: " + MESSAGE);
+                    return true;
+                }
+            )
+            .assertValueAt(
+                2,
+                chunk -> {
+                    assertOnMessage(chunk, 1L, MESSAGE, "X-Mock-Header: " + MESSAGE, "mock-metadata: " + MESSAGE);
+                    return true;
+                }
+            );
     }
 
     @Test
     @DeployApi("/apis/v4/messages/sse-entrypoint-mock-endpoint-heartbeat.json")
     void shouldGetMessageAndHeartBeat(HttpClient httpClient) {
         startSeeStream(httpClient)
-                // expect 3 chunks: retry,  1 heartbeat, 1 message,
-                .awaitCount(3)
-                .assertValueAt(
-                        0,
-                        chunk -> {
-                            assertRetry(chunk);
-                            return true;
-                        }
-                )
-                .assertValueAt(
-                        1,
-                        chunk -> {
-                            assertHeartbeat(chunk);
-                            return true;
-                        }
-                )
-                .assertValueAt(
-                        2,
-                        chunk -> {
-                            assertOnMessage(chunk, 0L, MESSAGE);
-                            return true;
-                        }
-                );
+            // expect 3 chunks: retry,  1 heartbeat, 1 message,
+            .awaitCount(3)
+            .assertValueAt(
+                0,
+                chunk -> {
+                    assertRetry(chunk);
+                    return true;
+                }
+            )
+            .assertValueAt(
+                1,
+                chunk -> {
+                    assertHeartbeat(chunk);
+                    return true;
+                }
+            )
+            .assertValueAt(
+                2,
+                chunk -> {
+                    assertOnMessage(chunk, 0L, MESSAGE);
+                    return true;
+                }
+            );
     }
 
     @NotNull
     private static TestSubscriber<Buffer> startSeeStream(HttpClient httpClient) {
         return httpClient
-                .rxRequest(HttpMethod.GET, "/test")
-                .flatMap(request -> {
-                    request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM);
-                    return request.rxSend();
-                })
-                .flatMapPublisher(response -> {
-                    assertThat(response.statusCode()).isEqualTo(200);
-                    return response.toFlowable();
-                })
-                .test();
+            .rxRequest(HttpMethod.GET, "/test")
+            .flatMap(request -> {
+                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM);
+                return request.rxSend();
+            })
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.toFlowable();
+            })
+            .test();
     }
 }

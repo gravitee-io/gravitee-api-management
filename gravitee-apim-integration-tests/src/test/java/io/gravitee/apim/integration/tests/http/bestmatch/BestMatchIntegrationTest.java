@@ -67,8 +67,8 @@ public class BestMatchIntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.putIfAbsent(
-                    "transform-headers",
-                    PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
+                "transform-headers",
+                PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
             );
         }
 
@@ -77,13 +77,13 @@ public class BestMatchIntegrationTest {
          */
         Stream<Arguments> provideParameters() {
             return Stream.of(
-                    Arguments.of("/books", "/books", "/books"),
-                    Arguments.of("/books", "/books", "/books"),
-                    Arguments.of("/books/145/chapters/12", "/books/:bookId", "/books/:bookId/chapters/:chapterId"),
-                    Arguments.of("/books/9999/chapters", "/books/:bookId", "/books/9999/chapters"),
-                    Arguments.of("/books/9999/chapters/random", "/books/:bookId", "/books/9999/chapters"),
-                    Arguments.of("/random", "/", null),
-                    Arguments.of("/books/145", "/books/:bookId", null)
+                Arguments.of("/books", "/books", "/books"),
+                Arguments.of("/books", "/books", "/books"),
+                Arguments.of("/books/145/chapters/12", "/books/:bookId", "/books/:bookId/chapters/:chapterId"),
+                Arguments.of("/books/9999/chapters", "/books/:bookId", "/books/9999/chapters"),
+                Arguments.of("/books/9999/chapters/random", "/books/:bookId", "/books/9999/chapters"),
+                Arguments.of("/random", "/", null),
+                Arguments.of("/books/145", "/books/:bookId", null)
             );
         }
 
@@ -93,16 +93,16 @@ public class BestMatchIntegrationTest {
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
             client
-                    .rxRequest(HttpMethod.GET, "/test" + path)
-                    .flatMap(HttpClientRequest::rxSend)
-                    .flatMap(response -> {
-                        assertThat(response.statusCode()).isEqualTo(200);
-                        return response.body();
-                    })
-                    .test()
-                    .awaitDone(10, TimeUnit.SECONDS)
-                    .assertValue(Buffer.buffer("response from backend"))
-                    .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test" + path)
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(Buffer.buffer("response from backend"))
+                .assertComplete();
 
             final RequestPatternBuilder requestedFor = getRequestedFor(urlPathEqualTo("/endpoint" + path));
             if (planFlowSelected != null) {
@@ -123,8 +123,8 @@ public class BestMatchIntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.putIfAbsent(
-                    "transform-headers",
-                    PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
+                "transform-headers",
+                PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
             );
         }
 
@@ -134,10 +134,10 @@ public class BestMatchIntegrationTest {
                 final Api definition = (Api) api.getDefinition();
                 definition.getFlows().forEach(flow -> flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS)));
                 definition
-                        .getPlans()
-                        .stream()
-                        .flatMap(plan -> plan.getFlows().stream())
-                        .forEach(flow -> flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS)));
+                    .getPlans()
+                    .stream()
+                    .flatMap(plan -> plan.getFlows().stream())
+                    .forEach(flow -> flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS)));
             }
         }
 
@@ -146,14 +146,14 @@ public class BestMatchIntegrationTest {
          */
         Stream<Arguments> provideParameters() {
             return Stream.of(
-                    Arguments.of("/books", "/books", "/books"),
-                    Arguments.of("/books", "/books", "/books"),
-                    Arguments.of("/books/145/chapters/12", null, "/books/:bookId/chapters/:chapterId"),
-                    Arguments.of("/books/9999/chapters", null, "/books/9999/chapters"),
-                    Arguments.of("/books/9999/chapters/random", null, "/books/:bookId/chapters/:chapterId"),
-                    Arguments.of("/random", null, null),
-                    Arguments.of("/", "/", null),
-                    Arguments.of("/books/145", "/books/:bookId", null)
+                Arguments.of("/books", "/books", "/books"),
+                Arguments.of("/books", "/books", "/books"),
+                Arguments.of("/books/145/chapters/12", null, "/books/:bookId/chapters/:chapterId"),
+                Arguments.of("/books/9999/chapters", null, "/books/9999/chapters"),
+                Arguments.of("/books/9999/chapters/random", null, "/books/:bookId/chapters/:chapterId"),
+                Arguments.of("/random", null, null),
+                Arguments.of("/", "/", null),
+                Arguments.of("/books/145", "/books/:bookId", null)
             );
         }
 
@@ -163,16 +163,16 @@ public class BestMatchIntegrationTest {
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
             client
-                    .rxRequest(HttpMethod.GET, "/test" + path)
-                    .flatMap(HttpClientRequest::rxSend)
-                    .flatMap(response -> {
-                        assertThat(response.statusCode()).isEqualTo(200);
-                        return response.body();
-                    })
-                    .test()
-                    .awaitDone(10, TimeUnit.SECONDS)
-                    .assertValue(Buffer.buffer("response from backend"))
-                    .assertComplete();
+                .rxRequest(HttpMethod.GET, "/test" + path)
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertValue(Buffer.buffer("response from backend"))
+                .assertComplete();
 
             final RequestPatternBuilder requestedFor = getRequestedFor(urlPathEqualTo("/endpoint" + path));
             if (planFlowSelected != null) {

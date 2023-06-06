@@ -61,7 +61,7 @@ import org.testcontainers.utility.DockerImageName;
  */
 @Testcontainers
 @GatewayTest
-@DeployApi({"/apis/v4/messages/sse-entrypoint-kafka-endpoint.json"})
+@DeployApi({ "/apis/v4/messages/sse-entrypoint-kafka-endpoint.json" })
 class SseEntrypointKafkaEndpointIntegrationTest extends AbstractSseGatewayTest {
 
     @Container

@@ -46,20 +46,20 @@ public class ApiNotFoundIntegrationTest {
         @Test
         void should_not_found_api(HttpClient client) {
             client
-                    .rxRequest(HttpMethod.GET, "/test")
-                    .flatMap(HttpClientRequest::rxSend)
-                    .flatMap(response -> {
-                        assertThat(response.statusCode()).isEqualTo(404);
-                        assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.TEXT_PLAIN);
-                        return response.body();
-                    })
-                    .test()
-                    .awaitDone(2, TimeUnit.SECONDS)
-                    .assertComplete()
-                    .assertValue(response -> {
-                        assertThat(response).hasToString("No context-path matches the request URI.");
-                        return true;
-                    });
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(404);
+                    assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.TEXT_PLAIN);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(2, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response).hasToString("No context-path matches the request URI.");
+                    return true;
+                });
         }
     }
 
@@ -75,29 +75,29 @@ public class ApiNotFoundIntegrationTest {
             errorMessage.put("error", "This is the new not found message");
 
             gatewayConfigurationBuilder
-                    .set("http.errors[404].message", errorMessage)
-                    .set("http.errors[404].contentType", MediaType.APPLICATION_JSON);
+                .set("http.errors[404].message", errorMessage)
+                .set("http.errors[404].contentType", MediaType.APPLICATION_JSON);
         }
 
         @Test
         void should_not_found_api(HttpClient client) {
             client
-                    .rxRequest(HttpMethod.GET, "/test")
-                    .flatMap(HttpClientRequest::rxSend)
-                    .flatMap(response -> {
-                        assertThat(response.statusCode()).isEqualTo(404);
-                        assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-                        assertThat(response.getHeader(HttpHeaders.CONTENT_LENGTH))
-                                .isEqualTo(Integer.toString(errorMessage.toBuffer().length()));
-                        return response.body();
-                    })
-                    .test()
-                    .awaitDone(2, TimeUnit.SECONDS)
-                    .assertComplete()
-                    .assertValue(response -> {
-                        assertThat(response).hasToString(errorMessage.toString());
-                        return true;
-                    });
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(404);
+                    assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
+                    assertThat(response.getHeader(HttpHeaders.CONTENT_LENGTH))
+                        .isEqualTo(Integer.toString(errorMessage.toBuffer().length()));
+                    return response.body();
+                })
+                .test()
+                .awaitDone(2, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    assertThat(response).hasToString(errorMessage.toString());
+                    return true;
+                });
         }
     }
 }

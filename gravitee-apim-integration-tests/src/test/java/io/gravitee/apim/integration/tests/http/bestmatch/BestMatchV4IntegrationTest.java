@@ -73,22 +73,22 @@ public class BestMatchV4IntegrationTest extends BestMatchIntegrationTest {
             if (isV4Api(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
                 definition
-                        .getFlows()
-                        .stream()
-                        .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
-                        .forEach(selector -> {
-                            HttpSelector httpSelector = (HttpSelector) selector;
-                            httpSelector.setPathOperator(Operator.EQUALS);
-                        });
+                    .getFlows()
+                    .stream()
+                    .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
+                    .forEach(selector -> {
+                        HttpSelector httpSelector = (HttpSelector) selector;
+                        httpSelector.setPathOperator(Operator.EQUALS);
+                    });
                 definition
-                        .getPlans()
-                        .stream()
-                        .flatMap(plan -> plan.getFlows().stream())
-                        .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
-                        .forEach(selector -> {
-                            HttpSelector httpSelector = (HttpSelector) selector;
-                            httpSelector.setPathOperator(Operator.EQUALS);
-                        });
+                    .getPlans()
+                    .stream()
+                    .flatMap(plan -> plan.getFlows().stream())
+                    .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
+                    .forEach(selector -> {
+                        HttpSelector httpSelector = (HttpSelector) selector;
+                        httpSelector.setPathOperator(Operator.EQUALS);
+                    });
             }
         }
     }
