@@ -32,3 +32,4 @@ In the test java package, can be found:
 ## Development guidelines
 ### OpenAPI specification
 Tags are sorted by name.<br>
+Paths are sorted by tag and by name.<br>
