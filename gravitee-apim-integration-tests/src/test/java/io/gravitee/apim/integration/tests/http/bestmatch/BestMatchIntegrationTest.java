@@ -15,6 +15,14 @@
  */
 package io.gravitee.apim.integration.tests.http.bestmatch;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -31,24 +39,17 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -68,8 +69,8 @@ public class BestMatchIntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.putIfAbsent(
-                   "transform-headers",
-                   PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
+                    "transform-headers",
+                    PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
             );
         }
 
@@ -78,32 +79,32 @@ public class BestMatchIntegrationTest {
          */
         Stream<Arguments> provideParameters() {
             return Stream.of(
-              Arguments.of("/books", "/books", "/books"),
-              Arguments.of("/books", "/books", "/books"),
-              Arguments.of("/books/145/chapters/12", "/books/:bookId", "/books/:bookId/chapters/:chapterId"),
-              Arguments.of("/books/9999/chapters", "/books/:bookId", "/books/9999/chapters"),
-              Arguments.of("/books/9999/chapters/random", "/books/:bookId", "/books/9999/chapters"),
-              Arguments.of("/random", "/", null),
-              Arguments.of("/books/145", "/books/:bookId", null)
+                    Arguments.of("/books", "/books", "/books"),
+                    Arguments.of("/books", "/books", "/books"),
+                    Arguments.of("/books/145/chapters/12", "/books/:bookId", "/books/:bookId/chapters/:chapterId"),
+                    Arguments.of("/books/9999/chapters", "/books/:bookId", "/books/9999/chapters"),
+                    Arguments.of("/books/9999/chapters/random", "/books/:bookId", "/books/9999/chapters"),
+                    Arguments.of("/random", "/", null),
+                    Arguments.of("/books/145", "/books/:bookId", null)
             );
         }
 
         @ParameterizedTest
         @MethodSource("provideParameters")
         void should_use_best_matching_flow(String path, String planFlowSelected, String apiFlowSelected, HttpClient client) {
-
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
-            client.rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(HttpClientRequest::rxSend)
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(10, TimeUnit.SECONDS)
-                   .assertValue(Buffer.buffer("response from backend"))
-                   .assertComplete();
+            client
+                    .rxRequest(HttpMethod.GET, "/test" + path)
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertValue(Buffer.buffer("response from backend"))
+                    .assertComplete();
 
             final RequestPatternBuilder requestedFor = getRequestedFor(urlPathEqualTo("/endpoint" + path));
             if (planFlowSelected != null) {
@@ -124,8 +125,8 @@ public class BestMatchIntegrationTest {
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.putIfAbsent(
-                   "transform-headers",
-                   PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
+                    "transform-headers",
+                    PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
             );
         }
 
@@ -134,7 +135,11 @@ public class BestMatchIntegrationTest {
             if (isLegacyApi(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
                 definition.getFlows().forEach(flow -> flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS)));
-                definition.getPlans().stream().flatMap(plan -> plan.getFlows().stream()).forEach(flow -> flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS)));
+                definition
+                        .getPlans()
+                        .stream()
+                        .flatMap(plan -> plan.getFlows().stream())
+                        .forEach(flow -> flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS)));
             }
         }
 
@@ -143,33 +148,33 @@ public class BestMatchIntegrationTest {
          */
         Stream<Arguments> provideParameters() {
             return Stream.of(
-                   Arguments.of("/books", "/books", "/books"),
-                   Arguments.of("/books", "/books", "/books"),
-                   Arguments.of("/books/145/chapters/12", null, "/books/:bookId/chapters/:chapterId"),
-                   Arguments.of("/books/9999/chapters", null, "/books/9999/chapters"),
-                   Arguments.of("/books/9999/chapters/random", null, "/books/:bookId/chapters/:chapterId"),
-                   Arguments.of("/random", null, null),
-                   Arguments.of("/", "/", null),
-                   Arguments.of("/books/145", "/books/:bookId", null)
+                    Arguments.of("/books", "/books", "/books"),
+                    Arguments.of("/books", "/books", "/books"),
+                    Arguments.of("/books/145/chapters/12", null, "/books/:bookId/chapters/:chapterId"),
+                    Arguments.of("/books/9999/chapters", null, "/books/9999/chapters"),
+                    Arguments.of("/books/9999/chapters/random", null, "/books/:bookId/chapters/:chapterId"),
+                    Arguments.of("/random", null, null),
+                    Arguments.of("/", "/", null),
+                    Arguments.of("/books/145", "/books/:bookId", null)
             );
         }
 
         @ParameterizedTest
         @MethodSource("provideParameters")
         void should_use_best_matching_flow(String path, String planFlowSelected, String apiFlowSelected, HttpClient client) {
-
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
 
-            client.rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(HttpClientRequest::rxSend)
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(10, TimeUnit.SECONDS)
-                   .assertValue(Buffer.buffer("response from backend"))
-                   .assertComplete();
+            client
+                    .rxRequest(HttpMethod.GET, "/test" + path)
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(10, TimeUnit.SECONDS)
+                    .assertValue(Buffer.buffer("response from backend"))
+                    .assertComplete();
 
             final RequestPatternBuilder requestedFor = getRequestedFor(urlPathEqualTo("/endpoint" + path));
             if (planFlowSelected != null) {
@@ -181,5 +186,4 @@ public class BestMatchIntegrationTest {
             wiremock.verify(requestedFor);
         }
     }
-
 }

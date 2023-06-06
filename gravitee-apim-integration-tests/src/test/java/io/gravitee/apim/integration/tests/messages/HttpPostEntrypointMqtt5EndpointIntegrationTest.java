@@ -66,11 +66,14 @@ import org.testcontainers.utility.DockerImageName;
  */
 @Testcontainers
 @GatewayTest
-@DeployApi({ "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint.json",
-       "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint-retained.json",
-       "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint-failure.json",
-       "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint-attribute.json"
-})
+@DeployApi(
+        {
+                "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint.json",
+                "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint-retained.json",
+                "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint-failure.json",
+                "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint-attribute.json",
+        }
+)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractGatewayTest {
 
@@ -105,8 +108,8 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractGatewayTest
             PolicyBuilder.build("interrupt-message-request-phase", InterruptMessageRequestPhasePolicy.class)
         );
         policies.put(
-               "assign-attributes",
-               PolicyBuilder.build("assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class)
+                "assign-attributes",
+                PolicyBuilder.build("assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class)
         );
     }
 
@@ -163,15 +166,20 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractGatewayTest
 
         // Verify there is no message since retain is false
         RxJavaBridge
-               .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(TEST_TOPIC).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
-               .test()
-               .awaitDone(1, TimeUnit.SECONDS).assertNoValues().assertNotComplete();
+                .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(TEST_TOPIC).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
+                .test()
+                .awaitDone(1, TimeUnit.SECONDS)
+                .assertNoValues()
+                .assertNotComplete();
 
         disconnectFromMqtt5(mqtt5RxClient);
     }
 
     @Test
-    void should_be_able_to_publish_retained_message_to_mqtt5_endpoint_with_httppost_entrypoint(HttpClient client, VertxTestContext testContext) {
+    void should_be_able_to_publish_retained_message_to_mqtt5_endpoint_with_httppost_entrypoint(
+            HttpClient client,
+            VertxTestContext testContext
+    ) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value-retained");
 
@@ -186,54 +194,59 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractGatewayTest
 
         // Check if message is present in Mqtt
         mqttTestSubscriber
-               .awaitDone(30, TimeUnit.SECONDS)
-               .assertValueAt(
-                      0,
-                      message -> {
-                          assertThat(message.getTopic()).hasToString(TEST_TOPIC_RETAINED);
-                          assertThat(message.getResponseTopic()).isEmpty();
-                          assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueAt(
+                        0,
+                        message -> {
+                            assertThat(message.getTopic()).hasToString(TEST_TOPIC_RETAINED);
+                            assertThat(message.getResponseTopic()).isEmpty();
+                            assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
 
-                          assertThat(message.getUserProperties().asList().stream().map(Object::toString))
-                                 .containsAnyOf(
-                                        "(content-length, " + requestBody.toString().length() + ")",
-                                        "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
-                                        "(X-Test-Header, header-value)"
-                                 );
-                          return true;
-                      }
-               )
-               .assertComplete();
+                            assertThat(message.getUserProperties().asList().stream().map(Object::toString))
+                                    .containsAnyOf(
+                                            "(content-length, " + requestBody.toString().length() + ")",
+                                            "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
+                                            "(X-Test-Header, header-value)"
+                                    );
+                            return true;
+                        }
+                )
+                .assertComplete();
 
         // Verify the message is still present because it is retained
         RxJavaBridge
-               .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(TEST_TOPIC_RETAINED).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
-               .take(1)
-               .test()
-               .awaitDone(5, TimeUnit.SECONDS)
-               .assertValueAt(
-                      0,
-                      message -> {
-                          assertThat(message.getTopic()).hasToString(TEST_TOPIC_RETAINED);
-                          assertThat(message.getResponseTopic()).isEmpty();
-                          assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
+                .toV3Flowable(
+                        mqtt5RxClient.subscribePublishesWith().topicFilter(TEST_TOPIC_RETAINED).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe()
+                )
+                .take(1)
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertValueAt(
+                        0,
+                        message -> {
+                            assertThat(message.getTopic()).hasToString(TEST_TOPIC_RETAINED);
+                            assertThat(message.getResponseTopic()).isEmpty();
+                            assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
 
-                          assertThat(message.getUserProperties().asList().stream().map(Object::toString))
-                                 .containsAnyOf(
-                                        "(content-length, " + requestBody.toString().length() + ")",
-                                        "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
-                                        "(X-Test-Header, header-value)"
-                                 );
-                          return true;
-                      }
-               )
-               .assertComplete();
+                            assertThat(message.getUserProperties().asList().stream().map(Object::toString))
+                                    .containsAnyOf(
+                                            "(content-length, " + requestBody.toString().length() + ")",
+                                            "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
+                                            "(X-Test-Header, header-value)"
+                                    );
+                            return true;
+                        }
+                )
+                .assertComplete();
 
         disconnectFromMqtt5(mqtt5RxClient);
     }
 
     @Test
-    void should_be_able_to_publish_message_to_mqtt5_endpoint_with_httppost_entrypoint_topic_overridden_by_attribute(HttpClient client, VertxTestContext testContext) {
+    void should_be_able_to_publish_message_to_mqtt5_endpoint_with_httppost_entrypoint_topic_overridden_by_attribute(
+            HttpClient client,
+            VertxTestContext testContext
+    ) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
@@ -255,43 +268,43 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractGatewayTest
 
         // Check if message is present in Mqtt test-topic-attribute
         mqttTestSubscriberAttribute
-               .awaitDone(30, TimeUnit.SECONDS)
-               .assertValueAt(
-                      0,
-                      message -> {
-                          assertThat(message.getTopic()).hasToString(TEST_TOPIC_ATTRIBUTE);
-                          assertThat(message.getResponseTopic()).isEmpty();
-                          assertThat(message.getPayloadAsBytes()).isEqualTo(requestBodyAttribute.toBuffer().getBytes());
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueAt(
+                        0,
+                        message -> {
+                            assertThat(message.getTopic()).hasToString(TEST_TOPIC_ATTRIBUTE);
+                            assertThat(message.getResponseTopic()).isEmpty();
+                            assertThat(message.getPayloadAsBytes()).isEqualTo(requestBodyAttribute.toBuffer().getBytes());
 
-                          assertThat(message.getUserProperties().asList().stream().map(Object::toString))
-                                 .containsAnyOf(
-                                        "(content-length, " + requestBodyAttribute.toString().length() + ")",
-                                        "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
-                                        "(X-New-Topic, " + TEST_TOPIC_ATTRIBUTE + ")"
-                                 );
-                          return true;
-                      }
-               )
-               .assertComplete();
+                            assertThat(message.getUserProperties().asList().stream().map(Object::toString))
+                                    .containsAnyOf(
+                                            "(content-length, " + requestBodyAttribute.toString().length() + ")",
+                                            "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
+                                            "(X-New-Topic, " + TEST_TOPIC_ATTRIBUTE + ")"
+                                    );
+                            return true;
+                        }
+                )
+                .assertComplete();
 
         mqttTestSubscriber
-               .awaitDone(30, TimeUnit.SECONDS)
-               .assertValueAt(
-                      0,
-                      message -> {
-                          assertThat(message.getTopic()).hasToString(TEST_TOPIC);
-                          assertThat(message.getResponseTopic()).isEmpty();
-                          assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValueAt(
+                        0,
+                        message -> {
+                            assertThat(message.getTopic()).hasToString(TEST_TOPIC);
+                            assertThat(message.getResponseTopic()).isEmpty();
+                            assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
 
-                          assertThat(message.getUserProperties().asList().stream().map(Object::toString))
-                                 .containsAnyOf(
-                                        "(content-length, " + requestBody.toString().length() + ")",
-                                        "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")"
-                                 );
-                          return true;
-                      }
-               )
-               .assertComplete();
+                            assertThat(message.getUserProperties().asList().stream().map(Object::toString))
+                                    .containsAnyOf(
+                                            "(content-length, " + requestBody.toString().length() + ")",
+                                            "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")"
+                                    );
+                            return true;
+                        }
+                )
+                .assertComplete();
 
         disconnectFromMqtt5(mqtt5RxClient);
     }
@@ -308,51 +321,48 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractGatewayTest
         final TestSubscriber<Mqtt5Publish> mqttTestSubscriber = subscribeToMqtt5(mqtt5RxClient, TEST_TOPIC_FAILURE);
 
         client
-               .rxRequest(HttpMethod.POST, "/http-post-entrypoint-mqtt5-endpoint-failure")
-               .flatMap(request -> request.rxSend(requestBody.toString()))
-               .flatMap(response -> {
-                   assertThat(response.statusCode()).isEqualTo(412);
-                   return response.body();
-               })
-               .test()
-               .awaitDone(5, TimeUnit.SECONDS)
-               .assertComplete()
-               .assertValue(buffer -> {
-                   assertThat(buffer).hasToString("An error occurred");
-                   return true;
-               });
+                .rxRequest(HttpMethod.POST, "/http-post-entrypoint-mqtt5-endpoint-failure")
+                .flatMap(request -> request.rxSend(requestBody.toString()))
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(412);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(buffer -> {
+                    assertThat(buffer).hasToString("An error occurred");
+                    return true;
+                });
 
-        mqttTestSubscriber
-               .awaitDone(2, TimeUnit.SECONDS)
-               .assertNoValues()
-               .assertNotComplete();
+        mqttTestSubscriber.awaitDone(2, TimeUnit.SECONDS).assertNoValues().assertNotComplete();
 
         disconnectFromMqtt5(mqtt5RxClient);
     }
 
     private static void postMessage(HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
         client
-               .rxRequest(HttpMethod.POST, requestURI)
-               .flatMap(request -> {
-                   headers.forEach(request::putHeader);
-                   return request.rxSend(requestBody.toString());
-               })
-               .flatMapPublisher(response -> {
-                   assertThat(response.statusCode()).isEqualTo(202);
-                   return response.toFlowable();
-               })
-               .test()
-               .awaitDone(10, TimeUnit.SECONDS)
-               .assertNoValues()
-               .assertComplete()
-               .assertNoErrors();
+                .rxRequest(HttpMethod.POST, requestURI)
+                .flatMap(request -> {
+                    headers.forEach(request::putHeader);
+                    return request.rxSend(requestBody.toString());
+                })
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(202);
+                    return response.toFlowable();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertNoValues()
+                .assertComplete()
+                .assertNoErrors();
     }
 
     private static TestSubscriber<Mqtt5Publish> subscribeToMqtt5(Mqtt5RxClient mqtt5RxClient, String topic) {
         return RxJavaBridge
-               .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(topic).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
-               .take(1)
-               .test();
+                .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(topic).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
+                .take(1)
+                .test();
     }
 
     private static void disconnectFromMqtt5(Mqtt5RxClient mqtt5RxClient) {
@@ -362,18 +372,19 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractGatewayTest
     private static void connectToMqtt5(VertxTestContext testContext, Mqtt5RxClient mqtt5RxClient) {
         final Checkpoint mqttConnectedCheckpoint = testContext.checkpoint();
         RxJavaBridge
-            .toV3Completable(
-                mqtt5RxClient
-                    .connect()
-                    .doOnSuccess(mqtt5ConnAck -> {
-                        if (mqtt5ConnAck.getReasonCode().equals(Mqtt5ConnAckReasonCode.SUCCESS)) {
-                            mqttConnectedCheckpoint.flag();
-                        } else {
-                            testContext.failNow("Unable to connect to MQTT5");
-                        }
-                    })
-                    .ignoreElement()
-            ).blockingAwait();
+                .toV3Completable(
+                        mqtt5RxClient
+                                .connect()
+                                .doOnSuccess(mqtt5ConnAck -> {
+                                    if (mqtt5ConnAck.getReasonCode().equals(Mqtt5ConnAckReasonCode.SUCCESS)) {
+                                        mqttConnectedCheckpoint.flag();
+                                    } else {
+                                        testContext.failNow("Unable to connect to MQTT5");
+                                    }
+                                })
+                                .ignoreElement()
+                )
+                .blockingAwait();
     }
 
     @NotNull
@@ -385,5 +396,4 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractGatewayTest
             .automaticReconnectWithDefaultConfig()
             .buildRx();
     }
-
 }

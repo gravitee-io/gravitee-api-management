@@ -35,5 +35,4 @@ public class BestMatchV3CompatibilityIntegrationTest extends BestMatchIntegratio
     @GatewayTest(mode = GatewayMode.COMPATIBILITY)
     @DeployApi("/apis/http/bestmatch/api.json")
     class EqualsOperator extends BestMatchIntegrationTest.EqualsOperator {}
-
 }

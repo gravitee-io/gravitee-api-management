@@ -75,7 +75,6 @@ public class AbstractSseGatewayTest extends AbstractGatewayTest {
         assertThat(actualComments).containsExactlyInAnyOrder(expectedComments);
     }
 
-
     protected void assertHeartbeat(Buffer chunk) {
         assertThat(chunk.toString()).isEqualTo(":\n\n");
     }

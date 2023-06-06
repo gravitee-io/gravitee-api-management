@@ -43,7 +43,6 @@ import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -60,17 +59,19 @@ import org.junit.jupiter.params.provider.MethodSource;
 class FlowPhaseExecutionIntegrationTest {
 
     public static final String RESPONSE_FROM_BACKEND = "response from backend";
-    public static final String PARAMETERS_PROVIDERS_CLASS = "io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionParameterProviders#";
+    public static final String PARAMETERS_PROVIDERS_CLASS =
+            "io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionParameterProviders#";
 
     /**
      * Inherit from this class to have the required configuration to run each tests of this class
      */
     class TestPreparer extends AbstractGatewayTest {
+
         @Override
         public void configurePolicies(Map<String, PolicyPlugin> policies) {
             policies.putIfAbsent(
-                   "transform-headers",
-                   PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
+                    "transform-headers",
+                    PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
             );
         }
     }
@@ -125,39 +126,41 @@ class FlowPhaseExecutionIntegrationTest {
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isLegacyApi(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
-                definition.getFlows().forEach(flow -> {
-                    flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS));
-                });
+                definition
+                        .getFlows()
+                        .forEach(flow -> {
+                            flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS));
+                        });
             }
         }
 
         @ParameterizedTest
         @MethodSource(PARAMETERS_PROVIDERS_CLASS + "parametersEqualsOperatorCase")
         void should_pass_through_correct_flows(
-               String path,
-               Map<String, String> expectedRequestHeaders,
-               Map<String, String> expectedResponseHeaders,
-               HttpClient client
+                String path,
+                Map<String, String> expectedRequestHeaders,
+                Map<String, String> expectedResponseHeaders,
+                HttpClient client
         ) {
             wiremock.stubFor(get("/endpoint" + path).willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             client
-                   .rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(HttpClientRequest::rxSend)
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       expectedResponseHeaders.forEach((name, value) -> {
-                           assertThat(extractHeaders(response)).contains(Map.entry(name, value));
-                       });
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(2, TimeUnit.SECONDS)
-                   .assertComplete()
-                   .assertValue(response -> {
-                       assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                       return true;
-                   });
+                    .rxRequest(HttpMethod.GET, "/test" + path)
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        expectedResponseHeaders.forEach((name, value) -> {
+                            assertThat(extractHeaders(response)).contains(Map.entry(name, value));
+                        });
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(2, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
 
             final RequestPatternBuilder requestedFor = getRequestedFor(urlPathEqualTo("/endpoint" + path));
             expectedRequestHeaders.forEach((name, value) -> requestedFor.withHeader(name, equalTo(value)));
@@ -174,30 +177,30 @@ class FlowPhaseExecutionIntegrationTest {
         @ParameterizedTest
         @MethodSource(PARAMETERS_PROVIDERS_CLASS + "parametersMixedOperatorCase")
         void should_pass_through_correct_flows(
-               String path,
-               Map<String, String> expectedRequestHeaders,
-               Map<String, String> expectedResponseHeaders,
-               HttpClient client
+                String path,
+                Map<String, String> expectedRequestHeaders,
+                Map<String, String> expectedResponseHeaders,
+                HttpClient client
         ) {
             wiremock.stubFor(get("/endpoint" + path).willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             client
-                   .rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(HttpClientRequest::rxSend)
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       expectedResponseHeaders.forEach((name, value) -> {
-                           assertThat(extractHeaders(response)).contains(Map.entry(name, value));
-                       });
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(2, TimeUnit.SECONDS)
-                   .assertComplete()
-                   .assertValue(response -> {
-                       assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                       return true;
-                   });
+                    .rxRequest(HttpMethod.GET, "/test" + path)
+                    .flatMap(HttpClientRequest::rxSend)
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        expectedResponseHeaders.forEach((name, value) -> {
+                            assertThat(extractHeaders(response)).contains(Map.entry(name, value));
+                        });
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(2, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
 
             final RequestPatternBuilder requestedFor = getRequestedFor(urlPathEqualTo("/endpoint" + path));
             expectedRequestHeaders.forEach((name, value) -> requestedFor.withHeader(name, equalTo(value)));
@@ -214,33 +217,31 @@ class FlowPhaseExecutionIntegrationTest {
         @ParameterizedTest
         @MethodSource(PARAMETERS_PROVIDERS_CLASS + "parametersConditionalFlowsCase")
         void should_pass_through_correct_flows(
-               String path,
-               String conditionalHeader,
-               Map<String, String> expectedRequestHeaders,
-               Map<String, String> expectedResponseHeaders,
-               HttpClient client
+                String path,
+                String conditionalHeader,
+                Map<String, String> expectedRequestHeaders,
+                Map<String, String> expectedResponseHeaders,
+                HttpClient client
         ) {
             wiremock.stubFor(get("/endpoint" + path).willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             client
-                   .rxRequest(HttpMethod.GET, "/test" + path)
-                   .flatMap(request ->
-                       request.putHeader("X-Condition-Flow-Selection", conditionalHeader).rxSend()
-                   )
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       expectedResponseHeaders.forEach((name, value) -> {
-                           assertThat(extractHeaders(response)).contains(Map.entry(name, value));
-                       });
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(2, TimeUnit.SECONDS)
-                   .assertComplete()
-                   .assertValue(response -> {
-                       assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                       return true;
-                   });
+                    .rxRequest(HttpMethod.GET, "/test" + path)
+                    .flatMap(request -> request.putHeader("X-Condition-Flow-Selection", conditionalHeader).rxSend())
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        expectedResponseHeaders.forEach((name, value) -> {
+                            assertThat(extractHeaders(response)).contains(Map.entry(name, value));
+                        });
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(2, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
 
             final RequestPatternBuilder requestedFor = getRequestedFor(urlPathEqualTo("/endpoint" + path));
             expectedRequestHeaders.forEach((name, value) -> requestedFor.withHeader(name, equalTo(value)));
@@ -254,29 +255,25 @@ class FlowPhaseExecutionIntegrationTest {
          * If the header is removed, with the current condition it will end with a NullPointerException and so a 500 response.
          */
         @Test
-        void should_pass_through_correct_flow_condition_remove_header_on_request(
-               HttpClient client
-        ) {
+        void should_pass_through_correct_flow_condition_remove_header_on_request(HttpClient client) {
             wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
 
             client
-                   .rxRequest(HttpMethod.GET, "/test-double-evaluation")
-                   .flatMap(request ->
-                          request.putHeader("X-Condition-Flow-Selection", "root-condition").rxSend()
-                   )
-                   .flatMap(response -> {
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       assertThat(response.statusCode()).isEqualTo(200);
-                       assertThat(extractHeaders(response)).contains(Map.entry(responseFlowHeader(0), headerValue("/")));
-                       return response.body();
-                   })
-                   .test()
-                   .awaitDone(2, TimeUnit.SECONDS)
-                   .assertComplete()
-                   .assertValue(response -> {
-                       assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
-                       return true;
-                   });
+                    .rxRequest(HttpMethod.GET, "/test-double-evaluation")
+                    .flatMap(request -> request.putHeader("X-Condition-Flow-Selection", "root-condition").rxSend())
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(response.statusCode()).isEqualTo(200);
+                        assertThat(extractHeaders(response)).contains(Map.entry(responseFlowHeader(0), headerValue("/")));
+                        return response.body();
+                    })
+                    .test()
+                    .awaitDone(2, TimeUnit.SECONDS)
+                    .assertComplete()
+                    .assertValue(response -> {
+                        assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                        return true;
+                    });
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")).withHeader(requestFlowHeader(0), equalTo(headerValue("/"))));
         }

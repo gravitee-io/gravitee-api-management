@@ -29,9 +29,7 @@ import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
-
 import java.util.Map;
-
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -126,7 +124,8 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractSseGateway
                             assertHeartbeat(chunk);
                             return true;
                         }
-                ).assertValueAt(
+                )
+                .assertValueAt(
                         2,
                         chunk -> {
                             assertOnMessage(chunk, 0L, MESSAGE);
@@ -149,5 +148,4 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractSseGateway
                 })
                 .test();
     }
-
 }
