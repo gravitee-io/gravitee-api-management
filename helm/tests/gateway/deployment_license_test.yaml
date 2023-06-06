@@ -1,0 +1,54 @@
+suite: Test API Gateway deployment with startupProbe
+templates:
+  - "gateway/gateway-deployment.yaml"
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Deploy use licensekey secret if given
+    template: gateway/gateway-deployment.yaml
+    set:
+      license:
+        name: licensekey_apim
+        key: unleashThePowerOfYourAPIs
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: licensekey
+            mountPath: /opt/graviteeio-gateway/license
+            readOnly: true
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: licensekey
+            secret:
+              secretName: licensekey_apim
+              items:
+                - key: licensekey
+                  path: license.key
+
+  - it: Deploy not use licensekey secret by default
+    template: gateway/gateway-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: licensekey
+            mountPath: /opt/graviteeio-gateway/license
+            readOnly: true
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: licensekey
+            secret:
+              secretName: licensekey
+              items:
+                - key: licensekey
+                  path: license.key

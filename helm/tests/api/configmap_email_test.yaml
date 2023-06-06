@@ -1,0 +1,106 @@
+suite: Test Management API default configmap
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: Set smtp attributes
+    template: api/api-configmap.yaml
+    set:
+      smtp:
+        enabled: true
+        host: TEST.host
+        port: 4242
+        from: TEST.from
+        username: TEST.username
+        password: TEST.password
+        subject: "TEST.subject"
+        properties:
+          auth: true
+          starttls.enable: false
+          localhost: TEST.properties.localhost
+          ssl.trust: TEST.properties.ssl.trust
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "host: TEST.host"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "port: 4242"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "from: TEST.from"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "username: TEST.username"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "password: TEST.password"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: 'subject: "TEST.subject"'
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "starttls.enable: false"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "localhost: TEST.properties.localhost"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "ssl.trust: TEST.properties.ssl.trust"
+
+  - it: Set smtp attributes
+    template: api/api-configmap.yaml
+    set:
+      smtp:
+    asserts:
+      - notMatchRegex:
+          path: data.[gravitee.yml]
+          pattern: "host: smtp.example.com"
+
+  - it: Set notifiers smtp attributes
+    template: api/api-configmap.yaml
+    set:
+      notifiers:
+        smtp:
+          enabled: true
+          host: TEST.host
+          subject: TEST.subject
+          port: 4242
+          from: TEST.from
+          username: TEST.username
+          password: TEST.password
+          starttlsEnabled: true
+          ssl:
+            trustAll: false
+            keyStore: TEST.keyStore
+            keyStorePassword: TEST.keyStorePassword
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "host: TEST.host"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "port: 4242"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "from: TEST.from"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "username: TEST.username"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "password: TEST.password"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: 'subject: "TEST.subject"'
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "starttls.enabled: true"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "trustAll: false"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "keyStore: TEST.keyStore"
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "keyStorePassword: TEST.keyStorePassword"

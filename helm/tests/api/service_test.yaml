@@ -1,0 +1,119 @@
+suite: Test Management API default Service
+templates:
+  - "api/api-service.yaml"
+  - "api/api-configmap.yaml"
+tests:
+  - it: Check default service
+    template: api/api-service.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - isNull:
+          path: spec.externalTrafficPolicy
+      - contains:
+          path: spec.ports
+          content:
+            port: 83
+            targetPort: 8083
+            protocol: TCP
+            name: api
+            appProtocol: http
+
+  - it: Check service with custom appProtocol
+    template: api/api-service.yaml
+    set:
+      api:
+        service:
+          appProtocol: http-test
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - contains:
+          path: spec.ports
+          content:
+            port: 83
+            targetPort: 8083
+            protocol: TCP
+            name: api
+            appProtocol: http-test
+
+  - it: Deploy with long api name
+    template: api/api-service.yaml
+    set:
+      api:
+        name: "I-am-a-very-long-name-Neque-porro-quisquam-est-qui-dolorem-ipsum-quia-dolor-sit"
+        services:
+          bridge:
+            enabled: true
+            service:
+              externalPort: 42
+        http:
+          services:
+            core:
+              service:
+                enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.ports
+          value: 
+            - appProtocol: http
+              name: I-am-a-very-long-name-Neque-porro-quisquam-est-qui-dolorem-ipsu
+              port: 83
+              protocol: TCP
+              targetPort: 8083
+            - appProtocol: http
+              name: I-am-a-very-long-name-Neque-porro-quisquam-est-qui-do-technical
+              port: null
+              protocol: TCP
+              targetPort: 18083
+            - appProtocol: http
+              name: I-am-a-very-long-name-Neque-porro-quisquam-est-qui-dolor-bridge
+              port: 42
+              protocol: TCP
+              targetPort: 18092
+
+  - it: Deploy with NodePort and externalTrafficPolicy
+    template: api/api-service.yaml
+    set:
+      api:
+        service:
+          type: NodePort
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
+
+  - it: Deploy with LoadBalancer and externalTrafficPolicy
+    template: api/api-service.yaml
+    set:
+      api:
+        service:
+          type: LoadBalancer
+          externalTrafficPolicy: Local
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local

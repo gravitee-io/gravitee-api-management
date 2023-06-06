@@ -1,0 +1,90 @@
+suite: Test Management API - Management Ingress
+templates:
+  - "api/api-ingress-management.yaml"
+tests:
+  - it: Check Ingress extensions/v1beta1
+    set:
+      global:
+        kubeVersion: 1.13.0
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: extensions/v1beta1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check Ingress networking.k8s.io/v1beta1
+    set:
+      global:
+        kubeVersion: 1.15.0
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check Ingress networking.k8s.io/v1 without IngressClassName
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check Ingress networking.k8s.io/v1 with IngressClassName
+    set:
+      api:
+        ingress:
+          management:
+            ingressClassName: nginx
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+
+  - it: Check Ingress networking.k8s.io/v1 with IngressClassName as none
+    set:
+      api:
+        ingress:
+          management:
+            ingressClassName: none
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check Ingress pathType and path
+    set:
+      api:
+        ingress:
+          management:
+            pathType: Exact
+            path: /test-management
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Exact
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /test-management

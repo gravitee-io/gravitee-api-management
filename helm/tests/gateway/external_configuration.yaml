@@ -1,0 +1,128 @@
+suite: Test deployment and configmap with a volumeMount named config defined
+templates:
+  - "gateway/gateway-deployment.yaml"
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Should NOT generate gateway-configmap.yaml
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        extraVolumes: |
+          - name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Should generate gateway-configmap.yaml
+    template: gateway/gateway-configmap.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isNull:
+          path: data.logback\.xml
+      - isNotNull:
+          path: data.gravitee\.yml
+
+  - it: Should generate gateway-configmap.yaml  when logging.debug is true
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        logging:
+          debug: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isNotNull:
+          path: data.logback\.xml
+      - isNotNull:
+          path: data.gravitee\.yml
+
+  - it: Should generate gateway-configmap.yaml when logging.debug is true and extraVolumes 'config' is defined
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        logging:
+          debug: true
+        extraVolumes: |
+          - name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isNotNull:
+          path: data.logback\.xml
+      - isNull:
+          path: data.gravitee\.yml
+
+  - it: Should generate a volume named config in gateway-deployment.yaml
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        extraVolumes: |
+           - name: config
+             secret:
+               secretName: gravitee-yml-secret-name
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /opt/graviteeio-gateway/config/gravitee.yml
+            subPath: gravitee.yml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+
+  - it: Should NOT generate a volume named config in gateway-deployment.yaml
+    template: gateway/gateway-deployment.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /opt/graviteeio-gateway/config/gravitee.yml
+            subPath: gravitee.yml
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: logback
+            secret:
+              secretName: gravitee-yml-secret-name
+
+  - it: Should generate a volume and a volumeMount named logback in gateway-deployment.yaml
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        logging:
+          debug: true
+        extraVolumes: |
+          - name: config
+            secret:
+              secretName: gravitee-yml-secret-name
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[1].name
+          value: logback
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: logback

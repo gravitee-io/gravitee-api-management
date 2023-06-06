@@ -1,0 +1,18 @@
+suite: Test Management API default configmap - Services
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: Enable subscription service and set `pre-expiration-notification-schedule`
+    template: api/api-configmap.yaml
+    set:
+      api:
+        services:
+          subscription:
+            enabled: true
+            pre-expiration-notification-schedule: 15,10,5
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * subscription:\n
+                     *   enabled: true\n
+                     *   pre-expiration-notification-schedule: 15,10,5"

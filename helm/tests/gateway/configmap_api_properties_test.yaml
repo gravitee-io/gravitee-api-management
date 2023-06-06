@@ -1,0 +1,26 @@
+suite: Test Gateway default configmap - API properties
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Doesn't set API properties by default
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data.[gravitee.yml]
+          pattern: " *api:\n
+                     *  properties:\n"
+  - it: Set the API properties
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        api:
+          properties:
+            encryption:
+              secret: aSecret
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " *api:\n
+                     *  properties:\n
+                     *    encryption:\n
+                     *      secret: aSecret"
