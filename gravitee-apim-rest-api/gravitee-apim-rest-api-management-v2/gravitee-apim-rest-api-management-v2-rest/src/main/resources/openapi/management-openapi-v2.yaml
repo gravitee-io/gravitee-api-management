@@ -9,19 +9,6 @@ info:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
     version: 2.0.0
-tags:
-    - name: APIs
-      description: Everything about APIs
-    - name: API Members
-      description: Everything about API members
-    - name: API Plans
-      description: Everything about API plans
-    - name: Endpoints
-      description: Everything about endpoint plugins
-    - name: Entrypoints
-      description: Everything about entrypoint plugins
-    - name: Installation
-      description: Base resources about the installation
 
 security:
     - BasicAuth: []
@@ -30,6 +17,23 @@ security:
 servers:
     - url: /management/v2
       description: Gravitee.io APIM - Management API -v2
+
+tags:
+    - name: APIs
+      description: Everything about APIs
+    - name: API Members
+      description: Everything about API members
+    - name: API Plans
+      description: Everything about API plans
+    - name: Group
+      description: Everything about groups
+    - name: Installation
+      description: Base resources about the installation
+    - name: Plugins - Endpoints
+      description: Everything about endpoint plugins
+    - name: Plugins - Entrypoints
+      description: Everything about entrypoint plugins
+
 paths:
     # APIs
     /environments/{envId}/apis:
@@ -47,7 +51,7 @@ paths:
                 The results are paginated.
                 
                 User must have the ENVIRONMENT_API[READ] permission.
-            operationId: getApis
+            operationId: listApis
             responses:
                 "200":
                     $ref: "#/components/responses/ApisResponse"
@@ -91,7 +95,7 @@ paths:
                 This definition can be retrieved from `GET /environments/{envId}/apis/{apiId}/_export/definition`
                 
                 User must have the ENVIRONMENT_API[CREATE] permission.
-            operationId: createApiWithDefinition
+            operationId: createApiWithImportDefinition
             requestBody:
                 content:
                     application/json:
@@ -147,7 +151,7 @@ paths:
                 Get a specific API.
                 
                 User must have at least one management (create, update, or delete) permission on the API to access it.
-            operationId: getApiById
+            operationId: getApi
             responses:
                 "200":
                     description: API found
@@ -235,7 +239,7 @@ paths:
                 An optional deployment label can be given to the requested deployment.
                 
                 User must have the API_DEFINITION[UPDATE] permission.
-            operationId: createAPIDeployment
+            operationId: createApiDeployment
             requestBody:
                 content:
                     application/json:
@@ -361,7 +365,7 @@ paths:
                 List the members for a given API.
                 
                 User must have the API_MEMBER[READ] permission.
-            operationId: getApiMembers
+            operationId: listApiMembers
             responses:
                 "200":
                     $ref: "#/components/responses/MembersResponse"
@@ -378,7 +382,7 @@ paths:
                  - when the user tries to set a member as PrimaryOwner.
                 
                 User must have the API_MEMBER[CREATE] permission.
-            operationId: createApiMembership
+            operationId: addApiMember
             requestBody:
                 content:
                     application/json:
@@ -443,27 +447,6 @@ paths:
                     description: API member successfully deleted
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/groups/{groupId}/members:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/groupIdParam"
-        get:
-            parameters:
-                - $ref: "#/components/parameters/pageParam"
-                - $ref: "#/components/parameters/perPageParam"
-            tags:
-                - API Members
-            summary: Get a group's members
-            description: |
-                List the members of a given group.
-
-                User must have the GROUP_MEMBER[READ] permission.
-            operationId: getGroupMembers
-            responses:
-                "200":
-                    $ref: "#/components/responses/MembersResponse"
-                default:
-                    $ref: "#/components/responses/Error"
 
     # API Plans
     /environments/{envId}/apis/{apiId}/plans:
@@ -495,13 +478,13 @@ paths:
                 - $ref: "#/components/parameters/perPageParam"
             tags:
                 - API Plans
-            summary: Get the API's plans
+            summary: List the API's plans
             description: |
                 List plans for a given API, always filtered by a `status` and the possibility to filter by `security`.<br>
                 The results are paginated.
                 
                 User must have API_PLAN[READ] permissions to access endpoint.
-            operationId: getApiPlans
+            operationId: listApiPlans
             responses:
                 "200":
                     $ref: "#/components/responses/PlansResponse"
@@ -515,7 +498,7 @@ paths:
                 Create a new plan on a given API.
                 
                 User must have the API_PLAN[CREATE] permission.
-            operationId: createAPIPlan
+            operationId: createApiPlan
             requestBody:
                 content:
                     application/json:
@@ -544,7 +527,7 @@ paths:
                 Get the API's plan by its identifier.
                 
                 User must have the API_PLAN[READ] permission.
-            operationId: getApiPlanById
+            operationId: getApiPlan
             responses:
                 "200":
                     description: An API's plan
@@ -662,243 +645,26 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    # Endpoints
-    /plugins/endpoints:
-        get:
-            tags:
-                - Endpoints
-            summary: Get available endpoints on the platform
-            description: |
-                Get available endpoint types on the platform.
-                
-                User must be authenticated.
-            operationId: getEndpoints
-            responses:
-                "200":
-                    description: List of Endpoints.
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/ConnectorPlugin"
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}:
+    # Group
+    /environments/{envId}/groups/{groupId}/members:
         parameters:
-            - $ref: "#/components/parameters/endpointIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/groupIdParam"
         get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
             tags:
-                - Endpoints
-            summary: Get an endpoint
+                - Group
+            summary: List a group's members
             description: |
-                Get an endpoint type.
-                
-                User must be authenticated.
-            operationId: getEndpoint
-            responses:
-                "200":
-                    description: Endpoint
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ConnectorPlugin"
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}/documentation:
-        parameters:
-            - $ref: "#/components/parameters/endpointIdParam"
-        get:
-            tags:
-                - Endpoints
-            summary: Get an endpoint documentation
-            description: |
-                Get the documentation of an endpoint.
-                
-                User must be authenticated.
-            operationId: getEndpointDocumentation
-            responses:
-                "200":
-                    description: Documentation of the endpoint
-                    content:
-                        text/plain:
-                            schema:
-                                type: string
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}/more-information:
-        parameters:
-            - $ref: "#/components/parameters/endpointIdParam"
-        get:
-            tags:
-                - Endpoints
-            summary: Get more information about how to use a given endpoint
-            description: |
-                More information about the endpoint.
-                
-                User must be authenticated.
-            operationId: getEndpointMoreInformation
-            responses:
-                "200":
-                    description: More information of the endpoint
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/MoreInformation"
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}/schema:
-        parameters:
-            - $ref: "#/components/parameters/endpointIdParam"
-        get:
-            tags:
-                - Endpoints
-            summary: Get an endpoint schema
-            description: |
-                Get the JSON schema that describes the configuration of an endpoint.
-                
-                User must be authenticated.
-            operationId: getEndpointSchema
-            responses:
-                "200":
-                    $ref: "#/components/responses/SchemaFormResponse"
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}/shared-configuration-schema:
-        parameters:
-            - $ref: "#/components/parameters/endpointIdParam"
-        get:
-            tags:
-                - Endpoints
-            summary: Get an endpoint shared configuration schema
-            description: |
-                Get an endpoint shared configuration schema.
-                
-                User must be authenticated.
-            operationId: getEndpointSharedConfigurationSchema
-            responses:
-                "200":
-                    $ref: "#/components/responses/SchemaFormResponse"
-                default:
-                    $ref: "#/components/responses/Error"
+                List the members of a given group.
 
-    # Entrypoints
-    /plugins/entrypoints:
-        get:
-            tags:
-                - Entrypoints
-            summary: Get available entrypoints on the platform
-            description: |
-                Get available entrypoint types on the platform.
-                
-                User must be authenticated.
-            operationId: getEntrypoints
+                User must have the GROUP_MEMBER[READ] permission.
+            operationId: listGroupMembers
             responses:
                 "200":
-                    description: List of Entrypoints.
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/ConnectorPlugin"
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}:
-        parameters:
-            - $ref: "#/components/parameters/entrypointIdParam"
-        get:
-            tags:
-                - Entrypoints
-            summary: Get an entrypoint
-            description: |
-                Get an entrypoint type.
-                
-                User must be authenticated.
-            operationId: getEntrypoint
-            responses:
-                "200":
-                    description: Entrypoint
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ConnectorPlugin"
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}/documentation:
-        parameters:
-            - $ref: "#/components/parameters/entrypointIdParam"
-        get:
-            tags:
-                - Entrypoints
-            summary: Get an entrypoint documentation
-            description: |
-                Get the documentation of an entrypoint.
-                
-                User must be authenticated.
-            operationId: getEntrypointDocumentation
-            responses:
-                "200":
-                    description: Documentation of the entrypoint
-                    content:
-                        text/plain:
-                            schema:
-                                type: string
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}/more-information:
-        parameters:
-            - $ref: "#/components/parameters/entrypointIdParam"
-        get:
-            tags:
-                - Entrypoints
-            summary: Get more information about how to use a given entrypoint
-            description: |
-                More information about the entrypoint.
-                
-                User must be authenticated.
-            operationId: getEntrypointMoreInformation
-            responses:
-                "200":
-                    description: More information of the entrypoint
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/MoreInformation"
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}/schema:
-        parameters:
-            - $ref: "#/components/parameters/entrypointIdParam"
-        get:
-            tags:
-                - Entrypoints
-            summary: Get an entrypoint schema
-            description: |
-                Get the JSON schema that describes the configuration of an entrypoint.
-                
-                User must be authenticated.
-            operationId: getEntrypointSchema
-            responses:
-                "200":
-                    $ref: "#/components/responses/SchemaFormResponse"
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}/subscription-schema:
-        parameters:
-            - $ref: "#/components/parameters/entrypointIdParam"
-        get:
-            tags:
-                - Entrypoints
-            summary: Get an entrypoint subscription schema
-            description: |
-                Get the JSON schema that describes the subscription to a given entrypoint.
-                
-                User must be authenticated.
-            operationId: getEntrypointSubscriptionSchema
-            responses:
-                "200":
-                    $ref: "#/components/responses/SchemaFormResponse"
+                    $ref: "#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -983,6 +749,247 @@ paths:
                                 $ref: "#/components/schemas/Organization"
                 default:
                     $ref: "#/components/responses/Error"
+
+    # Plugins - Endpoints
+    /plugins/endpoints:
+        get:
+            tags:
+                - Plugins Endpoints
+            summary: Get available endpoints on the platform
+            description: |
+                Get available endpoint types on the platform.
+                
+                User must be authenticated.
+            operationId: getEndpoints
+            responses:
+                "200":
+                    description: List of Endpoints.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ConnectorPlugin"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/endpoints/{endpointId}:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Plugins - Endpoints
+            summary: Get an endpoint
+            description: |
+                Get an endpoint type.
+                
+                User must be authenticated.
+            operationId: getEndpoint
+            responses:
+                "200":
+                    description: Endpoint
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ConnectorPlugin"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/endpoints/{endpointId}/documentation:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Plugins - Endpoints
+            summary: Get an endpoint documentation
+            description: |
+                Get the documentation of an endpoint.
+                
+                User must be authenticated.
+            operationId: getEndpointDocumentation
+            responses:
+                "200":
+                    description: Documentation of the endpoint
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/endpoints/{endpointId}/more-information:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Plugins - Endpoints
+            summary: Get more information about how to use a given endpoint
+            description: |
+                More information about the endpoint.
+                
+                User must be authenticated.
+            operationId: getEndpointMoreInformation
+            responses:
+                "200":
+                    description: More information of the endpoint
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MoreInformation"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/endpoints/{endpointId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Plugins - Endpoints
+            summary: Get an endpoint schema
+            description: |
+                Get the JSON schema that describes the configuration of an endpoint.
+                
+                User must be authenticated.
+            operationId: getEndpointSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/endpoints/{endpointId}/shared-configuration-schema:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Plugins - Endpoints
+            summary: Get an endpoint shared configuration schema
+            description: |
+                Get an endpoint shared configuration schema.
+                
+                User must be authenticated.
+            operationId: getEndpointSharedConfigurationSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    # Plugins - Entrypoints
+    /plugins/entrypoints:
+        get:
+            tags:
+                - Plugins - Entrypoints
+            summary: Get available entrypoints on the platform
+            description: |
+                Get available entrypoint types on the platform.
+                
+                User must be authenticated.
+            operationId: getEntrypoints
+            responses:
+                "200":
+                    description: List of Entrypoints.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ConnectorPlugin"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/entrypoints/{entrypointId}:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Plugins - Entrypoints
+            summary: Get an entrypoint
+            description: |
+                Get an entrypoint type.
+                
+                User must be authenticated.
+            operationId: getEntrypoint
+            responses:
+                "200":
+                    description: Entrypoint
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ConnectorPlugin"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/entrypoints/{entrypointId}/documentation:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Plugins - Entrypoints
+            summary: Get an entrypoint documentation
+            description: |
+                Get the documentation of an entrypoint.
+                
+                User must be authenticated.
+            operationId: getEntrypointDocumentation
+            responses:
+                "200":
+                    description: Documentation of the entrypoint
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/entrypoints/{entrypointId}/more-information:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Plugins - Entrypoints
+            summary: Get more information about how to use a given entrypoint
+            description: |
+                More information about the entrypoint.
+                
+                User must be authenticated.
+            operationId: getEntrypointMoreInformation
+            responses:
+                "200":
+                    description: More information of the entrypoint
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MoreInformation"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/entrypoints/{entrypointId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Plugins - Entrypoints
+            summary: Get an entrypoint schema
+            description: |
+                Get the JSON schema that describes the configuration of an entrypoint.
+                
+                User must be authenticated.
+            operationId: getEntrypointSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/entrypoints/{entrypointId}/subscription-schema:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Plugins - Entrypoints
+            summary: Get an entrypoint subscription schema
+            description: |
+                Get the JSON schema that describes the subscription to a given entrypoint.
+                
+                User must be authenticated.
+            operationId: getEntrypointSubscriptionSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
 components:
     schemas:
         GraviteeLicense:
@@ -3813,7 +3820,7 @@ components:
             name: envId
             in: path
             required: true
-            description: Id of an environment.
+            description: Id or Hrid (Human readable Id) of an environment.
             schema:
                 type: string
                 default: DEFAULT
@@ -3868,7 +3875,8 @@ components:
             required: false
             description: |-
                 Possibility to sort APIs results by field.
-                Can be ASC (default) or DESC with minus '-' prefix.
+                Can be ascending or descending with minus '-' prefix.
+                By default, no sort is applied.
             schema:
                 type: string
                 example: name
