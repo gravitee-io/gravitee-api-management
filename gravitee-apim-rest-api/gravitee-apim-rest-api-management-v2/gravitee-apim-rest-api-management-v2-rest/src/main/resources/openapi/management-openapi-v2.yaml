@@ -31,78 +31,7 @@ servers:
     - url: /management/v2
       description: Gravitee.io APIM - Management API -v2
 paths:
-    /license:
-        get:
-            tags:
-                - Installation
-            summary: Get the license gravitee is running on.
-            description: |-
-                Returns the license information of the gravitee instance.
-            operationId: getLicense
-            responses:
-                "200":
-                    description: |-
-                        The license and its features. If there is no license, then the features will be empty.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/GraviteeLicense"
-                default:
-                    $ref: "#/components/responses/Error"
-    /organizations/{orgId}:
-        parameters:
-            - $ref: "#/components/parameters/orgIdParam"
-        get:
-            tags:
-                - Installation
-            summary: Get a specific organization
-            description: |-
-                # FIXME add a description
-            operationId: getOrganizationById
-            responses:
-                "200":
-                    description: An organization
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Organization"
-                default:
-                    $ref: "#/components/responses/Error"
-    /environments:
-        get:
-            parameters:
-                - $ref: "#/components/parameters/pageParam"
-                - $ref: "#/components/parameters/perPageParam"
-            tags:
-                - Installation
-            summary: List all environments of a specific organization
-            description: |-
-                # FIXME add a description
-            operationId: getEnvironments
-            responses:
-                "200":
-                    $ref: "#/components/responses/EnvironmentsResponse"
-                default:
-                    $ref: "#/components/responses/Error"
-    /environments/{envId}:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-        get:
-            tags:
-                - Installation
-            summary: Get a specific environment
-            description: |-
-                # FIXME add a description
-            operationId: getEnvironmentById
-            responses:
-                "200":
-                    description: An environment
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Environment"
-                default:
-                    $ref: "#/components/responses/Error"
+    # APIs
     /environments/{envId}/apis:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -259,6 +188,61 @@ paths:
                     description: API successfully deleted
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/background:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - APIs
+            summary: Get an API's background picture
+            description: |-
+                Get the API's background picture.
+                User must have the API_DEFINITION[READ] permission.
+            operationId: getApiBackground
+            responses:
+                "200":
+                    $ref: "#/components/responses/ImageResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/deployments:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Request a deployment to gateway instances
+            description: |-
+                Request a deployment for a given API. An optional deployment label can be given to the requested deployment.
+            operationId: createAPIDeployment
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApiDeployment"
+            responses:
+                "202":
+                    description: API deployment request received
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/picture:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - APIs
+            summary: Get an API's picture
+            description: |-
+                Get the API's picture.
+                User must have the API_DEFINITION[READ] permission.
+            operationId: getApiPicture
+            responses:
+                "200":
+                    $ref: "#/components/responses/ImageResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_export/definition:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -326,27 +310,8 @@ paths:
                     description: API successfully stopped
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/deployments:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-        post:
-            tags:
-                - APIs
-            summary: Request a deployment to gateway instances
-            description: |-
-                Request a deployment for a given API. An optional deployment label can be given to the requested deployment.
-            operationId: createAPIDeployment
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/ApiDeployment"
-            responses:
-                "202":
-                    description: API deployment request received
-                default:
-                    $ref: "#/components/responses/Error"
+
+    # API Members
     /environments/{envId}/apis/{apiId}/members:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -451,40 +416,8 @@ paths:
                     $ref: "#/components/responses/MembersResponse"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/background:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-        get:
-            tags:
-                - APIs
-            summary: Get an API's background picture
-            description: |-
-                Get the API's background picture.
-                User must have the API_DEFINITION[READ] permission.
-            operationId: getApiBackground
-            responses:
-                "200":
-                    $ref: "#/components/responses/ImageResponse"
-                default:
-                    $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/picture:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-        get:
-            tags:
-                - APIs
-            summary: Get an API's picture
-            description: |-
-                Get the API's picture.
-                User must have the API_DEFINITION[READ] permission.
-            operationId: getApiPicture
-            responses:
-                "200":
-                    $ref: "#/components/responses/ImageResponse"
-                default:
-                    $ref: "#/components/responses/Error"
+
+    # API Plans
     /environments/{envId}/apis/{apiId}/plans:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -627,28 +560,6 @@ paths:
                                 $ref: "#/components/schemas/Plan"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/plans/{planId}/_publish:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-            - $ref: "#/components/parameters/planIdParam"
-        post:
-            tags:
-                - API Plans
-            summary: Publish an API's plan
-            description: |-
-                Publish the API's plan by its identifier
-                User must have the API_PLAN[UPDATE] permission.
-            operationId: publishApiPlan
-            responses:
-                "200":
-                    description: API's plan successfully published
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Plan"
-                default:
-                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/plans/{planId}/_deprecate:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -671,6 +582,30 @@ paths:
                                 $ref: "#/components/schemas/Plan"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/plans/{planId}/_publish:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/planIdParam"
+        post:
+            tags:
+                - API Plans
+            summary: Publish an API's plan
+            description: |-
+                Publish the API's plan by its identifier
+                User must have the API_PLAN[UPDATE] permission.
+            operationId: publishApiPlan
+            responses:
+                "200":
+                    description: API's plan successfully published
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    # Endpoints
     /plugins/endpoints:
         get:
             tags:
@@ -709,22 +644,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ConnectorPlugin"
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/endpoints/{endpointId}/schema:
-        parameters:
-            - $ref: "#/components/parameters/endpointIdParam"
-        get:
-            tags:
-                - Endpoints
-            summary: Get an endpoint schema
-            description: |
-                Get the JSON schema that describes the configuration of an endpoint.
-                User must be authenticated.
-            operationId: getEndpointSchema
-            responses:
-                "200":
-                    $ref: "#/components/responses/SchemaFormResponse"
                 default:
                     $ref: "#/components/responses/Error"
     /plugins/endpoints/{endpointId}/documentation:
@@ -767,6 +686,22 @@ paths:
                                 $ref: "#/components/schemas/MoreInformation"
                 default:
                     $ref: "#/components/responses/Error"
+    /plugins/endpoints/{endpointId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/endpointIdParam"
+        get:
+            tags:
+                - Endpoints
+            summary: Get an endpoint schema
+            description: |
+                Get the JSON schema that describes the configuration of an endpoint.
+                User must be authenticated.
+            operationId: getEndpointSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /plugins/endpoints/{endpointId}/shared-configuration-schema:
         parameters:
             - $ref: "#/components/parameters/endpointIdParam"
@@ -783,6 +718,8 @@ paths:
                     $ref: "#/components/responses/SchemaFormResponse"
                 default:
                     $ref: "#/components/responses/Error"
+
+    # Entrypoints
     /plugins/entrypoints:
         get:
             tags:
@@ -823,38 +760,6 @@ paths:
                                 $ref: "#/components/schemas/ConnectorPlugin"
                 default:
                     $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}/schema:
-        parameters:
-            - $ref: "#/components/parameters/entrypointIdParam"
-        get:
-            tags:
-                - Entrypoints
-            summary: Get an entrypoint schema
-            description: |
-                Get the JSON schema that describes the configuration of an entrypoint.
-                User must be authenticated.
-            operationId: getEntrypointSchema
-            responses:
-                "200":
-                    $ref: "#/components/responses/SchemaFormResponse"
-                default:
-                    $ref: "#/components/responses/Error"
-    /plugins/entrypoints/{entrypointId}/subscription-schema:
-        parameters:
-            - $ref: "#/components/parameters/entrypointIdParam"
-        get:
-            tags:
-                - Entrypoints
-            summary: Get an entrypoint subscription schema
-            description: |
-                Get the JSON schema that describes the subscription to a given entrypoint.
-                User must be authenticated.
-            operationId: getEntrypointSubscriptionSchema
-            responses:
-                "200":
-                    $ref: "#/components/responses/SchemaFormResponse"
-                default:
-                    $ref: "#/components/responses/Error"
     /plugins/entrypoints/{entrypointId}/documentation:
         parameters:
             - $ref: "#/components/parameters/entrypointIdParam"
@@ -893,6 +798,114 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/MoreInformation"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/entrypoints/{entrypointId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Entrypoints
+            summary: Get an entrypoint schema
+            description: |
+                Get the JSON schema that describes the configuration of an entrypoint.
+                User must be authenticated.
+            operationId: getEntrypointSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/entrypoints/{entrypointId}/subscription-schema:
+        parameters:
+            - $ref: "#/components/parameters/entrypointIdParam"
+        get:
+            tags:
+                - Entrypoints
+            summary: Get an entrypoint subscription schema
+            description: |
+                Get the JSON schema that describes the subscription to a given entrypoint.
+                User must be authenticated.
+            operationId: getEntrypointSubscriptionSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    # Installation
+    /environments:
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - Installation
+            summary: List all environments of a specific organization
+            description: |-
+                # FIXME add a description
+            operationId: getEnvironments
+            responses:
+                "200":
+                    $ref: "#/components/responses/EnvironmentsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Installation
+            summary: Get a specific environment
+            description: |-
+                # FIXME add a description
+            operationId: getEnvironmentById
+            responses:
+                "200":
+                    description: An environment
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Environment"
+                default:
+                    $ref: "#/components/responses/Error"
+    /license:
+        get:
+            tags:
+                - Installation
+            summary: Get the license gravitee is running on.
+            description: |-
+                Returns the license information of the gravitee instance.
+
+                User must be authenticated.
+            operationId: getGraviteeLicense
+            responses:
+                "200":
+                    description: |-
+                        The license and its features. If there is no license, then the features will be empty.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GraviteeLicense"
+                default:
+                    $ref: "#/components/responses/Error"
+    /organizations/{orgId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+        get:
+            tags:
+                - Installation
+            summary: Get a specific organization
+            description: |-
+                # FIXME add a description
+            operationId: getOrganizationById
+            responses:
+                "200":
+                    description: An organization
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Organization"
                 default:
                     $ref: "#/components/responses/Error"
 components:
