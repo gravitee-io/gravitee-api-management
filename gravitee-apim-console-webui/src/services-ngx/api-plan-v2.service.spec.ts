@@ -93,6 +93,24 @@ describe('ApiPlanV2Service', () => {
     });
   });
 
+  describe('get', () => {
+    it('should get api plans', (done) => {
+      const apiId = 'api-1';
+      const planId = 'plan-1';
+
+      apiPlanV2Service.get(apiId, planId).subscribe((response) => {
+        expect(response).toMatchObject({ id: planId });
+        done();
+      });
+
+      const planReq = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans/${planId}`,
+      });
+      planReq.flush({ id: planId });
+    });
+  });
+
   describe('publish', () => {
     it('should publish api plans', (done) => {
       const plan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });

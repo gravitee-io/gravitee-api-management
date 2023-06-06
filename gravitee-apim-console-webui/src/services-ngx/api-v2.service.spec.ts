@@ -20,6 +20,7 @@ import { ApiV2Service } from './api-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeApiV4, fakeCreateApiV4 } from '../entities/management-api-v2';
+import { fakeUpdateApiV4 } from '../entities/management-api-v2/updateApi/udpateApi.fixture';
 
 describe('ApiV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -69,6 +70,27 @@ describe('ApiV2Service', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}`,
         method: 'GET',
       });
+
+      req.flush(fakeApiV4());
+    });
+  });
+
+  describe('update', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+      const fakeApi = fakeApiV4();
+      const fakeUpdateApi = fakeUpdateApiV4();
+
+      apiV2Service.update(apiId, fakeUpdateApi).subscribe((api) => {
+        expect(api.name).toEqual(fakeApi.name);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual(fakeUpdateApi);
 
       req.flush(fakeApiV4());
     });
