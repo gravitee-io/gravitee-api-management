@@ -28,34 +28,34 @@ public interface PropertiesMapper {
     PropertiesMapper INSTANCE = Mappers.getMapper(PropertiesMapper.class);
 
     // V4
-    io.gravitee.rest.api.model.v4.api.properties.PropertyEntity mapToPropertyEntityV4(Property property);
-    List<io.gravitee.rest.api.model.v4.api.properties.PropertyEntity> mapToPropertyEntityV4List(List<Property> propertyList);
+    io.gravitee.rest.api.model.v4.api.properties.PropertyEntity mapToV4(Property property);
+    List<io.gravitee.rest.api.model.v4.api.properties.PropertyEntity> mapToV4List(List<Property> property);
 
     @Mapping(target = "encryptable", ignore = true)
-    Property mapFromPropertyV4(io.gravitee.definition.model.v4.property.Property property);
+    Property map(io.gravitee.definition.model.v4.property.Property property);
 
-    List<Property> mapFromPropertyV4List(List<io.gravitee.definition.model.v4.property.Property> propertyList);
+    List<Property> map(List<io.gravitee.definition.model.v4.property.Property> property);
 
     // V2
-    io.gravitee.rest.api.model.PropertyEntity mapToPropertyEntityV2(Property property);
-    List<io.gravitee.rest.api.model.PropertyEntity> mapToPropertyEntityV2List(List<Property> property);
+    io.gravitee.rest.api.model.PropertyEntity mapToV2(Property property);
+    List<io.gravitee.rest.api.model.PropertyEntity> mapToV2List(List<Property> property);
 
     @Mapping(target = "encryptable", ignore = true)
-    Property mapFromPropertyV2(io.gravitee.definition.model.Property property);
+    Property map(io.gravitee.definition.model.Property property);
 
-    List<Property> mapFromPropertyListV2(List<io.gravitee.definition.model.Property> properties);
+    List<Property> mapToApiModelList(List<io.gravitee.definition.model.Property> properties);
 
-    default PropertiesEntity mapToPropertiesEntityV2(List<Property> propertyList) {
+    default PropertiesEntity mapToPropertiesV2(List<Property> propertyList) {
         if (propertyList == null) {
             return new PropertiesEntity();
         }
-        return new PropertiesEntity(this.mapToPropertyEntityV2List(propertyList));
+        return new PropertiesEntity(this.mapToV2List(propertyList));
     }
 
-    default List<Property> mapFromPropertiesV2(io.gravitee.definition.model.Properties properties) {
+    default List<Property> map(io.gravitee.definition.model.Properties properties) {
         if (properties == null) {
             return null;
         }
-        return this.mapFromPropertyListV2(properties.getProperties());
+        return this.mapToApiModelList(properties.getProperties());
     }
 }

@@ -18,16 +18,10 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.ResourceFixtures;
 import io.gravitee.rest.api.management.v2.rest.model.Resource;
-import io.gravitee.rest.api.management.v2.rest.model.TrustStoreType;
 import java.util.LinkedHashMap;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mapstruct.factory.Mappers;
 
 public class ResourceMapperTest {
@@ -37,7 +31,7 @@ public class ResourceMapperTest {
     @Test
     void shouldMapToResourceEntityV4() {
         Resource resource = ResourceFixtures.aResource();
-        var resourceEntityV4 = resourceMapper.mapToResourceEntityV4(resource);
+        var resourceEntityV4 = resourceMapper.mapToV4(resource);
 
         assertThat(resourceEntityV4).isNotNull();
         assertThat(resourceEntityV4.getName()).isEqualTo(resource.getName());
@@ -51,7 +45,7 @@ public class ResourceMapperTest {
     @Test
     void shouldMapToResourceEntityV2() {
         Resource resource = ResourceFixtures.aResource();
-        var resourceEntityV2 = resourceMapper.mapToResourceEntityV2(resource);
+        var resourceEntityV2 = resourceMapper.mapToV2(resource);
 
         assertThat(resourceEntityV2).isNotNull();
         assertThat(resourceEntityV2.getName()).isEqualTo(resource.getName());
@@ -65,7 +59,7 @@ public class ResourceMapperTest {
     @Test
     void shouldMapFromResourceEntityV4() {
         io.gravitee.definition.model.v4.resource.Resource resourceEntityV4 = ResourceFixtures.aResourceEntityV4();
-        var resourceEntity = resourceMapper.mapFromResourceEntityV4(resourceEntityV4);
+        var resourceEntity = resourceMapper.map(resourceEntityV4);
 
         assertThat(resourceEntity).isNotNull();
         assertThat(resourceEntity.getName()).isEqualTo(resourceEntityV4.getName());
@@ -79,7 +73,7 @@ public class ResourceMapperTest {
     @Test
     void shouldMapFromResourceEntityV2() throws JsonProcessingException {
         io.gravitee.definition.model.plugins.resources.Resource resourceEntityV2 = ResourceFixtures.aResourceEntityV2();
-        var resourceEntity = resourceMapper.mapFromResourceEntityV2(resourceEntityV2);
+        var resourceEntity = resourceMapper.map(resourceEntityV2);
 
         assertThat(resourceEntity).isNotNull();
         assertThat(resourceEntity.getName()).isEqualTo(resourceEntityV2.getName());

@@ -21,18 +21,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.PlanFixtures;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
-import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
-import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
-import io.gravitee.rest.api.management.v2.rest.model.StepV2;
-import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -46,7 +37,7 @@ public class PlanMapperTest {
     @Test
     void should_map_PlanEntity_to_PlanV4() {
         final var planEntity = PlanFixtures.aPlanEntityV4();
-        final var plan = planMapper.convert(planEntity);
+        final var plan = planMapper.map(planEntity);
 
         assertEquals(planEntity.getId(), plan.getId());
         assertEquals(planEntity.getApiId(), plan.getApiId());
@@ -73,7 +64,7 @@ public class PlanMapperTest {
     @Test
     void should_map_PlanEntity_to_PlanV2() {
         final var planEntity = PlanFixtures.aPlanEntityV2();
-        final var plan = planMapper.convert(planEntity);
+        final var plan = planMapper.map(planEntity);
 
         assertEquals(planEntity.getId(), plan.getId());
         assertEquals(planEntity.getApiId(), plan.getApiId());
@@ -101,7 +92,7 @@ public class PlanMapperTest {
     @Test
     void should_map_CreatePlanV4_to_NewPlanEntity() {
         final var createPlanV4 = PlanFixtures.aCreatePlanV4();
-        final var newPlanEntity = planMapper.convert(createPlanV4);
+        final var newPlanEntity = planMapper.map(createPlanV4);
 
         Assertions.assertNull(newPlanEntity.getId());
         assertEquals(createPlanV4.getName(), newPlanEntity.getName());
@@ -123,7 +114,7 @@ public class PlanMapperTest {
     @Test
     void should_map_UpdatePlanV4_to_UpdatePlanEntity() {
         final var updatePlanV4 = PlanFixtures.anUpdatePlanV4();
-        final var updatePlanEntity = planMapper.convert(updatePlanV4);
+        final var updatePlanEntity = planMapper.map(updatePlanV4);
 
         Assertions.assertNull(updatePlanEntity.getId());
         assertEquals(updatePlanV4.getName(), updatePlanEntity.getName());
@@ -144,7 +135,7 @@ public class PlanMapperTest {
     @Test
     void should_map_CreatePlanV2_to_CreatePlanEntity() {
         final var createPlanV2 = PlanFixtures.aCreatePlanV2();
-        final var createPlanEntity = planMapper.convert(createPlanV2);
+        final var createPlanEntity = planMapper.map(createPlanV2);
 
         Assertions.assertNull(createPlanEntity.getId());
         assertEquals(createPlanV2.getName(), createPlanEntity.getName());
@@ -168,7 +159,7 @@ public class PlanMapperTest {
     @Test
     void should_map_UpdatePlanV2_to_UpdatePlanEntity() {
         final var updatePlanV2 = PlanFixtures.anUpdatePlanV2();
-        final var updatePlanEntity = planMapper.convert(updatePlanV2);
+        final var updatePlanEntity = planMapper.map(updatePlanV2);
 
         Assertions.assertNull(updatePlanEntity.getId());
         assertEquals(updatePlanV2.getName(), updatePlanEntity.getName());

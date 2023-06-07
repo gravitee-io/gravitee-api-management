@@ -37,6 +37,6 @@ public class GraviteeLicenseResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public GraviteeLicense get() {
-        return GraviteeLicenseMapper.INSTANCE.convert(licenseService.getLicense());
+        return GraviteeLicenseMapper.INSTANCE.map(licenseService.getLicense());
     }
 }

@@ -44,41 +44,39 @@ public interface PageMapper {
 
     @Mapping(target = "name", source = "mediaName")
     @Mapping(target = "hash", source = "mediaHash")
-    PageMedia convertMedia(PageMediaEntity pageMediaEntity);
+    PageMedia mapPageMedia(PageMediaEntity pageMediaEntity);
 
     @Mapping(target = "mediaName", source = "name")
     @Mapping(target = "mediaHash", source = "hash")
-    PageMediaEntity convertMedia(PageMedia pageMedia);
+    PageMediaEntity mapPageMedia(PageMedia pageMedia);
 
     @Mapping(target = "id", source = "pageId")
-    Revision convertRevision(PageEntity.PageRevisionId pageRevisionId);
+    Revision mapPageRevision(PageEntity.PageRevisionId pageRevisionId);
 
     @Mapping(target = "pageId", source = "id")
-    PageEntity.PageRevisionId convertRevision(Revision revision);
+    PageEntity.PageRevisionId mapPageRevision(Revision revision);
 
     @Mapping(target = "contentRevision", source = "contentRevisionId")
     @Mapping(target = "updatedAt", source = "lastModificationDate")
-    Page convert(PageEntity pageEntity);
+    Page map(PageEntity pageEntity);
 
     @Mapping(target = "contentRevisionId", source = "contentRevision")
     @Mapping(target = "lastModificationDate", source = "updatedAt")
-    PageEntity convert(Page page);
+    PageEntity map(Page page);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeJsonConfiguration")
-    PageSourceEntity convert(PageSource source);
+    PageSourceEntity mapPageSource(PageSource source);
 
-    @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    PageSource convert(PageSourceEntity sourceEntity);
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    PageSource mapPageSource(PageSourceEntity sourceEntity);
 
-    Set<Page> convertListToSet(List<PageEntity> pageEntityList);
+    Set<Page> mapToSet(List<PageEntity> pageEntityList);
 
     @Mapping(target = "createdAt", source = "createAt")
-    Media convertMediaEntityToMedia(MediaEntity mediaEntity);
+    Media mapMedia(MediaEntity mediaEntity);
 
     @Mapping(target = "uploadDate", source = "createdAt")
-    MediaEntity convert(Media media);
-
-    List<Media> convertMediaList(List<MediaEntity> mediaEntity);
+    MediaEntity mapMedia(Media media);
 
     @Named("deserializeJsonConfiguration")
     default JsonNode deserializeJsonConfiguration(Object configuration) throws JsonProcessingException {

@@ -28,5 +28,5 @@ import org.mapstruct.factory.Mappers;
 public interface GraviteeLicenseMapper {
     GraviteeLicenseMapper INSTANCE = Mappers.getMapper(GraviteeLicenseMapper.class);
 
-    GraviteeLicense convert(GraviteeLicenseEntity licenseEntity);
+    GraviteeLicense map(GraviteeLicenseEntity licenseEntity);
 }

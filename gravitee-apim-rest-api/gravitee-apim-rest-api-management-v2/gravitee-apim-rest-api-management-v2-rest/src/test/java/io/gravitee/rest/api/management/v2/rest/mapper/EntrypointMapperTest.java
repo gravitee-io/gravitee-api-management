@@ -33,7 +33,7 @@ public class EntrypointMapperTest {
     void shouldMapToEntrypointEntity() throws JsonProcessingException {
         var entrypoint = EntrypointFixtures.anEntrypointV4();
 
-        var entrypointEntity = entrypointMapper.mapToEntrypointEntity(entrypoint);
+        var entrypointEntity = entrypointMapper.map(entrypoint);
         assertThat(entrypointEntity).isNotNull();
         assertThat(entrypointEntity.getType()).isEqualTo(entrypoint.getType());
         assertThat(entrypointEntity.getConfiguration()).isEqualTo(new GraviteeMapper().writeValueAsString(entrypoint.getConfiguration()));
@@ -46,7 +46,7 @@ public class EntrypointMapperTest {
     void shouldMapFromEntrypointEntity() throws JsonProcessingException {
         var entrypointEntity = EntrypointFixtures.aModelEntrypointV4();
 
-        var entrypoint = entrypointMapper.mapFromEntrypointEntity(entrypointEntity);
+        var entrypoint = entrypointMapper.map(entrypointEntity);
         assertThat(entrypoint).isNotNull();
         assertThat(entrypoint.getType()).isEqualTo(entrypointEntity.getType());
         assertThat(entrypoint.getConfiguration())

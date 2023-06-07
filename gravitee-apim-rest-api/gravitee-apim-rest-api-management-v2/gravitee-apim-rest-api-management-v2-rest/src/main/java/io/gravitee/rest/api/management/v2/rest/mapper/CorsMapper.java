@@ -15,18 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
-import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.management.v2.rest.model.Cors;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -39,7 +30,7 @@ public interface CorsMapper {
     @Mapping(target = "accessControlAllowOrigin", source = "allowOrigin")
     @Mapping(target = "accessControlExposeHeaders", source = "exposeHeaders")
     @Mapping(target = "accessControlMaxAge", source = "maxAge")
-    io.gravitee.definition.model.Cors mapToCorsEntity(Cors cors);
+    io.gravitee.definition.model.Cors map(Cors cors);
 
     @Mapping(target = "allowCredentials", source = "accessControlAllowCredentials")
     @Mapping(target = "allowHeaders", source = "accessControlAllowHeaders")
@@ -47,5 +38,5 @@ public interface CorsMapper {
     @Mapping(target = "allowOrigin", source = "accessControlAllowOrigin")
     @Mapping(target = "exposeHeaders", source = "accessControlExposeHeaders")
     @Mapping(target = "maxAge", source = "accessControlMaxAge")
-    Cors mapFromCorsEntity(io.gravitee.definition.model.Cors cors);
+    Cors map(io.gravitee.definition.model.Cors cors);
 }

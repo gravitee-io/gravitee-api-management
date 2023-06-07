@@ -36,25 +36,25 @@ public class EndpointMapperTest {
 
     @Test
     void shouldMapToEndpointEntityV4() throws JsonProcessingException {
-        var endpointV4List = List.of(EndpointFixtures.anEndpointV4());
-        var endpointEntityV4List = endpointMapper.mapToEndpointEntityV4List(endpointV4List);
+        var endpointV4 = EndpointFixtures.anEndpointV4();
+        var endpointEntityV4 = endpointMapper.map(endpointV4);
 
-        assertV4EndpointsAreEquals(endpointEntityV4List, endpointV4List);
+        assertV4EndpointsAreEquals(endpointEntityV4, endpointV4);
     }
 
     @Test
     void shouldMapFromEndpointEntityV4() throws JsonProcessingException {
-        var endpointEntityV4List = List.of(EndpointFixtures.aModelEndpointV4());
-        var endpointV4List = endpointMapper.mapFromEndpointEntityV4List(endpointEntityV4List);
+        var endpointEntityV4 = EndpointFixtures.aModelEndpointV4();
+        var endpointV4 = endpointMapper.map(endpointEntityV4);
 
-        assertV4EndpointsAreEquals(endpointEntityV4List, endpointV4List);
+        assertV4EndpointsAreEquals(endpointEntityV4, endpointV4);
     }
 
     @Test
     void shouldMapToEndpointGroupEntityV4() throws JsonProcessingException {
         var endpointGroupV4 = EndpointFixtures.anEndpointGroupV4();
 
-        var endpointGroupEntityV4 = endpointMapper.mapToEndpointGroupEntityV4(endpointGroupV4);
+        var endpointGroupEntityV4 = endpointMapper.mapEndpointGroup(endpointGroupV4);
         assertThat(endpointGroupEntityV4).isNotNull();
         assertThat(endpointGroupEntityV4.getName()).isEqualTo(endpointGroupV4.getName());
         assertThat(endpointGroupEntityV4.getType()).isEqualTo(endpointGroupV4.getType());
@@ -71,6 +71,10 @@ public class EndpointMapperTest {
         assertThat(endpointEntityV4List).isNotNull().asList().hasSize(endpointV4List.size());
         var endpointEntityV4 = endpointEntityV4List.get(0);
         var endpointV4 = endpointV4List.get(0);
+        assertV4EndpointsAreEquals(endpointEntityV4, endpointV4);
+    }
+
+    private static void assertV4EndpointsAreEquals(Endpoint endpointEntityV4, EndpointV4 endpointV4) throws JsonProcessingException {
         assertThat(endpointEntityV4).isNotNull();
         assertThat(endpointEntityV4.getName()).isEqualTo(endpointV4.getName());
         assertThat(endpointEntityV4.getType()).isEqualTo(endpointV4.getType());
@@ -87,7 +91,7 @@ public class EndpointMapperTest {
     @Test
     void shouldMapFromEndpointGroupEntityV4() throws JsonProcessingException {
         var endpointGroupEntityV4 = EndpointFixtures.aModelEndpointGroupV4();
-        var endpointGroupV4 = endpointMapper.mapFromEndpointGroupEntityV4(endpointGroupEntityV4);
+        var endpointGroupV4 = endpointMapper.mapEndpointGroup(endpointGroupEntityV4);
         assertThat(endpointGroupV4).isNotNull();
         assertThat(endpointGroupV4.getName()).isEqualTo(endpointGroupEntityV4.getName());
         assertThat(endpointGroupV4.getType()).isEqualTo(endpointGroupEntityV4.getType());
@@ -103,25 +107,25 @@ public class EndpointMapperTest {
 
     @Test
     void shouldMapToEndpointEntityV2() throws JsonProcessingException {
-        var endpointV2List = List.of(EndpointFixtures.anEndpointV2());
-        var endpointEntityV2List = endpointMapper.mapToEndpointEntityV2List(endpointV2List);
+        var endpointV2 = EndpointFixtures.anEndpointV2();
+        var endpointEntityV2 = endpointMapper.map(endpointV2);
 
-        assertV2EndpointsAreEquals(endpointEntityV2List, endpointV2List);
+        assertV2EndpointsAreEquals(endpointEntityV2, endpointV2);
     }
 
     @Test
     void shouldMapFromEndpointEntityV2() throws JsonProcessingException {
-        var endpointEntityV2List = List.of(EndpointFixtures.aModelEndpointV2());
-        var endpointV2List = endpointMapper.mapFromEndpointEntityV2List(endpointEntityV2List);
+        var endpointEntityV2 = EndpointFixtures.aModelEndpointV2();
+        var endpointV2 = endpointMapper.map(endpointEntityV2);
 
-        assertV2EndpointsAreEquals(endpointEntityV2List, endpointV2List);
+        assertV2EndpointsAreEquals(endpointEntityV2, endpointV2);
     }
 
     @Test
     void shouldMapToEndpointGroupEntityV2() throws JsonProcessingException {
         var endpointGroupV2 = EndpointFixtures.anEndpointGroupV2();
 
-        var endpointGroupEntityV2 = endpointMapper.mapToEndpointGroupEntityV2(endpointGroupV2);
+        var endpointGroupEntityV2 = endpointMapper.mapEndpointGroup(endpointGroupV2);
         assertThat(endpointGroupEntityV2).isNotNull();
         assertThat(endpointGroupEntityV2.getName()).isEqualTo(endpointGroupV2.getName());
         assertV2EndpointsAreEquals(new ArrayList<>(endpointGroupEntityV2.getEndpoints()), endpointGroupV2.getEndpoints());
@@ -140,18 +144,24 @@ public class EndpointMapperTest {
     ) throws JsonProcessingException {
         assertThat(endpointEntityV2List).isNotNull().asList().hasSize(endpointV2List.size());
         var endpointEntityV2 = endpointEntityV2List.iterator().next();
-        var endpointV2 = endpointV2List.get(0).getHttpEndpointV2();
+        var endpointV2 = endpointV2List.get(0);
+        assertV2EndpointsAreEquals(endpointEntityV2, endpointV2);
+    }
+
+    private static void assertV2EndpointsAreEquals(io.gravitee.definition.model.Endpoint endpointEntityV2, EndpointV2 endpointV2)
+        throws JsonProcessingException {
+        var httpEndpointV2 = endpointV2.getHttpEndpointV2();
         assertThat(endpointEntityV2).isNotNull();
-        assertThat(endpointEntityV2.getName()).isEqualTo(endpointV2.getName());
-        assertThat(endpointEntityV2.getTarget()).isEqualTo(endpointV2.getTarget());
-        assertThat(endpointEntityV2.getWeight()).isEqualTo(endpointV2.getWeight());
-        assertThat(endpointEntityV2.isBackup()).isEqualTo(endpointV2.getBackup());
-        assertThat(endpointEntityV2.getStatus().name()).isEqualTo(endpointV2.getStatus().name());
-        assertThat(endpointEntityV2.getTenants()).isEqualTo(endpointV2.getTenants());
-        assertThat(endpointEntityV2.getType()).isEqualTo(endpointV2.getType());
-        assertThat(endpointEntityV2.getInherit()).isEqualTo(endpointV2.getInherit());
+        assertThat(endpointEntityV2.getName()).isEqualTo(httpEndpointV2.getName());
+        assertThat(endpointEntityV2.getTarget()).isEqualTo(httpEndpointV2.getTarget());
+        assertThat(endpointEntityV2.getWeight()).isEqualTo(httpEndpointV2.getWeight());
+        assertThat(endpointEntityV2.isBackup()).isEqualTo(httpEndpointV2.getBackup());
+        assertThat(endpointEntityV2.getStatus().name()).isEqualTo(httpEndpointV2.getStatus().name());
+        assertThat(endpointEntityV2.getTenants()).isEqualTo(httpEndpointV2.getTenants());
+        assertThat(endpointEntityV2.getType()).isEqualTo(httpEndpointV2.getType());
+        assertThat(endpointEntityV2.getInherit()).isEqualTo(httpEndpointV2.getInherit());
         assertThat(endpointEntityV2.getHealthCheck()).isNotNull(); // Tested in ServiceMapperTest
-        assertThat(endpointEntityV2.getConfiguration()).isEqualTo(buildConfiguration(endpointV2));
+        assertThat(endpointEntityV2.getConfiguration()).isEqualTo(buildConfiguration(httpEndpointV2));
     }
 
     private static String buildConfiguration(HttpEndpointV2 endpointV2) {
@@ -162,7 +172,7 @@ public class EndpointMapperTest {
     @Test
     void shouldMapFromEndpointGroupEntityV2() throws JsonProcessingException {
         var endpointGroupEntityV2 = EndpointFixtures.aModelEndpointGroupV2();
-        var endpointGroupV2 = endpointMapper.mapFromEndpointGroupEntityV2(endpointGroupEntityV2);
+        var endpointGroupV2 = endpointMapper.mapEndpointGroup(endpointGroupEntityV2);
         assertThat(endpointGroupV2).isNotNull();
         assertThat(endpointGroupV2.getName()).isEqualTo(endpointGroupEntityV2.getName());
         assertV2EndpointsAreEquals(new ArrayList<>(endpointGroupEntityV2.getEndpoints()), endpointGroupV2.getEndpoints());

@@ -29,7 +29,7 @@ public class CorsMapperTest {
     void shouldMapToCorsEntity() {
         var cors = CorsFixtures.aCors();
 
-        var corsEntity = corsMapper.mapToCorsEntity(cors);
+        var corsEntity = corsMapper.map(cors);
         assertThat(corsEntity).isNotNull();
         assertThat(corsEntity.isEnabled()).isEqualTo(cors.getEnabled());
         assertThat(corsEntity.getAccessControlAllowOrigin()).isEqualTo(cors.getAllowOrigin());
@@ -45,7 +45,7 @@ public class CorsMapperTest {
     void shouldMapFromCorsEntity() {
         var corsEntity = CorsFixtures.aModelCors();
 
-        var cors = corsMapper.mapFromCorsEntity(corsEntity);
+        var cors = corsMapper.map(corsEntity);
         assertThat(cors).isNotNull();
         assertThat(cors.getEnabled()).isEqualTo(corsEntity.isEnabled());
         assertThat(cors.getAllowOrigin()).isEqualTo(corsEntity.getAccessControlAllowOrigin());

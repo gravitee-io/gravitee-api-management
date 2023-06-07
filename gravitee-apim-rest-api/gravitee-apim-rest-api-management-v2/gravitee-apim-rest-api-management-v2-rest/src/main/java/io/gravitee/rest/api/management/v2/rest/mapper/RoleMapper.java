@@ -25,8 +25,6 @@ import org.mapstruct.factory.Mappers;
 public interface RoleMapper {
     RoleMapper INSTANCE = Mappers.getMapper(RoleMapper.class);
 
-    Role convert(RoleEntity roleEntity);
-    RoleEntity convert(Role role);
-
-    List<Role> convertCollection(List<RoleEntity> roleEntityCollection);
+    Role map(RoleEntity roleEntity);
+    RoleEntity map(Role role);
 }

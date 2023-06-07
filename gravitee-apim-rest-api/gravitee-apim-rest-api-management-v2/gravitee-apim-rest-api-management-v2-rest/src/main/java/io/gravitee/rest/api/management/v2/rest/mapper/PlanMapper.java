@@ -27,22 +27,21 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class })
+@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class, RuleMapper.class })
 public interface PlanMapper {
     PlanMapper INSTANCE = Mappers.getMapper(PlanMapper.class);
 
-    @Mapping(target = "security.type", qualifiedByName = "convertToSecurityType")
-    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     @Mapping(constant = "V4", target = "definitionVersion")
-    PlanV4 convert(PlanEntity planEntity);
+    PlanV4 map(PlanEntity planEntity);
 
-    Set<PlanV4> convertSet(Set<PlanEntity> planEntityList);
+    Set<PlanV4> map(Set<PlanEntity> planEntityList);
 
-    @Mapping(target = "status", qualifiedByName = "convertPlanStatusV2")
     @Mapping(source = "security", target = "security.type")
-    @Mapping(source = "securityDefinition", target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(source = "securityDefinition", target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     @Mapping(constant = "V2", target = "definitionVersion")
-    PlanV2 convert(io.gravitee.rest.api.model.PlanEntity planEntity);
+    PlanV2 map(io.gravitee.rest.api.model.PlanEntity planEntity);
 
     default List<Plan> convert(List<GenericPlanEntity> entities) {
         if (Objects.isNull(entities)) {
@@ -51,74 +50,48 @@ public interface PlanMapper {
         if (entities.isEmpty()) {
             return new ArrayList<>();
         }
-        return entities.stream().map(this::convert).collect(Collectors.toList());
+        return entities.stream().map(this::mapGenericPlan).collect(Collectors.toList());
     }
 
-    default Plan convert(GenericPlanEntity entity) {
+    default Plan mapGenericPlan(GenericPlanEntity entity) {
         if (entity instanceof PlanEntity) {
-            return new Plan(this.convert((PlanEntity) entity));
+            return new Plan(this.map((PlanEntity) entity));
         } else {
-            return new Plan(this.convert((io.gravitee.rest.api.model.PlanEntity) entity));
+            return new Plan(this.map((io.gravitee.rest.api.model.PlanEntity) entity));
         }
     }
 
-    @Mapping(target = "security.type", qualifiedByName = "convertFromSecurityType")
-    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
-    NewPlanEntity convert(CreatePlanV4 plan);
+    @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    NewPlanEntity map(CreatePlanV4 plan);
 
     @Mapping(target = "security", source = "security.type")
-    @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
-    io.gravitee.rest.api.model.NewPlanEntity convert(CreatePlanV2 plan);
+    @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "serializeConfiguration")
+    io.gravitee.rest.api.model.NewPlanEntity map(CreatePlanV2 plan);
 
-    @Mapping(target = "security.type", qualifiedByName = "convertFromSecurityType")
-    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
-    PlanEntity convert(PlanV4 plan);
+    @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    PlanEntity map(PlanV4 plan);
 
-    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
-    UpdatePlanEntity convert(UpdatePlanV4 plan);
+    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    UpdatePlanEntity map(UpdatePlanV4 plan);
 
-    @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "deserializeConfiguration")
-    io.gravitee.rest.api.model.UpdatePlanEntity convert(UpdatePlanV2 plan);
+    @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "serializeConfiguration")
+    io.gravitee.rest.api.model.UpdatePlanEntity map(UpdatePlanV2 plan);
 
-    @Named("convertToSecurityType")
-    default PlanSecurityType convertToSecurityType(String securityType) {
+    @Named("mapToPlanSecurityType")
+    default PlanSecurityType mapToPlanSecurityType(String securityType) {
         if (Objects.isNull(securityType)) {
             return null;
         }
         return PlanSecurityType.fromValue(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(securityType).name());
     }
 
-    @Named("convertFromSecurityType")
-    default String convertFromSecurityType(PlanSecurityType securityType) {
+    @Named("mapFromSecurityType")
+    default String mapFromSecurityType(PlanSecurityType securityType) {
         if (Objects.isNull(securityType)) {
             return null;
         }
         return io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(securityType.name()).getLabel();
-    }
-
-    @Named("convertPlanStatusV2")
-    default PlanStatus convertPlanStatusV2(io.gravitee.rest.api.model.PlanStatus planStatus) {
-        if (Objects.isNull(planStatus)) {
-            return null;
-        }
-        return PlanStatus.valueOf(planStatus.name());
-    }
-
-    // Rule -- for < V4 plans
-    Rule map(io.gravitee.definition.model.Rule rule);
-    io.gravitee.definition.model.Rule map(Rule rule);
-
-    List<Rule> map(List<io.gravitee.definition.model.Rule> rule);
-    List<io.gravitee.definition.model.Rule> mapRule(List<Rule> rule);
-
-    default Map<String, List<Rule>> map(Map<String, List<io.gravitee.definition.model.Rule>> paths) {
-        if (Objects.isNull(paths)) {
-            return null;
-        }
-
-        var output = new HashMap<String, List<Rule>>();
-        paths.forEach((k, v) -> output.put(k, this.map(v)));
-
-        return output;
     }
 }

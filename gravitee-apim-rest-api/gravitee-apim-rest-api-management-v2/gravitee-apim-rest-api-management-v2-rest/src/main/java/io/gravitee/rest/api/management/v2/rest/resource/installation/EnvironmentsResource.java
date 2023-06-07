@@ -47,7 +47,7 @@ public class EnvironmentsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Collection<Environment> getEnvironments() {
         String organizationId = GraviteeContext.getCurrentOrganization();
-        return EnvironmentMapper.INSTANCE.convertCollection(this.environmentService.findByOrganization(organizationId));
+        return EnvironmentMapper.INSTANCE.map(this.environmentService.findByOrganization(organizationId));
     }
 
     @Path("{envId}")
@@ -55,6 +55,6 @@ public class EnvironmentsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Environment getEnvironment(@PathParam("envId") String envId) {
         // TODO: Determine if hrid or envId is acceptable for envId
-        return EnvironmentMapper.INSTANCE.convert(environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
+        return EnvironmentMapper.INSTANCE.map(environmentService.findByOrgAndIdOrHrid(GraviteeContext.getCurrentOrganization(), envId));
     }
 }

@@ -46,14 +46,14 @@ public class EndpointsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ConnectorPlugin> getEndpoints() {
-        return ConnectorPluginMapper.INSTANCE.convertSet(endpointService.findAll());
+        return ConnectorPluginMapper.INSTANCE.map(endpointService.findAll());
     }
 
     @Path("/{endpointId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ConnectorPlugin getEndpoint(@PathParam("endpointId") String endpointId) {
-        return ConnectorPluginMapper.INSTANCE.convert(endpointService.findById(endpointId));
+        return ConnectorPluginMapper.INSTANCE.map(endpointService.findById(endpointId));
     }
 
     @GET
@@ -83,7 +83,7 @@ public class EndpointsResource extends AbstractResource {
         // Check that the entrypoint exists
         endpointService.findById(endpointId);
 
-        return MoreInformationMapper.INSTANCE.convert(endpointService.getMoreInformation(endpointId));
+        return MoreInformationMapper.INSTANCE.map(endpointService.getMoreInformation(endpointId));
     }
 
     @GET

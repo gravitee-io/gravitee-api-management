@@ -30,12 +30,12 @@ public interface TrustStoreMapper {
     TrustStoreMapper INSTANCE = Mappers.getMapper(TrustStoreMapper.class);
 
     // V4
-    io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore mapToJKSTrustStoreV4(JKSTrustStore jksTrustStore);
-    io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore mapToPKCS12TrustStoreV4(PKCS12TrustStore pkcs12TrustStore);
-    io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore mapToPEMTrustStoreV4(PEMTrustStore pemTrustStore);
-    io.gravitee.definition.model.v4.ssl.none.NoneTrustStore mapToNoneTrustStoreV4(NoneTrustStore noneTrustStore);
+    io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore mapToV4(JKSTrustStore jksTrustStore);
+    io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore mapToV4(PKCS12TrustStore pkcs12TrustStore);
+    io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore mapToV4(PEMTrustStore pemTrustStore);
+    io.gravitee.definition.model.v4.ssl.none.NoneTrustStore mapToV4(NoneTrustStore noneTrustStore);
 
-    default io.gravitee.definition.model.v4.ssl.TrustStore mapToTrustStoreV4(TrustStore trustStore) {
+    default io.gravitee.definition.model.v4.ssl.TrustStore mapToV4(TrustStore trustStore) {
         if (trustStore == null) {
             return null;
         }
@@ -43,47 +43,47 @@ public interface TrustStoreMapper {
         BaseTrustStore baseTrustStore = (BaseTrustStore) trustStore.getActualInstance();
         switch (baseTrustStore.getType()) {
             case JKS:
-                return mapToJKSTrustStoreV4(trustStore.getJKSTrustStore());
+                return mapToV4(trustStore.getJKSTrustStore());
             case PKCS12:
-                return mapToPKCS12TrustStoreV4(trustStore.getPKCS12TrustStore());
+                return mapToV4(trustStore.getPKCS12TrustStore());
             case PEM:
-                return mapToPEMTrustStoreV4(trustStore.getPEMTrustStore());
+                return mapToV4(trustStore.getPEMTrustStore());
             case NONE:
             default:
-                return mapToNoneTrustStoreV4(trustStore.getNoneTrustStore());
+                return mapToV4(trustStore.getNoneTrustStore());
         }
     }
 
-    JKSTrustStore mapFromJKSTrustStoreV4(io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore jksTrustStore);
-    PKCS12TrustStore mapFromPKCS12TrustStoreV4(io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore pkcs12TrustStore);
-    PEMTrustStore mapFromPEMTrustStoreV4(io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore pemTrustStore);
-    NoneTrustStore mapFromNoneTrustStoreV4(io.gravitee.definition.model.v4.ssl.none.NoneTrustStore noneTrustStore);
+    JKSTrustStore map(io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore jksTrustStore);
+    PKCS12TrustStore map(io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore pkcs12TrustStore);
+    PEMTrustStore map(io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore pemTrustStore);
+    NoneTrustStore map(io.gravitee.definition.model.v4.ssl.none.NoneTrustStore noneTrustStore);
 
-    default TrustStore mapFromTrustStoreV4(io.gravitee.definition.model.v4.ssl.TrustStore trustStore) {
+    default TrustStore map(io.gravitee.definition.model.v4.ssl.TrustStore trustStore) {
         if (trustStore == null) {
             return null;
         }
 
         switch (trustStore.getType()) {
             case JKS:
-                return new TrustStore(mapFromJKSTrustStoreV4((io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore) trustStore));
+                return new TrustStore(map((io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore) trustStore));
             case PKCS12:
-                return new TrustStore(mapFromPKCS12TrustStoreV4((io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore) trustStore));
+                return new TrustStore(map((io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore) trustStore));
             case PEM:
-                return new TrustStore(mapFromPEMTrustStoreV4((io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore) trustStore));
+                return new TrustStore(map((io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore) trustStore));
             case NONE:
             default:
-                return new TrustStore(mapFromNoneTrustStoreV4((io.gravitee.definition.model.v4.ssl.none.NoneTrustStore) trustStore));
+                return new TrustStore(map((io.gravitee.definition.model.v4.ssl.none.NoneTrustStore) trustStore));
         }
     }
 
     // V2
-    io.gravitee.definition.model.ssl.jks.JKSTrustStore mapToJKSTrustStoreV2(JKSTrustStore jksTrustStore);
-    io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore mapToPKCS12TrustStoreV2(PKCS12TrustStore pkcs12TrustStore);
-    io.gravitee.definition.model.ssl.pem.PEMTrustStore mapToPEMTrustStoreV2(PEMTrustStore pemTrustStore);
-    io.gravitee.definition.model.ssl.none.NoneTrustStore mapToNoneTrustStoreV2(NoneTrustStore noneTrustStore);
+    io.gravitee.definition.model.ssl.jks.JKSTrustStore mapToV2(JKSTrustStore jksTrustStore);
+    io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore mapToV2(PKCS12TrustStore pkcs12TrustStore);
+    io.gravitee.definition.model.ssl.pem.PEMTrustStore mapToV2(PEMTrustStore pemTrustStore);
+    io.gravitee.definition.model.ssl.none.NoneTrustStore mapToV2(NoneTrustStore noneTrustStore);
 
-    default io.gravitee.definition.model.ssl.TrustStoreType mapToTrustStoreType(TrustStoreType type) {
+    default io.gravitee.definition.model.ssl.TrustStoreType mapTrustStoreType(TrustStoreType type) {
         switch (type) {
             case PKCS12:
                 return io.gravitee.definition.model.ssl.TrustStoreType.PKCS12;
@@ -97,7 +97,7 @@ public interface TrustStoreMapper {
         }
     }
 
-    default io.gravitee.definition.model.ssl.TrustStore mapToTrustStoreV2(TrustStore trustStore) {
+    default io.gravitee.definition.model.ssl.TrustStore mapToV2(TrustStore trustStore) {
         if (trustStore == null) {
             return null;
         }
@@ -105,23 +105,23 @@ public interface TrustStoreMapper {
         BaseTrustStore baseTrustStore = (BaseTrustStore) trustStore.getActualInstance();
         switch (baseTrustStore.getType()) {
             case JKS:
-                return mapToJKSTrustStoreV2(trustStore.getJKSTrustStore());
+                return mapToV2(trustStore.getJKSTrustStore());
             case PKCS12:
-                return mapToPKCS12TrustStoreV2(trustStore.getPKCS12TrustStore());
+                return mapToV2(trustStore.getPKCS12TrustStore());
             case PEM:
-                return mapToPEMTrustStoreV2(trustStore.getPEMTrustStore());
+                return mapToV2(trustStore.getPEMTrustStore());
             case NONE:
             default:
-                return mapToNoneTrustStoreV2(trustStore.getNoneTrustStore());
+                return mapToV2(trustStore.getNoneTrustStore());
         }
     }
 
-    JKSTrustStore mapFromJKSTrustStoreV2(io.gravitee.definition.model.ssl.jks.JKSTrustStore jksTrustStore);
-    PKCS12TrustStore mapFromPKCS12TrustStoreV2(io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore pkcs12TrustStore);
-    PEMTrustStore mapFromPEMTrustStoreV2(io.gravitee.definition.model.ssl.pem.PEMTrustStore pemTrustStore);
-    NoneTrustStore mapFromNoneTrustStoreV2(io.gravitee.definition.model.ssl.none.NoneTrustStore noneTrustStore);
+    JKSTrustStore map(io.gravitee.definition.model.ssl.jks.JKSTrustStore jksTrustStore);
+    PKCS12TrustStore map(io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore pkcs12TrustStore);
+    PEMTrustStore map(io.gravitee.definition.model.ssl.pem.PEMTrustStore pemTrustStore);
+    NoneTrustStore map(io.gravitee.definition.model.ssl.none.NoneTrustStore noneTrustStore);
 
-    default TrustStoreType mapFromTrustStoreType(io.gravitee.definition.model.ssl.TrustStoreType type) {
+    default TrustStoreType mapTrustStoreType(io.gravitee.definition.model.ssl.TrustStoreType type) {
         switch (type) {
             case PKCS12:
                 return TrustStoreType.PKCS12;
@@ -135,21 +135,21 @@ public interface TrustStoreMapper {
         }
     }
 
-    default TrustStore mapFromTrustStoreV2(io.gravitee.definition.model.ssl.TrustStore trustStore) {
+    default TrustStore map(io.gravitee.definition.model.ssl.TrustStore trustStore) {
         if (trustStore == null) {
             return null;
         }
 
         switch (trustStore.getType()) {
             case JKS:
-                return new TrustStore(mapFromJKSTrustStoreV2((io.gravitee.definition.model.ssl.jks.JKSTrustStore) trustStore));
+                return new TrustStore(map((io.gravitee.definition.model.ssl.jks.JKSTrustStore) trustStore));
             case PKCS12:
-                return new TrustStore(mapFromPKCS12TrustStoreV2((io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore) trustStore));
+                return new TrustStore(map((io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore) trustStore));
             case PEM:
-                return new TrustStore(mapFromPEMTrustStoreV2((io.gravitee.definition.model.ssl.pem.PEMTrustStore) trustStore));
+                return new TrustStore(map((io.gravitee.definition.model.ssl.pem.PEMTrustStore) trustStore));
             case None:
             default:
-                return new TrustStore(mapFromNoneTrustStoreV2((io.gravitee.definition.model.ssl.none.NoneTrustStore) trustStore));
+                return new TrustStore(map((io.gravitee.definition.model.ssl.none.NoneTrustStore) trustStore));
         }
     }
 }
