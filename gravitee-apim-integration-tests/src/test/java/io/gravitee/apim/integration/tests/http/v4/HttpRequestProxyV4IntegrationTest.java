@@ -80,7 +80,7 @@ class HttpRequestProxyV4IntegrationTest extends AbstractGatewayTest {
             .await()
             .assertComplete()
             .assertValue(body -> {
-                assertThat(body).hasToString(va"response from backend");
+                assertThat(body).hasToString("response from backend");
                 return true;
             })
             .assertNoErrors();
