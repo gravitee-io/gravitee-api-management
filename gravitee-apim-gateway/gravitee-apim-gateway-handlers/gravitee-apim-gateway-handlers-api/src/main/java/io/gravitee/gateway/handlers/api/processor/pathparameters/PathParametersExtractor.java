@@ -54,7 +54,7 @@ public class PathParametersExtractor {
             .stream()
             .flatMap(Collection::stream)
             .flatMap(p -> p.getParameters().stream())
-            .anyMatch(parameters -> parameters.length() > 0);
+            .anyMatch(parameters -> !parameters.getName().isEmpty());
     }
 
     /**
@@ -113,7 +113,8 @@ public class PathParametersExtractor {
                         f
                             .getMethods()
                             .stream()
-                            .map(m -> Map.entry(PathParameterHttpMethod.valueOf(m.name()), new PathParameters(f.getPath(), f.getOperator())))
+                            .map(m -> Map.entry(PathParameterHttpMethod.valueOf(m.name()), new PathParameters(f.getPath(), f.getOperator()))
+                            )
                             .collect(Collectors.toList());
                 }
                 return flowByMethod.stream();
@@ -157,7 +158,7 @@ public class PathParametersExtractor {
 
                 final Matcher matcher = pattern.getPathPattern().matcher(path);
                 if (matcher.find()) {
-                    pattern.getParameters().forEach(p -> pathParameters.put(p, matcher.group(p)));
+                    pattern.getParameters().forEach(p -> pathParameters.put(p.getName(), matcher.group(p.getId())));
                 }
             });
     }

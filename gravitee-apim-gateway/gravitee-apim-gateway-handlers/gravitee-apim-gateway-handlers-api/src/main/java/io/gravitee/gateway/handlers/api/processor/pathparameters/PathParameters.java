@@ -35,7 +35,7 @@ public class PathParameters {
     private final String originalPath;
     private final Operator operator;
     private Pattern pathPattern;
-    private final List<String> parameters = new ArrayList<>();
+    private final List<PathParameter> parameters = new ArrayList<PathParameter>();
 
     public PathParameters(String originalPath, Operator operator) {
         this.originalPath = originalPath;
@@ -51,8 +51,9 @@ public class PathParameters {
             if (!branches[i].isEmpty()) {
                 if (branches[i].startsWith(PATH_PARAM_PREFIX)) {
                     String paramWithoutColon = branches[i].substring(1);
-                    parameters.add(paramWithoutColon);
-                    patternizedPath.append("(?<" + paramWithoutColon + ">" + PATH_PARAM_REGEX + ")");
+                    PathParameter pathParameter = new PathParameter(paramWithoutColon, parameters.size());
+                    parameters.add(pathParameter);
+                    patternizedPath.append("(?<" + pathParameter.getId() + ">" + PATH_PARAM_REGEX + ")");
                 } else {
                     patternizedPath.append(branches[i]);
                 }
@@ -74,7 +75,7 @@ public class PathParameters {
         return pathPattern;
     }
 
-    public List<String> getParameters() {
+    public List<PathParameter> getParameters() {
         return parameters;
     }
 

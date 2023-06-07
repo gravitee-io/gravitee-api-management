@@ -143,6 +143,36 @@
       "pre": [],
       "post": [],
       "enabled": true
+    },
+    {
+      "name": "Product",
+      "path-operator": {
+        "path": "/products-special-char/:product-id",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "pre": [],
+      "post": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "path-operator": {
+        "path": "/products-special-char/:product-id/items/:It€m_Id",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "pre": [],
+      "post": [],
+      "enabled": true
     }
   ],
   "resources": []
