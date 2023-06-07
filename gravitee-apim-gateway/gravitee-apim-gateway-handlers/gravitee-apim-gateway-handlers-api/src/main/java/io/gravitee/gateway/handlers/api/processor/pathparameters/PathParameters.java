@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PathParameter {
+public class PathParameters {
 
     private static final String PATH_SEPARATOR = "/";
     private static final Pattern SEPARATOR_SPLITTER = Pattern.compile(PATH_SEPARATOR);
@@ -37,7 +37,7 @@ public class PathParameter {
     private Pattern pathPattern;
     private final List<String> parameters = new ArrayList<>();
 
-    public PathParameter(String originalPath, Operator operator) {
+    public PathParameters(String originalPath, Operator operator) {
         this.originalPath = originalPath;
         this.operator = operator;
         extractPathParamsAndPattern();
@@ -82,7 +82,7 @@ public class PathParameter {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PathParameter that = (PathParameter) o;
+        PathParameters that = (PathParameters) o;
         return Objects.equals(originalPath, that.originalPath) && Objects.equals(operator, that.operator);
     }
 
