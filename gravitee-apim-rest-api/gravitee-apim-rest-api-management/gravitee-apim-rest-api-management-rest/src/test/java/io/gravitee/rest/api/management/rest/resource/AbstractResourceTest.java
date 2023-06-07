@@ -46,7 +46,9 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiGroupService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -81,9 +83,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected io.gravitee.rest.api.service.v4.ApiSearchService apiSearchServiceV4;
-
-    @Autowired
-    protected io.gravitee.rest.api.service.v4.ApiStateService apiStateServiceV4;
 
     @Autowired
     protected ApiAuthorizationService apiAuthorizationService;
@@ -192,9 +191,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected PlanService planService;
 
     @Autowired
-    protected io.gravitee.rest.api.service.v4.PlanService planServiceV4;
-
-    @Autowired
     protected PlanSearchService planSearchService;
 
     @Autowired
@@ -276,15 +272,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     protected LogsService logsService;
 
     @Autowired
-    protected ApiEntrypointService apiEntrypointService;
-
-    @Autowired
-    protected EntrypointConnectorPluginService entrypointConnectorPluginService;
-
-    @Autowired
-    protected EndpointConnectorPluginService endpointConnectorPluginService;
-
-    @Autowired
     protected MediaService mediaService;
 
     @Autowired
@@ -326,18 +313,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public io.gravitee.rest.api.service.v4.ApiStateService apiStateServiceV4() {
-            return mock(io.gravitee.rest.api.service.v4.ApiStateService.class);
-        }
-
-        @Bean
         public io.gravitee.rest.api.service.v4.ApiAuthorizationService apiAuthorizationServiceV4() {
             return mock(io.gravitee.rest.api.service.v4.ApiAuthorizationService.class);
-        }
-
-        @Bean
-        public io.gravitee.rest.api.service.v4.ApiEntrypointService apiEntrypointService() {
-            return mock(io.gravitee.rest.api.service.v4.ApiEntrypointService.class);
         }
 
         @Bean
@@ -526,11 +503,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public io.gravitee.rest.api.service.v4.PlanService planServiceV4() {
-            return mock(io.gravitee.rest.api.service.v4.PlanService.class);
-        }
-
-        @Bean
         public PlanSearchService planSearchService() {
             return mock(PlanSearchService.class);
         }
@@ -668,16 +640,6 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public LogsService logsService() {
             return mock(LogsService.class);
-        }
-
-        @Bean
-        public EntrypointConnectorPluginService entrypointConnectorPluginService() {
-            return mock(EntrypointConnectorPluginService.class);
-        }
-
-        @Bean
-        public EndpointConnectorPluginService endpointConnectorPluginService() {
-            return mock(EndpointConnectorPluginService.class);
         }
 
         @Bean
