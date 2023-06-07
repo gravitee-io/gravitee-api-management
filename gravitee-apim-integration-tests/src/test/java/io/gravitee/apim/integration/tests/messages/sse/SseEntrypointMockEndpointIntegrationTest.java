@@ -17,19 +17,29 @@ package io.gravitee.apim.integration.tests.messages.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.graviteesource.entrypoint.sse.SseEntrypointConnectorFactory;
+import com.graviteesource.reactor.message.MessageApiReactorFactory;
+import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
+import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
-import io.reactivex.rxjava3.core.Observable;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
+
 import java.util.Map;
+import java.util.Set;
+
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +48,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-public class SseEntrypointMockEndpointIntegrationTest extends AbstractSseGatewayTest {
+public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest implements SseAssertions {
 
     public static final String MESSAGE = "{ \"message\": \"hello\" }";
 
@@ -47,19 +57,29 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractSseGateway
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
+    @Override
+    public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
+        reactors.add(ReactorBuilder.build(MessageApiReactorFactory.class));
+    }
+
+    @Override
+    public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+        entrypoints.putIfAbsent("sse", EntrypointBuilder.build("sse", SseEntrypointConnectorFactory.class));
+    }
+
     @Test
     @DeployApi("/apis/v4/messages/sse-entrypoint-mock-endpoint.json")
     void shouldGetMessagesWithDefaultConfiguration(HttpClient httpClient) {
         startSeeStream(httpClient)
-            // expect 3 chunks: retry, two messages
-            .awaitCount(3)
-            .assertValueAt(
-                0,
-                chunk -> {
-                    assertRetry(chunk);
-                    return true;
-                }
-            )
+                // expect 3 chunks: retry, two messages
+                .awaitCount(3)
+                .assertValueAt(
+                        0,
+                        chunk -> {
+                            assertRetry(chunk);
+                            return true;
+                        }
+                )
             .assertValueAt(
                 1,
                 chunk -> {

@@ -18,14 +18,18 @@ package io.gravitee.apim.integration.tests.messages.sse;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.endpoint.kafka.KafkaEndpointConnectorFactory;
+import com.graviteesource.entrypoint.sse.SseEntrypointConnectorFactory;
+import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
+import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.kafka.client.producer.RecordMetadata;
@@ -61,11 +65,16 @@ import org.testcontainers.utility.DockerImageName;
  */
 @Testcontainers
 @GatewayTest
-@DeployApi({ "/apis/v4/messages/sse-entrypoint-kafka-endpoint.json" })
-class SseEntrypointKafkaEndpointIntegrationTest extends AbstractSseGatewayTest {
-
+@DeployApi({"/apis/v4/messages/sse-entrypoint-kafka-endpoint.json"})
+class SseEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest implements SseAssertions {
+    
     @Container
     private static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
+
+    @Override
+    public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+        entrypoints.putIfAbsent("sse", EntrypointBuilder.build("sse", SseEntrypointConnectorFactory.class));
+    }
 
     @Override
     public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {

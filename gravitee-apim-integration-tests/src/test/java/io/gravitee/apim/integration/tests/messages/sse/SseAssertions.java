@@ -15,55 +15,40 @@
  */
 package io.gravitee.apim.integration.tests.messages.sse;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.graviteesource.entrypoint.sse.SseEntrypointConnectorFactory;
-import com.graviteesource.reactor.message.MessageApiReactorFactory;
-import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
-import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
-import io.gravitee.apim.plugin.reactor.ReactorPlugin;
-import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import jakarta.validation.constraints.NotNull;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AbstractSseGatewayTest extends AbstractGatewayTest {
+interface SseAssertions {
 
-    @Override
-    public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
-        reactors.add(ReactorBuilder.build(MessageApiReactorFactory.class));
-    }
-
-    @Override
-    public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        entrypoints.putIfAbsent("sse", EntrypointBuilder.build("sse", SseEntrypointConnectorFactory.class));
-    }
-
-    protected void assertRetry(Buffer chunk) {
+    default void assertRetry(Buffer chunk) {
         final String[] splitMessage = chunk.toString().split("\n");
         assertThat(splitMessage).hasSize(1);
         assertThat(splitMessage[0]).startsWith("retry: ");
     }
 
-    protected void assertOnMessage(Buffer chunk, String messageContent) {
+    default void assertOnMessage(Buffer chunk, String messageContent) {
         final String[] splitMessage = chunk.toString().split("\n");
         assertThat(splitMessage).hasSize(2);
         assertMessageData(messageContent, splitMessage);
     }
 
-    protected void assertOnMessage(Buffer chunk, long id, String messageContent) {
+    default void assertOnMessage(Buffer chunk, long id, String messageContent) {
         final String[] splitMessage = chunk.toString().split("\n");
         assertThat(splitMessage).hasSize(3);
         assertMessageData(messageContent, id, splitMessage);
     }
 
-    protected void assertOnMessage(Buffer chunk, long id, String messageContent, @NotNull String... expectedComments) {
+    default void assertOnMessage(Buffer chunk, long id, String messageContent, @NotNull String... expectedComments) {
         Objects.requireNonNull(expectedComments);
         final String[] splitMessage = chunk.toString().split("\n");
         assertThat(splitMessage).hasSize(3 + expectedComments.length);
@@ -75,7 +60,7 @@ public class AbstractSseGatewayTest extends AbstractGatewayTest {
         assertThat(actualComments).containsExactlyInAnyOrder(expectedComments);
     }
 
-    protected void assertHeartbeat(Buffer chunk) {
+    default void assertHeartbeat(Buffer chunk) {
         assertThat(chunk.toString()).isEqualTo(":\n\n");
     }
 
