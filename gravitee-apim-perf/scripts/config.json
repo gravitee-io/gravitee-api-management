@@ -34,11 +34,23 @@
       "callbackBaseUrl": "http://localhost:8080/hook",
       "compression": "snappy",
       "acks": 1,
-      "withJsontoJson": true
+      "withJsontoJson": true,
+      "waitDurationInSec": 60,
+      "webhookMaxConnection": 5
+    },
+    "websocket": {
+      "topic": "msg-websocket",
+      "subscriptions": 1,
+      "messageSizeInKB": 1,
+      "numPartitions": 1,
+      "compression": "snappy",
+      "withJsontoJson": true,
+      "waitDurationInSec": 60,
+      "websocketServiceBaseUrl": "http://localhost:8080/websocket"
     },
     "kafkaInjector": {
       "messageSizeInKB": 1,
-      "topic": "perf",
+      "topic": "msg-websocket",
       "compression": "snappy",
       "acks": 1
     }

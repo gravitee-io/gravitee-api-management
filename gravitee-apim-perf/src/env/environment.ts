@@ -15,6 +15,7 @@
  */
 import { b64encode } from 'k6/encoding';
 import { Configuration } from '@env/configuration';
+import { EntrypointV4QosEnum } from '@models/v4/EntrypointV4';
 
 const { K6_OPTIONS } = __ENV;
 
@@ -37,6 +38,7 @@ const k6DefaultOptions: Configuration = {
     organization: 'DEFAULT',
     environment: 'DEFAULT',
     gatewaySyncInterval: 1000,
+    kafkaBoostrapServer: 'localhost:9092',
     httpPost: {
       requestHeadersToMessage: false,
       messageSizeInKB: 1,
@@ -53,12 +55,26 @@ const k6DefaultOptions: Configuration = {
       callbackBaseUrl: 'http://localhost:8888/hook',
       compression: 'snappy',
       withJsontoJson: true,
+      webhookMaxConnection: 5,
       acks: 1,
       waitDurationInSec: 60,
+      qos: EntrypointV4QosEnum.AUTO,
+    },
+    websocket: {
+      messageSizeInKB: 1,
+      topic: 'msg-websocket',
+      numPartitions: 1,
+      subscriptions: 1,
+      compression: 'snappy',
+      withJsontoJson: true,
+      websocketServiceBaseUrl: 'http://localhost:8888/websocket/',
+      waitDurationInSec: 60,
+      qos: EntrypointV4QosEnum.AUTO,
+      acks: 1,
     },
     kafkaInjector: {
       messageSizeInKB: 1,
-      topic: 'perf',
+      topic: 'msg-websocket',
       compression: 'snappy',
       acks: 1,
     },
