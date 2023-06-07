@@ -25,14 +25,12 @@ import { ApisV4Fixture } from '@fixtures/v4/apis.v4.fixture';
 import { ApisV4Client } from '@clients/v4/ApisV4Client';
 import { PlansV4Client } from '@clients/v4/PlansV4Client';
 import { PlansV4Fixture } from '@fixtures/v4/plans.v4.fixture';
-import { NewPlanEntityV4StatusEnum, PlanSecurityTypeV4 } from '@models/v4/NewPlanEntityV4';
+import { NewPlanEntityV4StatusEnum } from '@models/v4/NewPlanEntityV4';
 import { ApiEntityV4 } from '@models/v4/ApiEntityV4';
 import { PlanEntityV4 } from '@models/v4/PlanEntityV4';
 import { NewApiEntityV4TypeEnum } from '@models/v4/NewApiEntityV4';
-import { ApplicationsV4Client } from '@clients/v4/ApplicationsV4Client';
-import { SubscriptionEntityV4 } from '@models/v4/SubscriptionEntityV4';
-import { ApplicationEntityV4 } from '@models/v4/ApplicationEntityV4';
 import { randomString } from '@helpers/random.helper';
+import { LoadTestEndpointClient } from '@clients/LoadTestEndpointClient';
 
 const schemaRegistry = new SchemaRegistry();
 const connection = new Connection({
@@ -40,16 +38,15 @@ const connection = new Connection({
   address: k6Options.apim.kafkaBoostrapServer,
 });
 
-const kafkaTopic = k6Options.apim.webhook.topic;
-const numPartitions = k6Options.apim.webhook.numPartitions;
-const numberOfSubscriptions = k6Options.apim.webhook.subscriptions;
+const kafkaTopic = k6Options.apim.websocket.topic;
+const numPartitions = k6Options.apim.websocket.numPartitions;
 
 const writer = new Writer({
   brokers: [k6Options.apim.kafkaBoostrapServer],
   topic: kafkaTopic,
   autoCreateTopic: true,
-  compression: k6Options.apim.webhook.compression,
-  requiredAcks: k6Options.apim.webhook.acks,
+  compression: k6Options.apim.websocket.compression,
+  requiredAcks: k6Options.apim.websocket.acks,
 });
 
 if (__VU == 0) {
@@ -59,14 +56,14 @@ if (__VU == 0) {
     configEntries: [
       {
         configName: 'compression.type',
-        configValue: k6Options.apim.webhook.compression,
+        configValue: k6Options.apim.websocket.compression,
       },
     ],
   });
 }
 
 export const options = k6Options;
-options['teardownTimeout'] = `${k6Options.apim.webhook.waitDurationInSec + 120}s`;
+options['teardownTimeout'] = `${k6Options.apim.websocket.waitDurationInSec + 120}s`;
 options['thresholds'] = {
   // Base thresholds to see if the writer or reader is working
   kafka_writer_error_count: ['count == 0'],
@@ -78,14 +75,20 @@ export function setup(): GatewayTestData {
   const api = ApisV4Fixture.newApi({
     listeners: [
       ApisV4Fixture.newHttpListener({
-        type: 'subscription',
+        paths: [
+          {
+            path: contextPath,
+          },
+        ],
         entrypoints: [
           {
-            type: 'webhook',
-            qos: k6Options.apim.webhook.qos,
+            type: 'websocket',
             configuration: {
-              http: {
-                maxConcurrentConnections: k6Options.apim.webhook.webhookMaxConnection,
+              publisher: {
+                enabled: false,
+              },
+              subscriber: {
+                enabled: true,
               },
             },
           },
@@ -117,25 +120,19 @@ export function setup(): GatewayTestData {
     flows: [
       {
         name: 'Routing Flow',
-        selectors: [
-          {
-            type: 'channel',
-            operation: ['SUBSCRIBE'],
-            channel: '/',
-            'channel-operator': 'STARTS_WITH',
-          },
-        ],
+        selectors: [],
         request: [],
         response: [],
-        subscribe: k6Options.apim.webhook.withJsontoJson
+        subscribe: k6Options.apim.httpPost.withJsontoJson
           ? [
               {
                 name: 'Json to Json',
-                description: 'Add sourceTimestamp to help webhook to generate globalMessageLatency metric',
+                description: 'add an api properties in the message and change the Json Structure',
                 enabled: true,
                 policy: 'json-to-json',
                 configuration: {
-                  specification: '[{ "operation": "default", "spec": { "sourceTimestamp": "{#message.metadata[\'sourceTimestamp\']}" }}]',
+                  specification:
+                    '[{ "operation": "default", "spec": { "static": "static-value" } },{"operation": "shift","spec": {"static": "StaticEntry","key_*": "Keys.&(0,1)"}}]',
                 },
               },
             ]
@@ -157,12 +154,7 @@ export function setup(): GatewayTestData {
 
   const planCreationResponse = PlansV4Client.createPlan(
     createdApi.id,
-    PlansV4Fixture.newPlan({
-      security: {
-        type: PlanSecurityTypeV4.SUBSCRIPTION,
-      },
-      status: NewPlanEntityV4StatusEnum.PUBLISHED,
-    }),
+    PlansV4Fixture.newPlan({ status: NewPlanEntityV4StatusEnum.PUBLISHED }),
     {
       headers: {
         'Content-Type': 'application/json',
@@ -181,48 +173,16 @@ export function setup(): GatewayTestData {
   });
   failIf(changeLifecycleResponse.status !== 204, 'Could not change lifecycle');
 
-  const applications = [];
-  const subscriptions = [];
-  for (let i = 0; i < numberOfSubscriptions; ++i) {
-    const appCreationResponse = ApplicationsV4Client.createApplication({
-      headers: {
-        'Content-Type': 'application/json',
-        ...authorizationHeaderFor(ADMIN_USER),
-      },
-    });
-    const createdApp = HttpHelper.parseBody<ApplicationEntityV4>(appCreationResponse);
-    applications.push(createdApp);
+  // wait 2 times the wait interval to be sure that the sync takes place at least ones.
+  sleep((k6Options.apim.gatewaySyncInterval * 2) / 1000);
 
-    const subscriptionCreationResponse = ApisV4Client.createSubscription(
-      createdApi.id,
-      createdApp.id,
-      createdPlan.id,
-      {
-        configuration: {
-          entrypointId: 'webhook',
-          entrypointConfiguration: {
-            callbackUrl: `${k6Options.apim.webhook.callbackBaseUrl}/subscription_${i}`,
-          },
-        },
-        metadata: {
-          consumerGroup: `subscription_${i}`,
-        },
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          ...authorizationHeaderFor(ADMIN_USER),
-        },
-      },
-    );
-    const createdSubscription = HttpHelper.parseBody<SubscriptionEntityV4>(subscriptionCreationResponse);
-    subscriptions.push(createdSubscription);
+  for (let i = 0; i < k6Options.apim.websocket.subscriptions; ++i) {
+    LoadTestEndpointClient.startWebsocketSubscription(contextPath, `subscription_${i}`);
   }
 
-  // wait 1 sec per subscription + 10 seconds that the webhook subscription are in place
-  sleep(numberOfSubscriptions + 10);
+  sleep(5);
 
-  const message = generatePayloadInKB(k6Options.apim.webhook.messageSizeInKB);
+  const message = generatePayloadInKB(k6Options.apim.websocket.messageSizeInKB);
   return {
     api: createdApi,
     plan: createdPlan,
@@ -232,8 +192,6 @@ export function setup(): GatewayTestData {
       data: Array.from(JSON.stringify(message), (x) => x.charCodeAt(0)),
       schemaType: SCHEMA_TYPE_BYTES,
     }),
-    applications: applications,
-    subscriptions: subscriptions,
   };
 }
 
@@ -254,29 +212,13 @@ export default (data: GatewayTestData) => {
 
 export function teardown(data: GatewayTestData) {
   // wait a given time to let the consumers consume the topic
-  sleep(k6Options.apim.webhook.waitDurationInSec);
+  sleep(k6Options.apim.websocket.waitDurationInSec);
 
-  if (data.subscriptions) {
-    data.subscriptions.forEach((sub) => {
-      ApisV4Client.stopSubscription(data.api.id, sub.id, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...authorizationHeaderFor(ADMIN_USER),
-        },
-      });
-    });
+  for (let i = 0; i < k6Options.apim.websocket.subscriptions; ++i) {
+    LoadTestEndpointClient.stopWebsocketSubscription(`subscription_${i}`);
   }
 
-  if (data.applications) {
-    data.applications.forEach((app) => {
-      ApplicationsV4Client.deleteApplication(app.id, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...authorizationHeaderFor(ADMIN_USER),
-        },
-      });
-    });
-  }
+  sleep(5);
 
   ApisV4Client.changeLifecycle(data.api.id, LifecycleAction.STOP, {
     headers: {

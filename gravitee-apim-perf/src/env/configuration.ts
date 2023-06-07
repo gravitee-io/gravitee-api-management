@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Options } from 'k6/options';
+import { EntrypointV4QosEnum } from '@models/v4/EntrypointV4';
 
 export interface Configuration extends Options {
   apim: APIManagementConfiguration;
@@ -41,6 +42,7 @@ interface APIManagementConfiguration {
   gatewaySyncInterval: number;
   httpPost: HttpPost;
   webhook: Webhook;
+  websocket: Websocket;
   kafkaInjector: KafkaInjector;
 }
 
@@ -63,8 +65,21 @@ interface Webhook {
   acks: number;
   withJsontoJson: boolean;
   waitDurationInSec: number;
+  webhookMaxConnection: number;
+  qos: EntrypointV4QosEnum;
 }
-
+interface Websocket {
+  messageSizeInKB: number;
+  topic: string;
+  numPartitions: number;
+  subscriptions: number;
+  compression: string;
+  withJsontoJson: boolean;
+  waitDurationInSec: number;
+  websocketServiceBaseUrl: string;
+  qos: EntrypointV4QosEnum;
+  acks: number;
+}
 interface KafkaInjector {
   messageSizeInKB: number;
   topic: string;
