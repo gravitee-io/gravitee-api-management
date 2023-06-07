@@ -65,8 +65,18 @@ public class DashboardsResource extends AbstractResource {
     public List<DashboardEntity> getDashboards(final @QueryParam("reference_type") DashboardReferenceType referenceType) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
-            !hasPermission(executionContext, RolePermission.ENVIRONMENT_DASHBOARD, RolePermissionAction.READ) &&
-            !hasPermission(executionContext, RolePermission.ENVIRONMENT_API, RolePermissionAction.READ) &&
+            !hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_DASHBOARD,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ
+            ) &&
+            !hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_API,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ
+            ) &&
             !canReadAPIConfiguration() &&
             !DashboardReferenceType.HOME.equals(referenceType)
         ) {
