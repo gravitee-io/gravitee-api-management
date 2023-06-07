@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
-import { NgModule } from '@angular/core';
+import { HttpClient, HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UpgradeModule } from '@angular/upgrade/static';
 import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
 import { UIRouterUpgradeModule } from '@uirouter/angular-hybrid';
 import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
+import { Observable } from 'rxjs';
 
 import {
   uiRouterStateProvider,
@@ -36,6 +37,11 @@ import { OrganizationSettingsModule } from './organization/configuration/organiz
 import { httpInterceptorProviders } from './shared/interceptors/http-interceptors';
 import { GioSideNavModule } from './components/gio-side-nav/gio-side-nav.module';
 import { GioTopNavModule } from './components/gio-top-nav/gio-top-nav.module';
+import { GioLicenseService } from './shared/components/gio-license/gio-license.service';
+
+function initializeAppFactory(licenseService: GioLicenseService): () => Observable<any> {
+  return () => licenseService.loadLicense();
+}
 
 @NgModule({
   imports: [
@@ -73,6 +79,12 @@ import { GioTopNavModule } from './components/gio-top-nav/gio-top-nav.module';
         };
       },
       deps: ['Constants'],
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeAppFactory,
+      deps: [GioLicenseService, 'Constants', HttpClient],
+      multi: true,
     },
   ],
 })

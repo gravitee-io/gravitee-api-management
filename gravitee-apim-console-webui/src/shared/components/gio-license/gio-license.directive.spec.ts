@@ -46,7 +46,7 @@ describe('GioLicenseDirective', () => {
 
   describe('Override click & open dialog', () => {
     it('should override click if license not allowed', () => {
-      prepareTestLicenseComponent({ feature: 'feature-roles-customisation' }, false);
+      prepareTestLicenseComponent({ feature: 'apim-custom-roles' }, false);
       const onClickSpy = jest.spyOn(component, 'onClick');
       fixture.detectChanges();
 
@@ -59,7 +59,7 @@ describe('GioLicenseDirective', () => {
 
   describe('Not override click & not open dialog', () => {
     it('should not override click if license is allowed', () => {
-      prepareTestLicenseComponent({ feature: 'feature-roles-customisation' }, true);
+      prepareTestLicenseComponent({ feature: 'apim-custom-roles' }, true);
       const onClickSpy = jest.spyOn(component, 'onClick');
       fixture.detectChanges();
 
