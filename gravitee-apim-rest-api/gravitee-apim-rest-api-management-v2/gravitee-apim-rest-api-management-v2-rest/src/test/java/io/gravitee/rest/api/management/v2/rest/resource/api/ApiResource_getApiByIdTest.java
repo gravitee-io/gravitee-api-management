@@ -215,7 +215,8 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getLinks());
         assertNotNull(responseApi.getLinks().getPictureUrl());
         assertNotNull(responseApi.getLinks().getBackgroundUrl());
-        assertNull(responseApi.getProperties());
+        assertNotNull(responseApi.getProperties());
+        assertTrue(responseApi.getProperties().isEmpty());
         assertNull(responseApi.getServices());
         assertNull(responseApi.getResources());
         assertNotNull(responseApi.getResponseTemplates());

@@ -20,9 +20,10 @@ import io.gravitee.rest.api.model.PropertiesEntity;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
 public interface PropertiesMapper {
     PropertiesMapper INSTANCE = Mappers.getMapper(PropertiesMapper.class);
 
@@ -46,7 +47,7 @@ public interface PropertiesMapper {
 
     default PropertiesEntity mapToPropertiesEntityV2(List<Property> propertyList) {
         if (propertyList == null) {
-            return null;
+            return new PropertiesEntity();
         }
         return new PropertiesEntity(this.mapToPropertyEntityV2List(propertyList));
     }
