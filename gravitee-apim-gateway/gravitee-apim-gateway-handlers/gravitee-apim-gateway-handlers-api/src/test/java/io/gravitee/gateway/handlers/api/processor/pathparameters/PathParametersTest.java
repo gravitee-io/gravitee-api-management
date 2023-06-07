@@ -51,12 +51,12 @@ class PathParametersTest {
     @Test
     void should_have_parameters_starts_with_operator() {
         final PathParameters cut = new PathParameters("/product/:productId/item/:itemId", Operator.STARTS_WITH);
-        assertThat(cut.getParameters()).hasSize(2).contains("productId", "itemId");
+        assertThat(cut.getParameters()).hasSize(2).extracting(PathParameter::getName).contains("productId", "itemId");
         assertThat(cut.getPathPattern())
             .hasToString(
                 Pattern
                     .compile(
-                        "^/product/(?<productId>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/item/(?<itemId>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)(?:/.*)?$"
+                        "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)(?:/.*)?$"
                     )
                     .toString()
             );
@@ -65,12 +65,24 @@ class PathParametersTest {
     @Test
     void should_have_parameters_equals_operator() {
         final PathParameters cut = new PathParameters("/product/:productId/item/:itemId", Operator.EQUALS);
-        assertThat(cut.getParameters()).hasSize(2).contains("productId", "itemId");
+        assertThat(cut.getParameters()).hasSize(2).extracting(PathParameter::getName).contains("productId", "itemId");
+        assertThat(cut.getPathPattern())
+            .hasToString(
+                Pattern
+                    .compile("^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/?$")
+                    .toString()
+            );
+    }
+
+    @Test
+    void should_have_parameters_with_special_character() {
+        final PathParameters cut = new PathParameters("/product/:product-id/item/:It€m_Id", Operator.STARTS_WITH);
+        assertThat(cut.getParameters()).hasSize(2).extracting(PathParameter::getName).contains("product-id", "It€m_Id");
         assertThat(cut.getPathPattern())
             .hasToString(
                 Pattern
                     .compile(
-                        "^/product/(?<productId>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/item/(?<itemId>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/?$"
+                        "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)(?:/.*)?$"
                     )
                     .toString()
             );
