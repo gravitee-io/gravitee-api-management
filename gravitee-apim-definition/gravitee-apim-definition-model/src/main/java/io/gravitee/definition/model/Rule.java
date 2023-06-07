@@ -23,14 +23,26 @@ import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@Getter
+@Setter
 public class Rule extends HashMap<String, Object> /* This is to generate the correct Open-API definition*/implements Serializable {
 
     @JsonProperty("methods")
+    @Builder.Default
     private Set<HttpMethod> methods = EnumSet.allOf(HttpMethod.class);
 
     @JsonIgnore
@@ -40,39 +52,8 @@ public class Rule extends HashMap<String, Object> /* This is to generate the cor
     private String description;
 
     @JsonProperty("enabled")
+    @Builder.Default
     private boolean enabled = true;
-
-    public Set<HttpMethod> getMethods() {
-        return methods;
-    }
-
-    public void setMethods(Set<HttpMethod> methods) {
-        this.methods = methods;
-    }
-
-    public Policy getPolicy() {
-        return policy;
-    }
-
-    public void setPolicy(Policy policy) {
-        this.policy = policy;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
 
     @Hidden
     @Override

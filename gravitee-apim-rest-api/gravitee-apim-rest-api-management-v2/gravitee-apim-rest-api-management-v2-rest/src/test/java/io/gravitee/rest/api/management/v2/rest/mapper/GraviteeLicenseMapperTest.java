@@ -31,7 +31,7 @@ class GraviteeLicenseMapperTest {
 
     @Test
     void shouldConvertToLicense() {
-        var license = licenseMapper.convert(aGraviteeLicenseEntity());
+        var license = licenseMapper.map(aGraviteeLicenseEntity());
         assertThat(license).usingRecursiveComparison().isEqualTo(aGraviteeLicense());
     }
 }

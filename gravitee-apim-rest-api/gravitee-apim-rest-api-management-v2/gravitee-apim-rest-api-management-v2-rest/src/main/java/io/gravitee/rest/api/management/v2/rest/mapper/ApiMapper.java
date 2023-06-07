@@ -23,8 +23,6 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.*;
-import java.util.stream.Collectors;
-import org.apache.commons.lang3.tuple.Pair;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
@@ -40,6 +38,8 @@ import org.slf4j.LoggerFactory;
         ListenerMapper.class,
         PropertiesMapper.class,
         ResourceMapper.class,
+        ResponseTemplateMapper.class,
+        RuleMapper.class,
     }
 )
 public interface ApiMapper {
@@ -47,31 +47,31 @@ public interface ApiMapper {
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
     // Api
-    default Api convert(GenericApiEntity apiEntity, UriInfo uriInfo) {
+    default Api map(GenericApiEntity apiEntity, UriInfo uriInfo) {
         if (apiEntity == null) {
             return null;
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
-            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.convert((ApiEntity) apiEntity, uriInfo));
+            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4((ApiEntity) apiEntity, uriInfo));
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V2) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(
-                this.map((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo)
+                this.mapToV2((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo)
             );
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V1) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(
-                this.mapV1((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo)
+                this.mapToV1((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo)
             );
         }
         return null;
     }
 
-    default List<Api> convert(List<GenericApiEntity> apiEntities, UriInfo uriInfo) {
+    default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo) {
         var result = new ArrayList<Api>();
         apiEntities.forEach(api -> {
             try {
-                result.add(this.convert(api, uriInfo));
+                result.add(this.map(api, uriInfo));
             } catch (Exception e) {
                 // Ignore APIs throwing conversion issues in the list
                 // As v4 was out there in alpha version, we still want to build the list event if some APIs cannot be converted
@@ -82,25 +82,24 @@ public interface ApiMapper {
     }
 
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
-    @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
-    ApiV4 convert(ApiEntity apiEntity, UriInfo uriInfo);
+    @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo);
+
+    @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    ApiV2 mapToV2(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
+
+    @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    io.gravitee.rest.api.management.v2.rest.model.ApiV1 mapToV1(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
 
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "links", ignore = true)
-    ApiV4 convert(ApiEntity apiEntity);
+    ApiV4 map(ApiEntity apiEntity);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
-    ApiEntity convert(ApiV4 api);
+    ApiEntity map(ApiV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
-    NewApiEntity convert(CreateApiV4 api);
-
-    @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
-    ApiV2 map(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
-
-    @Mapping(target = "paths", qualifiedByName = "fromPaths")
-    @Mapping(target = "links", expression = "java(computeLinksFromApi(apiEntity, uriInfo))")
-    io.gravitee.rest.api.management.v2.rest.model.ApiV1 mapV1(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
+    NewApiEntity map(CreateApiV4 api);
 
     // UpdateApi
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
@@ -110,57 +109,10 @@ public interface ApiMapper {
     io.gravitee.rest.api.model.api.UpdateApiEntity map(UpdateApiV2 updateApi);
 
     // DefinitionVersion
-    io.gravitee.definition.model.DefinitionVersion map(DefinitionVersion definitionVersion);
+    io.gravitee.definition.model.DefinitionVersion mapDefinitionVersion(DefinitionVersion definitionVersion);
 
-    // Rule
-    Rule map(io.gravitee.definition.model.Rule rule);
-    List<Rule> mapRuleList(List<io.gravitee.definition.model.Rule> rule);
-
-    // ResponseTemplate
-    Map<String, ResponseTemplate> convertFromResponseTemplateModel(
-        Map<String, io.gravitee.definition.model.ResponseTemplate> responseTemplate
-    );
-
-    default Map<String, Map<String, ResponseTemplate>> mapFromModel(
-        Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> value
-    ) {
-        if (Objects.isNull(value)) {
-            return null;
-        }
-        Map<String, Map<String, ResponseTemplate>> convertedMap = new HashMap<>();
-        value.forEach((key, map) -> convertedMap.put(key, convertFromResponseTemplateModel(map)));
-        return convertedMap;
-    }
-
-    Map<String, io.gravitee.definition.model.ResponseTemplate> convertToResponseTemplateModel(
-        Map<String, ResponseTemplate> responseTemplate
-    );
-
-    default Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> mapToModel(
-        Map<String, Map<String, ResponseTemplate>> value
-    ) {
-        if (Objects.isNull(value)) {
-            return null;
-        }
-        Map<String, Map<String, io.gravitee.definition.model.ResponseTemplate>> convertedMap = new HashMap<>();
-        value.forEach((key, map) -> convertedMap.put(key, convertToResponseTemplateModel(map)));
-        return convertedMap;
-    }
-
-    @Named("fromPaths")
-    default Map<String, List<Rule>> fromPath(Map<String, List<io.gravitee.definition.model.Rule>> paths) {
-        if (Objects.isNull(paths)) {
-            return new HashMap<>();
-        }
-        return paths
-            .entrySet()
-            .stream()
-            .map(entry -> Pair.of(entry.getKey(), this.mapRuleList(entry.getValue())))
-            .collect(Collectors.toMap(m -> m.getKey(), m -> m.getValue()));
-    }
-
-    @Named("computeLinksFromApi")
-    default ApiLinks computeLinksFromApi(GenericApiEntity api, UriInfo uriInfo) {
+    @Named("computeApiLinks")
+    default ApiLinks computeApiLinks(GenericApiEntity api, UriInfo uriInfo) {
         return new ApiLinks()
             .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
             .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));

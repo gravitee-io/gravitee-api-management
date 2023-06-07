@@ -21,7 +21,6 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import com.google.common.base.Strings;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
@@ -37,7 +36,6 @@ import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import jakarta.inject.Inject;
@@ -72,9 +70,9 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
     public Response createApi(@Valid @NotNull final CreateApiV4 api) {
         // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
-        NewApiEntity newApiEntity = ApiMapper.INSTANCE.convert(api);
+        NewApiEntity newApiEntity = ApiMapper.INSTANCE.map(api);
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
-        return Response.created(this.getLocationHeader(newApi.getId())).entity(ApiMapper.INSTANCE.convert(newApi, uriInfo)).build();
+        return Response.created(this.getLocationHeader(newApi.getId())).entity(ApiMapper.INSTANCE.mapToV4(newApi, uriInfo)).build();
     }
 
     @GET
@@ -89,7 +87,7 @@ public class ApisResource extends AbstractResource {
         );
 
         return new ApisResponse()
-            .data(ApiMapper.INSTANCE.convert(apis.getContent(), uriInfo))
+            .data(ApiMapper.INSTANCE.map(apis.getContent(), uriInfo))
             .pagination(
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )
@@ -110,7 +108,7 @@ public class ApisResource extends AbstractResource {
 
         return Response
             .created(this.getLocationHeader(fromExportedApi.getId()))
-            .entity(ApiMapper.INSTANCE.convert(fromExportedApi, uriInfo))
+            .entity(ApiMapper.INSTANCE.map(fromExportedApi, uriInfo))
             .build();
     }
 
@@ -137,7 +135,10 @@ public class ApisResource extends AbstractResource {
         }
 
         if (Objects.nonNull(apiSearchQuery.getDefinitionVersion())) {
-            apiQueryBuilder.addFilter(FIELD_DEFINITION_VERSION, ApiMapper.INSTANCE.map(apiSearchQuery.getDefinitionVersion()).getLabel());
+            apiQueryBuilder.addFilter(
+                FIELD_DEFINITION_VERSION,
+                ApiMapper.INSTANCE.mapDefinitionVersion(apiSearchQuery.getDefinitionVersion()).getLabel()
+            );
         }
 
         if (Objects.nonNull(apiSortByParam)) {
@@ -153,7 +154,7 @@ public class ApisResource extends AbstractResource {
         );
 
         return new ApisResponse()
-            .data(ApiMapper.INSTANCE.convert(apis.getContent(), uriInfo))
+            .data(ApiMapper.INSTANCE.map(apis.getContent(), uriInfo))
             .pagination(
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )

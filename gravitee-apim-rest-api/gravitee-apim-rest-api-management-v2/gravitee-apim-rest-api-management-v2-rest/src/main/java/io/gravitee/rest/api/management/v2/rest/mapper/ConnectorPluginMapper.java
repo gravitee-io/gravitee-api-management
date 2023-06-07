@@ -25,7 +25,7 @@ import org.mapstruct.factory.Mappers;
 public interface ConnectorPluginMapper {
     ConnectorPluginMapper INSTANCE = Mappers.getMapper(ConnectorPluginMapper.class);
 
-    ConnectorPlugin convert(ConnectorPluginEntity connectorPluginEntity);
+    ConnectorPlugin map(ConnectorPluginEntity connectorPluginEntity);
 
-    Set<ConnectorPlugin> convertSet(Set<ConnectorPluginEntity> connectorPluginEntitySet);
+    Set<ConnectorPlugin> map(Set<ConnectorPluginEntity> connectorPluginEntitySet);
 }

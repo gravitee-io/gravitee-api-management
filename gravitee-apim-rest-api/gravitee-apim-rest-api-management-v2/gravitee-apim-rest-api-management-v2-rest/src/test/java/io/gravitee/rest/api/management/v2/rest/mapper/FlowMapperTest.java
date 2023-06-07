@@ -41,7 +41,7 @@ public class FlowMapperTest {
     @Test
     void shouldMapFromFlowEntityV4() throws JsonProcessingException {
         var flowEntityV4 = FlowFixtures.aModelFlowV4();
-        var flowV4 = flowMapper.mapFromFlowEntityV4(flowEntityV4);
+        var flowV4 = flowMapper.map(flowEntityV4);
         assertThat(flowV4).isNotNull();
         assertFlowV4Equals(flowEntityV4, flowV4);
     }
@@ -49,7 +49,7 @@ public class FlowMapperTest {
     @Test
     void shouldMapToFlowEntityV4() throws JsonProcessingException {
         var flowV4 = FlowFixtures.aFlowV4();
-        var flowEntityV4 = flowMapper.mapToFlowEntityV4(flowV4);
+        var flowEntityV4 = flowMapper.map(flowV4);
         assertThat(flowV4).isNotNull();
         assertFlowV4Equals(flowEntityV4, flowV4);
     }
@@ -102,7 +102,7 @@ public class FlowMapperTest {
     @Test
     void shouldMapFromFlowEntityV2() throws JsonProcessingException {
         var flowEntityV2 = FlowFixtures.aModelFlowV2();
-        var flowV2 = flowMapper.mapFromFlowEntityV2(flowEntityV2);
+        var flowV2 = flowMapper.map(flowEntityV2);
         assertThat(flowV2).isNotNull();
         assertFlowV2Equals(flowEntityV2, flowV2);
     }
@@ -110,7 +110,7 @@ public class FlowMapperTest {
     @Test
     void shouldMapToFlowEntityV2() throws JsonProcessingException {
         var flowV2 = FlowFixtures.aFlowV2();
-        var flowEntityV2 = flowMapper.mapToFlowEntityV2(flowV2);
+        var flowEntityV2 = flowMapper.map(flowV2);
         assertThat(flowV2).isNotNull();
         assertFlowV2Equals(flowEntityV2, flowV2);
     }

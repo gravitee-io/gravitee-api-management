@@ -118,14 +118,14 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.CREATE }) })
     public Response createApiPlan(@Valid @NotNull CreateBasePlan createPlan) {
         if (createPlan.getDefinitionVersion() == DefinitionVersion.V4) {
-            final NewPlanEntity newPlanEntity = planMapper.convert((CreatePlanV4) createPlan);
+            final NewPlanEntity newPlanEntity = planMapper.map((CreatePlanV4) createPlan);
             newPlanEntity.setApiId(apiId);
             newPlanEntity.setType(PlanType.API);
 
             final PlanEntity planEntity = planServiceV4.create(GraviteeContext.getExecutionContext(), newPlanEntity);
-            return Response.created(this.getLocationHeader(planEntity.getId())).entity(planMapper.convert(planEntity)).build();
+            return Response.created(this.getLocationHeader(planEntity.getId())).entity(planMapper.map(planEntity)).build();
         } else if (createPlan.getDefinitionVersion() == DefinitionVersion.V2) {
-            final io.gravitee.rest.api.model.NewPlanEntity newPlanEntity = planMapper.convert((CreatePlanV2) createPlan);
+            final io.gravitee.rest.api.model.NewPlanEntity newPlanEntity = planMapper.map((CreatePlanV2) createPlan);
             newPlanEntity.setApi(apiId);
             newPlanEntity.setType(io.gravitee.rest.api.model.PlanType.API);
 
@@ -133,7 +133,7 @@ public class ApiPlansResource extends AbstractResource {
                 GraviteeContext.getExecutionContext(),
                 newPlanEntity
             );
-            return Response.created(this.getLocationHeader(planEntity.getId())).entity(planMapper.convert(planEntity)).build();
+            return Response.created(this.getLocationHeader(planEntity.getId())).entity(planMapper.map(planEntity)).build();
         }
 
         return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid()).build();
@@ -151,7 +151,7 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        return Response.ok(planMapper.convert(planEntity)).build();
+        return Response.ok(planMapper.mapGenericPlan(planEntity)).build();
     }
 
     @PUT
@@ -172,19 +172,19 @@ public class ApiPlansResource extends AbstractResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
             }
 
-            final UpdatePlanEntity updatePlanEntity = planMapper.convert((UpdatePlanV4) updatePlan);
+            final UpdatePlanEntity updatePlanEntity = planMapper.map((UpdatePlanV4) updatePlan);
             updatePlanEntity.setId(planId);
             PlanEntity responseEntity = planServiceV4.update(executionContext, updatePlanEntity);
-            return Response.ok(planMapper.convert(responseEntity)).build();
+            return Response.ok(planMapper.map(responseEntity)).build();
         } else if (updatePlan.getDefinitionVersion() == DefinitionVersion.V2) {
             if (!(planEntity instanceof io.gravitee.rest.api.model.PlanEntity)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
             }
 
-            final io.gravitee.rest.api.model.UpdatePlanEntity updatePlanEntity = planMapper.convert((UpdatePlanV2) updatePlan);
+            final io.gravitee.rest.api.model.UpdatePlanEntity updatePlanEntity = planMapper.map((UpdatePlanV2) updatePlan);
             updatePlanEntity.setId(planId);
             io.gravitee.rest.api.model.PlanEntity responseEntity = planServiceV2.update(executionContext, updatePlanEntity);
-            return Response.ok(planMapper.convert(responseEntity)).build();
+            return Response.ok(planMapper.map(responseEntity)).build();
         }
 
         return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
@@ -220,10 +220,10 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         if (planEntity instanceof PlanEntity) {
-            return Response.ok(planMapper.convert(planServiceV4.close(executionContext, planId))).build();
+            return Response.ok(planMapper.map(planServiceV4.close(executionContext, planId))).build();
         }
 
-        return Response.ok(planMapper.convert(planServiceV2.close(executionContext, planId))).build();
+        return Response.ok(planMapper.map(planServiceV2.close(executionContext, planId))).build();
     }
 
     @POST
@@ -239,10 +239,10 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         if (planEntity instanceof PlanEntity) {
-            return Response.ok(planMapper.convert(planServiceV4.publish(executionContext, planId))).build();
+            return Response.ok(planMapper.map(planServiceV4.publish(executionContext, planId))).build();
         }
 
-        return Response.ok(planMapper.convert(planServiceV2.publish(executionContext, planId))).build();
+        return Response.ok(planMapper.map(planServiceV2.publish(executionContext, planId))).build();
     }
 
     @POST
@@ -258,10 +258,10 @@ public class ApiPlansResource extends AbstractResource {
         }
 
         if (planEntity instanceof PlanEntity) {
-            return Response.ok(planMapper.convert(planServiceV4.deprecate(executionContext, planId))).build();
+            return Response.ok(planMapper.map(planServiceV4.deprecate(executionContext, planId))).build();
         }
 
-        return Response.ok(planMapper.convert(planServiceV2.deprecate(executionContext, planId))).build();
+        return Response.ok(planMapper.map(planServiceV2.deprecate(executionContext, planId))).build();
     }
 
     private GenericPlanEntity filterSensitiveData(GenericPlanEntity entity) {

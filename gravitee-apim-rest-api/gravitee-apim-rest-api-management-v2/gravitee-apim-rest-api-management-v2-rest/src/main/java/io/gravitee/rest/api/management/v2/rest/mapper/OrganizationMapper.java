@@ -24,5 +24,5 @@ import org.mapstruct.factory.Mappers;
 public interface OrganizationMapper {
     OrganizationMapper INSTANCE = Mappers.getMapper(OrganizationMapper.class);
 
-    Organization convert(OrganizationEntity organizationEntity);
+    Organization map(OrganizationEntity organizationEntity);
 }

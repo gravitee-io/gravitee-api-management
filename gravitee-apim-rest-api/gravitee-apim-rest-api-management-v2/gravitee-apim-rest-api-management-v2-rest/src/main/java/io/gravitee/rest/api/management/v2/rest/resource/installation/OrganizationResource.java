@@ -42,6 +42,6 @@ public class OrganizationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Organization get(@PathParam("orgId") String orgId) {
-        return OrganizationMapper.INSTANCE.convert(organizationService.findById(orgId));
+        return OrganizationMapper.INSTANCE.map(organizationService.findById(orgId));
     }
 }

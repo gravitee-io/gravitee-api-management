@@ -30,8 +30,8 @@ import org.mapstruct.factory.Mappers;
 public interface ConfigurationSerializationMapper {
     ConfigurationSerializationMapper INSTANCE = Mappers.getMapper(ConfigurationSerializationMapper.class);
 
-    @Named("deserializeConfiguration")
-    default String deserializeConfiguration(Object configuration) {
+    @Named("serializeConfiguration")
+    default String serializeConfiguration(Object configuration) {
         if (Objects.isNull(configuration)) {
             return null;
         }
@@ -48,8 +48,8 @@ public interface ConfigurationSerializationMapper {
         }
     }
 
-    @Named("serializeConfiguration")
-    default Object serializeConfiguration(String configuration) {
+    @Named("deserializeConfiguration")
+    default Object deserializeConfiguration(String configuration) {
         if (Objects.isNull(configuration)) {
             return null;
         }

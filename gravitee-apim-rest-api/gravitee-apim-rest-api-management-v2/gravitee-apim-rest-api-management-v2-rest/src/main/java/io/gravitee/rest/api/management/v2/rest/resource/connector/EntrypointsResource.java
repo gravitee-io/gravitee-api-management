@@ -46,14 +46,14 @@ public class EntrypointsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ConnectorPlugin> getEntrypoints() {
-        return ConnectorPluginMapper.INSTANCE.convertSet(entrypointService.findAll());
+        return ConnectorPluginMapper.INSTANCE.map(entrypointService.findAll());
     }
 
     @Path("/{entrypointId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ConnectorPlugin getEntrypoint(@PathParam("entrypointId") String entrypointId) {
-        return ConnectorPluginMapper.INSTANCE.convert(entrypointService.findById(entrypointId));
+        return ConnectorPluginMapper.INSTANCE.map(entrypointService.findById(entrypointId));
     }
 
     @GET
@@ -93,6 +93,6 @@ public class EntrypointsResource extends AbstractResource {
         // Check that the entrypoint exists
         entrypointService.findById(entrypointId);
 
-        return MoreInformationMapper.INSTANCE.convert(entrypointService.getMoreInformation(entrypointId));
+        return MoreInformationMapper.INSTANCE.map(entrypointService.getMoreInformation(entrypointId));
     }
 }

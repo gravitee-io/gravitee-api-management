@@ -24,5 +24,5 @@ import org.mapstruct.factory.Mappers;
 public interface MoreInformationMapper {
     MoreInformationMapper INSTANCE = Mappers.getMapper(MoreInformationMapper.class);
 
-    MoreInformation convert(PluginMoreInformation pluginMoreInformation);
+    MoreInformation map(PluginMoreInformation pluginMoreInformation);
 }

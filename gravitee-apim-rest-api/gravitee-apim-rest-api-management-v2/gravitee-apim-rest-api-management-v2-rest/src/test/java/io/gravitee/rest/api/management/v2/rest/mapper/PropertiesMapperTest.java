@@ -32,7 +32,7 @@ public class PropertiesMapperTest {
 
     @Test
     void shouldMapToEmptyPropertyEntityV4List() {
-        var propertyEntityV4List = propertiesMapper.mapToPropertyEntityV4List(null);
+        var propertyEntityV4List = propertiesMapper.mapToV4List(null);
 
         assertThat(propertyEntityV4List).isNotNull();
         assertThat(propertyEntityV4List).asList().isEmpty();
@@ -41,7 +41,7 @@ public class PropertiesMapperTest {
     @Test
     void shouldMapToPropertyEntityV4() {
         Property propertyToMap = PropertyFixtures.aProperty();
-        var propertyEntityV4List = propertiesMapper.mapToPropertyEntityV4List(List.of(propertyToMap));
+        var propertyEntityV4List = propertiesMapper.mapToV4List(List.of(propertyToMap));
 
         assertThat(propertyEntityV4List).isNotNull();
         assertThat(propertyEntityV4List).asList().hasSize(1);
@@ -58,7 +58,7 @@ public class PropertiesMapperTest {
 
     @Test
     void shouldMapToEmptyPropertyEntityV2List() {
-        var propertyEntityV2List = propertiesMapper.mapToPropertyEntityV2List(null);
+        var propertyEntityV2List = propertiesMapper.mapToV2List(null);
 
         assertThat(propertyEntityV2List).isNotNull();
         assertThat(propertyEntityV2List).asList().isEmpty();
@@ -66,7 +66,7 @@ public class PropertiesMapperTest {
 
     @Test
     void shouldMapToEmptyPropertiesEntityV2() {
-        PropertiesEntity propertiesEntity = propertiesMapper.mapToPropertiesEntityV2(null);
+        PropertiesEntity propertiesEntity = propertiesMapper.mapToPropertiesV2(null);
 
         assertThat(propertiesEntity).isNotNull();
         List<PropertyEntity> properties = propertiesEntity.getProperties();
@@ -77,7 +77,7 @@ public class PropertiesMapperTest {
     @Test
     void shouldMapToPropertiesEntityV2() {
         Property propertyToMap = PropertyFixtures.aProperty();
-        PropertiesEntity propertiesEntity = propertiesMapper.mapToPropertiesEntityV2(List.of(propertyToMap));
+        PropertiesEntity propertiesEntity = propertiesMapper.mapToPropertiesV2(List.of(propertyToMap));
 
         assertThat(propertiesEntity).isNotNull();
         List<PropertyEntity> properties = propertiesEntity.getProperties();
@@ -97,7 +97,7 @@ public class PropertiesMapperTest {
     @Test
     void shouldMapToPropertiesEntityV2_withEncryptable() {
         Property propertyToMap = PropertyFixtures.aProperty().encryptable(true);
-        PropertiesEntity propertiesEntity = propertiesMapper.mapToPropertiesEntityV2(List.of(propertyToMap));
+        PropertiesEntity propertiesEntity = propertiesMapper.mapToPropertiesV2(List.of(propertyToMap));
 
         assertThat(propertiesEntity).isNotNull();
         List<PropertyEntity> properties = propertiesEntity.getProperties();
@@ -117,7 +117,7 @@ public class PropertiesMapperTest {
     @Test
     void shouldMapFromPropertiesV2() {
         Properties propertiesToMap = PropertyFixtures.aModelPropertiesV2();
-        List<Property> convertedPropertyList = propertiesMapper.mapFromPropertiesV2(propertiesToMap);
+        List<Property> convertedPropertyList = propertiesMapper.map(propertiesToMap);
 
         assertThat(convertedPropertyList).isNotNull();
         assertThat(convertedPropertyList).asList().hasSize(1);

@@ -15,12 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV2;
-import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
-import io.gravitee.rest.api.management.v2.rest.model.EndpointV2;
-import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
 import io.gravitee.rest.api.management.v2.rest.model.Resource;
-import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -30,16 +25,16 @@ public interface ResourceMapper {
     ResourceMapper INSTANCE = Mappers.getMapper(ResourceMapper.class);
 
     // V4
-    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    io.gravitee.definition.model.v4.resource.Resource mapToResourceEntityV4(Resource resource);
-
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    Resource mapFromResourceEntityV4(io.gravitee.definition.model.v4.resource.Resource resource);
+    io.gravitee.definition.model.v4.resource.Resource mapToV4(Resource resource);
+
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    Resource map(io.gravitee.definition.model.v4.resource.Resource resource);
 
     // V2
-    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    io.gravitee.definition.model.plugins.resources.Resource mapToResourceEntityV2(Resource resource);
-
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    Resource mapFromResourceEntityV2(io.gravitee.definition.model.plugins.resources.Resource resource);
+    io.gravitee.definition.model.plugins.resources.Resource mapToV2(Resource resource);
+
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    Resource map(io.gravitee.definition.model.plugins.resources.Resource resource);
 }

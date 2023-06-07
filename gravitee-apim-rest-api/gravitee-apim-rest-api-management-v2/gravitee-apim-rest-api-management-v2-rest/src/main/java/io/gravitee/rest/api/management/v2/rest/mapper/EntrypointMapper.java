@@ -24,9 +24,9 @@ import org.mapstruct.factory.Mappers;
 public interface EntrypointMapper {
     EntrypointMapper INSTANCE = Mappers.getMapper(EntrypointMapper.class);
 
-    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint mapToEntrypointEntity(Entrypoint entrypoint);
-
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    Entrypoint mapFromEntrypointEntity(io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint entrypoint);
+    io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint map(Entrypoint entrypoint);
+
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    Entrypoint map(io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint entrypoint);
 }

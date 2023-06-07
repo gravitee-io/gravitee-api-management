@@ -25,7 +25,7 @@ import org.mapstruct.factory.Mappers;
 public interface EnvironmentMapper {
     EnvironmentMapper INSTANCE = Mappers.getMapper(EnvironmentMapper.class);
 
-    Environment convert(EnvironmentEntity environmentEntity);
+    Environment map(EnvironmentEntity environmentEntity);
 
-    Collection<Environment> convertCollection(Collection<EnvironmentEntity> environmentEntityCollection);
+    Collection<Environment> map(Collection<EnvironmentEntity> environmentEntityCollection);
 }

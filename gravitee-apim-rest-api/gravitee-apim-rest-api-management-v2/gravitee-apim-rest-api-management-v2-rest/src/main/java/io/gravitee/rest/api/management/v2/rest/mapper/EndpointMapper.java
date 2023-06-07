@@ -30,64 +30,39 @@ public interface EndpointMapper {
     EndpointMapper INSTANCE = Mappers.getMapper(EndpointMapper.class);
 
     // V4
-    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
-    @Mapping(target = "sharedConfigurationOverride", qualifiedByName = "deserializeConfiguration")
-    io.gravitee.definition.model.v4.endpointgroup.Endpoint mapToEndpointEntityV4(EndpointV4 entrypoint);
-
-    List<io.gravitee.definition.model.v4.endpointgroup.Endpoint> mapToEndpointEntityV4List(List<EndpointV4> endpointList);
-
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "sharedConfigurationOverride", qualifiedByName = "serializeConfiguration")
-    EndpointV4 mapFromEndpointEntityV4(io.gravitee.definition.model.v4.endpointgroup.Endpoint endpoint);
+    io.gravitee.definition.model.v4.endpointgroup.Endpoint map(EndpointV4 entrypoint);
 
-    List<EndpointV4> mapFromEndpointEntityV4List(List<io.gravitee.definition.model.v4.endpointgroup.Endpoint> endpointList);
-
-    @Mapping(target = "sharedConfiguration", qualifiedByName = "deserializeConfiguration")
-    io.gravitee.definition.model.v4.endpointgroup.EndpointGroup mapToEndpointGroupEntityV4(EndpointGroupV4 endpointGroup);
+    @Mapping(target = "configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "sharedConfigurationOverride", qualifiedByName = "deserializeConfiguration")
+    EndpointV4 map(io.gravitee.definition.model.v4.endpointgroup.Endpoint endpoint);
 
     @Mapping(target = "sharedConfiguration", qualifiedByName = "serializeConfiguration")
-    EndpointGroupV4 mapFromEndpointGroupEntityV4(io.gravitee.definition.model.v4.endpointgroup.EndpointGroup endpointGroup);
+    io.gravitee.definition.model.v4.endpointgroup.EndpointGroup mapEndpointGroup(EndpointGroupV4 endpointGroup);
+
+    @Mapping(target = "sharedConfiguration", qualifiedByName = "deserializeConfiguration")
+    EndpointGroupV4 mapEndpointGroup(io.gravitee.definition.model.v4.endpointgroup.EndpointGroup endpointGroup);
 
     // V2
-    io.gravitee.definition.model.Endpoint mapHttpEndpointToEndpointEntityV2(HttpEndpointV2 endpoint);
-    List<io.gravitee.definition.model.Endpoint> mapHttpEndpointListToEndpointEntityV2List(List<HttpEndpointV2> endpointList);
+    io.gravitee.definition.model.Endpoint mapHttpEndpoint(HttpEndpointV2 endpoint);
 
-    default io.gravitee.definition.model.Endpoint mapToEndpointEntityV2(EndpointV2 endpoint) {
+    default io.gravitee.definition.model.Endpoint map(EndpointV2 endpoint) {
         if (endpoint == null) {
             return null;
         }
-        return mapHttpEndpointToEndpointEntityV2(endpoint.getHttpEndpointV2());
+        return mapHttpEndpoint(endpoint.getHttpEndpointV2());
     }
 
-    default List<io.gravitee.definition.model.Endpoint> mapToEndpointEntityV2List(List<EndpointV2> endpointList) {
-        if (endpointList == null) {
-            return null;
-        }
-        return mapHttpEndpointListToEndpointEntityV2List(
-            endpointList.stream().map(EndpointV2::getHttpEndpointV2).collect(java.util.stream.Collectors.toList())
-        );
-    }
+    HttpEndpointV2 mapHttpEndpoint(io.gravitee.definition.model.Endpoint endpoint);
 
-    HttpEndpointV2 mapHttpEndpointFromEndpointEntityV2To(io.gravitee.definition.model.Endpoint endpoint);
-    List<HttpEndpointV2> mapHttpEndpointListFromEndpointEntityV2List(List<io.gravitee.definition.model.Endpoint> endpointList);
-
-    default EndpointV2 mapFromEndpointEntityV2(io.gravitee.definition.model.Endpoint endpoint) {
+    default EndpointV2 map(io.gravitee.definition.model.Endpoint endpoint) {
         if (endpoint == null) {
             return null;
         }
-        return new EndpointV2(mapHttpEndpointFromEndpointEntityV2To(endpoint));
+        return new EndpointV2(mapHttpEndpoint(endpoint));
     }
 
-    default List<EndpointV2> mapFromEndpointEntityV2List(List<io.gravitee.definition.model.Endpoint> endpointList) {
-        if (endpointList == null) {
-            return null;
-        }
-        return mapHttpEndpointListFromEndpointEntityV2List(endpointList)
-            .stream()
-            .map(EndpointV2::new)
-            .collect(java.util.stream.Collectors.toList());
-    }
-
-    EndpointGroupV2 mapFromEndpointGroupEntityV2(io.gravitee.definition.model.EndpointGroup endpointGroup);
-    io.gravitee.definition.model.EndpointGroup mapToEndpointGroupEntityV2(EndpointGroupV2 endpointGroup);
+    EndpointGroupV2 mapEndpointGroup(io.gravitee.definition.model.EndpointGroup endpointGroup);
+    io.gravitee.definition.model.EndpointGroup mapEndpointGroup(EndpointGroupV2 endpointGroup);
 }

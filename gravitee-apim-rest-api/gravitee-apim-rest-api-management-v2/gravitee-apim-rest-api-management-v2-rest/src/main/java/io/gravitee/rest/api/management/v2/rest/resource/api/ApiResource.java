@@ -454,7 +454,7 @@ public class ApiResource extends AbstractResource {
 
     private Response apiResponse(GenericApiEntity apiEntity) {
         return Response
-            .ok(ApiMapper.INSTANCE.convert(apiEntity, uriInfo))
+            .ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo))
             .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
             .lastModified(apiEntity.getUpdatedAt())
             .build();

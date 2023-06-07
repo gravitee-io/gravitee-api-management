@@ -49,7 +49,7 @@ public class TrustStoreMapperTest {
         TrustStoreType trustStoreType,
         io.gravitee.definition.model.ssl.TrustStoreType trustStoreTypeModel
     ) {
-        io.gravitee.definition.model.ssl.TrustStoreType converted = trustStoreMapper.mapToTrustStoreType(trustStoreType);
+        io.gravitee.definition.model.ssl.TrustStoreType converted = trustStoreMapper.mapTrustStoreType(trustStoreType);
 
         assertThat(converted).isEqualTo(trustStoreTypeModel);
     }
@@ -60,7 +60,7 @@ public class TrustStoreMapperTest {
         TrustStoreType trustStoreType,
         io.gravitee.definition.model.ssl.TrustStoreType trustStoreTypeModel
     ) {
-        TrustStoreType converted = trustStoreMapper.mapFromTrustStoreType(trustStoreTypeModel);
+        TrustStoreType converted = trustStoreMapper.mapTrustStoreType(trustStoreTypeModel);
 
         assertThat(converted).isEqualTo(trustStoreType);
     }
@@ -69,7 +69,7 @@ public class TrustStoreMapperTest {
     void shouldMapToJKSTrustStoreV4() {
         var jksTrustStore = JKSTrustStore.builder().type(TrustStoreType.JKS).path("path").content("content").password("password").build();
 
-        var jksTrustStoreEntityV4 = trustStoreMapper.mapToTrustStoreV4(new TrustStore(jksTrustStore));
+        var jksTrustStoreEntityV4 = trustStoreMapper.mapToV4(new TrustStore(jksTrustStore));
         assertThat(jksTrustStoreEntityV4).isNotNull();
         assertThat(jksTrustStoreEntityV4).isInstanceOf(io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore.class);
         assertThat(jksTrustStoreEntityV4.getType())
@@ -94,7 +94,7 @@ public class TrustStoreMapperTest {
             .password("password")
             .build();
 
-        var pkcs12TrustStoreEntityV4 = trustStoreMapper.mapToTrustStoreV4(new TrustStore(pkcs12TrustStore));
+        var pkcs12TrustStoreEntityV4 = trustStoreMapper.mapToV4(new TrustStore(pkcs12TrustStore));
         assertThat(pkcs12TrustStoreEntityV4).isNotNull();
         assertThat(pkcs12TrustStoreEntityV4).isInstanceOf(io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore.class);
         assertThat(pkcs12TrustStoreEntityV4.getType())
@@ -113,7 +113,7 @@ public class TrustStoreMapperTest {
     void shouldMapToPEMTrustStoreV4() {
         var pemTrustStore = PEMTrustStore.builder().type(TrustStoreType.PEM).path("path").content("content").build();
 
-        var pemTrustStoreEntityV4 = trustStoreMapper.mapToTrustStoreV4(new TrustStore(pemTrustStore));
+        var pemTrustStoreEntityV4 = trustStoreMapper.mapToV4(new TrustStore(pemTrustStore));
         assertThat(pemTrustStoreEntityV4).isNotNull();
         assertThat(pemTrustStoreEntityV4).isInstanceOf(io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore.class);
         assertThat(pemTrustStoreEntityV4.getType())
@@ -128,7 +128,7 @@ public class TrustStoreMapperTest {
     void shouldMapToNoneTrustStoreV4() {
         var noneTrustStore = NoneTrustStore.builder().type(TrustStoreType.NONE).build();
 
-        var noneTrustStoreEntityV4 = trustStoreMapper.mapToTrustStoreV4(new TrustStore(noneTrustStore));
+        var noneTrustStoreEntityV4 = trustStoreMapper.mapToV4(new TrustStore(noneTrustStore));
         assertThat(noneTrustStoreEntityV4).isNotNull();
         assertThat(noneTrustStoreEntityV4).isInstanceOf(io.gravitee.definition.model.v4.ssl.none.NoneTrustStore.class);
         assertThat(noneTrustStoreEntityV4.getType())
@@ -139,7 +139,7 @@ public class TrustStoreMapperTest {
     void shouldMapToJKSTrustStoreV2() {
         var jksTrustStore = JKSTrustStore.builder().type(TrustStoreType.JKS).path("path").content("content").password("password").build();
 
-        var jksTrustStoreEntityV2 = trustStoreMapper.mapToTrustStoreV2(new TrustStore(jksTrustStore));
+        var jksTrustStoreEntityV2 = trustStoreMapper.mapToV2(new TrustStore(jksTrustStore));
         assertThat(jksTrustStoreEntityV2).isNotNull();
         assertThat(jksTrustStoreEntityV2).isInstanceOf(io.gravitee.definition.model.ssl.jks.JKSTrustStore.class);
         assertThat(jksTrustStoreEntityV2.getType())
@@ -162,7 +162,7 @@ public class TrustStoreMapperTest {
             .password("password")
             .build();
 
-        var pkcs12TrustStoreEntityV2 = trustStoreMapper.mapToTrustStoreV2(new TrustStore(pkcs12TrustStore));
+        var pkcs12TrustStoreEntityV2 = trustStoreMapper.mapToV2(new TrustStore(pkcs12TrustStore));
         assertThat(pkcs12TrustStoreEntityV2).isNotNull();
         assertThat(pkcs12TrustStoreEntityV2).isInstanceOf(io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore.class);
         assertThat(pkcs12TrustStoreEntityV2.getType())
@@ -179,7 +179,7 @@ public class TrustStoreMapperTest {
     void shouldMapToPEMTrustStoreV2() {
         var pemTrustStore = PEMTrustStore.builder().type(TrustStoreType.PEM).path("path").content("content").build();
 
-        var pemTrustStoreEntityV2 = trustStoreMapper.mapToTrustStoreV2(new TrustStore(pemTrustStore));
+        var pemTrustStoreEntityV2 = trustStoreMapper.mapToV2(new TrustStore(pemTrustStore));
         assertThat(pemTrustStoreEntityV2).isNotNull();
         assertThat(pemTrustStoreEntityV2).isInstanceOf(io.gravitee.definition.model.ssl.pem.PEMTrustStore.class);
         assertThat(pemTrustStoreEntityV2.getType())
@@ -194,7 +194,7 @@ public class TrustStoreMapperTest {
     void shouldMapToNoneTrustStoreV2() {
         var noneTrustStore = NoneTrustStore.builder().type(TrustStoreType.NONE).build();
 
-        var noneTrustStoreEntityV2 = trustStoreMapper.mapToTrustStoreV2(new TrustStore(noneTrustStore));
+        var noneTrustStoreEntityV2 = trustStoreMapper.mapToV2(new TrustStore(noneTrustStore));
         assertThat(noneTrustStoreEntityV2).isNotNull();
         assertThat(noneTrustStoreEntityV2).isInstanceOf(io.gravitee.definition.model.ssl.none.NoneTrustStore.class);
         assertThat(noneTrustStoreEntityV2.getType()).isEqualTo(io.gravitee.definition.model.ssl.TrustStoreType.None);
@@ -211,13 +211,13 @@ public class TrustStoreMapperTest {
             .alias("alias")
             .build();
 
-        var jksTrustStore = trustStoreMapper.mapFromTrustStoreV4(jksTrustStoreEntityV4);
+        var jksTrustStore = trustStoreMapper.map(jksTrustStoreEntityV4);
         assertThat(jksTrustStore).isNotNull();
-        assertThat(jksTrustStore.getJKSTrustStore().getType()).isEqualTo(TrustStoreType.valueOf(jksTrustStoreEntityV4.getType().name()));
-        assertThat(jksTrustStore.getJKSTrustStore().getPath()).isEqualTo(jksTrustStoreEntityV4.getPath());
-        assertThat(jksTrustStore.getJKSTrustStore().getContent()).isEqualTo(jksTrustStoreEntityV4.getContent());
-        assertThat(jksTrustStore.getJKSTrustStore().getPassword()).isEqualTo(jksTrustStoreEntityV4.getPassword());
-        assertThat(jksTrustStore.getJKSTrustStore().getAlias()).isEqualTo(jksTrustStoreEntityV4.getAlias());
+        assertThat(jksTrustStore.getType()).isEqualTo(TrustStoreType.valueOf(jksTrustStoreEntityV4.getType().name()));
+        assertThat(jksTrustStore.getPath()).isEqualTo(jksTrustStoreEntityV4.getPath());
+        assertThat(jksTrustStore.getContent()).isEqualTo(jksTrustStoreEntityV4.getContent());
+        assertThat(jksTrustStore.getPassword()).isEqualTo(jksTrustStoreEntityV4.getPassword());
+        assertThat(jksTrustStore.getAlias()).isEqualTo(jksTrustStoreEntityV4.getAlias());
     }
 
     @Test
@@ -230,14 +230,13 @@ public class TrustStoreMapperTest {
             .password("password")
             .build();
 
-        var pkcs12TrustStore = trustStoreMapper.mapFromTrustStoreV4(pkcs12TrustStoreEntityV4);
+        var pkcs12TrustStore = trustStoreMapper.map(pkcs12TrustStoreEntityV4);
         assertThat(pkcs12TrustStore).isNotNull();
-        assertThat(pkcs12TrustStore.getPKCS12TrustStore().getType())
-            .isEqualTo(TrustStoreType.valueOf(pkcs12TrustStoreEntityV4.getType().name()));
-        assertThat(pkcs12TrustStore.getPKCS12TrustStore().getPath()).isEqualTo(pkcs12TrustStoreEntityV4.getPath());
-        assertThat(pkcs12TrustStore.getPKCS12TrustStore().getContent()).isEqualTo(pkcs12TrustStoreEntityV4.getContent());
-        assertThat(pkcs12TrustStore.getPKCS12TrustStore().getPassword()).isEqualTo(pkcs12TrustStoreEntityV4.getPassword());
-        assertThat(pkcs12TrustStore.getPKCS12TrustStore().getAlias()).isEqualTo(pkcs12TrustStoreEntityV4.getAlias());
+        assertThat(pkcs12TrustStore.getType()).isEqualTo(TrustStoreType.valueOf(pkcs12TrustStoreEntityV4.getType().name()));
+        assertThat(pkcs12TrustStore.getPath()).isEqualTo(pkcs12TrustStoreEntityV4.getPath());
+        assertThat(pkcs12TrustStore.getContent()).isEqualTo(pkcs12TrustStoreEntityV4.getContent());
+        assertThat(pkcs12TrustStore.getPassword()).isEqualTo(pkcs12TrustStoreEntityV4.getPassword());
+        assertThat(pkcs12TrustStore.getAlias()).isEqualTo(pkcs12TrustStoreEntityV4.getAlias());
     }
 
     @Test
@@ -249,11 +248,11 @@ public class TrustStoreMapperTest {
             .content("content")
             .build();
 
-        var pemTrustStore = trustStoreMapper.mapFromTrustStoreV4(pemTrustStoreEntityV4);
+        var pemTrustStore = trustStoreMapper.map(pemTrustStoreEntityV4);
         assertThat(pemTrustStore).isNotNull();
-        assertThat(pemTrustStore.getPEMTrustStore().getType()).isEqualTo(TrustStoreType.valueOf(pemTrustStoreEntityV4.getType().name()));
-        assertThat(pemTrustStore.getPEMTrustStore().getPath()).isEqualTo(pemTrustStoreEntityV4.getPath());
-        assertThat(pemTrustStore.getPEMTrustStore().getContent()).isEqualTo(pemTrustStoreEntityV4.getContent());
+        assertThat(pemTrustStore.getType()).isEqualTo(TrustStoreType.valueOf(pemTrustStoreEntityV4.getType().name()));
+        assertThat(pemTrustStore.getPath()).isEqualTo(pemTrustStoreEntityV4.getPath());
+        assertThat(pemTrustStore.getContent()).isEqualTo(pemTrustStoreEntityV4.getContent());
     }
 
     @Test
@@ -263,9 +262,9 @@ public class TrustStoreMapperTest {
             .type(io.gravitee.definition.model.v4.ssl.TrustStoreType.NONE)
             .build();
 
-        var noneTrustStore = trustStoreMapper.mapFromTrustStoreV4(noneTrustStoreEntityV4);
+        var noneTrustStore = trustStoreMapper.map(noneTrustStoreEntityV4);
         assertThat(noneTrustStore).isNotNull();
-        assertThat(noneTrustStore.getNoneTrustStore().getType()).isEqualTo(TrustStoreType.valueOf(noneTrustStoreEntityV4.getType().name()));
+        assertThat(noneTrustStore.getType()).isEqualTo(TrustStoreType.valueOf(noneTrustStoreEntityV4.getType().name()));
     }
 
     @Test
@@ -278,12 +277,12 @@ public class TrustStoreMapperTest {
             .password("password")
             .build();
 
-        var jksTrustStore = trustStoreMapper.mapFromTrustStoreV2(jksTrustStoreEntityV2);
+        var jksTrustStore = trustStoreMapper.map(jksTrustStoreEntityV2);
         assertThat(jksTrustStore).isNotNull();
-        assertThat(jksTrustStore.getJKSTrustStore().getType()).isEqualTo(TrustStoreType.valueOf(jksTrustStoreEntityV2.getType().name()));
-        assertThat(jksTrustStore.getJKSTrustStore().getPath()).isEqualTo(jksTrustStoreEntityV2.getPath());
-        assertThat(jksTrustStore.getJKSTrustStore().getContent()).isEqualTo(jksTrustStoreEntityV2.getContent());
-        assertThat(jksTrustStore.getJKSTrustStore().getPassword()).isEqualTo(jksTrustStoreEntityV2.getPassword());
+        assertThat(jksTrustStore.getType()).isEqualTo(TrustStoreType.valueOf(jksTrustStoreEntityV2.getType().name()));
+        assertThat(jksTrustStore.getPath()).isEqualTo(jksTrustStoreEntityV2.getPath());
+        assertThat(jksTrustStore.getContent()).isEqualTo(jksTrustStoreEntityV2.getContent());
+        assertThat(jksTrustStore.getPassword()).isEqualTo(jksTrustStoreEntityV2.getPassword());
     }
 
     @Test
@@ -296,7 +295,7 @@ public class TrustStoreMapperTest {
             .password("password")
             .build();
 
-        var pkcs12TrustStore = trustStoreMapper.mapFromPKCS12TrustStoreV2(pkcs12TrustStoreEntityV2);
+        var pkcs12TrustStore = trustStoreMapper.map(pkcs12TrustStoreEntityV2);
         assertThat(pkcs12TrustStore).isNotNull();
         assertThat(pkcs12TrustStore.getType()).isEqualTo(TrustStoreType.valueOf(pkcs12TrustStoreEntityV2.getType().name()));
         assertThat(pkcs12TrustStore.getPath()).isEqualTo(pkcs12TrustStoreEntityV2.getPath());
@@ -313,11 +312,11 @@ public class TrustStoreMapperTest {
             .content("content")
             .build();
 
-        var pemTrustStore = trustStoreMapper.mapFromTrustStoreV2(pemTrustStoreEntityV2);
+        var pemTrustStore = trustStoreMapper.map(pemTrustStoreEntityV2);
         assertThat(pemTrustStore).isNotNull();
-        assertThat(pemTrustStore.getPEMTrustStore().getType()).isEqualTo(TrustStoreType.valueOf(pemTrustStoreEntityV2.getType().name()));
-        assertThat(pemTrustStore.getPEMTrustStore().getPath()).isEqualTo(pemTrustStoreEntityV2.getPath());
-        assertThat(pemTrustStore.getPEMTrustStore().getContent()).isEqualTo(pemTrustStoreEntityV2.getContent());
+        assertThat(pemTrustStore.getType()).isEqualTo(TrustStoreType.valueOf(pemTrustStoreEntityV2.getType().name()));
+        assertThat(pemTrustStore.getPath()).isEqualTo(pemTrustStoreEntityV2.getPath());
+        assertThat(pemTrustStore.getContent()).isEqualTo(pemTrustStoreEntityV2.getContent());
     }
 
     @Test
@@ -327,8 +326,8 @@ public class TrustStoreMapperTest {
             .type(io.gravitee.definition.model.ssl.TrustStoreType.None)
             .build();
 
-        var noneTrustStore = trustStoreMapper.mapFromTrustStoreV2(noneTrustStoreEntityV2);
+        var noneTrustStore = trustStoreMapper.map(noneTrustStoreEntityV2);
         assertThat(noneTrustStore).isNotNull();
-        assertThat(noneTrustStore.getNoneTrustStore().getType()).isEqualTo(TrustStoreType.NONE);
+        assertThat(noneTrustStore.getType()).isEqualTo(TrustStoreType.NONE);
     }
 }
