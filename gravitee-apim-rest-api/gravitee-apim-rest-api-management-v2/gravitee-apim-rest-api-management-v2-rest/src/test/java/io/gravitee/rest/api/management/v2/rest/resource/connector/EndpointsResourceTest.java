@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -108,15 +109,15 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
         final Response response = rootTarget(FAKE_ENDPOINT_ID).path("schema").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
-        final ErrorEntity errorEntity = response.readEntity(ErrorEntity.class);
+        final Error error = response.readEntity(Error.class);
 
-        final ErrorEntity expectedErrorEntity = new ErrorEntity();
-        expectedErrorEntity.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
-        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] cannot be found.");
-        expectedErrorEntity.setTechnicalCode("plugin.notFound");
-        expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
+        final Error expectedError = new Error();
+        expectedError.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
+        expectedError.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] cannot be found.");
+        expectedError.setTechnicalCode("plugin.notFound");
+        expectedError.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
 
-        Assertions.assertThat(errorEntity).isEqualTo(expectedErrorEntity);
+        Assertions.assertThat(error).isEqualTo(expectedError);
     }
 
     @Test
@@ -149,15 +150,15 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         final Response response = rootTarget(FAKE_ENDPOINT_ID).path("documentation").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
 
-        final ErrorEntity errorEntity = response.readEntity(ErrorEntity.class);
+        final Error error = response.readEntity(Error.class);
 
-        final ErrorEntity expectedErrorEntity = new ErrorEntity();
-        expectedErrorEntity.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
-        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] cannot be found.");
-        expectedErrorEntity.setTechnicalCode("plugin.notFound");
-        expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
+        final Error expectedError = new Error();
+        expectedError.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
+        expectedError.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] cannot be found.");
+        expectedError.setTechnicalCode("plugin.notFound");
+        expectedError.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
 
-        Assertions.assertThat(errorEntity).isEqualTo(expectedErrorEntity);
+        Assertions.assertThat(error).isEqualTo(expectedError);
     }
 
     @Test
@@ -205,15 +206,15 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
         final Response response = rootTarget(FAKE_ENDPOINT_ID).path("shared-configuration-schema").request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
-        final ErrorEntity errorEntity = response.readEntity(ErrorEntity.class);
+        final Error error = response.readEntity(Error.class);
 
-        final ErrorEntity expectedErrorEntity = new ErrorEntity();
-        expectedErrorEntity.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
-        expectedErrorEntity.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] cannot be found.");
-        expectedErrorEntity.setTechnicalCode("plugin.notFound");
-        expectedErrorEntity.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
+        final Error expectedError = new Error();
+        expectedError.setHttpStatus(HttpStatusCode.NOT_FOUND_404);
+        expectedError.setMessage("Plugin [" + FAKE_ENDPOINT_ID + "] cannot be found.");
+        expectedError.setTechnicalCode("plugin.notFound");
+        expectedError.setParameters(Map.of("plugin", FAKE_ENDPOINT_ID));
 
-        Assertions.assertThat(errorEntity).isEqualTo(expectedErrorEntity);
+        Assertions.assertThat(error).isEqualTo(expectedError);
     }
 
     @NotNull

@@ -15,11 +15,14 @@
  */
 package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.ConstraintViolation;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.ErrorDetailsInner;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,44 +33,32 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
     @Override
     public Response toResponse(ConstraintViolationException cve) {
         final Response.Status error = Response.Status.BAD_REQUEST;
-        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(new ConstraintValidationError(cve)).build();
+        return Response.status(error).type(MediaType.APPLICATION_JSON_TYPE).entity(validationError(cve)).build();
     }
 
-    private String prepareMessage(ConstraintViolationException exception) {
-        StringBuilder message = new StringBuilder();
-
-        for (ConstraintViolation<?> cv : exception.getConstraintViolations()) {
-            message.append(cv.getMessage());
-        }
-        return message.toString();
+    private Object validationError(ConstraintViolationException cve) {
+        return Error
+            .builder()
+            .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+            .message("Validation error")
+            .details(buildDetails(cve))
+            .build();
     }
 
-    static class ConstraintValidationError {
-
-        private final String message;
-
-        private final String path;
-
-        @JsonProperty("invalid_value")
-        private final Object invalidValue;
-
-        ConstraintValidationError(ConstraintViolationException cve) {
-            ConstraintViolation<?> violation = cve.getConstraintViolations().iterator().next();
-            this.message = violation.getMessage();
-            this.path = violation.getPropertyPath().toString();
-            this.invalidValue = violation.getInvalidValue();
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public Object getInvalidValue() {
-            return invalidValue;
-        }
+    private List<ErrorDetailsInner> buildDetails(ConstraintViolationException exception) {
+        return exception
+            .getConstraintViolations()
+            .stream()
+            .map(constraintViolation -> {
+                String errorLocation = constraintViolation.getPropertyPath().toString();
+                return ErrorDetailsInner
+                    .builder()
+                    .message(constraintViolation.getMessage())
+                    // getPropertyPath returns a location in the form of "methodName.methodParameter.fieldNameOfTheParameter.[...]". We are not interested by the method name and parameter, so we remove them.
+                    .location(errorLocation.substring(StringUtils.ordinalIndexOf(errorLocation, ".", 2) + 1))
+                    .invalidValue(constraintViolation.getInvalidValue())
+                    .build();
+            })
+            .collect(Collectors.toList());
     }
 }

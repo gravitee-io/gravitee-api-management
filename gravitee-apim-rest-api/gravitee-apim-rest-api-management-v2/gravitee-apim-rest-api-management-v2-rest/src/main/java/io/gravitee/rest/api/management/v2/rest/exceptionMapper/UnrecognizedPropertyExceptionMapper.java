@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
 
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.management.v2.rest.model.ErrorEntity;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 
 /**
@@ -35,9 +34,12 @@ public class UnrecognizedPropertyExceptionMapper extends AbstractExceptionMapper
             .status(Response.Status.BAD_REQUEST)
             .type(MediaType.APPLICATION_JSON_TYPE)
             .entity(
-                new ErrorEntity(
-                    String.format("Property [%s] is not recognized as a valid property", e.getPropertyName()),
-                    HttpStatusCode.BAD_REQUEST_400
+                Entity.json(
+                    Error
+                        .builder()
+                        .message(String.format("Property [%s] is not recognized as a valid property", e.getPropertyName()))
+                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                        .build()
                 )
             )
             .build();

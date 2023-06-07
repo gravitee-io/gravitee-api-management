@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 import fixtures.ApiFixtures;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.management.v2.rest.model.ErrorEntity;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -72,7 +72,7 @@ public class ApiResource_StopTest extends ApiResourceTest {
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
 
-        var body = response.readEntity(ErrorEntity.class);
+        var body = response.readEntity(Error.class);
         assertNotNull(body);
 
         verify(apiStateServiceV4, never()).stop(any(), any(), any());
@@ -87,7 +87,7 @@ public class ApiResource_StopTest extends ApiResourceTest {
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
 
-        var body = response.readEntity(ErrorEntity.class);
+        var body = response.readEntity(Error.class);
         assertNotNull(body);
         assertEquals("Deleted API cannot be stopped", body.getMessage());
 
@@ -103,7 +103,7 @@ public class ApiResource_StopTest extends ApiResourceTest {
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
 
-        var body = response.readEntity(ErrorEntity.class);
+        var body = response.readEntity(Error.class);
         assertNotNull(body);
         assertEquals("API is already stopped", body.getMessage());
 
