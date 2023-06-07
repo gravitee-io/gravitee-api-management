@@ -32,25 +32,25 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PathParameterTest {
+class PathParametersTest {
 
     @Test
     void should_not_have_parameters_starts_with_operator() {
-        final PathParameter cut = new PathParameter("/product/apim/item/portal", Operator.STARTS_WITH);
+        final PathParameters cut = new PathParameters("/product/apim/item/portal", Operator.STARTS_WITH);
         assertThat(cut.getParameters()).isEmpty();
         assertThat(cut.getPathPattern()).hasToString(Pattern.compile("^/product/apim/item/portal(?:/.*)?$").toString());
     }
 
     @Test
     void should_not_have_parameters_equals_operator() {
-        final PathParameter cut = new PathParameter("/product/apim/item/portal", Operator.EQUALS);
+        final PathParameters cut = new PathParameters("/product/apim/item/portal", Operator.EQUALS);
         assertThat(cut.getParameters()).isEmpty();
         assertThat(cut.getPathPattern()).hasToString(Pattern.compile("^/product/apim/item/portal/?$").toString());
     }
 
     @Test
     void should_have_parameters_starts_with_operator() {
-        final PathParameter cut = new PathParameter("/product/:productId/item/:itemId", Operator.STARTS_WITH);
+        final PathParameters cut = new PathParameters("/product/:productId/item/:itemId", Operator.STARTS_WITH);
         assertThat(cut.getParameters()).hasSize(2).contains("productId", "itemId");
         assertThat(cut.getPathPattern())
             .hasToString(
@@ -64,7 +64,7 @@ class PathParameterTest {
 
     @Test
     void should_have_parameters_equals_operator() {
-        final PathParameter cut = new PathParameter("/product/:productId/item/:itemId", Operator.EQUALS);
+        final PathParameters cut = new PathParameters("/product/:productId/item/:itemId", Operator.EQUALS);
         assertThat(cut.getParameters()).hasSize(2).contains("productId", "itemId");
         assertThat(cut.getPathPattern())
             .hasToString(
@@ -78,24 +78,24 @@ class PathParameterTest {
 
     @ParameterizedTest
     @MethodSource("provideParameters")
-    void should_check_equality(final PathParameter first, final PathParameter second, boolean expectedResult) {
+    void should_check_equality(final PathParameters first, final PathParameters second, boolean expectedResult) {
         assertThat(first.equals(second)).isEqualTo(expectedResult);
     }
 
     public static Stream<Arguments> provideParameters() {
         return Stream.of(
             Arguments.of(
-                new PathParameter("/products/", Operator.STARTS_WITH),
-                new PathParameter("/products/", Operator.STARTS_WITH),
+                new PathParameters("/products/", Operator.STARTS_WITH),
+                new PathParameters("/products/", Operator.STARTS_WITH),
                 true
             ),
             Arguments.of(
-                new PathParameter("/products/", Operator.STARTS_WITH),
-                new PathParameter("/products/second", Operator.STARTS_WITH),
+                new PathParameters("/products/", Operator.STARTS_WITH),
+                new PathParameters("/products/second", Operator.STARTS_WITH),
                 false
             ),
-            Arguments.of(new PathParameter("/products/", Operator.STARTS_WITH), null, false),
-            Arguments.of(new PathParameter("/products/", Operator.EQUALS), new PathParameter("/products/", Operator.STARTS_WITH), false)
+            Arguments.of(new PathParameters("/products/", Operator.STARTS_WITH), null, false),
+            Arguments.of(new PathParameters("/products/", Operator.EQUALS), new PathParameters("/products/", Operator.STARTS_WITH), false)
         );
     }
 }

@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 public class PathParametersExtractor {
 
     private static final Pattern PARAM_PATTERN = Pattern.compile(":\\w*");
-    private final Map<PathParameterHttpMethod, Set<PathParameter>> patternsByHttpMethod;
+    private final Map<PathParameterHttpMethod, Set<PathParameters>> patternsByHttpMethod;
 
     public PathParametersExtractor(Api api) {
         Objects.requireNonNull(api, "Api is mandatory");
@@ -62,9 +62,9 @@ public class PathParametersExtractor {
      * If a flow is defined for all methods (empty set), then it will be assigned to WILDCARD key.
      *
      * @param api
-     * @return a map of {@link PathParameter}, containing patterns and parameters name grouped by {@link PathParameterHttpMethod}
+     * @return a map of {@link PathParameters}, containing patterns and parameters name grouped by {@link PathParameterHttpMethod}
      */
-    private static Map<PathParameterHttpMethod, Set<PathParameter>> compilePatternsByHttpMethod(final Api api) {
+    private static Map<PathParameterHttpMethod, Set<PathParameters>> compilePatternsByHttpMethod(final Api api) {
         final Stream<Flow> flowsWithParam = filterFlowsWithPathParam(api);
         // group pattern by HTTP Method <> List<Pattern>
         return groupPatternsByMethod(flowsWithParam);
@@ -106,18 +106,18 @@ public class PathParametersExtractor {
      * @param flows
      * @return
      */
-    private static Map<PathParameterHttpMethod, Set<PathParameter>> groupPatternsByMethod(final Stream<Flow> flows) {
-        final Map<PathParameterHttpMethod, Set<PathParameter>> patternsByMethod = flows
+    private static Map<PathParameterHttpMethod, Set<PathParameters>> groupPatternsByMethod(final Stream<Flow> flows) {
+        final Map<PathParameterHttpMethod, Set<PathParameters>> patternsByMethod = flows
             .flatMap(f -> {
-                List<Map.Entry<PathParameterHttpMethod, PathParameter>> flowByMethod;
+                List<Map.Entry<PathParameterHttpMethod, PathParameters>> flowByMethod;
                 if (f.getMethods().isEmpty()) {
-                    flowByMethod = List.of(Map.entry(PathParameterHttpMethod.WILDCARD, new PathParameter(f.getPath(), f.getOperator())));
+                    flowByMethod = List.of(Map.entry(PathParameterHttpMethod.WILDCARD, new PathParameters(f.getPath(), f.getOperator())));
                 } else {
                     flowByMethod =
                         f
                             .getMethods()
                             .stream()
-                            .map(m -> Map.entry(PathParameterHttpMethod.valueOf(m.name()), new PathParameter(f.getPath(), f.getOperator())))
+                            .map(m -> Map.entry(PathParameterHttpMethod.valueOf(m.name()), new PathParameters(f.getPath(), f.getOperator())))
                             .collect(Collectors.toList());
                 }
                 return flowByMethod.stream();

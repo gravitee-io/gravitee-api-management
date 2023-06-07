@@ -34,7 +34,7 @@ import org.junit.Test;
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/flow/path-parameter-flow.json")
-public class PathParameterFlowTest extends AbstractWiremockGatewayTest {
+public class PathParametersFlowTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void shouldRunFlows_withPathParameters() throws Exception {
