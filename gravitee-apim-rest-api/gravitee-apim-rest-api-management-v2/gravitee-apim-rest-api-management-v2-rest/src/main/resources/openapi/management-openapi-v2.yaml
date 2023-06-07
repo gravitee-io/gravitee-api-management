@@ -49,7 +49,7 @@ paths:
             description: |-
                 Get the list of APIs for a specific environment.<br>
                 The results are paginated.
-                
+
                 User must have the ENVIRONMENT_API[READ] permission.
             operationId: listApis
             responses:
@@ -64,7 +64,7 @@ paths:
             description: |-
                 ⚠️ Support only v4 API for the moment. ⚠️<br>
                 Create a new API.
-                
+
                 User must have the ENVIRONMENT_API[CREATE] permission.
             operationId: createApi
             requestBody:
@@ -93,7 +93,7 @@ paths:
                 ⚠️ Support only v4 API for the moment. ⚠️<br>
                 Create an API by importing an API definition. <br>
                 This definition can be retrieved from `GET /environments/{envId}/apis/{apiId}/_export/definition`
-                
+
                 User must have the ENVIRONMENT_API[CREATE] permission.
             operationId: createApiWithImportDefinition
             requestBody:
@@ -125,7 +125,7 @@ paths:
             description: |-
                 Search APIs for a specific environment.<br>
                 The results are paginated and can be sorted.
-                
+
                 User must have the ENVIRONMENT_API[READ] permission.
             operationId: searchApis
             requestBody:
@@ -149,7 +149,7 @@ paths:
             summary: Get a specific API
             description: |-
                 Get a specific API.
-                
+
                 User must have at least one management (create, update, or delete) permission on the API to access it.
             operationId: getApi
             responses:
@@ -167,7 +167,7 @@ paths:
             summary: Update an API
             description: |-
                 Update a V2 or a V4 API.
-                
+
                 User must have API_DEFINITION[UPDATE] or API_GATEWAY_DEFINITION[UPDATE] permissions.
             operationId: updateApi
             requestBody:
@@ -200,7 +200,7 @@ paths:
             summary: Delete an API
             description: |-
                 Delete a V2 or a V4 API.
-                
+
                 User must have API_DEFINITION[DELETE] permission.
             operationId: deleteApi
             responses:
@@ -218,7 +218,7 @@ paths:
             summary: Get an API's background picture
             description: |-
                 Get the API's background picture.
-                
+
                 User must have the API_DEFINITION[READ] permission.
             operationId: getApiBackground
             responses:
@@ -237,7 +237,7 @@ paths:
             description: |-
                 Request a deployment for a given API. <br>
                 An optional deployment label can be given to the requested deployment.
-                
+
                 User must have the API_DEFINITION[UPDATE] permission.
             operationId: createApiDeployment
             requestBody:
@@ -278,9 +278,9 @@ paths:
             summary: Export an API
             description: |-
                 ⚠️ Support only v4 API for the moment. ⚠️
-                
+
                 Export an API to a JSON file.
-                
+
                 User must have at least the API_DEFINITION[READ] permission.<br>
                 User should also have these permissions for specific data:
                  - API_DEFINITION[READ] for the API
@@ -313,12 +313,12 @@ paths:
             summary: Start an API
             description: |-
                 Change the API's status to STARTED.
-                
+
                 Return a 400 HTTP Error:
                  - when user tries to start an ARCHIVED API
                  - when the API is already STARTED
                  - when the API needs to be reviewed (only if Review feature is activated).
-                
+
                 User must have the API_DEFINITION[UPDATE] permission.
             operationId: startApi
             responses:
@@ -336,11 +336,11 @@ paths:
             summary: Stop an API
             description: |-
                 Change the API's status to STOPPED.
-                
+
                 Return a 400 HTTP Error:
                  - when user tries to stop an ARCHIVED API
                  - when the API is already STOPPED.
-                
+
                 User must have the API_DEFINITION[UPDATE] permission.
             operationId: stopApi
             responses:
@@ -363,7 +363,7 @@ paths:
             summary: Get the API's members
             description: |
                 List the members for a given API.
-                
+
                 User must have the API_MEMBER[READ] permission.
             operationId: listApiMembers
             responses:
@@ -377,10 +377,10 @@ paths:
             summary: Add a member to an API.
             description: |
                 Add a new member to an API.
-                
+
                 Returns a 400 HTTP Error:
                  - when the user tries to set a member as PrimaryOwner.
-                
+
                 User must have the API_MEMBER[CREATE] permission.
             operationId: addApiMember
             requestBody:
@@ -409,10 +409,10 @@ paths:
             summary: Updates a member for an API.
             description: |
                 Edit a member for an API.
-                
+
                 Returns a 400 HTTP Error:
                  - when the user tries to set a member as PrimaryOwner.
-                
+
                 User must have the API_MEMBER[UPDATE] permission.
             operationId: updateApiMember
             requestBody:
@@ -436,10 +436,10 @@ paths:
             summary: Remove one API member
             description: |
                 Remove an API member.
-                
+
                 Returns a 400 HTTP Error:
                  - when the user tries to remove a PrimaryOwner.
-                
+
                 User must have the API_MEMBER[DELETE] permission.
             operationId: removeApiMember
             responses:
@@ -482,7 +482,7 @@ paths:
             description: |
                 List plans for a given API, always filtered by a `status` and the possibility to filter by `security`.<br>
                 The results are paginated.
-                
+
                 User must have API_PLAN[READ] permissions to access endpoint.
             operationId: listApiPlans
             responses:
@@ -496,7 +496,7 @@ paths:
             summary: Create an API's plan
             description: |-
                 Create a new plan on a given API.
-                
+
                 User must have the API_PLAN[CREATE] permission.
             operationId: createApiPlan
             requestBody:
@@ -525,7 +525,7 @@ paths:
             summary: Get one API's plan
             description: |-
                 Get the API's plan by its identifier.
-                
+
                 User must have the API_PLAN[READ] permission.
             operationId: getApiPlan
             responses:
@@ -609,7 +609,7 @@ paths:
             summary: Deprecate an API's plan
             description: |-
                 Deprecate the API's plan.
-                
+
                 User must have the API_PLAN[UPDATE] permission.
             operationId: deprecateApiPlan
             responses:
@@ -679,7 +679,7 @@ paths:
             summary: List all environments.
             description: |-
                 List all environments accessible by the current user.
-                
+
                 User must be authenticated.
             operationId: getEnvironments
             responses:
@@ -696,7 +696,7 @@ paths:
             summary: Get a specific environment
             description: |-
                 Get a specific environment.
-                
+
                 User must be authenticated.
             operationId: getEnvironmentById
             responses:
@@ -737,7 +737,7 @@ paths:
             summary: Get a specific organization
             description: |-
                 Get a specific organization
-                
+
                 User must be authenticated.
             operationId: getOrganizationById
             responses:
@@ -758,7 +758,7 @@ paths:
             summary: Get available endpoints on the platform
             description: |
                 Get available endpoint types on the platform.
-                
+
                 User must be authenticated.
             operationId: getEndpoints
             responses:
@@ -781,7 +781,7 @@ paths:
             summary: Get an endpoint
             description: |
                 Get an endpoint type.
-                
+
                 User must be authenticated.
             operationId: getEndpoint
             responses:
@@ -802,7 +802,7 @@ paths:
             summary: Get an endpoint documentation
             description: |
                 Get the documentation of an endpoint.
-                
+
                 User must be authenticated.
             operationId: getEndpointDocumentation
             responses:
@@ -823,7 +823,7 @@ paths:
             summary: Get more information about how to use a given endpoint
             description: |
                 More information about the endpoint.
-                
+
                 User must be authenticated.
             operationId: getEndpointMoreInformation
             responses:
@@ -844,7 +844,7 @@ paths:
             summary: Get an endpoint schema
             description: |
                 Get the JSON schema that describes the configuration of an endpoint.
-                
+
                 User must be authenticated.
             operationId: getEndpointSchema
             responses:
@@ -861,7 +861,7 @@ paths:
             summary: Get an endpoint shared configuration schema
             description: |
                 Get an endpoint shared configuration schema.
-                
+
                 User must be authenticated.
             operationId: getEndpointSharedConfigurationSchema
             responses:
@@ -878,7 +878,7 @@ paths:
             summary: Get available entrypoints on the platform
             description: |
                 Get available entrypoint types on the platform.
-                
+
                 User must be authenticated.
             operationId: getEntrypoints
             responses:
@@ -901,7 +901,7 @@ paths:
             summary: Get an entrypoint
             description: |
                 Get an entrypoint type.
-                
+
                 User must be authenticated.
             operationId: getEntrypoint
             responses:
@@ -922,7 +922,7 @@ paths:
             summary: Get an entrypoint documentation
             description: |
                 Get the documentation of an entrypoint.
-                
+
                 User must be authenticated.
             operationId: getEntrypointDocumentation
             responses:
@@ -943,7 +943,7 @@ paths:
             summary: Get more information about how to use a given entrypoint
             description: |
                 More information about the entrypoint.
-                
+
                 User must be authenticated.
             operationId: getEntrypointMoreInformation
             responses:
@@ -964,7 +964,7 @@ paths:
             summary: Get an entrypoint schema
             description: |
                 Get the JSON schema that describes the configuration of an entrypoint.
-                
+
                 User must be authenticated.
             operationId: getEntrypointSchema
             responses:
@@ -981,7 +981,7 @@ paths:
             summary: Get an entrypoint subscription schema
             description: |
                 Get the JSON schema that describes the subscription to a given entrypoint.
-                
+
                 User must be authenticated.
             operationId: getEntrypointSubscriptionSchema
             responses:
@@ -997,7 +997,7 @@ components:
             properties:
                 tier:
                     type: string
-                    description:  The tier gravitee is running on.
+                    description: The tier gravitee is running on.
                     example: "tier-planet"
                 packs:
                     type: array
@@ -1899,6 +1899,24 @@ components:
                     description: A map of parameters to be used in the error message
                     additionalProperties:
                         type: string
+                details:
+                    type: array
+                    description: A list of details about the error
+                    items:
+                        type: object
+                        properties:
+                            message:
+                                type: string
+                                description: The error message
+                                example: Bad request
+                            location:
+                                type: string
+                                description: The json path of the field in error.
+                                example: updateApi.properties[0].key
+                            invalidValue:
+                                type: object
+                                description: The invalid value.
+
         FlowV4:
             type: object
             properties:

@@ -26,7 +26,7 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.management.v2.rest.model.Environment;
-import io.gravitee.rest.api.management.v2.rest.model.ErrorEntity;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -101,8 +101,8 @@ public class EnvironmentsResourceTest extends AbstractResourceTest {
         final Response response = rootTarget("my-env-id").request().get();
         assertEquals(404, response.getStatus());
 
-        var body = response.readEntity(ErrorEntity.class);
+        var body = response.readEntity(Error.class);
         assertNotNull(body);
-        assertEquals(404, body.getHttpStatus());
+        assertEquals(404, body.getHttpStatus().intValue());
     }
 }

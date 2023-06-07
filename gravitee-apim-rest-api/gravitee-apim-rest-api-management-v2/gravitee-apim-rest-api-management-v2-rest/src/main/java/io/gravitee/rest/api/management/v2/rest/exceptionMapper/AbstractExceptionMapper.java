@@ -15,28 +15,22 @@
  */
 package io.gravitee.rest.api.management.v2.rest.exceptionMapper;
 
-import io.gravitee.rest.api.management.v2.rest.model.ErrorEntity;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import java.util.Map;
 
 public abstract class AbstractExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
 
-    protected ErrorEntity convert(AbstractManagementException e) {
+    protected Error convert(AbstractManagementException e) {
         return convert(e, e.getHttpStatusCode(), e.getTechnicalCode(), e.getParameters());
     }
 
-    protected ErrorEntity convert(final Throwable t, final int status) {
+    protected Error convert(final Throwable t, final int status) {
         return convert(t, status, null, null);
     }
 
-    protected ErrorEntity convert(final Throwable t, final int status, final String technicalCode, final Map<String, String> parameters) {
-        final ErrorEntity errorEntity = new ErrorEntity();
-
-        errorEntity.setHttpStatus(status);
-        errorEntity.setMessage(t.getMessage());
-        errorEntity.setParameters(parameters);
-        errorEntity.setTechnicalCode(technicalCode);
-        return errorEntity;
+    protected Error convert(final Throwable t, final int status, final String technicalCode, final Map<String, String> parameters) {
+        return Error.builder().httpStatus(status).message(t.getMessage()).parameters(parameters).technicalCode(technicalCode).build();
     }
 }
