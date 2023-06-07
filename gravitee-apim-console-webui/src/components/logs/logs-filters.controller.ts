@@ -344,6 +344,17 @@ class LogsFiltersController {
   }
 
   async searchApis(term) {
+    if (this.context === 'application') {
+      const searchResult = await this.ApplicationService.getSubscribedAPI(this.$state.params.applicationId);
+      let result = searchResult.data;
+      if (term) {
+        result = searchResult.data.filter((api) => {
+          return api.name.toLowerCase().includes(term.toLowerCase());
+        });
+      }
+      return result.slice(0, 10);
+    }
+
     const { data: searchResult } = await this.ApiService.searchApis(term, 1, null, null, 10);
     return searchResult.data;
   }
