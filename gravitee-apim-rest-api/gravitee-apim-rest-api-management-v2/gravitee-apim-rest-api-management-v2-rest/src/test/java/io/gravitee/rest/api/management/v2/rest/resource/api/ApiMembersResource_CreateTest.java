@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.management.v2.rest.model.CreateApiMember;
+import io.gravitee.rest.api.management.v2.rest.model.AddApiMember;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -71,13 +71,13 @@ public class ApiMembersResource_CreateTest extends AbstractResourceTest {
         )
             .thenReturn(false);
 
-        final Response response = rootTarget().request().post(Entity.json(new CreateApiMember()));
+        final Response response = rootTarget().request().post(Entity.json(new AddApiMember()));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test
     public void should_return_400_when_role_is_primary_owner() {
-        var newMembership = new CreateApiMember();
+        var newMembership = new AddApiMember();
         newMembership.setRoleName("PRIMARY_OWNER");
         final Response response = rootTarget().request().post(Entity.json(newMembership));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -103,7 +103,7 @@ public class ApiMembersResource_CreateTest extends AbstractResourceTest {
         )
             .thenReturn(memberEntity);
 
-        var newMembership = new CreateApiMember();
+        var newMembership = new AddApiMember();
         newMembership.setRoleName("OWNER");
         newMembership.setUserId("userId");
         final Response response = rootTarget().request().post(Entity.json(newMembership));

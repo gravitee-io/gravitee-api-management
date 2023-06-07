@@ -387,7 +387,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/CreateApiMember"
+                            $ref: "#/components/schemas/AddApiMember"
                 required: true
             responses:
                 "201":
@@ -398,10 +398,15 @@ paths:
                                 $ref: "#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/members/{memberId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/memberIdParam"
         put:
             tags:
                 - API Members
-            summary: Updates a membership for an API.
+            summary: Updates a member for an API.
             description: |
                 Edit a member for an API.
                 
@@ -409,7 +414,7 @@ paths:
                  - when the user tries to set a member as PrimaryOwner.
                 
                 User must have the API_MEMBER[UPDATE] permission.
-            operationId: updateApiMembership
+            operationId: updateApiMember
             requestBody:
                 content:
                     application/json:
@@ -425,15 +430,10 @@ paths:
                                 $ref: "#/components/schemas/Member"
                 default:
                     $ref: "#/components/responses/Error"
-    /environments/{envId}/apis/{apiId}/members/{memberId}:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-            - $ref: "#/components/parameters/apiIdParam"
-            - $ref: "#/components/parameters/memberIdParam"
         delete:
             tags:
                 - API Members
-            summary: Delete one API member
+            summary: Remove one API member
             description: |
                 Remove an API member.
                 
@@ -441,10 +441,10 @@ paths:
                  - when the user tries to remove a PrimaryOwner.
                 
                 User must have the API_MEMBER[DELETE] permission.
-            operationId: deleteApiMembership
+            operationId: removeApiMember
             responses:
                 "204":
-                    description: API member successfully deleted
+                    description: API member successfully removed
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2557,7 +2557,7 @@ components:
                 - ENVIRONMENT
                 - ORGANIZATION
                 - PLATFORM
-        CreateApiMember:
+        AddApiMember:
             type: object
             description: Membership can be created for existing users, or for users provided by external identity provider. Thus, either userId or externalReference are required.
             properties:
@@ -2575,15 +2575,11 @@ components:
         UpdateApiMember:
             type: object
             properties:
-                memberId:
-                    type: string
-                    description: Technical identifier for existing user.
-                    minLength: 1
                 roleName:
                     type: string
                     description: The name of the role
                     minLength: 1
-            required: [memberId, roleName]
+            required: [roleName]
         PlatformPlugin:
             type: object
             properties:
