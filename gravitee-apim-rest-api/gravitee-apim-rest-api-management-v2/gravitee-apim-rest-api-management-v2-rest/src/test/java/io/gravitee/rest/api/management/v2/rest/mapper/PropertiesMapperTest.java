@@ -31,6 +31,14 @@ public class PropertiesMapperTest {
     private final PropertiesMapper propertiesMapper = Mappers.getMapper(PropertiesMapper.class);
 
     @Test
+    void shouldMapToEmptyPropertyEntityV4List() {
+        var propertyEntityV4List = propertiesMapper.mapToPropertyEntityV4List(null);
+
+        assertThat(propertyEntityV4List).isNotNull();
+        assertThat(propertyEntityV4List).asList().isEmpty();
+    }
+
+    @Test
     void shouldMapToPropertyEntityV4() {
         Property propertyToMap = PropertyFixtures.aProperty();
         var propertyEntityV4List = propertiesMapper.mapToPropertyEntityV4List(List.of(propertyToMap));
@@ -46,6 +54,24 @@ public class PropertiesMapperTest {
         assertThat(propertyEntityV4.isDynamic()).isEqualTo(propertyToMap.getDynamic());
         assertThat(propertyEntityV4.isEncryptable()).isFalse();
         assertThat(propertyEntityV4.isEncrypted()).isEqualTo(propertyToMap.getEncrypted());
+    }
+
+    @Test
+    void shouldMapToEmptyPropertyEntityV2List() {
+        var propertyEntityV2List = propertiesMapper.mapToPropertyEntityV2List(null);
+
+        assertThat(propertyEntityV2List).isNotNull();
+        assertThat(propertyEntityV2List).asList().isEmpty();
+    }
+
+    @Test
+    void shouldMapToEmptyPropertiesEntityV2() {
+        PropertiesEntity propertiesEntity = propertiesMapper.mapToPropertiesEntityV2(null);
+
+        assertThat(propertiesEntity).isNotNull();
+        List<PropertyEntity> properties = propertiesEntity.getProperties();
+        assertThat(properties).isNotNull();
+        assertThat(properties).asList().isEmpty();
     }
 
     @Test
