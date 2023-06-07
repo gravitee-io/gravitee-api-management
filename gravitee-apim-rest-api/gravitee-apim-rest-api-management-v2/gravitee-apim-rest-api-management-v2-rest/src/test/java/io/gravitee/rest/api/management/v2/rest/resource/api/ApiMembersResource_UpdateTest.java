@@ -71,7 +71,7 @@ public class ApiMembersResource_UpdateTest extends AbstractResourceTest {
         )
             .thenReturn(false);
 
-        final Response response = rootTarget().request().put(Entity.json(new UpdateApiMember()));
+        final Response response = rootTarget("memberId").request().put(Entity.json(new UpdateApiMember()));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
@@ -79,7 +79,7 @@ public class ApiMembersResource_UpdateTest extends AbstractResourceTest {
     public void should_return_400_when_editing_with_role_primary_owner() {
         var newMembership = new UpdateApiMember();
         newMembership.setRoleName("PRIMARY_OWNER");
-        final Response response = rootTarget().request().put(Entity.json(newMembership));
+        final Response response = rootTarget("memberId").request().put(Entity.json(newMembership));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         assertEquals("An API must always have only one PRIMARY_OWNER !", response.readEntity(Error.class).getMessage());
     }
@@ -97,8 +97,7 @@ public class ApiMembersResource_UpdateTest extends AbstractResourceTest {
 
         var newMembership = new UpdateApiMember();
         newMembership.setRoleName("OWNER");
-        newMembership.setMemberId("memberId");
-        final Response response = rootTarget().request().put(Entity.json(newMembership));
+        final Response response = rootTarget("memberId").request().put(Entity.json(newMembership));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         var createdMember = response.readEntity(Member.class);
