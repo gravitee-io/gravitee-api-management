@@ -97,6 +97,7 @@ class PathParametersExtractorTest {
             Arguments.of(readApi("simple-api"), "GET", "/products", Map.of(), Set.of()),
             Arguments.of(readApi("simple-api"), "TRACE", "/products", Map.of(), Set.of()),
             Arguments.of(readApi("simple-api"), "GET", "/products/my-product", Map.of("productId", "my-product"), Set.of()),
+            Arguments.of(readApi("simple-api"), "GET", "/products-special-char/my-product", Map.of("product-id", "my-product"), Set.of()),
             Arguments.of(
                 readApi("simple-api"),
                 "GET",
@@ -118,6 +119,13 @@ class PathParametersExtractorTest {
                 "GET",
                 "/products/my-product/items/my-item",
                 Map.of("productId", "my-product", "itemId", "my-item"),
+                Set.of()
+            ),
+            Arguments.of(
+                readApi("simple-api"),
+                "GET",
+                "/products-special-char/my-product/items/my-item",
+                Map.of("product-id", "my-product", "It€m_Id", "my-item"),
                 Set.of()
             ),
             Arguments.of(readApi("api-flows-equals-operator"), "GET", "/products", Map.of(), Set.of()),
