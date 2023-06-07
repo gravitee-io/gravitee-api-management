@@ -24,6 +24,9 @@ export class ReplaceEnvInterceptor implements HttpInterceptor {
   constructor(@Inject('Constants') private readonly constants: Constants) {}
 
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    if (req.url.indexOf('{:envId}') === -1) {
+      return next.handle(req);
+    }
     req = req.clone({
       url: req.url.replace('{:envId}', this.constants.org.currentEnv.id),
     });

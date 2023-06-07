@@ -87,6 +87,7 @@ import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-butto
 import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
+import { GioLicenseModule } from '../../shared/components/gio-license/gio-license.module';
 
 @NgModule({
   imports: [
@@ -136,6 +137,7 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     GioTableWrapperModule,
     GioUsersSelectorModule,
     GioFormJsonSchemaModule,
+    GioLicenseModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,
