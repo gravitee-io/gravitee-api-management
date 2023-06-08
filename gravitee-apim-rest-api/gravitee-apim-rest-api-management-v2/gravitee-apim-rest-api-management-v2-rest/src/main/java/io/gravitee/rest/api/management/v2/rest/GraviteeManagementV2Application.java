@@ -18,12 +18,10 @@ package io.gravitee.rest.api.management.v2.rest;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.*;
 import io.gravitee.rest.api.management.v2.rest.filter.*;
 import io.gravitee.rest.api.management.v2.rest.provider.ByteArrayOutputStreamWriter;
+import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParamConverterProvider;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.management.v2.rest.resource.OpenAPIResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiMembersResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiPlansResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.*;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
@@ -53,6 +51,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(ApisResource.class);
         register(ApiResource.class);
         register(ApiPlansResource.class);
+        register(ApiSubscriptionsResource.class);
         register(EndpointsResource.class);
         register(EntrypointsResource.class);
         register(PoliciesResource.class);
@@ -71,6 +70,8 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
         register(PreconditionFailedExceptionMapper.class);
+
+        register(CommaSeparatedQueryParamConverterProvider.class);
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);

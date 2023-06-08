@@ -18,19 +18,18 @@ package io.gravitee.rest.api.model.subscription;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.Collection;
 import java.util.Collections;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode
+@Builder
 public class SubscriptionQuery {
 
     private Collection<String> apis;

@@ -163,4 +163,14 @@ public class ResourceContextConfiguration {
     public GraviteeLicenseService licenseService() {
         return mock(GraviteeLicenseService.class);
     }
+
+    @Bean
+    public SubscriptionService subscriptionService() {
+        return mock(SubscriptionService.class);
+    }
+
+    @Bean
+    public ApplicationService applicationService() {
+        return mock(ApplicationService.class);
+    }
 }

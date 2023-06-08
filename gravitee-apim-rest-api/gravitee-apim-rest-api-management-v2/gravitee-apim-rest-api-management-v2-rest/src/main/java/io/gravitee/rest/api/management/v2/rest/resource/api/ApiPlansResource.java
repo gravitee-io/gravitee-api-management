@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
+import jakarta.annotation.Nonnull;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -77,21 +78,21 @@ public class ApiPlansResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.READ }) })
     public PlansResponse getApiPlans(
-        @QueryParam("status") @DefaultValue("PUBLISHED") final Set<PlanStatus> planStatusParamList,
-        @QueryParam("security") final Set<PlanSecurityType> planSecurityTypeParamList,
+        @QueryParam("statuses") @DefaultValue("PUBLISHED") final Set<PlanStatus> statuses,
+        @QueryParam("securities") @Nonnull Set<PlanSecurityType> securities,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
         var planQuery = PlanQuery
             .builder()
             .apiId(apiId)
             .securityType(
-                planSecurityTypeParamList
+                securities
                     .stream()
                     .map(planSecurityType -> io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(planSecurityType.name()))
                     .collect(Collectors.toList())
             )
             .status(
-                planStatusParamList
+                statuses
                     .stream()
                     .map(planStatus -> io.gravitee.definition.model.v4.plan.PlanStatus.valueOf(planStatus.name()))
                     .collect(Collectors.toList())

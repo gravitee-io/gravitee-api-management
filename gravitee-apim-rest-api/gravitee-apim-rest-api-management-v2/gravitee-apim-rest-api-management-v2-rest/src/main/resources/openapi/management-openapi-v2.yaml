@@ -457,7 +457,7 @@ paths:
             - $ref: "#/components/parameters/apiIdParam"
         get:
             parameters:
-                - name: status
+                - name: statuses
                   in: query
                   required: false
                   description: List of status filters
@@ -467,7 +467,7 @@ paths:
                           $ref: "#/components/schemas/PlanStatus"
                       default: ["published"]
                   explode: false
-                - name: security
+                - name: securities
                   in: query
                   required: false
                   description: List of security plan type filters
@@ -749,6 +749,69 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Organization"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/subscriptions:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - name: applicationIds
+                  description: List of application ids to filter on.
+                  in: query
+                  explode: false
+                  schema:
+                      type: array
+                      items:
+                          type: string
+                - name: planIds
+                  description: List of plan ids to filter on.
+                  in: query
+                  explode: false
+                  schema:
+                      type: array
+                      items:
+                          type: string
+                - name: statuses
+                  in: query
+                  required: false
+                  description: List of status filters.
+                  explode: false
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/SubscriptionStatus"
+                - name: apiKey
+                  in: query
+                  description: Api key associated to the subscription to filter on.
+                  schema:
+                      type: string
+                - name: expands
+                  in: query
+                  description: Expansion of data to return in subscriptions.
+                  schema:
+                      type: array
+                      items:
+                          type: string
+                          enum:
+                              - application
+                              - plan
+                  explode: false
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - API Subscriptions
+            summary: Get the API's subscriptions
+            description: |
+                List subscriptions for a given API, always filtered by a `status` and the possibility to filter by `security`.
+                
+                User must have API_PLAN[READ] or API_LOG[READ] permissions to access endpoint.
+            operationId: getApiSubsriptions
+            responses:
+                "200":
+                    $ref: "#/components/responses/SubscriptionsResponse"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -1136,22 +1199,10 @@ components:
             allOf:
                 - $ref: "#/components/schemas/BaseApi"
                 - properties:
-                      id:
-                          type: string
-                          description: API's uuid.
-                          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
                       crossId:
                           type: string
                           description: API's crossId. Identifies API across environments.
                           example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
-                      name:
-                          type: string
-                          description: API's name. Duplicate names can exists.
-                          example: My Api
-                      description:
-                          type: string
-                          description: API's description. A short description of your API.
-                          example: I can use many characters to describe this API.
                       apiVersion:
                           type: string
                           description: API's version. It's a simple string only used in the portal.
@@ -2648,6 +2699,170 @@ components:
                           items:
                               $ref: "#/components/schemas/FlowV4"
 
+        Subscription:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Subscription's uuid.
+                    example: 34f8c9e7-68fd-4922-b8c9-e778fc790777
+                api:
+                    $ref: "#/components/schemas/BaseApi"
+                plan:
+                    $ref: "#/components/schemas/BasePlan"
+                application:
+                    $ref: "#/components/schemas/BaseApplication"
+                request:
+                    type: string
+                reason:
+                    type: string
+                properties:
+                    type: object
+                    additionalProperties:
+                        type: string
+                daysToExpirationOnLastNotification:
+                    type: integer
+                    format: int32
+                    description: Number of days before the expiration of this subscription when the last pre-expiration notification was sent
+                consumerConfiguration:
+                    $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
+                failureCause:
+                    type: string
+                    description: Details about the last failure encountered on this subscription.
+                status:
+                    $ref: "#/components/schemas/SubscriptionStatus"
+                consumerStatus:
+                    $ref: "#/components/schemas/SubscriptionConsumerStatus"
+                processedBy:
+                    $ref: "#/components/schemas/BaseUser"
+                subscribedBy:
+                    $ref: "#/components/schemas/BaseUser"
+                processedAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription was processed.
+                    example: 2023-05-18T12:40:46.184Z
+                startingAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription starts. No starting date means the subscription starts immediately.
+                    example: 2023-05-20T12:30:42.101Z
+                endingAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription ends. No ending date means the subscription never ends.
+                    example: 2023-05-25T12:40:46.184Z
+                commentMessage:
+                    type: string
+                commentRequired:
+                    type: boolean
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription was created.
+                    example: 2023-05-18T12:40:46.184Z
+                updatedAt:
+                    type: string
+                    format: date-time
+                    description: The last datetime when the subscription was updated.
+                    example: 2023-05-25T12:40:46.184Z
+                closedAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription was closed.
+                    example: 2023-05-31T13:40:46.184Z
+                pausedAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription was paused by the api publisher.
+                    example: 2023-05-25T12:40:46.184Z
+                consumerPausedAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription was paused by the api consumer.
+                    example: 2023-05-25T12:40:46.184Z
+
+        SubscriptionStatus:
+            type: string
+            description: The status of the subscription manageable by the api publisher.
+            example: ACCEPTED
+            enum:
+                - PENDING
+                - REJECTED
+                - ACCEPTED
+                - CLOSED
+                - PAUSED
+                - RESUMED
+
+        SubscriptionConsumerStatus:
+            type: string
+            description: The status of the subscription manageable by the api consumer.
+            example: STOPPED
+            enum:
+                - STARTED
+                - STOPPED
+                - FAILURE
+
+        SubscriptionConsumerConfiguration:
+            type: object
+            description: Consumer configuration associated to the subscription in case it is attached to a push plan.
+            properties:
+                entrypointId:
+                    type: string
+                    description: The id of the targeted entrypoint
+                    example: webhook
+                channel:
+                    type: string
+                    description: The channel to consume
+                    example: /channel1
+                configuration:
+                    type: object
+                    description: The configuration to use at subscription time to push to the target service.
+                    example: |
+                        {
+                            "callbackUrl": "https://webhook.site/aaaaaaaa-ffff-ffff-ffff-aaaaaaaa",
+                            "headers": [
+                                {
+                                    "name": "demoHeader",
+                                    "value": "my-value"
+                                },
+                                {
+                                    "name": "anotherHeader",
+                                    "value": "my-value2"
+                                }
+                            ]
+                        }
+            required: [entrypointId]
+
+        BaseUser:
+            type: object
+            description: Base information about a user.
+            properties:
+                id:
+                    type: string
+                    description: User's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                displayName:
+                    type: string
+                    description: User's name.
+                    example: John Doe
+
+        BaseApplication:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Application's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: Application's name. Duplicate names can exists.
+                    example: My App
+                description:
+                    type: string
+                    description: Application's description. A short description of your App.
+                    example: I can use a hundred characters to describe this App.
+
         Member:
             type: object
             properties:
@@ -4112,6 +4327,24 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+
+        SubscriptionsResponse:
+            description: Page of API subscriptions
+            content:
+                application/json:
+                    schema:
+                        title: "SubscriptionsResponse"
+                        properties:
+                            data:
+                                description: List of API subscriptions.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Subscription"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
+
         MembersResponse:
             description: Page of API members
             content:
