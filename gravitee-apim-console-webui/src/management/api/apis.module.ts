@@ -31,9 +31,13 @@ import { ApiNgNavigationComponent } from './api-ng-navigation/api-ng-navigation.
 import { ApiNgNavigationModule } from './api-ng-navigation/api-ng-navigation.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
+import { ApiPortalPlanListComponent } from './portal/plans/list/api-portal-plan-list.component';
+import { ApiPortalPlanEditComponent } from './portal/plans/edit/api-portal-plan-edit.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
+import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
+import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
 
 // New Angular routing
 const states: Ng2StateDeclaration[] = [
@@ -42,7 +46,9 @@ const states: Ng2StateDeclaration[] = [
     url: '/ng/:apiId',
     abstract: true,
     component: ApiNgNavigationComponent,
-
+    data: {
+      baseRouteState: 'management.apis.ng',
+    },
     resolve: [
       {
         token: 'currentApi',
@@ -81,6 +87,58 @@ const states: Ng2StateDeclaration[] = [
     },
     component: ApiPortalDetailsComponent,
   },
+  {
+    name: 'management.apis.ng.plans',
+    url: '/plans?status',
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-r'],
+      // },
+    },
+    params: {
+      status: {
+        type: 'string',
+        dynamic: true,
+      },
+    },
+    component: ApiPortalPlanListComponent,
+  },
+  {
+    name: 'management.apis.ng.plan',
+    url: '/plan',
+    component: GioEmptyComponent,
+    abstract: true,
+  },
+  {
+    name: 'management.apis.ng.plan.new',
+    url: '/new?{securityType:string}',
+    component: ApiPortalPlanEditComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+    },
+    params: {
+      securityType: {
+        dynamic: true,
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.plan.edit',
+    url: '/:planId/edit',
+    component: ApiPortalPlanEditComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-u'],
+      // },
+    },
+  },
 ];
 
 @NgModule({
@@ -95,6 +153,8 @@ const states: Ng2StateDeclaration[] = [
     ApiPortalPlansModule,
     ApiProxyModule,
     ApiPortalUserGroupModule,
+
+    GioEmptyModule,
 
     UIRouterModule.forChild({ states }),
   ],
