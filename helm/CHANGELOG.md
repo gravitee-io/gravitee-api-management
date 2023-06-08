@@ -3,6 +3,26 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 3.20.11
+
+- Change APIM charts versioning
+
+To ensure the compatibility between the APIM product and the APIM Helm Chart, the versioning of the latter is changed.
+As of 3.20.11, the APIM Helm Chart will follow APIM release cycle.
+It means Helm Chart and APIM should always be aligned.
+
+- Remove duplicate annotation in ui deployment
+
+### 3.19.16
+
+- Change APIM charts versioning
+
+To ensure the compatibility between the APIM product and the APIM Helm Chart, the versioning of the latter is changed.
+As of 3.19.16, the APIM Helm Chart will follow APIM release cycle.
+It means Helm Chart and APIM should always be aligned.
+
+- Remove duplicate annotation in ui deployment
+
 ### 3.18.27
 
 - Change APIM charts versioning
@@ -11,6 +31,7 @@ To ensure the compatibility between the APIM product and the APIM Helm Chart, th
 As of 3.18.27, the APIM Helm Chart will follow APIM release cycle.
 It means Helm Chart and APIM should always be aligned.
 
+- Remove duplicate annotation in ui deployment
 
 ### 3.2.0
 
