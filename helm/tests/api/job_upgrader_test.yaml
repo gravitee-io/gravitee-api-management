@@ -24,8 +24,8 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            - name: GRAVITEE_UPGRADE_MODE
-              value: "true"
+            name: GRAVITEE_UPGRADE_MODE
+            value: "true"
       - isEmpty:
           # It should not contain init containers by default
           path: spec.template.spec.initContainers
@@ -42,8 +42,8 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            - name: GRAVITEE_SYNC_ENABLED
-              value: "false"
+            name: GRAVITEE_SERVICES_SYNC_ENABLED
+            value: "false"
 
   - it: Check that alerts have been disabled
     template: api/api-upgrader-job.yaml
@@ -56,8 +56,8 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            - name: GRAVITEE_ALERTS_ENABLED
-              value: "false"
+            name: GRAVITEE_ALERTS_ENABLED
+            value: "false"
 
   - it: Check that cockpit has been disabled
     template: api/api-upgrader-job.yaml
@@ -68,10 +68,10 @@ tests:
       - hasDocuments:
           count: 1
       - contains:
-          path: spec.template.spec.containers[3].env
+          path: spec.template.spec.containers[0].env
           content:
-            - name: GRAVITEE_COCKPIT_ENABLED
-              value: "false"
+            name: GRAVITEE_COCKPIT_ENABLED
+            value: "false"
 
   - it: Check if the helm hook annotations are present
     set:

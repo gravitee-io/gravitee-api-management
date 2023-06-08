@@ -1906,7 +1906,7 @@ jobs:
 
             - cmd-notify-on-failure
 
-    test-apim-charts:
+    job-test-apim-charts:
         docker:
             - image: cimg/base:stable
         resource_class: small
@@ -1978,6 +1978,10 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - Build backend
+            - job-test-apim-charts:
+                name: Test Helm chart
+                requires:
+                  - Build backend
             - job-sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
                   matrix:
@@ -2184,7 +2188,7 @@ workflows:
         when:
             equal: [release_helm, << pipeline.parameters.gio_action >>]
         jobs:
-            - test-apim-charts:
+            - job-test-apim-charts:
                   name: APIM - Lint & Test
             - job-release_helm:
                   context: cicd-orchestrator
