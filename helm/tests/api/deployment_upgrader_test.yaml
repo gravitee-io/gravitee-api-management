@@ -3,7 +3,7 @@ templates:
   - "api/api-deployment.yaml"
   - "api/api-configmap.yaml"
 tests:
-  - it: Check that upgrade.mode is not defined by default
+  - it: Check that upgrade.mode is not false by default
     template: api/api-deployment.yaml
     asserts:
       - hasDocuments:
@@ -11,8 +11,18 @@ tests:
       - notContains:
           path: spec.template.spec.containers[0].env
           content:
-            - name: "upgrade.mode"
-              value: "false"
+            name: "upgrade.mode"
+            value: "false"
+  - it: Check that upgrade.mode is not true by default
+    template: api/api-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: "upgrade.mode"
+            value: "true"
   - it: Check that upgrade.mode is false if upgrader is true
     template: api/api-deployment.yaml
     set:
@@ -21,8 +31,8 @@ tests:
     asserts:
       - hasDocuments:
           count: 1
-      - notContains:
+      - contains:
           path: spec.template.spec.containers[0].env
           content:
-            - name: "upgrade.mode"
-              value: "false"
+            name: "upgrade.mode"
+            value: "false"

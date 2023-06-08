@@ -56,7 +56,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: GRAVITEE_ALERTS_ENABLED
+            name: GRAVITEE_ALERTS_ALERT-ENGINE_ENABLED
             value: "false"
 
   - it: Check that cockpit has been disabled
