@@ -328,36 +328,36 @@ commands:
                       echo "export SANITIZED_BRANCH=$SANITIZED_BRANCH" >> $BASH_ENV
 
     cmd-helm-tests:
-      description: execute the unit tests of the helm chart
-      parameters:
-        folder:
-          type: string
-          default: ''
-          description: The name of the folder where tests to execute are.
-        files:
-          type: string
-          default: ''
-          description: The test suites files.
-        output-file:
-          type: string
-          default: ''
-          description: The name of the test result file.
-      steps:
-        - run:
-            name: execute the units tests in << parameters.folder >>.
-            command: helm unittest -3 -f '<< parameters.files >>' << parameters.folder >> -t JUnit -o << parameters.output-file >>
+        description: execute the unit tests of the helm chart
+        parameters:
+            folder:
+                type: string
+                default: ""
+                description: The name of the folder where tests to execute are.
+            files:
+                type: string
+                default: ""
+                description: The test suites files.
+            output-file:
+                type: string
+                default: ""
+                description: The name of the test result file.
+        steps:
+            - run:
+                  name: execute the units tests in << parameters.folder >>.
+                  command: helm unittest -3 -f '<< parameters.files >>' << parameters.folder >> -t JUnit -o << parameters.output-file >>
 
     cmd-helm-lint:
-      description: Lint the helm charts available in the folder
-      parameters:
-        folder:
-          type: string
-          default: ''
-          description: The name of the folder to check.
-      steps:
-        - run:
-            name: Lint the helm charts available in << parameters.folder >>
-            command: helm lint << parameters.folder >>
+        description: Lint the helm charts available in the folder
+        parameters:
+            folder:
+                type: string
+                default: ""
+                description: The name of the folder to check.
+        steps:
+            - run:
+                  name: Lint the helm charts available in << parameters.folder >>
+                  command: helm lint << parameters.folder >>
 
 parameters:
     gio_action:
@@ -373,7 +373,7 @@ parameters:
                 release_notes_apim,
                 bridge_e2e,
                 publish_docker_images,
-                release_helm
+                release_helm,
             ]
         default: pull_requests
     dry_run:
@@ -1200,8 +1200,8 @@ jobs:
                       sed -i "s#\"version\": \".*\"#\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"#" gravitee-apim-portal-webui/build.json
 
                       # Helm chart
-                      sed 's/version.*/version: ${GRAVITEEIO_VERSION}/' -i helm/Chart.yaml
-                      
+                      sed "s/version.*/version: ${GRAVITEEIO_VERSION_WITH_QUALIFIER}/" -i helm/Chart.yaml
+
                       git add --update
                       git commit -m "${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
                       git tag ${GRAVITEEIO_VERSION_WITH_QUALIFIER}
@@ -1243,7 +1243,7 @@ jobs:
                       sed -i "s#version: \".*\"#version: \"${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT\"#" gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
                       sed -i "s#\"version\": \".*\"#\"version\": \"${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT\"#" gravitee-apim-console-webui/build.json
                       sed -i "s#\"version\": \".*\"#\"version\": \"${MVN_PRJ_NEXT_VERSION}${MVN_PRJ_NEXT_QUALIFIER}-SNAPSHOT\"#" gravitee-apim-portal-webui/build.json
-                    
+
                       git add --update
                       git commit -m 'chore: prepare next version [skip ci]'
 
@@ -1563,9 +1563,6 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password
                   var-name: ARTIFACTORY_PASSWORD
-            - keeper/env-export:
-                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-                  var-name: SLACK_ACCESS_TOKEN
             - checkout
             - run:
                   name: Install dependencies
@@ -1575,58 +1572,12 @@ jobs:
                   name: "Building package bundle"
                   working_directory: "./release"
                   command: npm run zx -- --quiet --experimental ci-steps/package-bundles.mjs --version=<< pipeline.parameters.graviteeio_version >>
-            - run:
-                  name: "Comparing bundle size with previous version"
-                  working_directory: "./release"
-                  command: |
-                      npm run zx -- --experimental ci-steps/check-bundle-size.mjs
-                      echo "export BUNDLE_SIZE_MESSAGE=\"$(cat .tmp/bundle-size.md)\"" >> $BASH_ENV
-            - when:
-                  condition:
-                      not: << pipeline.parameters.dry_run>>
-                  steps:
-                      - slack/notify:
-                            channel: C02JENTV2AX
-                            event: always
-                            custom: |
-                                {
-                                  "blocks": [
-                                    {
-                                      "type": "section",
-                                      "text": {
-                                        "type": "mrkdwn",
-                                        "text": "$BUNDLE_SIZE_MESSAGE"
-                                      }
-                                    },
-                                    {
-                                        "type": "actions",
-                                        "elements": [
-                                           {
-                                              "type": "button",
-                                              "text": "🧐 Approve to continue",
-                                              "url": "https://app.circleci.com/pipelines/workflows/$CIRCLE_WORKFLOW_ID"
-                                           }
-                                        ]
-                                	 }
-                                  ]
-                                }
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
-
-    publish-bundle:
-        docker:
-            - image: cimg/base:stable
-        steps:
             - keeper/env-export:
                   secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
                   var-name: AWS_ACCESS_KEY_ID
             - keeper/env-export:
                   secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
                   var-name: AWS_SECRET_ACCESS_KEY
-            - attach_workspace:
-                  at: .
             - when:
                   condition: << pipeline.parameters.dry_run>>
                   steps:
@@ -1705,149 +1656,105 @@ jobs:
                                       "type": "section",
                                       "text": {
                                         "type": "mrkdwn",
-                                        "text": ":memo: Changelog for APIM << pipeline.parameters.graviteeio_version >> has been generated and can be reviewed <${RELEASE_NOTES_PR_URL}|here>"
+                                        "text": ":memo: APIM Changelog << pipeline.parameters.graviteeio_version >> can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
                                       }
                                     }
                                   ]
                                 }
 
     job-release_helm:
-      executor:
-        name: node-lts
-        class: medium
-      environment:
-        VERSION: << pipeline.parameters.graviteeio_version >>
-      steps:
-        - checkout
-        - keeper/env-export:
-            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
-            var-name: GIT_USER_NAME
-        - keeper/env-export:
-            secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
-            var-name: GIT_USER_EMAIL
-        - keeper/env-export:
-            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-            var-name: GITHUB_TOKEN
-        - add_ssh_keys:
-            fingerprints:
-              - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
-        - run:
-            name: Git config
-            command: |
-              git config --global user.name "${GIT_USER_NAME}"
-              git config --global user.email "${GIT_USER_EMAIL}"
-        - gh/setup
-        - helm/install-helm-client
-        - when:
-            condition:
-              not: << pipeline.parameters.dry_run>>
-            steps:
-              - run:
-                  name: Update application version
-                  command: | 
-                    sed 's/appVersion.*/appVersion: ${VERSION}/' -i helm/Chart.yaml
-        - run:
-            name: "build the Charts"
-            working_directory: "./helm"
-            command: |
-              helm dependency update
-              helm package -d charts .
-              
-              sed 's/name.*/name: apim3/' -i Chart.yaml
-              helm package -d charts .
-        - run:
-            name: Install dependencies
-            command: npm install
-            working_directory: "./release"
-        - when:
-            condition:
-              not: << pipeline.parameters.dry_run>>
-            steps:
-              - run:
-                  name: "Open a PR to publish helm chart release into helm-charts repository"
-                  working_directory: "./release"
-                  command: npm run zx -- ci-steps/release-helm.mjs --version=${VERSION}
-        - when:
-            condition: << pipeline.parameters.dry_run>>
-            steps:
-              - keeper/env-export:
-                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
-                  var-name: ACR_USER_NAME
-              - keeper/env-export:
-                  secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
-                  var-name: ACR_PASSWORD
-              - run:
-                  name: "Publish helm chart release in azure repository DRY-RUN mode"
+        executor:
+            name: node-lts
+            class: medium
+        environment:
+            VERSION: << pipeline.parameters.graviteeio_version >>
+        steps:
+            - checkout
+            - keeper/env-export:
+                  secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+                  var-name: GIT_USER_NAME
+            - keeper/env-export:
+                  secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+                  var-name: GIT_USER_EMAIL
+            - keeper/env-export:
+                  secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+                  var-name: GITHUB_TOKEN
+            - add_ssh_keys:
+                  fingerprints:
+                      - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
+            - run:
+                  name: Git config
+                  command: |
+                      git config --global user.name "${GIT_USER_NAME}"
+                      git config --global user.email "${GIT_USER_EMAIL}"
+            - gh/setup
+            - helm/install-helm-client
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - run:
+                            name: Update Chart and App versions
+                            command: |
+                                sed "s/version.*/version: ${VERSION}/" -i helm/Chart.yaml
+                                sed "s/appVersion.*/appVersion: ${VERSION}/" -i helm/Chart.yaml
+            - run:
+                  name: "build the Charts"
                   working_directory: "./helm"
                   command: |
-                    helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
-                    helm push charts/apim-${VERSION}.tgz oci://graviteeio.azurecr.io/helm/
-                    helm push charts/apim3-${VERSION}.tgz oci://graviteeio.azurecr.io/helm/
+                      helm dependency update
+                      helm package -d charts .
+
+                      sed "s/name.*/name: apim3/" -i Chart.yaml
+                      helm package -d charts .
+            - run:
+                  name: Install dependencies
+                  command: npm install
+                  working_directory: "./release"
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - run:
+                            name: "Open a PR to publish helm chart release into helm-charts repository"
+                            working_directory: "./release"
+                            command: npm run zx -- ci-steps/release-helm.mjs --version=${VERSION}
+            - when:
+                  condition: << pipeline.parameters.dry_run>>
+                  steps:
+                      - keeper/env-export:
+                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+                            var-name: ACR_USER_NAME
+                      - keeper/env-export:
+                            secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+                            var-name: ACR_PASSWORD
+                      - run:
+                            name: "Publish helm chart release in azure repository DRY-RUN mode"
+                            working_directory: "./helm"
+                            command: |
+                                helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
+                                helm push charts/apim-${VERSION}.tgz oci://graviteeio.azurecr.io/helm/
+                                helm push charts/apim3-${VERSION}.tgz oci://graviteeio.azurecr.io/helm/
 
     job-lint-test-charts:
-      docker:
-        - image: cimg/base:stable
-      resource_class: small
-      steps:
-        - checkout
-        - helm/install-helm-client:
-            version: v3.7.1
-        - run:
-            name: install helm-unittest plugin
-            command: helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11
-        - cmd-helm-lint:
-            folder: helm/
-        - cmd-helm-tests:
-            folder: helm/
-            files: tests/**/*.yaml
-            output-file: apim-result.xml
-        - store_test_results:
-            path: apim-result.xml
-
-    publish-pr-env-urls:
-      executor:
-        name: node-lts
-        class: small
-      steps:
-        - checkout
-        - keeper/env-export:
-            secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-            var-name: GITHUB_TOKEN
-        - gh/setup
-        - compute-sanitize-circleci-branch
-        - run:
-            name: Edit Pull Request Description
-            command: |
-              # First check there is an associated pull request, otherwise just stop the job here
-              if ! gh pr view --json title;
-              then
-                echo "No PR found for this branch, stopping the job here."
-                exit 0
-              fi
-              
-              # If PR state is different from OPEN
-              if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
-              then
-                echo "PR is not opened, stopping the job here."
-                exit 0
-              fi
-              export PR_NUMBER=$(gh pr view --json number --jq .number)
-              export PR_BODY_ENV_SECTION="
-              <!-- Environment placeholder -->
-              
-              🏗️ Your changes can be tested here and will be available soon:
-                    Console: [https://$PR_NUMBER.team-apim.gravitee.dev/console](https://$PR_NUMBER.team-apim.gravitee.dev/console)
-                    Portal: [https://$PR_NUMBER.team-apim.gravitee.dev/portal](https://$PR_NUMBER.team-apim.gravitee.dev/portal)
-                    Management-api: [https://$PR_NUMBER.team-apim.gravitee.dev/api/management](https://$PR_NUMBER.team-apim.gravitee.dev/api/management)
-                    Gateway v4: [https://$PR_NUMBER.team-apim.gravitee.dev](https://$PR_NUMBER.team-apim.gravitee.dev)
-                    Gateway v3: [https://$PR_NUMBER.gateway-v3.team-apim.gravitee.dev](https://$PR_NUMBER.gateway-v3.team-apim.gravitee.dev)
-              
-              <!-- Environment placeholder end -->
-              "
-              
-              export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Environment placeholder -->/,/Environment placeholder end -->/d')
-              gh pr edit --body "$CLEAN_BODY$PR_BODY_ENV_SECTION"
-        - cmd-notify-on-failure
+        docker:
+            - image: cimg/base:stable
+        resource_class: small
+        steps:
+            - checkout
+            - helm/install-helm-client:
+                  version: v3.7.1
+            - run:
+                  name: install helm-unittest plugin
+                  command: helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11
+            - cmd-helm-lint:
+                  folder: helm/
+            - cmd-helm-tests:
+                  folder: helm/
+                  files: tests/**/*.yaml
+                  output-file: apim-result.xml
+            - store_test_results:
+                  path: apim-result.xml
 
     job-publish-pr-env-urls:
         executor:
@@ -2170,7 +2077,7 @@ workflows:
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   requires:
-                      - job-setup
+                      - Setup
             - job-webui-publish-artifactory:
                   context: cicd-orchestrator
                   name: Publish APIM Console to artifactory
@@ -2203,6 +2110,14 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - Commit and prepare next version
+
+            # Release Helm chart
+            - job-release_helm:
+                  name: Release Helm Chart
+                  context: cicd-orchestrator
+                  requires:
+                      - Package bundle
+
             # Publish Docker images
             - job-publish-prod-docker-images:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
@@ -2247,6 +2162,7 @@ workflows:
                       - Build and push RPM packages for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                       - Push docker images to Snyk
                       - Create release note pull request
+                      - Release Helm Chart
 
     release:
         when:
@@ -2309,17 +2225,9 @@ workflows:
         when:
             equal: [package_bundle, << pipeline.parameters.gio_action >>]
         jobs:
-            - job-package-bundle:
-                  name: Package bundle
-                  context: cicd-orchestrator
-            - review-bundle-size:
-                  type: approval
-                  requires:
-                      - package-bundle
-            - publish-bundle:
-                  context: cicd-orchestrator
-                  requires:
-                      - review-bundle-size
+          - job-package-bundle:
+              name: Package bundle
+              context: cicd-orchestrator
 
     nexus_staging:
         when:
@@ -2393,15 +2301,15 @@ workflows:
                   context: cicd-orchestrator
 
     release_helm:
-      when:
-        equal: [release_helm, << pipeline.parameters.gio_action >>]
-      jobs:
-        - job-lint-test-charts:
-            name: APIM - Lint & Test
-        - job-release_helm:
-            context: cicd-orchestrator
-            requires:
-              - APIM - Lint & Test
+        when:
+            equal: [release_helm, << pipeline.parameters.gio_action >>]
+        jobs:
+            - job-lint-test-charts:
+                  name: APIM - Lint & Test
+            - job-release_helm:
+                  context: cicd-orchestrator
+                  requires:
+                      - APIM - Lint & Test
 
     bridge_compatibility_tests:
         when:
@@ -2460,14 +2368,14 @@ workflows:
                   requires:
                       - Build backend
             - job-webui-build:
-                  name: Build APIM Consoleand publish image
+                  name: Build APIM Console and publish image
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-console-webui
                   docker-image-name: apim-management-ui
                   requires:
                       - Setup
             - job-webui-build:
-                  name: Build APIM Portaland publish image
+                  name: Build APIM Portal and publish image
                   context: cicd-orchestrator
                   apim-ui-project: gravitee-apim-portal-webui
                   docker-image-name: apim-portal-ui
@@ -2477,6 +2385,6 @@ workflows:
                   name: Publish environment URLs in Github PR
                   context: cicd-orchestrator
                   requires:
-                      - Build and push rest api and gatewayimages
-                      - Build APIM Consoleand publish image
-                      - Build APIM Portaland publish image
+                      - Build and push rest api and gateway images
+                      - Build APIM Console and publish image
+                      - Build APIM Portal and publish image
