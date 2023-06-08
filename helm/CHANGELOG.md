@@ -11,6 +11,8 @@ To ensure the compatibility between the APIM product and the APIM Helm Chart, th
 As of 3.20.11, the APIM Helm Chart will follow APIM release cycle.
 It means Helm Chart and APIM should always be aligned.
 
+- Remove duplicate annotation in ui deployment
+
 ### 3.19.16
 
 - Change APIM charts versioning
@@ -19,6 +21,8 @@ To ensure the compatibility between the APIM product and the APIM Helm Chart, th
 As of 3.19.16, the APIM Helm Chart will follow APIM release cycle.
 It means Helm Chart and APIM should always be aligned.
 
+- Remove duplicate annotation in ui deployment
+
 ### 3.18.27
 
 - Change APIM charts versioning
@@ -26,6 +30,8 @@ It means Helm Chart and APIM should always be aligned.
 To ensure the compatibility between the APIM product and the APIM Helm Chart, the versioning of the latter is changed.
 As of 3.18.27, the APIM Helm Chart will follow APIM release cycle.
 It means Helm Chart and APIM should always be aligned.
+
+- Remove duplicate annotation in ui deployment
 
 ### 3.2.0
 
