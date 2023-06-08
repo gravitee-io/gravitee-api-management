@@ -12,7 +12,7 @@
   "scripts": {
     "prettier": "prettier --check \"**/*.{js,mjs,json}\"",
     "prettier:fix": "prettier --write \"**/*.{js,mjs,json}\"",
-    "full_release": "zx steps/full-release.mjs",
+    "full_release": "zx steps/full_release.mjs",
     "release": "zx steps/1-release.mjs",
     "package_zip": "zx steps/2-package_zip.mjs",
     "docker_rpms": "zx steps/3-docker_and_rpms.mjs",
