@@ -1007,7 +1007,7 @@ jobs:
                       sed -i "s#\"version\": \".*\"#\"version\": \"${MVN_PRJ_VERSION}\"#" gravitee-apim-portal-webui/build.json
 
                       # Helm chart
-                      sed 's/version.*/version: ${GRAVITEEIO_VERSION}/' -i helm/Chart.yaml
+                      sed "s/version.*/version: ${GRAVITEEIO_VERSION}/" -i helm/Chart.yaml
 
                       git add --update
                       git commit -m "${MVN_PRJ_VERSION}"
@@ -1464,8 +1464,8 @@ jobs:
                       - run:
                             name: Update Chart and App versions
                             command: |
-                                sed 's/version.*/version: ${VERSION}/' -i helm/Chart.yaml
-                                sed 's/appVersion.*/appVersion: ${VERSION}/' -i helm/Chart.yaml
+                                sed "s/version.*/version: ${VERSION}/" -i helm/Chart.yaml
+                                sed "s/appVersion.*/appVersion: ${VERSION}/" -i helm/Chart.yaml
             - run:
                   name: "build the Charts"
                   working_directory: "./helm"
@@ -1473,7 +1473,7 @@ jobs:
                       helm dependency update
                       helm package -d charts .
 
-                      sed 's/name.*/name: apim3/' -i Chart.yaml
+                      sed "s/name.*/name: apim3/" -i Chart.yaml
                       helm package -d charts .
             - run:
                   name: Install dependencies
