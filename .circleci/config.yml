@@ -327,8 +327,8 @@ commands:
                       # Workaround for sharing this variable to the next steps
                       echo "export SANITIZED_BRANCH=$SANITIZED_BRANCH" >> $BASH_ENV
 
-    execute-tests:
-        description: execute the unit tests of the folder
+    cmd-helm-tests:
+        description: execute the unit tests of the helm chart
         parameters:
             folder:
                 type: string
@@ -347,7 +347,7 @@ commands:
                   name: execute the units tests in << parameters.folder >>.
                   command: helm unittest -3 -f '<< parameters.files >>' << parameters.folder >> -t JUnit -o << parameters.output-file >>
 
-    lint:
+    cmd-helm-lint:
         description: Lint the helm charts available in the folder
         parameters:
             folder:
@@ -1132,7 +1132,6 @@ jobs:
             - run:
                   name: Rollout pods on "gravitee-devs-preprod-aks-cluster"
                   command: |
-                      export K8S_NAME=apim-${CIRCLE_BRANCH//\./-}
                       export K8S_NAMESPACE=apim-apim-${CIRCLE_BRANCH//\./-}
 
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
@@ -1205,14 +1204,8 @@ jobs:
                   jobName: job-backend-build-and-publish-artifactory
             - run:
                   name: Remove `-SNAPSHOT` from versions
-                  command: mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
-            - run:
-                  name: Update maven dependencies versions from properties
                   command: |
-                      # Update maven dependencies versions from properties
-                      mvn -s .gravitee.settings.xml -B -U org.codehaus.mojo:versions-maven-plugin:2.14.2:update-properties -Dmaven.version.rules.serverId=artifactory-gravitee -Dincludes="io.gravitee.*:*" -Dexcludes="io.gravitee.policy:*,io.gravitee.connector:*,io.gravitee.resource:*,io.gravitee.service:*,io.gravitee.fetcher:*,io.gravitee.tracer:*,io.gravitee.repository:*,io.gravitee.reporter:*,io.gravitee.cockpit:*,io.gravitee.discovery:*,io.gravitee.notifier:*,com.graviteesource.notifier:*,com.graviteesource.policy:*" -DallowMajorUpdates=false -DallowMinorUpdates=false -DallowIncrementalUpdates=true -DgenerateBackupPoms=false -DignoredVersions="*alpha*" -T 2C -no-transfer-progress
-
-                      # Remove `-SNAPSHOT` from version                    
+                      mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
                       sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
 
             - cmd-prepare-gpg
@@ -1258,6 +1251,9 @@ jobs:
                       # UI
                       sed -i "s#\"version\": \".*\"#\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"#" gravitee-apim-console-webui/build.json
                       sed -i "s#\"version\": \".*\"#\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"#" gravitee-apim-portal-webui/build.json
+
+                      # Helm chart
+                      sed "s/version.*/version: ${GRAVITEEIO_VERSION_WITH_QUALIFIER}/" -i helm/Chart.yaml
 
                       git add --update
                       git commit -m "${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
@@ -1669,9 +1665,6 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password
                   var-name: ARTIFACTORY_PASSWORD
-            - keeper/env-export:
-                  secret-url: keeper://ZOz4db245GNaETVwmPBk8w/field/password
-                  var-name: SLACK_ACCESS_TOKEN
             - checkout
             - run:
                   name: Install dependencies
@@ -1681,29 +1674,12 @@ jobs:
                   name: "Building package bundle"
                   working_directory: "./release"
                   command: npm run zx -- --quiet --experimental ci-steps/package-bundles.mjs --version=<< pipeline.parameters.graviteeio_version >>
-            - run:
-                  name: "Comparing bundle size with previous version"
-                  working_directory: "./release"
-                  command: |
-                      npm run zx -- --quiet --experimental ci-steps/check-bundle-size.mjs
-                      echo "export BUNDLE_SIZE_MESSAGE=\"$(cat .tmp/bundle-size.md)\"" >> $BASH_ENV
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
-
-    job-publish-bundle:
-        docker:
-            - image: cimg/base:stable
-        steps:
             - keeper/env-export:
                   secret-url: keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password
                   var-name: AWS_ACCESS_KEY_ID
             - keeper/env-export:
                   secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
                   var-name: AWS_SECRET_ACCESS_KEY
-            - attach_workspace:
-                  at: .
             - when:
                   condition: << pipeline.parameters.dry_run>>
                   steps:
@@ -1782,7 +1758,7 @@ jobs:
                                       "type": "section",
                                       "text": {
                                         "type": "mrkdwn",
-                                        "text": ":memo: Changelog for APIM << pipeline.parameters.graviteeio_version >> has been generated and can be reviewed <${RELEASE_NOTES_PR_URL}|here>"
+                                        "text": ":memo: APIM Changelog << pipeline.parameters.graviteeio_version >> can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
                                       }
                                     }
                                   ]
@@ -1814,22 +1790,24 @@ jobs:
                       git config --global user.name "${GIT_USER_NAME}"
                       git config --global user.email "${GIT_USER_EMAIL}"
             - gh/setup
+            - helm/install-helm-client
+            - when:
+                  condition:
+                      not: << pipeline.parameters.dry_run>>
+                  steps:
+                      - run:
+                            name: Update Chart and App versions
+                            command: |
+                                sed "0,/version.*/s/version.*/version: ${VERSION}/" -i helm/Chart.yaml
+                                sed "0,/appVersion.*/s/appVersion.*/appVersion: ${VERSION}/" -i helm/Chart.yaml
             - run:
-                  name: Update version
-                  command: |
-                      wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && chmod +x ./yq_linux_amd64
-                      ./yq_linux_amd64 -i '.version = strenv(VERSION)' helm/Chart.yaml
-                      ./yq_linux_amd64 -i '.appVersion = strenv(VERSION)' helm/Chart.yaml
-            - run:
-                  name: Install Helm
-                  command: |
-                      curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-                      helm version
-            - run:
-                  name: "build the Chart"
+                  name: "build the Charts"
                   working_directory: "./helm"
                   command: |
                       helm dependency update
+                      helm package -d charts .
+
+                      sed "s/name.*/name: apim3/" -i Chart.yaml
                       helm package -d charts .
             - run:
                   name: Install dependencies
@@ -1917,9 +1895,9 @@ jobs:
             - run:
                   name: install helm-unittest plugin
                   command: helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11
-            - lint:
+            - cmd-helm-lint:
                   folder: helm/
-            - execute-tests:
+            - cmd-helm-tests:
                   folder: helm/
                   files: tests/**/*.yaml
                   output-file: apim-result.xml
@@ -1979,9 +1957,9 @@ workflows:
                   requires:
                       - Build backend
             - job-test-apim-charts:
-                name: Test Helm chart
-                requires:
-                  - Build backend
+                  name: Test Helm chart
+                  requires:
+                      - Build backend
             - job-sonarcloud-analysis:
                   name: Sonar - << matrix.working_directory >>
                   matrix:
@@ -2263,8 +2241,10 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - Commit and prepare next version
-            - job-publish-bundle:
-                  name: Publish bundle
+
+            # Release Helm chart
+            - job-release_helm:
+                  name: Release Helm Chart
                   context: cicd-orchestrator
                   requires:
                       - Package bundle
@@ -2277,7 +2257,7 @@ workflows:
                   context: cicd-orchestrator
                   name: Build and push docker images for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                   requires:
-                      - Publish bundle
+                      - Package bundle
             # Add docker images in Snyk
             - job-add-docker-images-in-snyk:
                   name: Push docker images to Snyk
@@ -2291,19 +2271,19 @@ workflows:
                   dry_run: << pipeline.parameters.dry_run >>
                   name: Build and push RPM packages for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                   requires:
-                      - Publish bundle
+                      - Package bundle
             # Create Release note pull request
             - job-release-notes-apim:
                   name: Create release note pull request
                   context: cicd-orchestrator
                   requires:
-                      - Publish bundle
+                      - Package bundle
             # Nexus staging
             - job-nexus-staging:
                   name: Nexus staging
                   context: cicd-orchestrator
                   requires:
-                      - Publish bundle
+                      - Package bundle
             - job-slack-announcement:
                   name: Announce end of release
                   message: 🎆 APIM - << pipeline.parameters.graviteeio_version >> released!
@@ -2313,6 +2293,7 @@ workflows:
                       - Build and push RPM packages for APIM << pipeline.parameters.graviteeio_version >><<# pipeline.parameters.dry_run >> - Dry Run<</ pipeline.parameters.dry_run >>
                       - Push docker images to Snyk
                       - Create release note pull request
+                      - Release Helm Chart
 
     release:
         when:
@@ -2378,11 +2359,6 @@ workflows:
             - job-package-bundle:
                   name: Package bundle
                   context: cicd-orchestrator
-            - job-publish-bundle:
-                  name: Publish bundle
-                  context: cicd-orchestrator
-                  requires:
-                      - Package bundle
 
     nexus_staging:
         when:
