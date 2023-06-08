@@ -71,8 +71,7 @@
         <div class="details-card__header__info-inputs__second-row">
           <mat-form-field class="details-card__header__info-inputs__second-row__description-field">
             <mat-label>Description</mat-label>
-            <textarea matInput formControlName="description" required></textarea>
-            <mat-error *ngIf="apiDetailsForm.controls.description.hasError('required')">Description is required.</mat-error>
+            <textarea matInput formControlName="description"></textarea>
           </mat-form-field>
 
           <mat-form-field class="etails-card__header__info-inputs__second-row__labels-field">
@@ -151,7 +150,7 @@
         *gioPermission="{ anyOf: ['api-definition-u'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="isReadOnly"
+        [disabled]="isReadOnly || api.definitionVersion === 'V4'"
         (click)="importApi()"
       >
         <mat-icon svgIcon="gio:download"></mat-icon> Import
@@ -160,7 +159,7 @@
         *gioPermission="{ anyOf: ['api-definition-c'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="isReadOnly"
+        [disabled]="isReadOnly || api.definitionVersion === 'V4'"
         (click)="duplicateApi()"
       >
         <mat-icon svgIcon="gio:copy"></mat-icon> Duplicate
@@ -169,7 +168,7 @@
         *gioPermission="{ anyOf: ['api-definition-u'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="!canPromote || isReadOnly"
+        [disabled]="!canPromote || isReadOnly || api.definitionVersion === 'V4'"
         (click)="promoteApi()"
       >
         <mat-icon svgIcon="gio:language"></mat-icon> Promote

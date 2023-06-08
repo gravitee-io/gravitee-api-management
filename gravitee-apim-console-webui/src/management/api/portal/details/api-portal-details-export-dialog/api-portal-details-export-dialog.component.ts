@@ -20,7 +20,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 
-import { Api } from '../../../../../entities/api';
+import { Api } from '../../../../../entities/management-api-v2';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
@@ -128,6 +128,6 @@ export class ApiPortalDetailsExportDialogComponent implements OnDestroy {
   }
 }
 
-const buildFileName = (api: Api) => {
-  return `${api.name}-${api.version}`.replace(/[\s]/gi, '-').replace(/[^\w]/gi, '-');
+export const buildFileName = (api: Api) => {
+  return `${api.name}-${api.apiVersion}`.replace(/[\s]/gi, '-').replace(/[^\w]/gi, '-');
 };
