@@ -16,18 +16,18 @@
 
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 
-import { Api } from '../../../../../entities/api';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { CockpitService, UtmCampaign } from '../../../../../services-ngx/cockpit.service';
 import { PromotionService } from '../../../../../services-ngx/promotion.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { ApiV2 } from '../../../../../entities/management-api-v2';
 
 export type ApiPortalDetailsPromoteDialogData = {
-  api: Api;
+  api: ApiV2;
 };
 
 @Component({

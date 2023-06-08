@@ -19,42 +19,44 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioFormFilePickerInputHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatProgressBarHarness } from '@angular/material/progress-bar/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
-import { Category } from '@uirouter/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
-import { UIRouterState, UIRouterStateParams, CurrentUserService } from '../../../../../ajs-upgraded-providers';
-import { Api } from '../../../../../entities/api';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
+import { ApiPortalDetailsPromoteDialogComponent } from './api-portal-details-promote-dialog.component';
+
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
-import { GioHttpTestingModule, CONSTANTS_TESTING } from '../../../../../shared/testing';
-import { ApiPortalDetailsComponent } from '../api-portal-details.component';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiPortalDetailsModule } from '../api-portal-details.module';
 import { fakePromotion, fakePromotionTarget, Promotion, PromotionTarget } from '../../../../../entities/promotion';
+import { fakeApiV2 } from '../../../../../entities/management-api-v2';
 
-describe('ApiPortalDetailsComponent', () => {
+describe('ApiPortalDetailsPromoteDialogComponent', () => {
   const API_ID = 'apiId';
+  const api = fakeApiV2({
+    id: API_ID,
+  });
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-d', 'api-definition-c'];
   const fakeAjsState = {
     go: jest.fn().mockReturnValue({}),
   };
 
-  let fixture: ComponentFixture<ApiPortalDetailsComponent>;
+  let fixture: ComponentFixture<ApiPortalDetailsPromoteDialogComponent>;
   let loader: HarnessLoader;
-  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalDetailsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalDetailsModule, MatIconTestingModule, MatDialogModule],
       providers: [
         { provide: UIRouterState, useValue: fakeAjsState },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: MatDialogRef, useValue: {} },
+        { provide: MAT_DIALOG_DATA, useValue: { api } },
         {
           provide: 'Constants',
           useValue: {
@@ -72,9 +74,8 @@ describe('ApiPortalDetailsComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiPortalDetailsComponent);
+    fixture = TestBed.createComponent(ApiPortalDetailsPromoteDialogComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
-    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -87,23 +88,6 @@ describe('ApiPortalDetailsComponent', () => {
   });
 
   it('should display meet cockpit', async () => {
-    const api = fakeApi({
-      id: API_ID,
-    });
-    expectApiGetRequest(api);
-    expectCategoriesGetRequest();
-
-    // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
-    await waitImageCheck();
-
-    const button = await loader.getHarness(MatButtonHarness.with({ text: /Promote/ }));
-    await button.click();
-
-    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#promoteApiDialog' }));
-
-    // Check loading
-    await confirmDialog.getHarness(MatProgressBarHarness);
-
     // Simulate APIM with no cockpit
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/promotion-targets`, method: 'GET' }).flush(
       {
@@ -120,51 +104,22 @@ describe('ApiPortalDetailsComponent', () => {
     );
     fixture.detectChanges();
 
-    const dialogNativeElement = fixture.debugElement.parent.nativeElement.querySelector('#promoteApiDialog');
+    const dialogNativeElement = fixture.debugElement.parent.nativeElement;
 
     expect(dialogNativeElement.querySelector('h2').innerHTML).toEqual('Meet Cockpit');
     expect(dialogNativeElement.querySelector('.meet-cockpit__content > p > a').href).toEqual(
       'https://cockpit.gravitee.io/?utm_source=apim&utm_medium=InApp&utm_campaign=api_promotion',
     );
-
-    const okButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Ok' }));
-    await okButton.click();
   });
 
   it('should promote the API', async () => {
-    const api = fakeApi({
-      id: API_ID,
-    });
-    expectApiGetRequest(api);
-    expectCategoriesGetRequest();
-
-    // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
-    await waitImageCheck();
-
-    const button = await loader.getHarness(MatButtonHarness.with({ text: /Promote/ }));
-    await button.click();
-
-    const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#promoteApiDialog' }));
-
-    await confirmDialog.getHarness(MatProgressBarHarness);
-
     expectListPromotionPostRequest(API_ID, [fakePromotion()]);
     expectPromotionTargetsGetRequest([fakePromotionTarget()]);
 
-    const okButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Promote' }));
+    const okButton = await loader.getHarness(MatButtonHarness.with({ text: 'Promote' }));
     await okButton.click();
     expectPromotePostRequest(API_ID);
   });
-
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
-    fixture.detectChanges();
-  }
-
-  function expectCategoriesGetRequest(categories: Category[] = []) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/categories`, method: 'GET' }).flush(categories);
-    fixture.detectChanges();
-  }
 
   function expectPromotionTargetsGetRequest(promotionTarget: PromotionTarget[] = []) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/promotion-targets`, method: 'GET' }).flush(promotionTarget);
@@ -190,5 +145,3 @@ describe('ApiPortalDetailsComponent', () => {
       .flush({});
   }
 });
-
-const waitImageCheck = () => new Promise((resolve) => setTimeout(resolve, 100));

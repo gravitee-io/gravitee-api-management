@@ -16,11 +16,11 @@
 
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
-import { Api } from '../../../../../entities/api';
+import { Api, ApiV2, ApiV4, HttpListener } from '../../../../../entities/management-api-v2';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
@@ -56,8 +56,8 @@ export class ApiPortalDetailsDuplicateDialogComponent implements OnDestroy {
     private readonly snackBarService: SnackBarService,
   ) {
     this.apiId = dialogData.api.id;
-    this.contextPathPlaceholder = dialogData.api.proxy.virtual_hosts[0].path;
-    this.versionPlaceholder = dialogData.api.version;
+    this.contextPathPlaceholder = extractContextPath(dialogData.api);
+    this.versionPlaceholder = dialogData.api.apiVersion;
 
     this.duplicateApiForm = new FormGroup({
       contextPath: new FormControl('', [Validators.required], [this.apiService.contextPathValidator()]),
@@ -98,3 +98,16 @@ export class ApiPortalDetailsDuplicateDialogComponent implements OnDestroy {
       });
   }
 }
+const extractContextPath = (api: Api) => {
+  if (api.definitionVersion === 'V2') return (api as ApiV2).proxy?.virtualHosts[0].path;
+
+  const apiV4 = api as ApiV4;
+  if (apiV4.listeners?.length > 0) {
+    const httpListener = apiV4.listeners.find((listener) => listener.type === 'HTTP');
+    if (httpListener && (httpListener as HttpListener).paths && (httpListener as HttpListener).paths.length > 0) {
+      const firstPath = (httpListener as HttpListener).paths[0];
+      return `${firstPath.host ?? ''}${firstPath.path}`;
+    }
+  }
+  return '';
+};

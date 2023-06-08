@@ -96,6 +96,33 @@ describe('ApiV2Service', () => {
     });
   });
 
+  describe('delete', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+      apiV2Service.delete(apiId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`,
+        method: 'DELETE',
+      });
+      req.flush(null);
+    });
+    it('should add a parameter to close plans', (done) => {
+      const apiId = 'apiId';
+      apiV2Service.delete(apiId, true).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}?closePlan=true`,
+        method: 'DELETE',
+      });
+      req.flush(null);
+    });
+  });
+
   describe('start', () => {
     it('should call the API', (done) => {
       const fakeApi = fakeApiV4();
@@ -111,6 +138,41 @@ describe('ApiV2Service', () => {
 
       expect(req.request.body).toEqual({});
       req.flush(fakeApi);
+    });
+  });
+
+  describe('stop', () => {
+    it('should call the API', (done) => {
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.stop(fakeApi.id).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}/_stop`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({});
+      req.flush(fakeApi);
+    });
+  });
+
+  describe('export', () => {
+    it('should call the API', (done) => {
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.export(fakeApi.id).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}/_export/definition`,
+        method: 'GET',
+      });
+
+      req.flush(null);
     });
   });
 

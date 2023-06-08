@@ -38,8 +38,22 @@ export class ApiV2Service {
     return this.http.put<Api>(`${this.constants.env.v2BaseURL}/apis/${apiId}`, api);
   }
 
+  delete(apiId: string, closePlan = false): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}${closePlan ? '?closePlan=true' : ''}`);
+  }
+
   start(apiId: string): Observable<void> {
     return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_start`, {});
+  }
+
+  stop(apiId: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_stop`, {});
+  }
+
+  export(apiId: string): Observable<Blob> {
+    return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/_export/definition`, {
+      responseType: 'blob',
+    });
   }
 
   search(searchQuery?: ApiSearchQuery, sortBy?: ApiSortByParam, page = 1, size = 10): Observable<ApisResponse> {

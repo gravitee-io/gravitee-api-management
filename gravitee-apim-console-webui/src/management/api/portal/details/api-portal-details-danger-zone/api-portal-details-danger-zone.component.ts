@@ -17,20 +17,21 @@
 import { Component, EventEmitter, Inject, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import {
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
   GioConfirmAndValidateDialogComponent,
   GioConfirmAndValidateDialogData,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
 } from '@gravitee/ui-particles-angular';
 import { StateService } from '@uirouter/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState } from '../../../../../ajs-upgraded-providers';
-import { Api } from '../../../../../entities/api';
 import { Constants } from '../../../../../entities/Constants';
+import { Api, UpdateApi } from '../../../../../entities/management-api-v2';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-portal-details-danger-zone',
@@ -63,7 +64,9 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly apiService: ApiService,
+    // TODO: we should remove this service as soon as everything is migrated to management API v2
+    private readonly legacyApiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
     @Inject('Constants') private readonly constants: Constants,
@@ -71,29 +74,29 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {
-      this.isReadOnly = this.api.definition_context?.origin === 'kubernetes';
+      this.isReadOnly = this.api.definitionVersion === 'V1' || this.api.definitionContext?.origin === 'KUBERNETES';
 
       this.dangerActions = {
         canAskForReview:
           this.constants.env?.settings?.apiReview?.enabled &&
-          (this.api.workflow_state === 'DRAFT' || this.api.workflow_state === 'REQUEST_FOR_CHANGES' || !this.api.workflow_state),
+          (this.api.workflowState === 'DRAFT' || this.api.workflowState === 'REQUEST_FOR_CHANGES' || !this.api.workflowState),
         canStartApi:
           (!this.constants.env?.settings?.apiReview?.enabled ||
-            (this.constants.env?.settings?.apiReview?.enabled && (!this.api.workflow_state || this.api.workflow_state === 'REVIEW_OK'))) &&
+            (this.constants.env?.settings?.apiReview?.enabled && (!this.api.workflowState || this.api.workflowState === 'REVIEW_OK'))) &&
           this.api.state === 'STOPPED',
         canStopApi:
           (!this.constants.env?.settings?.apiReview?.enabled ||
-            (this.constants.env?.settings?.apiReview?.enabled && (!this.api.workflow_state || this.api.workflow_state === 'REVIEW_OK'))) &&
+            (this.constants.env?.settings?.apiReview?.enabled && (!this.api.workflowState || this.api.workflowState === 'REVIEW_OK'))) &&
           this.api.state === 'STARTED',
 
         canChangeApiLifecycle: this.canChangeApiLifecycle(this.api),
-        canPublish: !this.api.lifecycle_state || this.api.lifecycle_state === 'CREATED' || this.api.lifecycle_state === 'UNPUBLISHED',
-        canUnpublish: this.api.lifecycle_state === 'PUBLISHED',
+        canPublish: !this.api.lifecycleState || this.api.lifecycleState === 'CREATED' || this.api.lifecycleState === 'UNPUBLISHED',
+        canUnpublish: this.api.lifecycleState === 'PUBLISHED',
 
-        canChangeVisibilityToPublic: this.api.lifecycle_state !== 'DEPRECATED' && this.api.visibility === 'PRIVATE',
-        canChangeVisibilityToPrivate: this.api.lifecycle_state !== 'DEPRECATED' && this.api.visibility === 'PUBLIC',
-        canDeprecate: this.api.lifecycle_state !== 'DEPRECATED',
-        canDelete: !(this.api.state === 'STARTED' || this.api.lifecycle_state === 'PUBLISHED'),
+        canChangeVisibilityToPublic: this.api.lifecycleState !== 'DEPRECATED' && this.api.visibility === 'PRIVATE',
+        canChangeVisibilityToPrivate: this.api.lifecycleState !== 'DEPRECATED' && this.api.visibility === 'PUBLIC',
+        canDeprecate: this.api.lifecycleState !== 'DEPRECATED',
+        canDelete: !(this.api.state === 'STARTED' || this.api.lifecycleState === 'PUBLISHED'),
       };
     }
   }
@@ -119,7 +122,7 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
       .pipe(
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.askForReview(this.api.id)),
+        switchMap(() => this.legacyApiService.askForReview(this.api.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -179,12 +182,14 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
-        switchMap((api) =>
-          this.apiService.update({
-            ...api,
-            lifecycle_state: lifecycleState,
-          }),
-        ),
+        switchMap((api) => {
+          if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4') {
+            const apiToUpdate: UpdateApi = { ...api, lifecycleState: lifecycleState };
+            return this.apiService.update(this.api.id, apiToUpdate);
+          } else {
+            return EMPTY;
+          }
+        }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -216,12 +221,16 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
-        switchMap((api) =>
-          this.apiService.update({
-            ...api,
-            visibility: visibility,
-          }),
-        ),
+        switchMap((api) => {
+          if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4') {
+            return this.apiService.update(api.id, {
+              ...api,
+              visibility: visibility,
+            });
+          } else {
+            return EMPTY;
+          }
+        }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -265,9 +274,9 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
 
   private canChangeApiLifecycle(api: Api): boolean {
     if (this.constants.env?.settings?.apiReview?.enabled) {
-      return !api.workflow_state || api.workflow_state === 'REVIEW_OK';
+      return !api.workflowState || api.workflowState === 'REVIEW_OK';
     } else {
-      return api.lifecycle_state === 'CREATED' || api.lifecycle_state === 'PUBLISHED' || api.lifecycle_state === 'UNPUBLISHED';
+      return api.lifecycleState === 'CREATED' || api.lifecycleState === 'PUBLISHED' || api.lifecycleState === 'UNPUBLISHED';
     }
   }
 }

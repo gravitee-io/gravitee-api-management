@@ -16,10 +16,10 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { NewFile } from '@gravitee/ui-particles-angular';
 import { StateService } from '@uirouter/angular';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { NewFile } from '@gravitee/ui-particles-angular';
 
 import {
   ApiPortalDetailsDuplicateDialogComponent,
@@ -28,17 +28,17 @@ import {
 import {
   ApiPortalDetailsExportDialogComponent,
   ApiPortalDetailsExportDialogData,
+  buildFileName,
 } from './api-portal-details-export-dialog/api-portal-details-export-dialog.component';
 import {
   ApiPortalDetailsPromoteDialogComponent,
   ApiPortalDetailsPromoteDialogData,
 } from './api-portal-details-promote-dialog/api-portal-details-promote-dialog.component';
+import { versionValidator } from './api-version.validator';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { Api } from '../../../../entities/api';
 import { Category } from '../../../../entities/category/Category';
 import { Constants } from '../../../../entities/Constants';
-import { ApiService } from '../../../../services-ngx/api.service';
 import { CategoryService } from '../../../../services-ngx/category.service';
 import { PolicyService } from '../../../../services-ngx/policy.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -47,6 +47,9 @@ import {
   GioApiImportDialogData,
 } from '../../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.component';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { Api, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../../entities/management-api-v2';
+import { ApiService } from '../../../../services-ngx/api.service';
 
 @Component({
   selector: 'api-portal-details',
@@ -64,8 +67,8 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   public labelsAutocompleteOptions: string[] = [];
   public apiCategories: Category[] = [];
   public apiOwner: string;
-  public apiCreatedAt: number;
-  public apiLastDeploymentAt: number;
+  public apiCreatedAt: Date;
+  public apiLastDeploymentAt: Date;
   public dangerActions = {
     canAskForReview: false,
     canStartApi: false,
@@ -89,7 +92,8 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly apiService: ApiService,
+    private readonly legacyApiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly policyService: PolicyService,
     private readonly categoryService: CategoryService,
     private readonly permissionService: GioPermissionService,
@@ -100,7 +104,6 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.labelsAutocompleteOptions = this.constants.env?.settings?.api?.labelsDictionary ?? [];
-    this.canDisplayJupiterToggle = this.constants.org?.settings?.jupiterMode?.enabled ?? false;
 
     this.isQualityEnabled = this.constants.env?.settings?.apiQualityMetrics?.enabled;
 
@@ -108,14 +111,18 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap(([api, categories]) =>
-          combineLatest([isImgUrl(api.picture_url), isImgUrl(api.background_url)]).pipe(
+          combineLatest([isImgUrl(api._links['pictureUrl']), isImgUrl(api._links['backgroundUrl'])]).pipe(
             map(
               ([hasPictureImg, hasBackgroundImg]) =>
+                // FIXME:create type ApiVM?
                 [
                   {
                     ...api,
-                    picture_url: hasPictureImg ? api.picture_url : null,
-                    background_url: hasBackgroundImg ? api.background_url : null,
+                    _links: {
+                      ...api._links,
+                      pictureUrl: hasPictureImg ? api._links['pictureUrl'] : null,
+                      backgroundUrl: hasBackgroundImg ? api._links['backgroundUrl'] : null,
+                    },
                   },
                   categories,
                 ] as const,
@@ -123,41 +130,41 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           ),
         ),
         tap(([api, categories]) => {
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
           this.apiId = api.id;
           this.api = api;
-          this.updateState = api.gravitee == null || api.gravitee === '1.0.0' ? 'TO_UPDATE' : undefined;
+          this.updateState = api.definitionVersion == null || api.definitionVersion === 'V1' ? 'TO_UPDATE' : undefined;
 
           this.apiCategories = categories;
-          this.apiOwner = api.owner.displayName;
-          this.apiCreatedAt = api.created_at;
-          this.apiLastDeploymentAt = api.updated_at;
+          this.apiOwner = api.primaryOwner.displayName;
+          this.apiCreatedAt = api.createdAt;
+          this.apiLastDeploymentAt = api.updatedAt;
 
           this.dangerActions = {
             canAskForReview:
               this.constants.env?.settings?.apiReview?.enabled &&
-              (api.workflow_state === 'DRAFT' || api.workflow_state === 'REQUEST_FOR_CHANGES' || !api.workflow_state),
+              (api.workflowState === 'DRAFT' || api.workflowState === 'REQUEST_FOR_CHANGES' || !api.workflowState),
             canStartApi:
               (!this.constants.env?.settings?.apiReview?.enabled ||
-                (this.constants.env?.settings?.apiReview?.enabled && (!api.workflow_state || api.workflow_state === 'REVIEW_OK'))) &&
+                (this.constants.env?.settings?.apiReview?.enabled && (!api.workflowState || api.workflowState === 'REVIEW_OK'))) &&
               api.state === 'STOPPED',
             canStopApi:
               (!this.constants.env?.settings?.apiReview?.enabled ||
-                (this.constants.env?.settings?.apiReview?.enabled && (!api.workflow_state || api.workflow_state === 'REVIEW_OK'))) &&
+                (this.constants.env?.settings?.apiReview?.enabled && (!api.workflowState || api.workflowState === 'REVIEW_OK'))) &&
               api.state === 'STARTED',
 
             canChangeApiLifecycle: this.canChangeApiLifecycle(api),
-            canPublish: !api.lifecycle_state || api.lifecycle_state === 'CREATED' || api.lifecycle_state === 'UNPUBLISHED',
-            canUnpublish: api.lifecycle_state === 'PUBLISHED',
+            canPublish: !api.lifecycleState || api.lifecycleState === 'CREATED' || api.lifecycleState === 'UNPUBLISHED',
+            canUnpublish: api.lifecycleState === 'PUBLISHED',
 
-            canChangeVisibilityToPublic: api.lifecycle_state !== 'DEPRECATED' && api.visibility === 'PRIVATE',
-            canChangeVisibilityToPrivate: api.lifecycle_state !== 'DEPRECATED' && api.visibility === 'PUBLIC',
-            canDeprecate: api.lifecycle_state !== 'DEPRECATED',
-            canDelete: !(api.state === 'STARTED' || api.lifecycle_state === 'PUBLISHED'),
+            canChangeVisibilityToPublic: api.lifecycleState !== 'DEPRECATED' && api.visibility === 'PRIVATE',
+            canChangeVisibilityToPrivate: api.lifecycleState !== 'DEPRECATED' && api.visibility === 'PUBLIC',
+            canDeprecate: api.lifecycleState !== 'DEPRECATED',
+            canDelete: !(api.state === 'STARTED' || api.lifecycleState === 'PUBLISHED'),
           };
-
-          this.canPromote = this.dangerActions.canChangeApiLifecycle && api.lifecycle_state !== 'DEPRECATED';
+          this.canDisplayJupiterToggle = (this.constants.org?.settings?.jupiterMode?.enabled && api.definitionVersion === 'V2') ?? false;
+          this.canPromote = this.dangerActions.canChangeApiLifecycle && api.lifecycleState !== 'DEPRECATED';
 
           this.apiDetailsForm = new FormGroup({
             name: new FormControl(
@@ -169,24 +176,21 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
             ),
             version: new FormControl(
               {
-                value: api.version,
+                value: api.apiVersion,
                 disabled: this.isReadOnly,
               },
-              [Validators.required, this.apiService.versionValidator()],
+              [Validators.required, versionValidator()],
             ),
-            description: new FormControl(
-              {
-                value: api.description,
-                disabled: this.isReadOnly,
-              },
-              [Validators.required],
-            ),
+            description: new FormControl({
+              value: api.description,
+              disabled: this.isReadOnly,
+            }),
             picture: new FormControl({
-              value: api.picture_url ? [api.picture_url] : [],
+              value: api._links['pictureUrl'] ? [api._links['pictureUrl']] : [],
               disabled: this.isReadOnly,
             }),
             background: new FormControl({
-              value: api.background_url ? [api.background_url] : [],
+              value: api._links['backgroundUrl'] ? [api._links['backgroundUrl']] : [],
               disabled: this.isReadOnly,
             }),
             labels: new FormControl({
@@ -198,7 +202,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               disabled: this.isReadOnly,
             }),
             enableJupiter: new FormControl({
-              value: api.execution_mode === 'jupiter',
+              value: api.definitionVersion === 'V2' && (api as ApiV2).executionMode === 'JUPITER',
               disabled: this.isReadOnly,
             }),
           });
@@ -217,27 +221,40 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   onSubmit() {
     const apiDetailsFormValue = this.apiDetailsForm.getRawValue();
 
+    // FIXME handle picture update
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const picture = getBase64(apiDetailsFormValue.picture[0]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const background = getBase64(apiDetailsFormValue.background[0]);
 
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
-        map((api) => ({
-          ...api,
-          ...(picture !== null ? { picture: picture } : { picture_url: null, picture: null }),
-          ...(background !== null ? { background: background } : { background_url: null, background: null }),
-          name: apiDetailsFormValue.name,
-          version: apiDetailsFormValue.version,
-          description: apiDetailsFormValue.description,
-          labels: apiDetailsFormValue.labels,
-          categories: apiDetailsFormValue.categories,
-          ...(this.canDisplayJupiterToggle
-            ? { execution_mode: apiDetailsFormValue.enableJupiter ? ('jupiter' as const) : ('v3' as const) }
-            : {}),
-        })),
-        switchMap((api) => this.apiService.update(api)),
+        map((api: Api) => {
+          if (api.definitionVersion === 'V2') {
+            const apiToUpdate: UpdateApiV2 = {
+              ...(api as ApiV2),
+              name: apiDetailsFormValue.name,
+              apiVersion: apiDetailsFormValue.version,
+              description: apiDetailsFormValue.description,
+              labels: apiDetailsFormValue.labels,
+              categories: apiDetailsFormValue.categories,
+              ...(this.canDisplayJupiterToggle ? { executionMode: apiDetailsFormValue.enableJupiter ? 'JUPITER' : 'V3' } : {}),
+            };
+            return apiToUpdate;
+          }
+          const apiToUpdate: UpdateApiV4 = {
+            ...(api as ApiV4),
+            name: apiDetailsFormValue.name,
+            apiVersion: apiDetailsFormValue.version,
+            description: apiDetailsFormValue.description,
+            labels: apiDetailsFormValue.labels,
+            categories: apiDetailsFormValue.categories,
+          };
+          return apiToUpdate;
+        }),
+        switchMap((api: UpdateApi) => this.apiService.update(this.apiId, api)),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? err.message);
@@ -261,7 +278,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
               data: {
                 apiId: this.ajsStateParams.apiId,
-                definitionVersion: this.api.gravitee,
+                definitionVersion: this.api.definitionVersion,
                 policies,
               },
               role: 'alertdialog',
@@ -298,44 +315,60 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   }
 
   exportApi() {
-    this.matDialog
-      .open<ApiPortalDetailsExportDialogComponent, ApiPortalDetailsExportDialogData>(ApiPortalDetailsExportDialogComponent, {
-        data: {
-          api: this.api,
-        },
-        role: 'alertdialog',
-        id: 'exportApiDialog',
-      })
-      .afterClosed()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe();
+    if (this.api.definitionVersion === 'V4') {
+      this.apiService
+        .export(this.apiId)
+        .pipe(
+          takeUntil(this.unsubscribe$),
+          tap((blob) => {
+            const anchor = document.createElement('a');
+            anchor.download = buildFileName(this.api);
+            anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+            anchor.click();
+          }),
+        )
+        .subscribe();
+    } else {
+      this.matDialog
+        .open<ApiPortalDetailsExportDialogComponent, ApiPortalDetailsExportDialogData>(ApiPortalDetailsExportDialogComponent, {
+          data: {
+            api: this.api,
+          },
+          role: 'alertdialog',
+          id: 'exportApiDialog',
+        })
+        .afterClosed()
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe();
+    }
   }
 
   promoteApi() {
-    this.matDialog
-      .open<ApiPortalDetailsPromoteDialogComponent, ApiPortalDetailsPromoteDialogData>(ApiPortalDetailsPromoteDialogComponent, {
-        data: {
-          api: this.api,
-        },
-        role: 'alertdialog',
-        id: 'promoteApiDialog',
-      })
-      .afterClosed()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe();
+    if (this.api.definitionVersion === 'V2')
+      this.matDialog
+        .open<ApiPortalDetailsPromoteDialogComponent, ApiPortalDetailsPromoteDialogData>(ApiPortalDetailsPromoteDialogComponent, {
+          data: {
+            api: this.api as ApiV2,
+          },
+          role: 'alertdialog',
+          id: 'promoteApiDialog',
+        })
+        .afterClosed()
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe();
   }
 
   private canChangeApiLifecycle(api: Api): boolean {
     if (this.constants.env?.settings?.apiReview?.enabled) {
-      return !api.workflow_state || api.workflow_state === 'REVIEW_OK';
+      return !api.workflowState || api.workflowState === 'REVIEW_OK';
     } else {
-      return api.lifecycle_state === 'CREATED' || api.lifecycle_state === 'PUBLISHED' || api.lifecycle_state === 'UNPUBLISHED';
+      return api.lifecycleState === 'CREATED' || api.lifecycleState === 'PUBLISHED' || api.lifecycleState === 'UNPUBLISHED';
     }
   }
 
   public updateApiVersion() {
     this.updateState = 'IN_PROGRESS';
-    this.apiService
+    this.legacyApiService
       .migrateApiToPolicyStudio(this.apiId)
       .pipe(
         tap(() => {

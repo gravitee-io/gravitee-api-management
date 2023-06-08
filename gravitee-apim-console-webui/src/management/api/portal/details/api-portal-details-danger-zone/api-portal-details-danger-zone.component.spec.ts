@@ -29,10 +29,9 @@ import { ApiPortalDetailsDangerZoneComponent } from './api-portal-details-danger
 
 import { ApiPortalDetailsModule } from '../api-portal-details.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { Api } from '../../../../../entities/api';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
+import { Api, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiPortalDetailsDangerZoneComponent', () => {
   const API_ID = 'apiId';
@@ -104,9 +103,9 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
   };
 
   it('should ask for review', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
-      workflow_state: 'DRAFT',
+      workflowState: 'DRAFT',
     });
     createComponent(api);
 
@@ -128,7 +127,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
   });
 
   it('should start the api', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       state: 'STOPPED',
     });
@@ -144,7 +143,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     httpTestingController
       .expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}?action=START`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_start`,
       })
       .flush({});
 
@@ -152,7 +151,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
   });
 
   it('should stop the api', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       state: 'STARTED',
     });
@@ -168,7 +167,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     httpTestingController
       .expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}?action=STOP`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_stop`,
       })
       .flush({});
 
@@ -176,9 +175,9 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
   });
 
   it('should publish the api', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
-      lifecycle_state: 'CREATED',
+      lifecycleState: 'CREATED',
     });
     createComponent(api);
 
@@ -190,15 +189,15 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     await confirmDialogSwitchButton.click();
 
     expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
-    expect(req.request.body.lifecycle_state).toEqual('PUBLISHED');
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+    expect(req.request.body.lifecycleState).toEqual('PUBLISHED');
     req.flush({});
 
     expect(component.reloadDetails.emit).toHaveBeenCalled();
   });
 
   it('should make public the api', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
       visibility: 'PRIVATE',
     });
@@ -212,7 +211,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     await confirmDialogSwitchButton.click();
 
     expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` });
+    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
     expect(req.request.body.visibility).toEqual('PUBLIC');
     req.flush({});
 
@@ -220,9 +219,9 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
   });
 
   it('should delete the api', async () => {
-    const api = fakeApi({
+    const api = fakeApiV2({
       id: API_ID,
-      lifecycle_state: 'CREATED',
+      lifecycleState: 'CREATED',
       visibility: 'PRIVATE',
       state: 'STOPPED',
     });
@@ -234,14 +233,14 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
     await confirmDialog.confirm();
 
-    httpTestingController.expectOne({ method: 'DELETE', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}` }).flush({});
+    httpTestingController.expectOne({ method: 'DELETE', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` }).flush({});
     expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng-list');
 
     expect(component.reloadDetails.emit).not.toHaveBeenCalled();
   });
 
   function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 });
