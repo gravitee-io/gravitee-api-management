@@ -100,13 +100,32 @@ export class ApiNgNavigationComponent implements OnInit {
           targetRoute: 'management.apis.ng.general',
           baseRoute: 'management.apis.ng.general',
         },
-        {
-          displayName: 'Plans',
-          targetRoute: 'management.apis.ng.plans',
-          baseRoute: 'management.apis.ng.plans',
-        },
       ],
     };
+    // Plans
+    const plansMenuItem: MenuItem = {
+      displayName: 'Plans',
+      tabs: [],
+    };
+
+    if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
+      plansMenuItem.tabs.push({
+        displayName: 'Plans',
+        targetRoute: 'management.apis.ng.plans',
+        baseRoute: 'management.apis.ng.plans',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
+      plansMenuItem.tabs.push({
+        displayName: 'Subscriptions',
+        targetRoute: 'management.apis.ng.subscriptions',
+        baseRoute: 'management.apis.ng.subscriptions',
+      });
+    }
+    if (plansMenuItem.tabs.length > 0) {
+      portalGroup.items.push(plansMenuItem);
+    }
+
     this.groupItems.push(portalGroup);
   }
 
