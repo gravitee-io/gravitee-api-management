@@ -32,7 +32,8 @@ $accent: map.get(gio.$mat-theme, accent);
   min-height: 40px;
   min-width: 64px;
 
-  & > .selection-icon {
+  & > .selection-icon,
+  & > .lock-icon {
     opacity: 0;
     cursor: pointer;
     color: mat.get-color-from-palette($accent);
@@ -48,6 +49,10 @@ $accent: map.get(gio.$mat-theme, accent);
       color: mat.get-color-from-palette($foreground, disabled);
       cursor: auto;
     }
+  }
+
+  & > .lock-icon {
+    opacity: 1;
   }
 
   &.selected {
