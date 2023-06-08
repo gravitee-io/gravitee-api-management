@@ -1,0 +1,63 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package fixtures;
+
+import io.gravitee.definition.model.Origin;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.OAuthClientSettings;
+import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
+import java.util.Date;
+import java.util.Set;
+
+/**
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class ApplicationFixtures {
+
+    private static final ApplicationListItem.ApplicationListItemBuilder BASE_APPLICATION_LIST_ITEM = ApplicationListItem
+        .builder()
+        .id("my-subscription")
+        .name("My application")
+        .description("Description")
+        .apiKeyMode(ApiKeyMode.EXCLUSIVE)
+        .background("background")
+        .backgroundUrl("https://background.gravitee.io")
+        .createdAt(new Date())
+        .updatedAt(new Date())
+        .disableMembershipNotifications(true)
+        .domain("domain")
+        .groups(Set.of("group1", "group2"))
+        .origin(Origin.MANAGEMENT)
+        .picture("picture")
+        .pictureUrl("https://picture.gravitee.io")
+        .primaryOwner(PrimaryOwnerEntity.builder().id("primary-owner-id").build())
+        .settings(
+            ApplicationSettings
+                .builder()
+                .app(SimpleApplicationSettings.builder().clientId("clientId").build())
+                .oAuthClient(OAuthClientSettings.builder().clientId("clientId").build())
+                .build()
+        )
+        .status("ACTIVE")
+        .type("iOS");
+
+    public static ApplicationListItem anApplicationListItem() {
+        return BASE_APPLICATION_LIST_ITEM.build();
+    }
+}

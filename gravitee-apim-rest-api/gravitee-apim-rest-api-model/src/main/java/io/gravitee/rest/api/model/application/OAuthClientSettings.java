@@ -17,7 +17,13 @@ package io.gravitee.rest.api.model.application;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder(toBuilder = true)
 public class OAuthClientSettings {
 
     @JsonProperty("client_id")

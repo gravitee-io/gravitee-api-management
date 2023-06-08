@@ -182,8 +182,8 @@ public class ApiPlansResource_ListTest extends ApiPlansResourceTest {
             );
 
         final Response response = rootTarget()
-            .queryParam("security", "JWT")
-            .queryParam("status", "DEPRECATED")
+            .queryParam("securities", "JWT")
+            .queryParam("statuses", "DEPRECATED")
             .queryParam("perPage", 1)
             .request()
             .get();

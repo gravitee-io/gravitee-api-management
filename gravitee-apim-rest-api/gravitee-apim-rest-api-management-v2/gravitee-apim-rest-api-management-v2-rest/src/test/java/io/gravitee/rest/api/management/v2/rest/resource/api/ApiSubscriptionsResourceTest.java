@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -35,18 +33,24 @@ import org.junit.Before;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class ApiPlansResourceTest extends AbstractResourceTest {
+public abstract class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     protected static final String API = "my-api";
     protected static final String PLAN = "my-plan";
     protected static final String ENVIRONMENT = "my-env";
 
     @Autowired
-    private PlanSearchService planSearchService;
+    protected SubscriptionService subscriptionService;
+
+    @Autowired
+    protected PlanSearchService planSearchService;
+
+    @Autowired
+    protected ApplicationService applicationService;
 
     @Before
     public void init() throws TechnicalException {
-        Mockito.reset(planServiceV4, planServiceV2, apiSearchServiceV4, planSearchService);
+        Mockito.reset(subscriptionService, applicationService, planSearchService);
         GraviteeContext.cleanContext();
 
         Api api = new Api();
@@ -67,12 +71,5 @@ public abstract class ApiPlansResourceTest extends AbstractResourceTest {
     @After
     public void tearDown() {
         GraviteeContext.cleanContext();
-    }
-
-    protected ApiEntity getApi() {
-        ApiEntity api = new ApiEntity();
-        api.setId(API);
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        return api;
     }
 }
