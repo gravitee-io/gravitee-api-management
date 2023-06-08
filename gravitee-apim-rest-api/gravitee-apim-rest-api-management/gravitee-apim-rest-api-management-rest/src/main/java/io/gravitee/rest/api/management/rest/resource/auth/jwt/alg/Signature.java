@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,13 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use 'sass:map';
-@use '@gravitee/ui-particles-angular' as gio;
+package io.gravitee.rest.api.management.rest.resource.auth.jwt.alg;
 
-.gio-top-nav {
-  border-bottom: 1px solid map.get(gio.$mat-space-palette, lighter40);
-}
+import com.nimbusds.jose.JWSAlgorithm;
 
-.icon-celigo {
-  width: 40px;
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public enum Signature {
+    RSA_RS256(JWSAlgorithm.RS256),
+    RSA_RS384(JWSAlgorithm.RS384),
+    RSA_RS512(JWSAlgorithm.RS512),
+    HMAC_HS256(JWSAlgorithm.HS256),
+    HMAC_HS384(JWSAlgorithm.HS384),
+    HMAC_HS512(JWSAlgorithm.HS512);
+
+    private final JWSAlgorithm alg;
+
+    Signature(JWSAlgorithm alg) {
+        this.alg = alg;
+    }
+
+    public JWSAlgorithm getAlg() {
+        return alg;
+    }
 }

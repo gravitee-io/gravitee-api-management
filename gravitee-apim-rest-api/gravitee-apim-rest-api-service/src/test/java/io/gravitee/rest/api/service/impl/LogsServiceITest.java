@@ -15,11 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.model.PlanSecurityType.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.*;
-
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.analytics.AnalyticsException;
@@ -40,15 +35,20 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Set;
 import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Set;
+
+import static io.gravitee.rest.api.model.PlanSecurityType.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 /**
  * @author GraviteeSource Team

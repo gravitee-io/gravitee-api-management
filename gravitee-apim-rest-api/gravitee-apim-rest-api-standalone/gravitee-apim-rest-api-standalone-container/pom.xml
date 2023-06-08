@@ -83,7 +83,10 @@
             <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-auth-provider</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>io.gravitee.json</groupId>
+            <artifactId>gravitee-json-validation</artifactId>
+        </dependency>
         <!-- To override Spring commons-logging -->
         <dependency>
             <groupId>org.slf4j</groupId>

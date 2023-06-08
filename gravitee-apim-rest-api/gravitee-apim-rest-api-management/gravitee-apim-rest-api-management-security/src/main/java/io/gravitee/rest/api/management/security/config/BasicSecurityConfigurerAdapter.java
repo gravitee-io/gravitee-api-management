@@ -248,6 +248,8 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
              */
             .antMatchers(HttpMethod.GET, "/auth/cockpit")
             .permitAll()
+                .antMatchers(HttpMethod.GET, "/auth/external")
+                .permitAll()
             /*
              * organizations resources
              */
