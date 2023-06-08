@@ -117,4 +117,6 @@ public interface ApiMapper {
             .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
             .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
     }
+
+    BaseApi map(GenericApiEntity apiEntity);
 }

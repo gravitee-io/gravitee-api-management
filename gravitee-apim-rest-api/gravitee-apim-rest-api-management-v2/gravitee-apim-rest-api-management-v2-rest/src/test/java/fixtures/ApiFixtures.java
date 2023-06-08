@@ -19,23 +19,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.rest.api.management.v2.rest.model.Analytics;
-import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
-import io.gravitee.rest.api.management.v2.rest.model.ApiServices;
-import io.gravitee.rest.api.management.v2.rest.model.ApiType;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
-import io.gravitee.rest.api.management.v2.rest.model.ApiWorkflowState;
-import io.gravitee.rest.api.management.v2.rest.model.BaseApi;
-import io.gravitee.rest.api.management.v2.rest.model.DefinitionContext;
-import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
-import io.gravitee.rest.api.management.v2.rest.model.ExecutionMode;
-import io.gravitee.rest.api.management.v2.rest.model.FlowMode;
-import io.gravitee.rest.api.management.v2.rest.model.Listener;
-import io.gravitee.rest.api.management.v2.rest.model.Proxy;
-import io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
-import io.gravitee.rest.api.management.v2.rest.model.Visibility;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -146,7 +130,7 @@ public class ApiFixtures {
         .updatedAt(OffsetDateTime.now())
         .disableMembershipNotifications(true)
         .groups(List.of("my-group1", "my-group2"))
-        .state(BaseApi.StateEnum.STARTED)
+        .state(GenericApi.StateEnum.STARTED)
         .visibility(Visibility.PUBLIC)
         .labels(List.of("my-label1", "my-label2"))
         .lifecycleState(ApiLifecycleState.CREATED)
@@ -222,6 +206,11 @@ public class ApiFixtures {
 
     public static ApiV4 anApiV4() {
         return BASE_API_V4.build();
+    }
+
+    public static BaseApi aBaseApi() {
+        final ApiV4 apiV4 = anApiV4();
+        return BaseApi.builder().id(apiV4.getId()).description(apiV4.getDescription()).name(apiV4.getName()).build();
     }
 
     public static GenericApiEntity aGenericApiEntity(final io.gravitee.definition.model.DefinitionVersion definitionVersion) {

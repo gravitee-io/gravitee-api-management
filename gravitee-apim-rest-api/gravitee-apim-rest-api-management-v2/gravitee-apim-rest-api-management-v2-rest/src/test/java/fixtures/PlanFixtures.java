@@ -44,9 +44,8 @@ public class PlanFixtures {
             .type(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY)
             .configuration("{\"nice\": \"config\"}");
 
-    private static final UpdateBasePlanSecurity.UpdateBasePlanSecurityBuilder<?, ?> BASE_UPDATE_PLAN_SECURITY = UpdateBasePlanSecurity
-        .builder()
-        .configuration("{\"nice\": \"config\"}");
+    private static final UpdateGenericPlanSecurity.UpdateGenericPlanSecurityBuilder<?, ?> BASE_UPDATE_PLAN_SECURITY =
+        UpdateGenericPlanSecurity.builder().configuration("{\"nice\": \"config\"}");
 
     private static final PlanEntity.PlanEntityBuilder BASE_PLAN_ENTITY_V4 = PlanEntity
         .builder()

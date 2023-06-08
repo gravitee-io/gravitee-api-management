@@ -94,4 +94,8 @@ public interface PlanMapper {
         }
         return io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(securityType.name()).getLabel();
     }
+
+    BasePlan map(GenericPlanEntity plan);
+
+    Collection<BasePlan> mapToBasePlans(Set<GenericPlanEntity> plans);
 }

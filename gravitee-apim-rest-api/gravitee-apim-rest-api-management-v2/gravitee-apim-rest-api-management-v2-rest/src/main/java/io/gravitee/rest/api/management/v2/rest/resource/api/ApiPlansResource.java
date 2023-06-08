@@ -116,7 +116,7 @@ public class ApiPlansResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.CREATE }) })
-    public Response createApiPlan(@Valid @NotNull CreateBasePlan createPlan) {
+    public Response createApiPlan(@Valid @NotNull CreateGenericPlan createPlan) {
         if (createPlan.getDefinitionVersion() == DefinitionVersion.V4) {
             final NewPlanEntity newPlanEntity = planMapper.map((CreatePlanV4) createPlan);
             newPlanEntity.setApiId(apiId);
@@ -159,7 +159,7 @@ public class ApiPlansResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
-    public Response updateApiPlan(@PathParam("planId") String planId, @Valid @NotNull UpdateBasePlan updatePlan) {
+    public Response updateApiPlan(@PathParam("planId") String planId, @Valid @NotNull UpdateGenericPlan updatePlan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
