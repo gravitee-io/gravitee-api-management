@@ -21,3 +21,5 @@ annotations:
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
     - Change the versioning
+    - Remove duplicate annotation in ui deployment
+    - Remove duplicate annotation in ui deployment
