@@ -139,6 +139,19 @@ const states: Ng2StateDeclaration[] = [
       // },
     },
   },
+  {
+    name: 'management.apis.ng.subscriptions',
+    url: '/subscriptions',
+    component: GioEmptyComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-r'],
+      // },
+    },
+  },
 ];
 
 @NgModule({
