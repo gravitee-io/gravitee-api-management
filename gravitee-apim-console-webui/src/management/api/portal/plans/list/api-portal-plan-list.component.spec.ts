@@ -27,6 +27,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 import { castArray, set } from 'lodash';
 import { MatMenuHarness } from '@angular/material/menu/testing';
+import { UIRouterGlobals } from '@uirouter/core';
 
 import { ApiPortalPlanListComponent } from './api-portal-plan-list.component';
 
@@ -52,8 +53,9 @@ describe('ApiPortalPlanListComponent', () => {
   let httpTestingController: HttpTestingController;
 
   const fakeRootScope = { $broadcast: jest.fn(), $on: jest.fn() };
+  const fakeAjsGlobals = { current: { data: { baseRouteState: 'management.apis.ng' } } };
 
-  beforeEach(async () => {
+  const init = async (ajsGlobals: any = {}) => {
     await TestBed.configureTestingModule({
       imports: [ApiPortalPlansModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
@@ -93,8 +95,16 @@ describe('ApiPortalPlanListComponent', () => {
             return constants;
           },
         },
+        {
+          provide: UIRouterGlobals,
+          useValue: ajsGlobals,
+        },
       ],
     }).compileComponents();
+  };
+
+  beforeEach(async () => {
+    await init();
   });
 
   afterEach(() => {
@@ -193,6 +203,45 @@ describe('ApiPortalPlanListComponent', () => {
   });
 
   describe('actions tests', () => {
+    describe('with Angular router', () => {
+      it('should navigate to edit when click on the action button', async () => {
+        await init(fakeAjsGlobals);
+        const plan = fakePlanV2();
+        await initComponent([plan]);
+        fakeUiRouter.go.mockReset();
+
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit the plan"]' })).then((btn) => btn.click());
+
+        expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.edit', { planId: plan.id });
+      });
+      it('should navigate to new plan', async () => {
+        await init(fakeAjsGlobals);
+        await initComponent([]);
+        fixture.componentInstance.isLoadingData = false;
+        fakeUiRouter.go.mockReset();
+
+        await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());
+
+        const planSecurityDropdown = await loader.getHarness(MatMenuHarness);
+        expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
+
+        await planSecurityDropdown.clickItem({ text: 'Keyless (public)' });
+        expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.new', { securityType: 'KEY_LESS' });
+      });
+      it('should navigate to edit when click on the name', async () => {
+        await init(fakeAjsGlobals);
+        const plan = fakePlanV2();
+        await initComponent([plan]);
+        fakeUiRouter.go.mockReset();
+
+        await loader
+          .getHarness(MatCellHarness.with({ text: plan.name }))
+          .then((btn) => btn.host())
+          .then((host) => host.click());
+
+        expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.edit', { planId: plan.id });
+      });
+    });
     it('should navigate to edit when click on the action button', async () => {
       const plan = fakePlanV2();
       await initComponent([plan]);
