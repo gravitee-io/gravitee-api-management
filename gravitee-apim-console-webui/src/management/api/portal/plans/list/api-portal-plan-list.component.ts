@@ -16,7 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
-import { StateService } from '@uirouter/core';
+import { StateService, UIRouterGlobals } from '@uirouter/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { orderBy } from 'lodash';
 import {
@@ -54,11 +54,13 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   public isReadOnly = false;
   public isV2Api: boolean;
   public planSecurityOptions: PlanSecurityVM[];
+  private routeBase: string;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(AjsRootScope) private readonly ajsRootScope: IRootScopeService,
+    private readonly ajsGlobals: UIRouterGlobals,
     private readonly plansV1Service: PlanService,
     private readonly plansService: ApiPlanV2Service,
     private readonly constantsService: ConstantsService,
@@ -70,6 +72,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
+    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.portal';
     this.status = this.ajsStateParams.status ?? 'PUBLISHED';
     this.planSecurityOptions = this.constantsService.getEnabledPlanSecurityTypes();
 
@@ -129,11 +132,11 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   }
 
   public navigateToPlan(planId: string): void {
-    this.ajsState.go('management.apis.detail.portal.plan.edit', { planId });
+    this.ajsState.go(`${this.routeBase}.plan.edit`, { planId });
   }
 
   public navigateToNewPlan(securityType: string): void {
-    this.ajsState.go('management.apis.detail.portal.plan.new', { securityType });
+    this.ajsState.go(`${this.routeBase}.plan.new`, { securityType });
   }
 
   public designPlan(planId: string): void {
@@ -284,8 +287,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         tap((plans) => {
-          this.ajsState.go('management.apis.detail.portal.plans', { status: this.status }, { notify: false });
-
+          this.ajsState.go(`${this.routeBase}.plans`, { status: this.status }, { notify: false });
           this.plansTableDS = orderBy(plans, 'order', 'asc');
           this.isLoadingData = false;
         }),
