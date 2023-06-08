@@ -1049,7 +1049,7 @@ jobs:
                       sed -i "s#\"version\": \".*\"#\"version\": \"${MVN_PRJ_NEXT_VERSION}-SNAPSHOT\"#" gravitee-apim-portal-webui/build.json
 
                       git add --update
-                      git commit -m 'chore: prepare next version'
+                      git commit -m 'chore: prepare next version [skip ci]'
 
                       git push -u <<# pipeline.parameters.dry_run >>--dry-run<</ pipeline.parameters.dry_run >> origin ${CIRCLE_BRANCH}
                       git push --tags <<# pipeline.parameters.dry_run >>--dry-run<</ pipeline.parameters.dry_run >> origin ${CIRCLE_BRANCH}
