@@ -212,12 +212,11 @@ export class ApiListComponent implements OnInit, OnDestroy {
 
   private getDefinitionVersion(api: Api) {
     switch (api.definitionVersion) {
-      case 'V4':
-        return { label: 'Event native' };
       case 'V2':
-        return { label: 'Policy studio' };
+      case 'V4':
+        return { label: api.definitionVersion.toLowerCase() };
       default:
-        return { icon: 'gio:alert-circle', label: 'Path based' };
+        return { icon: 'gio:alert-circle', label: 'v1' };
     }
   }
 
