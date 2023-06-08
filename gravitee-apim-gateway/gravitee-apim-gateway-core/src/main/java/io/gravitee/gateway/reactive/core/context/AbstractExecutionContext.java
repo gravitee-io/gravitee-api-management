@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.core.context;
 
+import com.google.common.base.Splitter;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
@@ -34,12 +35,18 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
+import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS extends MutableResponse> implements ExecutionContext {
+
+    public static final Splitter SPLIT_BY_COMMA = Splitter.on(',');
 
     protected RQ request;
     protected RS response;
@@ -151,6 +158,52 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
     @Override
     public <T> T getAttribute(String name) {
         return (T) attributes.get(name);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> List<T> getAttributeAsList(String name) {
+        Object o = attributes.get(name);
+        if (o == null) {
+            return null;
+        }
+
+        if (o instanceof String) {
+            String s = ((String) o);
+            if (isJSONArray(s)) {
+                JsonArray jsonArray = (JsonArray) Json.decodeValue(s);
+                return (List<T>) jsonArray.getList().stream().map(Objects::toString).collect(Collectors.toUnmodifiableList());
+            } else {
+                // split by ','
+                List<String> list = SPLIT_BY_COMMA.splitToList(s);
+                if (list.size() == 1) {
+                    // no split, just wrap it
+                    return (List<T>) list;
+                } else {
+                    // else trim values
+                    return (List<T>) list.stream().map(String::trim).collect(Collectors.toUnmodifiableList());
+                }
+            }
+        }
+
+        if (o instanceof Collection) {
+            // copy to immutable list
+            return List.copyOf((Collection<? extends T>) o);
+        }
+
+        if (o.getClass().isArray()) {
+            List<T> list = new ArrayList<>(Array.getLength(o));
+            for (int i = 0; i < Array.getLength(o); i++) {
+                list.add((T) Array.get(o, i));
+            }
+            return List.copyOf(list);
+        }
+
+        return List.of((T) o);
+    }
+
+    private boolean isJSONArray(String jsonCandidate) {
+        return jsonCandidate.startsWith("[") && jsonCandidate.endsWith("]");
     }
 
     @Override
