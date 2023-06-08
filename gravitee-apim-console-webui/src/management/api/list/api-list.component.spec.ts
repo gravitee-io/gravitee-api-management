@@ -84,7 +84,7 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context Path',
-          definitionVersion: 'Mode',
+          definitionVersion: 'Definition',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -105,7 +105,7 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context Path',
-          definitionVersion: 'Mode',
+          definitionVersion: 'Definition',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -114,7 +114,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', 'admin', 'Policy studio', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', 'admin', 'v2', 'public', 'edit']]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
 
@@ -127,7 +127,7 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context Path',
-          definitionVersion: 'Mode',
+          definitionVersion: 'Definition',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -137,7 +137,7 @@ describe('ApisListComponent', () => {
         },
       ]);
       expect(rowCells).toEqual([
-        ['', '🪐 Planets (1.0)', '', 'No context path with this configuration', '', 'admin', 'Event native', 'public', 'edit'],
+        ['', '🪐 Planets (1.0)', '', 'No context path with this configuration', '', 'admin', 'v4', 'public', 'edit'],
       ]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
@@ -168,7 +168,7 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context Path',
-          definitionVersion: 'Mode',
+          definitionVersion: 'Definition',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -177,7 +177,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/test/ws 2 more', '', 'admin', 'Event native', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/test/ws 2 more', '', 'admin', 'v4', 'public', 'edit']]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
 
@@ -286,7 +286,7 @@ describe('ApisListComponent', () => {
           visibility: { label: 'PUBLIC', icon: 'public' },
           origin: 'management' as OriginEnum,
           readonly: false,
-          definitionVersion: { label: 'Policy studio', icon: '' },
+          definitionVersion: { label: 'v2', icon: '' },
         };
 
         apiListComponent.onEditActionClicked(api);
@@ -338,7 +338,7 @@ describe('ApisListComponent', () => {
         {
           actions: '',
           contextPath: 'Context Path',
-          definitionVersion: 'Mode',
+          definitionVersion: 'Definition',
           name: 'Name',
           owner: 'Owner',
           picture: '',
@@ -348,7 +348,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', '100%', 'admin', 'Policy studio', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', '100%', 'admin', 'v2', 'public', 'edit']]);
       expect(fixture.debugElement.query(By.css('.quality-score__good'))).toBeTruthy();
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
