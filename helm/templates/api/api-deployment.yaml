@@ -145,7 +145,7 @@ spec:
             - name: GRAVITEE_PLUGINS_PATH_1
               value: '${gravitee.home}/plugins-ext'
             {{- end }}
-            {{- if .Values.upgrader }}
+            {{- if .Values.api.upgrader }}
             - name: "upgrade.mode"
               value: "false"
             {{- end }}

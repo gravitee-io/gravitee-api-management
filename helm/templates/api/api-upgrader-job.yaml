@@ -115,7 +115,7 @@ spec:
               value: "true"
             - name: GRAVITEE_SERVICES_SYNC_ENABLED
               value: "false"
-            - name: GRAVITEE_ALERTS_ENABLED
+            - name: GRAVITEE_ALERTS_ALERT-ENGINE_ENABLED
               value: "false"
             - name: GRAVITEE_COCKPIT_ENABLED
               value: "false"
