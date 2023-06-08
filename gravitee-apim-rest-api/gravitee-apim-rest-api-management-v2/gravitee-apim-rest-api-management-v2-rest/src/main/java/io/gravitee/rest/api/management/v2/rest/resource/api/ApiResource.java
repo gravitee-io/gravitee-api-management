@@ -34,7 +34,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateBaseApi;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApi;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
@@ -119,7 +119,7 @@ public class ApiResource extends AbstractResource {
     public Response updateApi(
         @Context HttpHeaders headers,
         @PathParam("apiId") String apiId,
-        @Valid @NotNull final UpdateBaseApi updateApi
+        @Valid @NotNull final UpdateGenericApi updateApi
     ) {
         final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
         evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));

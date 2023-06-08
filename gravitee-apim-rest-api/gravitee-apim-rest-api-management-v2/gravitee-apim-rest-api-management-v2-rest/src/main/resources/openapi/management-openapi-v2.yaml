@@ -1115,6 +1115,7 @@ components:
                 - $ref: "#/components/schemas/ApiV1"
                 - $ref: "#/components/schemas/ApiV2"
                 - $ref: "#/components/schemas/ApiV4"
+
         BaseApi:
             type: object
             properties:
@@ -1122,10 +1123,6 @@ components:
                     type: string
                     description: API's uuid.
                     example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                crossId:
-                    type: string
-                    description: API's crossId. Identifies API across environments.
-                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
                 name:
                     type: string
                     description: API's name. Duplicate names can exists.
@@ -1134,102 +1131,123 @@ components:
                     type: string
                     description: API's description. A short description of your API.
                     example: I can use many characters to describe this API.
-                apiVersion:
-                    type: string
-                    description: API's version. It's a simple string only used in the portal.
-                    example: v1.0
-                definitionVersion:
-                    $ref: "#/components/schemas/DefinitionVersion"
-                deployedAt:
-                    type: string
-                    format: date-time
-                    description: The last date (as timestamp) when the API was deployed.
-                    example: 1581256457163
-                createdAt:
-                    type: string
-                    format: date-time
-                    description: The date (as timestamp) when the API was created.
-                    example: 1581256457163
-                updatedAt:
-                    type: string
-                    format: date-time
-                    description: The last date (as timestamp) when the API was updated.
-                    example: 1581256457163
-                disableMembershipNotifications:
-                    type: boolean
-                    description: Disable membership notifications.
-                    default: false
-                # metadata ==> dedicated resource
-                groups:
-                    type: array
-                    description: API's groups. Used to add team in your API.
-                    example:
-                        - MY_GROUP1
-                        - MY_GROUP2
-                    items:
-                        type: string
-                state:
-                    type: string
-                    description: The status of the API regarding the gateway.
-                    example: STARTED
-                    enum:
-                        - CLOSED
-                        - INITIALIZED
-                        - STARTED
-                        - STOPPED
-                        - STOPPING
-                visibility:
-                    $ref: "#/components/schemas/Visibility"
-                labels:
-                    type: array
-                    description: The free list of labels associated with this API.
-                    example:
-                        - json
-                        - read_only
-                        - awesome
-                    items:
-                        type: string
-                lifecycleState:
-                    $ref: "#/components/schemas/ApiLifecycleState"
-                tags:
-                    type: array
-                    description: The list of sharding tags associated with this API.
-                    example:
-                        - public
-                        - private
-                    items:
-                        type: string
-                primaryOwner:
-                    $ref: "#/components/schemas/PrimaryOwner"
-                categories:
-                    type: array
-                    description: The list of category ids associated with this API.
-                    example:
-                        - 6c530064-0b2c-4004-9300-640b2ce0047b
-                        - 12559b64-0b2c-4004-9300-640b2ce0047b
-                    items:
-                        type: string
-                definitionContext:
-                    $ref: "#/components/schemas/DefinitionContext"
-                workflowState:
-                    $ref: "#/components/schemas/ApiWorkflowState"
-                responseTemplates:
-                    type: object
-                    additionalProperties:
-                        type: object
-                        additionalProperties:
-                            $ref: "#/components/schemas/ResponseTemplate"
-                # plans ==> dedicated resource
-                resources:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Resource"
-                properties:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Property"
-                _links:
-                    $ref: "#/components/schemas/ApiLinks"
+        GenericApi:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/BaseApi"
+                - properties:
+                      id:
+                          type: string
+                          description: API's uuid.
+                          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                      crossId:
+                          type: string
+                          description: API's crossId. Identifies API across environments.
+                          example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+                      name:
+                          type: string
+                          description: API's name. Duplicate names can exists.
+                          example: My Api
+                      description:
+                          type: string
+                          description: API's description. A short description of your API.
+                          example: I can use many characters to describe this API.
+                      apiVersion:
+                          type: string
+                          description: API's version. It's a simple string only used in the portal.
+                          example: v1.0
+                      definitionVersion:
+                          $ref: "#/components/schemas/DefinitionVersion"
+                      deployedAt:
+                          type: string
+                          format: date-time
+                          description: The last date (as timestamp) when the API was deployed.
+                          example: 1581256457163
+                      createdAt:
+                          type: string
+                          format: date-time
+                          description: The date (as timestamp) when the API was created.
+                          example: 1581256457163
+                      updatedAt:
+                          type: string
+                          format: date-time
+                          description: The last date (as timestamp) when the API was updated.
+                          example: 1581256457163
+                      disableMembershipNotifications:
+                          type: boolean
+                          description: Disable membership notifications.
+                          default: false
+                      # metadata ==> dedicated resource
+                      groups:
+                          type: array
+                          description: API's groups. Used to add team in your API.
+                          example:
+                              - MY_GROUP1
+                              - MY_GROUP2
+                          items:
+                              type: string
+                      state:
+                          type: string
+                          description: The status of the API regarding the gateway.
+                          example: STARTED
+                          enum:
+                              - CLOSED
+                              - INITIALIZED
+                              - STARTED
+                              - STOPPED
+                              - STOPPING
+                      visibility:
+                          $ref: "#/components/schemas/Visibility"
+                      labels:
+                          type: array
+                          description: The free list of labels associated with this API.
+                          example:
+                              - json
+                              - read_only
+                              - awesome
+                          items:
+                              type: string
+                      lifecycleState:
+                          $ref: "#/components/schemas/ApiLifecycleState"
+                      tags:
+                          type: array
+                          description: The list of sharding tags associated with this API.
+                          example:
+                              - public
+                              - private
+                          items:
+                              type: string
+                      primaryOwner:
+                          $ref: "#/components/schemas/PrimaryOwner"
+                      categories:
+                          type: array
+                          description: The list of category ids associated with this API.
+                          example:
+                              - 6c530064-0b2c-4004-9300-640b2ce0047b
+                              - 12559b64-0b2c-4004-9300-640b2ce0047b
+                          items:
+                              type: string
+                      definitionContext:
+                          $ref: "#/components/schemas/DefinitionContext"
+                      workflowState:
+                          $ref: "#/components/schemas/ApiWorkflowState"
+                      responseTemplates:
+                          type: object
+                          additionalProperties:
+                              type: object
+                              additionalProperties:
+                                  $ref: "#/components/schemas/ResponseTemplate"
+                      # plans ==> dedicated resource
+                      resources:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/Resource"
+                      properties:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/Property"
+                      _links:
+                          $ref: "#/components/schemas/ApiLinks"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
@@ -1239,7 +1257,7 @@ components:
         ApiV1:
             type: object
             allOf:
-                - $ref: "#/components/schemas/BaseApi"
+                - $ref: "#/components/schemas/GenericApi"
                 - properties:
                       environmentId:
                           type: string
@@ -1276,7 +1294,7 @@ components:
         ApiV2:
             type: object
             allOf:
-                - $ref: "#/components/schemas/BaseApi"
+                - $ref: "#/components/schemas/GenericApi"
                 - properties:
                       environmentId:
                           type: string
@@ -1312,7 +1330,7 @@ components:
         ApiV4:
             type: object
             allOf:
-                - $ref: "#/components/schemas/BaseApi"
+                - $ref: "#/components/schemas/GenericApi"
                 - properties:
                       type:
                           $ref: "#/components/schemas/ApiType"
@@ -1351,7 +1369,7 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/CreateApiV2"
                 - $ref: "#/components/schemas/CreateApiV4"
-        CreateBaseApi:
+        CreateGenericApi:
             type: object
             properties:
                 name:
@@ -1387,7 +1405,7 @@ components:
         CreateApiV2:
             type: object
             allOf:
-                - $ref: "#/components/schemas/CreateBaseApi"
+                - $ref: "#/components/schemas/CreateGenericApi"
                 - properties:
                       contextPath:
                           type: string
@@ -1409,7 +1427,7 @@ components:
         CreateApiV4:
             type: object
             allOf:
-                - $ref: "#/components/schemas/CreateBaseApi"
+                - $ref: "#/components/schemas/CreateGenericApi"
                 - properties:
                       type:
                           $ref: "#/components/schemas/ApiType"
@@ -1490,7 +1508,7 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/UpdateApiV2"
                 - $ref: "#/components/schemas/UpdateApiV4"
-        UpdateBaseApi:
+        UpdateGenericApi:
             type: object
             properties:
                 name:
@@ -1573,7 +1591,7 @@ components:
         UpdateApiV2:
             type: object
             allOf:
-                - $ref: "#/components/schemas/UpdateBaseApi"
+                - $ref: "#/components/schemas/UpdateGenericApi"
                 - properties:
                       proxy:
                           $ref: "#/components/schemas/Proxy"
@@ -1598,7 +1616,7 @@ components:
         UpdateApiV4:
             type: object
             allOf:
-                - $ref: "#/components/schemas/UpdateBaseApi"
+                - $ref: "#/components/schemas/UpdateGenericApi"
                 - properties:
                       type:
                           $ref: "#/components/schemas/ApiType"
@@ -2293,51 +2311,10 @@ components:
                 overrideAccess:
                     type: boolean
                     default: false
+
         BasePlan:
             type: object
             properties:
-                apiId:
-                    type: string
-                    description: Id of the API owning the plan.
-                    example: 6c530064-0b2c-4004-9300-640b2ce0047b
-                characteristics:
-                    type: array
-                    items:
-                        type: string
-                closedAt:
-                    type: string
-                    format: date-time
-                    description: The datetime when the plan was closed.
-                    example: 2023-05-25T12:40:46.184Z
-                commentMessage:
-                    type: string
-                commentRequired:
-                    type: boolean
-                createdAt:
-                    type: string
-                    format: date-time
-                    description: The last datetime when the plan was created.
-                    example: 2023-05-25T12:40:46.184Z
-                crossId:
-                    type: string
-                    description: Plan's crossId. Identifies plan across environments.
-                    example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
-                definitionVersion:
-                    $ref: "#/components/schemas/DefinitionVersion"
-                description:
-                    type: string
-                    description: Plan's description. A short description of your plan.
-                    example: I can use a hundred characters to describe this plan.
-                excludedGroups:
-                    type: array
-                    description: Groups of users which are not allowed to subscribe to this plan.
-                    example:
-                        - MY_GROUP1
-                        - MY_GROUP2
-                    items:
-                        type: string
-                generalConditions:
-                    type: string
                 id:
                     type: string
                     description: Plan's uuid.
@@ -2346,36 +2323,87 @@ components:
                     type: string
                     description: Plan's name. Duplicate names can exists.
                     example: My Api plan
-                order:
-                    type: integer
-                publishedAt:
+                description:
                     type: string
-                    format: date-time
-                    description: The last datetime when the plan was published.
-                    example: 2023-05-25T12:40:46.184Z
-                security:
-                    $ref: "#/components/schemas/PlanSecurity"
-                selectionRule:
+                    description: Plan's description. A short description of your plan.
+                    example: I can use a hundred characters to describe this plan.
+                apiId:
                     type: string
-                status:
-                    $ref: "#/components/schemas/PlanStatus"
-                tags:
-                    type: array
-                    description: The list of sharding tags associated with this plan.
-                    example:
-                        - public
-                        - private
-                    items:
-                        type: string
+                    description: Id of the API owning the plan.
+                    example: 6c530064-0b2c-4004-9300-640b2ce0047b
                 type:
                     $ref: "#/components/schemas/PlanType"
-                updatedAt:
-                    type: string
-                    format: date-time
-                    description: The last datetime when the plan was updated.
-                    example: 2023-05-25T12:40:46.184Z
-                validation:
-                    $ref: "#/components/schemas/PlanValidation"
+        GenericPlan:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/BasePlan"
+                - properties:
+                      characteristics:
+                          type: array
+                          items:
+                              type: string
+                      closedAt:
+                          type: string
+                          format: date-time
+                          description: The datetime when the plan was closed.
+                          example: 2023-05-25T12:40:46.184Z
+                      commentMessage:
+                          type: string
+                      commentRequired:
+                          type: boolean
+                      createdAt:
+                          type: string
+                          format: date-time
+                          description: The last datetime when the plan was created.
+                          example: 2023-05-25T12:40:46.184Z
+                      crossId:
+                          type: string
+                          description: Plan's crossId. Identifies plan across environments.
+                          example: df83b2a4-cc3e-3f80-9f0d-c138c106c076
+                      definitionVersion:
+                          $ref: "#/components/schemas/DefinitionVersion"
+                      description:
+                          type: string
+                          description: Plan's description. A short description of your plan.
+                          example: I can use a hundred characters to describe this plan.
+                      excludedGroups:
+                          type: array
+                          description: Groups of users which are not allowed to subscribe to this plan.
+                          example:
+                              - MY_GROUP1
+                              - MY_GROUP2
+                          items:
+                              type: string
+                      generalConditions:
+                          type: string
+                      order:
+                          type: integer
+                      publishedAt:
+                          type: string
+                          format: date-time
+                          description: The last datetime when the plan was published.
+                          example: 2023-05-25T12:40:46.184Z
+                      security:
+                          $ref: "#/components/schemas/PlanSecurity"
+                      selectionRule:
+                          type: string
+                      status:
+                          $ref: "#/components/schemas/PlanStatus"
+                      tags:
+                          type: array
+                          description: The list of sharding tags associated with this plan.
+                          example:
+                              - public
+                              - private
+                          items:
+                              type: string
+                      updatedAt:
+                          type: string
+                          format: date-time
+                          description: The last datetime when the plan was updated.
+                          example: 2023-05-25T12:40:46.184Z
+                      validation:
+                          $ref: "#/components/schemas/PlanValidation"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
@@ -2384,7 +2412,7 @@ components:
         PlanV4:
             type: object
             allOf:
-                - $ref: "#/components/schemas/BasePlan"
+                - $ref: "#/components/schemas/GenericPlan"
                 - properties:
                       flows:
                           type: array
@@ -2442,7 +2470,7 @@ components:
                 - $ref: "#/components/schemas/CreatePlanV2"
                 - $ref: "#/components/schemas/CreatePlanV4"
 
-        CreateBasePlan:
+        CreateGenericPlan:
             type: object
             properties:
                 crossId:
@@ -2507,7 +2535,7 @@ components:
         CreatePlanV2:
             type: object
             allOf:
-                - $ref: "#/components/schemas/CreateBasePlan"
+                - $ref: "#/components/schemas/CreateGenericPlan"
                 - properties:
                       flows:
                           type: array
@@ -2517,7 +2545,7 @@ components:
         CreatePlanV4:
             type: object
             allOf:
-                - $ref: "#/components/schemas/CreateBasePlan"
+                - $ref: "#/components/schemas/CreateGenericPlan"
                 - properties:
                       flows:
                           type: array
@@ -2529,7 +2557,7 @@ components:
                 - $ref: "#/components/schemas/UpdatePlanV2"
                 - $ref: "#/components/schemas/UpdatePlanV4"
 
-        UpdateBasePlan:
+        UpdateGenericPlan:
             type: object
             properties:
                 crossId:
@@ -2597,7 +2625,7 @@ components:
         UpdatePlanV2:
             type: object
             allOf:
-                - $ref: "#/components/schemas/UpdateBasePlan"
+                - $ref: "#/components/schemas/UpdateGenericPlan"
                 - properties:
                       flows:
                           type: array
@@ -2613,7 +2641,7 @@ components:
         UpdatePlanV4:
             type: object
             allOf:
-                - $ref: "#/components/schemas/UpdateBasePlan"
+                - $ref: "#/components/schemas/UpdateGenericPlan"
                 - properties:
                       flows:
                           type: array
@@ -3510,7 +3538,7 @@ components:
         PlanV2:
             type: object
             allOf:
-                - $ref: "#/components/schemas/BasePlan"
+                - $ref: "#/components/schemas/GenericPlan"
                 - properties:
                       flows:
                           type: array
