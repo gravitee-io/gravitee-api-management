@@ -17,7 +17,7 @@ import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } fr
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/angularjs';
 import { cloneDeep, isEmpty } from 'lodash';
-import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, shareReplay, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
@@ -28,6 +28,7 @@ import { GroupService } from '../../../services-ngx/group.service';
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
 import { RoleService } from '../../../services-ngx/role.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
 
 export interface ProviderConfiguration {
   name: string;
@@ -47,6 +48,9 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
   // Used for the edit mode
   initialIdentityProviderValue: IdentityProvider | null = null;
+
+  openidConnectSsoLicense = { feature: 'apim-openid-connect-sso' };
+  hasOpenidConnectSsoLock$: Observable<boolean>;
 
   @ViewChild('providerConfiguration', { static: false })
   set providerConfiguration(providerPart: ProviderConfiguration | undefined) {
@@ -82,11 +86,13 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     private readonly environmentService: EnvironmentService,
     private readonly snackBarService: SnackBarService,
     private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly licenseService: GioLicenseService,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
   ) {}
 
   ngOnInit() {
+    this.hasOpenidConnectSsoLock$ = this.licenseService.notAllowed(this.openidConnectSsoLicense.feature);
     this.identityProviderFormGroup = new FormGroup({
       type: new FormControl(),
       enabled: new FormControl(true),

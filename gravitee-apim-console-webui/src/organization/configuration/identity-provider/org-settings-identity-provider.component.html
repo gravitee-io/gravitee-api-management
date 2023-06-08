@@ -36,7 +36,12 @@
           <p class="identity-provider__card__provider-type-group__button__label">Gravitee.io AM</p>
         </gio-form-card>
 
-        <gio-form-card class="identity-provider__card__provider-type-group__button" value="OIDC">
+        <gio-form-card
+          class="identity-provider__card__provider-type-group__button disabled"
+          value="OIDC"
+          [gioLicense]="openidConnectSsoLicense"
+          [lock]="hasOpenidConnectSsoLock$ | async"
+        >
           <img
             class="identity-provider__card__provider-type-group__button__logo"
             [src]="'assets/logo_oidc-idp.svg'"
