@@ -33,7 +33,7 @@ if (argv.latest) {
 const body = {
   branch: versions.branch,
   parameters: {
-    gio_action: 'release',
+    gio_action: 'full_release',
     docker_tag_as_latest: isLatest,
     dry_run: isDryRun(),
     graviteeio_version: releasingVersion,
