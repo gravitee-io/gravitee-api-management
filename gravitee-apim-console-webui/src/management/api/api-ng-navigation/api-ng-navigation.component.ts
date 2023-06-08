@@ -100,6 +100,11 @@ export class ApiNgNavigationComponent implements OnInit {
           targetRoute: 'management.apis.ng.general',
           baseRoute: 'management.apis.ng.general',
         },
+        {
+          displayName: 'Plans',
+          targetRoute: 'management.apis.ng.plans',
+          baseRoute: 'management.apis.ng.plans',
+        },
       ],
     };
     this.groupItems.push(portalGroup);
