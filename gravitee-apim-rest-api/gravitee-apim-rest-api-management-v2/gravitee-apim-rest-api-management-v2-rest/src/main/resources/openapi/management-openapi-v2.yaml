@@ -25,6 +25,8 @@ tags:
       description: Everything about API members
     - name: API Plans
       description: Everything about API plans
+    - name: API Subscriptions
+      description: Everything about API subscriptions
     - name: Group
       description: Everything about groups
     - name: Installation
@@ -808,10 +810,34 @@ paths:
                 List subscriptions for a given API, always filtered by a `status` and the possibility to filter by `security`.
                 
                 User must have API_PLAN[READ] or API_LOG[READ] permissions to access endpoint.
-            operationId: getApiSubsriptions
+            operationId: getApiSubscriptions
             responses:
                 "200":
                     $ref: "#/components/responses/SubscriptionsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Subscribe to an API's plan
+            description: |-
+                Create a new subscription on a given API.
+                
+                User must have the API_SUBSCRIPTION[CREATE] permission.
+            operationId: createApiSubscription
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateSubscription"
+                required: true
+            responses:
+                "201":
+                    description: Subscription successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2712,12 +2738,15 @@ components:
                     $ref: "#/components/schemas/BasePlan"
                 application:
                     $ref: "#/components/schemas/BaseApplication"
-                request:
+                consumerMessage:
                     type: string
-                reason:
+                    description: Message given by the api consumer when subscribing to the api.
+                publisherMessage:
                     type: string
-                properties:
+                    description: Message given by the api publisher when accepting or rejecting the subscription.
+                metadata:
                     type: object
+                    description: A list of metadata associated to this subscription.
                     additionalProperties:
                         type: string
                 daysToExpirationOnLastNotification:
@@ -2815,7 +2844,7 @@ components:
                     type: string
                     description: The channel to consume
                     example: /channel1
-                configuration:
+                entrypointConfiguration:
                     type: object
                     description: The configuration to use at subscription time to push to the target service.
                     example: |
@@ -2833,6 +2862,27 @@ components:
                             ]
                         }
             required: [entrypointId]
+
+        CreateSubscription:
+            type: object
+            properties:
+                applicationId:
+                    type: string
+                    description: The id of the application subscribing.
+                planId:
+                    type: string
+                    description: The id plan the application is subscribing to.
+                customApiKey:
+                    type: string
+                    description: Optional custom api key that can be given when the subscription is related to an api-key plan and custom api key support is enabled.
+                consumerConfiguration:
+                    $ref: '#/components/schemas/SubscriptionConsumerConfiguration'
+                metadata:
+                    type: object
+                    description: A list of metadata associated to this subscription.
+                    additionalProperties:
+                        type: string
+            required: [applicationId,planId]
 
         BaseUser:
             type: object

@@ -45,12 +45,15 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
         assertEquals(subscriptionEntity.getDaysToExpirationOnLastNotification(), subscription.getDaysToExpirationOnLastNotification());
         assertEquals(subscriptionEntity.getSubscribedBy(), subscription.getSubscribedBy().getId());
         assertEquals(subscriptionEntity.getProcessedBy(), subscription.getProcessedBy().getId());
+        assertEquals(subscriptionEntity.getRequest(), subscription.getConsumerMessage());
+        assertEquals(subscriptionEntity.getReason(), subscription.getPublisherMessage());
+        assertEquals(subscriptionEntity.getMetadata(), subscription.getMetadata());
 
         assertEquals(subscriptionEntity.getConfiguration().getEntrypointId(), subscription.getConsumerConfiguration().getEntrypointId());
         assertEquals(subscriptionEntity.getConfiguration().getChannel(), subscription.getConsumerConfiguration().getChannel());
         assertConfigurationEquals(
             subscriptionEntity.getConfiguration().getEntrypointConfiguration(),
-            subscription.getConsumerConfiguration().getConfiguration()
+            subscription.getConsumerConfiguration().getEntrypointConfiguration()
         );
     }
 }

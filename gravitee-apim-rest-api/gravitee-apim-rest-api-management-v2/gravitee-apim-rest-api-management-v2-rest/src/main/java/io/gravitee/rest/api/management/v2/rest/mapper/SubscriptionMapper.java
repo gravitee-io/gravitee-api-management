@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionConsumerConfiguration;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -40,6 +42,8 @@ public interface SubscriptionMapper {
     @Mapping(target = "application.id", source = "application")
     @Mapping(target = "processedBy.id", source = "processedBy")
     @Mapping(target = "subscribedBy.id", source = "subscribedBy")
+    @Mapping(target = "consumerMessage", source = "request")
+    @Mapping(target = "publisherMessage", source = "reason")
     @Mapping(target = "consumerConfiguration", source = "configuration")
     Subscription map(SubscriptionEntity subscriptionEntity);
 
@@ -49,6 +53,14 @@ public interface SubscriptionMapper {
 
     Set<SubscriptionStatus> mapToStatusSet(Collection<io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus> subscriptionStatus);
 
-    @Mapping(target = "configuration", source = "entrypointConfiguration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "entrypointConfiguration", qualifiedByName = "deserializeConfiguration")
     SubscriptionConsumerConfiguration map(SubscriptionConfigurationEntity subscriptionConfigurationEntity);
+
+    @Mapping(target = "entrypointConfiguration", qualifiedByName = "serializeConfiguration")
+    SubscriptionConfigurationEntity map(SubscriptionConsumerConfiguration subscriptionConsumerConfiguration);
+
+    @Mapping(target = "application", source = "applicationId")
+    @Mapping(target = "plan", source = "planId")
+    @Mapping(target = "configuration", source = "consumerConfiguration")
+    NewSubscriptionEntity map(CreateSubscription createSubscription);
 }
