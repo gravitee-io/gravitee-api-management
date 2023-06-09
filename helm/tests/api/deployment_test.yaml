@@ -148,6 +148,24 @@ tests:
           path: spec.template.spec.serviceAccountName
           value: "test-sa"
 
+  - it: Deploy with component specific ServiceAccount
+    template: api/api-deployment.yaml
+    set:
+      apim:
+        managedServiceAccount: true
+        serviceAccount: "test-sa"
+      api:
+        deployment:
+          serviceAccount: "apim-api"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: "apim-api"
+
   - it: Deploy with long api name
     template: api/api-deployment.yaml
     set:
