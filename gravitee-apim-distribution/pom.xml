@@ -721,6 +721,13 @@
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-solace</artifactId>
+                    <version>${gravitee-endpoint-solace.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
                 <!-- Policies -->
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
