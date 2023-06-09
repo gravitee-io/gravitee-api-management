@@ -86,9 +86,11 @@ spec:
         {{- end }}
         {{- end }}
     spec:
-      {{- if $serviceAccount }}
+      {{- if not (eq .Values.api.deployment.serviceAccount "") }}
+      serviceAccountName: {{ .Values.api.deployment.serviceAccount }}
+      {{- else if $serviceAccount }}
       serviceAccountName: {{ $serviceAccount }}
-      {{ end }}
+      {{- end }}
       affinity: {{ toYaml .Values.api.deployment.affinity | nindent 8 }}
       nodeSelector: {{ toYaml .Values.api.deployment.nodeSelector | nindent 8 }}
       topologySpreadConstraints: {{ toYaml .Values.api.deployment.topologySpreadConstraints | nindent 8 }}
