@@ -11,6 +11,7 @@ apim:
   managedServiceAccount: true
 
   # Custom service account override that the pod will use
+  # if customer provides a dedicated SA for any component, that will have the priority
   serviceAccount: ""
 
   roleRules:
@@ -413,6 +414,9 @@ api:
     securityContext:
       runAsUser: 1001
       runAsNonRoot: true
+
+    # Dedicated Service account provided for this component
+    serviceAccount: ""
     strategy:
       type: RollingUpdate
       rollingUpdate:
@@ -729,6 +733,9 @@ gateway:
     securityContext:
       runAsUser: 1001
       runAsNonRoot: true
+
+    # Dedicated Service account provided for this component
+    serviceAccount: ""
     strategy:
       type: RollingUpdate
       rollingUpdate:
