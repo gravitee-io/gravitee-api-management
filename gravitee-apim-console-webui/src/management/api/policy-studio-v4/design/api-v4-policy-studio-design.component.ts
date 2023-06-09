@@ -17,11 +17,11 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { takeUntil, map, switchMap, tap, catchError } from 'rxjs/operators';
-import { ConnectorsInfo, Flow as PSFlow, Plan as PSPlan, SaveOutput } from '@gravitee/ui-policy-studio-angular';
+import { ConnectorInfo, Flow as PSFlow, Plan as PSPlan, SaveOutput } from '@gravitee/ui-policy-studio-angular';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiType, ApiV4, PlanV4, UpdateApiV4, UpdatePlanV4 } from '../../../../entities/management-api-v2';
+import { ApiType, ApiV4, FlowExecution, PlanV4, UpdateApiV4, UpdatePlanV4 } from '../../../../entities/management-api-v2';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
@@ -36,8 +36,9 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
   public apiType: ApiType;
-  public entrypointsInfo: ConnectorsInfo[];
-  public endpointsInfo: ConnectorsInfo[];
+  public flowExecution: FlowExecution;
+  public entrypointsInfo: ConnectorInfo[];
+  public endpointsInfo: ConnectorInfo[];
   public commonFlows: PSFlow[];
   public plans: PSPlan[];
 
@@ -69,6 +70,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([api, entrypoints, endpoints, plans]) => {
         this.apiType = api.type;
+        this.flowExecution = api.flowExecution;
 
         this.entrypointsInfo = api.listeners.flatMap((listener) =>
           listener.entrypoints.map((entrypoint) => {
@@ -79,6 +81,8 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
                 entrypointPlugin && entrypointPlugin.icon
                   ? this.iconService.registerSvg(entrypoint.type, entrypointPlugin.icon)
                   : 'gio:language',
+              name: entrypointPlugin.name,
+              supportedModes: [...entrypointPlugin.supportedModes],
             };
           }),
         );
@@ -90,6 +94,8 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
               type: endpoint.type,
               icon:
                 endpointPlugin && endpointPlugin.icon ? this.iconService.registerSvg(endpoint.type, endpointPlugin.icon) : 'gio:language',
+              name: endpointPlugin.name,
+              supportedModes: [...endpointPlugin.supportedModes],
             };
           }),
         );
@@ -110,16 +116,15 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   }
 
   onSave(outputSave: SaveOutput) {
-    const { commonFlows, plansToUpdate } = outputSave;
+    const { commonFlows, plansToUpdate, flowExecution } = outputSave;
 
     const updates$: Observable<unknown>[] = [];
-    if (commonFlows) {
-      updates$.push(this.updateApiFlows(commonFlows));
+    if (commonFlows || flowExecution) {
+      updates$.push(this.updateApiFlows(commonFlows, flowExecution));
     }
     if (plansToUpdate) {
       updates$.push(this.updatePlans(plansToUpdate));
     }
-
     forkJoin(updates$)
       .pipe(
         takeUntil(this.unsubscribe$),
@@ -128,13 +133,14 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  private updateApiFlows(commonFlows: PSFlow[]) {
+  private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
     return this.apiV2Service.get(this.ajsStateParams.apiId).pipe(
       takeUntil(this.unsubscribe$),
       switchMap((api: ApiV4) => {
         const updatedApi: UpdateApiV4 = {
           ...api,
-          flows: commonFlows,
+          ...(commonFlows ? { flows: commonFlows } : {}),
+          ...(flowExecution ? { flowExecution } : {}),
         };
 
         return this.apiV2Service.update(this.ajsStateParams.apiId, updatedApi);

@@ -246,9 +246,11 @@ describe('ApiCreationV4Component', () => {
 
         expect(component.currentStep.payload.type).toEqual('PROXY');
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
-          { id: 'http-proxy', supportedListenerType: 'HTTP', name: 'HTTP Proxy' },
+          { icon: 'gio-literal:http-proxy', id: 'http-proxy', supportedListenerType: 'HTTP', name: 'HTTP Proxy' },
         ]);
-        expect(component.currentStep.payload.selectedEndpoints).toEqual([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
+        expect(component.currentStep.payload.selectedEndpoints).toEqual([
+          { icon: 'gio-literal:http-proxy', id: 'http-proxy', name: 'HTTP Proxy' },
+        ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
         expectApiGetPortalSettings();
@@ -287,8 +289,8 @@ describe('ApiCreationV4Component', () => {
 
         await step2Harness.clickValidate();
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
-          { id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' },
-          { id: 'webhook', name: 'Webhook', supportedListenerType: 'HTTP' },
+          { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' },
+          { icon: 'gio-literal:webhook', id: 'webhook', name: 'Webhook', supportedListenerType: 'HTTP' },
         ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([
@@ -324,7 +326,9 @@ describe('ApiCreationV4Component', () => {
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
         await step2Harness.clickValidate();
-        expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' }]);
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' },
+        ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
         expectApiGetPortalSettings();
@@ -343,7 +347,9 @@ describe('ApiCreationV4Component', () => {
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
         await step2Harness.clickValidate();
-        expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' }]);
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' },
+        ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
         expectApiGetPortalSettings();
@@ -366,8 +372,8 @@ describe('ApiCreationV4Component', () => {
 
         await step2Harness.clickValidate();
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
-          { id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' },
-          { id: 'webhook', name: 'Webhook', supportedListenerType: 'SUBSCRIPTION' },
+          { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' },
+          { icon: 'gio-literal:webhook', id: 'webhook', name: 'Webhook', supportedListenerType: 'SUBSCRIPTION' },
         ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([
@@ -394,14 +400,25 @@ describe('ApiCreationV4Component', () => {
             },
             id: 'sse',
             name: 'SSE',
-            icon: undefined,
+            icon: 'gio-literal:sse',
             supportedListenerType: 'HTTP',
           },
           {
-            configuration: {},
+            configuration: {
+              http: {
+                connectTimeout: 3000,
+                idleTimeout: 60000,
+                maxConcurrentConnections: 5,
+                readTimeout: 10000,
+              },
+              proxy: {
+                enabled: false,
+                useSystemProxy: false,
+              },
+            },
             id: 'webhook',
             name: 'Webhook',
-            icon: undefined,
+            icon: 'gio-literal:webhook',
             supportedListenerType: 'SUBSCRIPTION',
           },
         ]);
@@ -419,7 +436,9 @@ describe('ApiCreationV4Component', () => {
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
         await step2Harness.clickValidate();
-        expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' }]);
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' },
+        ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
         expectApiGetPortalSettings();
@@ -443,7 +462,9 @@ describe('ApiCreationV4Component', () => {
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
         await step2Harness.clickValidate();
-        expect(component.currentStep.payload.selectedEntrypoints).toEqual([{ id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' }]);
+        expect(component.currentStep.payload.selectedEntrypoints).toEqual([
+          { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' },
+        ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
         expectApiGetPortalSettings();
@@ -471,7 +492,7 @@ describe('ApiCreationV4Component', () => {
             },
             id: 'sse',
             name: 'SSE',
-            icon: undefined,
+            icon: 'gio-literal:sse',
             supportedListenerType: 'HTTP',
           },
         ]);
@@ -493,8 +514,8 @@ describe('ApiCreationV4Component', () => {
 
         await step2Harness.clickValidate();
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
-          { id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' },
-          { id: 'webhook', name: 'Webhook', supportedListenerType: 'HTTP' },
+          { icon: 'gio-literal:sse', id: 'sse', name: 'SSE', supportedListenerType: 'HTTP' },
+          { icon: 'gio-literal:webhook', id: 'webhook', name: 'Webhook', supportedListenerType: 'HTTP' },
         ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([
@@ -520,14 +541,25 @@ describe('ApiCreationV4Component', () => {
               heartbeatIntervalInMs: 5000,
               metadataAsComment: false,
             },
-            icon: undefined,
+            icon: 'gio-literal:sse',
             id: 'sse',
             name: 'SSE',
             supportedListenerType: 'HTTP',
           },
           {
-            configuration: {},
-            icon: undefined,
+            configuration: {
+              http: {
+                connectTimeout: 3000,
+                idleTimeout: 60000,
+                maxConcurrentConnections: 5,
+                readTimeout: 10000,
+              },
+              proxy: {
+                enabled: false,
+                useSystemProxy: false,
+              },
+            },
+            icon: 'gio-literal:webhook',
             id: 'webhook',
             name: 'Webhook',
             supportedListenerType: 'HTTP',
@@ -576,7 +608,7 @@ describe('ApiCreationV4Component', () => {
         expect(step22Harness).toBeDefined();
         expect(component.currentStep.payload.paths).toEqual([{ path: '/api/my-api-3' }]);
         expect(component.currentStep.payload.selectedEntrypoints).toEqual([
-          { id: 'http-post', name: 'HTTP POST', supportedListenerType: 'HTTP', icon: undefined, configuration: {} },
+          { id: 'http-post', name: 'HTTP POST', supportedListenerType: 'HTTP', icon: 'gio-literal:http-post', configuration: {} },
         ]);
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest(entrypoints);
@@ -640,6 +672,7 @@ describe('ApiCreationV4Component', () => {
           ],
           selectedEntrypoints: [
             {
+              icon: 'gio-literal:http-proxy',
               id: 'http-proxy',
               name: 'HTTP Proxy',
               supportedListenerType: 'HTTP',
@@ -648,7 +681,7 @@ describe('ApiCreationV4Component', () => {
           ],
           selectedEndpoints: [
             {
-              icon: undefined,
+              icon: 'gio-literal:http-proxy',
               id: 'http-proxy',
               name: 'HTTP Proxy',
             },
@@ -729,12 +762,14 @@ describe('ApiCreationV4Component', () => {
       expect(component.currentStep.payload.selectedEntrypoints).toEqual([
         {
           configuration: {},
+          icon: 'gio-literal:entrypoint-1',
           id: 'entrypoint-1',
           name: 'initial entrypoint',
           supportedListenerType: 'HTTP',
         },
         {
           configuration: {},
+          icon: 'gio-literal:entrypoint-2',
           id: 'entrypoint-2',
           name: 'new entrypoint',
           supportedListenerType: 'SUBSCRIPTION',
@@ -778,8 +813,8 @@ describe('ApiCreationV4Component', () => {
       await step3Harness.fillAndValidate(['mock', 'kafka']);
 
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
-        { id: 'kafka', name: 'Kafka' },
-        { id: 'mock', name: 'Mock' },
+        { icon: 'gio-literal:kafka', id: 'kafka', name: 'Kafka' },
+        { icon: 'gio-literal:mock', id: 'mock', name: 'Mock' },
       ]);
 
       expectSchemaGetRequest(
@@ -814,8 +849,8 @@ describe('ApiCreationV4Component', () => {
       await step3Harness.fillAndValidate(['mock', 'kafka']);
 
       expect(component.currentStep.payload.selectedEndpoints).toEqual([
-        { id: 'kafka', name: 'Kafka' },
-        { id: 'mock', name: 'Mock' },
+        { icon: 'gio-literal:kafka', id: 'kafka', name: 'Kafka' },
+        { icon: 'gio-literal:mock', id: 'mock', name: 'Mock' },
       ]);
 
       expectSchemaGetRequest(
@@ -839,12 +874,14 @@ describe('ApiCreationV4Component', () => {
           sharedConfiguration: {},
           id: 'kafka',
           name: 'Kafka',
+          icon: 'gio-literal:kafka',
         },
         {
           configuration: {},
           sharedConfiguration: {},
           id: 'mock',
           name: 'Mock',
+          icon: 'gio-literal:mock',
         },
       ]);
     });
@@ -870,7 +907,7 @@ describe('ApiCreationV4Component', () => {
           sharedConfiguration: {},
           id: 'http-proxy',
           name: 'HTTP Proxy',
-          icon: undefined,
+          icon: 'gio-literal:http-proxy',
         },
       ]);
     });

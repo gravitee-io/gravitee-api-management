@@ -55,6 +55,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
       .overrideProvider(InteractivityChecker, {
         useValue: {
           isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
         },
       })
       .compileComponents();
@@ -277,6 +278,81 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           },
         ],
       });
+    });
+
+    it('should save flow execution configuration', async () => {
+      await policyStudioHarness.setFlowExecutionConfig({
+        mode: 'BEST_MATCH',
+        matchRequired: true,
+      });
+      await policyStudioHarness.save();
+
+      // Fetch fresh API before save
+      expectGetApi(api);
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+        method: 'PUT',
+      });
+      expect(req.request.body.flows).toEqual([
+        {
+          enabled: true,
+          name: 'my flow',
+        },
+      ]);
+      expect(req.request.body.flowExecution).toEqual({
+        mode: 'BEST_MATCH',
+        matchRequired: true,
+      });
+      req.flush(api);
+    });
+
+    it('should save add api flow and save flow execution configuration', async () => {
+      const flowToAdd: FlowV4 = {
+        name: 'New common flow',
+        selectors: [
+          {
+            type: 'CHANNEL',
+            channel: 'my-channel',
+            pathOperator: 'STARTS_WITH',
+            condition: 'The condition',
+          },
+        ],
+      };
+
+      await policyStudioHarness.addFlow('Common flows', flowToAdd);
+      await policyStudioHarness.setFlowExecutionConfig({
+        mode: 'BEST_MATCH',
+        matchRequired: true,
+      });
+      await policyStudioHarness.save();
+
+      // Fetch fresh API before save
+      expectGetApi(api);
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+        method: 'PUT',
+      });
+      expect(req.request.body.flows).toEqual([
+        { enabled: true, name: 'my flow' },
+        {
+          enabled: true,
+          name: flowToAdd.name,
+          selectors: [
+            {
+              channel: 'my-channel',
+              channelOperator: 'EQUALS',
+              entrypoints: [],
+              operations: [],
+              type: 'CHANNEL',
+            },
+          ],
+        },
+      ]);
+      expect(req.request.body.flowExecution).toEqual({
+        mode: 'BEST_MATCH',
+        matchRequired: true,
+      });
+      req.flush(api);
     });
   });
 
