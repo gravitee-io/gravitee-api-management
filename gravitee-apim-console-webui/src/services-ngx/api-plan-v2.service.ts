@@ -25,13 +25,13 @@ import { ApiPlansResponse, CreatePlan, Plan, PlanStatus, UpdatePlan } from '../e
 })
 export class ApiPlanV2Service {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
-  list(apiId: string, security?: string[], status?: PlanStatus[], page = 1, perPage = 10): Observable<ApiPlansResponse> {
+  list(apiId: string, securities?: string[], statuses?: PlanStatus[], page = 1, perPage = 10): Observable<ApiPlansResponse> {
     return this.http.get<ApiPlansResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans`, {
       params: {
         page,
         perPage,
-        ...(security ? { security } : {}),
-        ...(status ? { status } : {}),
+        ...(securities ? { securities: securities.join(',') } : {}),
+        ...(statuses ? { statuses: statuses.join(',') } : {}),
       },
     });
   }
