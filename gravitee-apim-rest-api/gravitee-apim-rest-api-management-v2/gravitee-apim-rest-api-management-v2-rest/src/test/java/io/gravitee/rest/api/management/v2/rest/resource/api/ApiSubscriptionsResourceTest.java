@@ -37,6 +37,8 @@ public abstract class ApiSubscriptionsResourceTest extends AbstractResourceTest 
 
     protected static final String API = "my-api";
     protected static final String PLAN = "my-plan";
+    protected static final String APPLICATION = "my-application";
+    protected static final String SUBSCRIPTION = "my-subscription";
     protected static final String ENVIRONMENT = "my-env";
 
     @Autowired
@@ -50,7 +52,7 @@ public abstract class ApiSubscriptionsResourceTest extends AbstractResourceTest 
 
     @Before
     public void init() throws TechnicalException {
-        Mockito.reset(subscriptionService, applicationService, planSearchService);
+        Mockito.reset(subscriptionService, applicationService, planSearchService, parameterService);
         GraviteeContext.cleanContext();
 
         Api api = new Api();

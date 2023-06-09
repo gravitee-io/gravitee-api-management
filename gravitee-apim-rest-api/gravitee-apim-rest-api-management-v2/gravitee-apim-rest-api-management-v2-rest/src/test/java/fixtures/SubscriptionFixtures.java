@@ -15,11 +15,14 @@
  */
 package fixtures;
 
+import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionConsumerConfiguration;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -52,10 +55,32 @@ public class SubscriptionFixtures {
                 .channel("channel")
                 .build()
         )
+        .request("request")
+        .reason("reason")
+        .metadata(Map.of("meta1", "value1", "meta2", "value2"))
         .subscribedBy("subscribed-by")
         .processedBy("processed-by");
 
+    private static final CreateSubscription.CreateSubscriptionBuilder BASE_CREATE_SUBSCRIPTION = CreateSubscription
+        .builder()
+        .planId("my-plan")
+        .applicationId("my-application")
+        .customApiKey("custom")
+        .consumerConfiguration(
+            SubscriptionConsumerConfiguration
+                .builder()
+                .entrypointConfiguration("{\"nice\": \"config\"}")
+                .entrypointId("entrypoint-id")
+                .channel("channel")
+                .build()
+        )
+        .metadata(Map.of("meta1", "value1", "meta2", "value2"));
+
     public static SubscriptionEntity aSubscriptionEntity() {
         return BASE_SUBSCRIPTION_ENTITY.build();
+    }
+
+    public static CreateSubscription aCreateSubscription() {
+        return BASE_CREATE_SUBSCRIPTION.build();
     }
 }

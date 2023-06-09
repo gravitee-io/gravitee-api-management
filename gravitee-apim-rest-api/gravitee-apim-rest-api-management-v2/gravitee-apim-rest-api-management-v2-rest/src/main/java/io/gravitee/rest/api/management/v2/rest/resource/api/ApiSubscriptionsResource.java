@@ -22,26 +22,36 @@ import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -66,6 +76,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private ApplicationService applicationService;
+
+    @Inject
+    private ParameterService parameterService;
 
     @PathParam("apiId")
     private String apiId;
@@ -114,6 +127,42 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .links(computePaginationLinks(Math.toIntExact(subscriptionPage.getTotalElements()), paginationParam));
     }
 
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.CREATE }) })
+    public Response createApiSubscription(@Valid @NotNull CreateSubscription createSubscription) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        if (
+            StringUtils.isNotEmpty(createSubscription.getCustomApiKey()) &&
+            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+        ) {
+            return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(subscriptionInvalid("You are not allowed to provide a custom API Key"))
+                .build();
+        }
+
+        final NewSubscriptionEntity newSubscriptionEntity = subscriptionMapper.map(createSubscription);
+        SubscriptionEntity subscription = subscriptionService.create(
+            executionContext,
+            newSubscriptionEntity,
+            createSubscription.getCustomApiKey()
+        );
+
+        if (subscription.getStatus() == io.gravitee.rest.api.model.SubscriptionStatus.PENDING) {
+            ProcessSubscriptionEntity process = new ProcessSubscriptionEntity();
+            process.setId(subscription.getId());
+            process.setAccepted(true);
+            process.setStartingAt(new Date());
+            process.setCustomApiKey(createSubscription.getCustomApiKey());
+            subscription = subscriptionService.process(executionContext, process, getAuthenticatedUser());
+        }
+
+        return Response.created(this.getLocationHeader(subscription.getId())).entity(subscriptionMapper.map(subscription)).build();
+    }
+
     private void expandData(List<Subscription> subscriptions, Set<String> expands) {
         if (expands == null || expands.isEmpty()) {
             return;
@@ -150,5 +199,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
                     .forEach(subscription -> subscription.setApplication(application))
             );
         }
+    }
+
+    private Error subscriptionInvalid(String message) {
+        return new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).message(message).technicalCode("subscription.invalid");
     }
 }
