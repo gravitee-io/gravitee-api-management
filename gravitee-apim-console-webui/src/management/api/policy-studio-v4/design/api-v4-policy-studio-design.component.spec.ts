@@ -310,7 +310,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     };
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans?page=1&perPage=9999&status=PUBLISHED`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/plans?page=1&perPage=9999&statuses=PUBLISHED`,
         method: 'GET',
       })
       .flush(fakeApiPlansResponse);

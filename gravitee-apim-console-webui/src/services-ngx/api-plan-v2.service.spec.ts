@@ -19,7 +19,15 @@ import { TestBed } from '@angular/core/testing';
 import { ApiPlanV2Service } from './api-plan-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { ApiPlansResponse, CreatePlanV4, fakePlanV2, fakePlanV4, fakeUpdatePlanV2, fakeUpdatePlanV4 } from '../entities/management-api-v2';
+import {
+  ApiPlansResponse,
+  CreatePlanV4,
+  fakePlanV2,
+  fakePlanV4,
+  fakeUpdatePlanV2,
+  fakeUpdatePlanV4,
+  PlanStatus,
+} from '../entities/management-api-v2';
 
 describe('ApiPlanV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -61,6 +69,34 @@ describe('ApiPlanV2Service', () => {
 
       const req = httpTestingController.expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=10`,
+        method: 'GET',
+      });
+
+      req.flush(fakeApiPlansResponse);
+    });
+    it('should list with statuses and security', (done) => {
+      const security = ['API_KEY'];
+      const statuses: PlanStatus[] = ['STAGING', 'PUBLISHED'];
+
+      const fakeApiPlansResponse: ApiPlansResponse = {
+        data: [
+          fakePlanV4({
+            id: PLAN_ID,
+          }),
+        ],
+      };
+
+      apiPlanV2Service.list(API_ID, security, statuses).subscribe((apiPlansResponse) => {
+        expect(apiPlansResponse.data).toEqual([
+          fakePlanV4({
+            id: PLAN_ID,
+          }),
+        ]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=10&securities=API_KEY&statuses=STAGING,PUBLISHED`,
         method: 'GET',
       });
 

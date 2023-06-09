@@ -511,13 +511,13 @@ describe('ApiPortalPlanListComponent', () => {
     return { headerCells, rowCells };
   }
 
-  function expectApiPlansListRequest(plans: Plan[] = [], status?: string | string[], security?: string) {
+  function expectApiPlansListRequest(plans: Plan[] = [], statuses?: string | string[], security?: string) {
     const response: ApiPlansResponse = { data: plans };
     httpTestingController
       .expectOne(
         `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&${
-          status ? `status=${castArray(status).join('&status=')}` : 'status=PUBLISHED'
-        }${security ? `security=${security}` : ''}`,
+          statuses ? `statuses=${castArray(statuses).join(',')}` : 'statuses=PUBLISHED'
+        }${security ? `securities=${security}` : ''}`,
         'GET',
       )
       .flush(response);
