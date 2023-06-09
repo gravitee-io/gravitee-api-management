@@ -242,7 +242,9 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
   private createPlans$(apiCreationStatus: Result): Observable<Result> {
     const api = apiCreationStatus.result.api;
-    return forkJoin(apiCreationStatus.apiCreationPayload.plans.map((plan) => this.apiPlanV2Service.create(api.id, plan))).pipe(
+    return forkJoin(
+      apiCreationStatus.apiCreationPayload.plans.map((plan) => this.apiPlanV2Service.create(api.id, { ...plan, definitionVersion: 'V4' })),
+    ).pipe(
       map((plans: PlanV4[]) => ({ ...apiCreationStatus, result: { ...apiCreationStatus.result, plans }, status: 'success' as const })),
       catchError((err) => {
         return of({

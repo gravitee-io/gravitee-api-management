@@ -1119,7 +1119,7 @@ describe('ApiCreationV4Component', () => {
       expect(step3Summary).toContain('Mock');
 
       const step4Summary = await step6Harness.getStepSummaryTextContent(4);
-      expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');
+      expect(step4Summary).toContain('Update name' + 'KEY_LESS');
     });
 
     it('should go back to step 1 after clicking Change button', async () => {
@@ -1210,7 +1210,7 @@ describe('ApiCreationV4Component', () => {
       let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
 
       let step4Summary = await step6Harness.getStepSummaryTextContent(4);
-      expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');
+      expect(step4Summary).toContain('Update name' + 'KEY_LESS');
 
       await step6Harness.clickChangeButton(4);
 
@@ -1362,7 +1362,10 @@ describe('ApiCreationV4Component', () => {
 
   async function fillAndValidateStep4Security1PlansList() {
     const step4 = await harnessLoader.getHarness(Step4Security1PlansHarness);
-    await step4.fillAndValidate();
+
+    await step4.editDefaultKeylessPlanName('Update name', httpTestingController);
+    await step4.addRateLimitToPlan(httpTestingController);
+    await step4.clickValidate();
   }
 
   async function fillAndValidateStep5Documentation() {
@@ -1395,6 +1398,7 @@ describe('ApiCreationV4Component', () => {
     // TODO: complete with all the expected fields
     expect(createApiRequest.request.body).toEqual(
       expect.objectContaining({
+        definitionVersion: 'V4',
         name: 'API name',
       }),
     );
@@ -1406,7 +1410,8 @@ describe('ApiCreationV4Component', () => {
     });
     expect(createPlansRequest.request.body).toEqual(
       expect.objectContaining({
-        name: 'Default Keyless (UNSECURED)',
+        definitionVersion: 'V4',
+        name: 'Update name',
       }),
     );
     createPlansRequest.flush(fakePlanV4({ apiId: apiId, id: planId }));
