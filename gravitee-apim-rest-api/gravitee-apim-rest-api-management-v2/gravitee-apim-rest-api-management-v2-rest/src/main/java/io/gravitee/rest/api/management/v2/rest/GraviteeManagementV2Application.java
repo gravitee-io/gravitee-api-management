@@ -24,12 +24,13 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.ApiMembersResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiPlansResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
-import io.gravitee.rest.api.management.v2.rest.resource.plugin.EndpointsResource;
-import io.gravitee.rest.api.management.v2.rest.resource.plugin.EntrypointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.OrganizationResource;
+import io.gravitee.rest.api.management.v2.rest.resource.plugin.EndpointsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.plugin.EntrypointsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
 import jakarta.inject.Inject;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -54,6 +55,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(ApiPlansResource.class);
         register(EndpointsResource.class);
         register(EntrypointsResource.class);
+        register(PoliciesResource.class);
         register(ApiMembersResource.class);
         register(GroupResource.class);
 

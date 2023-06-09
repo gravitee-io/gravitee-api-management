@@ -33,6 +33,8 @@ tags:
       description: Everything about endpoint plugins
     - name: Plugins - Entrypoints
       description: Everything about entrypoint plugins
+    - name: Plugins - Policies
+      description: Everything about policies plugins
 
 paths:
     # APIs
@@ -754,7 +756,7 @@ paths:
     /plugins/endpoints:
         get:
             tags:
-                - Plugins Endpoints
+                - Plugins - Endpoints
             summary: Get available endpoints on the platform
             description: |
                 Get available endpoint types on the platform.
@@ -984,6 +986,88 @@ paths:
 
                 User must be authenticated.
             operationId: getEntrypointSubscriptionSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    # Plugins - Policies
+    /plugins/policies:
+        get:
+            tags:
+                - Plugins - Policies
+            summary: Get available policies on the platform
+            description: |
+                Get available policies on the platform.
+
+                User must be authenticated.
+            operationId: getPolicies
+            responses:
+                "200":
+                    description: List of Policies.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/PolicyPlugin"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/policies/{policyId}:
+        parameters:
+            - $ref: "#/components/parameters/policyIdParam"
+        get:
+            tags:
+                - Plugins - Policies
+            summary: Get a policy
+            description: |
+                Get a policy.
+
+                User must be authenticated.
+            operationId: getPolicy
+            responses:
+                "200":
+                    description: Policy
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PolicyPlugin"
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/policies/{policyId}/documentation:
+        parameters:
+            - $ref: "#/components/parameters/policyIdParam"
+        get:
+            tags:
+                - Plugins - Policies
+            summary: Get a policy documentation
+            description: |
+                Get the documentation of a policy.
+
+                User must be authenticated.
+            operationId: getPolicyDocumentation
+            responses:
+                "200":
+                    description: Documentation of the entrypoint
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                default:
+                    $ref: "#/components/responses/Error"
+    /plugins/policies/{policyId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/policyIdParam"
+        get:
+            tags:
+                - Plugins - Policies
+            summary: Get a policy schema
+            description: |
+                Get the JSON schema that describes the configuration of a policy.
+
+                User must be authenticated.
+            operationId: getPolicySchema
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -1694,9 +1778,6 @@ components:
                       schema:
                           type: string
                           description: The schema of the plugin.
-                      icon:
-                          type: string
-                          description: The icon of the plugin.
                       subscriptionSchema:
                           type: string
                           description: The subscription schema of the plugin.
@@ -2598,6 +2679,22 @@ components:
                     description: The name of the role
                     minLength: 1
             required: [roleName]
+        PolicyPlugin:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/PlatformPlugin"
+                - type: object
+                  properties:
+                      proxy:
+                          type: array
+                          uniqueItems: true
+                          items:
+                              $ref: "#/components/schemas/ExecutionPhase"
+                      message:
+                          type: array
+                          uniqueItems: true
+                          items:
+                              $ref: "#/components/schemas/ExecutionPhase"
         PlatformPlugin:
             type: object
             properties:
@@ -2998,6 +3095,15 @@ components:
             enum:
                 - V3
                 - JUPITER
+        ExecutionPhase:
+            type: string
+            description: The execution phase of a policy.
+            example: REQUEST
+            enum:
+                - REQUEST
+                - RESPONSE
+                - MESSAGE_REQUEST
+                - MESSAGE_RESPONSE
         Failover:
             type: object
             properties:
@@ -3878,6 +3984,13 @@ components:
             in: path
             required: true
             description: Id of an entrypoint.
+            schema:
+                type: string
+        policyIdParam:
+            name: policyId
+            in: path
+            required: true
+            description: Id of a policy.
             schema:
                 type: string
         ###############################

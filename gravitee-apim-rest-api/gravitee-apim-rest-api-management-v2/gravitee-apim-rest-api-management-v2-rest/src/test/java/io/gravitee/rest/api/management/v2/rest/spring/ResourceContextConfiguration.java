@@ -25,6 +25,7 @@ import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -121,6 +122,11 @@ public class ResourceContextConfiguration {
     @Bean
     public EndpointConnectorPluginService endpointConnectorPluginService() {
         return mock(EndpointConnectorPluginService.class);
+    }
+
+    @Bean
+    public PolicyPluginService policyPluginService() {
+        return mock(PolicyPluginService.class);
     }
 
     @Bean
