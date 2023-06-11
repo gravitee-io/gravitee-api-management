@@ -250,7 +250,6 @@ paths:
                     description: API background successfully updated
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/deployments:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -795,6 +794,37 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # API Subscriptions
+    /environments/{envId}/apis/{apiId}/subscribers:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - name: name
+                  description: |-
+                      Name to use to filter subscribers. <br>
+                      Can be a part of a name. <br>
+                      For example, `foo` will match `foo`, `foobar` and `barfoo`.
+                  in: query
+                  schema:
+                      type: string
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - API Subscriptions
+            summary: Get the API's subscribers
+            description: |
+                List applications that have subscribed to a given API.<br>
+                The results are paginated.
+
+                User must have API_SUBSCRIPTION[READ] permissions to access endpoint.
+            operationId: getApiSubscribers
+            responses:
+                "200":
+                    $ref: "#/components/responses/SubscribersResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/subscriptions:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -850,7 +880,7 @@ paths:
             description: |
                 List subscriptions for a given API, always filtered by a `status` and the possibility to filter by `security`.
 
-                User must have API_PLAN[READ] or API_LOG[READ] permissions to access endpoint.
+                User must have API_SUBSCRIPTION[READ] permissions to access endpoint.
             operationId: getApiSubscriptions
             responses:
                 "200":
@@ -881,7 +911,6 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/_export:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -925,7 +954,7 @@ paths:
             summary: Export API subscriptions as CSV
             description: |-
                 Export API subscriptions to a CSV file.
-                
+
                 User must have the API_SUBSCRIPTION[READ] permission.
             operationId: exportApiSubscriptions
             responses:
@@ -940,7 +969,6 @@ paths:
                         text/csv: {}
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/_verify:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -951,7 +979,7 @@ paths:
             summary: Check a subscription can be created
             description: |-
                 Check a subscription can be created with given api key, and application.
-                
+
                 User must have the API_SUBSCRIPTION[CREATE] permission.
             operationId: verifyCreateApiSubscription
             requestBody:
@@ -969,7 +997,6 @@ paths:
                                 $ref: "#/components/schemas/VerifySubscriptionResponse"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -992,7 +1019,7 @@ paths:
             summary: Get one API's subscription
             description: |-
                 Get the API's subscription by its identifier.
-                
+
                 User must have the API_SUBSCRIPTION[READ] permission.
             operationId: getApiSubscription
             responses:
@@ -1010,7 +1037,7 @@ paths:
             summary: Update one API's subscription
             description: |-
                 Update the API's subscription.
-                
+
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: updateApiSubscription
             requestBody:
@@ -3102,7 +3129,7 @@ components:
                     type: string
                     description: 'The api key that needs to be verified. Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)'
                     pattern: '^[^#%@/;=?|^~, \\]*$'
-            required: [applicationId,apiKey]
+            required: [applicationId, apiKey]
 
         VerifySubscriptionResponse:
             type: object
@@ -4615,6 +4642,22 @@ components:
                             links:
                                 $ref: "#/components/schemas/Links"
 
+        SubscribersResponse:
+            description: Page of API subscribers
+            content:
+                application/json:
+                    schema:
+                        title: "SubscribersResponse"
+                        properties:
+                            data:
+                                description: List of API subscribers.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/BaseApplication"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
         SubscriptionsResponse:
             description: Page of API subscriptions
             content:

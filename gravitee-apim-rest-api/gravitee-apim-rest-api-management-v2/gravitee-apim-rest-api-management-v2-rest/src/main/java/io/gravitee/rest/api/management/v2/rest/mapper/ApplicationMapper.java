@@ -30,5 +30,6 @@ import org.mapstruct.factory.Mappers;
 public interface ApplicationMapper {
     ApplicationMapper INSTANCE = Mappers.getMapper(ApplicationMapper.class);
 
+    BaseApplication mapToBaseApplication(ApplicationListItem applicationListItem);
     List<BaseApplication> mapToBaseApplicationList(Collection<ApplicationListItem> applications);
 }
