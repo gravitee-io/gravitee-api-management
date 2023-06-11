@@ -18,9 +18,11 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -31,19 +33,28 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApi;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
 import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.application.ApplicationQuery;
+import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -53,7 +64,9 @@ import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -72,6 +85,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -97,6 +112,12 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ApiImportExportService apiImportExportService;
+
+    @Inject
+    private SubscriptionService subscriptionService;
+
+    @Inject
+    private ApplicationService applicationService;
 
     @Inject
     private WorkflowService workflowService;
@@ -321,6 +342,53 @@ public class ApiResource extends AbstractResource {
             log.warn("Error while parsing background image for api {}", apiId, e);
             throw new BadRequestException("Invalid image format");
         }
+    }
+
+    @GET
+    @Path("subscribers")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
+    public SubscribersResponse getApiSubscribers(
+        @PathParam("apiId") String apiId,
+        @QueryParam("name") String name,
+        @BeanParam @Valid PaginationParam paginationParam
+    ) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        Set<String> applicationIds = subscriptionService
+            .findByApi(executionContext, apiId)
+            .stream()
+            .map(SubscriptionEntity::getApplication)
+            .collect(Collectors.toSet());
+
+        if (applicationIds.isEmpty()) {
+            return new SubscribersResponse().data(emptyList()).pagination(new Pagination()).links(null);
+        }
+
+        ApplicationQuery applicationQuery = new ApplicationQuery();
+        applicationQuery.setIds(applicationIds);
+        if (name != null && !name.isEmpty()) {
+            applicationQuery.setName(name);
+        }
+
+        Sortable sortable = new SortableImpl("name", true);
+
+        Page<ApplicationListItem> subscribersApplicationPage = applicationService.search(
+            executionContext,
+            applicationQuery,
+            sortable,
+            paginationParam.toPageable()
+        );
+
+        return new SubscribersResponse()
+            .data(ApplicationMapper.INSTANCE.mapToBaseApplicationList(subscribersApplicationPage.getContent()))
+            .pagination(
+                computePaginationInfo(
+                    Math.toIntExact(subscribersApplicationPage.getTotalElements()),
+                    Math.toIntExact(subscribersApplicationPage.getPageElements()),
+                    paginationParam
+                )
+            )
+            .links(computePaginationLinks(Math.toIntExact(subscribersApplicationPage.getTotalElements()), paginationParam));
     }
 
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {

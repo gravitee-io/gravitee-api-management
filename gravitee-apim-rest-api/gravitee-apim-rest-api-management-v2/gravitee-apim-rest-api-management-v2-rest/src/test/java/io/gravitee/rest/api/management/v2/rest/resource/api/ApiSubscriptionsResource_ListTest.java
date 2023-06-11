@@ -138,7 +138,8 @@ public class ApiSubscriptionsResource_ListTest extends ApiSubscriptionsResourceT
 
         // Check links
         Links links = subscriptionsResponse.getLinks();
-        assert (Objects.nonNull(links.getSelf()));
+        assert links != null;
+        assertNotNull(links.getSelf());
         assertNull(links.getFirst());
         assertNull(links.getPrevious());
         assertNull(links.getNext());

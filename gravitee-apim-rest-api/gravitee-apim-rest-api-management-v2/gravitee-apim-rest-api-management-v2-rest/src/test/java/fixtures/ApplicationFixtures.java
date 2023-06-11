@@ -32,7 +32,7 @@ public class ApplicationFixtures {
 
     private static final ApplicationListItem.ApplicationListItemBuilder BASE_APPLICATION_LIST_ITEM = ApplicationListItem
         .builder()
-        .id("my-subscription")
+        .id("my-application")
         .name("My application")
         .description("Description")
         .apiKeyMode(ApiKeyMode.EXCLUSIVE)
