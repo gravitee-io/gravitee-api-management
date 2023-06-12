@@ -43,7 +43,18 @@ export class ApisV4Faker {
       definitionVersion: NewApiEntityV4DefinitionVersionEnum._4_0_0,
       description,
       name,
-      endpointGroups: [],
+      endpointGroups: [
+        {
+          name: 'default-group',
+          type: 'http-proxy',
+          endpoints: [
+            {
+              name: 'default-endpoint',
+              type: 'http-proxy',
+            },
+          ],
+        },
+      ],
       flowExecution: {
         flowMode: FlowExecutionV4ModeEnum.DEFAULT,
         matchRequired: false,
