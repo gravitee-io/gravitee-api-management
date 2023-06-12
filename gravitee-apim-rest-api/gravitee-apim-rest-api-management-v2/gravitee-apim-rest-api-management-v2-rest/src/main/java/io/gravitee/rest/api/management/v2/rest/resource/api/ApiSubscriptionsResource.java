@@ -42,12 +42,6 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
-import io.gravitee.rest.api.validator.CustomApiKey;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -188,6 +182,27 @@ public class ApiSubscriptionsResource extends AbstractResource {
         return Response.ok(VerifySubscriptionResponse.builder().ok(canCreate).build()).build();
     }
 
+    @GET
+    @Path("/{subscriptionId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.READ }) })
+    public Response getApiSubscription(@PathParam("subscriptionId") String subscriptionId, @QueryParam("expands") Set<String> expands) {
+        final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!subscriptionEntity.getApi().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
+        final Subscription subscription = subscriptionMapper.map(subscriptionEntity);
+        expandData(subscription, expands);
+
+        return Response.ok(subscription).build();
+    }
+
+    private void expandData(Subscription subscription, Set<String> expands) {
+        expandData(List.of(subscription), expands);
+    }
+
     private void expandData(List<Subscription> subscriptions, Set<String> expands) {
         if (expands == null || expands.isEmpty()) {
             return;
@@ -224,6 +239,14 @@ public class ApiSubscriptionsResource extends AbstractResource {
                     .forEach(subscription -> subscription.setApplication(application))
             );
         }
+    }
+
+    private Error subscriptionNotFoundError(String subscriptionId) {
+        return new Error()
+            .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
+            .message("Subscription [" + subscriptionId + "] cannot be found.")
+            .putParametersItem("subscription", subscriptionId)
+            .technicalCode("subscription.notFound");
     }
 
     private Error subscriptionInvalid(String message) {

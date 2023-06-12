@@ -911,6 +911,41 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        get:
+            tags:
+                - API Subscriptions
+            parameters:
+                - name: expands
+                  in: query
+                  description: Expansion of data to return in subscriptions.
+                  schema:
+                      type: array
+                      items:
+                          type: string
+                          enum:
+                              - application
+                              - plan
+            summary: Get one API's subscription
+            description: |-
+                Get the API's subscription by its identifier.
+                
+                User must have the API_SUBSCRIPTION[READ] permission.
+            operationId: getApiSubscription
+            responses:
+                "200":
+                    description: An API's subscription
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # Plugins - Endpoints
     /plugins/endpoints:
         get:
@@ -4354,6 +4389,13 @@ components:
             in: path
             required: true
             description: Id of a plan.
+            schema:
+                type: string
+        subscriptionIdParam:
+            name: subscriptionId
+            in: path
+            required: true
+            description: Id of a subscription.
             schema:
                 type: string
         endpointIdParam:
