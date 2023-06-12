@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './v2';
-export * from './v4';
+import { Links } from './links';
+import { Pagination } from './pagination';
+import { Subscription } from './subscription';
 
-export * from './basePlan';
-export * from './createPlan';
-export * from './plan';
-export * from './plan.fixture';
-export * from './planSecurity';
-export * from './planSecurityType';
-export * from './planStatus';
-export * from './planType';
-export * from './planValidation';
-export * from './updatePlan';
+export interface ApiSubscriptionsResponse {
+  /**
+   * List of API subscriptions.
+   */
+  data?: Array<Subscription>;
+  pagination?: Pagination;
+  links?: Links;
+}

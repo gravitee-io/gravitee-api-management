@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './v2';
-export * from './v4';
 
-export * from './basePlan';
-export * from './createPlan';
-export * from './plan';
-export * from './plan.fixture';
-export * from './planSecurity';
-export * from './planSecurityType';
-export * from './planStatus';
-export * from './planType';
-export * from './planValidation';
-export * from './updatePlan';
+/**
+ * Base information about a user.
+ */
+export interface BaseUser {
+  /**
+   * User's uuid.
+   */
+  id?: string;
+  /**
+   * User's name.
+   */
+  displayName?: string;
+}
