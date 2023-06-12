@@ -13,26 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.messages;
+package io.gravitee.apim.integration.tests.messages.httppost;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.graviteesource.endpoint.kafka.KafkaEndpointConnectorFactory;
 import com.graviteesource.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
-import com.graviteesource.reactor.message.MessageApiReactorFactory;
-import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
-import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
 import io.gravitee.apim.integration.tests.fake.InterruptMessageRequestPhasePolicy;
-import io.gravitee.apim.plugin.reactor.ReactorPlugin;
-import io.gravitee.definition.model.v4.Api;
-import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
-import io.gravitee.gateway.reactor.ReactableApi;
-import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
+import io.gravitee.apim.integration.tests.messages.AbstractKafkaEndpointIntegrationTest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.vertx.core.http.HttpMethod;
@@ -42,54 +33,27 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.producer.KafkaHeader;
-import java.util.Collection;
+
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.NewTopic;
+
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
-import org.testcontainers.utility.DockerImageName;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Testcontainers
 @GatewayTest
 @DeployApi(
     { "/apis/v4/messages/http-post-entrypoint-kafka-endpoint.json", "/apis/v4/messages/http-post-entrypoint-kafka-endpoint-failure.json" }
 )
-class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest {
+class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpointIntegrationTest {
 
-    @Container
-    private static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
-
-    public static final String TEST_TOPIC = "test-topic";
-
-    @Override
-    public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
-        reactors.add(ReactorBuilder.build(MessageApiReactorFactory.class));
-    }
-
-    @Override
-    public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
-        endpoints.putIfAbsent("kafka", EndpointBuilder.build("kafka", KafkaEndpointConnectorFactory.class));
-    }
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -102,33 +66,6 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractGatewayTest
             "interrupt-message-request-phase",
             PolicyBuilder.build("interrupt-message-request-phase", InterruptMessageRequestPhasePolicy.class)
         );
-    }
-
-    @Override
-    public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
-        if (definitionClass.isAssignableFrom(Api.class)) {
-            Api apiDefinition = (Api) api.getDefinition();
-            apiDefinition
-                .getEndpointGroups()
-                .stream()
-                .flatMap(eg -> eg.getEndpoints().stream())
-                .filter(endpoint -> endpoint.getType().equals("kafka"))
-                .forEach(endpoint ->
-                    endpoint.setConfiguration(endpoint.getConfiguration().replace("bootstrap-server", kafka.getBootstrapServers()))
-                );
-        }
-    }
-
-    @BeforeAll
-    void setUp() throws ExecutionException, InterruptedException, TimeoutException {
-        try (
-            AdminClient adminClient = AdminClient.create(
-                ImmutableMap.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers())
-            )
-        ) {
-            Collection<NewTopic> topics = List.of(new NewTopic(TEST_TOPIC, 1, (short) 1));
-            adminClient.createTopics(topics).all().get(30, TimeUnit.SECONDS);
-        }
     }
 
     @Test

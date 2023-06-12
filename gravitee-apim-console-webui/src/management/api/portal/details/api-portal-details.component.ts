@@ -17,7 +17,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/angular';
-import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { NewFile } from '@gravitee/ui-particles-angular';
 
@@ -34,7 +34,6 @@ import {
   ApiPortalDetailsPromoteDialogComponent,
   ApiPortalDetailsPromoteDialogData,
 } from './api-portal-details-promote-dialog/api-portal-details-promote-dialog.component';
-import { versionValidator } from './api-version.validator';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Category } from '../../../../entities/category/Category';
@@ -63,6 +62,8 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   public api: Api;
 
   public apiDetailsForm: FormGroup;
+  public apiImagesForm: FormGroup;
+  public parentForm: FormGroup;
   public initialApiDetailsFormValue: unknown;
   public labelsAutocompleteOptions: string[] = [];
   public apiCategories: Category[] = [];
@@ -179,18 +180,10 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
                 value: api.apiVersion,
                 disabled: this.isReadOnly,
               },
-              [Validators.required, versionValidator()],
+              [Validators.required],
             ),
             description: new FormControl({
               value: api.description,
-              disabled: this.isReadOnly,
-            }),
-            picture: new FormControl({
-              value: api._links['pictureUrl'] ? [api._links['pictureUrl']] : [],
-              disabled: this.isReadOnly,
-            }),
-            background: new FormControl({
-              value: api._links['backgroundUrl'] ? [api._links['backgroundUrl']] : [],
               disabled: this.isReadOnly,
             }),
             labels: new FormControl({
@@ -206,8 +199,22 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               disabled: this.isReadOnly,
             }),
           });
+          this.apiImagesForm = new FormGroup({
+            picture: new FormControl({
+              value: api._links['pictureUrl'] ? [api._links['pictureUrl']] : [],
+              disabled: this.isReadOnly,
+            }),
+            background: new FormControl({
+              value: api._links['backgroundUrl'] ? [api._links['backgroundUrl']] : [],
+              disabled: this.isReadOnly,
+            }),
+          });
+          this.parentForm = new FormGroup({
+            details: this.apiDetailsForm,
+            images: this.apiImagesForm,
+          });
 
-          this.initialApiDetailsFormValue = this.apiDetailsForm.getRawValue();
+          this.initialApiDetailsFormValue = this.parentForm.getRawValue();
         }),
       )
       .subscribe();
@@ -220,12 +227,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     const apiDetailsFormValue = this.apiDetailsForm.getRawValue();
-
-    // FIXME handle picture update
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const picture = getBase64(apiDetailsFormValue.picture[0]);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const background = getBase64(apiDetailsFormValue.background[0]);
+    const apiImagesFormValue = this.apiImagesForm.getRawValue();
 
     return this.apiService
       .get(this.ajsStateParams.apiId)
@@ -254,8 +256,29 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           };
           return apiToUpdate;
         }),
-        switchMap((api: UpdateApi) => this.apiService.update(this.apiId, api)),
-        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        switchMap((api: UpdateApi) => {
+          if (this.apiDetailsForm.dirty) {
+            return this.apiService.update(this.apiId, api);
+          }
+          return of(this.api);
+        }),
+        switchMap((api: Api) => {
+          if (this.apiImagesForm.controls['picture'].dirty) {
+            const picture = getBase64(apiImagesFormValue.picture[0]);
+            return this.apiService.updatePicture(this.apiId, picture).pipe(switchMap(() => of(api)));
+          }
+          return of(api);
+        }),
+        switchMap((api: Api) => {
+          if (this.apiImagesForm.controls['background'].dirty) {
+            const background = getBase64(apiImagesFormValue.background[0]);
+            return this.apiService.updateBackground(this.apiId, background).pipe(switchMap(() => of(api)));
+          }
+          return of(api);
+        }),
+        tap(() => {
+          this.snackBarService.success('Configuration successfully saved!');
+        }),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;

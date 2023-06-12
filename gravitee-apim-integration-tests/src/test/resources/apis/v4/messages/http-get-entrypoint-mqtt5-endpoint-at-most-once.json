@@ -1,23 +1,24 @@
 {
-  "id": "http-get-entrypoint-kafka-endpoint",
-  "name": "my-api-auto",
+  "id": "http-get-endpoint-mqtt5-endpoint-at-most-once",
+  "name": "my-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
   "type": "message",
-  "description": "api v4 using HTTP-GET entrypoint",
+  "description": "api v4 using HTTP Get entrypoint",
   "listeners": [
     {
       "type": "http",
       "paths": [
         {
-          "path": "/test"
+          "path": "/test-at-most-once"
         }
       ],
       "entrypoints": [
         {
           "type": "http-get",
+          "qos": "at-most-once",
           "configuration": {
-            "messagesLimitCount": 2,
+            "messagesLimitCount": 1,
             "messagesLimitDurationMs": 10000,
             "headersInPayload": true,
             "metadataInPayload": true
@@ -29,21 +30,21 @@
   "endpointGroups": [
     {
       "name": "default-group",
-      "type": "kafka",
+      "type": "mqtt5",
       "endpoints": [
         {
           "name": "default",
-          "type": "kafka",
+          "type": "mqtt5",
           "weight": 1,
           "inheritConfiguration": false,
           "configuration": {
-            "bootstrapServers": "bootstrap-server"
+            "serverHost": "localhost",
+            "serverPort": "mqtt5-port"
           },
           "sharedConfigurationOverride": {
             "consumer": {
               "enabled": true,
-              "topics": ["test-topic"],
-              "autoOffsetReset": "earliest"
+              "topic": "test-topic"
             }
           }
         }
