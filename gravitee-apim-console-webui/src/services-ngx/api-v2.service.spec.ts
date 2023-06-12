@@ -197,4 +197,40 @@ describe('ApiV2Service', () => {
       });
     });
   });
+
+  describe('picture', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+
+      apiV2Service.updatePicture(apiId, 'newPicture').subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/picture`,
+        method: 'PUT',
+      });
+
+      expect(req.request.body).toEqual('newPicture');
+      req.flush(null);
+    });
+  });
+
+  describe('background', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+
+      apiV2Service.updateBackground(apiId, 'newBackground').subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/background`,
+        method: 'PUT',
+      });
+
+      expect(req.request.body).toEqual('newBackground');
+      req.flush(null);
+    });
+  });
 });
