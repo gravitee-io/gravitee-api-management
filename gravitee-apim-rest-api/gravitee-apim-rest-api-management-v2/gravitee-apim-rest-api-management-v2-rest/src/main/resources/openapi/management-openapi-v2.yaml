@@ -2100,7 +2100,6 @@ components:
                     type: string
                     description: Flow's name.
                     example: My Flow
-                    minLength: 1
                 enabled:
                     type: boolean
                     description: Is the flow enabled.
