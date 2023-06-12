@@ -25,9 +25,9 @@ import io.gravitee.gateway.core.processor.AbstractProcessor;
  */
 public class PathParametersProcessor extends AbstractProcessor<ExecutionContext> {
 
-    private final PathParametersExtractor extractor;
+    private final AbstractPathParametersExtractor<?, ?, ?> extractor;
 
-    public PathParametersProcessor(PathParametersExtractor extractor) {
+    public PathParametersProcessor(AbstractPathParametersExtractor<?, ?, ?> extractor) {
         this.extractor = extractor;
     }
 

@@ -134,7 +134,7 @@
       "enabled": true
     },
     {
-      "name": "",
+      "name": "Products",
       "path-operator": {
         "path": "/products",
         "operator": "STARTS_WITH"
@@ -161,6 +161,21 @@
       "pre": [],
       "post": [],
       "enabled": true
+    },
+    {
+      "name": "Disabled Product Flow",
+      "path-operator": {
+        "path": "/products/:disabledProductId",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "pre": [],
+      "post": [],
+      "enabled": false
     }
   ],
   "resources": []

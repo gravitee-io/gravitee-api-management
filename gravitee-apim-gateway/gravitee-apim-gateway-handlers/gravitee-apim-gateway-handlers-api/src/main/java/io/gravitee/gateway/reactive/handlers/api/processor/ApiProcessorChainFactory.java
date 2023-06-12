@@ -111,7 +111,7 @@ public class ApiProcessorChainFactory {
             preProcessorList.add(XForwardedPrefixProcessor.instance());
         }
 
-        final PathParametersExtractor extractor = new PathParametersExtractor(api);
+        final PathParametersExtractor extractor = new PathParametersExtractor(api.getDefinition());
         if (extractor.canExtractPathParams()) {
             preProcessorList.add(new PathParametersProcessor(extractor));
         }

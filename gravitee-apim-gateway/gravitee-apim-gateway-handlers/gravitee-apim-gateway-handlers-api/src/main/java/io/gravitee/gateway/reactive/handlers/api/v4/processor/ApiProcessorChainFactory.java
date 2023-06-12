@@ -32,6 +32,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.error.SimpleFailurePr
 import io.gravitee.gateway.reactive.handlers.api.processor.error.template.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.pathmapping.PathMappingProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.pathparameters.PathParametersProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;
@@ -39,6 +40,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.transaction.Transacti
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
+import io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
@@ -129,6 +131,11 @@ public class ApiProcessorChainFactory {
         if (api.getDefinition().getListeners() != null) {
             if (overrideXForwardedPrefix) {
                 processors.add(XForwardedPrefixProcessor.instance());
+            }
+
+            final PathParametersExtractor extractor = new PathParametersExtractor(api.getDefinition());
+            if (extractor.canExtractPathParams()) {
+                processors.add(new PathParametersProcessor(extractor));
             }
 
             processors.add(SubscriptionProcessor.instance(clientIdentifierHeader));

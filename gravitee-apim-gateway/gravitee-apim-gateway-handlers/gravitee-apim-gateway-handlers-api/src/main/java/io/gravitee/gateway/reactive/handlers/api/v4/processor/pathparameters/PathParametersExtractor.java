@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api.processor.pathparameters;
+package io.gravitee.gateway.reactive.handlers.api.v4.processor.pathparameters;
 
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.gateway.handlers.api.processor.pathparameters.AbstractPathParametersExtractor;
+import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParameterHttpMethod;
+import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParameters;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,18 +45,21 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
     }
 
     @Override
-    protected List<Plan> getPlans(Api api) {
-        return api.getPlans();
-    }
-
-    @Override
     protected List<Flow> getPlanFlows(Plan plan) {
         return plan.getFlows();
     }
 
     @Override
+    protected List<Plan> getPlans(Api api) {
+        return api.getPlans();
+    }
+
+    @Override
     protected boolean hasPathParam(Flow flow) {
-        return PARAM_PATTERN.asPredicate().test(flow.getPath());
+        return flow
+            .selectorByType(SelectorType.HTTP)
+            .stream()
+            .anyMatch(selector -> PARAM_PATTERN.asPredicate().test(((HttpSelector) selector).getPath()));
     }
 
     @Override
@@ -59,24 +67,27 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
         return flow.isEnabled();
     }
 
-    /**
-     * Group pattern by HTTP Method. If flow is configured with an empty list of method, then pattern is assigned to WILDCARD key.
-     * @param flows
-     * @return
-     */
     @Override
-    protected Map<PathParameterHttpMethod, Set<PathParameters>> groupPatternsByMethod(final Stream<Flow> flows) {
+    protected Map<PathParameterHttpMethod, Set<PathParameters>> groupPatternsByMethod(Stream<Flow> flows) {
         final Map<PathParameterHttpMethod, Set<PathParameters>> patternsByMethod = flows
-            .flatMap(f -> {
+            .flatMap(f -> f.selectorByType(SelectorType.HTTP).map(selector -> (HttpSelector) selector).stream())
+            .flatMap(selector -> {
                 List<Map.Entry<PathParameterHttpMethod, PathParameters>> flowByMethod;
-                if (f.getMethods().isEmpty()) {
-                    flowByMethod = List.of(Map.entry(PathParameterHttpMethod.WILDCARD, new PathParameters(f.getPath(), f.getOperator())));
+                if (selector.getMethods().isEmpty()) {
+                    flowByMethod =
+                        List.of(
+                            Map.entry(PathParameterHttpMethod.WILDCARD, new PathParameters(selector.getPath(), selector.getPathOperator()))
+                        );
                 } else {
                     flowByMethod =
-                        f
+                        selector
                             .getMethods()
                             .stream()
-                            .map(m -> Map.entry(PathParameterHttpMethod.valueOf(m.name()), new PathParameters(f.getPath(), f.getOperator()))
+                            .map(m ->
+                                Map.entry(
+                                    PathParameterHttpMethod.valueOf(m.name()),
+                                    new PathParameters(selector.getPath(), selector.getPathOperator())
+                                )
                             )
                             .collect(Collectors.toList());
                 }

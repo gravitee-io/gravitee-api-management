@@ -20,9 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.gateway.reactive.core.processor.Processor;
@@ -32,6 +36,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.cors.CorsSimpleReques
 import io.gravitee.gateway.reactive.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.pathmapping.PathMappingProcessor;
+import io.gravitee.gateway.reactive.handlers.api.processor.pathparameters.PathParametersProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;
@@ -177,6 +182,32 @@ class ApiProcessorChainFactoryTest {
             .assertComplete()
             .assertValueCount(2)
             .assertValueAt(0, processor -> processor instanceof XForwardedPrefixProcessor)
+            .assertValueAt(1, processor -> processor instanceof SubscriptionProcessor);
+    }
+
+    @Test
+    void shouldReturnPathParamProcessorBeforeApiExecution() {
+        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, reporterService);
+
+        io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
+        HttpListener httpListener = new HttpListener();
+        apiModel.setListeners(List.of(httpListener));
+        Flow flow = new Flow();
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/products/:productId");
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+        httpSelector.setMethods(Set.of());
+        flow.setSelectors(List.of(httpSelector));
+        apiModel.setFlows(List.of(flow));
+        Api api = new Api(apiModel);
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
+        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
+        Flowable<Processor> processors = extractProcessorChain(processorChain);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(2)
+            .assertValueAt(0, processor -> processor instanceof PathParametersProcessor)
             .assertValueAt(1, processor -> processor instanceof SubscriptionProcessor);
     }
 

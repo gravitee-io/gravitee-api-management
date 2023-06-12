@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor.pathparameters;
 
+import io.gravitee.gateway.handlers.api.processor.pathparameters.AbstractPathParametersExtractor;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
@@ -28,9 +29,9 @@ public class PathParametersProcessor implements Processor {
 
     public static final String ID = "processor-path-parameters";
 
-    private final PathParametersExtractor extractor;
+    private final AbstractPathParametersExtractor<?, ?, ?> extractor;
 
-    public PathParametersProcessor(PathParametersExtractor extractor) {
+    public PathParametersProcessor(AbstractPathParametersExtractor<?, ?, ?> extractor) {
         this.extractor = extractor;
     }
 
