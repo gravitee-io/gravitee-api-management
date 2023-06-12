@@ -5,7 +5,7 @@ export default defineConfig({
     managementApi: 'http://localhost:8083',
   },
   e2e: {
-    baseUrl: 'http://localhost:8083',
+    baseUrl: 'http://localhost:3000',
     watchForFileChanges: false,
     projectId: 'ui-test',
     specPattern: 'ui-test/integration/**/*.spec.ts',

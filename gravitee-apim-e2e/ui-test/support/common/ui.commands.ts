@@ -24,7 +24,7 @@ declare namespace Cypress {
      * Custom command to select DOM element by data-testid attribute.
      * @example cy.getByDataTestId('greeting')
      */
-    getByDataTestId(selector: string): Chainable<Element>;
+    getByDataTestId(selector: string, options?: Partial<Loggable & Timeoutable & Withinable & Shadow>): Chainable<Element>;
 
     /**
      * Custom command to setup authentication token/cookie to visit directly some pages instead of
@@ -43,8 +43,8 @@ Cypress.Commands.add('gvType', (selector, value) => {
   cy.get(selector).within(() => cy.get('input').focus().type(value, { force: true }).trigger('input', { bubbles: true, composed: true }));
 });
 
-Cypress.Commands.add('getByDataTestId', (selector) => {
-  cy.get(`[data-testid=${selector}]`);
+Cypress.Commands.add('getByDataTestId', (selector, options?) => {
+  cy.get(`[data-testid=${selector}]`, options);
 });
 
 Cypress.Commands.add('loginInAPIM', (username: string, password: string) => {
