@@ -18,10 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionConsumerConfiguration;
-import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscription;
+import io.gravitee.rest.api.model.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -63,4 +61,8 @@ public interface SubscriptionMapper {
     @Mapping(target = "plan", source = "planId")
     @Mapping(target = "configuration", source = "consumerConfiguration")
     NewSubscriptionEntity map(CreateSubscription createSubscription);
+
+    @Mapping(target = "configuration", source = "updateSubscription.consumerConfiguration")
+    @Mapping(target = "id", expression = "java(subscriptionId)")
+    UpdateSubscriptionEntity map(UpdateSubscription updateSubscription, String subscriptionId);
 }

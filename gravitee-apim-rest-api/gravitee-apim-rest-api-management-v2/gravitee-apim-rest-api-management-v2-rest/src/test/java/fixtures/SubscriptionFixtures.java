@@ -17,11 +17,13 @@ package fixtures;
 
 import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionConsumerConfiguration;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.VerifySubscription;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.Map;
 
@@ -77,12 +79,30 @@ public class SubscriptionFixtures {
         )
         .metadata(Map.of("meta1", "value1", "meta2", "value2"));
 
+    private static final UpdateSubscription.UpdateSubscriptionBuilder BASE_UPDATE_SUBSCRIPTION = UpdateSubscription
+        .builder()
+        .startingAt(OffsetDateTime.now())
+        .endingAt(OffsetDateTime.now())
+        .consumerConfiguration(
+            SubscriptionConsumerConfiguration
+                .builder()
+                .entrypointConfiguration("{\"nice\": \"config\"}")
+                .entrypointId("entrypoint-id")
+                .channel("channel")
+                .build()
+        )
+        .metadata(Map.of("meta1", "value1", "meta2", "value2"));
+
     public static SubscriptionEntity aSubscriptionEntity() {
         return BASE_SUBSCRIPTION_ENTITY.build();
     }
 
     public static CreateSubscription aCreateSubscription() {
         return BASE_CREATE_SUBSCRIPTION.build();
+    }
+
+    public static UpdateSubscription anUpdateSubscription() {
+        return BASE_UPDATE_SUBSCRIPTION.build();
     }
 
     public static VerifySubscription aVerifySubscription() {
