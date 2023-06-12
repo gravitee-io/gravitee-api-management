@@ -65,4 +65,12 @@ export class ApiV2Service {
       },
     });
   }
+
+  updatePicture(apiId: string, newImage: string): Observable<void> {
+    return this.http.put<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/picture`, newImage);
+  }
+
+  updateBackground(apiId: string, newImage: string): Observable<void> {
+    return this.http.put<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/background`, newImage);
+  }
 }
