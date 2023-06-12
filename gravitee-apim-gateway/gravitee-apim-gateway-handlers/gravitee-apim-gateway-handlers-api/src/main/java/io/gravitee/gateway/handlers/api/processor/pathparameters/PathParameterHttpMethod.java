@@ -19,7 +19,7 @@ package io.gravitee.gateway.handlers.api.processor.pathparameters;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-enum PathParameterHttpMethod {
+public enum PathParameterHttpMethod {
     WILDCARD,
     CONNECT,
     DELETE,

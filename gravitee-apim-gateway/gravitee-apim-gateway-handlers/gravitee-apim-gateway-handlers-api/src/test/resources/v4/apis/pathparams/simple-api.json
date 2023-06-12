@@ -1,0 +1,201 @@
+{
+  "plans": [
+    {
+      "id": "keyless",
+      "name": "Keyless",
+      "security": {
+        "type": "key-less"
+      },
+      "flows": [
+        {
+          "name": "Item",
+          "selectors": [
+            {
+              "type": "http",
+              "path": "/products/:productId/items/:itemId",
+              "pathOperator": "STARTS_WITH",
+              "methods": []
+            }
+          ],
+          "request": [],
+          "response": [],
+          "enabled": true
+        },
+        {
+          "name": "Products",
+          "selectors": [
+            {
+              "type": "http",
+              "path": "/products",
+              "pathOperator": "STARTS_WITH",
+              "methods": []
+            }
+          ],
+          "request": [],
+          "response": [],
+          "enabled": true
+        },
+        {
+          "name": "Products",
+          "selectors": [
+            {
+              "type": "http",
+              "path": "/products",
+              "pathOperator": "STARTS_WITH",
+              "methods": [
+                "GET",
+                "PUT"
+              ]
+            }
+          ],
+          "request": [],
+          "response": [],
+          "enabled": true
+        },
+        {
+          "name": "Equals hello",
+          "selectors": [
+            {
+              "type": "http",
+              "path": "/products/:id/hello",
+              "pathOperator": "EQUALS",
+              "methods": [
+                "GET",
+                "PUT"
+              ]
+            }
+          ],
+          "request": [],
+          "response": [],
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Accept all - And add path parameters to headers",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "STARTS_WITH",
+          "methods": []
+        }
+      ],
+      "request": [
+        {
+          "name": "Path Parameters to headers",
+          "description": "",
+          "enabled": true,
+          "policy": "path-param-to-header"
+        }
+      ],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product id",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/products/:productId",
+          "pathOperator": "STARTS_WITH",
+          "methods": [
+            "CONNECT",
+            "DELETE",
+            "GET",
+            "HEAD",
+            "OPTIONS",
+            "PATCH",
+            "POST",
+            "TRACE"
+          ]
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Products",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/products",
+          "pathOperator": "STARTS_WITH",
+          "methods": []
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Products",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/products",
+          "pathOperator": "STARTS_WITH",
+          "methods": ["GET"]
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/products/:productId",
+          "pathOperator": "STARTS_WITH",
+          "methods": [
+            "DELETE",
+            "GET"
+          ]
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/products-special-char/:product-id",
+          "pathOperator": "STARTS_WITH",
+          "methods": [
+            "DELETE",
+            "GET"
+          ]
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/products-special-char/:product-id/items/:It€m_Id",
+          "pathOperator": "STARTS_WITH",
+          "methods": [
+            "DELETE",
+            "GET"
+          ]
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    }
+  ],
+  "resources": []
+}

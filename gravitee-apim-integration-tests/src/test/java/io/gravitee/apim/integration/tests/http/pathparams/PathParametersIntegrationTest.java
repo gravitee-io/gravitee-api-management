@@ -126,7 +126,7 @@ class PathParametersIntegrationTest extends AbstractGatewayTest {
         return Stream.of(
             Arguments.of("GET", "/products", Map.of(), Set.of()),
             Arguments.of("TRACE", "/products", Map.of(), Set.of()),
-            Arguments.of("GET", "/products/my-product", Map.of("productId", "my-product"), Set.of()),
+            Arguments.of("GET", "/products/my-product", Map.of("productId", "my-product"), Set.of("disabledProductId")),
             Arguments.of("GET", "/products/my-product/hello", Map.of("productId", "my-product", "id", "my-product"), Set.of()),
             Arguments.of("DELETE", "/products/my-product/hello", Map.of("productId", "my-product"), Set.of("id")),
             Arguments.of("PUT", "/products/my-product/hello", Map.of("id", "my-product"), Set.of("productId")),

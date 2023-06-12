@@ -139,7 +139,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             add(new PlanPolicyChainProvider(StreamType.ON_REQUEST, new PlanPolicyResolver(api), policyChainFactory));
             add(new ApiPolicyChainProvider(StreamType.ON_REQUEST, new ApiPolicyResolver(), policyChainFactory));
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
-            final PathParametersExtractor extractor = new PathParametersExtractor(api);
+            final PathParametersExtractor extractor = new PathParametersExtractor(api.getDefinition());
             if (extractor.canExtractPathParams()) {
                 final PathParametersProcessor pathParametersProcessor = new PathParametersProcessor(extractor);
                 add(() -> pathParametersProcessor);
