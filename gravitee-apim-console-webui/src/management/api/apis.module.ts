@@ -18,21 +18,23 @@ import { NgModule } from '@angular/core';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
 import { Transition } from '@uirouter/angularjs';
 
-import { ApiPortalDetailsModule } from './portal/details/api-portal-details.module';
-import { ApiListModule } from './list/api-list.module';
-import { ApiProxyModule } from './proxy/api-proxy.module';
-import { ApiNavigationModule } from './api-navigation/api-navigation.module';
-import { ApiPortalPlansModule } from './portal/plans/api-portal-plans.module';
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
-import { ApiPortalUserGroupModule } from './portal/user-group-access/api-portal-user-group.module';
-import { ApiPortalDocumentationModule } from './portal/documentation/api-portal-documentation.module';
-import { ApiPortalDetailsComponent } from './portal/details/api-portal-details.component';
-import { ApiNgNavigationComponent } from './api-ng-navigation/api-ng-navigation.component';
+import { ApiListModule } from './list/api-list.module';
+import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiNgNavigationModule } from './api-ng-navigation/api-ng-navigation.module';
+import { ApiPortalDetailsModule } from './portal/details/api-portal-details.module';
+import { ApiPortalDocumentationModule } from './portal/documentation/api-portal-documentation.module';
+import { ApiPortalPlansModule } from './portal/plans/api-portal-plans.module';
+import { ApiPortalSubscriptionsModule } from './portal/ng-subscriptions/api-portal-subscriptions.module';
+import { ApiPortalUserGroupModule } from './portal/user-group-access/api-portal-user-group.module';
+import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
-import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
-import { ApiPortalPlanListComponent } from './portal/plans/list/api-portal-plan-list.component';
+import { ApiNgNavigationComponent } from './api-ng-navigation/api-ng-navigation.component';
+import { ApiPortalDetailsComponent } from './portal/details/api-portal-details.component';
 import { ApiPortalPlanEditComponent } from './portal/plans/edit/api-portal-plan-edit.component';
+import { ApiPortalPlanListComponent } from './portal/plans/list/api-portal-plan-list.component';
+import { ApiPortalSubscriptionListComponent } from './portal/ng-subscriptions/list/api-portal-subscription-list.component';
+import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
@@ -141,8 +143,8 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.ng.subscriptions',
-    url: '/subscriptions',
-    component: GioEmptyComponent,
+    url: '/subscriptions?page&size&plan&application&status&apikey',
+    component: ApiPortalSubscriptionListComponent,
     data: {
       useAngularMaterial: true,
       docs: null,
@@ -150,6 +152,34 @@ const states: Ng2StateDeclaration[] = [
       // perms: {
       //   only: ['api-plan-r'],
       // },
+    },
+    params: {
+      status: {
+        type: 'string',
+        dynamic: true,
+      },
+      application: {
+        type: 'string',
+        dynamic: true,
+      },
+      plan: {
+        type: 'string',
+        dynamic: true,
+      },
+      page: {
+        type: 'int',
+        value: 1,
+        dynamic: true,
+      },
+      size: {
+        type: 'int',
+        value: 10,
+        dynamic: true,
+      },
+      apikey: {
+        type: 'string',
+        dynamic: true,
+      },
     },
   },
 ];
@@ -164,6 +194,7 @@ const states: Ng2StateDeclaration[] = [
     ApiPortalDetailsModule,
     ApiPortalDocumentationModule,
     ApiPortalPlansModule,
+    ApiPortalSubscriptionsModule,
     ApiProxyModule,
     ApiPortalUserGroupModule,
 

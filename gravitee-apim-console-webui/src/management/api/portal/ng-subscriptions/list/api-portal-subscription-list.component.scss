@@ -1,0 +1,88 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../../scss/gio-layout' as gio-layout;
+
+$foreground: map.get(gio.$mat-theme, foreground);
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+::ng-deep api-portal-subscription-list {
+  .subscriptions__filters__field > .mat-form-field-wrapper {
+    margin-bottom: -1.25em;
+  }
+}
+
+.subscriptions {
+  &__header {
+    display: flex;
+    align-items: center;
+
+    &__buttons {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 16px;
+
+      & button {
+        margin-left: 8px;
+      }
+    }
+  }
+
+  &__filters {
+    display: flex;
+    margin-bottom: 8px;
+
+    &__field {
+      padding-bottom: 0px;
+      margin-right: 8px;
+    }
+
+    &__buttons {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+
+      & button {
+        margin-left: 8px;
+      }
+    }
+  }
+
+  &__table {
+    width: 100%;
+    @include mat.elevation(3); // default elevation
+
+    &__drag-icon {
+      margin-right: 24px;
+    }
+
+    &__name {
+      cursor: pointer;
+    }
+
+    &__actions {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+
+    .mat-column-actions {
+      width: 0;
+    }
+
+    .mat-column-drag-icon {
+      width: 0;
+      cursor: move;
+    }
+
+    .mat-column-name {
+      width: 30%;
+    }
+  }
+}
