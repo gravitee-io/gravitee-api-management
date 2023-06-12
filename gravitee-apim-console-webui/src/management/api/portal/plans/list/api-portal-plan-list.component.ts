@@ -88,6 +88,10 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           if (!this.isReadOnly && !this.displayedColumns.includes('drag-icon')) {
             this.displayedColumns.unshift('drag-icon');
           }
+
+          if (this.api && this.api.definitionVersion !== 'V4') {
+            this.planSecurityOptions = this.planSecurityOptions.filter((security) => security.id !== 'PUSH');
+          }
         }),
         tap(() => this.onInit(this.status, true)),
         catchError(({ error }) => {

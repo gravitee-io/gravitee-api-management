@@ -91,6 +91,9 @@ describe('ApiPortalPlanListComponent', () => {
               sharedApiKey: {
                 enabled: true,
               },
+              push: {
+                enabled: true,
+              },
             });
             return constants;
           },
@@ -146,6 +149,16 @@ describe('ApiPortalPlanListComponent', () => {
         },
       ]);
       expect(rowCells).toEqual([['', 'Default plan', 'API_KEY', 'PUBLISHED', '🙅, 🔑', '']]);
+    }));
+
+    it('should not display PUSH plan option for V2 APIs', fakeAsync(async () => {
+      await initComponent([]);
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());
+
+      const planSecurityDropdown = await loader.getHarness(MatMenuHarness);
+      const items = await planSecurityDropdown.getItems();
+      const availablePlans = await Promise.all(items.map((item) => item.getText()));
+      expect(availablePlans).not.toContain('Push plan');
     }));
 
     it('should search closed plan on click', fakeAsync(async () => {
