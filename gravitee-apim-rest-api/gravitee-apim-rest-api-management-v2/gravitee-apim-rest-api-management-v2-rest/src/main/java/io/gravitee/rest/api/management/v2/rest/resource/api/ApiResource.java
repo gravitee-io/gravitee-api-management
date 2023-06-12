@@ -29,6 +29,7 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.management.model.Workflow;
+import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
@@ -51,6 +52,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -70,6 +72,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Defines the REST resources to manage API v4.
@@ -77,6 +80,7 @@ import java.util.Optional;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ApiResource extends AbstractResource {
 
     @Context
@@ -280,15 +284,43 @@ public class ApiResource extends AbstractResource {
     @GET
     @Path("picture")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
-    public Response getApiPicture(@Context Request request, @Context HttpHeaders headers, @PathParam("apiId") String apiId) {
+    public Response getApiPicture(@Context Request request, @PathParam("apiId") String apiId) {
         return imageResponse(request, apiImagesService.getApiPicture(GraviteeContext.getExecutionContext(), apiId));
+    }
+
+    @PUT
+    @Path("picture")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiPicture(@PathParam("apiId") String apiId, String pictureContent) {
+        try {
+            ImageUtils.Image picture = ImageUtils.verifyAndRescale(pictureContent);
+            apiImagesService.updateApiPicture(GraviteeContext.getExecutionContext(), apiId, picture.toBase64());
+            return Response.noContent().build();
+        } catch (InvalidImageException e) {
+            log.warn("Error while parsing picture for api {}", apiId, e);
+            throw new BadRequestException("Invalid image format");
+        }
     }
 
     @GET
     @Path("background")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
-    public Response getApiBackground(@Context Request request, @Context HttpHeaders headers, @PathParam("apiId") String apiId) {
+    public Response getApiBackground(@Context Request request, @PathParam("apiId") String apiId) {
         return imageResponse(request, apiImagesService.getApiBackground(GraviteeContext.getExecutionContext(), apiId));
+    }
+
+    @PUT
+    @Path("background")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiBackground(@PathParam("apiId") String apiId, String pictureContent) {
+        try {
+            ImageUtils.Image picture = ImageUtils.verifyAndRescale(pictureContent);
+            apiImagesService.updateApiBackground(GraviteeContext.getExecutionContext(), apiId, picture.toBase64());
+            return Response.noContent().build();
+        } catch (InvalidImageException e) {
+            log.warn("Error while parsing background image for api {}", apiId, e);
+            throw new BadRequestException("Invalid image format");
+        }
     }
 
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
