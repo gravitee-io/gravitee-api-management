@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './v2';
-export * from './v4';
 
-export * from './basePlan';
-export * from './createPlan';
-export * from './plan';
-export * from './plan.fixture';
-export * from './planSecurity';
-export * from './planSecurityType';
-export * from './planStatus';
-export * from './planType';
-export * from './planValidation';
-export * from './updatePlan';
+/**
+ * Consumer configuration associated to the subscription in case it is attached to a push plan.
+ */
+export interface SubscriptionConsumerConfiguration {
+  /**
+   * The id of the targeted entrypoint
+   */
+  entrypointId: string;
+  /**
+   * The channel to consume
+   */
+  channel?: string;
+  /**
+   * The configuration to use at subscription time to push to the target service.
+   */
+  entrypointConfiguration?: any;
+}

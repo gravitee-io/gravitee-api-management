@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 export * from './api';
+export * from './application';
 export * from './connector';
 export * from './createApi';
 export * from './member';
 export * from './plan';
+export * from './subscription';
 export * from './updateApi';
+export * from './user';
 
 export * from './apiDeployment';
 export * from './apiPlansResponse';
+export * from './apisResponse';
 export * from './apiSearchQuery';
 export * from './apiSortByParam';
-export * from './apisResponse';
+export * from './apiSubscriptionsResponse';
 export * from './environment';
 export * from './links';
 export * from './metadataResponse';
