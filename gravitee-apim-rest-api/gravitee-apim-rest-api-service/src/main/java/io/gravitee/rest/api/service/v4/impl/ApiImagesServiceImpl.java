@@ -15,21 +15,31 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
 import static java.util.Optional.of;
 
 import com.google.common.base.Strings;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiService;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Date;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -39,15 +49,24 @@ public class ApiImagesServiceImpl implements ApiImagesService {
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
 
-    private ApiSearchService apiSearchService;
+    private ApiRepository apiRepository;
+    private AuditService auditService;
 
-    public ApiImagesServiceImpl(ApiSearchService apiSearchService) {
-        this.apiSearchService = apiSearchService;
+    public ApiImagesServiceImpl(ApiRepository apiRepository, @Lazy AuditService auditService) {
+        this.apiRepository = apiRepository;
+        this.auditService = auditService;
     }
 
     @Override
     public InlinePictureEntity getApiPicture(ExecutionContext executionContext, String apiId) {
-        Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
+        Api api;
+        try {
+            api = findApi(executionContext, apiId);
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+        }
+
         InlinePictureEntity imageEntity = new InlinePictureEntity();
         String picture = api.getPicture();
         if (picture != null) {
@@ -60,6 +79,86 @@ public class ApiImagesServiceImpl implements ApiImagesService {
                 });
         }
         return imageEntity;
+    }
+
+    @Override
+    public void updateApiPicture(ExecutionContext executionContext, String apiId, String picture) {
+        try {
+            Api apiToUpdate = findApi(executionContext, apiId);
+            Api newApi = apiToUpdate.withPicture(picture).withUpdatedAt(new Date());
+
+            apiRepository.update(newApi);
+
+            // Audit
+            auditService.createApiAuditLog(
+                executionContext,
+                apiId,
+                Collections.emptyMap(),
+                API_UPDATED,
+                newApi.getUpdatedAt(),
+                apiToUpdate,
+                newApi
+            );
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+        }
+    }
+
+    @Override
+    public InlinePictureEntity getApiBackground(ExecutionContext executionContext, String apiId) {
+        Api api;
+        try {
+            api = findApi(executionContext, apiId);
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+        }
+
+        InlinePictureEntity imageEntity = new InlinePictureEntity();
+        String background = api.getBackground();
+        if (background != null) {
+            convertImage(imageEntity, background);
+        }
+
+        return imageEntity;
+    }
+
+    @Override
+    public void updateApiBackground(ExecutionContext executionContext, String apiId, String background) {
+        try {
+            Api apiToUpdate = findApi(executionContext, apiId);
+            Api newApi = apiToUpdate.withBackground(background).withUpdatedAt(new Date());
+
+            apiRepository.update(newApi);
+
+            // Audit
+            auditService.createApiAuditLog(
+                executionContext,
+                apiId,
+                Collections.emptyMap(),
+                API_UPDATED,
+                newApi.getUpdatedAt(),
+                apiToUpdate,
+                newApi
+            );
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find an API using its ID: {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an API using its ID: " + apiId, ex);
+        }
+    }
+
+    private Api findApi(ExecutionContext executionContext, String apiId) throws TechnicalException {
+        log.debug("Find API by ID: {}", apiId);
+
+        Optional<Api> optApi = apiRepository.findById(apiId);
+
+        if (executionContext.hasEnvironmentId()) {
+            optApi = optApi.filter(result -> executionContext.getEnvironmentId().equals(result.getEnvironmentId()));
+        }
+
+        Api api = optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
+        return api;
     }
 
     private static void convertImage(InlinePictureEntity imageEntity, String picture) {
@@ -79,17 +178,5 @@ public class ApiImagesServiceImpl implements ApiImagesService {
             }
         }
         return content;
-    }
-
-    @Override
-    public InlinePictureEntity getApiBackground(ExecutionContext executionContext, String apiId) {
-        Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
-        InlinePictureEntity imageEntity = new InlinePictureEntity();
-        String background = api.getBackground();
-        if (background != null) {
-            convertImage(imageEntity, background);
-        }
-
-        return imageEntity;
     }
 }

@@ -40,6 +40,7 @@ public abstract class ApiResourceTest extends AbstractResourceTest {
     public void init() throws TechnicalException {
         Mockito.reset(
             apiSearchServiceV4,
+            apiImagesService,
             apiImportExportService,
             apiStateServiceV4,
             parameterService,

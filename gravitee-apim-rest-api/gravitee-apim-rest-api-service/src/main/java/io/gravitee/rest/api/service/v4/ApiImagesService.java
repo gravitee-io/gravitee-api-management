@@ -20,5 +20,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface ApiImagesService {
     InlinePictureEntity getApiPicture(ExecutionContext executionContext, String apiId);
+    void updateApiPicture(ExecutionContext executionContext, String apiId, String picture);
     InlinePictureEntity getApiBackground(ExecutionContext executionContext, String apiId);
+    void updateApiBackground(ExecutionContext executionContext, String apiId, String background);
 }

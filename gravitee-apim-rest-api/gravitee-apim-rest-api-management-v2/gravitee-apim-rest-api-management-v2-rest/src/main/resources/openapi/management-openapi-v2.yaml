@@ -230,6 +230,27 @@ paths:
                     $ref: "#/components/responses/ImageResponse"
                 default:
                     $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - APIs
+            summary: Update an API's background
+            description: |-
+                Update the API's background.
+
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: updateApiBackground
+            requestBody:
+                content:
+                    image/*:
+                        schema:
+                            type: string
+                            format: binary
+            responses:
+                "204":
+                    description: API background successfully updated
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/deployments:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -270,6 +291,26 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/ImageResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - APIs
+            summary: Update an API's picture
+            description: |-
+                Update the API's picture.
+
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: updateApiPicture
+            requestBody:
+                content:
+                    image/*:
+                        schema:
+                            type: string
+                            format: binary
+            responses:
+                "204":
+                    description: API picture successfully updated
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_export/definition:
@@ -808,7 +849,7 @@ paths:
             summary: Get the API's subscriptions
             description: |
                 List subscriptions for a given API, always filtered by a `status` and the possibility to filter by `security`.
-                
+
                 User must have API_PLAN[READ] or API_LOG[READ] permissions to access endpoint.
             operationId: getApiSubscriptions
             responses:
@@ -822,7 +863,7 @@ paths:
             summary: Subscribe to an API's plan
             description: |-
                 Create a new subscription on a given API.
-                
+
                 User must have the API_SUBSCRIPTION[CREATE] permission.
             operationId: createApiSubscription
             requestBody:
@@ -2904,13 +2945,13 @@ components:
                     type: string
                     description: Optional custom api key that can be given when the subscription is related to an api-key plan and custom api key support is enabled.
                 consumerConfiguration:
-                    $ref: '#/components/schemas/SubscriptionConsumerConfiguration'
+                    $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
                 metadata:
                     type: object
                     description: A list of metadata associated to this subscription.
                     additionalProperties:
                         type: string
-            required: [applicationId,planId]
+            required: [applicationId, planId]
 
         VerifySubscription:
             type: object
