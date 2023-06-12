@@ -80,6 +80,10 @@ export class ApiNgNavigationComponent implements OnInit {
 
     this.selectedItemWithTabs = this.findMenuItemWithTabs();
     this.breadcrumbItems = this.computeBreadcrumbItems();
+
+    this.ajsRootScope.$on('$locationChangeStart', () => {
+      this.selectedItemWithTabs = this.findMenuItemWithTabs();
+    });
   }
 
   private appendDesign() {
@@ -112,7 +116,7 @@ export class ApiNgNavigationComponent implements OnInit {
       plansMenuItem.tabs.push({
         displayName: 'Plans',
         targetRoute: 'management.apis.ng.plans',
-        baseRoute: 'management.apis.ng.plans',
+        baseRoute: ['management.apis.ng.plans', 'management.apis.ng.plan'],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
