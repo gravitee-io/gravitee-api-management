@@ -135,8 +135,7 @@ describe('ApiPortalDetailsComponent', () => {
       await picturePicker.dropFiles([newImageFile('new-image.png', 'image/png')]);
 
       const backgroundPicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="background"]' }));
-      const img = (await backgroundPicker.getPreviews())[0];
-      expect(img).toContain(api._links['backgroundUrl']);
+      expect((await backgroundPicker.getPreviews())[0]).toContain(api._links['backgroundUrl']);
       await backgroundPicker.dropFiles([newImageFile('new-image.png', 'image/png')]);
 
       const labelsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="labels"]' }));
@@ -167,6 +166,28 @@ describe('ApiPortalDetailsComponent', () => {
       expect(req.request.body.labels).toEqual(['label1', 'label2', 'label3']);
       expect(req.request.body.categories).toEqual(['category1', 'category2']);
       expect(req.request.body.executionMode).toEqual('JUPITER');
+      req.flush(api);
+
+      const pictureReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/picture`,
+      });
+      expect(pictureReq.request.body).toEqual('data:image/png;base64,');
+      pictureReq.flush(null);
+
+      const backgroundReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/background`,
+      });
+      expect(backgroundReq.request.body).toEqual('data:image/png;base64,');
+      backgroundReq.flush(null);
+
+      // page reload after update
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest([
+        { id: 'category1', name: 'Category 1', key: 'category1' },
+        { id: 'category2', name: 'Category 2', key: 'category2' },
+      ]);
     });
 
     it('should disable field when origin is kubernetes', async () => {
@@ -325,8 +346,7 @@ describe('ApiPortalDetailsComponent', () => {
       await picturePicker.dropFiles([newImageFile('new-image.png', 'image/png')]);
 
       const backgroundPicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="background"]' }));
-      const img = (await backgroundPicker.getPreviews())[0];
-      expect(img).toContain(api._links['backgroundUrl']);
+      expect((await backgroundPicker.getPreviews())[0]).toContain(api._links['backgroundUrl']);
       await backgroundPicker.dropFiles([newImageFile('new-image.png', 'image/png')]);
 
       const labelsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="labels"]' }));
@@ -356,6 +376,28 @@ describe('ApiPortalDetailsComponent', () => {
       expect(req.request.body.description).toEqual('🦊 API description');
       expect(req.request.body.labels).toEqual(['label1', 'label2', 'label3']);
       expect(req.request.body.categories).toEqual(['category1', 'category2']);
+      req.flush(api);
+
+      const pictureReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/picture`,
+      });
+      expect(pictureReq.request.body).toEqual('data:image/png;base64,');
+      pictureReq.flush(null);
+
+      const backgroundReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/background`,
+      });
+      expect(backgroundReq.request.body).toEqual('data:image/png;base64,');
+      backgroundReq.flush(null);
+
+      // page reload after update
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest([
+        { id: 'category1', name: 'Category 1', key: 'category1' },
+        { id: 'category2', name: 'Category 2', key: 'category2' },
+      ]);
     });
 
     it('should disable field when origin is kubernetes', async () => {

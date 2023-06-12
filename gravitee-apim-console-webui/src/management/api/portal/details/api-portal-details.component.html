@@ -48,8 +48,8 @@
   <span gioBannerBody>Gravitee will reload to apply your new API Version</span>
 </gio-banner-info>
 
-<form *ngIf="apiDetailsForm" [formGroup]="apiDetailsForm" autocomplete="off" gioFormFocusInvalid>
-  <mat-card class="details-card">
+<form *ngIf="apiDetailsForm" [formGroup]="parentForm" autocomplete="off" gioFormFocusInvalid>
+  <mat-card class="details-card" [formGroup]="apiDetailsForm">
     <div class="details-card__header">
       <div class="details-card__header__info-inputs">
         <div class="details-card__header__info-inputs__first-row">
@@ -105,7 +105,7 @@
         </div>
       </div>
       <div class="details-card__header__right-coll">
-        <div class="details-card__header__right-coll__media">
+        <div class="details-card__header__right-coll__media" [formGroup]="apiImagesForm">
           <gio-form-file-picker class="details-card__header__right-coll__media__picture" formControlName="picture" accept="image/*">
             <gio-form-file-picker-label>API picture</gio-form-file-picker-label>
             <gio-form-file-picker-add-button class="details-card__header__right-coll__media__picture__btn">
@@ -180,5 +180,5 @@
 
   <api-portal-details-danger-zone class="danger-zone" [api]="api" (reloadDetails)="ngOnInit()"></api-portal-details-danger-zone>
 
-  <gio-save-bar [form]="apiDetailsForm" [formInitialValues]="initialApiDetailsFormValue" (submitted)="onSubmit()"></gio-save-bar>
+  <gio-save-bar [form]="parentForm" [formInitialValues]="initialApiDetailsFormValue" (submitted)="onSubmit()"></gio-save-bar>
 </form>
