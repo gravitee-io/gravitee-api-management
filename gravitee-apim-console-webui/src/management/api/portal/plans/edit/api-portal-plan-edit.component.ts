@@ -92,7 +92,12 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         if (this.mode === 'edit') {
-          this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === this.planForm.value.plan.security.type);
+          // TODO remove this when the SUBSCRIPTION security type is renamed on the backend side
+          if (this.planForm.value.plan.security.type === 'SUBSCRIPTION') {
+            this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === 'PUSH');
+          } else {
+            this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === this.planForm.value.plan.security.type);
+          }
         } else {
           this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === this.ajsStateParams.securityType);
         }
