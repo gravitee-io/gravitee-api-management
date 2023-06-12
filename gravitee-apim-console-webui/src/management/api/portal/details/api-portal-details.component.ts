@@ -34,7 +34,6 @@ import {
   ApiPortalDetailsPromoteDialogComponent,
   ApiPortalDetailsPromoteDialogData,
 } from './api-portal-details-promote-dialog/api-portal-details-promote-dialog.component';
-import { versionValidator } from './api-version.validator';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Category } from '../../../../entities/category/Category';
@@ -181,7 +180,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
                 value: api.apiVersion,
                 disabled: this.isReadOnly,
               },
-              [Validators.required, versionValidator()],
+              [Validators.required],
             ),
             description: new FormControl({
               value: api.description,
