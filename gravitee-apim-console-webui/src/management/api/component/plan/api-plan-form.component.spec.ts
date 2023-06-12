@@ -155,7 +155,7 @@ describe('ApiPlanFormComponent', () => {
         await nameInput.setValue('🗺');
 
         // 2- Secure Step
-        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('oauth2', {});
+        planForm.httpRequest(httpTestingController).expectPlanSchemaGetRequest('oauth2', {});
         planForm.httpRequest(httpTestingController).expectResourceGetRequest();
 
         // 3- Restriction Step
@@ -263,7 +263,7 @@ describe('ApiPlanFormComponent', () => {
         fixture.detectChanges();
 
         // 2- Secure Step
-        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('jwt', {});
+        planForm.httpRequest(httpTestingController).expectPlanSchemaGetRequest('jwt', {});
 
         const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
         await selectionRuleInput.setValue('{ #el ...}');
@@ -410,7 +410,7 @@ describe('ApiPlanFormComponent', () => {
         fixture.detectChanges();
 
         // 2- Secure Step
-        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', fakeApiKeySchema);
+        planForm.httpRequest(httpTestingController).expectPlanSchemaGetRequest('api-key', fakeApiKeySchema);
 
         const jsonSchemaPropagateApiKeyToggle = await loader.getHarness(
           MatSlideToggleHarness.with({ selector: '[id*="propagateApiKey"]' }),
@@ -670,7 +670,7 @@ describe('ApiPlanFormComponent', () => {
       await excludedGroupsInput.clickOptions({ text: 'Group A' });
 
       // 2- Secure Step
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('jwt', {});
+      planForm.httpRequest(httpTestingController).expectPlanSchemaGetRequest('jwt', {});
 
       const selectionRuleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
       await selectionRuleInput.setValue('{ #el ...}');
@@ -992,7 +992,7 @@ describe('ApiPlanFormComponent', () => {
         planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
         planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, [{ id: 'doc-1', name: 'Doc 1' }]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', fakeApiKeySchema);
+        planForm.httpRequest(httpTestingController).expectPlanSchemaGetRequest('api-key', fakeApiKeySchema);
         fixture.detectChanges();
 
         expect(testComponent.planControl.touched).toEqual(false);
