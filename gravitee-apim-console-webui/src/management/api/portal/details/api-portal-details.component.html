@@ -61,7 +61,7 @@
 
           <mat-form-field class="details-card__header__info-inputs__first-row__version-field">
             <mat-label>Version</mat-label>
-            <input matInput formControlName="version" required />
+            <input matInput formControlName="version" required maxlength="32" />
             <mat-error *ngIf="apiDetailsForm.controls.version.hasError('required')">Version is required.</mat-error>
             <mat-error *ngIf="apiDetailsForm.controls.version.hasError('version')">{{
               apiDetailsForm.controls.version.getError('version')
