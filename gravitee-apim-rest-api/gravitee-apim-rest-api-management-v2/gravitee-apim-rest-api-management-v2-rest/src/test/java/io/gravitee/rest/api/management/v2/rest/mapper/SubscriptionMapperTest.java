@@ -56,4 +56,41 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
             subscription.getConsumerConfiguration().getEntrypointConfiguration()
         );
     }
+
+    @Test
+    void should_map_CreateSubscription_to_NewSubscriptionEntity() {
+        final var createSubscription = SubscriptionFixtures.aCreateSubscription();
+        final var newSubscriptionEntity = subscriptionMapper.map(createSubscription);
+
+        assertEquals(createSubscription.getPlanId(), newSubscriptionEntity.getPlan());
+        assertEquals(createSubscription.getApplicationId(), newSubscriptionEntity.getApplication());
+        assertEquals(createSubscription.getMetadata(), newSubscriptionEntity.getMetadata());
+        assertEquals(
+            createSubscription.getConsumerConfiguration().getEntrypointId(),
+            newSubscriptionEntity.getConfiguration().getEntrypointId()
+        );
+        assertEquals(createSubscription.getConsumerConfiguration().getChannel(), newSubscriptionEntity.getConfiguration().getChannel());
+        assertConfigurationEquals(
+            createSubscription.getConsumerConfiguration().getEntrypointConfiguration(),
+            newSubscriptionEntity.getConfiguration().getEntrypointConfiguration()
+        );
+    }
+
+    @Test
+    void should_map_UpdateSubscription_to_UpdateSubscriptionEntity() {
+        final var updateSubscription = SubscriptionFixtures.anUpdateSubscription();
+        final var updateSubscriptionEntity = subscriptionMapper.map(updateSubscription, "subscriptionId");
+
+        assertEquals("subscriptionId", updateSubscriptionEntity.getId());
+        assertEquals(updateSubscription.getMetadata(), updateSubscriptionEntity.getMetadata());
+        assertEquals(
+            updateSubscription.getConsumerConfiguration().getEntrypointId(),
+            updateSubscriptionEntity.getConfiguration().getEntrypointId()
+        );
+        assertEquals(updateSubscription.getConsumerConfiguration().getChannel(), updateSubscriptionEntity.getConfiguration().getChannel());
+        assertConfigurationEquals(
+            updateSubscription.getConsumerConfiguration().getEntrypointConfiguration(),
+            updateSubscriptionEntity.getConfiguration().getEntrypointConfiguration()
+        );
+    }
 }

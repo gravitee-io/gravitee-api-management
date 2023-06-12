@@ -945,6 +945,30 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - API Subscriptions
+            summary: Update one API's subscription
+            description: |-
+                Update the API's subscription.
+                
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: updateApiSubscription
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateSubscription"
+                required: true
+            responses:
+                "200":
+                    description: API's subscription successfully updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # Plugins - Endpoints
     /plugins/endpoints:
@@ -2987,6 +3011,27 @@ components:
                     additionalProperties:
                         type: string
             required: [applicationId, planId]
+
+        UpdateSubscription:
+            type: object
+            properties:
+                consumerConfiguration:
+                    $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
+                metadata:
+                    type: object
+                    description: A list of metadata associated to this subscription.
+                    additionalProperties:
+                        type: string
+                startingAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription starts. No starting date means the subscription starts immediately.
+                    example: 2023-05-20T12:30:42.101Z
+                endingAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription ends. No ending date means the subscription never ends.
+                    example: 2023-05-25T12:40:46.184Z
 
         VerifySubscription:
             type: object

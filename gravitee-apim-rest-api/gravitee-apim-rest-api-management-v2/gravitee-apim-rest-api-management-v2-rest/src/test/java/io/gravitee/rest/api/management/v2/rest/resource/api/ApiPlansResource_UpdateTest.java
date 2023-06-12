@@ -50,7 +50,7 @@ public class ApiPlansResource_UpdateTest extends ApiPlansResourceTest {
     public void should_return_404_if_not_found() {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenThrow(new PlanNotFoundException(PLAN));
 
-        final Response response = rootTarget().request().get();
+        final Response response = rootTarget().request().put(Entity.json(PlanFixtures.anUpdatePlanV4()));
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         var error = response.readEntity(Error.class);
@@ -64,7 +64,7 @@ public class ApiPlansResource_UpdateTest extends ApiPlansResourceTest {
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
 
-        final Response response = rootTarget().request().get();
+        final Response response = rootTarget().request().put(Entity.json(PlanFixtures.anUpdatePlanV4()));
         assertEquals(NOT_FOUND_404, response.getStatus());
 
         var error = response.readEntity(Error.class);
