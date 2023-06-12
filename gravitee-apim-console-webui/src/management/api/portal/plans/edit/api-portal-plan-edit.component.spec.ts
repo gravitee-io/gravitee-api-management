@@ -33,7 +33,7 @@ import { ApiPortalPlansModule } from '../api-portal-plans.module';
 import { fakeTag } from '../../../../../entities/tag/tag.fixture';
 import { fakeGroup } from '../../../../../entities/group/group.fixture';
 import { ApiPlanFormHarness } from '../../../component/plan/api-plan-form.harness';
-import { Api, CreatePlanV2, fakeApiV2, fakePlanV2, Plan, PlanV2 } from '../../../../../entities/management-api-v2';
+import { Api, CreatePlanV2, fakeApiV2, fakeApiV4, fakePlanV2, fakePlanV4, Plan, PlanV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiPortalPlanEditComponent', () => {
   const API_ID = 'my-api';
@@ -112,7 +112,7 @@ describe('ApiPortalPlanEditComponent', () => {
           },
         ]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-        planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('jwt', {});
+        planForm.httpRequest(httpTestingController).expectPlanSchemaGetRequest('jwt', {});
 
         await planForm.getNameInput().then((i) => i.setValue('My new plan'));
 
@@ -293,6 +293,98 @@ describe('ApiPortalPlanEditComponent', () => {
     });
   });
 
+  describe('With a V4 API', () => {
+    describe('Edit', () => {
+      const TAG_1_ID = 'tag-1';
+      const PLAN = fakePlanV4({ apiId: API_ID, security: { type: 'SUBSCRIPTION' } });
+
+      beforeEach(async () => {
+        configureTestingModule(PLAN.id);
+        fixture.detectChanges();
+        expectApiGetRequest(fakeApiV4({ id: API_ID }));
+        expectPlanGetRequest(API_ID, PLAN);
+      });
+
+      it('should edit plan', async () => {
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
+
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm
+          .httpRequest(httpTestingController)
+          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        planForm.httpRequest(httpTestingController).expectGroupLisRequest([
+          fakeGroup({
+            id: 'group-a',
+            name: 'Group A',
+          }),
+        ]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [
+          {
+            id: 'doc-1',
+            name: 'Doc 1',
+          },
+        ]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+
+        const nameInput = await planForm.getNameInput();
+        await nameInput.setValue('My plan edited');
+
+        expect(await saveBar.isVisible()).toBe(true);
+        await saveBar.clickSubmit();
+
+        expectPlanGetRequest(API_ID, PLAN);
+        const req = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN.id}`,
+          method: 'PUT',
+        });
+
+        expect(req.request.body).toEqual(expect.objectContaining({ name: 'My plan edited' }));
+        req.flush({});
+        expect(fakeUiRouter.go).toHaveBeenCalled();
+      });
+    });
+
+    describe('Edit Kubernetes API', () => {
+      const TAG_1_ID = 'tag-1';
+      const PLAN = fakePlanV2({ apiId: API_ID, security: { type: 'KEY_LESS' } });
+
+      beforeEach(async () => {
+        configureTestingModule(PLAN.id);
+        fixture.detectChanges();
+        expectApiGetRequest(fakeApiV2({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } }));
+        expectPlanGetRequest(API_ID, PLAN);
+      });
+
+      it('should access plan in read only', async () => {
+        expect(await loader.getAllHarnesses(GioSaveBarHarness)).toHaveLength(0);
+
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm
+          .httpRequest(httpTestingController)
+          .expectTagsListRequest([fakeTag({ id: TAG_1_ID, name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+        planForm.httpRequest(httpTestingController).expectGroupLisRequest([
+          fakeGroup({
+            id: 'group-a',
+            name: 'Group A',
+          }),
+        ]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [
+          {
+            id: 'doc-1',
+            name: 'Doc 1',
+          },
+        ]);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
+
+        const nameInput = await planForm.getNameInput();
+        expect(await nameInput.isDisabled()).toEqual(true);
+      });
+    });
+  });
+
   describe('with new Angular router', () => {
     const TAG_1_ID = 'tag-1';
 
@@ -322,7 +414,7 @@ describe('ApiPortalPlanEditComponent', () => {
         },
       ]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectPolicySchemaGetRequest('jwt', {});
+      planForm.httpRequest(httpTestingController).expectPlanSchemaGetRequest('jwt', {});
 
       await planForm.getNameInput().then((i) => i.setValue('My new plan'));
 
