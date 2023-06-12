@@ -29,7 +29,7 @@
     ></plan-edit-general-step>
   </mat-step>
 
-  <mat-step *ngIf="securityType.id !== 'KEY_LESS'" state="secure" [stepControl]="planForm.get('secure')">
+  <mat-step *ngIf="!['KEY_LESS', 'PUSH'].includes(securityType.id)" state="secure" [stepControl]="planForm.get('secure')">
     <ng-template matStepperIcon="secure">
       <mat-icon svgIcon="gio:lock"></mat-icon>
     </ng-template>

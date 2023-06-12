@@ -24,6 +24,7 @@ import { set } from 'lodash';
 import { Component, ViewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatStepHarness } from '@angular/material/stepper/testing';
 
 import { ApiPlanFormModule } from './api-plan-form.module';
 import { ApiPlanFormHarness } from './api-plan-form.harness';
@@ -626,12 +627,10 @@ describe('ApiPlanFormComponent', () => {
   });
 
   describe('Create mode V4 without API', () => {
-    beforeEach(async () => {
+    it('should add new plan', async () => {
       configureTestingModule('create', 'JWT');
       fixture.detectChanges();
-    });
 
-    it('should add new plan', async () => {
       const planForm = await loader.getHarness(ApiPlanFormHarness);
 
       planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
@@ -741,6 +740,23 @@ describe('ApiPlanFormComponent', () => {
         ],
       } as CreatePlanV4);
     });
+  });
+  it('should not display secure step with push plans', async () => {
+    configureTestingModule('create', 'PUSH');
+    fixture.detectChanges();
+
+    const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+    planForm.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    fixture.detectChanges();
+
+    expect(testComponent.planControl.touched).toEqual(false);
+    expect(testComponent.planControl.dirty).toEqual(false);
+    expect(testComponent.planControl.valid).toEqual(false);
+
+    const stepsHarness = await loader.getAllHarnesses(MatStepHarness);
+    const steps = await Promise.all(stepsHarness.map((step) => step.getLabel()));
+    expect(steps).toEqual(['General', 'Restriction']);
   });
 
   describe('Edit mode V2', () => {

@@ -48,7 +48,11 @@ export class Step4Security1PlansAddComponent implements OnInit {
   }
 
   onAddPlan(): void {
-    this.planChanges.next(this.form.get('plan').value);
+    const planToSave: CreatePlanV4 = {
+      ...this.form.get('plan').value,
+      definitionVersion: 'V4',
+    };
+    this.planChanges.next(planToSave);
   }
 
   onExitPlanCreation(): void {

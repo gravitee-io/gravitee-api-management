@@ -69,7 +69,7 @@ export class Step4Security1PlansHarness extends ComponentHarness {
   async addApiKeyPlan(planName: string, httpTestingController: HttpTestingController): Promise<void> {
     await this.getButtonBySelector('[aria-label="Add new plan"]').then((b) => b.click());
     const planSecurityDropdown = await this.locatorFor(MatMenuHarness)();
-    expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
+    expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(5);
 
     await planSecurityDropdown.clickItem({ text: 'API Key' });
 
@@ -78,7 +78,7 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     await apiPlanFormHarness.getNameInput().then((i) => i.setValue(planName));
 
-    apiPlanFormHarness.httpRequest(httpTestingController).expectPolicySchemaGetRequest('api-key', {});
+    apiPlanFormHarness.httpRequest(httpTestingController).expectPlanSchemaGetRequest('api-key', {});
 
     await (await this.getButtonByText('Next')).click();
     await (await this.getButtonByText('Next')).click();
