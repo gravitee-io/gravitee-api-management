@@ -60,6 +60,9 @@ describe('ConstantsService', () => {
         sharedApiKey: {
           enabled: true,
         },
+        push: {
+          enabled: true,
+        },
       });
       const expectedPlanSecurityTypes = PLAN_SECURITY_TYPES;
 

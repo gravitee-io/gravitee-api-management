@@ -60,6 +60,9 @@ public class PlanSettings {
         @ParameterKey(Key.PLAN_SECURITY_JWT_ENABLED)
         private Enabled jwt;
 
+        @ParameterKey(Key.PLAN_SECURITY_PUSH_ENABLED)
+        private Enabled push;
+
         public Enabled getApikey() {
             return apikey;
         }
@@ -106,6 +109,14 @@ public class PlanSettings {
 
         public void setSharedApiKey(Enabled sharedApiKey) {
             this.sharedApiKey = sharedApiKey;
+        }
+
+        public Enabled getPush() {
+            return push;
+        }
+
+        public void setPush(Enabled push) {
+            this.push = push;
         }
     }
 }

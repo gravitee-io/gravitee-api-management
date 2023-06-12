@@ -44,6 +44,10 @@ export const PLAN_SECURITY_TYPES: PlanSecurityVM[] = [
     id: 'KEY_LESS',
     name: 'Keyless (public)',
   },
+  {
+    id: 'PUSH',
+    name: 'Push plan',
+  },
 ];
 
 @Injectable({

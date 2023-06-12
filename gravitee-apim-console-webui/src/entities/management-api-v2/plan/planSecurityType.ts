@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+// TODO remove this when the SUBSCRIPTION security type is renamed on the backend side
+export type PushSecurityType = 'PUSH' | 'SUBSCRIPTION';
+
 /**
  * Plan security type.
  */
-export type PlanSecurityType = 'KEY_LESS' | 'API_KEY' | 'OAUTH2' | 'JWT' | 'SUBSCRIPTION';
+export type PlanSecurityType = 'KEY_LESS' | 'API_KEY' | 'OAUTH2' | 'JWT' | PushSecurityType;
