@@ -83,5 +83,9 @@ export class Step4Security1PlansComponent implements OnInit {
     this.view = 'list';
   }
 
+  onRemovePlanClicked(plan: CreatePlanV4) {
+    this.plans = this.plans.filter((listedPlan) => listedPlan !== plan);
+  }
+
   protected readonly undefined = undefined;
 }

@@ -37,6 +37,9 @@ export class Step4Security1PlansListComponent implements OnInit {
   @Output()
   editPlanClicked = new EventEmitter<CreatePlanV4>();
 
+  @Output()
+  removePlanClicked = new EventEmitter<CreatePlanV4>();
+
   planSecurityOptions: PlanSecurityVM[];
 
   public form = new FormGroup({});
@@ -70,6 +73,6 @@ export class Step4Security1PlansListComponent implements OnInit {
   }
 
   removePlan(plan: CreatePlanV4) {
-    this.plans = this.plans.filter((listedPlan) => listedPlan !== plan);
+    this.removePlanClicked.emit(plan);
   }
 }
