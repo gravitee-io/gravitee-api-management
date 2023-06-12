@@ -49,10 +49,10 @@ public class ApiImagesServiceImpl implements ApiImagesService {
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
 
-    private ApiRepository apiRepository;
-    private AuditService auditService;
+    private final ApiRepository apiRepository;
+    private final AuditService auditService;
 
-    public ApiImagesServiceImpl(ApiRepository apiRepository, @Lazy AuditService auditService) {
+    public ApiImagesServiceImpl(@Lazy ApiRepository apiRepository, AuditService auditService) {
         this.apiRepository = apiRepository;
         this.auditService = auditService;
     }
