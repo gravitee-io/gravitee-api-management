@@ -35,12 +35,19 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.validator.CustomApiKey;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -79,6 +86,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private ParameterService parameterService;
+
+    @Inject
+    private ApiKeyService apiKeyService;
 
     @PathParam("apiId")
     private String apiId;
@@ -161,6 +171,21 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         return Response.created(this.getLocationHeader(subscription.getId())).entity(subscriptionMapper.map(subscription)).build();
+    }
+
+    @POST
+    @Path("_verify")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.CREATE) })
+    public Response verifyCreateApiSubscription(@Valid @NotNull VerifySubscription verifySubscriptionSubscription) {
+        boolean canCreate = apiKeyService.canCreate(
+            GraviteeContext.getExecutionContext(),
+            verifySubscriptionSubscription.getApiKey(),
+            apiId,
+            verifySubscriptionSubscription.getApplicationId()
+        );
+        return Response.ok(VerifySubscriptionResponse.builder().ok(canCreate).build()).build();
     }
 
     private void expandData(List<Subscription> subscriptions, Set<String> expands) {

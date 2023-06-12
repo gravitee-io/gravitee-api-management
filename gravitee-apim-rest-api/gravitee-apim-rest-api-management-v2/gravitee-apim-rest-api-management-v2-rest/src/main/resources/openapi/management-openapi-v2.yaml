@@ -841,6 +841,35 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/subscriptions/_verify:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Check a subscription can be created
+            description: |-
+                Check a subscription can be created with given api key, and application.
+                
+                User must have the API_SUBSCRIPTION[CREATE] permission.
+            operationId: verifyCreateApiSubscription
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/VerifySubscription"
+                required: true
+            responses:
+                "200":
+                    description: Verification successfully performed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/VerifySubscriptionResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # Plugins - Endpoints
     /plugins/endpoints:
         get:
@@ -2882,6 +2911,28 @@ components:
                     additionalProperties:
                         type: string
             required: [applicationId,planId]
+
+        VerifySubscription:
+            type: object
+            properties:
+                applicationId:
+                    type: string
+                    description: The id of the application subscribing.
+                apiKey:
+                    type: string
+                    description: 'The api key that needs to be verified. Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)'
+                    pattern: '^[^#%@/;=?|^~, \\]*$'
+            required: [applicationId,apiKey]
+
+        VerifySubscriptionResponse:
+            type: object
+            properties:
+                ok:
+                    type: boolean
+                    description: Indicates whether the creation can be done or not.
+                reason:
+                    type: string
+                    description: An optional reason giving details about the result.
 
         BaseUser:
             type: object

@@ -173,4 +173,9 @@ public class ResourceContextConfiguration {
     public ApplicationService applicationService() {
         return mock(ApplicationService.class);
     }
+
+    @Bean
+    public ApiKeyService apiKeyService() {
+        return mock(ApiKeyService.class);
+    }
 }
