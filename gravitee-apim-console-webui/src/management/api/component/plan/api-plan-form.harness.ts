@@ -104,6 +104,12 @@ export class ApiPlanFormHarness extends ComponentHarness {
       httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/policies/${type}/schema`, method: 'GET' }).flush(schema);
     }
 
+    function expectPlanSchemaGetRequest(type: string, schema: unknown) {
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/policies/${type}/schema`, method: 'GET' })
+        .flush(schema);
+    }
+
     return {
       expectTagsListRequest,
       expectGroupLisRequest,
@@ -111,6 +117,7 @@ export class ApiPlanFormHarness extends ComponentHarness {
       expectCurrentUserTagsRequest,
       expectResourceGetRequest,
       expectPolicySchemaGetRequest,
+      expectPlanSchemaGetRequest,
     };
   }
 }

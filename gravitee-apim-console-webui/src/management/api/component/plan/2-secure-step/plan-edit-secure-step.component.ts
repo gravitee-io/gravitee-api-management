@@ -22,7 +22,7 @@ import '@gravitee/ui-components/wc/gv-schema-form-group';
 import { PlanResourceTypeService } from './plan-resource-type/plan-resource-type.service';
 
 import { Constants } from '../../../../../entities/Constants';
-import { PolicyService } from '../../../../../services-ngx/policy.service';
+import { PolicyV2Service } from '../../../../../services-ngx/policy-v2.service';
 import { ResourceService } from '../../../../../services-ngx/resource.service';
 import { ResourceListItem } from '../../../../../entities/resource/resourceListItem';
 import { ApiV2, ApiV4 } from '../../../../../entities/management-api-v2';
@@ -50,7 +50,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   securityType: PlanSecurityVM;
   constructor(
     @Inject('Constants') private readonly constants: Constants,
-    private readonly policyService: PolicyService,
+    private readonly policyService: PolicyV2Service,
     private readonly resourceService: ResourceService,
     private readonly snackBarService: SnackBarService,
     private readonly planOauth2ResourceTypeService: PlanResourceTypeService,
