@@ -53,6 +53,9 @@ public class HtmlSanitizerTest {
     private static String DIV_TAG_WITH_STYLE_ATT_WITH_SINGLE_QUOTE = "<div style='margin:auto'></div>";
     private static String DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON = "<div style=\"margin:auto;;\"></div>";
 
+    private static String SUMMARY_DETAILS =
+        "<details>\n" + "    <summary>Details</summary>\n" + "    Something small enough to escape casual notice.\n" + "</details>\n";
+
     @Test
     public void sanitize() {
         String html = getSafe();
@@ -173,5 +176,6 @@ public class HtmlSanitizerTest {
             HtmlSanitizer.isSafe(DIV_TAG_WITH_STYLE_ATT_WITH_TWO_SEMICOLON).isSafe(),
             is(true)
         );
+        collector.checkThat("SUMMARY_DETAILS", HtmlSanitizer.isSafe(SUMMARY_DETAILS).isSafe(), is(true));
     }
 }

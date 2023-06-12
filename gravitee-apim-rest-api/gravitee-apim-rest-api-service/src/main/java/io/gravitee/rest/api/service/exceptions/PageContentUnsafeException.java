@@ -24,7 +24,7 @@ import java.util.Map;
  */
 public class PageContentUnsafeException extends AbstractManagementException {
 
-    private String rejectedMessage;
+    private final String rejectedMessage;
 
     public PageContentUnsafeException(String rejectedMessage) {
         this.rejectedMessage = rejectedMessage;
@@ -50,7 +50,7 @@ public class PageContentUnsafeException extends AbstractManagementException {
         String message = "The page content does not follow security policy";
 
         if (rejectedMessage != null) {
-            message = message + " : " + rejectedMessage;
+            message = message + ": " + rejectedMessage;
         }
 
         return message;
