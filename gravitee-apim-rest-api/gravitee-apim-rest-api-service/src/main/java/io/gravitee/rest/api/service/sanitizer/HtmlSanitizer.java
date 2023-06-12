@@ -72,6 +72,12 @@ public final class HtmlSanitizer {
         .allowStyling(CssSchema.union(CssSchema.DEFAULT, CssSchema.withProperties(Collections.singleton("float"))))
         .toFactory();
 
+    /**
+     * Allow a set of HTML tags to support GitHub Flavoured Markdown.
+     * Spec is available at: <a href="https://github.github.com/gfm">https://github.github.com/gfm</a>
+     */
+    private static final PolicyFactory GITHUB_FLAVOURED_MARKDOWN = new HtmlPolicyBuilder().allowElements("summary", "details").toFactory();
+
     private static final PolicyFactory factory = Sanitizers.BLOCKS
         .and(Sanitizers.FORMATTING)
         .and(
@@ -86,7 +92,8 @@ public final class HtmlSanitizer {
         .and(Sanitizers.TABLES)
         .and(new HtmlPolicyBuilder().allowElements("pre", "hr").toFactory())
         .and(HTML_IMAGES_SANITIZER)
-        .and(new HtmlPolicyBuilder().allowElements("code").allowAttributes("class").globally().toFactory());
+        .and(new HtmlPolicyBuilder().allowElements("code").allowAttributes("class").globally().toFactory())
+        .and(GITHUB_FLAVOURED_MARKDOWN);
 
     private HtmlSanitizer() {}
 
