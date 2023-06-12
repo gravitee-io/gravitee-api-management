@@ -44,8 +44,14 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
-import { fakePlanV4, ApiType, ConnectorPlugin, fakeApiV4, getEntrypointConnectorSchema } from '../../../../entities/management-api-v2';
-import { fakeConnectorPlugin } from '../../../../entities/management-api-v2/connector/connectorPlugin.fixture';
+import {
+  fakePlanV4,
+  ApiType,
+  ConnectorPlugin,
+  fakeApiV4,
+  getEntrypointConnectorSchema,
+  fakeConnectorPlugin,
+} from '../../../../entities/management-api-v2';
 
 describe('ApiCreationV4Component', () => {
   const httpProxyEntrypoint: Partial<ConnectorPlugin>[] = [{ id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' }];
@@ -85,6 +91,9 @@ describe('ApiCreationV4Component', () => {
                 enabled: true,
               },
               sharedApiKey: {
+                enabled: true,
+              },
+              push: {
                 enabled: true,
               },
             });
@@ -914,22 +923,93 @@ describe('ApiCreationV4Component', () => {
   });
 
   describe('step4', () => {
-    beforeEach(async () => {
-      await fillAndValidateStep1ApiDetails();
-      await fillAndValidateStep2Entrypoints0Architecture('MESSAGE');
-      await fillAndValidateStep2Entrypoints1List();
-      await fillAndValidateStep2Entrypoints2Config();
-      await fillAndValidateStep3Endpoints1List();
-      await fillAndValidateStep3Endpoints2Config();
-      fixture.detectChanges();
+    describe('with HTTP and SUBSCRIPTION entrypoint', () => {
+      beforeEach(async () => {
+        await fillAndValidateStep1ApiDetails();
+        await fillAndValidateStep2Entrypoints0Architecture('MESSAGE');
+        await fillAndValidateStep2Entrypoints1List();
+        await fillAndValidateStep2Entrypoints2Config();
+        await fillAndValidateStep3Endpoints1List();
+        await fillAndValidateStep3Endpoints2Config();
+        fixture.detectChanges();
+      });
+      describe('step4 - plans list', () => {
+        it('should add default keyless and push plans to payload', async () => {
+          const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+
+          const keylessPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
+          expect(keylessPlan.name).toEqual('Default Keyless (UNSECURED)');
+          expect(keylessPlan.security).toEqual('KEY_LESS');
+
+          const pushPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(1);
+          expect(pushPlan.name).toEqual('Default PUSH plan');
+          expect(pushPlan.security).toEqual('PUSH');
+
+          await step4Security1PlansHarness.clickValidate();
+          expect(component.currentStep.payload.plans).toEqual([
+            {
+              definitionVersion: 'V4',
+              name: 'Default Keyless (UNSECURED)',
+              description: 'Default unsecured plan',
+              security: {
+                type: 'KEY_LESS',
+                configuration: {},
+              },
+              validation: 'MANUAL',
+            },
+            {
+              definitionVersion: 'V4',
+              name: 'Default PUSH plan',
+              description: 'Default push plan',
+              security: {
+                type: 'PUSH',
+                configuration: {},
+              },
+              validation: 'MANUAL',
+            },
+          ]);
+        });
+
+        it('should add no plans to payload after deleting default plan', async () => {
+          const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+
+          expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(2);
+
+          // remove keyless plan
+          await step4Security1PlansHarness.clickRemovePlanButton();
+
+          // remove push plan
+          await step4Security1PlansHarness.clickRemovePlanButton();
+
+          expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
+
+          await step4Security1PlansHarness.clickValidate();
+          expect(component.currentStep.payload.plans).toEqual([]);
+        });
+      });
     });
-    describe('step4 - plans list', () => {
-      it('should add default keyless plan to payload', async () => {
+
+    describe('with HTTP entrypoint only', () => {
+      beforeEach(async () => {
+        await fillAndValidateStep1ApiDetails();
+        await fillAndValidateStep2Entrypoints0Architecture('MESSAGE');
+        await fillAndValidateStep2Entrypoints1List([
+          { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP' },
+        ]);
+        await fillAndValidateStep2Entrypoints2Config([
+          { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP' },
+        ]);
+        await fillAndValidateStep3Endpoints1List();
+        await fillAndValidateStep3Endpoints2Config();
+        fixture.detectChanges();
+      });
+
+      it('should add default keyless plan only', async () => {
         const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
 
-        const { name, security } = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
-        expect(name).toEqual('Default Keyless (UNSECURED)');
-        expect(security).toEqual('KEY_LESS');
+        const keylessPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
+        expect(keylessPlan.name).toEqual('Default Keyless (UNSECURED)');
+        expect(keylessPlan.security).toEqual('KEY_LESS');
 
         await step4Security1PlansHarness.clickValidate();
         expect(component.currentStep.payload.plans).toEqual([
@@ -946,141 +1026,166 @@ describe('ApiCreationV4Component', () => {
         ]);
       });
 
-      it('should add no plans to payload after deleting default plan', async () => {
-        const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+      describe('step4 - add API_KEY plan', () => {
+        it('should add api key plan to payload', async () => {
+          const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+
+          const keylessPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
+          expect(keylessPlan.name).toEqual('Default Keyless (UNSECURED)');
+          expect(keylessPlan.security).toEqual('KEY_LESS');
+
+          await step4Security1PlansHarness.addApiKeyPlan('Secure by ApiKey', httpTestingController);
+          const planLine2 = await step4Security1PlansHarness.getColumnTextByRowIndex(1);
+          expect(planLine2.name).toEqual('Secure by ApiKey');
+          expect(planLine2.security).toEqual('API_KEY');
+
+          await step4Security1PlansHarness.clickValidate();
+
+          expect(component.currentStep.payload.plans).toEqual([
+            {
+              definitionVersion: 'V4',
+              name: 'Default Keyless (UNSECURED)',
+              description: 'Default unsecured plan',
+              security: {
+                type: 'KEY_LESS',
+                configuration: {},
+              },
+              validation: 'MANUAL',
+            },
+            {
+              characteristics: [],
+              commentMessage: '',
+              commentRequired: false,
+              description: '',
+              excludedGroups: [],
+              flows: [
+                {
+                  selectors: [
+                    {
+                      type: 'HTTP',
+                      path: '/',
+                      pathOperator: 'STARTS_WITH',
+                    },
+                  ],
+                  enabled: true,
+                  request: [],
+                },
+              ],
+              generalConditions: '',
+              name: 'Secure by ApiKey',
+              security: {
+                configuration: {},
+                type: 'API_KEY',
+              },
+              definitionVersion: 'V4',
+              selectionRule: null,
+              tags: [],
+              validation: 'MANUAL',
+            },
+          ]);
+        });
+
+        it('should edit default keyless plan', async () => {
+          const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+
+          await step4Security1PlansHarness.editDefaultKeylessPlanName('Update name', httpTestingController);
+          await step4Security1PlansHarness.addRateLimitToPlan(httpTestingController);
+          await step4Security1PlansHarness.clickValidate();
+
+          expect(component.currentStep.payload.plans).toEqual([
+            {
+              name: 'Update name',
+              description: 'Default unsecured plan',
+              security: {
+                type: 'KEY_LESS',
+                configuration: {},
+              },
+              definitionVersion: 'V4',
+              validation: 'MANUAL',
+              commentRequired: false,
+              characteristics: undefined,
+              commentMessage: undefined,
+              excludedGroups: undefined,
+              generalConditions: undefined,
+              selectionRule: undefined,
+              tags: undefined,
+              flows: [
+                {
+                  selectors: [
+                    {
+                      type: 'HTTP',
+                      path: '/',
+                      pathOperator: 'STARTS_WITH',
+                    },
+                  ],
+                  enabled: true,
+                  request: [
+                    {
+                      enabled: true,
+                      name: 'Rate Limiting',
+                      configuration: {},
+                      policy: 'rate-limit',
+                    },
+                  ],
+                },
+              ],
+            },
+          ]);
+        });
+      });
+
+      it('should be reinitialized if no plans saved in payload after going back to step 3', async () => {
+        let step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
 
         expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(1);
-
-        const { name, security } = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
-        expect(name).toEqual('Default Keyless (UNSECURED)');
-        expect(security).toEqual('KEY_LESS');
-
         await step4Security1PlansHarness.clickRemovePlanButton();
+
         expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
 
-        await step4Security1PlansHarness.clickValidate();
-        expect(component.currentStep.payload.plans).toEqual([]);
+        await step4Security1PlansHarness.clickPrevious();
+        await fillAndValidateStep3Endpoints2Config();
+
+        step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+        expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(1);
       });
     });
 
-    describe('step4 - add API_KEY plan', () => {
-      it('should add api key plan to payload', async () => {
+    describe('with SUBSCRIPTION entrypoint only', () => {
+      beforeEach(async () => {
+        await fillAndValidateStep1ApiDetails();
+        await fillAndValidateStep2Entrypoints0Architecture('MESSAGE');
+        await fillAndValidateStep2Entrypoints1List([
+          { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION' },
+        ]);
+        await fillAndValidateStep2Entrypoints2Config([
+          { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION' },
+        ]);
+        await fillAndValidateStep3Endpoints1List();
+        await fillAndValidateStep3Endpoints2Config();
+        fixture.detectChanges();
+      });
+
+      it('should add default push plan only', async () => {
         const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
 
-        const planLine1 = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
-        expect(planLine1.name).toEqual('Default Keyless (UNSECURED)');
-        expect(planLine1.security).toEqual('KEY_LESS');
-
-        await step4Security1PlansHarness.addApiKeyPlan('Secure by ApiKey', httpTestingController);
-        const planLine2 = await step4Security1PlansHarness.getColumnTextByRowIndex(1);
-        expect(planLine2.name).toEqual('Secure by ApiKey');
-        expect(planLine2.security).toEqual('API_KEY');
+        const pushPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
+        expect(pushPlan.name).toEqual('Default PUSH plan');
+        expect(pushPlan.security).toEqual('PUSH');
 
         await step4Security1PlansHarness.clickValidate();
-
         expect(component.currentStep.payload.plans).toEqual([
           {
             definitionVersion: 'V4',
-            name: 'Default Keyless (UNSECURED)',
-            description: 'Default unsecured plan',
+            name: 'Default PUSH plan',
+            description: 'Default push plan',
             security: {
-              type: 'KEY_LESS',
+              type: 'PUSH',
               configuration: {},
             },
-            validation: 'MANUAL',
-          },
-          {
-            characteristics: [],
-            commentMessage: '',
-            commentRequired: false,
-            description: '',
-            excludedGroups: [],
-            flows: [
-              {
-                selectors: [
-                  {
-                    type: 'HTTP',
-                    path: '/',
-                    pathOperator: 'STARTS_WITH',
-                  },
-                ],
-                enabled: true,
-                request: [],
-              },
-            ],
-            generalConditions: '',
-            name: 'Secure by ApiKey',
-            security: {
-              configuration: {},
-              type: 'API_KEY',
-            },
-            selectionRule: null,
-            tags: [],
             validation: 'MANUAL',
           },
         ]);
       });
-      it('should edit default keyless plan', async () => {
-        const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
-
-        await step4Security1PlansHarness.editDefaultKeylessPlanName('Update name', httpTestingController);
-        await step4Security1PlansHarness.addRateLimitToPlan(httpTestingController);
-        await step4Security1PlansHarness.clickValidate();
-
-        expect(component.currentStep.payload.plans).toEqual([
-          {
-            name: 'Update name',
-            description: 'Default unsecured plan',
-            security: {
-              type: 'KEY_LESS',
-              configuration: {},
-            },
-            validation: 'MANUAL',
-            commentRequired: false,
-            characteristics: undefined,
-            commentMessage: undefined,
-            excludedGroups: undefined,
-            generalConditions: undefined,
-            selectionRule: undefined,
-            tags: undefined,
-            flows: [
-              {
-                selectors: [
-                  {
-                    type: 'HTTP',
-                    path: '/',
-                    pathOperator: 'STARTS_WITH',
-                  },
-                ],
-                enabled: true,
-                request: [
-                  {
-                    enabled: true,
-                    name: 'Rate Limiting',
-                    configuration: {},
-                    policy: 'rate-limit',
-                  },
-                ],
-              },
-            ],
-          },
-        ]);
-      });
-    });
-
-    it('should be reinitialized if no plans saved in payload after going back to step 3', async () => {
-      let step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
-
-      expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(1);
-
-      await step4Security1PlansHarness.clickRemovePlanButton();
-      expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
-
-      await step4Security1PlansHarness.clickPrevious();
-      await fillAndValidateStep3Endpoints2Config();
-
-      step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
-      expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(1);
     });
   });
 
@@ -1088,166 +1193,185 @@ describe('ApiCreationV4Component', () => {
     const API_ID = 'my-api';
     const PLAN_ID = 'my-plan';
 
-    beforeEach(async () => {
-      await fillAndValidateStep1ApiDetails();
-      await fillAndValidateStep2Entrypoints0Architecture();
-      await fillAndValidateStep2Entrypoints1List();
-      await fillAndValidateStep2Entrypoints2Config();
-      await fillAndValidateStep3Endpoints1List();
-      await fillAndValidateStep3Endpoints2Config();
-      await fillAndValidateStep4Security1PlansList();
-      await fillAndValidateStep5Documentation();
-      fixture.detectChanges();
+    describe('with HTTP and SUBSCRIPTION entrypoint', () => {
+      beforeEach(async () => {
+        await fillAndValidateStep1ApiDetails();
+        await fillAndValidateStep2Entrypoints0Architecture();
+        await fillAndValidateStep2Entrypoints1List();
+        await fillAndValidateStep2Entrypoints2Config();
+        await fillAndValidateStep3Endpoints1List();
+        await fillAndValidateStep3Endpoints2Config();
+        await fillAndValidateStep4Security1PlansList();
+        await fillAndValidateStep5Documentation();
+        fixture.detectChanges();
+      });
+
+      it('should display payload info', async () => {
+        const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+
+        const step1Summary = await step6Harness.getStepSummaryTextContent(1);
+        expect(step1Summary).toContain('API name:' + 'API name');
+        expect(step1Summary).toContain('Version:' + '1.0');
+        expect(step1Summary).toContain('Description:' + ' description');
+
+        const step2Summary = await step6Harness.getStepSummaryTextContent(2);
+        expect(step2Summary).toContain('Path:' + '/api/my-api-3');
+        expect(step2Summary).toContain('Type:' + 'HTTP' + 'SUBSCRIPTION');
+        expect(step2Summary).toContain('EntrypointsPath:/api/my-api-3Type:HTTPSUBSCRIPTIONEntrypoints');
+
+        const step3Summary = await step6Harness.getStepSummaryTextContent(3);
+        expect(step3Summary).toContain('Field' + 'Value');
+        expect(step3Summary).toContain('Kafka');
+        expect(step3Summary).toContain('Mock');
+
+        const step4Summary = await step6Harness.getStepSummaryTextContent(4);
+        expect(step4Summary).toContain('Update name' + 'KEY_LESS');
+      });
+
+      it('should go back to step 1 after clicking Change button', async () => {
+        const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        await step6Harness.clickChangeButton(1);
+
+        fixture.detectChanges();
+        const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
+        expect(await step1Harness.getName()).toEqual('API name');
+        expect(await step1Harness.getVersion()).toEqual('1.0');
+        expect(await step1Harness.getDescription()).toEqual('description');
+      });
+
+      it('should go back to step 2 after clicking Change button', async () => {
+        let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        await step6Harness.clickChangeButton(2);
+        expectEntrypointsGetRequest([]);
+        fixture.detectChanges();
+
+        const step2Harness0Architecture = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
+        expect(await step2Harness0Architecture.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['MESSAGE']);
+        await step2Harness0Architecture.fillAndValidate('MESSAGE');
+
+        const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
+        expectEntrypointsGetRequest([
+          { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'MESSAGE' },
+          { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'MESSAGE' },
+        ]);
+
+        const list = await step2Harness.getEntrypoints();
+        expect(await list.getListValues({ selected: true })).toEqual(['entrypoint-1', 'entrypoint-2']);
+        await list.deselectOptionByValue('entrypoint-1');
+        fixture.detectChanges();
+
+        await step2Harness.clickValidate();
+        const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+        await dialogHarness.confirm();
+        fixture.detectChanges();
+
+        await fillAndValidateStep2Entrypoints2Config([{ id: 'entrypoint-2', name: 'new entrypoint' }], ['/my-api/v4']);
+
+        await fillAndValidateStep3Endpoints1List();
+        await fillAndValidateStep3Endpoints2Config();
+        await fillAndValidateStep4Security1PlansList();
+        await fillAndValidateStep5Documentation();
+
+        // Reinitialize step6Harness after last step validation
+        step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        const step2Summary = await step6Harness.getStepSummaryTextContent(2);
+
+        expect(step2Summary).toContain('EntrypointsPath:/my-api/v4Type:HTTPEntrypoints: new entrypointChange');
+      });
+
+      it('should go back to step 3 after clicking Change button', async () => {
+        let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        await step6Harness.clickChangeButton(3);
+        fixture.detectChanges();
+
+        const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
+        expectEndpointsGetRequest([
+          { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
+          { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+        ]);
+
+        const list = await step3Harness.getEndpoints();
+
+        expect(await list.getListValues({ selected: true })).toEqual(['kafka', 'mock']);
+        await list.deselectOptionByValue('kafka');
+        expect(await list.getListValues({ selected: true })).toEqual(['mock']);
+        fixture.detectChanges();
+        await step3Harness.clickValidate();
+        const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+        await dialogHarness.confirm();
+
+        await fillAndValidateStep3Endpoints2Config([{ id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' }]);
+
+        await fillAndValidateStep4Security1PlansList();
+        await fillAndValidateStep5Documentation();
+
+        // Reinitialize step6Harness after step2 validation
+        step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        const step2Summary = await step6Harness.getStepSummaryTextContent(3);
+
+        expect(step2Summary).toContain('EndpointsFieldValueEndpoints: Mock Change');
+      });
+
+      it('should go back to step 4 after clicking Change button', async () => {
+        let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+
+        let step4Summary = await step6Harness.getStepSummaryTextContent(4);
+        expect(step4Summary).toContain('Update name' + 'KEY_LESS');
+
+        await step6Harness.clickChangeButton(4);
+
+        fixture.detectChanges();
+
+        const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+        expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(2);
+
+        await step4Security1PlansHarness.clickRemovePlanButton();
+        await step4Security1PlansHarness.clickRemovePlanButton();
+        expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
+
+        await step4Security1PlansHarness.clickValidate();
+        await fillAndValidateStep5Documentation();
+
+        // Reinitialize step6Harness after step4 validation
+        step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+
+        step4Summary = await step6Harness.getStepSummaryTextContent(4);
+        expect(step4Summary).toContain('No plans are selected.');
+      });
     });
 
-    it('should display payload info', async () => {
-      const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+    describe('with HTTP entrypoint only', () => {
+      beforeEach(async () => {
+        await fillAndValidateStep1ApiDetails();
+        await fillAndValidateStep2Entrypoints0Architecture();
+        await fillAndValidateStep2Entrypoints1List([
+          { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP' },
+        ]);
+        await fillAndValidateStep2Entrypoints2Config();
+        await fillAndValidateStep3Endpoints1List();
+        await fillAndValidateStep3Endpoints2Config();
+        await fillAndValidateStep4Security1PlansList();
+        await fillAndValidateStep5Documentation();
+        fixture.detectChanges();
+      });
 
-      const step1Summary = await step6Harness.getStepSummaryTextContent(1);
-      expect(step1Summary).toContain('API name:' + 'API name');
-      expect(step1Summary).toContain('Version:' + '1.0');
-      expect(step1Summary).toContain('Description:' + ' description');
+      it('should go to confirmation page after clicking Create my API', async () => {
+        const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        await step6Harness.clickCreateMyApiButton();
 
-      const step2Summary = await step6Harness.getStepSummaryTextContent(2);
-      expect(step2Summary).toContain('Path:' + '/api/my-api-3');
-      expect(step2Summary).toContain('Type:' + 'HTTP' + 'SUBSCRIPTION');
-      expect(step2Summary).toContain('EntrypointsPath:/api/my-api-3Type:HTTPSUBSCRIPTIONEntrypoints');
+        expectCallsForApiCreation(API_ID, PLAN_ID);
 
-      const step3Summary = await step6Harness.getStepSummaryTextContent(3);
-      expect(step3Summary).toContain('Field' + 'Value');
-      expect(step3Summary).toContain('Kafka');
-      expect(step3Summary).toContain('Mock');
+        expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
+      });
 
-      const step4Summary = await step6Harness.getStepSummaryTextContent(4);
-      expect(step4Summary).toContain('Update name' + 'KEY_LESS');
-    });
+      it('should go to confirmation page after clicking Deploy my API', async () => {
+        const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        await step6Harness.clickDeployMyApiButton();
 
-    it('should go back to step 1 after clicking Change button', async () => {
-      const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
-      await step6Harness.clickChangeButton(1);
+        expectCallsForApiDeployment(API_ID, PLAN_ID);
 
-      fixture.detectChanges();
-      const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
-      expect(await step1Harness.getName()).toEqual('API name');
-      expect(await step1Harness.getVersion()).toEqual('1.0');
-      expect(await step1Harness.getDescription()).toEqual('description');
-    });
-
-    it('should go back to step 2 after clicking Change button', async () => {
-      let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
-      await step6Harness.clickChangeButton(2);
-      expectEntrypointsGetRequest([]);
-      fixture.detectChanges();
-
-      const step2Harness0Architecture = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
-      expect(await step2Harness0Architecture.getArchitecture().then((s) => s.getListValues({ selected: true }))).toEqual(['MESSAGE']);
-      await step2Harness0Architecture.fillAndValidate('MESSAGE');
-
-      const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
-      expectEntrypointsGetRequest([
-        { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'MESSAGE' },
-        { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'MESSAGE' },
-      ]);
-
-      const list = await step2Harness.getEntrypoints();
-      expect(await list.getListValues({ selected: true })).toEqual(['entrypoint-1', 'entrypoint-2']);
-      await list.deselectOptionByValue('entrypoint-1');
-      fixture.detectChanges();
-
-      await step2Harness.clickValidate();
-      const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-      await dialogHarness.confirm();
-      fixture.detectChanges();
-
-      await fillAndValidateStep2Entrypoints2Config([{ id: 'entrypoint-2', name: 'new entrypoint' }], ['/my-api/v4']);
-
-      await fillAndValidateStep3Endpoints1List();
-      await fillAndValidateStep3Endpoints2Config();
-      await fillAndValidateStep4Security1PlansList();
-      await fillAndValidateStep5Documentation();
-
-      // Reinitialize step6Harness after last step validation
-      step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
-      const step2Summary = await step6Harness.getStepSummaryTextContent(2);
-
-      expect(step2Summary).toContain('EntrypointsPath:/my-api/v4Type:HTTPEntrypoints: new entrypointChange');
-    });
-
-    it('should go back to step 3 after clicking Change button', async () => {
-      let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
-      await step6Harness.clickChangeButton(3);
-      fixture.detectChanges();
-
-      const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
-      expectEndpointsGetRequest([
-        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
-      ]);
-
-      const list = await step3Harness.getEndpoints();
-
-      expect(await list.getListValues({ selected: true })).toEqual(['kafka', 'mock']);
-      await list.deselectOptionByValue('kafka');
-      expect(await list.getListValues({ selected: true })).toEqual(['mock']);
-      fixture.detectChanges();
-      await step3Harness.clickValidate();
-      const dialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
-      await dialogHarness.confirm();
-
-      await fillAndValidateStep3Endpoints2Config([{ id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' }]);
-
-      await fillAndValidateStep4Security1PlansList();
-      await fillAndValidateStep5Documentation();
-
-      // Reinitialize step6Harness after step2 validation
-      step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
-      const step2Summary = await step6Harness.getStepSummaryTextContent(3);
-
-      expect(step2Summary).toContain('EndpointsFieldValueEndpoints: Mock Change');
-    });
-
-    it('should go back to step 4 after clicking Change button', async () => {
-      let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
-
-      let step4Summary = await step6Harness.getStepSummaryTextContent(4);
-      expect(step4Summary).toContain('Update name' + 'KEY_LESS');
-
-      await step6Harness.clickChangeButton(4);
-
-      fixture.detectChanges();
-
-      const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
-      expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(1);
-
-      await step4Security1PlansHarness.clickRemovePlanButton();
-      expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
-
-      await step4Security1PlansHarness.clickValidate();
-      await fillAndValidateStep5Documentation();
-
-      // Reinitialize step6Harness after step4 validation
-      step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
-
-      step4Summary = await step6Harness.getStepSummaryTextContent(4);
-      expect(step4Summary).toContain('No plans are selected.');
-    });
-
-    it('should go to confirmation page after clicking Create my API', async () => {
-      const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
-      await step6Harness.clickCreateMyApiButton();
-
-      expectCallsForApiCreation(API_ID, PLAN_ID);
-
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
-    });
-
-    it('should go to confirmation page after clicking Deploy my API', async () => {
-      const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
-      await step6Harness.clickDeployMyApiButton();
-
-      expectCallsForApiDeployment(API_ID, PLAN_ID);
-
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
+        expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
+      });
     });
   });
 
@@ -1339,10 +1463,13 @@ describe('ApiCreationV4Component', () => {
     const step22EntrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
     exceptEnvironmentGetRequest(fakeEnvironment());
     expectSchemaGetRequest(entrypoints);
-    expectApiGetPortalSettings();
 
-    await step22EntrypointsConfigHarness.fillPaths(...paths);
-    expect(await step22EntrypointsConfigHarness.hasValidationDisabled()).toBeFalsy();
+    if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType !== 'SUBSCRIPTION')) {
+      expectApiGetPortalSettings();
+      await step22EntrypointsConfigHarness.fillPaths(...paths);
+      expect(await step22EntrypointsConfigHarness.hasValidationDisabled()).toBeFalsy();
+    }
+
     await step22EntrypointsConfigHarness.clickValidate();
     expectVerifyContextPathGetRequest();
   }

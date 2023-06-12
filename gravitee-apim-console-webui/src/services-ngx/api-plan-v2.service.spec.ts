@@ -127,6 +127,29 @@ describe('ApiPlanV2Service', () => {
       expect(planReq.request.body).toEqual(plan);
       planReq.flush(plan);
     });
+
+    it('should create PUSH plans using SUBSCRIPTION type', (done) => {
+      const plan: CreatePlanV4 = {
+        description: '',
+        definitionVersion: 'V4',
+        flows: [],
+        validation: 'AUTO',
+        name: 'free',
+        security: { type: 'PUSH', configuration: '{}' },
+      };
+
+      apiPlanV2Service.create(API_ID, plan).subscribe((response) => {
+        expect(response).toMatchObject(plan);
+        done();
+      });
+
+      const planReq = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans`,
+      });
+      expect(planReq.request.body.security.type).toEqual('SUBSCRIPTION');
+      planReq.flush(plan);
+    });
   });
 
   describe('get', () => {

@@ -19,6 +19,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { CreatePlanV4 } from '../../../../../../entities/management-api-v2';
 import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../../../services-ngx/constants.service';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
   selector: 'step-4-security-1-plans',
@@ -41,6 +42,15 @@ export class Step4Security1PlansComponent implements OnInit {
 
     // For first pass-through of creation workflow
     if (!currentStepPayload.plans) {
+      this.computeDefaultApiPlans(currentStepPayload);
+    } else {
+      this.plans = currentStepPayload.plans;
+    }
+  }
+
+  private computeDefaultApiPlans(currentStepPayload: ApiCreationPayload) {
+    const entrypoint = currentStepPayload.selectedEntrypoints.find((e) => e.supportedListenerType !== 'SUBSCRIPTION');
+    if (entrypoint) {
       this.plans.push({
         definitionVersion: 'V4',
         name: 'Default Keyless (UNSECURED)',
@@ -51,8 +61,21 @@ export class Step4Security1PlansComponent implements OnInit {
         },
         validation: 'MANUAL',
       });
-    } else {
-      this.plans = currentStepPayload.plans;
+    }
+
+    const subscriptionEntrypoint = currentStepPayload.selectedEntrypoints.find((e) => e.supportedListenerType === 'SUBSCRIPTION');
+    if (subscriptionEntrypoint) {
+      // If yes, add a plan with a default security type
+      this.plans.push({
+        definitionVersion: 'V4',
+        name: 'Default PUSH plan',
+        description: 'Default push plan',
+        security: {
+          type: 'PUSH',
+          configuration: {},
+        },
+        validation: 'MANUAL',
+      });
     }
   }
 
