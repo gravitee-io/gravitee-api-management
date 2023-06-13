@@ -25,6 +25,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
 
 import { OrgSettingsTagsComponent } from './org-settings-tags.component';
 
@@ -40,6 +41,7 @@ import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
 import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { fakeEntrypoint } from '../../../entities/entrypoint/entrypoint.fixture';
+import { GioLicenseTestingModule } from '../../../shared/testing/gio-license.testing.module';
 
 describe('OrgSettingsTagsComponent', () => {
   const currentUser = new DeprecatedUser();
@@ -57,9 +59,15 @@ describe('OrgSettingsTagsComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(() => {
+  function prepareTestTagsComponent(withLicense = false) {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
+      imports: [
+        NoopAnimationsModule,
+        GioHttpTestingModule,
+        OrganizationSettingsModule,
+        MatIconTestingModule,
+        GioLicenseTestingModule.with(withLicense),
+      ],
       providers: [{ provide: CurrentUserService, useValue: { currentUser: currentUser } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -70,375 +78,406 @@ describe('OrgSettingsTagsComponent', () => {
     fixture = TestBed.createComponent(OrgSettingsTagsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+  }
+
+  describe('without license', () => {
+    beforeEach(() => {
+      prepareTestTagsComponent();
+    });
+
+    it('should display tags table', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest([fakeEntrypoint()]);
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#tagsTable' }));
+      const headerRows = await table.getHeaderRows();
+      const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+      const rows = await table.getRows();
+      const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+      expect(headerCells).toEqual([
+        {
+          description: 'Description',
+          id: 'Id',
+          name: 'Name',
+          restrictedGroupsName: 'Restricted groups',
+          actions: '',
+        },
+      ]);
+      expect(rowCells).toEqual([
+        {
+          description: 'A tag for all external stuff',
+          id: expect.stringContaining('external'),
+          name: 'External',
+          restrictedGroupsName: 'Group A',
+          actions: 'editdelete',
+        },
+      ]);
+    });
+
+    it('should edit default configuration', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(
+        fakePortalSettings({
+          portal: {
+            entrypoint: 'https://api.company.com',
+          },
+        }),
+      );
+      expectEntrypointsListRequest([fakeEntrypoint()]);
+
+      const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+      expect(await entrypointInput.getValue()).toEqual('https://api.company.com');
+
+      await entrypointInput.setValue('https://my-new-api.company.com');
+
+      expect(await saveBar.isVisible()).toBeTruthy();
+      await saveBar.clickSubmit();
+
+      expectPortalSettingsSaveRequest(
+        fakePortalSettings({
+          portal: {
+            entrypoint: 'https://my-new-api.company.com',
+          },
+        }),
+      );
+    });
+
+    it('should lock default configuration entrypoint input', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(
+        fakePortalSettings({
+          portal: {
+            entrypoint: 'https://api.company.com',
+          },
+          metadata: { readonly: ['portal.entrypoint'] },
+        }),
+      );
+      expectEntrypointsListRequest([fakeEntrypoint()]);
+
+      const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
+
+      expect(await entrypointInput.getValue()).toEqual('https://api.company.com');
+      expect(await entrypointInput.isDisabled()).toEqual(true);
+    });
+
+    it('should display entrypoint mappings table', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest([fakeEntrypoint()]);
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#entrypointsTable' }));
+      const headerRows = await table.getHeaderRows();
+      const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+      const rows = await table.getRows();
+      const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+      expect(headerCells).toEqual([
+        {
+          entrypoint: 'Entrypoint',
+          tags: 'Tags',
+          actions: '',
+        },
+      ]);
+      expect(rowCells).toEqual([
+        {
+          entrypoint: expect.stringContaining('https://googl.co'),
+          tags: 'External',
+          actions: 'editdelete',
+        },
+      ]);
+    });
+
+    it('should delete a tag', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest([fakeEntrypoint({ tags: ['tag-1', 'tag-2'] }), fakeEntrypoint({ id: 'epIdB', tags: ['tag-1'] })]);
+      fixture.detectChanges();
+
+      const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a tag"]' }));
+      await deleteButton.click();
+
+      const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
+      await confirmDialogButton.click();
+
+      // Update entrypoint to delete tag
+      const updateEntrypointReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/`,
+      });
+      expect(updateEntrypointReq.request.body.tags).toEqual(['tag-2']);
+      updateEntrypointReq.flush(null);
+
+      // Delete entrypoint with only this tag
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/epIdB`,
+        })
+        .flush(null);
+
+      // Delete tag
+      httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1`,
+      });
+      // no flush stop test here
+    });
+
+    it('should delete a tag without entrypoint mapping', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest([fakeTag({ id: 'tag-1' })]);
+      expectGroupListByOrganizationRequest([]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest([]);
+      fixture.detectChanges();
+
+      const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a tag"]' }));
+      await deleteButton.click();
+
+      const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
+      await confirmDialogButton.click();
+
+      httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1`,
+      });
+    });
+
+    it('should delete a mapping', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest([fakeEntrypoint({ id: 'entrypoint-1', tags: ['tag-1', 'tag-2'] })]);
+      fixture.detectChanges();
+
+      const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a mapping"]' }));
+      await deleteButton.click();
+
+      const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
+      await confirmDialogButton.click();
+
+      // Delete entrypoint
+      httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/entrypoint-1`,
+      });
+      // no flush stop test here
+    });
+
+    it('should not create a new tag without license', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest();
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest();
+      fixture.detectChanges();
+
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tag"]' }));
+      await addButton.click();
+
+      const eeUnlockDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#gioLicenseDialog' }));
+      expect(eeUnlockDialog).not.toBeNull();
+
+      await eeUnlockDialog.close();
+    });
+
+    it('should update a tag', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' }), fakeGroup({ id: 'group-b', name: 'Group B' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest();
+      fixture.detectChanges();
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#tagsTable' }));
+      const rows = await table.getRows();
+      const firstRowActionsCell = (await rows[0].getCells({ columnName: 'actions' }))[0];
+
+      const editButton = await firstRowActionsCell.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to edit a tag"]' }));
+      await editButton.click();
+
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' }), fakeGroup({ id: 'group-b', name: 'Group B' })]);
+
+      const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+
+      const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('New tag name');
+
+      const descriptionInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
+      await descriptionInput.setValue('New tag description');
+
+      const restrictedGroupSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=restrictedGroups' }));
+      await restrictedGroupSelect.clickOptions({ text: 'Group B' });
+
+      await submitButton.click();
+
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1` });
+      expect(req.request.body).toStrictEqual({
+        id: 'tag-1',
+        name: 'New tag name',
+        description: 'New tag description',
+        restricted_groups: ['group-a', 'group-b'],
+      });
+      req.flush(null);
+
+      // expect new ngOnInit()
+      expectTagsListRequest();
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest();
+    });
+
+    it('should create a new mapping', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest();
+      fixture.detectChanges();
+
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a mapping"]' }));
+      await addButton.click();
+
+      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
+
+      const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+      expect(await submitButton.isDisabled()).toBeTruthy();
+
+      const entrypointUrlInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=value]' }));
+      await entrypointUrlInput.setValue('https://my.entry');
+
+      const tagsSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=tags' }));
+      await tagsSelect.clickOptions({ text: /^Tag 1/ });
+
+      await submitButton.click();
+
+      const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/` });
+      expect(req.request.body).toStrictEqual({
+        value: 'https://my.entry',
+        tags: ['tag-1'],
+      });
+      req.flush(null);
+
+      // expect new ngOnInit()
+      expectTagsListRequest();
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest();
+    });
+
+    it('should update a mapping', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+      expectGroupListByOrganizationRequest([]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest([fakeEntrypoint({ id: 'entrypointIdA', tags: ['tag-1'] })]);
+      fixture.detectChanges();
+
+      const table = await loader.getHarness(MatTableHarness.with({ selector: '#entrypointsTable' }));
+      const rows = await table.getRows();
+      const firstRowActionsCell = (await rows[0].getCells({ columnName: 'actions' }))[0];
+
+      const editButton = await firstRowActionsCell.getHarness(
+        MatButtonHarness.with({ selector: '[aria-label="Button to edit a mapping"]' }),
+      );
+      await editButton.click();
+
+      expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
+
+      const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+
+      const entrypointUrlInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=value]' }));
+      await entrypointUrlInput.setValue('https://my.new.entry');
+
+      const tagsSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=tags' }));
+      await tagsSelect.clickOptions({ text: /^Tag 1/ });
+      await tagsSelect.clickOptions({ text: /^Tag 2/ });
+
+      await submitButton.click();
+
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/` });
+      expect(req.request.body).toStrictEqual({
+        id: 'entrypointIdA',
+        value: 'https://my.new.entry',
+        tags: ['tag-2'],
+      });
+      req.flush(null);
+
+      // expect new ngOnInit()
+      expectTagsListRequest();
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest();
+    });
+  });
+
+  describe('with license', () => {
+    beforeEach(() => {
+      prepareTestTagsComponent(true);
+    });
+
+    it('should create a new tag', async () => {
+      fixture.detectChanges();
+      expectTagsListRequest();
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest();
+      fixture.detectChanges();
+
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tag"]' }));
+      await addButton.click();
+
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+
+      const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
+      expect(await submitButton.isDisabled()).toBeTruthy();
+
+      const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('Tag name');
+
+      const descriptionInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
+      await descriptionInput.setValue('Tag description');
+
+      const restrictedGroupSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=restrictedGroups' }));
+      await restrictedGroupSelect.clickOptions({ text: 'Group A' });
+
+      await submitButton.click();
+
+      const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags` });
+      expect(req.request.body).toStrictEqual({
+        name: 'Tag name',
+        description: 'Tag description',
+        restricted_groups: ['group-a'],
+      });
+      req.flush(null);
+
+      // expect new ngOnInit()
+      expectTagsListRequest();
+      expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      expectPortalSettingsGetRequest(fakePortalSettings());
+      expectEntrypointsListRequest();
+    });
   });
 
   afterEach(() => {
     httpTestingController.verify();
-  });
-
-  it('should display tags table', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest([fakeEntrypoint()]);
-
-    const table = await loader.getHarness(MatTableHarness.with({ selector: '#tagsTable' }));
-    const headerRows = await table.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
-
-    const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
-
-    expect(headerCells).toEqual([
-      {
-        description: 'Description',
-        id: 'Id',
-        name: 'Name',
-        restrictedGroupsName: 'Restricted groups',
-        actions: '',
-      },
-    ]);
-    expect(rowCells).toEqual([
-      {
-        description: 'A tag for all external stuff',
-        id: expect.stringContaining('external'),
-        name: 'External',
-        restrictedGroupsName: 'Group A',
-        actions: 'editdelete',
-      },
-    ]);
-  });
-
-  it('should edit default configuration', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(
-      fakePortalSettings({
-        portal: {
-          entrypoint: 'https://api.company.com',
-        },
-      }),
-    );
-    expectEntrypointsListRequest([fakeEntrypoint()]);
-
-    const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
-    const saveBar = await loader.getHarness(GioSaveBarHarness);
-
-    expect(await entrypointInput.getValue()).toEqual('https://api.company.com');
-
-    await entrypointInput.setValue('https://my-new-api.company.com');
-
-    expect(await saveBar.isVisible()).toBeTruthy();
-    await saveBar.clickSubmit();
-
-    expectPortalSettingsSaveRequest(
-      fakePortalSettings({
-        portal: {
-          entrypoint: 'https://my-new-api.company.com',
-        },
-      }),
-    );
-  });
-
-  it('should lock default configuration entrypoint input', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(
-      fakePortalSettings({
-        portal: {
-          entrypoint: 'https://api.company.com',
-        },
-        metadata: { readonly: ['portal.entrypoint'] },
-      }),
-    );
-    expectEntrypointsListRequest([fakeEntrypoint()]);
-
-    const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
-
-    expect(await entrypointInput.getValue()).toEqual('https://api.company.com');
-    expect(await entrypointInput.isDisabled()).toEqual(true);
-  });
-
-  it('should display entrypoint mappings table', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest([fakeEntrypoint()]);
-
-    const table = await loader.getHarness(MatTableHarness.with({ selector: '#entrypointsTable' }));
-    const headerRows = await table.getHeaderRows();
-    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
-
-    const rows = await table.getRows();
-    const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
-
-    expect(headerCells).toEqual([
-      {
-        entrypoint: 'Entrypoint',
-        tags: 'Tags',
-        actions: '',
-      },
-    ]);
-    expect(rowCells).toEqual([
-      {
-        entrypoint: expect.stringContaining('https://googl.co'),
-        tags: 'External',
-        actions: 'editdelete',
-      },
-    ]);
-  });
-
-  it('should delete a tag', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest([fakeEntrypoint({ tags: ['tag-1', 'tag-2'] }), fakeEntrypoint({ id: 'epIdB', tags: ['tag-1'] })]);
-    fixture.detectChanges();
-
-    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a tag"]' }));
-    await deleteButton.click();
-
-    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
-    await confirmDialogButton.click();
-
-    // Update entrypoint to delete tag
-    const updateEntrypointReq = httpTestingController.expectOne({
-      method: 'PUT',
-      url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/`,
-    });
-    expect(updateEntrypointReq.request.body.tags).toEqual(['tag-2']);
-    updateEntrypointReq.flush(null);
-
-    // Delete entrypoint with only this tag
-    httpTestingController
-      .expectOne({
-        method: 'DELETE',
-        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/epIdB`,
-      })
-      .flush(null);
-
-    // Delete tag
-    httpTestingController.expectOne({
-      method: 'DELETE',
-      url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1`,
-    });
-    // no flush stop test here
-  });
-
-  it('should delete a tag without entrypoint mapping', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ id: 'tag-1' })]);
-    expectGroupListByOrganizationRequest([]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest([]);
-    fixture.detectChanges();
-
-    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a tag"]' }));
-    await deleteButton.click();
-
-    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
-    await confirmDialogButton.click();
-
-    httpTestingController.expectOne({
-      method: 'DELETE',
-      url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1`,
-    });
-  });
-
-  it('should delete a mapping', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] }), fakeTag({ id: 'tag-2' })]);
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest([fakeEntrypoint({ id: 'entrypoint-1', tags: ['tag-1', 'tag-2'] })]);
-    fixture.detectChanges();
-
-    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a mapping"]' }));
-    await deleteButton.click();
-
-    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
-    await confirmDialogButton.click();
-
-    // Delete entrypoint
-    httpTestingController.expectOne({
-      method: 'DELETE',
-      url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/entrypoint-1`,
-    });
-    // no flush stop test here
-  });
-
-  it('should create a new tag', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest();
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest();
-    fixture.detectChanges();
-
-    const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tag"]' }));
-    await addButton.click();
-
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-
-    const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
-    expect(await submitButton.isDisabled()).toBeTruthy();
-
-    const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
-    await nameInput.setValue('Tag name');
-
-    const descriptionInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
-    await descriptionInput.setValue('Tag description');
-
-    const restrictedGroupSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=restrictedGroups' }));
-    await restrictedGroupSelect.clickOptions({ text: 'Group A' });
-
-    await submitButton.click();
-
-    const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags` });
-    expect(req.request.body).toStrictEqual({
-      name: 'Tag name',
-      description: 'Tag description',
-      restricted_groups: ['group-a'],
-    });
-    req.flush(null);
-
-    // expect new ngOnInit()
-    expectTagsListRequest();
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest();
-  });
-
-  it('should update a tag', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' }), fakeGroup({ id: 'group-b', name: 'Group B' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest();
-    fixture.detectChanges();
-
-    const table = await loader.getHarness(MatTableHarness.with({ selector: '#tagsTable' }));
-    const rows = await table.getRows();
-    const firstRowActionsCell = (await rows[0].getCells({ columnName: 'actions' }))[0];
-
-    const editButton = await firstRowActionsCell.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to edit a tag"]' }));
-    await editButton.click();
-
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' }), fakeGroup({ id: 'group-b', name: 'Group B' })]);
-
-    const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
-
-    const nameInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
-    await nameInput.setValue('New tag name');
-
-    const descriptionInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=description' }));
-    await descriptionInput.setValue('New tag description');
-
-    const restrictedGroupSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=restrictedGroups' }));
-    await restrictedGroupSelect.clickOptions({ text: 'Group B' });
-
-    await submitButton.click();
-
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1` });
-    expect(req.request.body).toStrictEqual({
-      id: 'tag-1',
-      name: 'New tag name',
-      description: 'New tag description',
-      restricted_groups: ['group-a', 'group-b'],
-    });
-    req.flush(null);
-
-    // expect new ngOnInit()
-    expectTagsListRequest();
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest();
-  });
-
-  it('should create a new mapping', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest();
-    fixture.detectChanges();
-
-    const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a mapping"]' }));
-    await addButton.click();
-
-    expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' })]);
-
-    const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
-    expect(await submitButton.isDisabled()).toBeTruthy();
-
-    const entrypointUrlInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=value]' }));
-    await entrypointUrlInput.setValue('https://my.entry');
-
-    const tagsSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=tags' }));
-    await tagsSelect.clickOptions({ text: /^Tag 1/ });
-
-    await submitButton.click();
-
-    const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/` });
-    expect(req.request.body).toStrictEqual({
-      value: 'https://my.entry',
-      tags: ['tag-1'],
-    });
-    req.flush(null);
-
-    // expect new ngOnInit()
-    expectTagsListRequest();
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest();
-  });
-
-  it('should update a mapping', async () => {
-    fixture.detectChanges();
-    expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-    expectGroupListByOrganizationRequest([]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest([fakeEntrypoint({ id: 'entrypointIdA', tags: ['tag-1'] })]);
-    fixture.detectChanges();
-
-    const table = await loader.getHarness(MatTableHarness.with({ selector: '#entrypointsTable' }));
-    const rows = await table.getRows();
-    const firstRowActionsCell = (await rows[0].getCells({ columnName: 'actions' }))[0];
-
-    const editButton = await firstRowActionsCell.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to edit a mapping"]' }));
-    await editButton.click();
-
-    expectTagsListRequest([fakeTag({ id: 'tag-1', name: 'Tag 1' }), fakeTag({ id: 'tag-2', name: 'Tag 2' })]);
-
-    const submitButton = await rootLoader.getHarness(MatButtonHarness.with({ selector: 'button[type=submit]' }));
-
-    const entrypointUrlInput = await rootLoader.getHarness(MatInputHarness.with({ selector: '[formControlName=value]' }));
-    await entrypointUrlInput.setValue('https://my.new.entry');
-
-    const tagsSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName=tags' }));
-    await tagsSelect.clickOptions({ text: /^Tag 1/ });
-    await tagsSelect.clickOptions({ text: /^Tag 2/ });
-
-    await submitButton.click();
-
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/` });
-    expect(req.request.body).toStrictEqual({
-      id: 'entrypointIdA',
-      value: 'https://my.new.entry',
-      tags: ['tag-2'],
-    });
-    req.flush(null);
-
-    // expect new ngOnInit()
-    expectTagsListRequest();
-    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
-    expectPortalSettingsGetRequest(fakePortalSettings());
-    expectEntrypointsListRequest();
   });
 
   function expectTagsListRequest(tags: Tag[] = []) {

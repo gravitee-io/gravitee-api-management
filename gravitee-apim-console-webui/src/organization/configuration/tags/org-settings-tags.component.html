@@ -24,7 +24,14 @@
   <mat-card class="org-settings-tags__tags-card">
     <div class="org-settings-tags__add-button-container" *gioPermission="{ anyOf: ['organization-tag-c'] }">
       <h2>Tags</h2>
-      <button (click)="onAddTagClicked()" mat-raised-button color="primary" aria-label="Button to add a tag" type="button">
+      <button
+        [gioLicense]="{ feature: 'apim-sharding-tags' }"
+        (click)="onAddTagClicked()"
+        mat-raised-button
+        color="primary"
+        aria-label="Button to add a tag"
+        type="button"
+      >
         <mat-icon>add</mat-icon>Add a tag
       </button>
     </div>
