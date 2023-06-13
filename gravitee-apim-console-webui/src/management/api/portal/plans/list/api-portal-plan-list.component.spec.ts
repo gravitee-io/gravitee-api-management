@@ -37,7 +37,16 @@ import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } 
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import { Subscription } from '../../../../../entities/subscription/subscription';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { Api, ApiPlansResponse, fakeApiV2, fakePlanV2, fakePlanV4, Plan, PLAN_STATUS } from '../../../../../entities/management-api-v2';
+import {
+  Api,
+  ApiPlansResponse,
+  fakeApiV2,
+  fakeApiV4,
+  fakePlanV2,
+  fakePlanV4,
+  Plan,
+  PLAN_STATUS,
+} from '../../../../../entities/management-api-v2';
 
 describe('ApiPortalPlanListComponent', () => {
   const API_ID = 'api#1';
@@ -159,6 +168,39 @@ describe('ApiPortalPlanListComponent', () => {
       const items = await planSecurityDropdown.getItems();
       const availablePlans = await Promise.all(items.map((item) => item.getText()));
       expect(availablePlans).not.toContain('Push plan');
+    }));
+
+    it('should display all plan options for V4 APIs with only HTTP and SUBSCRIPTION listeners', fakeAsync(async () => {
+      const v4Api = fakeApiV4({ id: API_ID, listeners: [{ type: 'HTTP' }, { type: 'SUBSCRIPTION' }] });
+      await initComponent([], v4Api);
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());
+
+      const planSecurityDropdown = await loader.getHarness(MatMenuHarness);
+      const items = await planSecurityDropdown.getItems();
+      const availablePlans = await Promise.all(items.map((item) => item.getText()));
+      expect(availablePlans).toEqual(['OAuth2', 'JWT', 'API Key', 'Keyless (public)', 'Push plan']);
+    }));
+
+    it('should not display PUSH plan option for V4 APIs with only HTTP listeners', fakeAsync(async () => {
+      const v4Api = fakeApiV4({ id: API_ID, listeners: [{ type: 'HTTP' }, { type: 'TCP' }] });
+      await initComponent([], v4Api);
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());
+
+      const planSecurityDropdown = await loader.getHarness(MatMenuHarness);
+      const items = await planSecurityDropdown.getItems();
+      const availablePlans = await Promise.all(items.map((item) => item.getText()));
+      expect(availablePlans).toEqual(['OAuth2', 'JWT', 'API Key', 'Keyless (public)']);
+    }));
+
+    it('should display only PUSH plan option for V4 APIs with only SUBSCRIPTION listeners', fakeAsync(async () => {
+      const v4Api = fakeApiV4({ id: API_ID, listeners: [{ type: 'SUBSCRIPTION' }] });
+      await initComponent([], v4Api);
+      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' })).then((btn) => btn.click());
+
+      const planSecurityDropdown = await loader.getHarness(MatMenuHarness);
+      const items = await planSecurityDropdown.getItems();
+      const availablePlans = await Promise.all(items.map((item) => item.getText()));
+      expect(availablePlans).toEqual(['Push plan']);
     }));
 
     it('should search closed plan on click', fakeAsync(async () => {

@@ -35,7 +35,7 @@ import { GioPermissionService } from '../../../../../shared/components/gio-permi
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ConstantsService, PlanSecurityVM } from '../../../../../services-ngx/constants.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { Api, PLAN_STATUS, Plan, PlanStatus } from '../../../../../entities/management-api-v2';
+import { Api, PLAN_STATUS, Plan, PlanStatus, ApiV4 } from '../../../../../entities/management-api-v2';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
 @Component({
@@ -74,7 +74,6 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   public ngOnInit(): void {
     this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.portal';
     this.status = this.ajsStateParams.status ?? 'PUBLISHED';
-    this.planSecurityOptions = this.constantsService.getEnabledPlanSecurityTypes();
 
     this.apiService
       .get(this.ajsStateParams.apiId)
@@ -89,9 +88,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
             this.displayedColumns.unshift('drag-icon');
           }
 
-          if (this.api && this.api.definitionVersion !== 'V4') {
-            this.planSecurityOptions = this.planSecurityOptions.filter((security) => security.id !== 'PUSH');
-          }
+          this.computePlanOptions();
         }),
         tap(() => this.onInit(this.status, true)),
         catchError(({ error }) => {
@@ -301,5 +298,21 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
         }),
       )
       .subscribe();
+  }
+
+  private computePlanOptions(): void {
+    this.planSecurityOptions = this.constantsService.getEnabledPlanSecurityTypes();
+
+    if (this.api && this.api.definitionVersion !== 'V4') {
+      this.planSecurityOptions = this.planSecurityOptions.filter((security) => security.id !== 'PUSH');
+    } else {
+      if ((this.api as ApiV4)?.listeners?.every((entrypoint) => entrypoint.type === 'SUBSCRIPTION')) {
+        this.planSecurityOptions = this.planSecurityOptions.filter((planSecurityType) => planSecurityType.id === 'PUSH');
+      }
+
+      if ((this.api as ApiV4)?.listeners?.every((entrypoint) => ['HTTP', 'TCP'].includes(entrypoint.type))) {
+        this.planSecurityOptions = this.planSecurityOptions.filter((planSecurityType) => planSecurityType.id !== 'PUSH');
+      }
+    }
   }
 }
