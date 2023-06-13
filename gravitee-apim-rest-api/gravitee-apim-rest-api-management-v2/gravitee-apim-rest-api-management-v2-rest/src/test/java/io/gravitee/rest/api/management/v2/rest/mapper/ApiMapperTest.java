@@ -19,6 +19,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import fixtures.ApiFixtures;
 import fixtures.CorsFixtures;
+import io.gravitee.definition.model.DefinitionVersion;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -69,7 +70,7 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getCrossId()).isNull();
         assertThat(updateApiEntity.getName()).isEqualTo(updateApi.getName());
         assertThat(updateApiEntity.getVersion()).isEqualTo(updateApi.getApiVersion());
-        assertThat(updateApiEntity.getGraviteeDefinitionVersion()).isEqualTo(updateApi.getDefinitionVersion().name());
+        assertThat(updateApiEntity.getGraviteeDefinitionVersion()).isEqualTo(DefinitionVersion.V2.getLabel());
         assertThat(updateApiEntity.getDescription()).isEqualTo(updateApi.getDescription());
         assertThat(new ArrayList<>(updateApiEntity.getTags())).isEqualTo(updateApi.getTags());
         assertThat(updateApiEntity.getProxy()).isNotNull(); // To be tested in ProxyMapperTest ?

@@ -107,11 +107,19 @@ public interface ApiMapper {
     UpdateApiEntity map(UpdateApiV4 updateApi, String apiId);
 
     @Mapping(target = "version", source = "apiVersion")
-    @Mapping(target = "graviteeDefinitionVersion", source = "definitionVersion")
+    @Mapping(target = "graviteeDefinitionVersion", source = "definitionVersion", qualifiedByName = "mapFromDefinitionVersion")
     io.gravitee.rest.api.model.api.UpdateApiEntity map(UpdateApiV2 updateApi);
 
     // DefinitionVersion
     io.gravitee.definition.model.DefinitionVersion mapDefinitionVersion(DefinitionVersion definitionVersion);
+
+    @Named("mapFromDefinitionVersion")
+    default String mapFromDefinitionVersion(DefinitionVersion definitionVersion) {
+        if (Objects.isNull(definitionVersion)) {
+            return null;
+        }
+        return io.gravitee.definition.model.DefinitionVersion.valueOf(definitionVersion.name()).getLabel();
+    }
 
     @Named("computeApiLinks")
     default ApiLinks computeApiLinks(GenericApiEntity api, UriInfo uriInfo) {
