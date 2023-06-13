@@ -55,6 +55,7 @@ import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationServic
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
+import io.gravitee.rest.api.service.v4.validation.PlanValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.List;
@@ -96,6 +97,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private PlanService planService;
 
+    @Mock
+    private PlanValidationService planValidationService;
+
     private ApiValidationService apiValidationService;
 
     @Before
@@ -109,7 +113,8 @@ public class ApiValidationServiceImplTest {
                 flowValidationService,
                 resourcesValidationService,
                 loggingValidationService,
-                planService
+                planService,
+                planValidationService
             );
     }
 
@@ -127,6 +132,7 @@ public class ApiValidationServiceImplTest {
         verify(loggingValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), newApiEntity.getType(), null);
         verify(flowValidationService, times(1)).validateAndSanitize(newApiEntity.getType(), null);
         verify(resourcesValidationService, never()).validateAndSanitize(any());
+        verify(planValidationService, never()).validateAndSanitize(any(), any());
     }
 
     @Test
@@ -147,6 +153,7 @@ public class ApiValidationServiceImplTest {
         verify(loggingValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), apiEntity.getType(), null);
         verify(flowValidationService, times(1)).validateAndSanitize(apiEntity.getType(), null);
         verify(resourcesValidationService, times(1)).validateAndSanitize(List.of());
+        verify(planValidationService, times(1)).validateAndSanitize(apiEntity.getType(), Set.of());
     }
 
     @Test(expected = InvalidDataException.class)

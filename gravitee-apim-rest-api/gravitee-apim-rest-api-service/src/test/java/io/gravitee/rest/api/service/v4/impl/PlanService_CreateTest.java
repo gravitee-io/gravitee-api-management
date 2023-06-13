@@ -41,8 +41,10 @@ import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
+import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Before;
@@ -103,6 +105,9 @@ public class PlanService_CreateTest {
 
     @Mock
     private PolicyService policyService;
+
+    @Mock
+    private FlowValidationService flowValidationService;
 
     @Before
     public void setup() throws Exception {
@@ -179,6 +184,7 @@ public class PlanService_CreateTest {
         planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
 
         verify(flowService, times(1)).save(FlowReferenceType.PLAN, newPlanEntity.getId(), newPlanEntity.getFlows());
+        verify(flowValidationService, times(1)).validateAndSanitize(api.getType(), List.of());
     }
 
     @Test
