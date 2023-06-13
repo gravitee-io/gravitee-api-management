@@ -51,6 +51,10 @@ public class Plan implements Serializable {
     @NotNull
     private PlanSecurity security;
 
+    @JsonProperty(required = true)
+    @NotNull
+    private PlanMode mode;
+
     private String selectionRule;
 
     private List<Flow> flows;
@@ -60,4 +64,30 @@ public class Plan implements Serializable {
     @JsonProperty(required = true)
     @NotNull
     private PlanStatus status;
+
+    public final boolean isSubscribable() {
+        return (
+            (
+                this.getSecurity() != null &&
+                this.getSecurity().getType() != null &&
+                !"KEY_LESS".equalsIgnoreCase(this.getSecurity().getType())
+            ) ||
+            usePushMode()
+        );
+    }
+
+    public final boolean usePushMode() {
+        return this.getMode() != null && this.getMode() == PlanMode.PUSH;
+    }
+
+    public final boolean useStandardMode() {
+        return this.getMode() != null && this.getMode() == PlanMode.STANDARD;
+    }
+
+    public final boolean isApiKey() {
+        return (
+            this.getSecurity() != null &&
+            ("API_KEY".equalsIgnoreCase(this.getSecurity().getType()) || "api-key".equalsIgnoreCase(this.getSecurity().getType()))
+        );
+    }
 }

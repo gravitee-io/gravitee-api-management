@@ -77,3 +77,45 @@ databaseChangeLog:
             columnName: author_picture
             tableName: ${gravitee_prefix}promotions
 
+        # ################
+        # Addition of the mode field for plan entity
+        # ################
+        - addColumn:
+            tableName: ${gravitee_prefix}plans
+            columns:
+              - column:
+                  name: mode
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+                    default: STANDARD
+
+        - update:
+            columns:
+              - column:
+                  name: mode
+                  value: STANDARD
+            tableName: ${gravitee_prefix}plans
+            where: security<>'SUBSCRIPTION'
+
+        - update:
+            columns:
+              - column:
+                  name: mode
+                  value: PUSH
+              - column:
+                  name: security
+                  value: NULL
+            tableName: ${gravitee_prefix}plans
+            where: security='SUBSCRIPTION'
+
+        # ################
+        # Update the subscription type
+        # ################
+        - update:
+            columns:
+              - column:
+                  name: type
+                  value: PUSH
+            tableName: ${gravitee_prefix}subscriptions
+            where: type='SUBSCRIPTION'

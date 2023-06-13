@@ -54,7 +54,7 @@ class SubscriptionMapperTest {
         subscription.setPlan("plan");
         subscription.setStatus(Subscription.Status.ACCEPTED);
         subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
-        subscription.setType(Subscription.Type.SUBSCRIPTION);
+        subscription.setType(Subscription.Type.PUSH);
         subscription.setConfiguration(objectMapper.writeValueAsString(new SubscriptionConfiguration()));
         subscription.setMetadata(Map.of());
     }

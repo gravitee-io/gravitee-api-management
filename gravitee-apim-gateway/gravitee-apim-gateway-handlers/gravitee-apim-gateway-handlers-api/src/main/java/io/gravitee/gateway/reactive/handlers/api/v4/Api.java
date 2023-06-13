@@ -15,11 +15,6 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.JWT;
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2;
-import static io.gravitee.repository.management.model.Plan.PlanSecurityType.SUBSCRIPTION;
-
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -75,30 +70,12 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
 
     @Override
     public Set<String> getSubscribablePlans() {
-        return definition
-            .getPlans()
-            .stream()
-            .filter(plan ->
-                OAUTH2.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
-                API_KEY.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
-                "api-key".equalsIgnoreCase(plan.getSecurity().getType()) ||
-                JWT.name().equalsIgnoreCase(plan.getSecurity().getType()) ||
-                SUBSCRIPTION.name().equalsIgnoreCase(plan.getSecurity().getType())
-            )
-            .map(Plan::getId)
-            .collect(Collectors.toSet());
+        return definition.getPlans().stream().filter(plan -> plan.isSubscribable()).map(Plan::getId).collect(Collectors.toSet());
     }
 
     @Override
     public Set<String> getApiKeyPlans() {
-        return definition
-            .getPlans()
-            .stream()
-            .filter(plan ->
-                API_KEY.name().equalsIgnoreCase(plan.getSecurity().getType()) || "api-key".equalsIgnoreCase(plan.getSecurity().getType())
-            )
-            .map(Plan::getId)
-            .collect(Collectors.toSet());
+        return definition.getPlans().stream().filter(plan -> plan.isApiKey()).map(Plan::getId).collect(Collectors.toSet());
     }
 
     @Override
@@ -120,9 +97,9 @@ public class Api extends ReactableApi<io.gravitee.definition.model.v4.Api> {
             definition
                 .getPlans()
                 .forEach(plan -> {
-                    PlanSecurity security = plan.getSecurity();
                     // TODO: associate plan security with its policy (https://github.com/gravitee-io/issues/issues/8427)
-                    if (!security.getType().equalsIgnoreCase("subscription")) {
+                    if (plan.useStandardMode()) {
+                        PlanSecurity security = plan.getSecurity();
                         Policy secPolicy = new Policy();
                         secPolicy.setName(security.getType());
 

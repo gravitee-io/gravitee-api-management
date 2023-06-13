@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
@@ -65,11 +66,7 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
         final GenericPlanEntity genericPlanEntity,
         final SubscriptionConfigurationEntity configuration
     ) {
-        if (
-            genericPlanEntity.getPlanSecurity() != null &&
-            genericPlanEntity.getPlanSecurity().getType() != null &&
-            genericPlanEntity.getPlanSecurity().getType().equals(PlanSecurityType.SUBSCRIPTION.getLabel())
-        ) {
+        if (genericPlanEntity.getPlanMode() != null && genericPlanEntity.getPlanMode() == PlanMode.PUSH) {
             if (configuration.getEntrypointId() == null || configuration.getEntrypointId().isEmpty()) {
                 throw new SubscriptionEntrypointIdMissingException();
             }

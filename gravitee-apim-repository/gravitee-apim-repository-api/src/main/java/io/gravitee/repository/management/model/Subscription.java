@@ -441,9 +441,9 @@ public class Subscription implements Serializable {
         STANDARD,
 
         /**
-         * <code>SUBSCRIPTION</code> type of subscription are subscription used to manage subscription calls
+         * <code>PUSH</code> type of subscription are subscription used to manage push calls
          * (the call from the gateway is initiated by the incoming subscription, a typical use-case is webhook).
          */
-        SUBSCRIPTION,
+        PUSH,
     }
 }

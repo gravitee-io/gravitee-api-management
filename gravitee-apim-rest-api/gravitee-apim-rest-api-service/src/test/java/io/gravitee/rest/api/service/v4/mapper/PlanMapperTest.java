@@ -53,6 +53,7 @@ public class PlanMapperTest {
         plan.setDescription("Description for the new plan");
         plan.setValidation(Plan.PlanValidationType.AUTO);
         plan.setType(Plan.PlanType.API);
+        plan.setMode(Plan.PlanMode.STANDARD);
         plan.setStatus(Plan.Status.STAGING);
         plan.setApi("api1");
         plan.setGeneralConditions("general_conditions");

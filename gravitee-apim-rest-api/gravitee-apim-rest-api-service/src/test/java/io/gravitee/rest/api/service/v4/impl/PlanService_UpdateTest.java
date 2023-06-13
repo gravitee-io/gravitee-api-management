@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.v4.impl;
 import static io.gravitee.definition.model.DefinitionVersion.V1;
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.Plan.Status.PUBLISHED;
-import static java.util.Arrays.asList;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
@@ -43,14 +42,13 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.PlanFlowRequiredException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
-import io.gravitee.rest.api.service.exceptions.PlanInvalidException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.FlowService;
@@ -267,7 +265,7 @@ public class PlanService_UpdateTest {
         verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
     }
 
-    @Test(expected = PlanInvalidException.class)
+    @Test(expected = PlanFlowRequiredException.class)
     public void shouldUpdateApi_PlanWithoutFlow() throws Exception {
         final String PAGE_ID = "PAGE_ID_TEST";
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);

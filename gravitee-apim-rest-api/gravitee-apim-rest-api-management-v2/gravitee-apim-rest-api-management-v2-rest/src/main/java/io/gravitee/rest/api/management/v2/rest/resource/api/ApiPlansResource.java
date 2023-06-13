@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.security.Permissions;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.*;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -122,7 +123,9 @@ public class ApiPlansResource extends AbstractResource {
             final NewPlanEntity newPlanEntity = planMapper.map((CreatePlanV4) createPlan);
             newPlanEntity.setApiId(apiId);
             newPlanEntity.setType(PlanType.API);
-
+            if (newPlanEntity.getMode() == null) {
+                newPlanEntity.setMode(PlanMode.STANDARD);
+            }
             final PlanEntity planEntity = planServiceV4.create(GraviteeContext.getExecutionContext(), newPlanEntity);
             return Response.created(this.getLocationHeader(planEntity.getId())).entity(planMapper.map(planEntity)).build();
         } else if (createPlan.getDefinitionVersion() == DefinitionVersion.V2) {

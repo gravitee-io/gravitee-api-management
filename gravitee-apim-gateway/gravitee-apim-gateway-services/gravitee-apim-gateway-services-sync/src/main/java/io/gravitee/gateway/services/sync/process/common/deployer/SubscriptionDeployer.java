@@ -72,7 +72,7 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
                     .filter(subscription -> deployable.subscribablePlans().contains(subscription.getPlan()))
                     .forEach(subscription -> {
                         try {
-                            if (Subscription.Type.SUBSCRIPTION == subscription.getType()) {
+                            if (Subscription.Type.PUSH == subscription.getType()) {
                                 dispatchableSubscription.compute(
                                     subscription.getApi(),
                                     (apiId, subscriptions) -> {
@@ -149,7 +149,7 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
             subscriptionService.unregister(subscription);
             log.debug("Subscription [{}] undeployed for api [{}] ", subscriptionDeployable.id(), subscriptionDeployable.apiId());
 
-            if (Subscription.Type.SUBSCRIPTION == subscription.getType()) {
+            if (Subscription.Type.PUSH == subscription.getType()) {
                 return dispatchSubscription(subscription);
             }
         } catch (Exception e) {

@@ -28,6 +28,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -110,6 +111,7 @@ public class PlanService_CreateTest {
         planSecurity.setType(PlanSecurityType.KEY_LESS.getLabel());
         when(newPlanEntity.getSecurity()).thenReturn(planSecurity);
         when(newPlanEntity.getFlows()).thenReturn(new ArrayList<>());
+        when(newPlanEntity.getMode()).thenReturn(PlanMode.STANDARD);
         when(api.getDefinition()).thenReturn("apidefinition");
 
         when(parameterService.findAsBoolean(any(), any(), any())).thenReturn(true);

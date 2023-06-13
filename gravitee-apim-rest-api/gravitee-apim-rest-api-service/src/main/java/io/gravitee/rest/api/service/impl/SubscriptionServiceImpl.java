@@ -76,6 +76,7 @@ import io.gravitee.rest.api.model.v4.api.ApiModel;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -313,10 +314,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 throw new PlanNotYetPublishedException(plan);
             }
 
-            PlanSecurity planSecurity = genericPlanEntity.getPlanSecurity();
-            PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(planSecurity.getType());
-            if (planSecurityType == PlanSecurityType.KEY_LESS) {
-                throw new PlanNotSubscribableException("A key_less plan is not subscribable!");
+            PlanMode planMode = genericPlanEntity.getPlanMode();
+            PlanSecurityType planSecurityType = null;
+            if (planMode == PlanMode.STANDARD) {
+                PlanSecurity planSecurity = genericPlanEntity.getPlanSecurity();
+                planSecurityType = PlanSecurityType.valueOfLabel(planSecurity.getType());
+                if (planSecurityType == PlanSecurityType.KEY_LESS) {
+                    throw new PlanNotSubscribableException("A keyless plan is not subscribable!");
+                }
             }
 
             if (genericPlanEntity.getExcludedGroups() != null && !genericPlanEntity.getExcludedGroups().isEmpty()) {
@@ -370,7 +375,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .filter(onlyValidSubs)
                     .filter(subscription -> subscription.getPlan().equals(plan))
                     .filter(subscription -> {
-                        if (planSecurityType == PlanSecurityType.SUBSCRIPTION) {
+                        if (planMode == PlanMode.PUSH) {
                             if (subscription.getConfiguration() == null && newSubscriptionEntity.getConfiguration() == null) {
                                 return true;
                             }
@@ -489,8 +494,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setGeneralConditionsContentPageId(newSubscriptionEntity.getGeneralConditionsContentRevision().getPageId());
             }
 
-            if (planSecurityType == PlanSecurityType.SUBSCRIPTION) {
-                subscription.setType(Subscription.Type.SUBSCRIPTION);
+            if (planMode == PlanMode.PUSH) {
+                subscription.setType(Subscription.Type.PUSH);
             } else {
                 subscription.setType(Subscription.Type.STANDARD);
             }

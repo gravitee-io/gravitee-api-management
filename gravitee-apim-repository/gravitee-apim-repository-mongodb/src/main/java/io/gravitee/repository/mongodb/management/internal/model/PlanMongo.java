@@ -48,6 +48,8 @@ public class PlanMongo extends Auditable {
 
     private String type;
 
+    private String mode;
+
     private String status;
 
     private String security;
@@ -130,6 +132,14 @@ public class PlanMongo extends Auditable {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
     }
 
     public String getApi() {

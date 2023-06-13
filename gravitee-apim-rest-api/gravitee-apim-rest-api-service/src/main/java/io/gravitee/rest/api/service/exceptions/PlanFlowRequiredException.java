@@ -16,33 +16,25 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import static java.util.Collections.singletonMap;
-import static java.util.Optional.ofNullable;
 
 import io.gravitee.common.http.HttpStatusCode;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlanInvalidException extends AbstractManagementException {
+public class PlanFlowRequiredException extends AbstractManagementException {
 
     private final String plan;
-    private final String reason;
 
-    public PlanInvalidException(String plan, String reason) {
+    public PlanFlowRequiredException(String plan) {
         this.plan = plan;
-        this.reason = reason;
-    }
-
-    public PlanInvalidException(String reason) {
-        this(null, reason);
     }
 
     @Override
     public String getMessage() {
-        return plan != null ? "Plan " + plan + " invalid:" + reason : reason;
+        return "Plan " + plan + " require flows";
     }
 
     @Override
@@ -52,11 +44,11 @@ public class PlanInvalidException extends AbstractManagementException {
 
     @Override
     public String getTechnicalCode() {
-        return "plan.invalid";
+        return "plan.missing_flows";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return Map.of("plan", ofNullable(plan).orElse(""), "reason", reason);
+        return singletonMap("plan", plan);
     }
 }

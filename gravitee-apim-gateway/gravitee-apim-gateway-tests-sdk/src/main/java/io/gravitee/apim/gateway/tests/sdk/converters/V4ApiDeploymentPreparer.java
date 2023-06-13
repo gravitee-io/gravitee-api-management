@@ -18,6 +18,7 @@ package io.gravitee.apim.gateway.tests.sdk.converters;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -57,6 +58,7 @@ public class V4ApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
             final PlanSecurity planSecurity = new PlanSecurity();
             planSecurity.setType("key-less");
             plan.setSecurity(planSecurity);
+            plan.setMode(PlanMode.STANDARD);
             plan.setStatus(PlanStatus.PUBLISHED);
 
             api.setPlans(Collections.singletonList(plan));

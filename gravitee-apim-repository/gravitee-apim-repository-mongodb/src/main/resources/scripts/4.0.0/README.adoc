@@ -1,0 +1,5 @@
+= Subscription and Plan Migration
+
+Starting from 4.0.0, Plans have a new field named mode that is requited, there are two possible values:
+* STANDARD for legacy plan
+* PUSH for new plan used with Message API that allow to push messages to an external service (Webhook for exampe).

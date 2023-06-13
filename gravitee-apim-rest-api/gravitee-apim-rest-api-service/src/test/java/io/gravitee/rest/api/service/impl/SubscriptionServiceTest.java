@@ -52,7 +52,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
@@ -86,6 +85,7 @@ import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -235,6 +235,8 @@ public class SubscriptionServiceTest {
 
     private PlanEntity planEntity;
 
+    private io.gravitee.rest.api.model.v4.plan.PlanEntity planEntityV4;
+
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
@@ -257,6 +259,10 @@ public class SubscriptionServiceTest {
         planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setApi(API_ID);
+
+        planEntityV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        planEntityV4.setId(PLAN_ID);
+        planEntityV4.setApiId(API_ID);
     }
 
     @Test
@@ -458,11 +464,11 @@ public class SubscriptionServiceTest {
     @Test
     public void shouldCreateWithSubscriptionPlanWithoutProcess() throws Exception {
         // Prepare data
-        planEntity.setValidation(PlanValidationType.MANUAL);
-        planEntity.setSecurity(PlanSecurityType.SUBSCRIPTION);
+        planEntityV4.setValidation(io.gravitee.rest.api.model.v4.plan.PlanValidationType.MANUAL);
+        planEntityV4.setMode(PlanMode.PUSH);
 
         // Stub
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntityV4);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
         when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
@@ -482,7 +488,7 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, never()).update(any(Subscription.class));
         verify(apiKeyService, never()).generate(eq(GraviteeContext.getExecutionContext()), any(), any(), anyString());
         verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), any(NewSubscriptionEntity.class));
-        assertEquals(Subscription.Type.SUBSCRIPTION, subscriptionCapture.getValue().getType());
+        assertEquals(Subscription.Type.PUSH, subscriptionCapture.getValue().getType());
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
@@ -1742,9 +1748,7 @@ public class SubscriptionServiceTest {
     public void shouldUpdateSubscriptionInFailure() throws TechnicalException {
         io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planV4.setValidation(AUTO);
-        PlanSecurity planSecurity = new PlanSecurity();
-        planSecurity.setType(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.SUBSCRIPTION.getLabel());
-        planV4.setSecurity(planSecurity);
+        planV4.setMode(PlanMode.PUSH);
         when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
 
         Subscription subscription = new Subscription();
@@ -1782,9 +1786,7 @@ public class SubscriptionServiceTest {
     public void shouldUpdateSubscriptionConfigurationOnPlanWithAutomaticValidation() throws TechnicalException {
         io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planV4.setValidation(AUTO);
-        PlanSecurity planSecurity = new PlanSecurity();
-        planSecurity.setType(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.SUBSCRIPTION.getLabel());
-        planV4.setSecurity(planSecurity);
+        planV4.setMode(PlanMode.PUSH);
         when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
 
         Subscription subscription = new Subscription();
@@ -1821,9 +1823,7 @@ public class SubscriptionServiceTest {
     public void shouldUpdateSubscriptionConfigurationOnPlanWithManualValidation() throws TechnicalException {
         io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         planV4.setValidation(MANUAL);
-        PlanSecurity planSecurity = new PlanSecurity();
-        planSecurity.setType(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.SUBSCRIPTION.getLabel());
-        planV4.setSecurity(planSecurity);
+        planV4.setMode(PlanMode.PUSH);
         when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
 
         Subscription subscription = new Subscription();

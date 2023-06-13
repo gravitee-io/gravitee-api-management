@@ -2564,6 +2564,8 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV4"
+                      mode:
+                        $ref: "#/components/schemas/PlanMode"
         Plan:
             oneOf:
                 - $ref: "#/components/schemas/PlanV2"
@@ -2697,6 +2699,16 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV4"
+                      mode:
+                          $ref: "#/components/schemas/PlanMode"
+
+        PlanMode:
+            type: string
+            description: The behavioural mode of the Plan (Standard for classical plan, Push for subscription plan).
+            example: STANDARD
+            enum:
+                - STANDARD
+                - PUSH
 
         UpdatePlan:
             oneOf:

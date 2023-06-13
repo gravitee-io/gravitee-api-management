@@ -21,6 +21,7 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import jakarta.validation.constraints.NotNull;
 import java.util.*;
 import lombok.AllArgsConstructor;
@@ -364,6 +365,12 @@ public class PlanEntity implements GenericPlanEntity {
             return io.gravitee.definition.model.v4.plan.PlanStatus.valueOfLabel(status.name());
         }
         return null;
+    }
+
+    @Override
+    public PlanMode getPlanMode() {
+        // V2 API only manage STANDARD mode
+        return PlanMode.STANDARD;
     }
 
     @Override

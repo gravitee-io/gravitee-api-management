@@ -53,8 +53,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
+import io.gravitee.rest.api.service.exceptions.PlanFlowRequiredException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
-import io.gravitee.rest.api.service.exceptions.PlanInvalidException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
@@ -315,7 +315,7 @@ public class PlanService_UpdateTest {
         verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
     }
 
-    @Test(expected = PlanInvalidException.class)
+    @Test(expected = PlanFlowRequiredException.class)
     public void shouldUpdateApi_PlanWithoutFlow() throws Exception {
         final String PAGE_ID = "PAGE_ID_TEST";
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);

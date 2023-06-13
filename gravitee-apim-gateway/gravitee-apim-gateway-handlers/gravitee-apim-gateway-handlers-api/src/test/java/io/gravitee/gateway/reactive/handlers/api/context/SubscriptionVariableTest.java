@@ -31,12 +31,12 @@ class SubscriptionVariableTest {
     void shouldGiveAccessToSubscription() {
         Subscription subscription = new Subscription();
         subscription.setId("id");
-        subscription.setType(Subscription.Type.SUBSCRIPTION);
+        subscription.setType(Subscription.Type.PUSH);
         subscription.setMetadata(Map.of("key", "value"));
         SubscriptionVariable subscriptionVariable = new SubscriptionVariable(subscription);
 
         assertThat(subscriptionVariable.getId()).isEqualTo("id");
-        assertThat(subscriptionVariable.getType()).isEqualTo(Subscription.Type.SUBSCRIPTION);
+        assertThat(subscriptionVariable.getType()).isEqualTo(Subscription.Type.PUSH);
         assertThat(subscriptionVariable.getMetadata().get("key")).isEqualTo("value");
     }
 }
