@@ -26,21 +26,30 @@ import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import io.vertx.kafka.client.common.TopicPartition;
 import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
+import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumerRecord;
 import io.vertx.rxjava3.kafka.client.producer.KafkaProducer;
 import io.vertx.rxjava3.kafka.client.producer.KafkaProducerRecord;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.KafkaContainer;
@@ -115,6 +124,25 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
         adminClient.createTopics(topics).all().get(30, TimeUnit.SECONDS);
     }
 
+    protected static KafkaConsumer<String, byte[]> getKafkaConsumer(Vertx vertx) {
+        Map<String, String> config = new HashMap<>();
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
+        config.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        return KafkaConsumer.create(vertx, config);
+    }
+
+    protected static Flowable<KafkaConsumerRecord<String, byte[]>> subscribeToKafka(KafkaConsumer<String, byte[]> kafkaConsumer) {
+        TopicPartition topicPartition = new TopicPartition(TEST_TOPIC, 0);
+        return kafkaConsumer
+            .rxAssign(topicPartition)
+            .andThen(kafkaConsumer.rxSeekToBeginning(topicPartition))
+            .andThen(kafkaConsumer.toFlowable());
+    }
+
     /**
      * Creates a KafkaProducer to be able to publish messages to topic
      * @param vertx
@@ -133,11 +161,11 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
         return KafkaProducer.create(vertx, config);
     }
 
-    protected static void blockingPublishMessage(KafkaProducer<String, byte[]> producer, String message) {
-        publishMessage(producer, message).test().awaitDone(10, TimeUnit.SECONDS).assertComplete().assertNoErrors();
+    protected static void blockingPublishToKafka(KafkaProducer<String, byte[]> producer, String message) {
+        publishToKafka(producer, message).test().awaitDone(10, TimeUnit.SECONDS).assertComplete().assertNoErrors();
     }
 
-    protected static Completable publishMessage(KafkaProducer<String, byte[]> producer, String message) {
+    protected static Completable publishToKafka(KafkaProducer<String, byte[]> producer, String message) {
         return producer
             .rxSend(KafkaProducerRecord.create(TEST_TOPIC, "key", io.gravitee.gateway.api.buffer.Buffer.buffer(message).getBytes()))
             .ignoreElement();

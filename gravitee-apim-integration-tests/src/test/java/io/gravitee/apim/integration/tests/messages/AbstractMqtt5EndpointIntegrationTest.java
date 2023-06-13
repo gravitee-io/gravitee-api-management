@@ -53,15 +53,16 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatewayTest {
 
+    protected static final String TEST_TOPIC = "test-topic";
+    protected static final String TEST_TOPIC_RETAINED = "test-topic-retained";
+    protected static final String TEST_TOPIC_FAILURE = "test-topic-failure";
+    protected static final String TEST_TOPIC_ATTRIBUTE = "test-topic-attribute";
+
     @Container
     protected static final HiveMQContainer mqtt5 = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce").withTag("2023.3"))
         .withTmpFs(null);
 
     protected Mqtt5RxClient mqtt5RxClient;
-    protected static final String TEST_TOPIC = "test-topic";
-    protected static final String TEST_TOPIC_RETAINED = "test-topic-retained";
-    protected static final String TEST_TOPIC_FAILURE = "test-topic-failure";
-    protected static final String TEST_TOPIC_ATTRIBUTE = "test-topic-attribute";
 
     @Override
     public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
@@ -96,13 +97,22 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
 
     @AfterEach
     public void afterEach() {
+        blockingPublishToMqtt5(mqtt5RxClient, TEST_TOPIC, null, true);
+        blockingPublishToMqtt5(mqtt5RxClient, TEST_TOPIC_RETAINED, null, true);
+        blockingPublishToMqtt5(mqtt5RxClient, TEST_TOPIC_FAILURE, null, true);
+        blockingPublishToMqtt5(mqtt5RxClient, TEST_TOPIC_ATTRIBUTE, null, true);
         blockingDisconnectFromMqtt5(mqtt5RxClient);
+    }
+
+    protected void blockingPublishToMqtt5(Mqtt5RxClient mqtt5RxClient, String topic, String payload, boolean retain) {
+        publishToMqtt5(mqtt5RxClient, topic, payload, retain).ignoreElements().blockingAwait();
     }
 
     protected io.reactivex.rxjava3.core.Flowable<Mqtt5PublishResult> publishToMqtt5(
         Mqtt5RxClient mqtt5RxClient,
         String topic,
-        String payload
+        String payload,
+        boolean retain
     ) {
         return RxJavaBridge.toV3Flowable(
             mqtt5RxClient.publish(
@@ -110,10 +120,10 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
                     Mqtt5Publish
                         .builder()
                         .topic(topic)
-                        .payload(Buffer.buffer(payload).getBytes())
+                        .payload(payload != null ? Buffer.buffer(payload).getBytes() : null)
                         .qos(Mqtt5Publish.DEFAULT_QOS)
                         .noMessageExpiry()
-                        .retain(true)
+                        .retain(retain)
                         .build()
                 )
             )

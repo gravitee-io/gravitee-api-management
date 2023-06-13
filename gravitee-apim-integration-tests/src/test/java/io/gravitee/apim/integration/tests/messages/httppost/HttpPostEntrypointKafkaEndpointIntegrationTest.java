@@ -28,18 +28,12 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.kafka.client.common.TopicPartition;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import io.vertx.rxjava3.kafka.client.producer.KafkaHeader;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -48,7 +42,10 @@ import org.junit.jupiter.api.Test;
  */
 @GatewayTest
 @DeployApi(
-    { "/apis/v4/messages/http-post-entrypoint-kafka-endpoint.json", "/apis/v4/messages/http-post-entrypoint-kafka-endpoint-failure.json" }
+    {
+        "/apis/v4/messages/http-post/http-post-entrypoint-kafka-endpoint.json",
+        "/apis/v4/messages/http-post/http-post-entrypoint-kafka-endpoint-failure.json",
+    }
 )
 class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpointIntegrationTest {
 
@@ -87,12 +84,8 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
 
         // Configure a KafkaConsumer to read messages published on topic test-topic.
         KafkaConsumer<String, byte[]> kafkaConsumer = getKafkaConsumer(vertx);
-        TopicPartition topicPartition = new TopicPartition(TEST_TOPIC, 0);
 
-        kafkaConsumer
-            .rxAssign(topicPartition)
-            .andThen(kafkaConsumer.rxSeekToBeginning(topicPartition))
-            .andThen(kafkaConsumer.toFlowable())
+        subscribeToKafka(kafkaConsumer)
             // We expect one message for this test
             .take(1)
             .test()
@@ -108,7 +101,7 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
             )
             .assertComplete();
 
-        kafkaConsumer.close().subscribe();
+        kafkaConsumer.close().blockingAwait(30, TimeUnit.SECONDS);
     }
 
     @Test
@@ -130,16 +123,5 @@ class HttpPostEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoi
                 assertThat(buffer).hasToString("An error occurred");
                 return true;
             });
-    }
-
-    private static KafkaConsumer<String, byte[]> getKafkaConsumer(Vertx vertx) {
-        Map<String, String> config = new HashMap<>();
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
-        config.put(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
-        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        return KafkaConsumer.create(vertx, config);
     }
 }

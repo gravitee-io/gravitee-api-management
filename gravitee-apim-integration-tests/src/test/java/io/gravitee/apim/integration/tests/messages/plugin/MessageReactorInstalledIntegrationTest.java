@@ -50,7 +50,7 @@ public class MessageReactorInstalledIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/messages/http-get-entrypoint-mock-endpoint.json" })
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-mock-endpoint.json" })
     class MessageReactorPluginInstalled extends AbstractGatewayTest {
 
         @Override
@@ -102,7 +102,7 @@ public class MessageReactorInstalledIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi({ "/apis/v4/messages/http-get-entrypoint-mock-endpoint.json" })
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-mock-endpoint.json" })
     class MessageReactorPluginNotInstalled extends AbstractGatewayTest {
 
         @Override

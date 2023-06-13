@@ -54,16 +54,16 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get-entrypoint-kafka-endpoint.json" })
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint.json" })
     void should_receive_all_messages(HttpClient client, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection.
         Single
             .fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer ->
-                publishMessage(producer, "message1")
-                    .andThen(publishMessage(producer, "message2"))
-                    .andThen(publishMessage(producer, "message3"))
+                publishToKafka(producer, "message1")
+                    .andThen(publishToKafka(producer, "message2"))
+                    .andThen(publishToKafka(producer, "message3"))
                     .doFinally(producer::close)
             )
             .blockingAwait();
@@ -142,8 +142,8 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     @ParameterizedTest(name = "should receive all messages with {0} qos")
     @DeployApi(
         {
-            "/apis/v4/messages/http-get-entrypoint-kafka-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get-entrypoint-kafka-endpoint-at-most-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-least-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
         }
     )
     void should_receive_all_messages_with_qos(Qos qos, HttpClient client, Vertx vertx) {
@@ -152,9 +152,9 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
         Single
             .fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer ->
-                publishMessage(producer, "message1")
-                    .andThen(publishMessage(producer, "message2"))
-                    .andThen(publishMessage(producer, "message3"))
+                publishToKafka(producer, "message1")
+                    .andThen(publishToKafka(producer, "message2"))
+                    .andThen(publishToKafka(producer, "message3"))
                     .doFinally(producer::close)
             )
             .blockingAwait();
@@ -245,8 +245,8 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     @ParameterizedTest(name = "should receive empty items while requesting recent cursor with {0} qos")
     @DeployApi(
         {
-            "/apis/v4/messages/http-get-entrypoint-kafka-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get-entrypoint-kafka-endpoint-at-most-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-least-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
         }
     )
     void should_receive_empty_items_while_requesting_recent_cursor_with_specific_qos(Qos qos, HttpClient client, Vertx vertx) {
@@ -255,9 +255,9 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
         Single
             .fromCallable(() -> getKafkaProducer(vertx))
             .flatMapCompletable(producer ->
-                publishMessage(producer, "message1")
-                    .andThen(publishMessage(producer, "message2"))
-                    .andThen(publishMessage(producer, "message3"))
+                publishToKafka(producer, "message1")
+                    .andThen(publishToKafka(producer, "message2"))
+                    .andThen(publishToKafka(producer, "message3"))
                     .doFinally(producer::close)
             )
             .blockingAwait();
@@ -291,8 +291,8 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     @ParameterizedTest(name = "should receive empty items with_initial_cursor with_no_messages and {0} qos")
     @DeployApi(
         {
-            "/apis/v4/messages/http-get-entrypoint-kafka-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get-entrypoint-kafka-endpoint-at-most-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-least-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
         }
     )
     void should_receive_empty_items_with_initial_cursor_with_no_messages_and_specific_qos(Qos qos, HttpClient client) {
@@ -321,7 +321,7 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get-entrypoint-kafka-endpoint-failure.json" })
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-failure.json" })
     void should_receive_error_messages_when_error_occurred(HttpClient client) {
         // First request should receive 2 first messages
         client

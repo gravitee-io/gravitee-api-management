@@ -68,7 +68,7 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint.json" })
+    @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mqtt5-endpoint.json" })
     void should_be_able_to_publish_to_mqtt5_endpoint_with_httppost_entrypoint(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
@@ -102,7 +102,7 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint-retained.json" })
+    @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mqtt5-endpoint-retained.json" })
     void should_be_able_to_publish_retained_message_to_mqtt5_endpoint_with_httppost_entrypoint(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value-retained");
@@ -161,7 +161,7 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint-attribute.json" })
+    @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mqtt5-endpoint-attribute.json" })
     void should_be_able_to_publish_message_to_mqtt5_endpoint_with_httppost_entrypoint_topic_overridden_by_attribute(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
@@ -220,7 +220,7 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-post-entrypoint-mqtt5-endpoint-failure.json" })
+    @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mqtt5-endpoint-failure.json" })
     void should_return_an_error_when_message_failed_to_be_published(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
