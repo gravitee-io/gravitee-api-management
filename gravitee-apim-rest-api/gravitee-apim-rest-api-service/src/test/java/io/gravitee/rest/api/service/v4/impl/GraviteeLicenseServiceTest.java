@@ -92,4 +92,16 @@ public class GraviteeLicenseServiceTest {
         when(node.license()).thenReturn(license);
         assertThat(licenseService.getLicense().getFeatures()).containsExactlyInAnyOrder("feature-debug-mode", "feature-datadog-reporter");
     }
+
+    @Test
+    public void shouldHaveFeature() {
+        when(license.features()).thenReturn(Map.of("feature-debug-mode", "included"));
+        when(node.license()).thenReturn(license);
+        assertThat(licenseService.isFeatureEnabled("feature-debug-mode")).isTrue();
+    }
+
+    @Test
+    public void shouldNotHaveFeature() {
+        assertThat(licenseService.isFeatureEnabled("feature-debug-mode")).isFalse();
+    }
 }

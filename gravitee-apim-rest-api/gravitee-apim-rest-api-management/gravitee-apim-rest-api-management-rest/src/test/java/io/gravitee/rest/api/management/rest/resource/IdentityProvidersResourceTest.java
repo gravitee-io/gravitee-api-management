@@ -18,12 +18,13 @@ package io.gravitee.rest.api.management.rest.resource;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.configuration.identity.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -39,6 +40,9 @@ import org.junit.Test;
 public class IdentityProvidersResourceTest extends AbstractResourceTest {
 
     private static final String ID = "my-idp-id";
+
+    @Inject
+    private GraviteeLicenseService graviteeLicenseService;
 
     @Override
     protected String contextPath() {
@@ -68,6 +72,30 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newIdentityProviderEntity));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(envTarget().path(ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+    }
+
+    public void createOpenIdConnectShouldReturnOKWithLicense() {
+        when(graviteeLicenseService.isFeatureEnabled(GraviteeLicenseService.FEATURE_OPEN_ID_CONNECT_SSO)).thenReturn(true);
+        NewIdentityProviderEntity newIdentityProviderEntity = new NewIdentityProviderEntity();
+        newIdentityProviderEntity.setName("my-idp-name");
+        newIdentityProviderEntity.setType(IdentityProviderType.OIDC);
+        newIdentityProviderEntity.setConfiguration(Collections.emptyMap());
+
+        final Response response = envTarget().request().post(Entity.json(newIdentityProviderEntity));
+        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
+        assertEquals(envTarget().path(ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+    }
+
+    @Test
+    public void createOpenIdConnectShouldReturnUnauthorizedWithoutLicense() {
+        when(graviteeLicenseService.isFeatureEnabled(GraviteeLicenseService.FEATURE_OPEN_ID_CONNECT_SSO)).thenReturn(false);
+        NewIdentityProviderEntity newIdentityProviderEntity = new NewIdentityProviderEntity();
+        newIdentityProviderEntity.setName("my-idp-name");
+        newIdentityProviderEntity.setType(IdentityProviderType.OIDC);
+        newIdentityProviderEntity.setConfiguration(Collections.emptyMap());
+
+        final Response response = envTarget().request().post(Entity.json(newIdentityProviderEntity));
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
     }
 
     @Test

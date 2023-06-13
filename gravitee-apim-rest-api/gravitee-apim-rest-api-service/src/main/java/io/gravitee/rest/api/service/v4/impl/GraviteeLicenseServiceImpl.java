@@ -55,6 +55,11 @@ public class GraviteeLicenseServiceImpl implements GraviteeLicenseService {
         return licenseEntity;
     }
 
+    @Override
+    public boolean isFeatureEnabled(String featureName) {
+        return findLicense().map(license -> extractFeatures(license).contains(featureName)).orElse(false);
+    }
+
     private String readTier() {
         return readString(TIER_KEY).orElse(null);
     }

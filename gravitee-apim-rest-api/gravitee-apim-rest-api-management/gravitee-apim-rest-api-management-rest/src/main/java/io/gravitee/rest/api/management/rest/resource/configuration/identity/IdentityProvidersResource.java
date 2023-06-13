@@ -15,17 +15,21 @@
  */
 package io.gravitee.rest.api.management.rest.resource.configuration.identity;
 
+import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.configuration.identity.IdentityProviderListItem;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -108,6 +112,8 @@ public class IdentityProvidersResource extends AbstractResource {
     public Response createIdentityProvider(
         @Parameter(name = "identity-provider", required = true) @Valid @NotNull NewIdentityProviderEntity newIdentityProviderEntity
     ) {
+        checkOpenIdConnectProviderLicense(newIdentityProviderEntity);
+
         IdentityProviderEntity newIdentityProvider = identityProviderService.create(
             GraviteeContext.getExecutionContext(),
             newIdentityProviderEntity
@@ -123,5 +129,15 @@ public class IdentityProvidersResource extends AbstractResource {
     @Path("{identityProvider}")
     public IdentityProviderResource getIdentityProviderResource() {
         return resourceContext.getResource(IdentityProviderResource.class);
+    }
+
+    private void checkOpenIdConnectProviderLicense(NewIdentityProviderEntity newIdentityProviderEntity) {
+        if (isFeatureEnabled(FEATURE_OPEN_ID_CONNECT_SSO)) {
+            return;
+        }
+
+        if (IdentityProviderType.OIDC.equals(newIdentityProviderEntity.getType())) {
+            throw new ForbiddenFeatureException(FEATURE_OPEN_ID_CONNECT_SSO);
+        }
     }
 }
