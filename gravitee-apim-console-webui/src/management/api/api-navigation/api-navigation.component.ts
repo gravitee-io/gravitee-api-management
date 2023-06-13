@@ -17,20 +17,24 @@ import { Component, Inject, Input, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
-import { takeUntil } from 'rxjs/operators';
+import { map, takeUntil } from 'rxjs/operators';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 import { AjsRootScope, CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
+import { GioLicenseOptions } from '../../../shared/components/gio-license/gio-license.directive';
+import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
 
 export interface MenuItem {
   targetRoute?: string;
   baseRoute?: string | string[];
   displayName: string;
   tabs?: MenuItem[];
+  license?: GioLicenseOptions;
+  iconRight$?: Observable<any>;
 }
 
 interface GroupItem {
@@ -74,6 +78,7 @@ export class ApiNavigationComponent implements OnInit {
     @Inject('Constants') private readonly constants: Constants,
     @Inject(AjsRootScope) private readonly ajsRootScope: IScope,
     private readonly gioMenuService: GioMenuService,
+    private readonly gioLicenseService: GioLicenseService,
   ) {}
 
   ngOnInit() {
@@ -354,6 +359,9 @@ export class ApiNavigationComponent implements OnInit {
   }
 
   private appendAuditGroup() {
+    const license = { feature: 'apim-audit-trail' };
+    const iconRight$ = this.gioLicenseService.notAllowed(license.feature).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+
     const auditGroup: GroupItem = {
       title: 'Audit',
       items: [],
@@ -364,6 +372,8 @@ export class ApiNavigationComponent implements OnInit {
         displayName: 'Audit',
         targetRoute: 'management.apis.detail.audit.general',
         baseRoute: 'management.apis.detail.audit.general',
+        license,
+        iconRight$,
       });
     }
     if (this.permissionService.hasAnyMatching(['api-event-r'])) {
