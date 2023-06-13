@@ -23,10 +23,12 @@
       #uis="uiSrefStatus"
       *ngFor="let link of policyStudioMenu"
       [uiParams]="link.params"
-      [uiSref]="'.' + link.uiSref"
+      [uiSref]="link.uiSref | async"
       [active]="uis.status.active"
+      [gioLicense]="link.license"
     >
       {{ link.label }}
+      <mat-icon *ngIf="link?.notAllowed$ | async" svgIcon="gio:lock" class="gio-policy-studio-layout__header__nav__icon"></mat-icon>
     </a>
   </nav>
 </div>
