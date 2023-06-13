@@ -159,14 +159,23 @@ public class ApiFixtures {
     private static final UpdateApiV2.UpdateApiV2Builder BASE_UPDATE_API_V2 = UpdateApiV2
         .builder()
         .apiVersion("v1")
-        .definitionVersion(DefinitionVersion.V4)
+        .definitionVersion(DefinitionVersion.V2)
         .name("api-name")
         .description("api-description")
         .visibility(Visibility.PUBLIC)
+        .executionMode(ExecutionMode.JUPITER)
         .proxy(new Proxy())
         .flowMode(FlowMode.DEFAULT)
         .flows(List.of(FlowFixtures.aFlowV2()))
         .pathMappings(List.of("path-mapping1", "path-mapping2"))
+        .tags(List.of("my-tag1", "my-tag2"))
+        .resources(List.of(ResourceFixtures.aResource()))
+        .responseTemplates(Map.of("key", new HashMap<>()))
+        .services(new ServicesV2())
+        .groups(List.of("my-group1", "my-group2"))
+        .categories(List.of("my-category1", "my-category2"))
+        .lifecycleState(ApiLifecycleState.CREATED)
+        .disableMembershipNotifications(true)
         .executionMode(ExecutionMode.JUPITER);
 
     private static final UpdateApiV4.UpdateApiV4Builder BASE_UPDATE_API_V4 = UpdateApiV4

@@ -106,6 +106,8 @@ public interface ApiMapper {
     @Mapping(target = "id", expression = "java(apiId)")
     UpdateApiEntity map(UpdateApiV4 updateApi, String apiId);
 
+    @Mapping(target = "version", source = "apiVersion")
+    @Mapping(target = "graviteeDefinitionVersion", source = "definitionVersion")
     io.gravitee.rest.api.model.api.UpdateApiEntity map(UpdateApiV2 updateApi);
 
     // DefinitionVersion
