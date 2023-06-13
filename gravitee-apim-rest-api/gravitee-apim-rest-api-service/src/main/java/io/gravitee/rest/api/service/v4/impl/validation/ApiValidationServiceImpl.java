@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationServic
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
+import io.gravitee.rest.api.service.v4.validation.PlanValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import org.springframework.stereotype.Component;
@@ -61,6 +62,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final ResourcesValidationService resourcesValidationService;
     private final AnalyticsValidationService analyticsValidationService;
     private final PlanService planService;
+    private final PlanValidationService planValidationService;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -70,7 +72,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final FlowValidationService flowValidationService,
         final ResourcesValidationService resourcesValidationService,
         final AnalyticsValidationService loggingValidationService,
-        PlanService planService
+        PlanService planService,
+        final PlanValidationService planValidationService
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -80,6 +83,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.resourcesValidationService = resourcesValidationService;
         this.analyticsValidationService = loggingValidationService;
         this.planService = planService;
+        this.planValidationService = planValidationService;
     }
 
     @Override
@@ -160,6 +164,10 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
         // Validate and clean flow
         updateApiEntity.setFlows(flowValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getFlows()));
+
+        // Validate and clean plans
+        updateApiEntity.setPlans(planValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getPlans()));
+
         // Validate and clean resources
         updateApiEntity.setResources(resourcesValidationService.validateAndSanitize(updateApiEntity.getResources()));
     }
@@ -192,6 +200,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
         // Validate and clean flow
         apiEntity.setFlows(flowValidationService.validateAndSanitize(apiEntity.getType(), apiEntity.getFlows()));
+
+        // Validate and clean plans
+        apiEntity.setPlans(planValidationService.validateAndSanitize(apiEntity.getType(), apiEntity.getPlans()));
 
         // Validate and clean resources
         apiEntity.setResources(resourcesValidationService.validateAndSanitize(apiEntity.getResources()));

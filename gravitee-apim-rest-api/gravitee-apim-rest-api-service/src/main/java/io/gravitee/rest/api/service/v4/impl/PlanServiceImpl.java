@@ -66,6 +66,7 @@ import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
+import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Arrays;
 import java.util.Collection;
@@ -143,6 +144,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Autowired
     private PolicyService policyService;
 
+    @Autowired
+    private FlowValidationService flowValidationService;
+
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String planId) {
         return (PlanEntity) planSearchService.findById(executionContext, planId);
@@ -166,6 +170,8 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             }
 
             Api api = apiRepository.findById(newPlan.getApiId()).orElseThrow(() -> new ApiNotFoundException(newPlan.getApiId()));
+
+            newPlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), newPlan.getFlows()));
 
             if (api.getApiLifecycleState() == DEPRECATED) {
                 throw new ApiDeprecatedException(api.getName());
@@ -296,6 +302,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             final var apiId = newPlan.getApi();
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
             validateTags(newPlan.getTags(), api);
+            updatePlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), updatePlan.getFlows()));
 
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {

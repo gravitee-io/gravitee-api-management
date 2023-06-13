@@ -19,11 +19,11 @@ import static io.gravitee.definition.model.DefinitionVersion.V1;
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.Plan.Status.PUBLISHED;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -55,6 +55,7 @@ import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
+import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import io.reactivex.rxjava3.annotations.NonNull;
 import java.util.List;
@@ -130,6 +131,9 @@ public class PlanService_UpdateTest {
     @Mock
     private PolicyService policyService;
 
+    @Mock
+    private FlowValidationService flowValidationService;
+
     @Before
     public void setup() throws Exception {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
@@ -152,6 +156,7 @@ public class PlanService_UpdateTest {
 
         verify(planRepository).update(any());
         verify(parameterService).findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT));
+        verify(flowValidationService, times(1)).validateAndSanitize(any(), anyList());
     }
 
     @Test
