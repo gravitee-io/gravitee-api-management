@@ -16,19 +16,20 @@
 package io.gravitee.apim.integration.tests.messages.websocket;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.entrypoint.websocket.WebSocketEntrypointConnectorFactory;
-import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
+import com.solace.messaging.publisher.OutboundMessageBuilder;
+import com.solace.messaging.receiver.InboundMessage;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
-import io.gravitee.apim.integration.tests.messages.AbstractMqtt5EndpointIntegrationTest;
+import io.gravitee.apim.integration.tests.messages.AbstractSolaceEndpointIntegrationTest;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.rxjava3.core.http.HttpClient;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -43,26 +44,23 @@ import org.junit.jupiter.params.provider.EnumSource;
  */
 @GatewayTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegrationTest {
+class WebsocketEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpointIntegrationTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
         entrypoints.putIfAbsent("websocket", EntrypointBuilder.build("websocket", WebSocketEntrypointConnectorFactory.class));
     }
 
-    @EnumSource(value = Qos.class, names = { "NONE", "AUTO" })
-    @ParameterizedTest(name = "should receive all messages with {0} qos")
-    @DeployApi(
-        {
-            "/apis/v4/messages/websocket/websocket-entrypoint-mqtt5-endpoint-subscriber-none.json",
-            "/apis/v4/messages/websocket/websocket-entrypoint-mqtt5-endpoint-subscriber.json",
-        }
-    )
-    void should_receive_all_messages_with_qos(Qos qos, HttpClient httpClient) {
+    @Test
+    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-subscriber-none.json" })
+    void should_receive_all_messages_with_none_qos(HttpClient httpClient) {
+        OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
         httpClient
-            .rxWebSocket("/test-" + qos.getLabel())
+            .rxWebSocket("/test-none")
             .flatMapPublisher(websocket ->
-                websocket.toFlowable().zipWith(publishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message", true), (w, m) -> w)
+                websocket
+                    .toFlowable()
+                    .mergeWith(publishToSolace(topic, List.of(messageBuilder.build("message".getBytes())), 500).toFlowable())
             )
             .test()
             .awaitCount(1)
@@ -74,9 +72,29 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-mqtt5-endpoint-publisher.json" })
+    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-subscriber.json" })
+    void should_receive_all_messages_with_auto_qos(HttpClient httpClient) {
+        OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
+        httpClient
+            .rxWebSocket("/test-auto")
+            .flatMapPublisher(websocket ->
+                websocket
+                    .toFlowable()
+                    .mergeWith(publishToSolace(topic, List.of(messageBuilder.build("message".getBytes())), 1000).toFlowable())
+            )
+            .test()
+            .awaitCount(1)
+            .assertValue(frame -> {
+                assertThat(frame).hasToString("message");
+                return true;
+            })
+            .assertNoErrors();
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-publisher.json" })
     void should_publish_messages(HttpClient httpClient) {
-        TestSubscriber<Mqtt5Publish> testSubscriber = subscribeToMqtt5Flowable(mqtt5RxClient, TEST_TOPIC).test();
+        TestSubscriber<InboundMessage> testSubscriber = subscribeToSolace(topic).test();
 
         httpClient
             .rxWebSocket("/test")
@@ -95,22 +113,11 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-mqtt5-endpoint-publisher-subscriber-nolocal.json" })
-    void should_not_received_published_messages_by_default(HttpClient httpClient) {
+    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-solace-endpoint-publisher-subscriber.json" })
+    void should_received_published_messages(HttpClient httpClient) {
         httpClient
             .rxWebSocket("/test")
-            .flatMapPublisher(websocket -> websocket.writeTextMessage("message").toFlowable().mergeWith((websocket.toFlowable())))
-            .test()
-            .assertNoValues()
-            .assertNoErrors();
-    }
-
-    @Test
-    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-mqtt5-endpoint-publisher-subscriber-local.json" })
-    void should_received_published_messages_with_local_subscription(HttpClient httpClient) {
-        httpClient
-            .rxWebSocket("/test")
-            .flatMapPublisher(websocket -> websocket.writeTextMessage("message").toFlowable().mergeWith((websocket.toFlowable())))
+            .flatMapPublisher(websocket -> websocket.writeTextMessage("message").toFlowable().mergeWith(websocket.toFlowable()))
             .test()
             .awaitCount(1)
             .assertValue(frame -> {

@@ -18,14 +18,19 @@ package io.gravitee.apim.integration.tests.messages.httpget;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
+import com.solace.messaging.publisher.DirectMessagePublisher;
+import com.solace.messaging.publisher.OutboundMessage;
+import com.solace.messaging.publisher.OutboundMessageBuilder;
+import com.solace.messaging.resources.Topic;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
-import io.gravitee.apim.integration.tests.messages.AbstractMqtt5EndpointIntegrationTest;
+import io.gravitee.apim.integration.tests.messages.AbstractSolaceEndpointIntegrationTest;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -40,12 +45,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 /**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @GatewayTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointIntegrationTest {
+class HttpGetEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpointIntegrationTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -53,7 +58,7 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-mqtt5-endpoint.json" })
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint.json" })
     void should_receive_messages(HttpClient client) {
         client
             .rxRequest(HttpMethod.GET, "/test")
@@ -62,7 +67,21 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
                 return request.send();
             })
             .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMap(response -> publishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message", true).ignoreElements().andThen(response.body()))
+            .flatMap(response -> {
+                final DirectMessagePublisher publisher = messagingService.createDirectMessagePublisherBuilder().build();
+                return Completable
+                    .fromCompletionStage(publisher.startAsync())
+                    .andThen(
+                        Completable.fromRunnable(() -> {
+                            Topic topic1 = Topic.of(topic);
+                            OutboundMessageBuilder messageBuilder = messagingService.messageBuilder();
+                            messageBuilder.withProperty("key", "value");
+                            OutboundMessage outboundMessage = messageBuilder.build("message".getBytes());
+                            publisher.publish(outboundMessage, topic1);
+                        })
+                    )
+                    .andThen(response.body());
+            })
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
             .assertValue(body -> {
@@ -79,8 +98,8 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
     @ParameterizedTest(name = "should receive 400 bad request with {0} qos")
     @DeployApi(
         {
-            "/apis/v4/messages/http-get/http-get-entrypoint-mqtt5-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get/http-get-entrypoint-mqtt5-endpoint-at-most-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-at-least-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-at-most-once.json",
         }
     )
     void should_receive_400_bad_request_with_qos(Qos qos, HttpClient client) {
@@ -104,7 +123,7 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-mqtt5-endpoint-failure.json" })
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-failure.json" })
     void should_receive_error_messages_when_error_occurred(HttpClient client) {
         // First request should receive 2 first messages
         client
