@@ -59,4 +59,34 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(updateApi.getLifecycleState().name());
         assertThat(updateApiEntity.isDisableMembershipNotifications()).isEqualTo(updateApi.getDisableMembershipNotifications());
     }
+
+    @Test
+    void shouldMapToUpdateApiEntityV2() {
+        var updateApi = ApiFixtures.anUpdateApiV2();
+
+        var updateApiEntity = apiMapper.map(updateApi);
+        assertThat(updateApiEntity).isNotNull();
+        assertThat(updateApiEntity.getCrossId()).isNull();
+        assertThat(updateApiEntity.getName()).isEqualTo(updateApi.getName());
+        assertThat(updateApiEntity.getVersion()).isEqualTo(updateApi.getApiVersion());
+        assertThat(updateApiEntity.getGraviteeDefinitionVersion()).isEqualTo(updateApi.getDefinitionVersion().name());
+        assertThat(updateApiEntity.getDescription()).isEqualTo(updateApi.getDescription());
+        assertThat(new ArrayList<>(updateApiEntity.getTags())).isEqualTo(updateApi.getTags());
+        assertThat(updateApiEntity.getProxy()).isNotNull(); // To be tested in ProxyMapperTest ?
+        assertThat(updateApiEntity.getProperties()).isNotNull(); // Tested in PropertiesMapperTest
+        assertThat(updateApiEntity.getResources()).isNotNull(); // Tested in ResourceMapperTest
+        assertThat(updateApiEntity.getPlans().size()).isEqualTo(0);
+        assertThat(updateApiEntity.getFlowMode().name()).isEqualTo(updateApi.getFlowMode().getValue());
+        assertThat(updateApiEntity.getFlows()).isNotNull(); // Tested in FlowMapperTest
+        assertThat(updateApiEntity.getResponseTemplates()).isNotNull();
+        assertThat(updateApiEntity.getServices()).isNotNull(); // Tested in ServiceMapperTest
+        assertThat(new ArrayList<>(updateApiEntity.getGroups())).isEqualTo(updateApi.getGroups());
+        assertThat(updateApiEntity.getVisibility().name()).isEqualTo(updateApi.getVisibility().name());
+        assertThat(new ArrayList<>(updateApiEntity.getCategories())).isEqualTo(updateApi.getCategories());
+        assertThat(updateApiEntity.getLabels()).isEqualTo(updateApi.getLabels());
+        assertThat(updateApiEntity.getMetadata()).isNull();
+        assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(updateApi.getLifecycleState().name());
+        assertThat(updateApiEntity.isDisableMembershipNotifications()).isEqualTo(updateApi.getDisableMembershipNotifications());
+        assertThat(updateApiEntity.getExecutionMode().name()).isEqualTo(updateApi.getExecutionMode().getValue());
+    }
 }
