@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4;
+package io.gravitee.rest.api.management.rest.security;
 
-import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
+import jakarta.ws.rs.NameBinding;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface GraviteeLicenseService {
-    String FEATURE_CUSTOM_ROLES = "apim-custom-roles";
-    String FEATURE_DEBUG_MODE = "apim-debug-mode";
-    String FEATURE_SHARDING_TAGS = "apim-sharding-tags";
-    String FEATURE_OPEN_ID_CONNECT_SSO = "apim-openid-connect-sso";
-    String FEATURE_AUDIT_TRAIL = "apim-audit-trail";
-    String FEATURE_DCR_REGISTRATION = "apim-dcr-registration";
-
-    GraviteeLicenseEntity getLicense();
-
-    boolean isFeatureEnabled(String featureName);
+@NameBinding
+@Target({ ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface GraviteeLicenseFeature {
+    String value();
 }

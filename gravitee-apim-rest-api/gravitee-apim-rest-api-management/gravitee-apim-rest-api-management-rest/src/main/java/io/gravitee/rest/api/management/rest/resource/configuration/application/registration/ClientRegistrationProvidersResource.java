@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource.configuration.application.registration;
 
+import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.configuration.application.ClientRegistrationProviderListItem;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.security.GraviteeLicenseFeature;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
@@ -105,6 +108,7 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @GraviteeLicenseFeature(FEATURE_DCR_REGISTRATION)
     public Response createClientRegistrationProvider(
         @Parameter(
             name = "identity-provider",

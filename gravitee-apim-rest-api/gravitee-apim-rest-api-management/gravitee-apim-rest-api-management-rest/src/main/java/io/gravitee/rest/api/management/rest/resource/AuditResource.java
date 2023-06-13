@@ -15,17 +15,17 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static java.util.Map.entry;
+import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.management.rest.model.wrapper.AuditEntityMetadataPage;
 import io.gravitee.rest.api.management.rest.resource.param.AuditParam;
 import io.gravitee.rest.api.management.rest.resource.param.AuditType;
+import io.gravitee.rest.api.management.rest.security.GraviteeLicenseFeature;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.audit.AuditQuery;
-import io.gravitee.rest.api.model.audit.AuditReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
@@ -38,8 +38,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
 import org.reflections.Reflections;
@@ -52,9 +50,6 @@ import org.reflections.Reflections;
 public class AuditResource extends AbstractResource {
 
     private static final List<Audit.AuditEvent> events = new ArrayList<>();
-
-    @Context
-    private ResourceContext resourceContext;
 
     @Inject
     private AuditService auditService;
@@ -78,6 +73,7 @@ public class AuditResource extends AbstractResource {
             @Permission(value = RolePermission.ORGANIZATION_AUDIT, acls = RolePermissionAction.READ),
         }
     )
+    @GraviteeLicenseFeature(FEATURE_AUDIT_TRAIL)
     public AuditEntityMetadataPage getAudits(@BeanParam AuditParam param) {
         AuditQuery query = new AuditQuery();
         query.setFrom(param.getFrom());

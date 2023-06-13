@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
+
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.management.rest.resource.param.AuditParam;
+import io.gravitee.rest.api.management.rest.security.GraviteeLicenseFeature;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.audit.AuditEntity;
@@ -27,6 +30,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -61,6 +65,7 @@ public class ApiAuditResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ) })
+    @GraviteeLicenseFeature(FEATURE_AUDIT_TRAIL)
     public MetadataPage<AuditEntity> getApiAudits(@BeanParam AuditParam param) {
         AuditQuery query = new AuditQuery();
         query.setFrom(param.getFrom());

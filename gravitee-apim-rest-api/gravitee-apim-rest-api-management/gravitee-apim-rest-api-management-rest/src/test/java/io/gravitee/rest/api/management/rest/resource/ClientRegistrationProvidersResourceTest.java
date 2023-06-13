@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -26,6 +28,8 @@ import io.gravitee.rest.api.model.configuration.application.registration.ClientR
 import io.gravitee.rest.api.model.configuration.application.registration.InitialAccessTokenType;
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -37,6 +41,9 @@ import org.junit.Test;
  */
 public class ClientRegistrationProvidersResourceTest extends AbstractResourceTest {
 
+    @Inject
+    private GraviteeLicenseService graviteeLicenseService;
+
     @Override
     protected String contextPath() {
         return "configuration/applications/registration/providers";
@@ -44,6 +51,7 @@ public class ClientRegistrationProvidersResourceTest extends AbstractResourceTes
 
     @Test
     public void shouldCreateSubscription() {
+        when(graviteeLicenseService.isFeatureEnabled(FEATURE_DCR_REGISTRATION)).thenReturn(true);
         reset(clientRegistrationService);
         NewClientRegistrationProviderEntity newClientRegistrationProviderEntity = new NewClientRegistrationProviderEntity();
         newClientRegistrationProviderEntity.setName("my-client-registration-provider-name");
@@ -62,5 +70,17 @@ public class ClientRegistrationProvidersResourceTest extends AbstractResourceTes
             envTarget().path("my-client-registration-provider-id").getUri().toString(),
             response.getHeaders().getFirst(HttpHeaders.LOCATION)
         );
+    }
+
+    @Test
+    public void createShouldReturnForbiddenWithoutLicense() {
+        when(graviteeLicenseService.isFeatureEnabled(FEATURE_DCR_REGISTRATION)).thenReturn(false);
+        NewClientRegistrationProviderEntity newClientRegistrationProviderEntity = new NewClientRegistrationProviderEntity();
+        newClientRegistrationProviderEntity.setName("my-client-registration-provider-name");
+        newClientRegistrationProviderEntity.setDiscoveryEndpoint("my-client-registration-provider-discovery-endpoint");
+        newClientRegistrationProviderEntity.setInitialAccessTokenType(InitialAccessTokenType.INITIAL_ACCESS_TOKEN);
+        newClientRegistrationProviderEntity.setInitialAccessToken("my-client-registration-provider-initial-access-token");
+        final Response response = envTarget().request().post(Entity.json(newClientRegistrationProviderEntity));
+        assertEquals(FORBIDDEN_403, response.getStatus());
     }
 }

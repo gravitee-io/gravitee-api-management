@@ -98,6 +98,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
+        register(GraviteeLicenseFilter.class);
         register(GraviteeContextRequestFilter.class);
         register(GraviteeContextResponseFilter.class);
         register(UriBuilderRequestFilter.class);

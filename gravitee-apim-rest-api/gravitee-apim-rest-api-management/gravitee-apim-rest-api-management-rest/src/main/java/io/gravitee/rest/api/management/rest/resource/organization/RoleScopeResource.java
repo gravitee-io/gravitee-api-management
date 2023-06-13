@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
+import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.FEATURE_CUSTOM_ROLES;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.security.GraviteeLicenseFeature;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NewRoleEntity;
@@ -24,7 +27,6 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -32,7 +34,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
@@ -49,9 +50,6 @@ public class RoleScopeResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
-
-    @Inject
-    private RoleService roleService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -81,6 +79,7 @@ public class RoleScopeResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE) })
+    @GraviteeLicenseFeature(FEATURE_CUSTOM_ROLES)
     public RoleEntity createRole(@PathParam("scope") RoleScope scope, @Valid @NotNull final NewRoleEntity role) {
         return roleService.create(GraviteeContext.getExecutionContext(), role);
     }

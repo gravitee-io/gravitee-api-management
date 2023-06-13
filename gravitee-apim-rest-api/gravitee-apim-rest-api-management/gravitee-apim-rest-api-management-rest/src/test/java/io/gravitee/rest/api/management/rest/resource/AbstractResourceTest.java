@@ -688,6 +688,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public ThemeService themeService() {
             return mock(ThemeService.class);
         }
+
+        @Bean
+        public GraviteeLicenseService graviteeLicenseService() {
+            return mock(GraviteeLicenseService.class);
+        }
     }
 
     @Priority(50)
