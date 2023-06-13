@@ -49,6 +49,13 @@ export class Step4Security1PlansListComponent implements OnInit {
 
   ngOnInit(): void {
     this.planSecurityOptions = this.constantsService.getEnabledPlanSecurityTypes();
+    if (this.stepService?.payload?.selectedEntrypoints.every((entrypoint) => entrypoint.supportedListenerType === 'SUBSCRIPTION')) {
+      this.planSecurityOptions = this.planSecurityOptions.filter((planSecurityType) => planSecurityType.id === 'PUSH');
+    }
+
+    if (this.stepService?.payload?.selectedEntrypoints.every((entrypoint) => ['HTTP', 'TCP'].includes(entrypoint.supportedListenerType))) {
+      this.planSecurityOptions = this.planSecurityOptions.filter((planSecurityType) => planSecurityType.id !== 'PUSH');
+    }
   }
 
   save(): void {

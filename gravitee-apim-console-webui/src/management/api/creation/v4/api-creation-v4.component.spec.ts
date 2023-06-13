@@ -936,6 +936,7 @@ describe('ApiCreationV4Component', () => {
       describe('step4 - plans list', () => {
         it('should add default keyless and push plans to payload', async () => {
           const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+          expect(await step4Security1PlansHarness.getPlanNames()).toEqual(['OAuth2', 'JWT', 'API Key', 'Keyless (public)', 'Push plan']);
 
           const keylessPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
           expect(keylessPlan.name).toEqual('Default Keyless (UNSECURED)');
@@ -1006,6 +1007,7 @@ describe('ApiCreationV4Component', () => {
 
       it('should add default keyless plan only', async () => {
         const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+        expect(await step4Security1PlansHarness.getPlanNames()).toEqual(['OAuth2', 'JWT', 'API Key', 'Keyless (public)']);
 
         const keylessPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
         expect(keylessPlan.name).toEqual('Default Keyless (UNSECURED)');
@@ -1167,6 +1169,7 @@ describe('ApiCreationV4Component', () => {
 
       it('should add default push plan only', async () => {
         const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+        expect(await step4Security1PlansHarness.getPlanNames()).toEqual(['Push plan']);
 
         const pushPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
         expect(pushPlan.name).toEqual('Default PUSH plan');
