@@ -71,6 +71,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
             .icon("my-icon")
             .category("my-category")
             .description("my-description")
+            .deployed(true)
             .addProxyItem(ExecutionPhase.REQUEST)
             .addProxyItem(ExecutionPhase.RESPONSE)
             .addMessageItem(ExecutionPhase.MESSAGE_REQUEST);
@@ -195,6 +196,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyPlugin.setIcon("my-icon");
         policyPlugin.setCategory("my-category");
         policyPlugin.setDescription("my-description");
+        policyPlugin.setDeployed(true);
         policyPlugin.setProxy(
             Set.of(
                 io.gravitee.rest.api.model.v4.policy.ExecutionPhase.REQUEST,

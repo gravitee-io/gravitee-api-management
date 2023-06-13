@@ -81,7 +81,7 @@ public class PolicyServiceTest {
     @Test
     public void shouldFindAll() throws TechnicalException {
         when(policyDefinition.id()).thenReturn(POLICY_ID);
-        when(policyManager.findAll()).thenReturn(Collections.singletonList(policyDefinition));
+        when(policyManager.findAll(true)).thenReturn(Collections.singletonList(policyDefinition));
         when(policyDefinition.manifest()).thenReturn(manifest);
 
         final Set<PolicyEntity> policies = policyService.findAll();
@@ -114,7 +114,7 @@ public class PolicyServiceTest {
         policy.setName("my-policy");
         policy.setConfiguration("{ \"name\": \"test\", \"valid\": true }");
 
-        when(policyManager.getSchema("my-policy")).thenReturn("");
+        when(policyManager.getSchema("my-policy", true)).thenReturn("");
         when(jsonSchemaService.validate(anyString(), anyString())).thenReturn(policy.getConfiguration());
 
         policyService.validatePolicyConfiguration(policy);
@@ -126,7 +126,7 @@ public class PolicyServiceTest {
         step.setPolicy("my-policy");
         step.setConfiguration("{ \"name\": \"test\", \"valid\": true }");
 
-        when(policyManager.getSchema("my-policy")).thenReturn("");
+        when(policyManager.getSchema("my-policy", true)).thenReturn("");
         when(jsonSchemaService.validate(anyString(), anyString())).thenReturn(step.getConfiguration());
 
         policyService.validatePolicyConfiguration(step);
@@ -137,7 +137,7 @@ public class PolicyServiceTest {
         Policy policy = new Policy();
         policy.setName("my-policy");
         policy.setConfiguration("{ \"name\": \"test\", \"valid\": true }");
-        when(policyManager.getSchema("my-policy")).thenReturn("");
+        when(policyManager.getSchema("my-policy", true)).thenReturn("");
         when(jsonSchemaService.validate(anyString(), anyString())).thenReturn(policy.getConfiguration());
 
         policyService.validatePolicyConfiguration(policy);

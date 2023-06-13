@@ -87,6 +87,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
           isEnterprise: endpoint.id.endsWith('-advanced'),
           supportedListenerType: endpoint.supportedListenerType,
           icon: this.iconService.registerSvg(endpoint.id, endpoint.icon),
+          deployed: endpoint.deployed,
         }));
 
         this.changeDetectorRef.detectChanges();
@@ -128,7 +129,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   private saveChanges(): void {
     const selectedEndpointsIds = this.formGroup.getRawValue().selectedEndpointsIds ?? [];
     const selectedEndpoints = this.endpoints
-      .map(({ id, name, icon }) => ({ id, name, icon }))
+      .map(({ id, name, icon, deployed }) => ({ id, name, icon, deployed }))
       .filter((e) => selectedEndpointsIds.includes(e.id));
 
     this.stepService.validStep((previousPayload) => ({

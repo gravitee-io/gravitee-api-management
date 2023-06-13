@@ -121,6 +121,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
                 name: this.httpProxyEntrypoint.name,
                 icon: this.iconService.registerSvg(this.httpProxyEntrypoint.id, this.httpProxyEntrypoint.icon),
                 supportedListenerType: this.httpProxyEntrypoint.supportedListenerType,
+                deployed: this.httpProxyEntrypoint.deployed,
               },
             ],
             selectedEndpoints: [
@@ -128,6 +129,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
                 id: httpProxyEndpoint.id,
                 name: httpProxyEndpoint.name,
                 icon: this.iconService.registerSvg(httpProxyEndpoint.id, httpProxyEndpoint.icon),
+                deployed: httpProxyEndpoint.deployed,
               },
             ],
           }));

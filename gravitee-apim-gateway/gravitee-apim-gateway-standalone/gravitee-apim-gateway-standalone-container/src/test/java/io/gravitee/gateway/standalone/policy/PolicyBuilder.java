@@ -73,6 +73,11 @@ public class PolicyBuilder {
             public URL[] dependencies() {
                 return new URL[0];
             }
+
+            @Override
+            public boolean deployed() {
+                return true;
+            }
         };
     }
 }

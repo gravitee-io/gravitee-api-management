@@ -73,7 +73,7 @@ public class ApiServicePluginServiceTest {
 
     @Test
     public void shouldFindAll() {
-        when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
+        when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
 
         var plugins = cut.findAll();
 
@@ -91,7 +91,7 @@ public class ApiServicePluginServiceTest {
 
     @Test
     public void shouldFindById() {
-        when(pluginManager.get(API_SERVICE_PLUGIN_ID)).thenReturn(mockPlugin);
+        when(pluginManager.get(API_SERVICE_PLUGIN_ID, true)).thenReturn(mockPlugin);
 
         var plugin = cut.findById(API_SERVICE_PLUGIN_ID);
 
@@ -108,15 +108,15 @@ public class ApiServicePluginServiceTest {
 
     @Test(expected = PluginNotFoundException.class)
     public void shouldNotFindById() {
-        when(pluginManager.get(API_SERVICE_PLUGIN_ID)).thenReturn(null);
+        when(pluginManager.get(API_SERVICE_PLUGIN_ID, true)).thenReturn(null);
         cut.findById(API_SERVICE_PLUGIN_ID);
     }
 
     @Test
     public void shouldValidateApiServiceConfiguration() throws Exception {
         final var config = "{}";
-        when(pluginManager.get(API_SERVICE_PLUGIN_ID)).thenReturn(mockPlugin);
-        when(pluginManager.getSchema(API_SERVICE_PLUGIN_ID)).thenReturn(API_SERVICE_PLUGIN_SCHEMA);
+        when(pluginManager.get(API_SERVICE_PLUGIN_ID, true)).thenReturn(mockPlugin);
+        when(pluginManager.getSchema(API_SERVICE_PLUGIN_ID, true)).thenReturn(API_SERVICE_PLUGIN_SCHEMA);
         when(jsonSchemaService.validate(API_SERVICE_PLUGIN_SCHEMA, config)).thenReturn(API_SERVICE_PLUGIN_CONFIG_FIXED);
 
         var fixedConfig = cut.validateApiServiceConfiguration(API_SERVICE_PLUGIN_ID, config);
@@ -126,14 +126,14 @@ public class ApiServicePluginServiceTest {
 
     @Test
     public void shouldValidateApiServiceConfigurationWhenNullConfig() throws Exception {
-        when(pluginManager.get(API_SERVICE_PLUGIN_ID)).thenReturn(mockPlugin);
+        when(pluginManager.get(API_SERVICE_PLUGIN_ID, true)).thenReturn(mockPlugin);
         var fixedConfig = cut.validateApiServiceConfiguration(API_SERVICE_PLUGIN_ID, null);
         assertThat(fixedConfig).isNull();
     }
 
     @Test(expected = PluginNotFoundException.class)
     public void shouldFailToValidateWhenPluginNotFound() {
-        when(pluginManager.get(API_SERVICE_PLUGIN_ID)).thenReturn(null);
+        when(pluginManager.get(API_SERVICE_PLUGIN_ID, true)).thenReturn(null);
         cut.validateApiServiceConfiguration(API_SERVICE_PLUGIN_ID, null);
     }
 }

@@ -68,6 +68,7 @@ public class ApiServicePluginServiceImpl
         entity.setName(plugin.manifest().name());
         entity.setVersion(plugin.manifest().version());
         entity.setCategory(plugin.manifest().category());
+        entity.setDeployed(plugin.deployed());
         return entity;
     }
 }

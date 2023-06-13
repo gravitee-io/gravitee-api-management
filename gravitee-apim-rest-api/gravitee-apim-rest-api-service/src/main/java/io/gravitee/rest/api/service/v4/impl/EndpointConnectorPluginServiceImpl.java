@@ -43,14 +43,14 @@ public class EndpointConnectorPluginServiceImpl
 
     @Override
     protected ConnectorFactory<?> getConnectorFactory(final String connectorId) {
-        return ((EndpointConnectorPluginManager) pluginManager).getFactoryById(connectorId);
+        return ((EndpointConnectorPluginManager) pluginManager).getFactoryById(connectorId, true);
     }
 
     @Override
     public String getSharedConfigurationSchema(final String connectorId) {
         try {
             logger.debug("Find endpoint shared configuration configuration schema by ID: {}", connectorId);
-            return ((EndpointConnectorPluginManager) pluginManager).getSharedConfigurationSchema(connectorId);
+            return ((EndpointConnectorPluginManager) pluginManager).getSharedConfigurationSchema(connectorId, true);
         } catch (IOException ioex) {
             logger.error("An error occurs while trying to get endpoint shared configuration schema for plugin {}", connectorId, ioex);
             throw new TechnicalManagementException(

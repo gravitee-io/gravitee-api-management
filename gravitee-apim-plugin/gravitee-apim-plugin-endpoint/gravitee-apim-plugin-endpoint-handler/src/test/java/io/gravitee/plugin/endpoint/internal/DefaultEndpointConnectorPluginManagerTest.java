@@ -104,4 +104,18 @@ class DefaultEndpointConnectorPluginManagerTest {
         final String schema = cut.getSharedConfigurationSchema(FAKE_ENDPOINT);
         assertThat(schema).isEqualTo("{\n  \"schema\": \"sharedConfiguration\"\n}");
     }
+
+    @Test
+    void shouldNotFindNotDeployedPlugin() {
+        cut.register(new FakeEndpointConnectorPlugin(true, false));
+        final EndpointConnector factoryById = cut.getFactoryById(FAKE_ENDPOINT);
+        assertThat(factoryById).isNull();
+    }
+
+    @Test
+    void shouldFindNotDeployedPlugin() {
+        cut.register(new FakeEndpointConnectorPlugin(true, false));
+        final EndpointConnectorFactory<FakeEndpointConnector> fake = cut.getFactoryById(FAKE_ENDPOINT, true);
+        assertThat(fake).isNotNull();
+    }
 }

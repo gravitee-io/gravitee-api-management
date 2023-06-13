@@ -26,6 +26,7 @@ import io.gravitee.plugin.apiservice.internal.fake.FakeApiService;
 import io.gravitee.plugin.apiservice.internal.fake.FakeApiServiceConfiguration;
 import io.gravitee.plugin.apiservice.internal.fake.FakeApiServiceFactory;
 import io.gravitee.plugin.apiservice.internal.fake.FakeApiServicePlugin;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,7 +53,7 @@ class DefaultApiServicePluginManagerTest {
     @Test
     public void shouldRegisterNewApiServicePlugin() {
         final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
-            new FakeApiServicePlugin(),
+            new FakeApiServicePlugin(true),
             FakeApiServiceFactory.class,
             null
         );
@@ -70,5 +71,60 @@ class DefaultApiServicePluginManagerTest {
     public void shouldNotRetrieveUnRegisterPlugin() {
         final EndpointConnector factoryById = cut.getFactoryById("fake-api-service");
         assertThat(factoryById).isNull();
+    }
+
+    @Test
+    public void shouldRegisterNotDeployedPlugin() {
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
+            new FakeApiServicePlugin(false),
+            FakeApiServiceFactory.class,
+            null
+        );
+
+        cut.register(apiServicePlugin);
+
+        final ApiServiceFactory<FakeApiService> fake = cut.getFactoryById("fake-api-service", true);
+        assertThat(fake).isNotNull();
+
+        final ApiService fakeConnector = fake.createService(deploymentContext);
+        assertThat(fakeConnector).isNotNull();
+    }
+
+    @Test
+    public void shouldRetrieveAllFactories() {
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
+            new FakeApiServicePlugin(true),
+            FakeApiServiceFactory.class,
+            null
+        );
+
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePluginNotDeployed =
+            new DefaultApiServicePlugin<>(new FakeApiServicePlugin(false), FakeApiServiceFactory.class, null);
+
+        cut.register(apiServicePlugin);
+        cut.register(apiServicePluginNotDeployed);
+
+        List<ApiServiceFactory<FakeApiService>> factoryList = cut.getAllFactories(true);
+
+        assertThat(factoryList).isNotNull().hasSize(2);
+    }
+
+    @Test
+    public void shouldOnlyRetrieveDeployedPluginFactories() {
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
+            new FakeApiServicePlugin(true),
+            FakeApiServiceFactory.class,
+            null
+        );
+
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePluginNotDeployed =
+            new DefaultApiServicePlugin<>(new FakeApiServicePlugin(false), FakeApiServiceFactory.class, null);
+
+        cut.register(apiServicePlugin);
+        cut.register(apiServicePluginNotDeployed);
+
+        List<ApiServiceFactory<FakeApiService>> factoryList = cut.getAllFactories();
+
+        assertThat(factoryList).isNotNull().hasSize(1);
     }
 }

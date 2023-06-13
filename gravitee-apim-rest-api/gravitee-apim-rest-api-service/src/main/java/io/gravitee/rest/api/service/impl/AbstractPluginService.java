@@ -53,7 +53,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
     protected Set<T> list() {
         try {
             logger.debug("List all plugins");
-            final Collection<T> plugins = pluginManager.findAll();
+            final Collection<T> plugins = pluginManager.findAll(true);
 
             return new HashSet<>(plugins);
         } catch (Exception ex) {
@@ -64,7 +64,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
 
     protected T get(String pluginId) {
         logger.debug("Find plugin by ID: {}", pluginId);
-        T plugin = pluginManager.get(pluginId);
+        T plugin = pluginManager.get(pluginId, true);
 
         if (plugin == null) {
             throw new PluginNotFoundException(pluginId);
@@ -77,7 +77,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
     public String getSchema(String pluginId) {
         try {
             logger.debug("Find plugin schema by ID: {}", pluginId);
-            return pluginManager.getSchema(pluginId);
+            return pluginManager.getSchema(pluginId, true);
         } catch (IOException ioex) {
             logger.error("An error occurs while trying to get plugin schema for plugin {}", pluginId, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get plugin schema for plugin " + pluginId, ioex);
@@ -88,7 +88,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
     public String getIcon(String pluginId) {
         try {
             logger.debug("Find plugin icon by ID: {}", pluginId);
-            return pluginManager.getIcon(pluginId);
+            return pluginManager.getIcon(pluginId, true);
         } catch (IOException ioex) {
             logger.error("An error occurs while trying to get plugin icon for plugin {}", pluginId, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get plugin icon for plugin " + pluginId, ioex);
@@ -99,7 +99,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
     public String getDocumentation(String pluginId) {
         try {
             logger.debug("Find plugin documentation by ID: {}", pluginId);
-            return pluginManager.getDocumentation(pluginId);
+            return pluginManager.getDocumentation(pluginId, true);
         } catch (IOException ioex) {
             logger.error("An error occurs while trying to get plugin documentation for plugin {}", pluginId, ioex);
             throw new TechnicalManagementException("An error occurs while trying to get plugin documentation for plugin " + pluginId, ioex);
@@ -113,6 +113,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
         entity.setDescription(plugin.manifest().description());
         entity.setName(plugin.manifest().name());
         entity.setVersion(plugin.manifest().version());
+        entity.setDeployed(plugin.deployed());
 
         return entity;
     }
@@ -133,7 +134,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
     public PluginMoreInformation getMoreInformation(String pluginId) {
         try {
             logger.debug("Find plugin more information by ID: {}", pluginId);
-            return pluginManager.getMoreInformation(pluginId);
+            return pluginManager.getMoreInformation(pluginId, true);
         } catch (IOException ioex) {
             logger.error("An error occurs while trying to get plugin more information for plugin {}", pluginId, ioex);
             throw new TechnicalManagementException(

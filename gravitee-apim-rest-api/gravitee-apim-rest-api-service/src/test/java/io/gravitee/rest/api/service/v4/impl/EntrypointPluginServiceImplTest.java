@@ -70,8 +70,8 @@ public class EntrypointPluginServiceImplTest {
         ReflectionTestUtils.setField(entrypointService, "pluginManager", pluginManager);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
-        when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+        when(pluginManager.getFactoryById(PLUGIN_ID, true)).thenReturn(mockFactory);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
         when(mockFactory.supportedApi()).thenReturn(ApiType.MESSAGE);
         when(mockFactory.supportedModes()).thenReturn(Set.of(io.gravitee.gateway.reactive.api.ConnectorMode.REQUEST_RESPONSE));
         when(mockFactory.supportedListenerType()).thenReturn(ListenerType.HTTP);
@@ -79,7 +79,7 @@ public class EntrypointPluginServiceImplTest {
 
     @Test
     public void shouldValidateConfiguration() throws IOException {
-        when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
+        when(pluginManager.getSchema(PLUGIN_ID, true)).thenReturn(SCHEMA);
         when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn("fixed-configuration");
 
         String resultConfiguration = entrypointService.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
@@ -96,7 +96,7 @@ public class EntrypointPluginServiceImplTest {
 
     @Test(expected = PluginNotFoundException.class)
     public void shouldFailToValidateConfigurationWhenNoPlugin() {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
         entrypointService.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
     }
@@ -112,7 +112,7 @@ public class EntrypointPluginServiceImplTest {
 
     @Test(expected = PluginNotFoundException.class)
     public void shouldNotFindById() {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
         entrypointService.findById(PLUGIN_ID);
     }
@@ -120,7 +120,7 @@ public class EntrypointPluginServiceImplTest {
     @Test
     public void shouldFindAll() {
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
+        when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
 
         Set<ConnectorPluginEntity> result = entrypointService.findAll();
 
@@ -133,8 +133,8 @@ public class EntrypointPluginServiceImplTest {
     public void shouldFindBySupportedApi() {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
-        when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
+        when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
+        when(pluginManager.getFactoryById(PLUGIN_ID, true)).thenReturn(mockFactory);
 
         Set<ConnectorPluginEntity> result = entrypointService.findBySupportedApi(io.gravitee.definition.model.v4.ApiType.MESSAGE);
 
@@ -147,8 +147,8 @@ public class EntrypointPluginServiceImplTest {
     public void shouldFindByConnectorMode() {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
-        when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
+        when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
+        when(pluginManager.getFactoryById(PLUGIN_ID, true)).thenReturn(mockFactory);
 
         Set<ConnectorPluginEntity> result = entrypointService.findByConnectorMode(ConnectorMode.REQUEST_RESPONSE);
 

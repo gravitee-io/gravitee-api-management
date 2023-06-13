@@ -72,6 +72,11 @@ public class EntrypointBuilder {
             public Class<U> configuration() {
                 return entrypointConfiguration;
             }
+
+            @Override
+            public boolean deployed() {
+                return true;
+            }
         };
     }
 }

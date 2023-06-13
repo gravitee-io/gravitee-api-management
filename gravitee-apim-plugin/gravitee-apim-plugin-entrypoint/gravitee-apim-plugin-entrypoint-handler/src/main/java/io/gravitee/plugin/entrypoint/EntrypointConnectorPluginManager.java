@@ -29,5 +29,9 @@ public interface EntrypointConnectorPluginManager extends ConfigurablePluginMana
      */
     <T extends EntrypointConnectorFactory<?>> T getFactoryById(final String entrypointPluginId);
 
+    <T extends EntrypointConnectorFactory<?>> T getFactoryById(final String entrypointPluginId, final boolean includeNotDeployed);
+
     String getSubscriptionSchema(String pluginId) throws IOException;
+
+    String getSubscriptionSchema(String pluginId, boolean includeNotDeployed) throws IOException;
 }

@@ -77,4 +77,9 @@ class DefaultEndpointConnectorPlugin<T extends EndpointConnectorFactory<?>, U ex
     public Class<U> configuration() {
         return endpointConnectorConfigurationClass;
     }
+
+    @Override
+    public boolean deployed() {
+        return plugin.deployed();
+    }
 }

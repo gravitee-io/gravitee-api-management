@@ -69,7 +69,7 @@ public class FetcherResourceTest extends AbstractResourceTest {
         assertThat(o).isNotNull();
         assertThat(o).isInstanceOf(LinkedHashMap.class);
         LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
-        assertThat(elt).hasSize(1);
+        assertThat(elt).hasSize(2);
         assertThat(elt.get("id")).isEqualTo("my-id");
 
         verify(fetcherService, times(1)).findById("my-id");

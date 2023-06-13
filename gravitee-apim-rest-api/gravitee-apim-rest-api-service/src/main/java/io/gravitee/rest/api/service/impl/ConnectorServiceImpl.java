@@ -58,6 +58,7 @@ public class ConnectorServiceImpl extends AbstractPluginService<ConnectorPlugin,
         entity.setDescription(plugin.manifest().description());
         entity.setName(plugin.manifest().name());
         entity.setVersion(plugin.manifest().version());
+        entity.setDeployed(plugin.deployed());
 
         entity.setSupportedTypes(((ConnectorPluginManager) pluginManager).getConnector(plugin.id()).supportedTypes());
 

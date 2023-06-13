@@ -116,6 +116,7 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
         entity.setName(policyPlugin.manifest().name());
         entity.setVersion(policyPlugin.manifest().version());
         entity.setCategory(policyPlugin.manifest().category());
+        entity.setDeployed(policyPlugin.deployed());
 
         if (withPlugin) {
             // Plugin information

@@ -22,4 +22,5 @@ export type ConnectorVM = {
   isEnterprise: boolean;
   supportedListenerType: ListenerType;
   icon: string;
+  deployed: boolean;
 };

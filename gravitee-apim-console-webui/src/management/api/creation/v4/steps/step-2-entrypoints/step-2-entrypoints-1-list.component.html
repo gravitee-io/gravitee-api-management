@@ -42,6 +42,7 @@
             {{ entrypoint.name }}
             <span class="gio-badge-primary api-creation-v4__badge">New</span>
             <span class="gio-badge-accent api-creation-v4__badge" *ngIf="entrypoint.isEnterprise">Enterprise</span>
+            <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!entrypoint.deployed">Not deployed</span>
           </gio-selection-list-option-layout-title>
 
           <gio-selection-list-option-layout-body>

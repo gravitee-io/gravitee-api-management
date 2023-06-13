@@ -69,16 +69,16 @@ public class EndpointConnectorPluginServiceImplTest {
         cut = new EndpointConnectorPluginServiceImpl(jsonSchemaService, pluginManager);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
-        when(pluginManager.getFactoryById(PLUGIN_ID)).thenReturn(mockFactory);
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+        when(pluginManager.getFactoryById(PLUGIN_ID, true)).thenReturn(mockFactory);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
         when(mockFactory.supportedApi()).thenReturn(ApiType.MESSAGE);
         when(mockFactory.supportedModes()).thenReturn(Set.of(io.gravitee.gateway.reactive.api.ConnectorMode.REQUEST_RESPONSE));
     }
 
     @Test
     public void shouldValidateConfiguration() throws IOException {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
-        when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
+        when(pluginManager.getSchema(PLUGIN_ID, true)).thenReturn(SCHEMA);
         when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn("fixed-configuration");
 
         String resultConfiguration = cut.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
@@ -88,7 +88,7 @@ public class EndpointConnectorPluginServiceImplTest {
 
     @Test
     public void shouldValidateConfigurationWhenNullConfiguration() throws IOException {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
 
         String resultConfiguration = cut.validateConnectorConfiguration(PLUGIN_ID, null);
 
@@ -97,7 +97,7 @@ public class EndpointConnectorPluginServiceImplTest {
 
     @Test(expected = PluginNotFoundException.class)
     public void shouldFailToValidateConfigurationWhenNoPlugin() {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
         cut.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
     }
@@ -106,7 +106,7 @@ public class EndpointConnectorPluginServiceImplTest {
     public void shouldFindById() {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
 
         PlatformPluginEntity result = cut.findById(PLUGIN_ID);
 
@@ -116,7 +116,7 @@ public class EndpointConnectorPluginServiceImplTest {
 
     @Test(expected = PluginNotFoundException.class)
     public void shouldNotFindById() {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
         cut.findById(PLUGIN_ID);
     }
@@ -125,7 +125,7 @@ public class EndpointConnectorPluginServiceImplTest {
     public void shouldFindAll() {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
+        when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
 
         Set<ConnectorPluginEntity> result = cut.findAll();
 
@@ -136,7 +136,7 @@ public class EndpointConnectorPluginServiceImplTest {
 
     @Test
     public void shouldGetEndpointSharedConfigurationSchema() throws IOException {
-        when(pluginManager.getSharedConfigurationSchema(PLUGIN_ID)).thenReturn("sharedConfiguration");
+        when(pluginManager.getSharedConfigurationSchema(PLUGIN_ID, true)).thenReturn("sharedConfiguration");
 
         final String result = cut.getSharedConfigurationSchema(PLUGIN_ID);
 
@@ -145,7 +145,7 @@ public class EndpointConnectorPluginServiceImplTest {
 
     @Test
     public void shouldNotGetSharedConfigurationSchemaBecauseOfIOException() throws IOException {
-        when(pluginManager.getSharedConfigurationSchema(PLUGIN_ID)).thenThrow(IOException.class);
+        when(pluginManager.getSharedConfigurationSchema(PLUGIN_ID, true)).thenThrow(IOException.class);
 
         assertThatThrownBy(() -> cut.getSharedConfigurationSchema(PLUGIN_ID))
             .isInstanceOf(TechnicalManagementException.class)

@@ -71,6 +71,11 @@ public class ConnectorBuilder {
             public Class<?> connector() {
                 return connector;
             }
+
+            @Override
+            public boolean deployed() {
+                return true;
+            }
         };
     }
 }

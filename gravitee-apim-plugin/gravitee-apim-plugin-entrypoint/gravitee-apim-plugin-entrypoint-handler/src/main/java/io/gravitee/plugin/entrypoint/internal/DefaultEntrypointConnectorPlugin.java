@@ -78,4 +78,9 @@ class DefaultEntrypointConnectorPlugin<T extends EntrypointConnectorFactory<?>, 
     public Class<U> configuration() {
         return entrypointConnectorConfigurationClass;
     }
+
+    @Override
+    public boolean deployed() {
+        return plugin.deployed();
+    }
 }

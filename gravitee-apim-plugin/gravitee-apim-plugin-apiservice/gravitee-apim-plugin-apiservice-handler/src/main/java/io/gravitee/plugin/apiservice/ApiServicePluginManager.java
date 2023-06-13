@@ -27,5 +27,9 @@ import java.util.List;
 public interface ApiServicePluginManager extends ConfigurablePluginManager<ApiServicePlugin<?, ?>> {
     <T extends ApiServiceFactory<?>> T getFactoryById(final String apiServicePluginId);
 
+    <T extends ApiServiceFactory<?>> T getFactoryById(final String apiServicePluginId, final boolean includeNotDeployed);
+
     <T extends ApiServiceFactory<?>> List<T> getAllFactories();
+
+    <T extends ApiServiceFactory<?>> List<T> getAllFactories(final boolean includeNotDeployed);
 }

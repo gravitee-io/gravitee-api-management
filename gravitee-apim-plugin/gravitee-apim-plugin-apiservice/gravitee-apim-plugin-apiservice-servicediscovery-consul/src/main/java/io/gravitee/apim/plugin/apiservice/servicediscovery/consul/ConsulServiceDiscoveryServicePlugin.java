@@ -68,4 +68,9 @@ public class ConsulServiceDiscoveryServicePlugin
     public Class<ConsulServiceDiscoveryServiceConfiguration> configuration() {
         return ConsulServiceDiscoveryServiceConfiguration.class;
     }
+
+    @Override
+    public boolean deployed() {
+        return true;
+    }
 }

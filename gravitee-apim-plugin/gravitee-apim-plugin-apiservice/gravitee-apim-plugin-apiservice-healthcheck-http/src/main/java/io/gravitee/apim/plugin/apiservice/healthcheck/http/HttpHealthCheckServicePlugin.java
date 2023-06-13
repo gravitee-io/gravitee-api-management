@@ -65,4 +65,9 @@ public class HttpHealthCheckServicePlugin implements ApiServicePlugin<HttpHealth
     public Class<HttpHealthCheckServiceConfiguration> configuration() {
         return HttpHealthCheckServiceConfiguration.class;
     }
+
+    @Override
+    public boolean deployed() {
+        return true;
+    }
 }
