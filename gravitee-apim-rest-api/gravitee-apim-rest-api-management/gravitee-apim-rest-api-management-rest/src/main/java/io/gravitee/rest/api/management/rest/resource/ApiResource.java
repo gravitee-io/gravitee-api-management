@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
 import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 
@@ -29,6 +30,7 @@ import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.rest.resource.param.ReviewAction;
 import io.gravitee.rest.api.management.rest.resource.param.kubernetes.v1alpha1.ApiExportParam;
+import io.gravitee.rest.api.management.rest.security.GraviteeLicenseFeature;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiQualityMetricsEntity;
@@ -71,6 +73,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -410,6 +413,7 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    @GraviteeLicenseFeature(FEATURE_DEBUG_MODE)
     public Response debugAPI(@Parameter(name = "request") @Valid final DebugApiEntity debugApiEntity) {
         EventEntity apiEntity = debugApiService.debug(GraviteeContext.getExecutionContext(), api, getAuthenticatedUser(), debugApiEntity);
         return Response.ok(apiEntity).build();

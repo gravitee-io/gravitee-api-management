@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
+
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.security.GraviteeLicenseFeature;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.NewTagEntity;
@@ -80,7 +83,7 @@ public class TagsResource extends AbstractResource {
     @Permissions(
         {
             @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ENVIRONMENT_TAG, acls = RolePermissionAction.READ),
+            @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.READ),
         }
     )
     public TagEntity getTag(@PathParam("tag") String tag) {
@@ -103,6 +106,7 @@ public class TagsResource extends AbstractResource {
             @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.CREATE),
         }
     )
+    @GraviteeLicenseFeature(FEATURE_SHARDING_TAGS)
     public TagEntity createTag(@Valid @NotNull final NewTagEntity tag) {
         return tagService.create(
             GraviteeContext.getExecutionContext(),
@@ -132,6 +136,7 @@ public class TagsResource extends AbstractResource {
             @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.UPDATE),
         }
     )
+    @GraviteeLicenseFeature(FEATURE_SHARDING_TAGS)
     public TagEntity updateTag(@PathParam("tag") String tagId, @Valid @NotNull final UpdateTagEntity tag) {
         return tagService.update(
             GraviteeContext.getExecutionContext(),
@@ -156,6 +161,7 @@ public class TagsResource extends AbstractResource {
             @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.DELETE),
         }
     )
+    @GraviteeLicenseFeature(FEATURE_SHARDING_TAGS)
     public void deleteTag(@PathParam("tag") String tag) {
         tagService.delete(
             GraviteeContext.getExecutionContext(),
