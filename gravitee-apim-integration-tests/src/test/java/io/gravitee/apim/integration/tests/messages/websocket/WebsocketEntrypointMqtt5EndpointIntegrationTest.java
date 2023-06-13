@@ -16,6 +16,7 @@
 package io.gravitee.apim.integration.tests.messages.websocket;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.entrypoint.websocket.WebSocketEntrypointConnectorFactory;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
@@ -29,8 +30,11 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.kafka.client.consumer.KafkaConsumer;
 import java.util.Map;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -96,44 +100,28 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-mqtt5-endpoint-publisher-subscriber.json" })
-    void should_received_published_messages(HttpClient httpClient) {
+    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-mqtt5-endpoint-publisher-subscriber-nolocal.json" })
+    void should_not_received_published_messages_by_default(HttpClient httpClient) {
         httpClient
             .rxWebSocket("/test")
-            .flatMapPublisher(websocket ->
-                // Write text frame
-                websocket
-                    .writeTextMessage("message1")
-                    // Write binary frame
-                    .andThen(websocket.writeBinaryMessage(io.vertx.rxjava3.core.buffer.Buffer.buffer("message2")))
-                    // Write final text frame
-                    .andThen(websocket.writeTextMessage("message3"))
-                    .<io.vertx.rxjava3.core.buffer.Buffer>toFlowable()
-                    .mergeWith(websocket.toFlowable())
-            )
+            .flatMapPublisher(websocket -> websocket.writeTextMessage("message").toFlowable().mergeWith((websocket.toFlowable())))
             .test()
-            .awaitCount(3)
-            .assertValueAt(
-                0,
-                frame -> {
-                    assertThat(frame).hasToString("message1");
-                    return true;
-                }
-            )
-            .assertValueAt(
-                1,
-                frame -> {
-                    assertThat(frame).hasToString("message2");
-                    return true;
-                }
-            )
-            .assertValueAt(
-                2,
-                frame -> {
-                    assertThat(frame).hasToString("message3");
-                    return true;
-                }
-            )
+            .assertNoValues()
+            .assertNoErrors();
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/websocket/websocket-entrypoint-mqtt5-endpoint-publisher-subscriber-local.json" })
+    void should_received_published_messages_with_local_subscription(HttpClient httpClient) {
+        httpClient
+            .rxWebSocket("/test")
+            .flatMapPublisher(websocket -> websocket.writeTextMessage("message").toFlowable().mergeWith((websocket.toFlowable())))
+            .test()
+            .awaitCount(1)
+            .assertValue(frame -> {
+                assertThat(frame).hasToString("message");
+                return true;
+            })
             .assertNoErrors();
     }
 }
