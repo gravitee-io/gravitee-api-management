@@ -77,6 +77,7 @@ export class ApiNgNavigationComponent implements OnInit {
 
     this.appendDesign();
     this.appendPortalGroup();
+    this.appendProxyGroup();
 
     this.selectedItemWithTabs = this.findMenuItemWithTabs();
     this.breadcrumbItems = this.computeBreadcrumbItems();
@@ -131,6 +132,22 @@ export class ApiNgNavigationComponent implements OnInit {
     }
 
     this.groupItems.push(portalGroup);
+  }
+
+  private appendProxyGroup() {
+    if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
+      const proxyGroup: GroupItem = {
+        title: 'Proxy',
+        items: [
+          {
+            displayName: 'Entrypoints',
+            targetRoute: 'management.apis.ng.proxy',
+            baseRoute: 'management.apis.ng.proxy',
+          },
+        ],
+      };
+      this.groupItems.push(proxyGroup);
+    }
   }
 
   private findMenuItemWithTabs(): MenuItem {
