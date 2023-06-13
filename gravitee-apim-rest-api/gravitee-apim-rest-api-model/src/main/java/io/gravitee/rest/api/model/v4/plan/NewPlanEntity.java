@@ -74,6 +74,9 @@ public class NewPlanEntity {
     private PlanType type = PlanType.API;
 
     @NotNull
+    private PlanMode mode = PlanMode.STANDARD;
+
+    @NotNull
     private PlanStatus status = PlanStatus.STAGING;
 
     @JsonProperty(required = true)

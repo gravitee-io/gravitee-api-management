@@ -65,6 +65,8 @@ public class PlanEntity implements GenericPlanEntity {
 
     private PlanType type;
 
+    private PlanMode mode;
+
     @DeploymentRequired
     private PlanSecurity security;
 
@@ -93,6 +95,11 @@ public class PlanEntity implements GenericPlanEntity {
     @Override
     public PlanType getPlanType() {
         return type;
+    }
+
+    @Override
+    public PlanMode getPlanMode() {
+        return mode;
     }
 
     @Override

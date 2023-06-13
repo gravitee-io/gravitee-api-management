@@ -21,6 +21,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
@@ -57,6 +58,7 @@ public class PlanMapper {
         entity.setExcludedGroups(plan.getExcludedGroups());
         entity.setFlows(flows);
         entity.setType(PlanType.valueOf(plan.getType().name()));
+        entity.setMode(PlanMode.valueOf(plan.getMode().name()));
 
         // Backward compatibility
         if (plan.getStatus() != null) {
@@ -95,9 +97,12 @@ public class PlanMapper {
         plan.setUpdatedAt(plan.getCreatedAt());
         plan.setNeedRedeployAt(plan.getCreatedAt());
         plan.setType(Plan.PlanType.valueOf(newPlanEntity.getType().name()));
-        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(newPlanEntity.getSecurity().getType());
-        plan.setSecurity(Plan.PlanSecurityType.valueOf(planSecurityType.name()));
-        plan.setSecurityDefinition(newPlanEntity.getSecurity().getConfiguration());
+        plan.setMode(Plan.PlanMode.valueOf(newPlanEntity.getMode().name()));
+        if (newPlanEntity.getMode() == PlanMode.STANDARD && newPlanEntity.getSecurity() != null) {
+            PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(newPlanEntity.getSecurity().getType());
+            plan.setSecurity(Plan.PlanSecurityType.valueOf(planSecurityType.name()));
+            plan.setSecurityDefinition(newPlanEntity.getSecurity().getConfiguration());
+        }
         plan.setStatus(Plan.Status.valueOf(newPlanEntity.getStatus().name()));
         plan.setExcludedGroups(newPlanEntity.getExcludedGroups());
         plan.setCommentRequired(newPlanEntity.isCommentRequired());
@@ -191,6 +196,9 @@ public class PlanMapper {
         }
         if (planEntity.getType() != null) {
             newPlanEntity.setType(planEntity.getType());
+        }
+        if (planEntity.getMode() != null) {
+            newPlanEntity.setMode(planEntity.getMode());
         }
         newPlanEntity.setCharacteristics(planEntity.getCharacteristics());
         newPlanEntity.setExcludedGroups(planEntity.getExcludedGroups());

@@ -17,6 +17,7 @@ import faker from '@faker-js/faker';
 import {
   NewPlanEntityV4,
   NewPlanEntityV4StatusEnum,
+  PlanModeV4,
   PlanSecurityTypeV4,
   PlanTypeV4,
   PlanValidationTypeV4,
@@ -34,6 +35,7 @@ export class PlansV4Faker {
       validation: PlanValidationTypeV4.AUTO,
       security: { type: PlanSecurityTypeV4.KEY_LESS },
       type: PlanTypeV4.API,
+      mode: PlanModeV4.STANDARD,
       status: NewPlanEntityV4StatusEnum.STAGING,
       order: 1,
       characteristics: [],

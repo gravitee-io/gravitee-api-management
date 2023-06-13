@@ -131,7 +131,7 @@ class SubscriptionDeployerTest {
                 .builder()
                 .api("apiId")
                 .plan("plan")
-                .type(Subscription.Type.SUBSCRIPTION)
+                .type(Subscription.Type.PUSH)
                 .id("subscription1")
                 .build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
@@ -175,14 +175,14 @@ class SubscriptionDeployerTest {
                 .builder()
                 .api("apiId")
                 .plan("plan")
-                .type(Subscription.Type.SUBSCRIPTION)
+                .type(Subscription.Type.PUSH)
                 .id("subscription1")
                 .build();
             Subscription subscriptionToDispatch2 = Subscription
                 .builder()
                 .api("apiId")
                 .plan("plan")
-                .type(Subscription.Type.SUBSCRIPTION)
+                .type(Subscription.Type.PUSH)
                 .id("subscription2")
                 .build();
             ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable
@@ -255,7 +255,7 @@ class SubscriptionDeployerTest {
                 .builder()
                 .api("apiId")
                 .plan("plan")
-                .type(Subscription.Type.SUBSCRIPTION)
+                .type(Subscription.Type.PUSH)
                 .id("subscription1")
                 .build();
             SingleSubscriptionDeployable apiReactorDeployable = SingleSubscriptionDeployable

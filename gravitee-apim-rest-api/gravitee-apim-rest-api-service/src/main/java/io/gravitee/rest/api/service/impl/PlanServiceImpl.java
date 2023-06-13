@@ -59,8 +59,8 @@ import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedExcept
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
+import io.gravitee.rest.api.service.exceptions.PlanFlowRequiredException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
-import io.gravitee.rest.api.service.exceptions.PlanInvalidException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanWithSubscriptionsException;
@@ -231,7 +231,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             Api api = apiRepository.findById(oldPlan.getApi()).orElseThrow(() -> new ApiNotFoundException(oldPlan.getApi()));
             if (getApiDefinitionVersion(api) == V2 && updatePlan.getFlows() == null) {
-                throw new PlanInvalidException(updatePlan.getId());
+                throw new PlanFlowRequiredException(updatePlan.getId());
             }
 
             Plan newPlan = new Plan();

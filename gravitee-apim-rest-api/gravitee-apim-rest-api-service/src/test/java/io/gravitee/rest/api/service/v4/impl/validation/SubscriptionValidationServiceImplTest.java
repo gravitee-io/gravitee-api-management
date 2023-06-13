@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.SubscriptionEntrypointIdMissingException;
@@ -70,7 +71,7 @@ public class SubscriptionValidationServiceImplTest {
 
         @BeforeEach
         public void beforeEach() {
-            planEntity.getSecurity().setType(PlanSecurityType.SUBSCRIPTION.getLabel());
+            planEntity.setMode(PlanMode.PUSH);
         }
 
         @Nested
@@ -82,9 +83,8 @@ public class SubscriptionValidationServiceImplTest {
                 newSubscriptionEntity.setConfiguration(new SubscriptionConfigurationEntity());
 
                 PlanEntity planEntity = new PlanEntity();
-                PlanSecurity security = new PlanSecurity();
-                security.setType(PlanSecurityType.SUBSCRIPTION.getLabel());
-                planEntity.setSecurity(security);
+                planEntity.setMode(PlanMode.PUSH);
+
                 assertThrows(
                     SubscriptionEntrypointIdMissingException.class,
                     () -> cut.validateAndSanitize(planEntity, newSubscriptionEntity)

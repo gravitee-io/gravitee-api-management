@@ -20,11 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlan;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -34,21 +36,25 @@ import org.junit.jupiter.params.provider.ValueSource;
 class ApiTest {
 
     @ParameterizedTest
-    @ValueSource(strings = { "API_KEY", "api-key", "JWT", "OAUTH2", "SUBSCRIPTION" })
-    void shouldReturnSubscribablePlans(String securityType) {
+    @CsvSource({ "API_KEY,STANDARD", "api-key,STANDARD", "JWT,STANDARD", "OAUTH2,STANDARD", ",PUSH" })
+    void shouldReturnSubscribablePlans(String securityType, String mode) {
         final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
         final ArrayList<Plan> plans = new ArrayList<>();
         final PlanSecurity planSecurity = new PlanSecurity();
         final Plan plan = new Plan();
+        plan.setMode(PlanMode.valueOf(mode));
 
-        planSecurity.setType(securityType);
+        if (plan.getMode() != PlanMode.PUSH) {
+            planSecurity.setType(securityType);
+            plan.setSecurity(planSecurity);
+        }
         plan.setId("subscribable");
-        plan.setSecurity(planSecurity);
         plans.add(plan);
 
         for (int i = 0; i < 5; i++) {
             final Plan other = new Plan();
             final PlanSecurity otherSecurity = new PlanSecurity();
+            other.setMode(PlanMode.STANDARD);
             other.setId("not-subscribable-" + i);
             other.setSecurity(otherSecurity);
             plans.add(other);

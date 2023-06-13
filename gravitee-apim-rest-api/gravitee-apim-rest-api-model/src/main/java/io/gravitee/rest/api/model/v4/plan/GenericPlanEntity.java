@@ -49,6 +49,9 @@ public interface GenericPlanEntity {
     PlanStatus getPlanStatus();
 
     @JsonIgnore
+    PlanMode getPlanMode();
+
+    @JsonIgnore
     PlanValidationType getPlanValidation();
 
     Date getNeedRedeployAt();

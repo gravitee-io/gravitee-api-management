@@ -23,7 +23,7 @@ import {
   ApiEntityV4,
   LifecycleAction,
   PlanEntityV4,
-  PlanSecurityTypeV4,
+  PlanModeV4,
   PlanValidationTypeV4,
 } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { PlansV4Faker } from '@gravitee/fixtures/management/PlansV4Faker';
@@ -93,7 +93,8 @@ describeIfJupiter('V4 subscription plan subscription and approval workflow', () 
       api: api.id,
       newPlanEntityV4: PlansV4Faker.newPlan({
         validation: planValidation,
-        security: { type: PlanSecurityTypeV4.SUBSCRIPTION },
+        mode: PlanModeV4.PUSH,
+        security: null,
       }),
     });
 

@@ -54,6 +54,7 @@
       "security": {
         "type": "key-less"
       },
+      "mode": "STANDARD",
       "flows": [
         {
           "name": "Everything",

@@ -51,6 +51,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(Plan.PlanSecurityType.API_KEY, plan.get().getSecurity());
         assertEquals(Plan.PlanValidationType.AUTO, plan.get().getValidation());
         assertEquals(Plan.PlanType.API, plan.get().getType());
+        assertEquals(Plan.PlanMode.STANDARD, plan.get().getMode());
         assertEquals(Plan.Status.PUBLISHED, plan.get().getStatus());
         assertEquals(2, plan.get().getOrder());
         assertTrue(compareDate(new Date(1506964899000L), plan.get().getCreatedAt()));
@@ -111,6 +112,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(Plan.PlanSecurityType.OAUTH2, planOAuth2.get().getSecurity());
         assertEquals(Plan.PlanValidationType.MANUAL, planOAuth2.get().getValidation());
         assertEquals(Plan.PlanType.API, planOAuth2.get().getType());
+        assertEquals(Plan.PlanMode.PUSH, planOAuth2.get().getMode());
         assertEquals(Plan.Status.STAGING, planOAuth2.get().getStatus());
         assertEquals(0, planOAuth2.get().getOrder());
         assertTrue(compareDate("11/02/2016", planOAuth2.get().getCreatedAt()));

@@ -25,7 +25,6 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDAT
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -40,6 +39,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.*;
@@ -51,6 +51,7 @@ import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedExcept
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
+import io.gravitee.rest.api.service.exceptions.PlanFlowRequiredException;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
 import io.gravitee.rest.api.service.exceptions.PlanInvalidException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
@@ -74,6 +75,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -95,8 +97,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             new PlanSecurityEntity("oauth2", "OAuth2", "oauth2"),
             new PlanSecurityEntity("jwt", "JWT", "'jwt'"),
             new PlanSecurityEntity("api_key", "API Key", "api-key"),
-            new PlanSecurityEntity("key_less", "Keyless (public)", ""),
-            new PlanSecurityEntity("subscription", "Subscription", "")
+            new PlanSecurityEntity("key_less", "Keyless (public)", "")
         )
     );
     private final Logger logger = LoggerFactory.getLogger(PlanServiceImpl.class);
@@ -157,8 +158,12 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         try {
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApiId());
 
-            assertPlanSecurityIsAllowed(executionContext, newPlan.getSecurity().getType());
-            validatePlanSecurity(newPlan.getSecurity().getType(), newPlan.getSecurity().getConfiguration());
+            if (Optional.ofNullable(newPlan.getMode()).orElse(PlanMode.STANDARD) == PlanMode.STANDARD) {
+                assertPlanSecurityIsAllowed(executionContext, newPlan.getSecurity().getType());
+                validatePlanSecurity(newPlan.getSecurity().getType(), newPlan.getSecurity().getConfiguration());
+            } else if (newPlan.getSecurity() != null) {
+                throw new PlanInvalidException("Security type is forbidden for plan with 'Push' mode");
+            }
 
             Api api = apiRepository.findById(newPlan.getApiId()).orElseThrow(() -> new ApiNotFoundException(newPlan.getApiId()));
 
@@ -227,14 +232,16 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             logger.debug("Update plan {}", updatePlan.getName());
 
             Plan oldPlan = planRepository.findById(updatePlan.getId()).orElseThrow(() -> new PlanNotFoundException(updatePlan.getId()));
-            assertPlanSecurityIsAllowed(executionContext, PlanSecurityType.valueOf(oldPlan.getSecurity().name()).getLabel());
-            validatePlanSecurity(
-                PlanSecurityType.valueOf(oldPlan.getSecurity().name()).getLabel(),
-                updatePlan.getSecurity().getConfiguration()
-            );
+            if (Optional.ofNullable(oldPlan.getMode()).orElse(Plan.PlanMode.STANDARD) == Plan.PlanMode.STANDARD) {
+                assertPlanSecurityIsAllowed(executionContext, PlanSecurityType.valueOf(oldPlan.getSecurity().name()).getLabel());
+                validatePlanSecurity(
+                    PlanSecurityType.valueOf(oldPlan.getSecurity().name()).getLabel(),
+                    updatePlan.getSecurity().getConfiguration()
+                );
+            }
 
             if (updatePlan.getFlows() == null) {
-                throw new PlanInvalidException(updatePlan.getId());
+                throw new PlanFlowRequiredException(updatePlan.getId());
             }
 
             Plan newPlan = new Plan();
@@ -622,9 +629,6 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 break;
             case KEY_LESS:
                 securityKey = Key.PLAN_SECURITY_KEYLESS_ENABLED;
-                break;
-            case SUBSCRIPTION:
-                securityKey = Key.PLAN_SECURITY_SUBSCRIPTION_ENABLED;
                 break;
             default:
                 return;

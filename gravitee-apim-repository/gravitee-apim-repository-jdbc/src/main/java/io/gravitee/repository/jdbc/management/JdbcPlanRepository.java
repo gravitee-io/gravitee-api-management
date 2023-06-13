@@ -59,6 +59,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("cross_id", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
+            .addColumn("mode", Types.NVARCHAR, Plan.PlanMode.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("validation", Types.NVARCHAR, Plan.PlanValidationType.class)

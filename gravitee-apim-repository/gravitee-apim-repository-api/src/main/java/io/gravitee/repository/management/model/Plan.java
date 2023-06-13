@@ -59,6 +59,7 @@ public class Plan {
     private PlanValidationType validation;
 
     private PlanType type;
+    private PlanMode mode;
 
     private Status status;
 
@@ -127,6 +128,7 @@ public class Plan {
         this.security = cloned.getSecurity();
         this.validation = cloned.getValidation();
         this.type = cloned.getType();
+        this.mode = cloned.getMode();
         this.status = cloned.getStatus();
         this.order = cloned.getOrder();
         this.api = cloned.getApi();
@@ -181,6 +183,14 @@ public class Plan {
 
     public void setType(PlanType type) {
         this.type = type;
+    }
+
+    public PlanMode getMode() {
+        return mode;
+    }
+
+    public void setMode(PlanMode mode) {
+        this.mode = mode;
     }
 
     public String getApi() {
@@ -391,6 +401,19 @@ public class Plan {
         CATALOG,
     }
 
+    public enum PlanMode {
+        /**
+         * A plan with the policy security required.
+         */
+        STANDARD,
+
+        /**
+         * Plan with no security required.
+         * Used to manage Subscription plan (ex: Webhook)
+         */
+        PUSH,
+    }
+
     public enum PlanSecurityType {
         /**
          * Plan which is using a key_less (ie. public) security authentication type for incoming HTTP requests.
@@ -411,11 +434,6 @@ public class Plan {
          * Plan which is using a JWT security authentication type for incoming HTTP requests.
          */
         JWT,
-
-        /**
-         * Plan which is used for subscription-based APIs (webhook).
-         */
-        SUBSCRIPTION,
     }
 
     public enum PlanValidationType {
