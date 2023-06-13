@@ -22,11 +22,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import fixtures.ApiFixtures;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -158,6 +156,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
                 eq(API),
                 argThat(updateApiEntity -> {
                     assertEquals(updateApiV2.getName(), updateApiEntity.getName());
+                    assertEquals(updateApiEntity.getGraviteeDefinitionVersion(), DefinitionVersion.V2.getLabel());
                     return true;
                 }),
                 eq(false)
