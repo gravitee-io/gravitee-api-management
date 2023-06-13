@@ -87,7 +87,17 @@ public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPl
     }
 
     @Override
+    public String getIcon(String pluginId, boolean includeNotDeployed) throws IOException {
+        return null;
+    }
+
+    @Override
     public String getDocumentation(String s) throws IOException {
+        return null;
+    }
+
+    @Override
+    public String getDocumentation(String pluginId, boolean includeNotDeployed) throws IOException {
         return null;
     }
 
@@ -97,7 +107,17 @@ public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPl
     }
 
     @Override
+    public String getCategory(String pluginId, boolean includeNotDeployed) throws IOException {
+        return null;
+    }
+
+    @Override
     public PluginMoreInformation getMoreInformation(String s) throws IOException {
+        return null;
+    }
+
+    @Override
+    public PluginMoreInformation getMoreInformation(String pluginId, boolean includeNotDeployed) throws IOException {
         return null;
     }
 }

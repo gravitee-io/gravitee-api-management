@@ -44,6 +44,7 @@
             {{ endpoint.name }}
             <span class="gio-badge-primary api-creation-v4__badge">New</span>
             <span class="gio-badge-accent api-creation-v4__badge" *ngIf="endpoint.isEnterprise">Enterprise</span>
+            <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!endpoint.deployed">Not deployed</span>
           </gio-selection-list-option-layout-title>
 
           <gio-selection-list-option-layout-body>

@@ -74,6 +74,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         entity.setName(plugin.manifest().name());
         entity.setIcon(getIcon(plugin.id()));
         entity.setVersion(plugin.manifest().version());
+        entity.setDeployed(plugin.deployed());
         ConnectorFactory<?> connectorFactory = getConnectorFactory(plugin.id());
 
         if (connectorFactory.supportedApi() != null) {
@@ -134,7 +135,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
             .list()
             .stream()
             .filter(plugin ->
-                ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
+                ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id(), true)
                     .supportedApi()
                     .equals(io.gravitee.gateway.reactive.api.ApiType.fromLabel(apiType.getLabel()))
             )
@@ -148,7 +149,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
             .list()
             .stream()
             .filter(plugin ->
-                ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id())
+                ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id(), true)
                     .supportedModes()
                     .contains(io.gravitee.gateway.reactive.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
             )

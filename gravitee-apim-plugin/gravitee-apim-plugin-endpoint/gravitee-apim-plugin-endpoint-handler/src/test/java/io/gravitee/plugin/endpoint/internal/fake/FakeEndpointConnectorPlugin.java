@@ -33,12 +33,20 @@ public class FakeEndpointConnectorPlugin
 
     private final String resourceFolder;
 
+    private final boolean deployed;
+
     public FakeEndpointConnectorPlugin(boolean withoutResource) {
+        this(withoutResource, true);
+    }
+
+    public FakeEndpointConnectorPlugin(boolean withoutResource, boolean deployed) {
         resourceFolder = withoutResource ? WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE : WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
+        this.deployed = deployed;
     }
 
     public FakeEndpointConnectorPlugin() {
         resourceFolder = WITH_ENDPOINT_SHARED_CONFIGURATION_FILE;
+        this.deployed = true;
     }
 
     @Override
@@ -83,5 +91,10 @@ public class FakeEndpointConnectorPlugin
     @Override
     public Class<FakeEndpointConnectorConfiguration> configuration() {
         return null;
+    }
+
+    @Override
+    public boolean deployed() {
+        return deployed;
     }
 }

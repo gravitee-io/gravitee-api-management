@@ -28,6 +28,9 @@ export class Step6SummaryComponent implements OnInit {
   public currentStepPayload: ApiCreationPayload;
   paths: string[];
   listenerTypes: string[];
+  entrypointsDeployable: boolean;
+  endpointsDeployable: boolean;
+  deployable: boolean;
 
   constructor(private readonly stepService: ApiCreationStepService) {}
 
@@ -38,6 +41,13 @@ export class Step6SummaryComponent implements OnInit {
     this.listenerTypes = [
       ...new Set(this.currentStepPayload.selectedEntrypoints.map(({ supportedListenerType }) => supportedListenerType)),
     ];
+
+    this.entrypointsDeployable = this.currentStepPayload.selectedEntrypoints.every(({ deployed }) => deployed);
+    this.endpointsDeployable = this.currentStepPayload.selectedEndpoints.every(({ deployed }) => deployed);
+
+    this.deployable =
+      this.currentStepPayload.selectedEndpoints.every(({ deployed }) => deployed) &&
+      this.currentStepPayload.selectedEntrypoints.every(({ deployed }) => deployed);
   }
 
   createApi(deploy: boolean) {

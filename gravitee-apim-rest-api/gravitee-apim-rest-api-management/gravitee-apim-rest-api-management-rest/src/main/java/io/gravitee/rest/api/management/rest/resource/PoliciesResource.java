@@ -129,6 +129,7 @@ public class PoliciesResource {
             item.setOnRequest(true);
             item.setOnResponse(false);
         }
+        item.setDeployed(policy.isDeployed());
         return item;
     }
 }

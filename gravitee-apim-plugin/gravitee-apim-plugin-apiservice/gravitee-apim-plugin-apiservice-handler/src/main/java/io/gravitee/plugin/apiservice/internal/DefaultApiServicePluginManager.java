@@ -42,6 +42,7 @@ public class DefaultApiServicePluginManager
 
     private final ApiServiceClassLoaderFactory classLoaderFactory;
     private final Map<String, ApiServiceFactory<?>> factories = new HashMap<>();
+    private final Map<String, ApiServiceFactory<?>> notDeployedPluginFactories = new HashMap<>();
     private final PluginConfigurationHelper pluginConfigurationHelper;
 
     public DefaultApiServicePluginManager(
@@ -63,7 +64,11 @@ public class DefaultApiServicePluginManager
                 plugin.clazz()
             );
             ApiServiceFactory<?> factory = createFactory(connectorFactoryClass);
-            factories.put(plugin.id(), factory);
+            if (plugin.deployed()) {
+                factories.put(plugin.id(), factory);
+            } else {
+                notDeployedPluginFactories.put(plugin.id(), factory);
+            }
         } catch (Exception ex) {
             log.error("Unexpected error while loading api service plugin: {}", plugin.clazz(), ex);
         }
@@ -87,11 +92,29 @@ public class DefaultApiServicePluginManager
 
     @Override
     public ApiServiceFactory<?> getFactoryById(final String apiServicePluginId) {
-        return factories.get(apiServicePluginId);
+        return getFactoryById(apiServicePluginId, false);
+    }
+
+    @Override
+    public ApiServiceFactory<?> getFactoryById(String apiServicePluginId, boolean includeNotDeployed) {
+        ApiServiceFactory<?> factory = factories.get(apiServicePluginId);
+        if (factory == null && includeNotDeployed) {
+            return notDeployedPluginFactories.get(apiServicePluginId);
+        }
+        return factory;
     }
 
     @Override
     public List<?> getAllFactories() {
-        return new ArrayList<>(factories.values());
+        return getAllFactories(false);
+    }
+
+    @Override
+    public List<?> getAllFactories(boolean includeNotDeployed) {
+        List<ApiServiceFactory<?>> allFactories = new ArrayList<>(factories.values());
+        if (includeNotDeployed) {
+            allFactories.addAll(notDeployedPluginFactories.values());
+        }
+        return allFactories;
     }
 }

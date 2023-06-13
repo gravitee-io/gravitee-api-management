@@ -85,4 +85,9 @@ public class DummyPolicyPlugin<T, C extends PolicyConfiguration, CT extends Poli
     public URL[] dependencies() {
         return new URL[0];
     }
+
+    @Override
+    public boolean deployed() {
+        return false;
+    }
 }

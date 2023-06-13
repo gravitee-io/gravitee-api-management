@@ -38,4 +38,5 @@ export interface ConnectorPlugin extends PlatformPlugin {
    * The subscription schema of the plugin.
    */
   subscriptionSchema?: string;
+  deployed: boolean;
 }

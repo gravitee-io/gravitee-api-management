@@ -41,6 +41,8 @@ public class DefaultEndpointConnectorPluginManager
     private static final Logger logger = LoggerFactory.getLogger(DefaultEndpointConnectorPluginManager.class);
     private final EndpointConnectorClassLoaderFactory classLoaderFactory;
     private final Map<String, EndpointConnectorFactory<?>> factories = new HashMap<>();
+
+    private final Map<String, EndpointConnectorFactory<?>> notDeployedPluginFactories = new HashMap<>();
     private final PluginConfigurationHelper pluginConfigurationHelper;
 
     public DefaultEndpointConnectorPluginManager(
@@ -61,7 +63,11 @@ public class DefaultEndpointConnectorPluginManager
             final Class<EndpointConnectorFactory<?>> connectorFactoryClass =
                 (Class<EndpointConnectorFactory<?>>) pluginClassLoader.loadClass(plugin.clazz());
             EndpointConnectorFactory<?> factory = createFactory(connectorFactoryClass);
-            factories.put(plugin.id(), factory);
+            if (plugin.deployed()) {
+                factories.put(plugin.id(), factory);
+            } else {
+                notDeployedPluginFactories.put(plugin.id(), factory);
+            }
         } catch (Exception ex) {
             logger.error("Unexpected error while loading endpoint plugin: {}", plugin.clazz(), ex);
         }
@@ -84,11 +90,25 @@ public class DefaultEndpointConnectorPluginManager
 
     @Override
     public EndpointConnectorFactory<?> getFactoryById(final String endpointPluginId) {
-        return factories.get(endpointPluginId);
+        return getFactoryById(endpointPluginId, false);
+    }
+
+    @Override
+    public EndpointConnectorFactory<?> getFactoryById(String endpointPluginId, boolean includeNotDeployed) {
+        EndpointConnectorFactory<?> factory = factories.get(endpointPluginId);
+        if (factory == null && includeNotDeployed) {
+            return notDeployedPluginFactories.get(endpointPluginId);
+        }
+        return factory;
     }
 
     @Override
     public String getSharedConfigurationSchema(String pluginId) throws IOException {
-        return getSchema(pluginId, "sharedConfiguration");
+        return getSharedConfigurationSchema(pluginId, false);
+    }
+
+    @Override
+    public String getSharedConfigurationSchema(String pluginId, boolean includeNotDeployed) throws IOException {
+        return getSchema(pluginId, "sharedConfiguration", includeNotDeployed);
     }
 }

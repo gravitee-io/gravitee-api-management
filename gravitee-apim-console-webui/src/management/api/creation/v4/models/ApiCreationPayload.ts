@@ -30,6 +30,7 @@ export type ApiCreationPayload = Partial<{
     icon: string;
     supportedListenerType: ListenerType;
     configuration?: unknown;
+    deployed: boolean;
   }[];
 
   // Endpoints
@@ -39,6 +40,7 @@ export type ApiCreationPayload = Partial<{
     icon: string;
     configuration?: unknown;
     sharedConfiguration?: unknown;
+    deployed: boolean;
   }[];
 
   // Security

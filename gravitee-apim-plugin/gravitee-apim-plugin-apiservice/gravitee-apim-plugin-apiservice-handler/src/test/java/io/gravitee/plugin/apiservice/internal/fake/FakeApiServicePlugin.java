@@ -19,12 +19,18 @@ import io.gravitee.plugin.apiservice.ApiServicePlugin;
 import io.gravitee.plugin.core.api.PluginManifest;
 import java.net.URL;
 import java.nio.file.Path;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@NoArgsConstructor(force = true)
 public class FakeApiServicePlugin implements ApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> {
+
+    private final boolean deployed;
 
     @Override
     public String id() {
@@ -64,5 +70,10 @@ public class FakeApiServicePlugin implements ApiServicePlugin<FakeApiServiceFact
     @Override
     public Class<FakeApiServiceConfiguration> configuration() {
         return null;
+    }
+
+    @Override
+    public boolean deployed() {
+        return deployed;
     }
 }

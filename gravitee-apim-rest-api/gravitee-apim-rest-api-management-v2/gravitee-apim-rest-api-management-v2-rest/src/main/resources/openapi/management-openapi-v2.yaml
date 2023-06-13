@@ -3482,6 +3482,9 @@ components:
                     description: Plugin's version.
                     example: 1.0.0
                     minLength: 1
+                deployed:
+                    type: boolean
+                    description: The deployment status of the plugin.
         PrimaryOwner:
             type: object
             properties:

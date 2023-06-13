@@ -76,7 +76,8 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
             .icon("my-icon")
             .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
             .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
-            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE));
+            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
+            .deployed(true);
         ConnectorPlugin pluginEntity2 = new ConnectorPlugin()
             .id("id-2")
             .name("name")
@@ -84,7 +85,8 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
             .icon("my-icon")
             .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
             .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
-            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE));
+            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
+            .deployed(true);
         ConnectorPlugin pluginEntity3 = new ConnectorPlugin()
             .id("id-3")
             .name("name")
@@ -92,7 +94,8 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
             .icon("my-icon")
             .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
             .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
-            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE));
+            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
+            .deployed(true);
 
         assertEquals(Set.of(pluginEntity1, pluginEntity2, pluginEntity3), connectorPlugins);
     }
@@ -246,6 +249,7 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         connectorPlugin.setSupportedListenerType(ListenerType.HTTP);
+        connectorPlugin.setDeployed(true);
         return connectorPlugin;
     }
 }

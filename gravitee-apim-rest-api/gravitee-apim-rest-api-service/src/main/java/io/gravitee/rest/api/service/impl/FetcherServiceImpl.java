@@ -79,6 +79,7 @@ public class FetcherServiceImpl extends AbstractPluginService<FetcherPlugin<?>, 
         entity.setDescription(fetcherPlugin.manifest().description());
         entity.setName(fetcherPlugin.manifest().name());
         entity.setVersion(fetcherPlugin.manifest().version());
+        entity.setDeployed(fetcherPlugin.deployed());
 
         if (withPlugin) {
             // Plugin information

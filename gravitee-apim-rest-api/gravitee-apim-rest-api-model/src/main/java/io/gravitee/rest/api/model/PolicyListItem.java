@@ -56,6 +56,8 @@ public class PolicyListItem {
 
     private boolean onResponse;
 
+    private boolean deployed;
+
     public String getDescription() {
         return description;
     }
@@ -166,5 +168,13 @@ public class PolicyListItem {
 
     public void setOnResponse(boolean onResponse) {
         this.onResponse = onResponse;
+    }
+
+    public boolean isDeployed() {
+        return deployed;
+    }
+
+    public void setDeployed(boolean deployed) {
+        this.deployed = deployed;
     }
 }

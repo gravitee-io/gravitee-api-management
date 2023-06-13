@@ -65,13 +65,13 @@ public class PolicyPluginServiceImplTest {
         cut = new PolicyPluginServiceImpl(jsonSchemaService, pluginManager);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
     }
 
     @Test
     public void shouldValidateConfiguration() throws IOException {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
-        when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
+        when(pluginManager.getSchema(PLUGIN_ID, true)).thenReturn(SCHEMA);
         when(jsonSchemaService.validate(SCHEMA, CONFIGURATION)).thenReturn("fixed-configuration");
 
         String resultConfiguration = cut.validatePolicyConfiguration(PLUGIN_ID, CONFIGURATION);
@@ -81,7 +81,7 @@ public class PolicyPluginServiceImplTest {
 
     @Test
     public void shouldValidateConfigurationWhenNullConfiguration() throws IOException {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
 
         String resultConfiguration = cut.validatePolicyConfiguration(PLUGIN_ID, null);
 
@@ -90,7 +90,7 @@ public class PolicyPluginServiceImplTest {
 
     @Test(expected = PluginNotFoundException.class)
     public void shouldFailToValidateConfigurationWhenNoPlugin() {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
         cut.validatePolicyConfiguration(PLUGIN_ID, CONFIGURATION);
     }
@@ -99,7 +99,7 @@ public class PolicyPluginServiceImplTest {
     public void shouldFindById() {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
 
         PlatformPluginEntity result = cut.findById(PLUGIN_ID);
 
@@ -109,7 +109,7 @@ public class PolicyPluginServiceImplTest {
 
     @Test(expected = PluginNotFoundException.class)
     public void shouldNotFindById() {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
         cut.findById(PLUGIN_ID);
     }
@@ -118,7 +118,7 @@ public class PolicyPluginServiceImplTest {
     public void shouldFindAll() {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
+        when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
         when(mockPluginManifest.properties()).thenReturn(Map.of("proxy", "REQUEST", "message", "MESSAGE_REQUEST"));
         Set<PolicyPluginEntity> result = cut.findAll();
 

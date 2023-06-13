@@ -66,7 +66,7 @@ public class ResourceServiceImplTest {
 
     @Test
     public void shouldValidateConfigurationFromV3resource() throws IOException {
-        when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
+        when(pluginManager.getSchema(PLUGIN_ID, true)).thenReturn(SCHEMA);
 
         Resource resource = mock(Resource.class);
         when(resource.getType()).thenReturn(PLUGIN_ID);
@@ -79,7 +79,7 @@ public class ResourceServiceImplTest {
 
     @Test
     public void shouldValidateConfigurationFromV4resource() throws IOException {
-        when(pluginManager.getSchema(PLUGIN_ID)).thenReturn(SCHEMA);
+        when(pluginManager.getSchema(PLUGIN_ID, true)).thenReturn(SCHEMA);
 
         io.gravitee.definition.model.v4.resource.Resource resource = mock(io.gravitee.definition.model.v4.resource.Resource.class);
         when(resource.getType()).thenReturn(PLUGIN_ID);
@@ -94,7 +94,7 @@ public class ResourceServiceImplTest {
     public void shouldFindById() {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(mockPlugin);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(mockPlugin);
 
         PlatformPluginEntity result = resourceService.findById(PLUGIN_ID);
 
@@ -104,7 +104,7 @@ public class ResourceServiceImplTest {
 
     @Test(expected = PluginNotFoundException.class)
     public void shouldNotFindById() {
-        when(pluginManager.get(PLUGIN_ID)).thenReturn(null);
+        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
         resourceService.findById(PLUGIN_ID);
     }
@@ -113,7 +113,7 @@ public class ResourceServiceImplTest {
     public void shouldFindAll() {
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
-        when(pluginManager.findAll()).thenReturn(List.of(mockPlugin));
+        when(pluginManager.findAll(true)).thenReturn(List.of(mockPlugin));
 
         Set<PlatformPluginEntity> result = resourceService.findAll();
 

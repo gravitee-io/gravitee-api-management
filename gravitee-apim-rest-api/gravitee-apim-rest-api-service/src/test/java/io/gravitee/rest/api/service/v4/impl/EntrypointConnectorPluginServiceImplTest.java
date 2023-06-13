@@ -67,7 +67,7 @@ public class EntrypointConnectorPluginServiceImplTest {
 
     @Test
     public void shouldGetSubscriptionSchema() throws IOException {
-        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID)).thenReturn("subscriptionConfiguration");
+        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
 
         final String result = cut.getSubscriptionSchema(CONNECTOR_ID);
 
@@ -76,7 +76,7 @@ public class EntrypointConnectorPluginServiceImplTest {
 
     @Test
     public void shouldNotGetSubscriptionSchemaBecauseOfIOException() throws IOException {
-        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID)).thenThrow(IOException.class);
+        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenThrow(IOException.class);
 
         try {
             cut.getSubscriptionSchema(CONNECTOR_ID);
@@ -89,15 +89,15 @@ public class EntrypointConnectorPluginServiceImplTest {
 
     @Test(expected = PluginNotFoundException.class)
     public void shouldNotValidateSubscriptionConfigurationBecauseOfAbsentPlugin() {
-        when(pluginManager.get(CONNECTOR_ID)).thenReturn(null);
+        when(pluginManager.get(CONNECTOR_ID, true)).thenReturn(null);
 
         cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, "a configuration");
     }
 
     @Test
     public void shouldReturnNullWhenSchemaAndConfigurationAreNull() throws IOException {
-        when(pluginManager.get(CONNECTOR_ID)).thenReturn(new FakePlugin());
-        when(pluginManager.getFactoryById(CONNECTOR_ID)).thenReturn(new FakeConnectorFactory());
+        when(pluginManager.get(CONNECTOR_ID, true)).thenReturn(new FakePlugin());
+        when(pluginManager.getFactoryById(CONNECTOR_ID, true)).thenReturn(new FakeConnectorFactory());
 
         assertThat(cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, null)).isNull();
     }
@@ -105,9 +105,9 @@ public class EntrypointConnectorPluginServiceImplTest {
     @Test
     public void shouldReturnAConfigWhenSchemaNotNullAndConfigurationIsNull() throws IOException {
         final String expectedConfiguration = "validated_and_sanitized";
-        when(pluginManager.get(CONNECTOR_ID)).thenReturn(new FakePlugin());
-        when(pluginManager.getFactoryById(CONNECTOR_ID)).thenReturn(new FakeConnectorFactory());
-        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID)).thenReturn("subscriptionConfiguration");
+        when(pluginManager.get(CONNECTOR_ID, true)).thenReturn(new FakePlugin());
+        when(pluginManager.getFactoryById(CONNECTOR_ID, true)).thenReturn(new FakeConnectorFactory());
+        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
         when(jsonSchemaService.validate(eq("subscriptionConfiguration"), eq("{}"))).thenReturn(expectedConfiguration);
 
         final String result = cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, null);
@@ -119,9 +119,9 @@ public class EntrypointConnectorPluginServiceImplTest {
         final String configuration = "to_validate_and_sanitize";
         final String expectedConfiguration = "validated_and_sanitized";
 
-        when(pluginManager.get(CONNECTOR_ID)).thenReturn(new FakePlugin());
-        when(pluginManager.getFactoryById(CONNECTOR_ID)).thenReturn(new FakeConnectorFactory());
-        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID)).thenReturn("subscriptionConfiguration");
+        when(pluginManager.get(CONNECTOR_ID, true)).thenReturn(new FakePlugin());
+        when(pluginManager.getFactoryById(CONNECTOR_ID, true)).thenReturn(new FakeConnectorFactory());
+        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
         when(jsonSchemaService.validate("subscriptionConfiguration", configuration)).thenReturn(expectedConfiguration);
 
         final String result = cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, configuration);
@@ -198,6 +198,11 @@ public class EntrypointConnectorPluginServiceImplTest {
         @Override
         public URL[] dependencies() {
             return new URL[0];
+        }
+
+        @Override
+        public boolean deployed() {
+            return false;
         }
     }
 

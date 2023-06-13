@@ -43,6 +43,7 @@ public class DefaultEntrypointConnectorPluginManager
     private final EntrypointConnectorClassLoaderFactory classLoaderFactory;
     private final PluginConfigurationHelper pluginConfigurationHelper;
     private final Map<String, EntrypointConnectorFactory<?>> factories = new HashMap<>();
+    private final Map<String, EntrypointConnectorFactory<?>> notDeployedPluginFactories = new HashMap<>();
 
     public DefaultEntrypointConnectorPluginManager(
         final EntrypointConnectorClassLoaderFactory classLoaderFactory,
@@ -62,7 +63,11 @@ public class DefaultEntrypointConnectorPluginManager
             final Class<EntrypointConnectorFactory<?>> connectorFactoryClass =
                 (Class<EntrypointConnectorFactory<?>>) pluginClassLoader.loadClass(plugin.clazz());
             EntrypointConnectorFactory<?> factory = createFactory(connectorFactoryClass);
-            factories.put(plugin.id(), factory);
+            if (plugin.deployed()) {
+                factories.put(plugin.id(), factory);
+            } else {
+                notDeployedPluginFactories.put(plugin.id(), factory);
+            }
         } catch (Exception ex) {
             logger.error("Unexpected error while loading entrypoint plugin: {}", plugin.clazz(), ex);
         }
@@ -89,7 +94,21 @@ public class DefaultEntrypointConnectorPluginManager
     }
 
     @Override
+    public EntrypointConnectorFactory<?> getFactoryById(String entrypointPluginId, boolean includeNotDeployed) {
+        EntrypointConnectorFactory<?> factory = factories.get(entrypointPluginId);
+        if (factory == null && includeNotDeployed) {
+            return notDeployedPluginFactories.get(entrypointPluginId);
+        }
+        return factory;
+    }
+
+    @Override
     public String getSubscriptionSchema(String pluginId) throws IOException {
-        return getSchema(pluginId, "subscriptions");
+        return getSubscriptionSchema(pluginId, false);
+    }
+
+    @Override
+    public String getSubscriptionSchema(String pluginId, boolean includeNotDeployed) throws IOException {
+        return getSchema(pluginId, "subscriptions", includeNotDeployed);
     }
 }

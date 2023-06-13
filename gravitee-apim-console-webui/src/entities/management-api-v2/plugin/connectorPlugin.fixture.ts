@@ -26,6 +26,7 @@ export function fakeConnectorPlugin(modifier?: Partial<ConnectorPlugin>): Connec
     supportedModes: ['REQUEST_RESPONSE'],
     supportedListenerType: 'HTTP',
     availableFeatures: [],
+    deployed: true,
   };
 
   return {
@@ -51,6 +52,7 @@ export const entrypointsGetResponse: ConnectorPlugin[] = [
     supportedQos: ['AT_MOST_ONCE', 'NONE', 'AT_LEAST_ONCE', 'AUTO'],
     supportedListenerType: 'SUBSCRIPTION',
     availableFeatures: ['DLQ'],
+    deployed: true,
     schema:
       '{\n  "$schema":"http://json-schema.org/draft-07/schema#",\n  "type":"object",\n  "definitions":{\n    "proxy":{\n      "type":"object",\n      "title":"Proxy Options",\n      "oneOf":[\n        {\n          "title":"No proxy",\n          "properties":{\n            "enabled":{\n              "const":false\n            },\n            "useSystemProxy":{\n              "const":false\n            }\n          },\n          "additionalProperties":false\n        },\n        {\n          "title":"Use proxy configured at system level",\n          "properties":{\n            "enabled":{\n              "const":true\n            },\n            "useSystemProxy":{\n              "const":true\n            }\n          },\n          "additionalProperties":false\n        },\n        {\n          "title":"Use proxy for client connections",\n          "properties":{\n            "enabled":{\n              "const":true\n            },\n            "useSystemProxy":{\n              "const":false\n            },\n            "type":{\n              "type":"string",\n              "title":"Proxy Type",\n              "description":"The type of the proxy",\n              "default":"HTTP",\n              "enum":[\n                "HTTP",\n                "SOCKS4",\n                "SOCKS5"\n              ]\n            },\n            "host":{\n              "type":"string",\n              "title":"Proxy host",\n              "description":"Proxy host to connect to"\n            },\n            "port":{\n              "type":"integer",\n              "title":"Proxy port",\n              "description":"Proxy port to connect to"\n            },\n            "username":{\n              "type":"string",\n              "title":"Proxy username",\n              "description":"Optional proxy username"\n            },\n            "password":{\n              "type":"string",\n              "title":"Proxy password",\n              "description":"Optional proxy password",\n              "format":"password"\n            }\n          },\n          "required":[\n            "host",\n            "port"\n          ],\n          "additionalProperties":false\n        }\n      ]\n    }\n  },\n  "properties":{\n    "http":{\n      "type":"object",\n      "title":"HTTP Options",\n      "properties":{\n        "connectTimeout":{\n          "type":"integer",\n          "title":"Connect timeout (ms)",\n          "description":"Maximum time to connect to the webhook in milliseconds.",\n          "default":3000\n        },\n        "readTimeout":{\n          "type":"integer",\n          "title":"Read timeout (ms)",\n          "description":"Maximum time given to the webhook to complete the request (including response) in milliseconds.",\n          "default":10000\n        },\n        "idleTimeout":{\n          "type":"integer",\n          "title":"Idle timeout (ms)",\n          "default":60000,\n          "gioConfig":{\n            "banner":{\n              "title":"Idle timeout",\n              "text":"Maximum time a connection will stay in the pool without being used in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources."\n            }\n          }\n        },\n        "maxConcurrentConnections":{\n          "type":"integer",\n          "title":"Max Concurrent Connections",\n          "description":"Maximum pool size for connections. (default: 5, maximum: 20)",\n          "default":5,\n          "maximum": 20,\n          "minimum": 1\n        }\n      }\n    },\n    "proxy":{\n      "$ref":"#/definitions/proxy"\n    }\n  }\n}',
   },
@@ -65,6 +67,7 @@ export const entrypointsGetResponse: ConnectorPlugin[] = [
     supportedQos: ['AT_MOST_ONCE', 'AT_LEAST_ONCE', 'AUTO'],
     supportedListenerType: 'HTTP',
     availableFeatures: ['RESUME', 'LIMIT'],
+    deployed: true,
     schema:
       '{\n    "$schema": "http://json-schema.org/draft-07/schema#",\n    "type": "object",\n    "properties": {\n        "messagesLimitCount": {\n            "type": "integer",\n            "title": "Limit messages count",\n            "description": "Maximum number of messages to retrieve.",\n            "default": 500\n        },\n        "messagesLimitDurationMs": {\n            "type": "number",\n            "title": "Limit messages duration (in ms)",\n            "default": 5000,\n            "gioConfig": {\n                "banner": {\n                    "title": "Limit messages duration",\n                    "text": "Maximum duration in milliseconds to wait to retrieve the expected number of messages (See Limit messages count). The effective number of retrieved messages could be less than expected it maximum duration is reached."\n                }\n            }\n        },\n        "headersInPayload": {\n            "type": "boolean",\n            "default": false,\n            "title": "Allow sending messages headers to client in payload",\n            "description": "Default is false.",\n            "gioConfig": {\n                "banner": {\n                    "title": "Allow sending messages headers to client in payload",\n                    "text": "Each header will be sent as extra field in payload. For JSON and XML, in a dedicated headers object. For plain text, following \'key=value\' format. Default is false."\n                }\n            }\n        },\n        "metadataInPayload": {\n            "type": "boolean",\n            "default": false,\n            "title": "Allow sending messages metadata to client in payload",\n            "description": "Default is false.",\n            "gioConfig": {\n                "banner": {\n                    "title": "Allow sending messages metadata to client in payload",\n                    "text": "Allow sending messages metadata to client in payload. Each metadata will be sent as extra field in the payload. For JSON and XML, in a dedicated metadata object. For plain text, following \'key=value\' format. Default is false."\n                }\n            }\n        }\n    },\n    "additionalProperties": false\n}',
   },
@@ -79,6 +82,7 @@ export const entrypointsGetResponse: ConnectorPlugin[] = [
     supportedQos: ['NONE', 'AUTO'],
     supportedListenerType: 'HTTP',
     availableFeatures: [],
+    deployed: true,
     schema:
       '{\n    "$schema": "http://json-schema.org/draft-07/schema#",\n    "type": "object",\n    "properties": {\n        "requestHeadersToMessage": {\n            "title": "Allow add request Headers to the generated message",\n            "type": "boolean",\n            "default": false,\n            "description": "Each headers from incoming request will be added to the generated message headers."\n        }\n    },\n    "additionalProperties": false\n}',
   },
@@ -93,6 +97,7 @@ export const entrypointsGetResponse: ConnectorPlugin[] = [
     supportedQos: ['NONE', 'AUTO'],
     supportedListenerType: 'HTTP',
     availableFeatures: [],
+    deployed: true,
     schema:
       '{\n    "$schema": "http://json-schema.org/draft-07/schema#",\n    "type": "object",\n    "properties": {\n        "publisher": {\n            "title": "Publisher configuration",\n            "type": "object",\n            "properties": {\n                "enabled": {\n                    "title": "Enable the publication capability",\n                    "description": "Allow to enable or disable the publication capability. By disabling it, you assume that the application will never be able to publish any message.",\n                    "type": "boolean",\n                    "default": true\n                }\n            },\n            "additionalProperties": false\n        },\n        "subscriber": {\n            "title": "Subscriber configuration",\n            "type": "object",\n            "properties": {\n                "enabled": {\n                    "title": "Enable the subscription capability",\n                    "description": "Allow to enable or disable the subscription capability. By disabling it, you assume that the application will never receive any message.",\n                    "type": "boolean",\n                    "default": true\n                }\n            },\n            "additionalProperties": false\n        }\n    },\n    "required": [],\n    "additionalProperties": false\n}',
   },
@@ -107,6 +112,7 @@ export const entrypointsGetResponse: ConnectorPlugin[] = [
     supportedQos: ['AT_MOST_ONCE', 'NONE', 'AT_LEAST_ONCE', 'AUTO'],
     supportedListenerType: 'HTTP',
     availableFeatures: [],
+    deployed: true,
     schema:
       '{\n  "$schema": "http://json-schema.org/draft-07/schema#",\n  "type": "object",\n  "properties": {\n    "heartbeatIntervalInMs": {\n      "type": "integer",\n      "default": 5000,\n      "minimum": 2000,\n      "title": "Define the interval in which heartbeat are sent to client",\n      "description": "Interval must be higher or equal than 2000ms. Each heartbeat will be sent as extra empty comment \\":\\""\n    },\n    "metadataAsComment": {\n      "title": "Allow sending messages metadata to client as SSE comments",\n      "description": "Each metadata attribute will be sent as extra line following \\":key=value\\" format.",\n      "type": "boolean",\n      "default": false\n    },\n    "headersAsComment": {\n      "title": "Allow sending messages headers to client as SSE comments",\n      "description": "Each header will be sent as extra line following \\":key=value\\" format.",\n      "type": "boolean",\n      "default": false\n    }\n  },\n  "additionalProperties": false\n}',
   },
@@ -120,6 +126,7 @@ export const entrypointsGetResponse: ConnectorPlugin[] = [
     supportedModes: ['REQUEST_RESPONSE'],
     supportedListenerType: 'HTTP',
     availableFeatures: [],
+    deployed: true,
     schema:
       '{\n    "$schema": "http://json-schema.org/draft-07/schema#",\n    "type": "object",\n    "properties": {},\n    "additionalProperties": false\n}',
   },

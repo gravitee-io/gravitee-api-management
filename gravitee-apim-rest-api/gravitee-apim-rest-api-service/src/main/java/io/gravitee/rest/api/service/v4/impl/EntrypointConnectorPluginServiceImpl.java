@@ -45,14 +45,14 @@ public class EntrypointConnectorPluginServiceImpl
 
     @Override
     protected ConnectorFactory<?> getConnectorFactory(final String connectorId) {
-        return ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(connectorId);
+        return ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(connectorId, true);
     }
 
     @Override
     public String getSubscriptionSchema(final String connectorId) {
         try {
             logger.debug("Find entrypoint subscription schema by ID: {}", connectorId);
-            return ((EntrypointConnectorPluginManager) pluginManager).getSubscriptionSchema(connectorId);
+            return ((EntrypointConnectorPluginManager) pluginManager).getSubscriptionSchema(connectorId, true);
         } catch (IOException ioex) {
             logger.error("An error occurs while trying to get entrypoint subscription schema for plugin {}", connectorId, ioex);
             throw new TechnicalManagementException(

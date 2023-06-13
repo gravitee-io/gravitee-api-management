@@ -15,7 +15,6 @@
  */
 package io.gravitee.plugin.apiservice.internal;
 
-import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceConfiguration;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.plugin.apiservice.ApiServicePlugin;
@@ -73,5 +72,10 @@ class DefaultApiServicePlugin<T extends ApiServiceFactory, C extends ApiServiceC
     @Override
     public Class<C> configuration() {
         return apiServiceConfigurationClass;
+    }
+
+    @Override
+    public boolean deployed() {
+        return plugin.deployed();
     }
 }

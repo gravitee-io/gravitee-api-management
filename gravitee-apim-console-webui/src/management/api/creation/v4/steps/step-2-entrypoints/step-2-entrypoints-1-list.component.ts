@@ -76,6 +76,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
           isEnterprise: entrypoint.id.endsWith('-advanced'),
           supportedListenerType: entrypoint.supportedListenerType,
           icon: this.iconService.registerSvg(entrypoint.id, entrypoint.icon),
+          deployed: entrypoint.deployed,
         }));
         this.changeDetectorRef.detectChanges();
       });
@@ -146,7 +147,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   private saveChanges() {
     const selectedEntrypointsIds = this.formGroup.getRawValue().selectedEntrypointsIds ?? [];
     const selectedEntrypoints = this.entrypoints
-      .map(({ id, name, supportedListenerType, icon }) => ({ id, name, supportedListenerType, icon }))
+      .map(({ id, name, supportedListenerType, icon, deployed }) => ({ id, name, supportedListenerType, icon, deployed }))
       .filter((e) => selectedEntrypointsIds.includes(e.id));
 
     this.stepService.validStep((previousPayload) => ({

@@ -108,4 +108,32 @@ class DefaultEntrypointConnectorPluginManagerTest {
         final String schema = cut.getSubscriptionSchema(FAKE_ENTRYPOINT);
         assertThat(schema).isEqualTo("{\n  \"schema\": \"subscription\"\n}");
     }
+
+    @Test
+    void shouldNotRetrieveNotDeployedPlugin() {
+        cut.register(new FakeEntrypointConnectorPlugin(true, false));
+        final EntrypointConnector factoryById = cut.getFactoryById("fake-endpoint");
+        assertThat(factoryById).isNull();
+    }
+
+    @Test
+    void shouldRetrieveNotDeployedPlugin() {
+        cut.register(new FakeEntrypointConnectorPlugin(true, false));
+        final EntrypointConnector factoryById = cut.getFactoryById("fake-endpoint", true);
+        assertThat(factoryById).isNull();
+    }
+
+    @Test
+    void shouldNotFindSubscriptionSchemaFileForNotDeployedPlugin() throws IOException {
+        cut.register(new FakeEntrypointConnectorPlugin(true, false));
+        final String schema = cut.getSubscriptionSchema(FAKE_ENTRYPOINT);
+        assertThat(schema).isNull();
+    }
+
+    @Test
+    void shouldFindSubscriptionSchemaFileForNotDeployedPlugin() throws IOException {
+        cut.register(new FakeEntrypointConnectorPlugin(true, false));
+        final String schema = cut.getSubscriptionSchema(FAKE_ENTRYPOINT, true);
+        assertThat(schema).isNull();
+    }
 }

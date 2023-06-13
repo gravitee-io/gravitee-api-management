@@ -35,12 +35,20 @@ public class FakeEntrypointConnectorPlugin
 
     private final String resourceFolder;
 
-    public FakeEntrypointConnectorPlugin(boolean withoutResource) {
+    private final boolean deployed;
+
+    public FakeEntrypointConnectorPlugin(boolean withoutResource, boolean deployed) {
         resourceFolder = withoutResource ? WITHOUT_SUBSCRIPTION_FILE : WITH_SUBSCRIPTION_FILE;
+        this.deployed = deployed;
+    }
+
+    public FakeEntrypointConnectorPlugin(boolean withoutResource) {
+        this(withoutResource, true);
     }
 
     public FakeEntrypointConnectorPlugin() {
         resourceFolder = WITH_SUBSCRIPTION_FILE;
+        this.deployed = true;
     }
 
     @Override
@@ -85,5 +93,10 @@ public class FakeEntrypointConnectorPlugin
     @Override
     public Class<FakeEntrypointConnectorConfiguration> configuration() {
         return null;
+    }
+
+    @Override
+    public boolean deployed() {
+        return deployed;
     }
 }

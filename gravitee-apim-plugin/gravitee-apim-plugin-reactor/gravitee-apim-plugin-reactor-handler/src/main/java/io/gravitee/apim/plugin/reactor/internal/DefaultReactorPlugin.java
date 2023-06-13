@@ -62,4 +62,9 @@ public class DefaultReactorPlugin<F extends ReactorFactory<?>> implements Reacto
     public Path path() {
         return plugin.path();
     }
+
+    @Override
+    public boolean deployed() {
+        return plugin.deployed();
+    }
 }
