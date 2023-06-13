@@ -46,7 +46,7 @@ class EntrypointNotFoundIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi("/apis/v4/messages/http-get-entrypoint-mock-endpoint.json")
+    @DeployApi("/apis/v4/messages/http-get/http-get-entrypoint-mock-endpoint.json")
     class NoErrorMessageOverride extends AbstractGatewayTest {
 
         @Override

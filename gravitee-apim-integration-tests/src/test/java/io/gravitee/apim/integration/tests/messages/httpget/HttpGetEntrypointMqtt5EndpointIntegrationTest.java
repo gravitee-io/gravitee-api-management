@@ -33,7 +33,6 @@ import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -54,7 +53,7 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get-entrypoint-mqtt5-endpoint.json" })
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-mqtt5-endpoint.json" })
     void should_receive_messages(HttpClient client) {
         client
             .rxRequest(HttpMethod.GET, "/test2")
@@ -63,7 +62,7 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
                 return request.send();
             })
             .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(200))
-            .flatMap(response -> publishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message").ignoreElements().andThen(response.body()))
+            .flatMap(response -> publishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message", true).ignoreElements().andThen(response.body()))
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
             .assertValue(body -> {
@@ -80,8 +79,8 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
     @ParameterizedTest(name = "should receive 400 bad request with {0} qos")
     @DeployApi(
         {
-            "/apis/v4/messages/http-get-entrypoint-mqtt5-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get-entrypoint-mqtt5-endpoint-at-most-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-mqtt5-endpoint-at-least-once.json",
+            "/apis/v4/messages/http-get/http-get-entrypoint-mqtt5-endpoint-at-most-once.json",
         }
     )
     void should_receive_400_bad_request_with_qos(Qos qos, HttpClient client) {
@@ -105,7 +104,7 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/http-get-entrypoint-mqtt5-endpoint-failure.json" })
+    @DeployApi({ "/apis/v4/messages/http-get/http-get-entrypoint-mqtt5-endpoint-failure.json" })
     void should_receive_error_messages_when_error_occurred(HttpClient client) {
         // First request should receive 2 first messages
         client

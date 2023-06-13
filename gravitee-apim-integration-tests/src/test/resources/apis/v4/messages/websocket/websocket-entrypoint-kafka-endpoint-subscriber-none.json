@@ -1,27 +1,29 @@
 {
-  "id": "http-get-endpoint-mqtt5-endpoint-at-most-once",
-  "name": "my-api",
+  "id": "my-api-none",
+  "name": "my-api-none",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
   "type": "message",
-  "description": "api v4 using HTTP Get entrypoint",
+  "description": "api v4 using Websocket entrypoint",
   "listeners": [
     {
       "type": "http",
       "paths": [
         {
-          "path": "/test-at-most-once"
+          "path": "/test-none"
         }
       ],
       "entrypoints": [
         {
-          "type": "http-get",
-          "qos": "at-most-once",
+          "type": "websocket",
+          "qos" : "none",
           "configuration": {
-            "messagesLimitCount": 1,
-            "messagesLimitDurationMs": 10000,
-            "headersInPayload": true,
-            "metadataInPayload": true
+            "subscriber": {
+              "enabled": true
+            },
+            "publisher": {
+              "enabled": false
+            }
           }
         }
       ]
@@ -30,21 +32,21 @@
   "endpointGroups": [
     {
       "name": "default-group",
-      "type": "mqtt5",
+      "type": "kafka",
       "endpoints": [
         {
           "name": "default",
-          "type": "mqtt5",
+          "type": "kafka",
           "weight": 1,
           "inheritConfiguration": false,
           "configuration": {
-            "serverHost": "localhost",
-            "serverPort": "mqtt5-port"
+            "bootstrapServers": "bootstrap-server"
           },
           "sharedConfigurationOverride": {
             "consumer": {
               "enabled": true,
-              "topic": "test-topic"
+              "autoOffsetReset": "earliest",
+              "topics": ["test-topic"]
             }
           }
         }

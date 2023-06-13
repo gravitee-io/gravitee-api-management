@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployApi({ "/apis/v4/messages/sse-entrypoint-kafka-endpoint.json" })
+@DeployApi({ "/apis/v4/messages/sse/sse-entrypoint-kafka-endpoint.json" })
 class SseEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpointIntegrationTest {
 
     @Override
@@ -54,9 +54,9 @@ class SseEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpointInt
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection through SSE entrypoint.
         KafkaProducer<String, byte[]> producer = getKafkaProducer(vertx);
-        blockingPublishMessage(producer, "message1");
-        blockingPublishMessage(producer, "message2");
-        blockingPublishMessage(producer, "message3");
+        blockingPublishToKafka(producer, "message1");
+        blockingPublishToKafka(producer, "message2");
+        blockingPublishToKafka(producer, "message3");
         producer.close();
 
         final TestSubscriber<Buffer> obs = httpClient
