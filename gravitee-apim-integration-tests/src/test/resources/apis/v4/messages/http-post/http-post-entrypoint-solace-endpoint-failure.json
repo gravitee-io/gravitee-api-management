@@ -1,0 +1,84 @@
+{
+  "id": "http-post-entrypoint-mqtt5-endpoint-failure",
+  "name": "http-post-entrypoint-mqtt5-endpoint-failure",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "Api v4 using HTTP POST entrypoint and mqtt5 endpoint with failure",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-failure"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-post",
+          "configuration": {
+            "requestHeadersToMessage": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "solace",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "solace",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "url": "solace-url",
+            "vpnName": "default"
+          },
+          "sharedConfigurationOverride": {
+            "producer": {
+              "enabled": true,
+              "topics": ["test-topic"]
+            },
+            "security": {
+              "auth" : {
+                "username" : "admin",
+                "password" : "admin"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "STARTS_WITH"
+        }
+      ],
+      "request": [],
+      "response": [],
+      "subscribe": [],
+      "publish": [
+        {
+          "name": "failure",
+          "description": "failure",
+          "enabled": true,
+          "policy": "interrupt-message-request-phase",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}

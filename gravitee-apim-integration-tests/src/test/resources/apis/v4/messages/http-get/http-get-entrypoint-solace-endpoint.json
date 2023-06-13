@@ -29,21 +29,27 @@
   "endpointGroups": [
     {
       "name": "default-group",
-      "type": "mqtt5",
+      "type": "solace",
       "endpoints": [
         {
           "name": "default",
-          "type": "mqtt5",
+          "type": "solace",
           "weight": 1,
           "inheritConfiguration": false,
           "configuration": {
-            "serverHost": "localhost",
-            "serverPort": "mqtt5-port"
+            "url": "solace-url",
+            "vpnName": "default"
           },
           "sharedConfigurationOverride": {
             "consumer": {
               "enabled": true,
-              "topic": "test-topic"
+              "topics": ["test-topic"]
+            },
+            "security": {
+              "auth" : {
+                "username" : "admin",
+                "password" : "admin"
+              }
             }
           }
         }

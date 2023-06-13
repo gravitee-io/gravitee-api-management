@@ -1,10 +1,10 @@
 {
-  "id": "http-get-endpoint-mqtt5-endpoint",
+  "id": "my-api",
   "name": "my-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
   "type": "message",
-  "description": "api v4 using HTTP Get entrypoint",
+  "description": "api v4 using Websocket entrypoint",
   "listeners": [
     {
       "type": "http",
@@ -15,12 +15,14 @@
       ],
       "entrypoints": [
         {
-          "type": "http-get",
+          "type": "websocket",
           "configuration": {
-            "messagesLimitCount": 1,
-            "messagesLimitDurationMs": 10000,
-            "headersInPayload": true,
-            "metadataInPayload": true
+            "publisher": {
+              "enabled": true
+            },
+            "subscriber": {
+              "enabled": false
+            }
           }
         }
       ]
@@ -29,21 +31,27 @@
   "endpointGroups": [
     {
       "name": "default-group",
-      "type": "mqtt5",
+      "type": "solace",
       "endpoints": [
         {
           "name": "default",
-          "type": "mqtt5",
+          "type": "solace",
           "weight": 1,
           "inheritConfiguration": false,
           "configuration": {
-            "serverHost": "localhost",
-            "serverPort": "mqtt5-port"
+            "url": "solace-url",
+            "vpnName": "default"
           },
           "sharedConfigurationOverride": {
-            "consumer": {
+            "producer": {
               "enabled": true,
-              "topic": "test-topic"
+              "topics": ["test-topic"]
+            },
+            "security": {
+              "auth" : {
+                "username" : "admin",
+                "password" : "admin"
+              }
             }
           }
         }

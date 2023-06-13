@@ -1,5 +1,5 @@
 {
-  "id": "http-get-endpoint-mqtt5-endpoint",
+  "id": "http-get-endpoint-mqtt5-endpoint-at-least-once",
   "name": "my-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
@@ -10,12 +10,13 @@
       "type": "http",
       "paths": [
         {
-          "path": "/test"
+          "path": "/test-at-least-once"
         }
       ],
       "entrypoints": [
         {
           "type": "http-get",
+          "qos": "at-least-once",
           "configuration": {
             "messagesLimitCount": 1,
             "messagesLimitDurationMs": 10000,
@@ -29,21 +30,27 @@
   "endpointGroups": [
     {
       "name": "default-group",
-      "type": "mqtt5",
+      "type": "solace",
       "endpoints": [
         {
           "name": "default",
-          "type": "mqtt5",
+          "type": "solace",
           "weight": 1,
           "inheritConfiguration": false,
           "configuration": {
-            "serverHost": "localhost",
-            "serverPort": "mqtt5-port"
+            "url": "solace-url",
+            "vpnName": "default"
           },
           "sharedConfigurationOverride": {
             "consumer": {
               "enabled": true,
-              "topic": "test-topic"
+              "topics": ["test-topic"]
+            },
+            "security": {
+              "auth" : {
+                "username" : "admin",
+                "password" : "admin"
+              }
             }
           }
         }

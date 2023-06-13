@@ -70,7 +70,7 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
     }
 
     @Test
-    @DeployApi("/apis/v4/messages/sse-entrypoint-mock-endpoint.json")
+    @DeployApi("/apis/v4/messages/sse/sse-entrypoint-mock-endpoint.json")
     void should_get_messages_with_default_configuration(HttpClient httpClient) {
         startSseStream(httpClient)
             // expect 3 chunks: retry, two messages
@@ -99,7 +99,7 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
     }
 
     @Test
-    @DeployApi("/apis/v4/messages/sse-entrypoint-with-comments-mock-endpoint.json")
+    @DeployApi("/apis/v4/messages/sse/sse-entrypoint-with-comments-mock-endpoint.json")
     void should_get_messages_with_default_comments(HttpClient httpClient) {
         startSseStream(httpClient)
             // expect 3 chunks: retry, two messages
@@ -128,7 +128,7 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
     }
 
     @Test
-    @DeployApi("/apis/v4/messages/sse-entrypoint-mock-endpoint-heartbeat.json")
+    @DeployApi("/apis/v4/messages/sse/sse-entrypoint-mock-endpoint-heartbeat.json")
     void should_get_message_and_heart_beat(HttpClient httpClient) {
         startSseStream(httpClient)
             // expect 3 chunks: retry,  1 heartbeat, 1 message,
