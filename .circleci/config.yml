@@ -492,7 +492,7 @@ jobs:
             - run:
                   name: "validate project"
                   command: |
-                      mvn -s .gravitee.settings.xml validate --no-transfer-progress -T 2C
+                      mvn -s .gravitee.settings.xml validate -Pall-modules,integration-tests-modules --no-transfer-progress -T 2C
             - cmd-save-maven-job-cache:
                   jobName: job-validate
             - cmd-notify-on-failure

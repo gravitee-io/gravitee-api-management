@@ -29,6 +29,13 @@ import io.reactivex.rxjava3.core.Completable;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.kafka.client.producer.KafkaProducer;
 import io.vertx.rxjava3.kafka.client.producer.KafkaProducerRecord;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -41,14 +48,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import org.testcontainers.utility.DockerImageName;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -77,19 +76,23 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
         if (definitionClass.isAssignableFrom(Api.class)) {
             Api apiDefinition = (Api) api.getDefinition();
             apiDefinition
-                    .getEndpointGroups()
-                    .stream()
-                    .flatMap(eg -> eg.getEndpoints().stream())
-                    .filter(endpoint -> endpoint.getType().equals("kafka"))
-                    .forEach(endpoint -> {
-                        endpoint.setConfiguration(endpoint.getConfiguration().replace("bootstrap-server", kafka.getBootstrapServers()));
-                    });
+                .getEndpointGroups()
+                .stream()
+                .flatMap(eg -> eg.getEndpoints().stream())
+                .filter(endpoint -> endpoint.getType().equals("kafka"))
+                .forEach(endpoint -> {
+                    endpoint.setConfiguration(endpoint.getConfiguration().replace("bootstrap-server", kafka.getBootstrapServers()));
+                });
         }
     }
 
     @BeforeEach
     void setUp() {
-        try (AdminClient adminClient = AdminClient.create(ImmutableMap.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()))) {
+        try (
+            AdminClient adminClient = AdminClient.create(
+                ImmutableMap.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers())
+            )
+        ) {
             deleteTopic(adminClient);
             createTopic(adminClient);
         } catch (Exception e) {
@@ -102,9 +105,7 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
         adminClient.deleteTopics(Set.of(TEST_TOPIC)).all().get(30, TimeUnit.SECONDS);
         // Because topic is actually marked as deleted, we need to ensure it is actually deleted
         while (!deleted) {
-            Set<String> topics = adminClient.listTopics()
-                    .names()
-                    .get(30, TimeUnit.SECONDS);
+            Set<String> topics = adminClient.listTopics().names().get(30, TimeUnit.SECONDS);
             deleted = !topics.contains(TEST_TOPIC);
         }
     }
@@ -114,7 +115,6 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
         adminClient.createTopics(topics).all().get(30, TimeUnit.SECONDS);
     }
 
-
     /**
      * Creates a KafkaProducer to be able to publish messages to topic
      * @param vertx
@@ -122,27 +122,24 @@ public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatew
      */
     protected static KafkaProducer<String, byte[]> getKafkaProducer(Vertx vertx) {
         Map<String, String> config = Map.of(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                kafka.getBootstrapServers(),
-                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class.getName(),
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                ByteArraySerializer.class.getName()
+            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+            kafka.getBootstrapServers(),
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+            StringSerializer.class.getName(),
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+            ByteArraySerializer.class.getName()
         );
 
         return KafkaProducer.create(vertx, config);
     }
 
     protected static void blockingPublishMessage(KafkaProducer<String, byte[]> producer, String message) {
-        publishMessage(producer, message)
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertNoErrors();
+        publishMessage(producer, message).test().awaitDone(10, TimeUnit.SECONDS).assertComplete().assertNoErrors();
     }
 
     protected static Completable publishMessage(KafkaProducer<String, byte[]> producer, String message) {
-        return producer.rxSend(KafkaProducerRecord.create(TEST_TOPIC, "key", io.gravitee.gateway.api.buffer.Buffer.buffer(message).getBytes())).ignoreElement();
+        return producer
+            .rxSend(KafkaProducerRecord.create(TEST_TOPIC, "key", io.gravitee.gateway.api.buffer.Buffer.buffer(message).getBytes()))
+            .ignoreElement();
     }
-
 }

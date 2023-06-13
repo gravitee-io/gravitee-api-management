@@ -5,21 +5,69 @@
         "messageInterval": {
             "title": "Interval between messages publication",
             "description": "Interval between messages publication, in milliseconds.",
-            "type": "integer",
-            "default": 1000
+          "type": "integer",
+          "default": 1000
         },
-        "messageContent": {
-            "title": "Content of published messages",
-            "description": "Content of published messages. Will be suffixed with message index.",
-            "type": "string",
-            "format": "text",
-            "default": "mock message"
-        },
-        "messageCount": {
-            "title": "Count of published messages",
-            "description": "Count of published messages. If not specified, there is no limit.",
-            "type": "integer"
+      "messageContent": {
+        "title": "Content of published messages",
+        "description": "Content of published messages. Will be suffixed with message index.",
+        "type": "string",
+        "format": "text",
+        "default": "mock message"
+      },
+      "messageCount": {
+        "title": "Count of published messages",
+        "description": "Count of published messages. If not specified, there is no limit.",
+        "type": "integer"
+      },
+      "headers": {
+          "type":"array",
+          "title":"Message Headers",
+          "description":"Static headers added to the message for downstream consumption",
+          "items":{
+            "type":"object",
+            "title":"Header",
+            "properties":{
+              "name":{
+                "type":"string",
+                "title":"Name"
+              },
+              "value":{
+                "type":"string",
+                "title":"Value"
+              }
+            },
+            "required":[
+              "name",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+      },
+      "metadata": {
+        "type":"array",
+        "title":"Message metadata",
+        "description":"Static metadata added to the message for downstream consumption",
+        "items":{
+          "type":"object",
+          "title":"Header",
+          "properties":{
+            "name":{
+              "type":"string",
+              "title":"Name"
+            },
+            "value":{
+              "type":"string",
+              "title":"Value"
+            }
+          },
+          "required":[
+            "name",
+            "value"
+          ],
+          "additionalProperties": false
         }
+      }
     },
     "required": ["messageContent", "messageInterval"],
     "additionalProperties": false

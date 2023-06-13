@@ -35,5 +35,4 @@ public class BestMatchV3IntegrationTest extends BestMatchIntegrationTest {
     @GatewayTest(mode = GatewayMode.V3)
     @DeployApi("/apis/http/bestmatch/api.json")
     class EqualsOperator extends BestMatchIntegrationTest.EqualsOperator {}
-
 }

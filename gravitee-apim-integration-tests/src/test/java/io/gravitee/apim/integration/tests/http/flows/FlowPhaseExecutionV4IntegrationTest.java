@@ -15,6 +15,10 @@
  */
 package io.gravitee.apim.integration.tests.http.flows;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
@@ -31,18 +35,13 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -78,12 +77,13 @@ class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionIntegrationT
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
-                definition.getFlows().forEach(flow -> {
-                flow.selectorByType(SelectorType.HTTP)
-                       .ifPresent(selector ->
-                           ((HttpSelector) selector).setPathOperator(Operator.EQUALS)
-                       );
-                });
+                definition
+                    .getFlows()
+                    .forEach(flow -> {
+                        flow
+                            .selectorByType(SelectorType.HTTP)
+                            .ifPresent(selector -> ((HttpSelector) selector).setPathOperator(Operator.EQUALS));
+                    });
             }
         }
 
@@ -103,6 +103,7 @@ class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionIntegrationT
     @DeployApi("/apis/v4/http/flows/api-flows-equals-and-starts-with.json")
     @DisplayName("Flows without condition and mixed operators")
     class NoConditionOperatorMixed extends FlowPhaseExecutionIntegrationTest.NoConditionOperatorMixed {
+
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
             entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
@@ -116,9 +117,12 @@ class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionIntegrationT
 
     @Nested
     @GatewayTest
-    @DeployApi({"/apis/v4/http/flows/api-conditional-flows.json", "/apis/v4/http/flows/api-conditional-flows-double-evaluation-case.json"})
+    @DeployApi(
+        { "/apis/v4/http/flows/api-conditional-flows.json", "/apis/v4/http/flows/api-conditional-flows-double-evaluation-case.json" }
+    )
     @DisplayName("Flows without condition and mixed operators")
     class ConditionalFlows extends FlowPhaseExecutionIntegrationTest.ConditionalFlows {
+
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
             entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));

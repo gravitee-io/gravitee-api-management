@@ -37,15 +37,14 @@ import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.buffer.Buffer;
+import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.hivemq.HiveMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -56,7 +55,7 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
 
     @Container
     protected static final HiveMQContainer mqtt5 = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce").withTag("2023.3"))
-            .withTmpFs(null);
+        .withTmpFs(null);
 
     protected Mqtt5RxClient mqtt5RxClient;
     protected static final String TEST_TOPIC = "test-topic";
@@ -79,13 +78,13 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
         if (definitionClass.isAssignableFrom(Api.class)) {
             Api apiDefinition = (Api) api.getDefinition();
             apiDefinition
-                    .getEndpointGroups()
-                    .stream()
-                    .flatMap(eg -> eg.getEndpoints().stream())
-                    .filter(endpoint -> endpoint.getType().equals("mqtt5"))
-                    .forEach(endpoint ->
-                            endpoint.setConfiguration(endpoint.getConfiguration().replace("mqtt5-port", Integer.toString(mqtt5.getMqttPort())))
-                    );
+                .getEndpointGroups()
+                .stream()
+                .flatMap(eg -> eg.getEndpoints().stream())
+                .filter(endpoint -> endpoint.getType().equals("mqtt5"))
+                .forEach(endpoint ->
+                    endpoint.setConfiguration(endpoint.getConfiguration().replace("mqtt5-port", Integer.toString(mqtt5.getMqttPort())))
+                );
         }
     }
 
@@ -100,28 +99,38 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
         blockingDisconnectFromMqtt5(mqtt5RxClient);
     }
 
-    protected io.reactivex.rxjava3.core.Flowable<Mqtt5PublishResult> publishToMqtt5(Mqtt5RxClient mqtt5RxClient, String topic, String payload) {
-        return RxJavaBridge
-                .toV3Flowable(mqtt5RxClient.publish(Flowable.just(Mqtt5Publish.builder()
-                .topic(topic)
-                .payload(Buffer.buffer(payload).getBytes())
-                .qos(Mqtt5Publish.DEFAULT_QOS)
-                .noMessageExpiry()
-                .retain(true)
-                .build())));
+    protected io.reactivex.rxjava3.core.Flowable<Mqtt5PublishResult> publishToMqtt5(
+        Mqtt5RxClient mqtt5RxClient,
+        String topic,
+        String payload
+    ) {
+        return RxJavaBridge.toV3Flowable(
+            mqtt5RxClient.publish(
+                Flowable.just(
+                    Mqtt5Publish
+                        .builder()
+                        .topic(topic)
+                        .payload(Buffer.buffer(payload).getBytes())
+                        .qos(Mqtt5Publish.DEFAULT_QOS)
+                        .noMessageExpiry()
+                        .retain(true)
+                        .build()
+                )
+            )
+        );
     }
 
     protected TestSubscriber<Mqtt5Publish> subscribeToMqtt5(Mqtt5RxClient mqtt5RxClient, String topic) {
         return RxJavaBridge
-                .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(topic).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
-                .take(1)
-                .test();
+            .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(topic).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
+            .take(1)
+            .test();
     }
 
     protected io.reactivex.rxjava3.core.Flowable<Mqtt5Publish> subscribeToMqtt5Flowable(Mqtt5RxClient mqtt5RxClient, String topic) {
         return RxJavaBridge
-                .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(topic).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
-                .take(1);
+            .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(topic).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
+            .take(1);
     }
 
     protected void blockingDisconnectFromMqtt5(Mqtt5RxClient mqtt5RxClient) {
@@ -133,32 +142,31 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
     }
 
     protected void blockingConnectToMqtt5(VertxTestContext testContext, Mqtt5RxClient mqtt5RxClient) {
-        connectToMqtt5(testContext, mqtt5RxClient)
-                .blockingAwait();
+        connectToMqtt5(testContext, mqtt5RxClient).blockingAwait();
     }
 
     protected Completable connectToMqtt5(final VertxTestContext testContext, final Mqtt5RxClient mqtt5RxClient) {
         final Checkpoint mqttConnectedCheckpoint = testContext.checkpoint();
-        return RxJavaBridge
-                .toV3Completable(mqtt5RxClient
-                        .connect()
-                        .doOnSuccess(mqtt5ConnAck -> {
-                            if (mqtt5ConnAck.getReasonCode().equals(Mqtt5ConnAckReasonCode.SUCCESS)) {
-                                mqttConnectedCheckpoint.flag();
-                            } else {
-                                testContext.failNow("Unable to connect to MQTT5");
-                            }
-                        })
-                        .ignoreElement());
+        return RxJavaBridge.toV3Completable(
+            mqtt5RxClient
+                .connect()
+                .doOnSuccess(mqtt5ConnAck -> {
+                    if (mqtt5ConnAck.getReasonCode().equals(Mqtt5ConnAckReasonCode.SUCCESS)) {
+                        mqttConnectedCheckpoint.flag();
+                    } else {
+                        testContext.failNow("Unable to connect to MQTT5");
+                    }
+                })
+                .ignoreElement()
+        );
     }
 
     protected Mqtt5RxClient prepareMqtt5Client() {
         return Mqtt5Client
-                .builder()
-                .serverHost(mqtt5.getHost())
-                .serverPort(mqtt5.getMqttPort())
-                .automaticReconnectWithDefaultConfig()
-                .buildRx();
+            .builder()
+            .serverHost(mqtt5.getHost())
+            .serverPort(mqtt5.getMqttPort())
+            .automaticReconnectWithDefaultConfig()
+            .buildRx();
     }
-
 }
