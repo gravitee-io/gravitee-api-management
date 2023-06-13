@@ -112,7 +112,7 @@ describe('ApiPortalPlanEditComponent', () => {
           },
         ]);
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-        planForm.httpRequest(httpTestingController).expectPlanSchemaGetRequest('jwt', {});
+        planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('jwt', {});
 
         await planForm.getNameInput().then((i) => i.setValue('My new plan'));
 
@@ -414,7 +414,7 @@ describe('ApiPortalPlanEditComponent', () => {
         },
       ]);
       planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
-      planForm.httpRequest(httpTestingController).expectPlanSchemaGetRequest('jwt', {});
+      planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('jwt', {});
 
       await planForm.getNameInput().then((i) => i.setValue('My new plan'));
 
