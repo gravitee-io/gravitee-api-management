@@ -42,6 +42,8 @@
           tabIndex="1"
           (click)="navigateTo(menuItem?.tabs[0]?.targetRoute)"
           [active]="isTabActive(menuItem?.tabs)"
+          [gioLicense]="menuItem?.license"
+          [iconRight]="menuItem?.iconRight$ | async"
           >{{ menuItem?.displayName }}</gio-submenu-item
         >
         <gio-submenu-item
@@ -49,6 +51,8 @@
           tabIndex="1"
           (click)="navigateTo(menuItem?.targetRoute)"
           [active]="isActive(menuItem?.baseRoute)"
+          [gioLicense]="menuItem?.license"
+          [iconRight]="menuItem?.iconRight$ | async"
           >{{ menuItem?.displayName }}</gio-submenu-item
         >
       </ng-container>
@@ -60,15 +64,19 @@
               tabIndex="1"
               (click)="navigateTo(subItem?.tabs[0]?.targetRoute)"
               [active]="isTabActive(subItem?.tabs)"
-              >{{ subItem?.displayName }}</gio-submenu-item
-            >
+              [gioLicense]="subItem?.license"
+              [iconRight]="subItem?.iconRight$ | async"
+              >{{ subItem?.displayName }}
+            </gio-submenu-item>
             <gio-submenu-item
               *ngIf="subItem?.targetRoute"
               tabIndex="1"
+              [gioLicense]="subItem?.license"
+              [iconRight]="subItem?.iconRight$ | async"
               (click)="navigateTo(subItem?.targetRoute)"
               [active]="isActive(subItem?.baseRoute)"
-              >{{ subItem?.displayName }}</gio-submenu-item
-            >
+              >{{ subItem?.displayName }}
+            </gio-submenu-item>
           </ng-container>
         </gio-submenu-group>
       </ng-container>
