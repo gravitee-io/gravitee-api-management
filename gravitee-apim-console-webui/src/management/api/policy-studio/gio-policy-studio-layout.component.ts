@@ -15,11 +15,10 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateParams, StateService } from '@uirouter/angularjs';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Observable, of, Subject } from 'rxjs';
 
 import { PolicyStudioService } from './policy-studio.service';
-import { PolicyStudioPropertiesService } from './properties/policy-studio-properties.service';
 import { ApiDefinition, toApiDefinition } from './models/ApiDefinition';
 
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -27,6 +26,14 @@ import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../ajs-u
 import { ApiService } from '../../../services-ngx/api.service';
 import { Api } from '../../../entities/api';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
+
+interface MenuItem {
+  label: string;
+  uiSref: Observable<string>;
+  license?: any;
+  notAllowed$?: Observable<boolean>;
+}
 
 @Component({
   selector: 'gio-policy-studio-layout',
@@ -35,12 +42,11 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 })
 export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();
-  policyStudioMenu = [
-    { label: 'Design', uiSref: 'design' },
-    { label: 'Configuration', uiSref: 'config' },
-    { label: 'Properties', uiSref: 'properties' },
-    { label: 'Resources', uiSref: 'resources' },
-    { label: 'Debug', uiSref: 'debug' },
+  policyStudioMenu: MenuItem[] = [
+    { label: 'Design', uiSref: of('.design') },
+    { label: 'Configuration', uiSref: of('.config') },
+    { label: 'Properties', uiSref: of('.properties') },
+    { label: 'Resources', uiSref: of('.resources') },
   ];
   activeLink = this.policyStudioMenu[0];
   apiDefinition: ApiDefinition;
@@ -48,7 +54,7 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
 
   constructor(
     readonly policyStudioService: PolicyStudioService,
-    readonly policyStudioPropertiesService: PolicyStudioPropertiesService,
+    readonly gioLicenseService: GioLicenseService,
     readonly snackBarService: SnackBarService,
     readonly apiService: ApiService,
     readonly permissionService: GioPermissionService,
@@ -58,6 +64,15 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    const debugLicense = { feature: 'apim-debug-mode' };
+    const notAllowed$ = this.gioLicenseService.notAllowed(debugLicense.feature);
+    this.policyStudioMenu.push({
+      label: 'Debug',
+      uiSref: notAllowed$.pipe(map((notAllowed) => (notAllowed ? null : '.debug'))),
+      license: debugLicense,
+      notAllowed$,
+    });
+
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
