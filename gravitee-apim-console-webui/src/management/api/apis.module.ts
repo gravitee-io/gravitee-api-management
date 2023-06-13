@@ -35,6 +35,8 @@ import { ApiPortalPlanEditComponent } from './portal/plans/edit/api-portal-plan-
 import { ApiPortalPlanListComponent } from './portal/plans/list/api-portal-plan-list.component';
 import { ApiPortalSubscriptionListComponent } from './portal/ng-subscriptions/list/api-portal-subscription-list.component';
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
+import { ApiProxyV4EntrypointsComponent } from './proxy-v4/api-proxy-v4-entrypoints.component';
+import { ApiProxyV4Module } from './proxy-v4/api-proxy-v4.module';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
@@ -182,6 +184,19 @@ const states: Ng2StateDeclaration[] = [
       },
     },
   },
+  {
+    name: 'management.apis.ng.proxy',
+    url: '/proxy',
+    component: ApiProxyV4EntrypointsComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-r'],
+      // },
+    },
+  },
 ];
 
 @NgModule({
@@ -196,6 +211,7 @@ const states: Ng2StateDeclaration[] = [
     ApiPortalPlansModule,
     ApiPortalSubscriptionsModule,
     ApiProxyModule,
+    ApiProxyV4Module,
     ApiPortalUserGroupModule,
 
     GioEmptyModule,

@@ -1,0 +1,57 @@
+@use '../../../scss/gio-layout' as gio-layout;
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+  overflow: visible;
+}
+
+.entrypoints {
+  &__context-path {
+    &__title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+  }
+  &__table {
+    width: 100%;
+    margin-top: 24px;
+
+    border: 1px solid map.get(gio.$mat-dove-palette, darker10);
+    border-radius: 4px;
+    border-collapse: inherit;
+
+    &__header {
+      background: map.get(gio.$mat-dove-palette, default);
+    }
+
+    &__type {
+      display: flex;
+      align-items: center;
+
+      mat-icon {
+        padding-right: 8px;
+      }
+    }
+
+    &__actions {
+      display: flex;
+      justify-content: flex-end;
+
+      .mat-icon-button {
+        height: 48px;
+      }
+    }
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 24px;
+    gap: 8px;
+  }
+}
