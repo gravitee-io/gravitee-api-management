@@ -78,7 +78,7 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     await apiPlanFormHarness.getNameInput().then((i) => i.setValue(planName));
 
-    apiPlanFormHarness.httpRequest(httpTestingController).expectPlanSchemaGetRequest('api-key', {});
+    apiPlanFormHarness.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('api-key', {});
 
     await (await this.getButtonByText('Next')).click();
     await (await this.getButtonByText('Next')).click();
