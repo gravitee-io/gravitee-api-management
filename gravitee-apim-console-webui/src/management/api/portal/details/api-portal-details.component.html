@@ -176,7 +176,11 @@
     </div>
   </mat-card>
 
-  <api-portal-details-quality *ngIf="isQualityEnabled && apiId" class="api-quality" [apiId]="apiId"></api-portal-details-quality>
+  <api-portal-details-quality
+    *ngIf="isQualityEnabled && apiId && api.definitionVersion !== 'V4'"
+    class="api-quality"
+    [apiId]="apiId"
+  ></api-portal-details-quality>
 
   <api-portal-details-danger-zone class="danger-zone" [api]="api" (reloadDetails)="ngOnInit()"></api-portal-details-danger-zone>
 
