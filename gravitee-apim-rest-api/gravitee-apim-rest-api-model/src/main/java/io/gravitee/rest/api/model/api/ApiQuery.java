@@ -19,11 +19,17 @@ import io.gravitee.rest.api.model.Visibility;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ApiQuery {
 
     private Collection<String> ids;
@@ -194,7 +200,7 @@ public class ApiQuery {
             '\'' +
             ", lifecycleStates=" +
             lifecycleStates +
-            +'\'' +
+            '\'' +
             ", crossId=" +
             crossId +
             '}'
