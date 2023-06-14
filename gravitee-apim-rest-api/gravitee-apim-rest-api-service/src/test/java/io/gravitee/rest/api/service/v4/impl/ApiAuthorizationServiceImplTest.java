@@ -15,31 +15,32 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApplicationService;
@@ -49,17 +50,22 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -120,12 +126,12 @@ public class ApiAuthorizationServiceImplTest {
 
     @Test
     public void shouldNotManageApiWithNullRole() {
-        assertFalse(apiAuthorizationService.canManageApi(null));
+        assertThat(apiAuthorizationService.canManageApi(null)).isFalse();
     }
 
     @Test
     public void shouldNotManageApiWithNotApiRole() {
-        assertFalse(apiAuthorizationService.canManageApi(new RoleEntity()));
+        assertThat(apiAuthorizationService.canManageApi(new RoleEntity())).isFalse();
     }
 
     @Test
@@ -142,7 +148,13 @@ public class ApiAuthorizationServiceImplTest {
         when(roleService.findById(userRoleId)).thenReturn(userRole);
         when(api.getId()).thenReturn("api-1");
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-        apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids("api-1").build());
+        apiCriteriaList.add(
+            new ApiCriteria.Builder()
+                .environmentId("DEFAULT")
+                .ids("api-1")
+                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
+                .build()
+        );
 
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
@@ -166,12 +178,11 @@ public class ApiAuthorizationServiceImplTest {
 
         final Set<String> apis = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
 
-        assertNotNull(apis);
-        assertEquals(1, apis.size());
+        assertThat(apis).hasSize(1);
     }
 
     @Test
-    public void shouldNotFindIdsByUserBecauseNotExists() throws TechnicalException {
+    public void shouldNotFindIdsByUserBecauseNotExists() {
         final String poRoleId = "API_PRIMARY_OWNER";
 
         RoleEntity poRole = new RoleEntity();
@@ -186,16 +197,14 @@ public class ApiAuthorizationServiceImplTest {
 
         final Set<String> apisId = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
 
-        assertNotNull(apisId);
-        assertTrue(apisId.isEmpty());
+        assertThat(apisId).isEmpty();
     }
 
     @Test
-    public void shouldFindPublicApisOnlyWithAnonymousUser() throws TechnicalException {
+    public void shouldFindPublicApisOnlyWithAnonymousUser() {
         final Set<String> apisId = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), null, true);
 
-        assertNotNull(apisId);
-        assertEquals(0, apisId.size());
+        assertThat(apisId).isEmpty();
 
         verify(membershipService, times(0))
             .getMembershipsByMemberAndReference(MembershipMemberType.USER, null, MembershipReferenceType.API);
@@ -227,8 +236,7 @@ public class ApiAuthorizationServiceImplTest {
 
         final Set<String> apisId = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
 
-        assertNotNull(apisId);
-        assertEquals(0, apisId.size());
+        assertThat(apisId).isEmpty();
     }
 
     @Test
@@ -250,10 +258,16 @@ public class ApiAuthorizationServiceImplTest {
                 .environmentId("DEFAULT")
                 .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
                 .visibility(Visibility.PUBLIC)
+                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
                 .build()
         );
         apiCriteriaList.add(
-            new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
+            new ApiCriteria.Builder()
+                .environmentId("DEFAULT")
+                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                .ids("api-1")
+                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
+                .build()
         );
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
@@ -277,8 +291,7 @@ public class ApiAuthorizationServiceImplTest {
 
         final Set<String> apis = apiAuthorizationService.findAccessibleApiIdsForUser(GraviteeContext.getExecutionContext(), USER_NAME);
 
-        assertNotNull(apis);
-        assertEquals(1, apis.size());
+        assertThat(apis).hasSize(1);
     }
 
     @Test
@@ -300,10 +313,16 @@ public class ApiAuthorizationServiceImplTest {
                 .environmentId("DEFAULT")
                 .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
                 .visibility(Visibility.PUBLIC)
+                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
                 .build()
         );
         apiCriteriaList.add(
-            new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
+            new ApiCriteria.Builder()
+                .environmentId("DEFAULT")
+                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                .ids("api-1")
+                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
+                .build()
         );
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
@@ -331,8 +350,7 @@ public class ApiAuthorizationServiceImplTest {
             new ApiQuery()
         );
 
-        assertNotNull(apis);
-        assertEquals(1, apis.size());
+        assertThat(apis).hasSize(1);
     }
 
     @Test
@@ -355,10 +373,16 @@ public class ApiAuthorizationServiceImplTest {
                 .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
                 .ids("api-1")
                 .visibility(Visibility.PUBLIC)
+                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
                 .build()
         );
         apiCriteriaList.add(
-            new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
+            new ApiCriteria.Builder()
+                .environmentId("DEFAULT")
+                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
+                .ids("api-1")
+                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
+                .build()
         );
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
@@ -386,8 +410,42 @@ public class ApiAuthorizationServiceImplTest {
             Set.of("api-1")
         );
 
-        assertNotNull(apis);
-        assertEquals(1, apis.size());
+        assertThat(apis).hasSize(1);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void shouldReturnAllVisibleApiWhenManagedOnlyIsFalse() {
+        when(searchEngineService.search(any(), any())).thenReturn(new SearchResult(List.of("api-2")));
+
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(
+            new ApiCriteria.Builder()
+                .environmentId("DEFAULT")
+                .ids(List.of("api-2"))
+                .visibility(Visibility.PUBLIC)
+                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
+                .build()
+        );
+        when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-2"), 0, 1, 1));
+
+        final Set<String> apisId = apiAuthorizationService.findIdsByUser(
+            GraviteeContext.getExecutionContext(),
+            null,
+            ApiQuery.builder().tag("a-tag").build(),
+            false
+        );
+        assertThat(apisId).contains("api-2");
+
+        var searchEngineQueryCaptor = ArgumentCaptor.forClass(Query.class);
+        verify(searchEngineService).search(any(), searchEngineQueryCaptor.capture());
+        SoftAssertions.assertSoftly(soft -> {
+            var query = searchEngineQueryCaptor.getValue();
+            soft.assertThat(query.getQuery()).isEqualTo("tag:a\\-tag");
+            soft
+                .assertThat(query.getExcludedFilters())
+                .containsEntry(FIELD_DEFINITION_VERSION, singletonList(DefinitionVersion.V4.getLabel()));
+        });
     }
 
     @Test
@@ -424,8 +482,7 @@ public class ApiAuthorizationServiceImplTest {
             false
         );
 
-        assertThat(result).isNotNull();
-        assertThat(result.size()).isEqualTo(2);
+        assertThat(result).hasSize(2);
         verify(subscriptionService).search(any(), argThat(argument -> argument.getExcludedApis().contains(apiId)));
     }
 }
