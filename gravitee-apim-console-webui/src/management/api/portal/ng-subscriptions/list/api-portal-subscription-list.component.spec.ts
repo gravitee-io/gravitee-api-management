@@ -25,6 +25,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiPortalSubscriptionListComponent } from './api-portal-subscription-list.component';
 
@@ -36,7 +37,7 @@ import { Api, ApiSubscriptionsResponse, fakeApiV4, fakeSubscription, Subscriptio
 
 describe('ApiPortalSubscriptionListComponent', () => {
   const API_ID = 'api#1';
-  const anAPi = fakeApiV4({ id: API_ID });
+  const anAPI = fakeApiV4({ id: API_ID });
   const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['api-plan-u', 'api-plan-r', 'api-plan-d'];
@@ -93,6 +94,35 @@ describe('ApiPortalSubscriptionListComponent', () => {
       const apikeyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="apikey"]' }));
       expect(await apikeyInput.isDisabled()).toEqual(false);
       expect(await apikeyInput.getValue()).toEqual('');
+    }));
+
+    it('should init filters from params', fakeAsync(async () => {
+      await initComponent([], anAPI, { plan: null, application: null, status: 'CLOSED,REJECTED', apikey: 'apikey_1' });
+
+      const planSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="planIds"]' }));
+      expect(await planSelectInput.isDisabled()).toEqual(false);
+      expect(await planSelectInput.isEmpty()).toEqual(true);
+
+      const applicationSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="applicationIds"]' }));
+      expect(await applicationSelectInput.isDisabled()).toEqual(false);
+      expect(await applicationSelectInput.isEmpty()).toEqual(true);
+
+      const statusSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="statuses"]' }));
+      expect(await statusSelectInput.isDisabled()).toEqual(false);
+      expect(await statusSelectInput.getValueText()).toEqual('Closed, Rejected');
+
+      const apikeyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="apikey"]' }));
+      expect(await apikeyInput.isDisabled()).toEqual(false);
+      expect(await apikeyInput.getValue()).toEqual('apikey_1');
+    }));
+
+    it('should reset filters from params', fakeAsync(async () => {
+      await initComponent([], anAPI, { plan: null, application: null, status: 'CLOSED,REJECTED', apikey: 'apikey_1' });
+
+      const resetFilterButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Reset filters"]' }));
+      await resetFilterButton.click();
+      tick(800);
+      expectGetApiSubscriptionsRequest([]);
     }));
   });
 
@@ -152,7 +182,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
 
       const statusSelectInput = await getEmptyFilterForm();
       await statusSelectInput.clickOptions({ text: 'Closed' });
-      tick(500); // Wait for the debounce
+      tick(800); // Wait for the debounce
       const closedSubscription = fakeSubscription({ status: 'CLOSED' });
       expectGetApiSubscriptionsRequest([closedSubscription], ['CLOSED']);
 
@@ -167,7 +197,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
 
       const statusSelectInput = await getEmptyFilterForm();
       await statusSelectInput.clickOptions({ text: 'Rejected' });
-      tick(500); // Wait for the debounce
+      tick(800); // Wait for the debounce
       expectGetApiSubscriptionsRequest([], ['REJECTED']);
 
       const { rowCells } = await computeSubscriptionsTableCells();
@@ -175,15 +205,25 @@ describe('ApiPortalSubscriptionListComponent', () => {
     }));
   });
 
-  async function initComponent(subscriptions: Subscription[], api: Api = anAPi) {
-    await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id } }).compileComponents();
+  async function initComponent(
+    subscriptions: Subscription[],
+    api: Api = anAPI,
+    params?: { plan?: string; application?: string; status?: string; apikey?: string },
+  ) {
+    await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id, ...(params ? params : {}) } }).compileComponents();
     fixture = TestBed.createComponent(ApiPortalSubscriptionListComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
     tick(800); // wait for debounce
     expectApiGetRequest(api);
-    expectGetApiSubscriptionsRequest(subscriptions);
+    expectGetApiSubscriptionsRequest(
+      subscriptions,
+      params?.status?.split(','),
+      params?.application?.split(','),
+      params?.plan?.split(','),
+      params?.apikey,
+    );
 
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();

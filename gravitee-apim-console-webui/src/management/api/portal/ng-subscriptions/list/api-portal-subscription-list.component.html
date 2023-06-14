@@ -69,11 +69,8 @@
     </mat-form-field>
   </div>
   <div class="subscriptions__filters__buttons">
-    <button mat-raised-button type="button" color="secondary" disabled="true" aria-label="Reset filters">
+    <button mat-raised-button type="button" color="secondary" aria-label="Reset filters" (click)="resetFilters()">
       <mat-icon svgIcon="gio:refresh-cw"></mat-icon>Reset filters
-    </button>
-    <button mat-raised-button type="button" color="secondary" disabled="true" aria-label="Search">
-      <mat-icon svgIcon="gio:search"></mat-icon>Search
     </button>
   </div>
 </mat-card>
