@@ -33,6 +33,6 @@ public abstract class AbstractFlowResolver implements FlowResolver {
     }
 
     public Flowable<Flow> resolve(GenericExecutionContext ctx) {
-        return provideFlows(ctx).flatMapMaybe(flow -> filter.filter(ctx, flow));
+        return provideFlows(ctx).concatMapMaybe(flow -> filter.filter(ctx, flow));
     }
 }
