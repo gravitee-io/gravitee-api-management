@@ -40,9 +40,9 @@ export class ApiSubscriptionV2Service {
       params: {
         page,
         perPage,
-        ...(statuses ? { statuses: statuses.join(',') } : {}),
-        ...(applicationIds ? { applicationIds: applicationIds.join(',') } : {}),
-        ...(planIds ? { planIds: planIds.join(',') } : {}),
+        ...(statuses && statuses.length > 0 ? { statuses: statuses.join(',') } : {}),
+        ...(applicationIds && applicationIds.length > 0 ? { applicationIds: applicationIds.join(',') } : {}),
+        ...(planIds && planIds.length > 0 ? { planIds: planIds.join(',') } : {}),
         ...(apikey ? { apikey: apikey } : {}),
         ...(expands ? { expands: expands.join(',') } : {}),
       },

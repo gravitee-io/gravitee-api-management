@@ -33,11 +33,22 @@ import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../..
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiPortalSubscriptionsModule } from '../api-portal-subscriptions.module';
 import { User as DeprecatedUser } from '../../../../../entities/user';
-import { Api, ApiSubscriptionsResponse, fakeApiV4, fakeSubscription, Subscription } from '../../../../../entities/management-api-v2';
+import {
+  Api,
+  ApiPlansResponse,
+  ApiSubscriptionsResponse,
+  fakeApiV4,
+  fakePlanV4,
+  fakeSubscription,
+  Plan,
+  Subscription,
+} from '../../../../../entities/management-api-v2';
 
 describe('ApiPortalSubscriptionListComponent', () => {
   const API_ID = 'api#1';
+  const PLAN_ID = 'plan#1';
   const anAPI = fakeApiV4({ id: API_ID });
+  const aPlan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
   const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['api-plan-u', 'api-plan-r', 'api-plan-d'];
@@ -97,7 +108,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     }));
 
     it('should init filters from params', fakeAsync(async () => {
-      await initComponent([], anAPI, { plan: null, application: null, status: 'CLOSED,REJECTED', apikey: 'apikey_1' });
+      await initComponent([], anAPI, [aPlan], { plan: null, application: null, status: 'CLOSED,REJECTED', apikey: 'apikey_1' });
 
       const planSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="planIds"]' }));
       expect(await planSelectInput.isDisabled()).toEqual(false);
@@ -117,12 +128,12 @@ describe('ApiPortalSubscriptionListComponent', () => {
     }));
 
     it('should reset filters from params', fakeAsync(async () => {
-      await initComponent([], anAPI, { plan: null, application: null, status: 'CLOSED,REJECTED', apikey: 'apikey_1' });
+      await initComponent([], anAPI, [aPlan], { plan: null, application: null, status: 'CLOSED,REJECTED', apikey: 'apikey_1' });
 
       const resetFilterButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Reset filters"]' }));
       await resetFilterButton.click();
       tick(800);
-      expectGetApiSubscriptionsRequest([]);
+      expectApiSubscriptionsGetRequest([]);
     }));
   });
 
@@ -184,7 +195,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       await statusSelectInput.clickOptions({ text: 'Closed' });
       tick(800); // Wait for the debounce
       const closedSubscription = fakeSubscription({ status: 'CLOSED' });
-      expectGetApiSubscriptionsRequest([closedSubscription], ['CLOSED']);
+      expectApiSubscriptionsGetRequest([closedSubscription], ['CLOSED']);
 
       const { rowCells } = await computeSubscriptionsTableCells();
       expect(rowCells).toEqual([
@@ -198,7 +209,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       const statusSelectInput = await getEmptyFilterForm();
       await statusSelectInput.clickOptions({ text: 'Rejected' });
       tick(800); // Wait for the debounce
-      expectGetApiSubscriptionsRequest([], ['REJECTED']);
+      expectApiSubscriptionsGetRequest([], ['REJECTED']);
 
       const { rowCells } = await computeSubscriptionsTableCells();
       expect(rowCells).toEqual([['There is no subscription (yet).']]);
@@ -208,6 +219,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
   async function initComponent(
     subscriptions: Subscription[],
     api: Api = anAPI,
+    plans: Plan[] = [aPlan],
     params?: { plan?: string; application?: string; status?: string; apikey?: string },
   ) {
     await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id, ...(params ? params : {}) } }).compileComponents();
@@ -217,7 +229,8 @@ describe('ApiPortalSubscriptionListComponent', () => {
 
     tick(800); // wait for debounce
     expectApiGetRequest(api);
-    expectGetApiSubscriptionsRequest(
+    expectApiPlansGetRequest(plans);
+    expectApiSubscriptionsGetRequest(
       subscriptions,
       params?.status?.split(','),
       params?.application?.split(','),
@@ -262,7 +275,23 @@ describe('ApiPortalSubscriptionListComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectGetApiSubscriptionsRequest(
+  function expectApiPlansGetRequest(plans: Plan[]) {
+    const response: ApiPlansResponse = {
+      data: plans,
+      pagination: {
+        totalCount: plans.length,
+      },
+    };
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999`,
+        method: 'GET',
+      })
+      .flush(response);
+    fixture.detectChanges();
+  }
+
+  function expectApiSubscriptionsGetRequest(
     subscriptions: Subscription[] = [],
     statuses?: string[],
     applicationIds?: string[],
