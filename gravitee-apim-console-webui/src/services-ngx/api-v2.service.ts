@@ -18,7 +18,15 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { Api, ApiSearchQuery, ApiSortByParam, ApisResponse, CreateApi, UpdateApi } from '../entities/management-api-v2';
+import {
+  Api,
+  ApiSearchQuery,
+  ApiSortByParam,
+  ApisResponse,
+  ApiSubscribersResponse,
+  CreateApi,
+  UpdateApi,
+} from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -56,11 +64,11 @@ export class ApiV2Service {
     });
   }
 
-  search(searchQuery?: ApiSearchQuery, sortBy?: ApiSortByParam, page = 1, size = 10): Observable<ApisResponse> {
+  search(searchQuery?: ApiSearchQuery, sortBy?: ApiSortByParam, page = 1, perPage = 10): Observable<ApisResponse> {
     return this.http.post<ApisResponse>(`${this.constants.env.v2BaseURL}/apis/_search`, searchQuery, {
       params: {
         page,
-        perPage: size,
+        perPage,
         ...(sortBy ? { sortBy } : {}),
       },
     });
@@ -72,5 +80,15 @@ export class ApiV2Service {
 
   updateBackground(apiId: string, newImage: string): Observable<void> {
     return this.http.put<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/background`, newImage);
+  }
+
+  getSubscribers(apiId: string, name?: string, page = 1, perPage = 10): Observable<ApiSubscribersResponse> {
+    return this.http.get<ApiSubscribersResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscribers`, {
+      params: {
+        page,
+        perPage,
+        ...(name ? { name } : {}),
+      },
+    });
   }
 }

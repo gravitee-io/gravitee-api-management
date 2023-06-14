@@ -142,9 +142,14 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-subscription-u']) || api.definitionContext?.origin === 'KUBERNETES';
         }),
-        switchMap((api) => this.apiPlanService.list(api.id, null, null, 1, 9999)),
+        switchMap(() => this.apiPlanService.list(this.ajsStateParams.apiId, null, null, 1, 9999)),
         tap((plans) => (this.plans$ = of(plans?.data?.map((plan) => ({ id: plan.id, name: plan.name }))))),
-        catchError(({ error }) => {
+        switchMap(() => this.apiService.getSubscribers(this.ajsStateParams.apiId, undefined, 1, 9999)),
+        tap(
+          (subscribers) =>
+            (this.applications$ = of(subscribers?.data?.map((subscriber) => ({ id: subscriber.id, name: subscriber.name })))),
+        ),
+        catchError((error) => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),

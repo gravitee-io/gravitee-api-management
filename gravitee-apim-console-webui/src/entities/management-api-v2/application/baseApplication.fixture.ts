@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './updateApi';
-export * from './udpateApi.fixture';
-export * from './updateApiV2';
-export * from './updateApiV4';
-export * from './updateBaseApi';
+import { BaseApplication } from './baseApplication';
+
+export function fakeBaseApplication(modifier?: Partial<BaseApplication>): BaseApplication {
+  const base: BaseApplication = {
+    id: 'my-application-1',
+    name: 'My first application',
+    description: 'My first application with a description',
+  };
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
