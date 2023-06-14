@@ -145,7 +145,10 @@ class HttpProxyEndpointConnectorTest {
         @BeforeEach
         public void init() {
             when(request.method()).thenReturn(HttpMethod.GET);
+            injectSpyIntoEndpointConnector(cut);
+        }
 
+        private void injectSpyIntoEndpointConnector(HttpProxyEndpointConnector cut) {
             spyHttpClientFactory = spy((HttpClientFactory) ReflectionTestUtils.getField(cut, "httpClientFactory"));
             lenient().doReturn(mockHttpClient).when(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             ReflectionTestUtils.setField(cut, "httpClientFactory", spyHttpClientFactory);
@@ -156,9 +159,14 @@ class HttpProxyEndpointConnectorTest {
 
         @Test
         void should_use_grpc_client_factory_with_grpc() {
+            // we nee to create a dedicated endpoint here as the evaluation of the configuration target
+            // to detect if the URL start by grpc is done once in the constructor
+            configuration.setTarget("grpc://target");
+            var cut = new HttpProxyEndpointConnector(configuration, sharedConfiguration);
+            injectSpyIntoEndpointConnector(cut);
+
             // We don't want to test the request itself just that the correct factory is used
             when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
-            configuration.setTarget("grpc://target");
             cut.connect(ctx).onErrorComplete(throwable -> throwable instanceof IllegalStateException).test().assertComplete();
             verify(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             verify(spyHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());

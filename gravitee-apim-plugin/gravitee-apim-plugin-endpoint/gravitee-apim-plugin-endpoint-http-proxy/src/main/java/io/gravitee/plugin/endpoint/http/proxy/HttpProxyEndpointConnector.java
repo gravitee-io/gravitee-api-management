@@ -31,7 +31,10 @@ import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.WebSocketConnector;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableSource;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -49,6 +52,9 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
     private final HttpClientFactory httpClientFactory;
     private final GrpcHttpClientFactory grpcHttpClientFactory;
 
+    private final Map<String, ProxyConnector> connectors = new ConcurrentHashMap<>(3);
+    private final boolean targetStartWithGrpc;
+
     public HttpProxyEndpointConnector(
         HttpProxyEndpointConnectorConfiguration configuration,
         HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
@@ -58,8 +64,9 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
         if (this.configuration.getTarget() == null || this.configuration.getTarget().isBlank()) {
             throw new IllegalArgumentException("target cannot be null or empty");
         }
-        httpClientFactory = new HttpClientFactory();
-        grpcHttpClientFactory = new GrpcHttpClientFactory();
+        this.httpClientFactory = new HttpClientFactory();
+        this.grpcHttpClientFactory = new GrpcHttpClientFactory();
+        this.targetStartWithGrpc = configuration.getTarget().startsWith("grpc://");
     }
 
     @Override
@@ -76,25 +83,36 @@ public class HttpProxyEndpointConnector extends EndpointSyncConnector {
     public Completable connect(ExecutionContext ctx) {
         return Completable.defer(() -> {
             Request request = ctx.request();
-            ProxyConnector proxyConnector;
-            if (request.isWebSocket()) {
-                proxyConnector = new WebSocketConnector(configuration, sharedConfiguration, httpClientFactory);
-            } else if (isGrpc(request, configuration.getTarget())) {
-                proxyConnector = new GrpcConnector(configuration, sharedConfiguration, grpcHttpClientFactory);
-            } else {
-                proxyConnector = new HttpConnector(configuration, sharedConfiguration, httpClientFactory);
-            }
-            return proxyConnector.connect(ctx);
+            return getConnector(request).connect(ctx);
         });
     }
 
-    private static boolean isGrpc(final HttpRequest httpRequest, final String target) {
+    private ProxyConnector getConnector(Request request) {
+        if (request.isWebSocket()) {
+            return this.connectors.computeIfAbsent(
+                    "ws",
+                    type -> new WebSocketConnector(configuration, sharedConfiguration, httpClientFactory)
+                );
+        } else if (isGrpc(request)) {
+            return this.connectors.computeIfAbsent(
+                    "grpc",
+                    type -> new GrpcConnector(configuration, sharedConfiguration, grpcHttpClientFactory)
+                );
+        } else {
+            return this.connectors.computeIfAbsent(
+                    "http",
+                    type -> new HttpConnector(configuration, sharedConfiguration, httpClientFactory)
+                );
+        }
+    }
+
+    private boolean isGrpc(final HttpRequest httpRequest) {
         String contentType = httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
         if (contentType == null) {
-            return target.startsWith("grpc://");
+            return this.targetStartWithGrpc;
         } else {
             MediaType mediaType = MediaType.parseMediaType(contentType);
-            return MediaType.MEDIA_APPLICATION_GRPC.equals(mediaType) || target.startsWith("grpc://");
+            return MediaType.MEDIA_APPLICATION_GRPC.equals(mediaType) || this.targetStartWithGrpc;
         }
     }
 

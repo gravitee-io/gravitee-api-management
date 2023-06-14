@@ -31,13 +31,8 @@ import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointCriteria;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import io.reactivex.rxjava3.core.Completable;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -119,9 +114,9 @@ public class EndpointInvoker implements Invoker {
             final HttpMethod httpMethod = computeHttpMethodFromAttribute(requestMethodAttribute);
             if (httpMethod == null) {
                 return ctx.interruptWith(
-                        new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
-                                .key(INVALID_HTTP_METHOD)
-                                .message("Http method cannot be overridden because ATTR_REQUEST_METHOD attribute is invalid")
+                    new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+                        .key(INVALID_HTTP_METHOD)
+                        .message("Http method cannot be overridden because ATTR_REQUEST_METHOD attribute is invalid")
                 );
             } else {
                 ctx.request().method(httpMethod);
