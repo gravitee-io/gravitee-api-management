@@ -225,7 +225,6 @@ class EndpointInvokerTest {
         when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
         when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
         when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(null);
-        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
 
         // Here, return a random object from attribute and verify we end in error
         when(ctx.getAttribute(eq(ATTR_REQUEST_METHOD))).thenReturn(List.of("PUT"));
