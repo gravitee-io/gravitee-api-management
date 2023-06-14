@@ -19,8 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ApiV2Service } from './api-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { fakeApiV4, fakeCreateApiV4 } from '../entities/management-api-v2';
-import { fakeUpdateApiV4 } from '../entities/management-api-v2/updateApi/udpateApi.fixture';
+import { fakeApiV4, fakeBaseApplication, fakeCreateApiV4, fakeUpdateApiV4 } from '../entities/management-api-v2';
 
 describe('ApiV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -231,6 +230,23 @@ describe('ApiV2Service', () => {
 
       expect(req.request.body).toEqual('newBackground');
       req.flush(null);
+    });
+  });
+
+  describe('subscribers', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+
+      apiV2Service.getSubscribers(apiId, 'my-app').subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/subscribers?page=1&perPage=10&name=my-app`,
+        method: 'GET',
+      });
+
+      req.flush([fakeBaseApplication()]);
     });
   });
 });

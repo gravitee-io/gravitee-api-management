@@ -13,8 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './updateApi';
-export * from './udpateApi.fixture';
-export * from './updateApiV2';
-export * from './updateApiV4';
-export * from './updateBaseApi';
+
+import { Links } from './links';
+import { Pagination } from './pagination';
+import { BaseApplication } from './application';
+
+export interface ApiSubscribersResponse {
+  /**
+   * List of Api subscribers.
+   */
+  data?: BaseApplication[];
+  pagination?: Pagination;
+  links?: Links;
+}

@@ -25,9 +25,10 @@ export * from './user';
 
 export * from './apiDeployment';
 export * from './apiPlansResponse';
-export * from './apisResponse';
 export * from './apiSearchQuery';
 export * from './apiSortByParam';
+export * from './apisResponse';
+export * from './apiSubscribersResponse';
 export * from './apiSubscriptionsResponse';
 export * from './environment';
 export * from './links';

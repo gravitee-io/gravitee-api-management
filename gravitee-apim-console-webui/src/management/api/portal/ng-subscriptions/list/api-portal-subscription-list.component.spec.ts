@@ -36,8 +36,11 @@ import { User as DeprecatedUser } from '../../../../../entities/user';
 import {
   Api,
   ApiPlansResponse,
+  ApiSubscribersResponse,
   ApiSubscriptionsResponse,
+  BaseApplication,
   fakeApiV4,
+  fakeBaseApplication,
   fakePlanV4,
   fakeSubscription,
   Plan,
@@ -45,10 +48,12 @@ import {
 } from '../../../../../entities/management-api-v2';
 
 describe('ApiPortalSubscriptionListComponent', () => {
-  const API_ID = 'api#1';
-  const PLAN_ID = 'plan#1';
+  const API_ID = 'api_1';
+  const PLAN_ID = 'plan_1';
+  const APPLICATION_ID = 'application_1';
   const anAPI = fakeApiV4({ id: API_ID });
   const aPlan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
+  const aBaseApplication = fakeBaseApplication({ id: APPLICATION_ID });
   const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['api-plan-u', 'api-plan-r', 'api-plan-d'];
@@ -108,15 +113,20 @@ describe('ApiPortalSubscriptionListComponent', () => {
     }));
 
     it('should init filters from params', fakeAsync(async () => {
-      await initComponent([], anAPI, [aPlan], { plan: null, application: null, status: 'CLOSED,REJECTED', apikey: 'apikey_1' });
+      await initComponent([], anAPI, [aPlan], [aBaseApplication], {
+        plan: PLAN_ID,
+        application: APPLICATION_ID,
+        status: 'CLOSED,REJECTED',
+        apikey: 'apikey_1',
+      });
 
       const planSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="planIds"]' }));
       expect(await planSelectInput.isDisabled()).toEqual(false);
-      expect(await planSelectInput.isEmpty()).toEqual(true);
+      expect(await planSelectInput.getValueText()).toEqual('Default plan');
 
       const applicationSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="applicationIds"]' }));
       expect(await applicationSelectInput.isDisabled()).toEqual(false);
-      expect(await applicationSelectInput.isEmpty()).toEqual(true);
+      expect(await applicationSelectInput.getValueText()).toEqual('My first application');
 
       const statusSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="statuses"]' }));
       expect(await statusSelectInput.isDisabled()).toEqual(false);
@@ -128,12 +138,33 @@ describe('ApiPortalSubscriptionListComponent', () => {
     }));
 
     it('should reset filters from params', fakeAsync(async () => {
-      await initComponent([], anAPI, [aPlan], { plan: null, application: null, status: 'CLOSED,REJECTED', apikey: 'apikey_1' });
+      await initComponent([], anAPI, [aPlan], [aBaseApplication], {
+        plan: null,
+        application: null,
+        status: 'CLOSED,REJECTED',
+        apikey: 'apikey_1',
+      });
 
       const resetFilterButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Reset filters"]' }));
       await resetFilterButton.click();
       tick(800);
       expectApiSubscriptionsGetRequest([]);
+
+      const planSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="planIds"]' }));
+      expect(await planSelectInput.isDisabled()).toEqual(false);
+      expect(await planSelectInput.isEmpty()).toEqual(true);
+
+      const applicationSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="applicationIds"]' }));
+      expect(await applicationSelectInput.isDisabled()).toEqual(false);
+      expect(await applicationSelectInput.isEmpty()).toEqual(true);
+
+      const statusSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="statuses"]' }));
+      expect(await statusSelectInput.isDisabled()).toEqual(false);
+      expect(await statusSelectInput.getValueText()).toEqual('Accepted, Paused, Pending');
+
+      const apikeyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="apikey"]' }));
+      expect(await apikeyInput.isDisabled()).toEqual(false);
+      expect(await apikeyInput.getValue()).toEqual('');
     }));
   });
 
@@ -220,6 +251,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     subscriptions: Subscription[],
     api: Api = anAPI,
     plans: Plan[] = [aPlan],
+    applications: BaseApplication[] = [aBaseApplication],
     params?: { plan?: string; application?: string; status?: string; apikey?: string },
   ) {
     await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id, ...(params ? params : {}) } }).compileComponents();
@@ -230,6 +262,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     tick(800); // wait for debounce
     expectApiGetRequest(api);
     expectApiPlansGetRequest(plans);
+    expectApiSubscribersGetRequest(applications);
     expectApiSubscriptionsGetRequest(
       subscriptions,
       params?.status?.split(','),
@@ -285,6 +318,22 @@ describe('ApiPortalSubscriptionListComponent', () => {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999`,
+        method: 'GET',
+      })
+      .flush(response);
+    fixture.detectChanges();
+  }
+
+  function expectApiSubscribersGetRequest(applications: BaseApplication[]) {
+    const response: ApiSubscribersResponse = {
+      data: applications,
+      pagination: {
+        totalCount: applications.length,
+      },
+    };
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscribers?page=1&perPage=9999`,
         method: 'GET',
       })
       .flush(response);
