@@ -40,18 +40,17 @@ public class HttpSelectorConditionFilter implements ConditionFilter<Flow> {
 
     @Override
     public Maybe<Flow> filter(final GenericExecutionContext ctx, final Flow flow) {
-        return Maybe.fromCallable(() -> {
-            Optional<Selector> selectorOptional = flow.selectorByType(SelectorType.HTTP);
-            if (selectorOptional.isPresent()) {
-                HttpSelector httpSelector = (HttpSelector) selectorOptional.get();
+        return flow
+            .selectorByType(SelectorType.HTTP)
+            .map(selector -> {
+                HttpSelector httpSelector = (HttpSelector) selector;
                 if (isMethodMatches(ctx, httpSelector) && isPathMatches(ctx, httpSelector)) {
-                    return flow;
+                    return Maybe.just(flow);
+                } else {
+                    return Maybe.<Flow>empty();
                 }
-            } else {
-                return flow;
-            }
-            return null;
-        });
+            })
+            .orElse(Maybe.just(flow));
     }
 
     private boolean isPathMatches(final GenericExecutionContext ctx, final HttpSelector httpSelector) {
