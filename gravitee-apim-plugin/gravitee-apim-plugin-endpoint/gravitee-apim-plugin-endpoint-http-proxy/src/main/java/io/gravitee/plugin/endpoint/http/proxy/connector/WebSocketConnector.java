@@ -59,7 +59,7 @@ public class WebSocketConnector extends HttpConnector {
     // Use NOOP Subscriber on websocket close so return completable could be ignored
     @Override
     public Completable connect(final ExecutionContext ctx) {
-        return Completable.defer(() -> {
+        try {
             final Request request = ctx.request();
             final RequestOptions options = buildRequestOptions(ctx);
             ctx.metrics().setEndpoint(options.getURI());
@@ -115,7 +115,9 @@ public class WebSocketConnector extends HttpConnector {
                             )
                         );
                 });
-        });
+        } catch (Exception e) {
+            return Completable.error(e);
+        }
     }
 
     protected Set<CharSequence> hopHeaders() {

@@ -113,26 +113,22 @@ public class HookHelper {
     ) {
         return Flowable
             .fromIterable(hooks)
-            .concatMapCompletable(
-                hook -> {
-                    switch (phase) {
-                        case PRE:
-                            return hook.pre(componentId, ctx, executionPhase);
-                        case POST:
-                            return hook.post(componentId, ctx, executionPhase);
-                        case INTERRUPT:
-                            return hook.interrupt(componentId, ctx, executionPhase);
-                        case INTERRUPT_WITH:
-                            return hook.interruptWith(componentId, ctx, executionPhase, executionFailure);
-                        case ERROR:
-                            return hook.error(componentId, ctx, executionPhase, throwable);
-                        default:
-                            return Completable.error(
-                                new RuntimeException(String.format("Unknown hook phase %s while executing hook", phase))
-                            );
-                    }
+            .concatMapCompletable(hook -> {
+                switch (phase) {
+                    case PRE:
+                        return hook.pre(componentId, ctx, executionPhase);
+                    case POST:
+                        return hook.post(componentId, ctx, executionPhase);
+                    case INTERRUPT:
+                        return hook.interrupt(componentId, ctx, executionPhase);
+                    case INTERRUPT_WITH:
+                        return hook.interruptWith(componentId, ctx, executionPhase, executionFailure);
+                    case ERROR:
+                        return hook.error(componentId, ctx, executionPhase, throwable);
+                    default:
+                        return Completable.error(new RuntimeException(String.format("Unknown hook phase %s while executing hook", phase)));
                 }
-            )
+            })
             .doOnError(error -> log.warn("Unable to execute '{}' hook on flow '{}'", phase.name(), componentId, error))
             .onErrorComplete();
     }

@@ -31,10 +31,12 @@ import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR_SEQUENCE;
 
 import io.gravitee.common.http.HttpHeader;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
@@ -108,7 +110,7 @@ public class HttpConnector implements ProxyConnector {
 
     @Override
     public Completable connect(final ExecutionContext ctx) {
-        return Completable.defer(() -> {
+        try {
             final Request request = ctx.request();
             final Response response = ctx.response();
 
@@ -146,7 +148,9 @@ public class HttpConnector implements ProxyConnector {
                     );
                 })
                 .ignoreElement();
-        });
+        } catch (Exception e) {
+            return Completable.error(e);
+        }
     }
 
     protected HttpClientRequest customizeHttpClientRequest(final HttpClientRequest httpClientRequest) {
