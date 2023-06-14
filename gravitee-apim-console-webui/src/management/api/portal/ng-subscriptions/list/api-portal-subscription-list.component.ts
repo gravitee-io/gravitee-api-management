@@ -71,7 +71,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   // Create filters stream
-  private filtersStream = new BehaviorSubject<{
+  public filtersStream = new BehaviorSubject<{
     tableWrapper: GioTableWrapperFilters;
     subscriptionsFilters: {
       planIds?: string[];
@@ -227,26 +227,16 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
   }
 
   private initFilters() {
-    const initialPageNumber = this.ajsStateParams.page
-      ? Number(this.ajsStateParams.page)
-      : this.filtersStream.value.tableWrapper.pagination.index;
-    const initialPageSize = this.ajsStateParams.size
-      ? Number(this.ajsStateParams.size)
-      : this.filtersStream.value.tableWrapper.pagination.size;
-    const initialPlanIds: string[] = this.ajsStateParams.plan
-      ? this.ajsStateParams.plan.split(',')
-      : this.filtersStream.value.subscriptionsFilters.planIds;
-    const initialApplicationIds = this.ajsStateParams.application
-      ? this.ajsStateParams.application.split(',')
-      : this.filtersStream.value.subscriptionsFilters.applicationIds;
-    const initialStatuses = this.ajsStateParams.status
-      ? this.ajsStateParams.status.split(',')
-      : this.filtersStream.value.subscriptionsFilters.statuses;
-    const initialApikey = this.ajsStateParams.apikey ? this.ajsStateParams.apikey : this.filtersStream.value.subscriptionsFilters.apikey;
+    const initialPageNumber = this.ajsStateParams.page ? Number(this.ajsStateParams.page) : 1;
+    const initialPageSize = this.ajsStateParams.size ? Number(this.ajsStateParams.size) : 10;
+    const initialPlanIds: string[] = this.ajsStateParams.plan ? this.ajsStateParams.plan.split(',') : null;
+    const initialApplicationIds = this.ajsStateParams.application ? this.ajsStateParams.application.split(',') : null;
+    const initialStatuses = this.ajsStateParams.status ? this.ajsStateParams.status.split(',') : ['ACCEPTED', 'PAUSED', 'PENDING'];
+    const initialApikey = this.ajsStateParams.apikey ? this.ajsStateParams.apikey : undefined;
+
     this.filtersStream.next({
       tableWrapper: {
-        ...this.filtersStream.value.tableWrapper,
-        // go to first page when filters change
+        searchTerm: '',
         pagination: { index: initialPageNumber, size: initialPageSize },
       },
       subscriptionsFilters: {
@@ -254,6 +244,21 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
         applicationIds: initialApplicationIds,
         statuses: initialStatuses,
         apikey: initialApikey,
+      },
+    });
+  }
+
+  public resetFilters() {
+    this.filtersStream.next({
+      tableWrapper: {
+        searchTerm: '',
+        pagination: { index: 1, size: 10 },
+      },
+      subscriptionsFilters: {
+        planIds: null,
+        applicationIds: null,
+        statuses: ['ACCEPTED', 'PAUSED', 'PENDING'],
+        apikey: undefined,
       },
     });
   }
