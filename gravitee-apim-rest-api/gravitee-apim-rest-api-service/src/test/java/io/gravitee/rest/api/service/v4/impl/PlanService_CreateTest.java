@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
+import io.gravitee.rest.api.service.v4.validation.PathParametersValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,6 +110,9 @@ public class PlanService_CreateTest {
     @Mock
     private FlowValidationService flowValidationService;
 
+    @Mock
+    private PathParametersValidationService pathParametersValidationService;
+
     @Before
     public void setup() throws Exception {
         when(newPlanEntity.getApiId()).thenReturn(API_ID);
@@ -175,6 +179,7 @@ public class PlanService_CreateTest {
         planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
 
         verify(planMapper, times(1)).toRepository(newPlanEntity);
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     @Test
@@ -185,6 +190,7 @@ public class PlanService_CreateTest {
 
         verify(flowService, times(1)).save(FlowReferenceType.PLAN, newPlanEntity.getId(), newPlanEntity.getFlows());
         verify(flowValidationService, times(1)).validateAndSanitize(api.getType(), List.of());
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     @Test
@@ -196,6 +202,7 @@ public class PlanService_CreateTest {
         verify(auditService, times(1))
             .createApiAuditLog(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any(), eq(PLAN_CREATED), any(), isNull(), same(plan));
         verifyNoMoreInteractions(auditService);
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     // mock object mapper in order to deserialize api definition version

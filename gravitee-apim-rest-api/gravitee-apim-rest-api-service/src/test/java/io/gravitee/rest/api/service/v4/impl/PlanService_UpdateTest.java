@@ -56,6 +56,7 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
+import io.gravitee.rest.api.service.v4.validation.PathParametersValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import io.reactivex.rxjava3.annotations.NonNull;
 import java.util.List;
@@ -134,6 +135,9 @@ public class PlanService_UpdateTest {
     @Mock
     private FlowValidationService flowValidationService;
 
+    @Mock
+    private PathParametersValidationService pathParametersValidationService;
+
     @Before
     public void setup() throws Exception {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
@@ -157,6 +161,7 @@ public class PlanService_UpdateTest {
         verify(planRepository).update(any());
         verify(parameterService).findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT));
         verify(flowValidationService, times(1)).validateAndSanitize(any(), anyList());
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     @Test
@@ -176,6 +181,7 @@ public class PlanService_UpdateTest {
 
         verify(planRepository).update(any());
         verify(parameterService).findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT));
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     @Test
@@ -204,6 +210,7 @@ public class PlanService_UpdateTest {
 
         verify(planRepository).update(any());
         verify(parameterService).findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT));
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     @Test(expected = PlanGeneralConditionStatusException.class)
@@ -249,6 +256,7 @@ public class PlanService_UpdateTest {
         planService.update(GraviteeContext.getExecutionContext(), updatePlan);
 
         verify(planRepository, never()).update(any());
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     @Test
@@ -265,9 +273,10 @@ public class PlanService_UpdateTest {
 
         final UpdatePlanEntity updatePlan = initUpdatePlanEntity();
 
-        planService.update(GraviteeContext.getExecutionContext(), updatePlan, true);
+        planService.update(GraviteeContext.getExecutionContext(), updatePlan);
 
         verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     @Test(expected = PlanFlowRequiredException.class)
@@ -288,6 +297,7 @@ public class PlanService_UpdateTest {
         unpublishedPage.setPublished(false);
 
         planService.update(GraviteeContext.getExecutionContext(), updatePlan);
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     @Test
@@ -311,9 +321,10 @@ public class PlanService_UpdateTest {
         unpublishedPage.setType("MARKDOWN");
         unpublishedPage.setPublished(false);
 
-        planService.update(GraviteeContext.getExecutionContext(), updatePlan, true);
+        planService.update(GraviteeContext.getExecutionContext(), updatePlan);
 
         verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     @Test
@@ -336,6 +347,7 @@ public class PlanService_UpdateTest {
 
         verify(planRepository).update(any());
         verify(parameterService).findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT));
+        verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
     @Test(expected = TagNotAllowedException.class)

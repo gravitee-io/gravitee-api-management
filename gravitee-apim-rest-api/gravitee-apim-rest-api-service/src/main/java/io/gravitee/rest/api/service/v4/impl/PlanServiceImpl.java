@@ -67,6 +67,7 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
+import io.gravitee.rest.api.service.v4.validation.PathParametersValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Arrays;
 import java.util.Collection;
@@ -80,6 +81,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,6 +149,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     @Autowired
     private FlowValidationService flowValidationService;
 
+    @Autowired
+    private PathParametersValidationService pathParametersValidationService;
+
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String planId) {
         return (PlanEntity) planSearchService.findById(executionContext, planId);
@@ -159,6 +164,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Override
     public PlanEntity create(final ExecutionContext executionContext, final NewPlanEntity newPlan) {
+        return create(executionContext, newPlan, true);
+    }
+
+    private PlanEntity create(ExecutionContext executionContext, NewPlanEntity newPlan, boolean validatePathParams) {
         try {
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApiId());
 
@@ -178,6 +187,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             }
 
             validateTags(newPlan.getTags(), api);
+            if (validatePathParams) {
+                validatePathParameters(api, newPlan.getFlows());
+            }
 
             String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
             newPlan.setId(id);
@@ -208,6 +220,19 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         }
     }
 
+    private void validatePathParameters(Api api, List<Flow> newPlanFlows) throws TechnicalException {
+        final Set<Plan> plans = planRepository.findByApi(api.getId());
+        final Stream<Flow> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
+
+        Stream<Flow> planFlows = plans
+            .stream()
+            .map(plan -> flowService.findByReference(FlowReferenceType.PLAN, plan.getId()))
+            .flatMap(Collection::stream);
+        planFlows = Stream.concat(planFlows, newPlanFlows.stream());
+
+        pathParametersValidationService.validate(api.getType(), apiFlows, planFlows);
+    }
+
     private void validateTags(Set<String> tags, Api api) {
         this.tagsValidationService.validatePlanTagsAgainstApiTags(tags, api);
     }
@@ -217,23 +242,26 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         PlanEntity resultPlanEntity;
         try {
             if (planEntity.getId() == null) {
-                resultPlanEntity = create(executionContext, planMapper.toNewPlanEntity(planEntity));
+                // No need to validate again the path param in this case
+                resultPlanEntity = create(executionContext, planMapper.toNewPlanEntity(planEntity), false);
             } else {
                 planSearchService.findById(executionContext, planEntity.getId());
-                resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity));
+                // No need to validate again the path param in this case
+                resultPlanEntity = update(executionContext, planMapper.toUpdatePlanEntity(planEntity), false);
             }
         } catch (PlanNotFoundException npe) {
-            resultPlanEntity = create(executionContext, planMapper.toNewPlanEntity(planEntity));
+            // No need to validate again the path param in this case
+            resultPlanEntity = create(executionContext, planMapper.toNewPlanEntity(planEntity), false);
         }
         return resultPlanEntity;
     }
 
     @Override
     public PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan) {
-        return update(executionContext, updatePlan, false);
+        return update(executionContext, updatePlan, true);
     }
 
-    public PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan, boolean fromImport) {
+    private PlanEntity update(final ExecutionContext executionContext, UpdatePlanEntity updatePlan, boolean validatePathParams) {
         try {
             logger.debug("Update plan {}", updatePlan.getName());
 
@@ -261,6 +289,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             newPlan.setCreatedAt(oldPlan.getCreatedAt());
             newPlan.setPublishedAt(oldPlan.getPublishedAt());
             newPlan.setClosedAt(oldPlan.getClosedAt());
+            newPlan.setMode(oldPlan.getMode());
             // for existing plans, needRedeployAt doesn't exist. We have to initialize it
             if (oldPlan.getNeedRedeployAt() == null) {
                 newPlan.setNeedRedeployAt(oldPlan.getUpdatedAt());
@@ -304,6 +333,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             validateTags(newPlan.getTags(), api);
             updatePlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), updatePlan.getFlows()));
 
+            if (validatePathParams) {
+                validatePathParameters(api, updatePlan);
+            }
+
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {
                 newPlan.setOrder(updatePlan.getOrder());
@@ -339,6 +372,24 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 ex
             );
         }
+    }
+
+    private void validatePathParameters(Api api, UpdatePlanEntity updatePlan) throws TechnicalException {
+        final Set<Plan> plans = planRepository.findByApi(api.getId());
+        final Stream<Flow> apiFlows = flowService.findByReference(FlowReferenceType.API, api.getId()).stream();
+
+        Stream<Flow> planFlows = plans
+            .stream()
+            .map(plan -> {
+                if (plan.getId().equals(updatePlan.getId())) {
+                    return updatePlan.getFlows();
+                } else {
+                    return flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
+                }
+            })
+            .flatMap(Collection::stream);
+
+        pathParametersValidationService.validate(api.getType(), apiFlows, planFlows);
     }
 
     private void checkStatusOfGeneralConditions(Plan plan) {
