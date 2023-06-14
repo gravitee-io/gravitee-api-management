@@ -212,7 +212,80 @@ public class UserServiceTest {
         assertEquals(LAST_NAME, userEntity.getLastname());
         assertEquals(EMAIL, userEntity.getEmail());
         assertEquals(PASSWORD, userEntity.getPassword());
-        assertEquals(null, userEntity.getRoles());
+        assertNull(userEntity.getRoles());
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldFindByUsernameThrowsError() throws TechnicalException {
+        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenThrow(new TechnicalException("user not found"));
+
+        final UserEntity userEntity = userService.findBySource(GraviteeContext.getExecutionContext(), USER_SOURCE, USER_NAME, false);
+    }
+
+    @Test
+    public void shouldFindByEmail() throws TechnicalException {
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(EMAIL);
+        when(user.getFirstname()).thenReturn(FIRST_NAME);
+        when(user.getLastname()).thenReturn(LAST_NAME);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(userRepository.findByEmail(EMAIL, ORGANIZATION)).thenReturn(of(user));
+
+        final Optional<UserEntity> optUserEntity = userService.findByEmail(GraviteeContext.getExecutionContext(), EMAIL);
+
+        UserEntity userEntity = optUserEntity.get();
+        assertNotNull(userEntity);
+
+        assertEquals(USER_NAME, userEntity.getId());
+        assertEquals(FIRST_NAME, userEntity.getFirstname());
+        assertEquals(LAST_NAME, userEntity.getLastname());
+        assertEquals(EMAIL, userEntity.getEmail());
+        assertNull(userEntity.getPassword());
+        assertNull(userEntity.getRoles());
+    }
+
+    @Test
+    public void shouldFindByIdWithRoles() throws TechnicalException {
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(EMAIL);
+        when(user.getFirstname()).thenReturn(FIRST_NAME);
+        when(user.getLastname()).thenReturn(LAST_NAME);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+        RoleEntity apiPoRole = new RoleEntity();
+        apiPoRole.setId("po-role");
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.API)).thenReturn(apiPoRole);
+
+        RoleEntity appPoRole = new RoleEntity();
+        appPoRole.setId("po-role");
+        when(roleService.findPrimaryOwnerRoleByOrganization("DEFAULT", RoleScope.APPLICATION)).thenReturn(appPoRole);
+
+        final UserEntity userEntity = userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME);
+
+        assertEquals(USER_NAME, userEntity.getId());
+        assertEquals(FIRST_NAME, userEntity.getFirstname());
+        assertEquals(LAST_NAME, userEntity.getLastname());
+        assertEquals(EMAIL, userEntity.getEmail());
+        assertNull(userEntity.getPassword());
+    }
+
+    @Test
+    public void shouldFindById() throws TechnicalException {
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(EMAIL);
+        when(user.getFirstname()).thenReturn(FIRST_NAME);
+        when(user.getLastname()).thenReturn(LAST_NAME);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+
+        final UserEntity userEntity = userService.findById(GraviteeContext.getExecutionContext(), USER_NAME);
+
+        assertEquals(USER_NAME, userEntity.getId());
+        assertEquals(FIRST_NAME, userEntity.getFirstname());
+        assertEquals(LAST_NAME, userEntity.getLastname());
+        assertEquals(EMAIL, userEntity.getEmail());
+        assertNull(userEntity.getPassword());
+        assertNull(userEntity.getRoles());
     }
 
     @Test(expected = UserNotFoundException.class)
@@ -562,7 +635,7 @@ public class UserServiceTest {
         assertEquals(FIRST_NAME, createdUserEntity.getFirstname());
         assertEquals(LAST_NAME, createdUserEntity.getLastname());
         assertEquals(EMAIL, createdUserEntity.getEmail());
-        assertEquals(PASSWORD, createdUserEntity.getPassword());
+        assertNull(createdUserEntity.getPassword());
         assertEquals(ROLES, createdUserEntity.getRoles());
         assertEquals(date, createdUserEntity.getCreatedAt());
         assertEquals(date, createdUserEntity.getUpdatedAt());
