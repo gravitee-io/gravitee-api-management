@@ -95,6 +95,8 @@ public class VertxHttpServerResponse extends AbstractResponse {
             }
             prepareHeaders();
 
+            // this atomic reference maybe useless due to  https://github.com/vert-x3/vertx-rx/pull/285
+            // how to confirm ?
             final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 
             if (lazyBufferFlow().hasChunks()) {
