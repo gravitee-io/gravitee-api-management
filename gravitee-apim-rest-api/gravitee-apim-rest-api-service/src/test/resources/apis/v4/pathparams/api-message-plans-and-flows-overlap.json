@@ -1,0 +1,87 @@
+{
+  "type": "message",
+  "plans": [
+    {
+      "id": "keyless",
+      "name": "Keyless",
+      "security": {
+        "type": "key-less"
+      },
+      "flows": [
+        {
+          "name": "Item",
+          "selectors": [
+            {
+              "type": "channel",
+              "channel": "/products/:productId/items/:itemId",
+              "channelOperator": "STARTS_WITH",
+              "operations": []
+            }
+          ],
+          "request": [],
+          "response": [],
+          "enabled": true
+        },
+        {
+          "name": "Product",
+          "selectors": [
+            {
+              "type": "channel",
+              "channel": "/:productId",
+              "channelOperator": "STARTS_WITH",
+              "operations": []
+            }
+          ],
+          "request": [],
+          "response": [],
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Item",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/products/:productId/items/:itemId",
+          "channelOperator": "STARTS_WITH",
+          "operations": []
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/:productId",
+          "channelOperator": "STARTS_WITH",
+          "operations": []
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product from products",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/products/:productId",
+          "channelOperator": "STARTS_WITH",
+          "operations": []
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    }
+  ],
+  "resources": []
+}

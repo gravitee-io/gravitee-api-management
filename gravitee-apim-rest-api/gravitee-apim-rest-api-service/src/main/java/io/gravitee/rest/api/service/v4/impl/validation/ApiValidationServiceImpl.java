@@ -22,6 +22,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -29,6 +30,7 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -42,9 +44,12 @@ import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationServic
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
+import io.gravitee.rest.api.service.v4.validation.PathParametersValidationService;
 import io.gravitee.rest.api.service.v4.validation.PlanValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 
 /**
@@ -63,6 +68,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final AnalyticsValidationService analyticsValidationService;
     private final PlanService planService;
     private final PlanValidationService planValidationService;
+    private final PathParametersValidationService pathParametersValidationService;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -72,8 +78,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final FlowValidationService flowValidationService,
         final ResourcesValidationService resourcesValidationService,
         final AnalyticsValidationService loggingValidationService,
-        PlanService planService,
-        final PlanValidationService planValidationService
+        final PlanService planService,
+        final PlanValidationService planValidationService,
+        final PathParametersValidationService pathParametersValidationService
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -84,6 +91,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.analyticsValidationService = loggingValidationService;
         this.planService = planService;
         this.planValidationService = planValidationService;
+        this.pathParametersValidationService = pathParametersValidationService;
     }
 
     @Override
@@ -119,6 +127,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
         // Validate and clean flow
         newApiEntity.setFlows(flowValidationService.validateAndSanitize(newApiEntity.getType(), newApiEntity.getFlows()));
+
+        pathParametersValidationService.validate(newApiEntity.getType(), newApiEntity.getFlows().stream(), Stream.empty());
     }
 
     @Override
@@ -168,6 +178,13 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate and clean plans
         updateApiEntity.setPlans(planValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getPlans()));
 
+        // Validate path parameters
+        pathParametersValidationService.validate(
+            updateApiEntity.getType(),
+            updateApiEntity.getFlows().stream(),
+            getPlansFlows(updateApiEntity.getPlans())
+        );
+
         // Validate and clean resources
         updateApiEntity.setResources(resourcesValidationService.validateAndSanitize(updateApiEntity.getResources()));
     }
@@ -204,6 +221,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate and clean plans
         apiEntity.setPlans(planValidationService.validateAndSanitize(apiEntity.getType(), apiEntity.getPlans()));
 
+        // Validate path parameters
+        pathParametersValidationService.validate(apiEntity.getType(), apiEntity.getFlows().stream(), getPlansFlows(apiEntity.getPlans()));
+
         // Validate and clean resources
         apiEntity.setResources(resourcesValidationService.validateAndSanitize(apiEntity.getResources()));
     }
@@ -216,6 +236,13 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             .anyMatch(planEntity ->
                 PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus()) || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus())
             );
+    }
+
+    private Stream<Flow> getPlansFlows(Set<PlanEntity> plans) {
+        if (plans == null) {
+            return Stream.empty();
+        }
+        return plans.stream().flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
     }
 
     private void validateDefinitionVersion(final DefinitionVersion oldDefinitionVersion, final DefinitionVersion newDefinitionVersion) {

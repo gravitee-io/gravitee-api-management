@@ -70,6 +70,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
         register(PreconditionFailedExceptionMapper.class);
+        register(ValidationExceptionMapper.class);
 
         register(CommaSeparatedQueryParamConverterProvider.class);
 

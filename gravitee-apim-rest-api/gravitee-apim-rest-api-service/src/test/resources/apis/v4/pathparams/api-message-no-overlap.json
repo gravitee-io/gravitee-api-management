@@ -1,0 +1,184 @@
+{
+  "type": "message",
+  "plans": [
+    {
+      "id": "keyless",
+      "name": "Keyless",
+      "security": {
+        "type": "key-less"
+      },
+      "flows": [
+        {
+          "name": "Item",
+          "selectors": [
+            {
+              "type": "channel",
+              "channel": "/products/:productId/items/:itemId",
+              "channelOperator": "STARTS_WITH",
+              "operations": []
+            }
+          ],
+          "request": [],
+          "response": [],
+          "enabled": true
+        },
+        {
+          "name": "Products",
+          "selectors": [
+            {
+              "type": "channel",
+              "channel": "/products",
+              "channelOperator": "STARTS_WITH",
+              "operations": []
+            }
+          ],
+          "request": [],
+          "response": [],
+          "enabled": true
+        },
+        {
+          "name": "Products",
+          "selectors": [
+            {
+              "type": "channel",
+              "channel": "/products",
+              "channelOperator": "STARTS_WITH",
+              "operations": [
+              ]
+            }
+          ],
+          "request": [],
+          "response": [],
+          "enabled": true
+        },
+        {
+          "name": "Equals hello",
+          "selectors": [
+            {
+              "type": "channel",
+              "channel": "/products/:id/hello",
+              "channelOperator": "EQUALS",
+              "operations": [
+              ]
+            }
+          ],
+          "request": [],
+          "response": [],
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Accept all - And add path parameters to headers",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/",
+          "channelOperator": "STARTS_WITH",
+          "operations": []
+        }
+      ],
+      "request": [
+        {
+          "name": "Path Parameters to headers",
+          "description": "",
+          "enabled": true,
+          "policy": "path-param-to-header"
+        }
+      ],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product id",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/products/:productId",
+          "channelOperator": "STARTS_WITH",
+          "operations": [
+          ]
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Products",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/products",
+          "channelOperator": "STARTS_WITH",
+          "operations": []
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Products",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/products",
+          "channelOperator": "STARTS_WITH",
+          "operations": []
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/products/:productId",
+          "channelOperator": "STARTS_WITH",
+          "operations": [
+          ]
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/products-special-char/:product-id",
+          "channelOperator": "STARTS_WITH",
+          "operations": [
+          ]
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    },
+    {
+      "name": "Product",
+      "selectors": [
+        {
+          "type": "channel",
+          "channel": "/products-special-char/:product-id/items/:It€m_Id",
+          "channelOperator": "STARTS_WITH",
+          "operations": [
+          ]
+        }
+      ],
+      "request": [],
+      "response": [],
+      "enabled": true
+    }
+  ],
+  "resources": []
+}

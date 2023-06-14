@@ -39,8 +39,6 @@ public interface PlanService {
 
     PlanEntity update(final ExecutionContext executionContext, final UpdatePlanEntity plan);
 
-    PlanEntity update(final ExecutionContext executionContext, final UpdatePlanEntity plan, final boolean fromImport);
-
     PlanEntity close(final ExecutionContext executionContext, final String plan);
 
     void delete(final ExecutionContext executionContext, final String plan);
