@@ -16,12 +16,14 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -35,7 +37,6 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
-import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -73,6 +74,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -182,8 +184,8 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     /**
      * This method use ApiQuery to search in indexer for fields in api definition
      *
-     * @param executionContext
-     * @param apiQuery
+     * @param executionContext The execution context
+     * @param apiQuery The api query
      * @return Optional<List < String>> an optional list of api ids and Optional.empty()
      * if ApiQuery doesn't contain fields stores in the api definition.
      */
@@ -195,7 +197,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         if (isBlank(searchEngineQuery.getQuery())) {
             return Optional.empty();
         }
-        SearchResult matchApis = searchEngineService.search(executionContext, searchEngineQuery);
+        SearchResult matchApis = searchEngineService.search(executionContext, addDefaultExcludedFilters(searchEngineQuery));
         return Optional.of(matchApis.getDocuments());
     }
 
@@ -457,7 +459,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     }
 
     private ApiCriteria.Builder queryToCriteria(ExecutionContext executionContext, ApiQuery query) {
-        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
+        final ApiCriteria.Builder builder = getDefaultApiCriteriaBuilder().environmentId(executionContext.getEnvironmentId());
         if (query == null) {
             return builder;
         }
@@ -492,5 +494,22 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         }
 
         return builder;
+    }
+
+    @NotNull
+    private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
+        // By default, in this service, we do not care for V4 APIs.
+        List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
+        allowedDefinitionVersion.add(null);
+        allowedDefinitionVersion.add(DefinitionVersion.V1);
+        allowedDefinitionVersion.add(DefinitionVersion.V2);
+
+        return new ApiCriteria.Builder().definitionVersion(allowedDefinitionVersion);
+    }
+
+    private Query<GenericApiEntity> addDefaultExcludedFilters(Query<GenericApiEntity> searchEngineQuery) {
+        // By default, in this service, we do not care for V4 APIs.
+        searchEngineQuery.getExcludedFilters().put(FIELD_DEFINITION_VERSION, singletonList(DefinitionVersion.V4.getLabel()));
+        return searchEngineQuery;
     }
 }
