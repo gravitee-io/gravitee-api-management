@@ -836,6 +836,25 @@ public class ApiServiceImplTest {
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
+    @Test
+    public void update_shouldNotChangeImages() throws TechnicalException {
+        prepareUpdate();
+        updateApiEntity.setLabels(asList("label1", "label1"));
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        verify(apiRepository)
+            .update(
+                argThat(updateArg -> {
+                    // Update should not change images, as there is a dedicated resource for that
+                    assertThat(updateArg.getPicture()).isEqualTo(api.getPicture());
+                    assertThat(updateArg.getBackground()).isEqualTo(api.getBackground());
+                    return true;
+                })
+            );
+        assertNotNull(apiEntity);
+        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
+    }
+
     @Test(expected = InvalidDataException.class)
     public void shouldNotUpdate_NewPlanNotAllowed() throws TechnicalException {
         prepareUpdate();
@@ -1199,6 +1218,8 @@ public class ApiServiceImplTest {
 
         api.setName(API_NAME);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        api.setPicture("picture");
+        api.setBackground("background");
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
         RoleEntity poRoleEntity = new RoleEntity();
