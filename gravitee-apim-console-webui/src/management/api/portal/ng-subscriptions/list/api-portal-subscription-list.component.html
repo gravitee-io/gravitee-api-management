@@ -43,7 +43,6 @@
     <mat-form-field class="subscriptions__filters__field">
       <mat-label>Plan</mat-label>
       <mat-select formControlName="planIds" [multiple]="true">
-        <mat-option></mat-option>
         <mat-option *ngFor="let plan of plans$ | async" [value]="plan.id">{{ plan.name }}</mat-option>
       </mat-select>
     </mat-form-field>
@@ -51,7 +50,6 @@
     <mat-form-field class="subscriptions__filters__field">
       <mat-label>Application</mat-label>
       <mat-select formControlName="applicationIds" [multiple]="true">
-        <mat-option></mat-option>
         <mat-option *ngFor="let application of applications$ | async" [value]="application.id">{{ application.name }}</mat-option>
       </mat-select>
     </mat-form-field>

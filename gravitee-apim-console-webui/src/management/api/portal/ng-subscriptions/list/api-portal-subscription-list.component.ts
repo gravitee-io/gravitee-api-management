@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { BehaviorSubject, EMPTY, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
 import { StateService, UIRouterGlobals } from '@uirouter/core';
 import { isEqual } from 'lodash';
 import { FormControl, FormGroup } from '@angular/forms';
@@ -28,6 +28,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { Api } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
 type SubscriptionsTableDS = {
   id: string;
@@ -57,8 +58,8 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     apikey: new FormControl(),
   });
 
-  public plans$ = new Observable<[{ id: string; name: string }]>();
-  public applications$ = new Observable<[{ id: string; name: string }]>();
+  public plans$ = new Observable<{ id: string; name: string }[]>();
+  public applications$ = new Observable<{ id: string; name: string }[]>();
   public statuses: { id: SubscriptionStatus; name: string }[] = [
     { id: 'ACCEPTED', name: 'Accepted' },
     { id: 'CLOSED', name: 'Closed' },
@@ -103,6 +104,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly ajsGlobals: UIRouterGlobals,
     private readonly apiService: ApiV2Service,
+    private readonly apiPlanService: ApiPlanV2Service,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
@@ -140,6 +142,8 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-subscription-u']) || api.definitionContext?.origin === 'KUBERNETES';
         }),
+        switchMap((api) => this.apiPlanService.list(api.id, null, null, 1, 9999)),
+        tap((plans) => (this.plans$ = of(plans?.data?.map((plan) => ({ id: plan.id, name: plan.name }))))),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
