@@ -316,7 +316,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         Optional<User> optionalUser = userRepository.findById(k);
 
                         if (optionalUser.isPresent()) {
-                            return convert(executionContext, optionalUser.get(), false, userMetadataService.findAllByUserId(k));
+                            return convert(executionContext, optionalUser.get(), false, userMetadataService.findAllByUserId(k), true);
                         }
 
                         if (defaultValue) {
@@ -369,7 +369,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             return userRepository
                 .findBySource(source, sourceId, executionContext.getOrganizationId())
-                .map(user -> convert(executionContext, user, loadRoles))
+                .map(user -> convert(executionContext, user, loadRoles, emptyList(), false))
                 .orElseThrow(() -> new UserNotFoundException(sourceId));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find user using source[{}], user[{}]", source, sourceId, ex);
@@ -397,7 +397,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                                 executionContext,
                                 u,
                                 false,
-                                withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : emptyList()
+                                withUserMetadata ? userMetadataService.findAllByUserId(u.getId()) : emptyList(),
+                                true
                             )
                     )
                     .collect(toSet());
@@ -739,7 +740,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 addDefaultMembership(executionContext, createdUser);
             }
 
-            final UserEntity userEntity = convert(executionContext, createdUser, true, metadata);
+            final UserEntity userEntity = convert(executionContext, createdUser, true, metadata, true);
             searchEngineService.index(executionContext, userEntity, false);
             return userEntity;
         } catch (TechnicalException ex) {
@@ -1170,7 +1171,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 }
             }
 
-            return convert(executionContext, updatedUser, true, updatedMetadata);
+            return convert(executionContext, updatedUser, true, updatedMetadata, true);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update {}", updateUserEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying update " + updateUserEntity, ex);
@@ -1448,16 +1449,22 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private UserEntity convertWithFlags(final ExecutionContext executionContext, User user) {
-        UserEntity userEntity = convert(executionContext, user, true, userMetadataService.findAllByUserId(user.getId()));
+        UserEntity userEntity = convert(executionContext, user, true, userMetadataService.findAllByUserId(user.getId()), true);
         populateUserFlags(executionContext, List.of(userEntity));
         return userEntity;
     }
 
     private UserEntity convert(ExecutionContext executionContext, User user, boolean loadRoles) {
-        return convert(executionContext, user, loadRoles, emptyList());
+        return convert(executionContext, user, loadRoles, emptyList(), true);
     }
 
-    private UserEntity convert(ExecutionContext executionContext, User user, boolean loadRoles, List<UserMetadataEntity> customUserFields) {
+    private UserEntity convert(
+        ExecutionContext executionContext,
+        User user,
+        boolean loadRoles,
+        List<UserMetadataEntity> customUserFields,
+        boolean nullifyPassword
+    ) {
         if (user == null) {
             return null;
         }
@@ -1504,6 +1511,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     envRolesMap.put(env.getId(), envRoles);
                 });
             userEntity.setEnvRoles(envRolesMap);
+        }
+
+        if (nullifyPassword) {
+            // Delete password for security reason
+            userEntity.setPassword(null);
         }
 
         return userEntity;
