@@ -21,6 +21,8 @@ import { mockProvider } from '@ngneat/spectator/jest';
 import { GvMarkdownTocComponent } from '../gv-markdown-toc/gv-markdown-toc.component';
 import { SafePipe } from '../../pipes/safe.pipe';
 import { ConfigurationService } from '../../services/configuration.service';
+import { PageService } from '../../services/page.service';
+import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 
 import { GvPageMarkdownComponent } from './gv-page-markdown.component';
 
@@ -36,11 +38,15 @@ describe('GvPageMarkdownComponent', () => {
       mockProvider(ConfigurationService, {
         get: () => BASE_URL,
       }),
+      mockProvider(PageService, {
+        getCurrentPage: () => docPage,
+      }),
     ],
   });
 
   let spectator: Spectator<GvPageMarkdownComponent>;
-  let component;
+  let component: GvPageMarkdownComponent;
+  const docPage: Page = { name: 'A Page', id: '86de4f08-aa02-40f0-aa73-4b3e0e97fef4', content: '', type: 'MARKDOWN', order: 1 };
 
   beforeEach(() => {
     spectator = createComponent();
@@ -49,8 +55,10 @@ describe('GvPageMarkdownComponent', () => {
     component.pageContent = null;
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('should sanitize Markdown with JavaScript in it', () => {
+    docPage.content = '[Click me](javascript:alert("XSS"))';
+    component.ngOnInit();
+    expect(component.pageContent).toEqual('<p><a href="unsafe:javascript:alert(%22XSS%22)">Click me</a></p>&#10;');
   });
 
   it('should use correct portal media url', () => {
