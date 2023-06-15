@@ -26,7 +26,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiPortalSubscriptionListComponent } from './list/api-portal-subscription-list.component';
@@ -55,6 +55,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatInputModule,
     MatSnackBarModule,
     GioIconsModule,
+    GioLoaderModule,
   ],
 })
 export class ApiPortalSubscriptionsModule {}
