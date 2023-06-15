@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, SecurityContext, ViewChild } from '@angular/core';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
 import '@gravitee/ui-components/wc/gv-button';
 import { Router } from '@angular/router';
 import { dispatchCustomEvent } from '@gravitee/ui-components/src/lib/events';
+import { DomSanitizer } from '@angular/platform-browser';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
@@ -46,6 +47,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     private router: Router,
     private scrollService: ScrollService,
     private elementRef: ElementRef,
+    private readonly sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit() {
@@ -62,11 +64,11 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         },
       });
 
-      this.pageContent = marked(this.page.content);
+      this.pageContent = this.sanitizer.sanitize(SecurityContext.HTML, marked(this.page.content));
     }
   }
 
-  private get renderer() {
+  get renderer() {
     const defaultRenderer = new marked.Renderer();
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
