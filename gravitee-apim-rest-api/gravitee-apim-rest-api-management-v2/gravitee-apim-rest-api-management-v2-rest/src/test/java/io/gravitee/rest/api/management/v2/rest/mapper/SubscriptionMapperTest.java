@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import fixtures.SubscriptionFixtures;
 import org.junit.jupiter.api.Test;
@@ -92,5 +92,31 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
             updateSubscription.getConsumerConfiguration().getEntrypointConfiguration(),
             updateSubscriptionEntity.getConfiguration().getEntrypointConfiguration()
         );
+    }
+
+    @Test
+    void should_map_AcceptSubscription_to_ProcessSubscriptionEntity() {
+        final var acceptSubscription = SubscriptionFixtures.anAcceptSubscription();
+        final var processSubscriptionEntity = subscriptionMapper.map(acceptSubscription, "subscriptionId");
+
+        assertEquals("subscriptionId", processSubscriptionEntity.getId());
+        assertEquals(acceptSubscription.getReason(), processSubscriptionEntity.getReason());
+        assertEquals(acceptSubscription.getCustomApiKey(), processSubscriptionEntity.getCustomApiKey());
+        assertEquals(acceptSubscription.getStartingAt().toInstant().toEpochMilli(), processSubscriptionEntity.getStartingAt().getTime());
+        assertEquals(acceptSubscription.getEndingAt().toInstant().toEpochMilli(), processSubscriptionEntity.getEndingAt().getTime());
+        assertTrue(processSubscriptionEntity.isAccepted());
+    }
+
+    @Test
+    void should_map_RejectSubscription_to_ProcessSubscriptionEntity() {
+        final var rejectSubscription = SubscriptionFixtures.aRejectSubscription();
+        final var processSubscriptionEntity = subscriptionMapper.map(rejectSubscription, "subscriptionId");
+
+        assertEquals("subscriptionId", processSubscriptionEntity.getId());
+        assertEquals(rejectSubscription.getReason(), processSubscriptionEntity.getReason());
+        assertNull(processSubscriptionEntity.getCustomApiKey());
+        assertNull(processSubscriptionEntity.getStartingAt());
+        assertNull(processSubscriptionEntity.getEndingAt());
+        assertFalse(processSubscriptionEntity.isAccepted());
     }
 }
