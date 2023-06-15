@@ -1275,6 +1275,8 @@ public class SubscriptionServiceTest {
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
         when(subscription.getPlan()).thenReturn(PLAN_ID);
         when(subscription.getStatus()).thenReturn(ACCEPTED);
+        when(subscription.getApi()).thenReturn(API_ID);
+
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(any())).thenReturn(subscription);
         planEntity.setStatus(PlanStatus.PUBLISHED);
@@ -1303,10 +1305,28 @@ public class SubscriptionServiceTest {
         transferSubscription.setPlan(PLAN_ID);
 
         when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.getApi()).thenReturn(API_ID);
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setGeneralConditions("SOME_PAGE");
         planEntity.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+    }
+
+    @Test(expected = TransferNotAllowedException.class)
+    public void shouldNotTransferSubscription_onPlanAttachedToAnotherApi() throws Exception {
+        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+        transferSubscription.setId(SUBSCRIPTION_ID);
+        transferSubscription.setPlan(PLAN_ID);
+
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        planEntity.setApi("another");
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
         subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);

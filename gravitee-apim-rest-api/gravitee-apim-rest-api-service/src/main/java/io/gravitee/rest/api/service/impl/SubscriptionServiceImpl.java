@@ -1487,6 +1487,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .orElseThrow(() -> new SubscriptionNotFoundException(transferSubscription.getId()));
             GenericPlanEntity subscriptionGenericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             if (
+                !transferGenericPlanEntity.getApiId().equals(subscription.getApi()) ||
                 transferGenericPlanEntity.getPlanStatus() != PlanStatus.PUBLISHED ||
                 !transferGenericPlanEntity.getPlanSecurity().getType().equals(subscriptionGenericPlanEntity.getPlanSecurity().getType()) ||
                 (transferGenericPlanEntity.getGeneralConditions() != null && !transferGenericPlanEntity.getGeneralConditions().isEmpty())
