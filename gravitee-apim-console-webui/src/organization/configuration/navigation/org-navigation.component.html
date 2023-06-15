@@ -1,0 +1,40 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="org-navigation">
+  <div class="org-navigation__nav">
+    <gio-submenu theme="light">
+      <button gioSubmenuTitle mat-button aria-label="Organization Settings" *ngIf="hasGoBackButton" (click)="goBack()">
+        <mat-icon svgIcon="gio:arrow-left"></mat-icon>Organization Settings
+      </button>
+      <ng-container *ngFor="let group of this.groupItems">
+        <gio-submenu-group [title]="group.title" *ngIf="group.title">
+          <ng-container *ngFor="let subItem of group.items">
+            <gio-submenu-item
+              *ngIf="subItem?.targetRoute"
+              tabIndex="1"
+              [active]="isActive(subItem?.targetRoute)"
+              (click)="navigateTo(subItem?.targetRoute)"
+              >{{ subItem?.displayName }}
+            </gio-submenu-item>
+          </ng-container>
+        </gio-submenu-group>
+      </ng-container>
+    </gio-submenu>
+  </div>
+  <ui-view class="org-navigation__content"></ui-view>
+</div>

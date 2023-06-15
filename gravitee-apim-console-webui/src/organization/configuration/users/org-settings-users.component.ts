@@ -104,7 +104,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   }
 
   onDisplayNameClick(userId: string) {
-    this.$state.go('organization.settings.ng-user', { userId });
+    this.$state.go('organization.user', { userId });
   }
 
   onDeleteUserClick({ userId, displayName }: TableData) {
@@ -134,7 +134,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   }
 
   onAddUserClick() {
-    this.$state.go('organization.settings.ng-newuser');
+    this.$state.go('organization.users.new');
   }
 
   private setDataSourceFromUsersList(users: PagedResult<User>) {

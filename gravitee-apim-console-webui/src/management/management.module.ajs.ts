@@ -234,7 +234,6 @@ import ApiAuditController from '../management/api/audit/general/audit.controller
 import AuditComponent from '../components/audit/audit.component';
 // Configuration
 import SettingsComponent from '../management/configuration/settings.component';
-import OrganizationSettingsComponent from '../organization/configuration/organization-settings.component';
 import ConsoleSettingsService from '../services/consoleSettings.service';
 import PortalSettingsService from '../services/portalSettings.service';
 import PortalConfigService from '../services/portalConfig.service';
@@ -379,7 +378,6 @@ import FlowService from '../services/flow.service';
 import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
 import TicketsListController from './support/tickets-list.controller';
 import TicketDetailComponent from './support/ticket-detail.component';
-import organizationRouterConfig from '../organization/organization.route.ajs';
 import SpelService from '../services/spel.service';
 import DashboardController from './dashboard-ajs/dashboard.controller';
 import HomeDashboardController from './dashboard-ajs/home-dashboard/home-dashboard.controller';
@@ -466,21 +464,6 @@ require('highcharts/modules/map')(Highcharts);
 require('@highcharts/map-collection/custom/world');
 import { DebugApiService } from '../services/debugApi.service';
 import { downgradeComponent, downgradeInjectable } from '@angular/upgrade/static';
-import { OrgSettingsGeneralComponent } from '../organization/configuration/console/org-settings-general.component';
-import { OrgSettingsUsersComponent } from '../organization/configuration/users/org-settings-users.component';
-import { OrgSettingsNewUserComponent } from '../organization/configuration/user/new/org-settings-new-user.component';
-import { OrgSettingsIdentityProvidersComponent } from '../organization/configuration/identity-providers/org-settings-identity-providers.component';
-import { OrgSettingsIdentityProviderComponent } from '../organization/configuration/identity-provider/org-settings-identity-provider.component';
-import { OrgSettingsNotificationTemplatesComponent } from '../organization/configuration/notification-templates/org-settings-notification-templates.component';
-import { OrgSettingsCockpitComponent } from '../organization/configuration/cockpit/org-settings-cockpit.component';
-import { OrgSettingsNotificationTemplateComponent } from '../organization/configuration/notification-templates/org-settings-notification-template.component';
-import { OrgSettingsUserDetailComponent } from '../organization/configuration/user/detail/org-settings-user-detail.component';
-import { OrgSettingsPlatformPoliciesComponent } from '../organization/configuration/policies/org-settings-platform-policies.component';
-import { OrgSettingsTenantsComponent } from '../organization/configuration/tenants/org-settings-tenants.component';
-import { OrgSettingsRolesComponent } from '../organization/configuration/roles/org-settings-roles.component';
-import { OrgSettingsTagsComponent } from '../organization/configuration/tags/org-settings-tags.component';
-import { OrgSettingsRoleMembersComponent } from '../organization/configuration/roles/org-settings-role-members.component';
-import { OrgSettingsRoleComponent } from '../organization/configuration/roles/role/org-settings-role.component';
 import DialogTransferOwnershipController from './configuration/groups/group/transferOwnershipDialog.controller';
 import { CockpitService } from '../services-ngx/cockpit.service';
 
@@ -493,7 +476,6 @@ import ApplicationSubscriptionsListComponent from '../management/application/det
 import ApplicationSubscriptionsListController from '../management/application/details/subscriptions/application-subscriptions-list.controller';
 import ApiKeysComponent from '../management/api-key/api-keys.component';
 import ApiKeysController from '../management/api-key/api-keys.controller';
-import { OrgSettingsAuditComponent } from '../organization/configuration/audit/org-settings-audit.component';
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { EnvApplicationListComponent } from './application/list/env-application-list.component';
 import { ApiListComponent } from './api/list/api-list.component';
@@ -531,6 +513,7 @@ import { ApiPortalPlanEditComponent } from './api/portal/plans/edit/api-portal-p
 import { ApiPortalDocumentationMetadataComponent } from './api/portal/documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { ApiBackendServicesComponent } from './api/endpoints-v4/backend-services/api-backend-services.component';
+import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -589,7 +572,6 @@ graviteeManagementModule.config(config);
 graviteeManagementModule.config(routerConfig);
 graviteeManagementModule.config(authenticationConfig);
 graviteeManagementModule.config(managementRouterConfig);
-graviteeManagementModule.config(organizationRouterConfig);
 graviteeManagementModule.config(applicationRouterConfig);
 graviteeManagementModule.config(applicationsNotificationsRouterConfig);
 graviteeManagementModule.config(apisRouterConfig);
@@ -839,26 +821,16 @@ graviteeManagementModule.component('categories', CategoriesComponent);
 graviteeManagementModule.component('category', CategoryComponent);
 graviteeManagementModule.component('moved', MovedComponent);
 
-graviteeManagementModule.directive('ngTenants', downgradeComponent({ component: OrgSettingsTenantsComponent }));
-
-graviteeManagementModule.directive('ngOrgSettingsTags', downgradeComponent({ component: OrgSettingsTagsComponent }));
 graviteeManagementModule.component('metadata', MetadataComponent);
-graviteeManagementModule.directive('ngRoles', downgradeComponent({ component: OrgSettingsRolesComponent }));
-graviteeManagementModule.directive('ngOrgSettingsRole', downgradeComponent({ component: OrgSettingsRoleComponent }));
-graviteeManagementModule.directive('ngRoleMembers', downgradeComponent({ component: OrgSettingsRoleMembersComponent }));
 graviteeManagementModule.component('theme', ThemeComponent);
 graviteeManagementModule.component('topApis', TopApisComponent);
-graviteeManagementModule.directive('ngCockpit', downgradeComponent({ component: OrgSettingsCockpitComponent }));
 graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(CockpitService));
 
-graviteeManagementModule.directive('ngConsoleSettings', downgradeComponent({ component: OrgSettingsGeneralComponent }));
 graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
 graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsComponent);
 graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
 graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
 graviteeManagementModule.component('ticketDetail', TicketDetailComponent);
-graviteeManagementModule.directive('ngPlatformPolicies', downgradeComponent({ component: OrgSettingsPlatformPoliciesComponent }));
-graviteeManagementModule.directive('ngOrgSettingsAudit', downgradeComponent({ component: OrgSettingsAuditComponent }));
 
 graviteeManagementModule.component('instances', InstancesComponent);
 
@@ -938,16 +910,6 @@ graviteeManagementModule.controller('DialogAddNotificationSettingsController', D
 graviteeManagementModule.component('notificationSettingsComponent', NotificationSettingsComponent);
 graviteeManagementModule.component('notificationsComponent', NotificationsComponent);
 
-graviteeManagementModule.directive(
-  'ngNotificationTemplatesComponent',
-  downgradeComponent({ component: OrgSettingsNotificationTemplatesComponent }),
-);
-
-graviteeManagementModule.directive(
-  'ngNotificationTemplateComponent',
-  downgradeComponent({ component: OrgSettingsNotificationTemplateComponent }),
-);
-
 graviteeManagementModule.component('logout', LogoutComponent);
 
 graviteeManagementModule.controller('ApiLogsController', ApiLogsController);
@@ -977,19 +939,12 @@ graviteeManagementModule.directive('ngApiPathMappings', downgradeComponent({ com
 
 // Configuration
 graviteeManagementModule.component('settings', SettingsComponent);
-graviteeManagementModule.component('organizationSettings', OrganizationSettingsComponent);
+graviteeManagementModule.directive('orgNavigation', downgradeComponent({ component: OrgNavigationComponent }));
 graviteeManagementModule.service('ConsoleSettingsService', ConsoleSettingsService);
 graviteeManagementModule.service('PortalSettingsService', PortalSettingsService);
 graviteeManagementModule.service('PortalConfigService', PortalConfigService);
 graviteeManagementModule.component('apiLogging', ApiLoggingComponent);
 graviteeManagementModule.controller('ApiLoggingController', ApiLoggingController);
-
-// Users
-graviteeManagementModule.directive('ngOrgSettingsUsers', downgradeComponent({ component: OrgSettingsUsersComponent }));
-
-graviteeManagementModule.directive('ngOrgSettingsUserDetail', downgradeComponent({ component: OrgSettingsUserDetailComponent }));
-
-graviteeManagementModule.directive('ngOrgSettingsNewUser', downgradeComponent({ component: OrgSettingsNewUserComponent }));
 
 // Router
 graviteeManagementModule.service('RouterService', RouterService);
@@ -1018,14 +973,6 @@ graviteeManagementModule.service('QualityRuleService', QualityRuleService);
 
 // Settings: Identity provider
 graviteeManagementModule.component('identityProviders', IdentityProvidersComponent);
-graviteeManagementModule.directive(
-  'ngOrgSettingsIdentityProviders',
-  downgradeComponent({ component: OrgSettingsIdentityProvidersComponent }),
-);
-graviteeManagementModule.directive(
-  'ngOrgSettingsIdentityProvider',
-  downgradeComponent({ component: OrgSettingsIdentityProviderComponent }),
-);
 
 graviteeManagementModule.service('IdentityProviderService', IdentityProviderService);
 

@@ -88,7 +88,7 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
   }
 
   onEditActionClicked(notificationTemplateVM: NotificationTemplateVM) {
-    this.ajsState.go('organization.settings.ng-notificationTemplate', {
+    this.ajsState.go('organization.notificationTemplate', {
       scope: notificationTemplateVM.scope,
       // FIXME: Find a way to handle this case in Notification Template screen and not here
       //   Keep it like this for now for compatibility

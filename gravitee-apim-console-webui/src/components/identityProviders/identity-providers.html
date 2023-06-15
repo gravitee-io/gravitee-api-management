@@ -141,9 +141,7 @@
                   <md-icon md-svg-icon="assets/logo_{{identityProvider.type | lowercase}}-idp.svg" style="fill: black"></md-icon>
                 </td>
                 <td md-cell>
-                  <a ui-sref="organization.settings.ajs-identityproviders.identityprovider({id: identityProvider.id})"
-                    >{{identityProvider.id}}</a
-                  >
+                  <a ui-sref="organization.identities.identityprovider({id: identityProvider.id})">{{identityProvider.id}}</a>
                 </td>
                 <td md-cell>{{identityProvider.name}}</td>
                 <td md-cell>{{identityProvider.description}}</td>

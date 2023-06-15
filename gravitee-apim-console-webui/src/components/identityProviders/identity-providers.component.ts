@@ -65,7 +65,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     ];
 
     this.create = (type) => {
-      $state.go('organization.settings.ajs-identityproviders.new', { type: type });
+      $state.go('organization.identities.new', { type: type });
     };
 
     this.delete = (provider: IdentityProvider) => {
@@ -85,7 +85,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
           if (response) {
             IdentityProviderService.delete(provider).then(() => {
               NotificationService.show("Identity provider '" + provider.name + "' has been deleted");
-              $state.go('organization.settings.ajs-identityproviders.list', {}, { reload: true });
+              $state.go('organization.identities', {}, { reload: true });
             });
           }
         });
