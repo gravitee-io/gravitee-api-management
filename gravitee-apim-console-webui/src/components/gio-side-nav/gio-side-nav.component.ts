@@ -148,7 +148,7 @@ export class GioSideNavComponent implements OnInit {
     return this.filterMenuByPermission([
       {
         icon: 'gio:building',
-        targetRoute: 'organization',
+        targetRoute: 'organization.settings',
         baseRoute: 'organization',
         displayName: 'Organization',
         permissions: ['organization-settings-r'],

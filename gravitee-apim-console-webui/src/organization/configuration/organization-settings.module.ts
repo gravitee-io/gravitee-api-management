@@ -48,8 +48,11 @@ import {
   GioFormFocusInvalidModule,
   GioConfirmDialogModule,
   GioFormJsonSchemaModule,
+  GioMenuModule,
+  GioSubmenuModule,
 } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
+import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -78,6 +81,7 @@ import { OrgSettingsUserGenerateTokenComponent } from './user/detail/tokens/org-
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
 import { OrgSettingsPlatformPoliciesStudioComponent } from './policies/studio/org-settings-platform-policies-studio.component';
 import { OrgSettingsPlatformPoliciesConfigComponent } from './policies/config/org-settings-platform-policies-config.component';
+import { OrgNavigationComponent } from './navigation/org-navigation.component';
 
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -88,6 +92,292 @@ import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-cl
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
 import { GioLicenseModule } from '../../shared/components/gio-license/gio-license.module';
+
+const states: Ng2StateDeclaration[] = [
+  {
+    name: 'organization',
+    url: '/organization',
+    abstract: true,
+    component: OrgNavigationComponent,
+  },
+  {
+    name: 'organization.settings',
+    url: '/settings',
+    component: OrgSettingsGeneralComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-console',
+      },
+      perms: {
+        only: ['organization-settings-r'],
+      },
+    },
+  },
+  {
+    name: 'organization.identities',
+    url: '/identities',
+    component: OrgSettingsIdentityProvidersComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-identityproviders',
+      },
+      perms: {
+        only: ['organization-identity_provider-r'],
+      },
+    },
+  },
+  {
+    name: 'organization.identities.edit',
+    url: '/identities/:id',
+    component: OrgSettingsIdentityProviderComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-identityproviders',
+      },
+      perms: {
+        only: ['organization-identity_provider-r', 'organization-identity_provider-u', 'organization-identity_provider-d'],
+      },
+    },
+  },
+  {
+    name: 'organization.identities.new',
+    url: '/identities/:id',
+    component: OrgSettingsIdentityProviderComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-identityproviders',
+      },
+      perms: {
+        only: ['organization-identity_provider-c'],
+      },
+    },
+  },
+  {
+    name: 'organization.users',
+    url: '/users?q&page',
+    component: OrgSettingsUsersComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-users',
+      },
+      perms: {
+        only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
+      },
+    },
+    params: {
+      page: {
+        value: '1',
+        dynamic: true,
+      },
+      q: {
+        dynamic: true,
+      },
+    },
+  },
+  {
+    name: 'organization.users.new',
+    url: '/users/new',
+    component: OrgSettingsNewUserComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-create-user',
+      },
+      perms: {
+        only: ['organization-user-c'],
+      },
+    },
+  },
+  {
+    name: 'organization.users.edit',
+    url: '/users/:userId',
+    component: OrgSettingsUserDetailComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-user',
+      },
+      perms: {
+        only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
+      },
+    },
+  },
+  {
+    name: 'organization.roles',
+    url: '/roles',
+    component: OrgSettingsRolesComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-roles',
+      },
+      perms: {
+        only: ['organization-role-r'],
+      },
+    },
+  },
+  {
+    name: 'organization.roles.new',
+    url: '/role/:roleScope/',
+    component: OrgSettingsRolesComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-roles',
+      },
+      perms: {
+        only: ['organization-role-u'],
+      },
+    },
+  },
+  {
+    name: 'organization.roles.edit',
+    url: '/role/:roleScope/:role',
+    component: OrgSettingsRoleComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-roles',
+      },
+      perms: {
+        only: ['organization-role-u'],
+      },
+    },
+  },
+  {
+    name: 'organization.roles.members',
+    url: '/role/:roleScope/:role/members',
+    component: OrgSettingsRoleMembersComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: {
+        page: 'organization-configuration-roles',
+      },
+      perms: {
+        only: ['organization-role-u'],
+      },
+    },
+  },
+  {
+    name: 'organization.tags',
+    url: '/tags',
+    component: OrgSettingsTagsComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'management-configuration-sharding-tags',
+      },
+      perms: {
+        only: ['organization-tag-r'],
+      },
+    },
+  },
+  {
+    name: 'organization.tenants',
+    url: '/tenants',
+    component: OrgSettingsTenantsComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'management-configuration-tenants',
+      },
+      perms: {
+        only: ['organization-tenant-r'],
+      },
+    },
+  },
+  {
+    name: 'organization.policies',
+    url: '/policies',
+    component: OrgSettingsPlatformPoliciesComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: {
+        page: 'management-configuration-policies',
+      },
+      perms: {
+        only: ['organization-policies-r'],
+      },
+    },
+  },
+  {
+    name: 'organization.notificationTemplates',
+    url: '/notification-templates',
+    component: OrgSettingsNotificationTemplatesComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-notification-templates',
+      },
+      perms: {
+        only: ['organization-notification_templates-r'],
+      },
+    },
+  },
+  {
+    name: 'organization.notificationTemplate',
+    url: '/notification-templates/:scope/:hook',
+    component: OrgSettingsNotificationTemplateComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-notification-template',
+      },
+      perms: {
+        only: ['organization-notification_templates-r'],
+      },
+    },
+  },
+  {
+    name: 'organization.audit',
+    url: '/audit',
+    component: OrgSettingsAuditComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'management-audit',
+      },
+      perms: {
+        only: ['organization-audit-r'],
+      },
+    },
+  },
+  {
+    name: 'organization.cockpit',
+    url: '/cockpit',
+    component: OrgSettingsCockpitComponent,
+    data: {
+      useAngularMaterial: true,
+      menu: null,
+      docs: {
+        page: 'organization-configuration-cockpit',
+      },
+      perms: {
+        only: ['organization-installation-r'],
+      },
+    },
+  },
+];
 
 @NgModule({
   imports: [
@@ -138,8 +428,13 @@ import { GioLicenseModule } from '../../shared/components/gio-license/gio-licens
     GioUsersSelectorModule,
     GioFormJsonSchemaModule,
     GioLicenseModule,
+    GioMenuModule,
+    GioSubmenuModule,
+
+    UIRouterModule.forChild({ states }),
   ],
   declarations: [
+    OrgNavigationComponent,
     OrgSettingsGeneralComponent,
     OrgSettingsUsersComponent,
     OrgSettingsNewUserComponent,
@@ -169,28 +464,5 @@ import { GioLicenseModule } from '../../shared/components/gio-license/gio-licens
     OrgSettingsAuditComponent,
   ],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
-  entryComponents: [
-    OrgSettingsGeneralComponent,
-    OrgSettingsUsersComponent,
-    OrgSettingsNewUserComponent,
-    OrgSettingsUserGenerateTokenComponent,
-    OrgSettingsUserDetailComponent,
-    OrgSettingsIdentityProvidersComponent,
-    OrgSettingsIdentityProviderComponent,
-    OrgSettingsNotificationTemplatesComponent,
-    OrgSettingsNotificationTemplateComponent,
-    OrgSettingsCockpitComponent,
-    OrgSettingsPlatformPoliciesComponent,
-    OrgSettingsTenantsComponent,
-    OrgSettingAddTenantComponent,
-    OrgSettingsRolesComponent,
-    OrgSettingsTagsComponent,
-    OrgSettingsRoleMembersComponent,
-    OrgSettingAddTagDialogComponent,
-    OrgSettingAddMappingDialogComponent,
-    OrgSettingsRoleComponent,
-    OrgSettingsUserDetailAddGroupDialogComponent,
-    OrgSettingsAuditComponent,
-  ],
 })
 export class OrganizationSettingsModule {}

@@ -178,7 +178,7 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
       const activateLoginSlideToggle = await getActionButtonWithAriaLabel('Button to edit an identity provider');
       await activateLoginSlideToggle.click();
 
-      expect(fake$State.go).toHaveBeenCalledWith('organization.settings.ng-identityprovider-edit', { id: 'gravitee-am' });
+      expect(fake$State.go).toHaveBeenCalledWith('organization.identities.edit', { id: 'gravitee-am' });
     });
   });
 
@@ -207,7 +207,7 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
       const activateLoginSlideToggle = await loader.getHarness(MatButtonHarness.with({ text: /Add an identity provider/ }));
       await activateLoginSlideToggle.click();
 
-      expect(fake$State.go).toHaveBeenCalledWith('organization.settings.ng-identityprovider-new');
+      expect(fake$State.go).toHaveBeenCalledWith('organization.identities.new');
     });
   });
 

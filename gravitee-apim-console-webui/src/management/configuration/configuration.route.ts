@@ -692,7 +692,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       resolve: {
         destinationName: () => 'Organization > Tags',
         permissions: () => ['organization-tag-r'],
-        goTo: () => 'organization.settings.ng-tags',
+        goTo: () => 'organization.tags',
         destinationIcon: () => 'settings_applications',
       },
       data: {
@@ -711,7 +711,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       resolve: {
         destinationName: () => 'Organization > Tenants',
         permissions: () => ['organization-tenant-r'],
-        goTo: () => 'organization.settings.ng-tenants',
+        goTo: () => 'organization.tenants',
         destinationIcon: () => 'settings_applications',
       },
       data: {

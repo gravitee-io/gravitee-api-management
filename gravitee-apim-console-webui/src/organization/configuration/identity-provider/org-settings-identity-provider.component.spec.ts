@@ -159,7 +159,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         },
       });
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.settings.ng-identityprovider-edit', { id: 'google-idp' });
+      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.identities.edit', { id: 'google-idp' });
     });
 
     describe('github', () => {
