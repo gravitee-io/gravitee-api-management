@@ -119,4 +119,8 @@ public class SubscriptionFixtures {
     public static RejectSubscription aRejectSubscription() {
         return RejectSubscription.builder().reason("reason").build();
     }
+
+    public static TransferSubscription aTransferSubscription() {
+        return TransferSubscription.builder().planId("other-plan").build();
+    }
 }

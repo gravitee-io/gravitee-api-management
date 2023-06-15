@@ -119,4 +119,13 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
         assertNull(processSubscriptionEntity.getEndingAt());
         assertFalse(processSubscriptionEntity.isAccepted());
     }
+
+    @Test
+    void should_map_TransferSubscription_to_TransferSubscriptionEntity() {
+        final var transferSubscription = SubscriptionFixtures.aTransferSubscription();
+        final var transferSubscriptionEntity = subscriptionMapper.map(transferSubscription, "subscriptionId");
+
+        assertEquals("subscriptionId", transferSubscriptionEntity.getId());
+        assertEquals(transferSubscription.getPlanId(), transferSubscriptionEntity.getPlan());
+    }
 }

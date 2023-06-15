@@ -25,14 +25,12 @@ import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
-import io.gravitee.rest.api.model.NewSubscriptionEntity;
-import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
-import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -386,6 +384,27 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         return Response.ok(subscriptionMapper.map(subscriptionService.resume(executionContext, subscriptionId))).build();
+    }
+
+    @POST
+    @Path("/{subscriptionId}/_transfer")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    public Response transferApiSubscription(
+        @PathParam("subscriptionId") String subscriptionId,
+        @Valid @NotNull TransferSubscription transferSubscription
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!subscriptionEntity.getApi().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
+        final TransferSubscriptionEntity transferSubscriptionEntity = subscriptionMapper.map(transferSubscription, subscriptionId);
+        return Response
+            .ok(subscriptionMapper.map(subscriptionService.transfer(executionContext, transferSubscriptionEntity, getAuthenticatedUser())))
+            .build();
     }
 
     private void expandData(Subscription subscription, Set<String> expands) {
