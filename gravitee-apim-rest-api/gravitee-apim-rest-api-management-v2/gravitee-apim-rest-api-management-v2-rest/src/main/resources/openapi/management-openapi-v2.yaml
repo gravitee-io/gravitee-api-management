@@ -1055,6 +1055,75 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_close:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Close one API's subscription
+            description: |-
+                Close the API's subscription.
+
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: closeApiSubscription
+            responses:
+                "200":
+                    description: API's subscription successfully closed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_pause:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Pause one API's subscription
+            description: |-
+                Pause the API's subscription.
+
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: pauseApiSubscription
+            responses:
+                "200":
+                    description: API's subscription successfully paused
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_resume:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Resume a paused API's subscription
+            description: |-
+                Resume a previously paused subscription.
+
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: resumeApiSubscription
+            responses:
+                "200":
+                    description: API's subscription successfully resumed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # Plugins - Endpoints
     /plugins/endpoints:
