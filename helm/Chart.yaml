@@ -20,5 +20,5 @@ annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
-    - Change the version: 3.19.16
+    - Change the version 3.19.16
     - Remove duplicate annotation in ui deployment
