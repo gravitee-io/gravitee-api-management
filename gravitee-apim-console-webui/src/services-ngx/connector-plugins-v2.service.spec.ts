@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ConnectorPluginsV2Service } from './connector-plugins-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { fakeConnectorPlugin } from '../entities/management-api-v2/connector/connectorPlugin.fixture';
+import { fakeConnectorPlugin } from '../entities/management-api-v2/plugin/connectorPlugin.fixture';
 
 describe('Installation Plugins Service', () => {
   let httpTestingController: HttpTestingController;

@@ -15,7 +15,7 @@
  */
 export * from './api';
 export * from './application';
-export * from './connector';
+export * from './plugin';
 export * from './createApi';
 export * from './member';
 export * from './plan';
