@@ -19,9 +19,9 @@ import { TestBed } from '@angular/core/testing';
 import { PolicyV2Service } from './policy-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { fakePolicySchema } from '../entities/policy';
+import { fakePoliciesPlugin } from '../entities/management-api-v2';
 
-describe('PolicyService', () => {
+describe('PolicyV2Service', () => {
   let httpTestingController: HttpTestingController;
   let policyService: PolicyV2Service;
 
@@ -34,10 +34,26 @@ describe('PolicyService', () => {
     policyService = TestBed.inject<PolicyV2Service>(PolicyV2Service);
   });
 
+  describe('list', () => {
+    it('should call the API', (done) => {
+      const policies = [fakePoliciesPlugin()];
+
+      policyService.list().subscribe((response) => {
+        expect(response).toStrictEqual(policies);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/plugins/policies`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(policies);
+    });
+  });
+
   describe('getSchema', () => {
     it('should call the API', (done) => {
       const policyId = 'policy#1';
-      const policySchema = fakePolicySchema();
+      const policySchema = {};
 
       policyService.getSchema(policyId).subscribe((response) => {
         expect(response).toStrictEqual(policySchema);
@@ -48,6 +64,23 @@ describe('PolicyService', () => {
       expect(req.request.method).toEqual('GET');
 
       req.flush(policySchema);
+    });
+  });
+
+  describe('getDocumentation', () => {
+    it('should call the API', (done) => {
+      const policyId = 'policy#1';
+      const policyDocumentation = 'The Doc';
+
+      policyService.getDocumentation(policyId).subscribe((response) => {
+        expect(response).toStrictEqual(policyDocumentation);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/plugins/policies/policy#1/documentation`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(policyDocumentation);
     });
   });
 

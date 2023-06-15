@@ -13,25 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface PlatformPlugin {
-  /**
-   * Plugin's uuid.
-   */
-  id?: string;
-  /**
-   * Plugin's name.
-   */
-  name?: string;
-  /**
-   * Plugin's description.
-   */
-  description?: string;
-  /**
-   * Plugin's category.
-   */
-  category?: string;
-  /**
-   * Plugin's version.
-   */
-  version?: string;
-}
+export type ExecutionPhase = 'REQUEST' | 'RESPONSE' | 'MESSAGE_REQUEST' | 'MESSAGE_RESPONSE';

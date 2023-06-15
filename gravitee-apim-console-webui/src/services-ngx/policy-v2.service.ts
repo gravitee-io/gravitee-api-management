@@ -16,9 +16,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
-import { PolicySchema } from '../entities/policy';
+import { PolicyDocumentation, PolicyListItem, PolicySchema } from '../entities/policy';
+import { PolicyPlugin } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -26,7 +28,19 @@ import { PolicySchema } from '../entities/policy';
 export class PolicyV2Service {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
+  list(): Observable<PolicyPlugin[]> {
+    return this.http.get<PolicyListItem[]>(`${this.constants.v2BaseURL}/plugins/policies`);
+  }
+
   getSchema(policyId: string): Observable<PolicySchema> {
     return this.http.get<PolicySchema>(`${this.constants.v2BaseURL}/plugins/policies/${policyId}/schema`);
+  }
+
+  getDocumentation(policyId: string): Observable<PolicyDocumentation> {
+    return this.http
+      .get(`${this.constants.v2BaseURL}/plugins/policies/${policyId}/documentation`, {
+        responseType: 'text',
+      })
+      .pipe(map((buffer) => buffer.toString()));
   }
 }

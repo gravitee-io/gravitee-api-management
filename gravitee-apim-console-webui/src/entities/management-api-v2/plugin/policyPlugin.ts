@@ -13,9 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './connectorFeature';
-export * from './connectorMode';
-export * from './connectorPlugin';
-export * from './connectorPlugin.fixture';
-export * from './moreInformation';
-export * from './platformPlugin';
+import { PlatformPlugin } from './platformPlugin';
+import { ExecutionPhase } from './executionPhase';
+
+export interface PolicyPlugin extends PlatformPlugin {
+  /**
+   * Plugin's uuid.
+   */
+  id: string;
+  /**
+   * Plugin's name.
+   */
+  name: string;
+  proxy?: ExecutionPhase[];
+  message?: ExecutionPhase[];
+}
