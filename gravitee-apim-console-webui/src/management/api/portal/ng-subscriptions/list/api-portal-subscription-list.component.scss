@@ -58,10 +58,6 @@ $foreground: map.get(gio.$mat-theme, foreground);
     width: 100%;
     @include mat.elevation(3); // default elevation
 
-    &__drag-icon {
-      margin-right: 24px;
-    }
-
     &__name {
       cursor: pointer;
     }
@@ -76,13 +72,16 @@ $foreground: map.get(gio.$mat-theme, foreground);
       width: 0;
     }
 
-    .mat-column-drag-icon {
-      width: 0;
-      cursor: move;
-    }
-
     .mat-column-name {
       width: 30%;
+    }
+
+    .loader {
+      gio-loader {
+        height: 50px;
+        width: 50px;
+        margin: 0 auto;
+      }
     }
   }
 }

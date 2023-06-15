@@ -190,8 +190,8 @@
       <td *ngIf="!isLoadingData && subscriptionsTableDS.length === 0" class="mat-cell" [attr.colspan]="displayedColumns.length">
         {{ 'There is no subscription (yet).' }}
       </td>
-      <td *ngIf="isLoadingData" class="mat-cell" [attr.colspan]="displayedColumns.length">
-        {{ 'Loading...' }}
+      <td *ngIf="isLoadingData" class="mat-cell loader" [attr.colspan]="displayedColumns.length">
+        <gio-loader></gio-loader>
       </td>
     </tr>
   </table>
