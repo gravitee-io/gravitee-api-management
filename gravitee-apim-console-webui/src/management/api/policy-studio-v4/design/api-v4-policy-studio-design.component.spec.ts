@@ -21,6 +21,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioPolicyStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { of } from 'rxjs';
 
 import { ApiV4PolicyStudioDesignComponent } from './api-v4-policy-studio-design.component';
 
@@ -34,6 +35,8 @@ import {
   fakeApiV4,
   fakeConnectorPlugin,
   fakePlanV4,
+  fakePoliciesPlugin,
+  fakePolicyPlugin,
   FlowV4,
   PlanV4,
 } from '../../../../entities/management-api-v2';
@@ -121,6 +124,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
 
       expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook' }]);
       expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka' }]);
+      expectGetPolicies();
 
       expectListApiPlans(API_ID, [planA]);
       expectGetApi(api);
@@ -144,7 +148,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           flows: [
             {
               infos: '/my-path',
-              isSelected: false,
+              isSelected: true,
               name: null,
             },
           ],
@@ -354,6 +358,117 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
       });
       req.flush(api);
     });
+
+    it('should add step policy into "my flow"', async () => {
+      const policyToAdd = fakePolicyPlugin();
+
+      // Override Fetcher function
+      component.policySchemaFetcher = (_policy) => {
+        return of({});
+      };
+      component.policyDocumentationFetcher = (_policy) => {
+        return of({});
+      };
+
+      await policyStudioHarness.selectFlowInMenu('my flow');
+
+      const requestPhase = await policyStudioHarness.getSelectedFlowPhase('REQUEST');
+      await requestPhase.addStep(0, {
+        policyName: policyToAdd.name,
+        description: 'My policy step description',
+      });
+      expect(await requestPhase.getSteps()).toEqual([
+        {
+          name: 'Webhook',
+          type: 'connector',
+        },
+        {
+          name: policyToAdd.name,
+          description: 'My policy step description',
+          type: 'step',
+        },
+        {
+          name: 'Kafka',
+          type: 'connector',
+        },
+      ]);
+
+      await policyStudioHarness.save();
+
+      // Fetch fresh API before save
+      expectGetApi(api);
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+        method: 'PUT',
+      });
+      expect(req.request.body.flows).toEqual([
+        {
+          enabled: true,
+          name: 'my flow',
+          request: [
+            {
+              description: 'My policy step description',
+              enabled: true,
+              name: 'Test policy',
+              policy: 'test-policy',
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('should edit step into "PlanA"', async () => {
+      // Override Fetcher function
+      component.policySchemaFetcher = (_policy) => {
+        return of({});
+      };
+      component.policyDocumentationFetcher = (_policy) => {
+        return of({});
+      };
+
+      await policyStudioHarness.selectFlowInMenu('PlanA');
+
+      const requestPhase = await policyStudioHarness.getSelectedFlowPhase('REQUEST');
+      await requestPhase.editStep(0, {
+        description: 'New step description',
+      });
+
+      expect(await requestPhase.getSteps()).toEqual([
+        {
+          name: 'Webhook',
+          type: 'connector',
+        },
+        {
+          name: 'Mock',
+          description: 'New step description',
+          type: 'step',
+        },
+        {
+          name: 'Kafka',
+          type: 'connector',
+        },
+      ]);
+
+      await policyStudioHarness.save();
+
+      // Fetch fresh Plan before save
+      expectGetPlan(api.id, planA);
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans/${planA.id}`,
+        method: 'PUT',
+      });
+      expect(req.request.body.flows).toEqual([
+        {
+          ...planA.flows[0],
+          request: [
+            {
+              ...planA.flows[0].request[0],
+              description: 'New step description',
+            },
+          ],
+        },
+      ]);
+    });
   });
 
   function expectGetApi(api: Api) {
@@ -399,5 +514,14 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         method: 'GET',
       })
       .flush(plan);
+  }
+
+  function expectGetPolicies() {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/policies`,
+        method: 'GET',
+      })
+      .flush([fakePolicyPlugin(), ...fakePoliciesPlugin()]);
   }
 });
