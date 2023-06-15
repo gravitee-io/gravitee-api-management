@@ -1125,6 +1125,67 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_accept:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Accept an API subscription
+            description: |-
+                Accept an API subscription with an optional starting / ending dates and reason.
+                
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: acceptApiSubscription
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AcceptSubscription"
+                required: true
+            responses:
+                "200":
+                    description: API's subscription successfully accepted
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                default:
+                    $ref: "#/components/responses/Error"
+
+
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_reject:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Reject an API subscription
+            description: |-
+                Reject an API subscription with an optional reason.
+                
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: rejectApiSubscription
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/RejectSubscription"
+                required: true
+            responses:
+                "200":
+                    description: API's subscription successfully rejected
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # Plugins - Endpoints
     /plugins/endpoints:
         get:
@@ -3209,6 +3270,33 @@ components:
                 reason:
                     type: string
                     description: An optional reason giving details about the result.
+
+        AcceptSubscription:
+            type: object
+            properties:
+                reason:
+                    type: string
+                    description: Optional reason explaining why the subscription has been accepted.
+                customApiKey:
+                    type: string
+                    description: Optional custom api key that can be given when the subscription is related to an api-key plan and custom api key support is enabled.
+                startingAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription starts. No starting date means the subscription starts immediately.
+                    example: 2023-05-20T12:30:42.101Z
+                endingAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the subscription ends. No ending date means the subscription never ends.
+                    example: 2023-05-25T12:40:46.184Z
+
+        RejectSubscription:
+            type: object
+            properties:
+                reason:
+                    type: string
+                    description: Optional reason explaining why the subscription has been rejected.
 
         BaseUser:
             type: object

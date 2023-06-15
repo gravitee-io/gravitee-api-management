@@ -15,10 +15,7 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
-import io.gravitee.rest.api.management.v2.rest.model.SubscriptionConsumerConfiguration;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscription;
-import io.gravitee.rest.api.management.v2.rest.model.VerifySubscription;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -107,5 +104,19 @@ public class SubscriptionFixtures {
 
     public static VerifySubscription aVerifySubscription() {
         return VerifySubscription.builder().applicationId("my-application").apiKey("custom").build();
+    }
+
+    public static AcceptSubscription anAcceptSubscription() {
+        return AcceptSubscription
+            .builder()
+            .customApiKey("custom")
+            .reason("reason")
+            .startingAt(OffsetDateTime.now())
+            .endingAt(OffsetDateTime.now())
+            .build();
+    }
+
+    public static RejectSubscription aRejectSubscription() {
+        return RejectSubscription.builder().reason("reason").build();
     }
 }
