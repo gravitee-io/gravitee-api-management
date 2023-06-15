@@ -17,15 +17,21 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.PictureEntity;
+import io.gravitee.rest.api.model.UpdateApplicationEntity;
+import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.NotifierService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -45,9 +51,21 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.Response;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -124,6 +142,13 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationEntity updateApplication(
         @Valid @NotNull(message = "An application must be provided") final UpdateApplicationEntity updatedApplication
     ) {
+        try {
+            ImageUtils.verify(updatedApplication.getPicture());
+            ImageUtils.verify(updatedApplication.getBackground());
+        } catch (InvalidImageException e) {
+            throw new BadRequestException("Invalid image format : " + e.getMessage());
+        }
+
         // To preserve backward compatibility, ensure that we have at least default settings for simple application type
         if (
             updatedApplication.getSettings() == null ||
