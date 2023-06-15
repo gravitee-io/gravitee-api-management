@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static java.lang.String.format;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
@@ -35,10 +37,8 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -50,11 +50,9 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
@@ -102,22 +100,13 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @QueryParam("expands") Set<String> expands,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
-        final SubscriptionQuery subscriptionQuery = SubscriptionQuery
-            .builder()
-            .apis(List.of(apiId))
-            .applications(applicationIds)
-            .plans(planIds)
-            .statuses(subscriptionMapper.mapToStatusSet(statuses))
-            .apiKey(apiKey)
-            .build();
-
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        final Page<SubscriptionEntity> subscriptionPage = subscriptionService.search(
-            executionContext,
-            subscriptionQuery,
-            paginationParam.toPageable(),
-            false,
-            false
+        final Page<SubscriptionEntity> subscriptionPage = getSubscriptionEntityPage(
+            applicationIds,
+            planIds,
+            statuses,
+            apiKey,
+            paginationParam,
+            GraviteeContext.getExecutionContext()
         );
 
         final List<Subscription> subscriptions = subscriptionMapper.mapToList(subscriptionPage.getContent());
@@ -133,6 +122,53 @@ public class ApiSubscriptionsResource extends AbstractResource {
                 )
             )
             .links(computePaginationLinks(Math.toIntExact(subscriptionPage.getTotalElements()), paginationParam));
+    }
+
+    @GET
+    @Path("/_export")
+    @Produces("text/csv")
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
+    public Response exportApiSubscriptions(
+        @QueryParam("applicationIds") Set<String> applicationIds,
+        @QueryParam("planIds") Set<String> planIds,
+        @QueryParam("statuses") @DefaultValue("ACCEPTED") Set<SubscriptionStatus> statuses,
+        @QueryParam("apiKey") String apiKey,
+        @BeanParam @Valid PaginationParam paginationParam
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final Page<SubscriptionEntity> subscriptionPage = getSubscriptionEntityPage(
+            applicationIds,
+            planIds,
+            statuses,
+            apiKey,
+            paginationParam,
+            executionContext
+        );
+
+        final Map<String, Map<String, Object>> metadata;
+
+        if (subscriptionPage.getPageElements() > 0) {
+            final SubscriptionMetadataQuery subscriptionMetadataQuery = new SubscriptionMetadataQuery(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                subscriptionPage.getContent()
+            )
+                .withApis(true)
+                .withApplications(true)
+                .withPlans(true);
+
+            metadata = subscriptionService.getMetadata(executionContext, subscriptionMetadataQuery).toMap();
+        } else {
+            metadata = new HashMap<>();
+        }
+
+        return Response
+            .ok(subscriptionService.exportAsCsv(subscriptionPage.getContent(), metadata))
+            .header(
+                HttpHeaders.CONTENT_DISPOSITION,
+                format("attachment;filename=subscriptions-%s-%s.csv", apiId, System.currentTimeMillis())
+            )
+            .build();
     }
 
     @POST
@@ -184,6 +220,33 @@ public class ApiSubscriptionsResource extends AbstractResource {
             verifySubscriptionSubscription.getApplicationId()
         );
         return Response.ok(VerifySubscriptionResponse.builder().ok(canCreate).build()).build();
+    }
+
+    private Page<SubscriptionEntity> getSubscriptionEntityPage(
+        Set<String> applicationIds,
+        Set<String> planIds,
+        Set<SubscriptionStatus> statuses,
+        String apiKey,
+        PaginationParam paginationParam,
+        ExecutionContext executionContext
+    ) {
+        final SubscriptionQuery subscriptionQuery = SubscriptionQuery
+            .builder()
+            .apis(List.of(apiId))
+            .applications(applicationIds)
+            .plans(planIds)
+            .statuses(subscriptionMapper.mapToStatusSet(statuses))
+            .apiKey(apiKey)
+            .build();
+
+        final Page<SubscriptionEntity> subscriptionPage = subscriptionService.search(
+            executionContext,
+            subscriptionQuery,
+            paginationParam.toPageable(),
+            false,
+            false
+        );
+        return subscriptionPage;
     }
 
     @GET

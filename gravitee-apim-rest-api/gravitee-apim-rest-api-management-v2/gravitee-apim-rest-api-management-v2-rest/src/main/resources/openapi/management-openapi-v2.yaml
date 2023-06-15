@@ -882,6 +882,65 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/subscriptions/_export:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - name: applicationIds
+                  description: List of application ids to filter on.
+                  in: query
+                  explode: false
+                  schema:
+                      type: array
+                      items:
+                          type: string
+                - name: planIds
+                  description: List of plan ids to filter on.
+                  in: query
+                  explode: false
+                  schema:
+                      type: array
+                      items:
+                          type: string
+                - name: statuses
+                  in: query
+                  required: false
+                  description: List of status filters.
+                  explode: false
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/SubscriptionStatus"
+                - name: apiKey
+                  in: query
+                  description: Api key associated to the subscription to filter on.
+                  schema:
+                      type: string
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - API Subscriptions
+            summary: Export API subscriptions as CSV
+            description: |-
+                Export API subscriptions to a CSV file.
+                
+                User must have the API_SUBSCRIPTION[READ] permission.
+            operationId: exportApiSubscriptions
+            responses:
+                "200":
+                    description: API subscriptions successfully exported.
+                    headers:
+                        Content-Disposition:
+                            schema:
+                                type: string
+                                example: attachment;filename="filename=subscriptions-51fdbabf-ab0c-3dc6-b3c1-77c99d96b535-1686772361126.csv"
+                    content:
+                        text/csv: {}
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/subscriptions/_verify:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
