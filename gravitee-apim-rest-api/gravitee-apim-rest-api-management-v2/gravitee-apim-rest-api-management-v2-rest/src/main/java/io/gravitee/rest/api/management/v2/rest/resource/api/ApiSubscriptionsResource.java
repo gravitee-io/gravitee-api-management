@@ -271,7 +271,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
-    public Response updateApiPlan(
+    public Response updateApiSubscription(
         @PathParam("subscriptionId") String subscriptionId,
         @Valid @NotNull UpdateSubscription updateSubscription
     ) {
@@ -287,6 +287,51 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .status(Response.Status.OK)
             .entity(subscriptionMapper.map(subscriptionService.update(executionContext, updateSubscriptionEntity)))
             .build();
+    }
+
+    @POST
+    @Path("/{subscriptionId}/_close")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    public Response closeApiSubscription(@PathParam("subscriptionId") String subscriptionId) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!subscriptionEntity.getApi().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
+        return Response.ok(subscriptionMapper.map(subscriptionService.close(executionContext, subscriptionId))).build();
+    }
+
+    @POST
+    @Path("/{subscriptionId}/_pause")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    public Response pauseApiSubscription(@PathParam("subscriptionId") String subscriptionId) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!subscriptionEntity.getApi().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
+        return Response.ok(subscriptionMapper.map(subscriptionService.pause(executionContext, subscriptionId))).build();
+    }
+
+    @POST
+    @Path("/{subscriptionId}/_resume")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = { RolePermissionAction.UPDATE }) })
+    public Response resumeApiSubscription(@PathParam("subscriptionId") String subscriptionId) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!subscriptionEntity.getApi().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
+        return Response.ok(subscriptionMapper.map(subscriptionService.resume(executionContext, subscriptionId))).build();
     }
 
     private void expandData(Subscription subscription, Set<String> expands) {
