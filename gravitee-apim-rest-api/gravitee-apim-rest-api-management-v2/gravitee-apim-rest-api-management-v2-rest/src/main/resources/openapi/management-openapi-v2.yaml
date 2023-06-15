@@ -1155,7 +1155,6 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_reject:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1179,6 +1178,37 @@ paths:
             responses:
                 "200":
                     description: API's subscription successfully rejected
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Subscription"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_transfer:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Transfer an API subscription
+            description: |-
+                Transfer an API subscription to another plan.<br>
+                The targeted plan must be published and must have the same security type. Transfer cannot be performed if general conditions apply to the targeted plan.
+                
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: transferApiSubscription
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/TransferSubscription"
+                required: true
+            responses:
+                "200":
+                    description: API's subscription successfully transferred
                     content:
                         application/json:
                             schema:
@@ -3297,6 +3327,13 @@ components:
                 reason:
                     type: string
                     description: Optional reason explaining why the subscription has been rejected.
+
+        TransferSubscription:
+            type: object
+            properties:
+                planId:
+                    type: string
+                    description: The plan identifier to transfer the subscription to.
 
         BaseUser:
             type: object

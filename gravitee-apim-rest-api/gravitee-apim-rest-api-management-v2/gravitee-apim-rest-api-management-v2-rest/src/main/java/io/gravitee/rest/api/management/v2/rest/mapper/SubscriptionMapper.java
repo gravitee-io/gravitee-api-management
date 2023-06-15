@@ -71,4 +71,8 @@ public interface SubscriptionMapper {
     @Mapping(target = "id", expression = "java(subscriptionId)")
     @Mapping(target = "accepted", constant = "false")
     ProcessSubscriptionEntity map(RejectSubscription rejectSubscription, String subscriptionId);
+
+    @Mapping(target = "id", expression = "java(subscriptionId)")
+    @Mapping(target = "plan", source = "transferSubscription.planId")
+    TransferSubscriptionEntity map(TransferSubscription transferSubscription, String subscriptionId);
 }
