@@ -17,7 +17,15 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { takeUntil, map, switchMap, tap, catchError } from 'rxjs/operators';
-import { ConnectorInfo, Flow as PSFlow, Plan as PSPlan, SaveOutput } from '@gravitee/ui-policy-studio-angular';
+import {
+  ConnectorInfo,
+  Flow as PSFlow,
+  Plan as PSPlan,
+  Policy as PSPolicy,
+  PolicyDocumentationFetcher,
+  PolicySchemaFetcher,
+  SaveOutput,
+} from '@gravitee/ui-policy-studio-angular';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -26,6 +34,7 @@ import { IconService } from '../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
 
 @Component({
   selector: 'api-v4-policy-studio-design',
@@ -41,7 +50,11 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   public endpointsInfo: ConnectorInfo[];
   public commonFlows: PSFlow[];
   public plans: PSPlan[];
+  public policies: PSPolicy[];
 
+  public policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
+
+  public policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
@@ -49,6 +62,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly apiV2Service: ApiV2Service,
     private readonly apiPlanV2Service: ApiPlanV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly policyV2Service: PolicyV2Service,
   ) {}
 
   ngOnInit(): void {
@@ -66,9 +80,10 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           9999,
         )
         .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
+      this.policyV2Service.list(),
     ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([api, entrypoints, endpoints, plans]) => {
+      .subscribe(([api, entrypoints, endpoints, plans, policies]) => {
         this.apiType = api.type;
         this.flowExecution = api.flowExecution;
 
@@ -106,6 +121,11 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           id: plan.id,
           name: plan.name,
           flows: plan.flows,
+        }));
+
+        this.policies = policies.map((policy) => ({
+          ...policy,
+          icon: this.iconService.registerSvg(policy.id, policy.icon),
         }));
       });
   }
