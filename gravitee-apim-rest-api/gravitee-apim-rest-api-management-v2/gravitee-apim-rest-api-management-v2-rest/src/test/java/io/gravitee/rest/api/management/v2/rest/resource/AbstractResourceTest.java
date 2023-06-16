@@ -23,6 +23,7 @@ import io.gravitee.rest.api.management.v2.rest.JerseySpringTest;
 import io.gravitee.rest.api.management.v2.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanService;
@@ -103,6 +104,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected WorkflowService workflowService;
+
+    @Autowired
+    protected ApiLicenseService apiLicenseService;
 
     @Before
     public void setUp() {

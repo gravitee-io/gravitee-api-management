@@ -47,6 +47,6 @@ public class ForbiddenFeatureException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "This feature is not available with your current license";
+        return "Feature '" + featureName + "' is not available with your license tier";
     }
 }

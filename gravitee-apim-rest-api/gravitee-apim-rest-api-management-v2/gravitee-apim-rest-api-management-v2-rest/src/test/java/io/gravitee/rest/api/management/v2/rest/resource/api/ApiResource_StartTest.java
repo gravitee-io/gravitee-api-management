@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import fixtures.ApiFixtures;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.model.WorkflowReferenceType;
@@ -30,12 +31,16 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
+import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.*;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ApiResource_StartTest extends ApiResourceTest {
@@ -43,6 +48,13 @@ public class ApiResource_StartTest extends ApiResourceTest {
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API + "/_start";
+    }
+
+    @Override
+    @Before
+    public void init() throws TechnicalException {
+        super.init();
+        reset(apiLicenseService);
     }
 
     @Test
@@ -99,6 +111,23 @@ public class ApiResource_StartTest extends ApiResourceTest {
         var body = response.readEntity(Error.class);
         assertNotNull(body);
         assertEquals("Deleted API cannot be started", body.getMessage());
+
+        verify(apiStateServiceV4, never()).start(any(), any(), any());
+    }
+
+    @Test
+    public void should_not_start_api_with_failing_license_check() {
+        var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
+        doThrow(new ForbiddenFeatureException(GraviteeLicenseService.FEATURE_ENDPOINT_KAFKA))
+            .when(apiLicenseService)
+            .checkLicense(any(), any(GenericApiEntity.class));
+        final Response response = rootTarget().request().post(Entity.json(""));
+        assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+
+        var body = response.readEntity(Error.class);
+        assertNotNull(body);
+        assertEquals("Feature 'apim-en-endpoint-kafka' is not available with your license tier", body.getMessage());
 
         verify(apiStateServiceV4, never()).start(any(), any(), any());
     }
