@@ -504,7 +504,6 @@ import { ApiProxyCorsComponent } from './api/proxy/cors/api-proxy-cors.component
 import { ApiProxyDeploymentsComponent } from './api/proxy/deployments/api-proxy-deployments.component';
 import { ApiProxyResponseTemplatesListComponent } from './api/proxy/response-templates/list/api-proxy-response-templates-list.component';
 import { ApiProxyResponseTemplatesEditComponent } from './api/proxy/response-templates/edit/api-proxy-response-templates-edit.component';
-import { ApiProxyEndpointListComponent } from './api/proxy/endpoints/list/api-proxy-endpoint-list.component';
 import { ApiPortalDetailsComponent } from './api/portal/details/api-portal-details.component';
 import { ApiProxyGroupEditComponent } from './api/proxy/endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyGroupEndpointEditComponent } from './api/proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
@@ -531,6 +530,7 @@ import AlertsActivityController from '../components/alerts/activity/alerts-activ
 import { ApiPortalPlanEditComponent } from './api/portal/plans/edit/api-portal-plan-edit.component';
 import { ApiPortalDocumentationMetadataComponent } from './api/portal/documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiV2Service } from '../services-ngx/api-v2.service';
+import { ApiBackendServicesComponent } from './api/endpoints-v4/backend-services/api-backend-services.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -678,7 +678,7 @@ graviteeManagementModule.directive(
   'ngApiProxyResponseTemplatesEdit',
   downgradeComponent({ component: ApiProxyResponseTemplatesEditComponent }),
 );
-graviteeManagementModule.directive('ngApiProxyEndpointList', downgradeComponent({ component: ApiProxyEndpointListComponent }));
+graviteeManagementModule.directive('ngApiProxyEndpointList', downgradeComponent({ component: ApiBackendServicesComponent }));
 graviteeManagementModule.directive('ngApiProxyGroupEdit', downgradeComponent({ component: ApiProxyGroupEditComponent }));
 graviteeManagementModule.directive('ngApiProxyGroupEndpointEdit', downgradeComponent({ component: ApiProxyGroupEndpointEditComponent }));
 graviteeManagementModule.directive('ngApiProxyFailover', downgradeComponent({ component: ApiProxyFailoverComponent }));

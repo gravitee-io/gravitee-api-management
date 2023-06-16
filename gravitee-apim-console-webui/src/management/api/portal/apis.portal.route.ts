@@ -21,8 +21,8 @@ import { DocumentationQuery, DocumentationService } from '../../../services/docu
 import FetcherService from '../../../services/fetcher.service';
 import GroupService from '../../../services/group.service';
 import QualityRuleService from '../../../services/qualityRule.service';
-import '@gravitee/ui-components/wc/gv-icon';
 
+import '@gravitee/ui-components/wc/gv-icon';
 export default apisPortalRouterConfig;
 
 /* @ngInject */
