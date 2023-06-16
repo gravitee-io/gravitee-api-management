@@ -460,7 +460,7 @@ public class ApisResource extends AbstractResource {
                 implementation = String.class,
                 description = "By default, sort is ASC. If *field* starts with '-', the order sort is DESC. Currently, only **name** and **paths** are supported"
             )
-        ) @QueryParam("order") @DefaultValue("name") final ApisOrderParam apisOrderParam,
+        ) @QueryParam("order") final ApisOrderParam apisOrderParam,
         @Parameter(
             name = "manageOnly",
             description = "By default only APIs that the user can manage are returned. If set to false, all APIs that the user can view are returned."
@@ -482,7 +482,13 @@ public class ApisResource extends AbstractResource {
 
         final boolean isRatingServiceEnabled = ratingService.isEnabled(executionContext);
 
-        final Page<ApiEntity> apis = apiService.search(executionContext, query, filters, apisOrderParam.toSortable(), commonPageable);
+        final Page<ApiEntity> apis = apiService.search(
+            executionContext,
+            query,
+            filters,
+            apisOrderParam != null ? apisOrderParam.toSortable() : null,
+            commonPageable
+        );
 
         return new PagedResult<>(
             apis.getContent().stream().map(apiEntity -> this.convert(apiEntity, isRatingServiceEnabled)).collect(toList()),
