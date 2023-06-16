@@ -29,14 +29,30 @@ describe('PageMarkdownController', () => {
     $componentController = _$componentController_;
     pageMarkdownComponent = $componentController('gvPageMarkdown', null, {});
     pageMarkdownComponent.page = {
+      name: 'A Page',
+      id: '86de4f08-aa02-40f0-aa73-4b3e0e97fef4',
       content: '# Hello world',
+      type: 'MARKDOWN',
+      order: 1,
     };
     pageMarkdownComponent.$onInit();
   }));
 
   describe('$onInit', () => {
-    it('convert MarkDown content into HTML', () => {
-      expect(pageMarkdownComponent.htmlContent).toEqual('<h1 id="hello-world">Hello world</h1>\n');
+    it('convert Markdown content into HTML', () => {
+      expect(pageMarkdownComponent.htmlContent).toEqual('<h1>Hello world</h1>&#10;');
+    });
+
+    it('sanitize HTML content to avoid XSS', () => {
+      pageMarkdownComponent.page = {
+        name: 'A Page',
+        id: '86de4f08-aa02-40f0-aa73-4b3e0e97fef4',
+        content: '[Click me](javascript:alert("XSS"))',
+        type: 'MARKDOWN',
+        order: 1,
+      };
+      pageMarkdownComponent.$onInit();
+      expect(pageMarkdownComponent.htmlContent).toEqual('<p><a>Click me</a></p>&#10;');
     });
   });
 });
