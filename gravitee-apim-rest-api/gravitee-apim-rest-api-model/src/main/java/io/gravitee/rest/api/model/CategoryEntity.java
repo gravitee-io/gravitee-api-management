@@ -20,11 +20,17 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Date;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CategoryEntity {
 
     private String id;
