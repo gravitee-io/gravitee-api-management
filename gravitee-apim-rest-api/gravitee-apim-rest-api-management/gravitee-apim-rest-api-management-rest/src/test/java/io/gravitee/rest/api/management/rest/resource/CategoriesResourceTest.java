@@ -16,29 +16,25 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.UpdateCategoryEntity;
+import io.gravitee.rest.api.model.NewCategoryEntity;
 import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
-import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -73,16 +69,66 @@ public class CategoriesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldListAllCategories_withoutApiCount() throws IOException {
-        final Response response = envTarget().request().get();
+    public void should_not_create_category_having_unsupported_picture() {
+        var entity = NewCategoryEntity
+            .builder()
+            .name("My beautiful category")
+            .description("my description")
+            .picture("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+            .build();
 
-        assertEquals(OK_200, response.getStatus());
+        final Response response = envTarget().request().post(Entity.json(entity));
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            soft
+                .assertThat(response.readEntity(String.class))
+                .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
+        });
+    }
+
+    @Test
+    public void should_not_create_category_having_unsupported_background() {
+        var entity = NewCategoryEntity
+            .builder()
+            .name("My beautiful category")
+            .description("my description")
+            .background("data:image/svg+xml;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+            .build();
+
+        final Response response = envTarget().request().post(Entity.json(entity));
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            soft
+                .assertThat(response.readEntity(String.class))
+                .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
+        });
+    }
+
+    @Test
+    public void should_create_category() {
+        var entity = NewCategoryEntity
+            .builder()
+            .name("My beautiful category")
+            .description("my description")
+            .picture("data:image/png;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+            .background("data:image/jpeg;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
+            .build();
+
+        when(categoryService.create(any(), eq(entity))).thenReturn(CategoryEntity.builder().id("123").build());
+
+        final Response response = envTarget().request().post(Entity.json(entity));
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+    }
+
+    @Test
+    public void should_list_all_categories_without_api_count() throws IOException {
+        final Response response = envTarget().request().get();
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+
         final List<CategoryEntity> categories = response.readEntity(new GenericType<>() {});
-        assertNotNull(categories);
-        assertEquals(2, categories.size());
-        assertEquals("cat2-id", categories.get(0).getId());
-        assertEquals(0, categories.get(0).getTotalApis());
-        assertEquals("cat1-id", categories.get(1).getId());
-        assertEquals(0, categories.get(1).getTotalApis());
+        assertThat(categories)
+            .hasSize(2)
+            .extracting(CategoryEntity::getId, CategoryEntity::getTotalApis)
+            .containsExactly(tuple("cat2-id", 0L), tuple("cat1-id", 0L));
     }
 }
