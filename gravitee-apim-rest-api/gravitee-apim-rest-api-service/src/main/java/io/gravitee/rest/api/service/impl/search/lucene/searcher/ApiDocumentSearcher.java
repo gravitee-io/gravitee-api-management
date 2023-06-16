@@ -274,7 +274,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         throws ParseException {
         QueryParser parser = new QueryParser("", new KeywordAnalyzer());
         parser.setAllowLeadingWildcard(true);
-        String escapedQuery = query;
+        // Escape [ and ] because they can be used in API names
+        String escapedQuery = query.replace("[", "\\[").replace("]", "\\]");
         if (escapedQuery.startsWith("/")) { // escape if we are looking for a path
             escapedQuery = QueryParserBase.escape(query);
         }
@@ -394,6 +395,13 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         }
 
         String[] tokens = query.split(" ");
+
+        // Add boost on exact match on name
+        builder
+            .add(new BoostQuery(toWildcard(FIELD_NAME, query), 20.0f), BooleanClause.Occur.SHOULD)
+            .add(new BoostQuery(toWildcard(FIELD_NAME_LOWERCASE, query.toLowerCase()), 18.0f), BooleanClause.Occur.SHOULD);
+
+        // Add boost for partial match
         for (String token : tokens) {
             builder
                 .add(new BoostQuery(toWildcard(FIELD_NAME, token), 12.0f), BooleanClause.Occur.SHOULD)
