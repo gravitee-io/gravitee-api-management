@@ -38,22 +38,19 @@
 
     &__action {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      align-items: center;
       padding: 0 40px;
       width: 100%;
 
-      &__container {
-        flex: 1;
+      &__button {
+        width: 250px;
+      }
 
-        &__button {
-          width: 250px;
-        }
-
-        &__info {
-          color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-          margin-top: 10px;
-          text-align: center;
-        }
+      &__info {
+        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+        margin-top: 10px;
+        text-align: center;
       }
     }
   }

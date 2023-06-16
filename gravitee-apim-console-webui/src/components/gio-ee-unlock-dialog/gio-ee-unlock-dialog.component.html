@@ -27,14 +27,9 @@
   <h2 class="gio-ee-unlock-dialog__content__title">Unlock Gravitee Enterprise</h2>
   <div class="gio-ee-unlock-dialog__content__description" [innerHTML]="featureMoreInformation.description | safe : 'html'"></div>
   <div class="gio-ee-unlock-dialog__content__action">
-    <div class="gio-ee-unlock-dialog__content__action__container">
-      <button class="gio-ee-unlock-dialog__content__action__container__button" mat-button mat-stroked-button>Learn more</button>
-    </div>
-    <div class="gio-ee-unlock-dialog__content__action__container">
-      <button class="gio-ee-unlock-dialog__content__action__container__button" mat-button mat-stroked-button color="accent">
-        Request an enterprise license
-      </button>
-      <div class="gio-ee-unlock-dialog__content__action__container__info">14 days trial</div>
-    </div>
+    <button class="gio-ee-unlock-dialog__content__action__button" mat-button mat-stroked-button color="accent">
+      Request an enterprise license
+    </button>
+    <div class="gio-ee-unlock-dialog__content__action__info">14 days trial</div>
   </div>
 </mat-dialog-content>
