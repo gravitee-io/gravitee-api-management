@@ -34,7 +34,7 @@ import { FlowConfigurationSchema } from '../../../../entities/flow/configuration
 export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
-  public information = `There are two flow modes: default and best match. If you keep the flow mode as default, 
+  public information = `There are two flow modes: default and best match. If you keep the flow mode as default,
   <br/>execution of each flow is determined independently based on the operator defined in the flow itself. Default mode allows for the execution of <strong>multiple</strong> flows.
   <br/>However, if you select best match, the gateway will choose a <strong>single</strong> flow with the closest match to the path of the API request.
   <br/>A plain text part of the path will take precedence over a path parameter.`;
