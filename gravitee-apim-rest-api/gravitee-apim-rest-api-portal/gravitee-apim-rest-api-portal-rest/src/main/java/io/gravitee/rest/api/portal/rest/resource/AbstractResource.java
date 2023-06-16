@@ -409,7 +409,14 @@ public abstract class AbstractResource<T, K> {
             return builder.cacheControl(cc).build();
         }
 
-        return Response.ok(media.getData()).cacheControl(cc).tag(etag).type(media.getType() + "/" + media.getSubType()).build();
+        return Response
+            .ok(media.getData())
+            // Add header to force download, so avoid browser to display the media and maybe render malicious attachments
+            .header("Content-Disposition", "attachment; filename=\"" + media.getFileName() + "\"")
+            .cacheControl(cc)
+            .tag(etag)
+            .type(media.getType() + "/" + media.getSubType())
+            .build();
     }
 
     protected URI getLocationHeader(String... paths) {
