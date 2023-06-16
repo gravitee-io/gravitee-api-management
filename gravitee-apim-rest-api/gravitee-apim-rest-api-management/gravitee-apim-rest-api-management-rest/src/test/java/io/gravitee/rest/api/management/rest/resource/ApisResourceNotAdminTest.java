@@ -25,6 +25,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -60,13 +61,36 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq("*"),
                 argThat(filters -> ((Set<String>) filters.get("api")).size() == 3),
-                isA(Sortable.class),
+                isNull(),
                 isA(Pageable.class)
             )
         )
             .thenReturn(apisPage);
 
         final Response response = envTarget().path("_search/_paged").queryParam("q", "*").request().post(null);
+
+        assertEquals(OK_200, response.getStatus());
+    }
+
+    @Test
+    public void get_should_search_apis_with_order() throws TechnicalException {
+        when(apiAuthorizationService.findIdsByUser(eq(GraviteeContext.getExecutionContext()), any(), isA(ApiQuery.class), eq(true)))
+            .thenReturn(Set.of("api1", "api2", "api15"));
+
+        List<ApiEntity> resultApis = List.of(mockApi("api1"), mockApi("api2"), mockApi("api15"));
+        Page<ApiEntity> apisPage = new Page<>(resultApis, 7, 3, 54);
+        when(
+            apiService.search(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("*"),
+                argThat(filters -> ((Set<String>) filters.get("api")).size() == 3),
+                isA(Sortable.class),
+                isA(Pageable.class)
+            )
+        )
+            .thenReturn(apisPage);
+
+        final Response response = envTarget().path("_search/_paged").queryParam("q", "*").queryParam("order", "name").request().post(null);
 
         assertEquals(OK_200, response.getStatus());
     }
@@ -84,7 +108,7 @@ public class ApisResourceNotAdminTest extends AbstractResourceTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq("*"),
                 argThat(filters -> ((Set<String>) filters.get("api")).size() == 3),
-                isA(Sortable.class),
+                isNull(),
                 isA(Pageable.class)
             )
         )

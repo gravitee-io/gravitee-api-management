@@ -169,7 +169,7 @@ export class ApiService {
     opts.params = {
       q: query ? query : '*',
       page: page,
-      order: order,
+      ...(order ? { order: order } : {}),
       size,
       ...(manageOnly ? {} : { manageOnly: false }),
     };
