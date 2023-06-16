@@ -58,7 +58,7 @@ public class ApiDocumentSearcherTest {
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertEquals("", searcher.completeQueryWithFilters(query, builder));
         assertEquals(
-            "#(+(categories:\"sports\" categories:sports)) +(+((name:*Cycling*)^12.0 (name_lowercase:*cycling*)^10.0 (paths:*Cycling*)^8.0 description:*Cycling* description_lowercase:*cycling* hosts:*Cycling* labels:*Cycling* categories:*Cycling* tags:*Cycling* metadata:*Cycling*))",
+            "#(+(categories:\"sports\" categories:sports)) +(+((name:*Cycling*)^20.0 (name_lowercase:*cycling*)^18.0 (name_sorted:*cycling*)^15.0 (name:*Cycling*)^12.0 (name_lowercase:*cycling*)^10.0 (paths:*Cycling*)^8.0 description:*Cycling* description_lowercase:*cycling* hosts:*Cycling* labels:*Cycling* categories:*Cycling* tags:*Cycling* metadata:*Cycling*))",
             builder.build().toString()
         );
     }
