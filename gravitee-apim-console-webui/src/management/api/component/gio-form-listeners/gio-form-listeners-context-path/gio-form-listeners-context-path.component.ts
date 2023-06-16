@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, forwardRef, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidator,
@@ -30,7 +30,7 @@ import {
 import { isEmpty } from 'lodash';
 import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
-import { asyncScheduler, Observable, Subject, zip } from 'rxjs';
+import { asyncScheduler, Observable, of, Subject, zip } from 'rxjs';
 
 import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
 import { ApiService } from '../../../../../services-ngx/api.service';
@@ -60,6 +60,9 @@ const DEFAULT_LISTENER: PathV4 = {
   ],
 })
 export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, ControlValueAccessor, AsyncValidator {
+  @Input()
+  public pathsToIgnore: PathV4[] = [];
+
   public listeners: PathV4[] = [DEFAULT_LISTENER];
   public mainForm: FormGroup;
   public listenerFormArray = new FormArray(
@@ -218,12 +221,17 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     return (listenerFormArrayControl: FormArray): Observable<ValidationErrors | null> => {
       const listenerFormArrayControls = listenerFormArrayControl.controls;
 
-      const foobar: Observable<ValidationErrors | null>[] = listenerFormArrayControls.map((listenerControl) => {
+      const contextPathsToIgnore = this.pathsToIgnore?.map((p) => p.path) ?? [];
+      const pathValidations$: Observable<ValidationErrors | null>[] = listenerFormArrayControls.map((listenerControl) => {
         const listenerPathControl = listenerControl.get('path');
-        return this.apiService.verify(listenerPathControl.value);
+        const contextPathValue = listenerPathControl.value;
+        if (contextPathsToIgnore.includes(contextPathValue)) {
+          return of(null);
+        }
+        return this.apiService.verify(contextPathValue);
       });
 
-      return zip(...foobar).pipe(
+      return zip(...pathValidations$).pipe(
         map((errors: (ValidationErrors | null)[]) => {
           errors.forEach((error, index) => {
             listenerFormArrayControls.at(index).get('path').setErrors(error);
