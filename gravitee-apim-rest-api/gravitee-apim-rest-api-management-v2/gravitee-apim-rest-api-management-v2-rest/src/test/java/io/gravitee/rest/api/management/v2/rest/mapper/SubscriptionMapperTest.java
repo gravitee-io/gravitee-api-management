@@ -18,6 +18,10 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fixtures.SubscriptionFixtures;
+import io.gravitee.rest.api.management.v2.rest.model.BaseSubscription;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
@@ -127,5 +131,30 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
 
         assertEquals("subscriptionId", transferSubscriptionEntity.getId());
         assertEquals(transferSubscription.getPlanId(), transferSubscriptionEntity.getPlan());
+    }
+
+    @Test
+    void should_map_ApiKeyEntity_to_ApiKey() {
+        final var apiKeyEntity = SubscriptionFixtures.anApiKeyEntity();
+        final var apiKey = subscriptionMapper.mapApiKey(apiKeyEntity);
+
+        assertEquals(apiKeyEntity.getId(), apiKey.getId());
+        assertEquals(apiKeyEntity.getKey(), apiKey.getKey());
+        assertEquals(apiKeyEntity.getApplication().getId(), apiKey.getApplication().getId());
+        assertEquals(apiKeyEntity.getApplication().getName(), apiKey.getApplication().getName());
+        assertEquals(apiKeyEntity.getApplication().getDescription(), apiKey.getApplication().getDescription());
+        assertEquals(apiKeyEntity.getDaysToExpirationOnLastNotification(), apiKey.getDaysToExpirationOnLastNotification());
+
+        assertEquals(apiKeyEntity.isRevoked(), apiKey.getRevoked());
+        assertEquals(apiKeyEntity.isExpired(), apiKey.getExpired());
+        assertEquals(apiKeyEntity.isPaused(), apiKey.getPaused());
+
+        final List<String> subscriptionIds = apiKey.getSubscriptions().stream().map(BaseSubscription::getId).collect(Collectors.toList());
+        assertTrue(apiKeyEntity.getSubscriptions().stream().map(SubscriptionEntity::getId).allMatch(subscriptionIds::contains));
+
+        assertEquals(apiKeyEntity.getCreatedAt().getTime(), apiKey.getCreatedAt().toInstant().toEpochMilli());
+        assertEquals(apiKeyEntity.getUpdatedAt().getTime(), apiKey.getUpdatedAt().toInstant().toEpochMilli());
+        assertEquals(apiKeyEntity.getExpireAt().getTime(), apiKey.getExpireAt().toInstant().toEpochMilli());
+        assertEquals(apiKeyEntity.getRevokedAt().getTime(), apiKey.getRevokedAt().toInstant().toEpochMilli());
     }
 }

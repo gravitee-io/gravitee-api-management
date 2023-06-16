@@ -21,6 +21,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -48,9 +49,12 @@ public abstract class ApiSubscriptionsResourceTest extends AbstractResourceTest 
     @Autowired
     protected ApplicationService applicationService;
 
+    @Autowired
+    protected ApiKeyService apiKeyService;
+
     @Before
     public void init() throws TechnicalException {
-        Mockito.reset(subscriptionService, applicationService, planSearchService, parameterService);
+        Mockito.reset(subscriptionService, applicationService, planSearchService, parameterService, apiKeyService);
         GraviteeContext.cleanContext();
 
         Api api = new Api();

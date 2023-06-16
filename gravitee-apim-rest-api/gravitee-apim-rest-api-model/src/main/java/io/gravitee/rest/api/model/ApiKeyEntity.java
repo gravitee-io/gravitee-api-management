@@ -20,17 +20,24 @@ import static java.util.stream.Collectors.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder(toBuilder = true)
 public class ApiKeyEntity {
 
     private String id;
 
     private String key;
 
+    @Builder.Default
     private Set<SubscriptionEntity> subscriptions = new HashSet<>();
 
     private ApplicationEntity application;

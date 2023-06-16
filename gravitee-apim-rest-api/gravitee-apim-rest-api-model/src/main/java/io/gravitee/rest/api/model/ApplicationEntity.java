@@ -38,9 +38,9 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@NoArgsConstructor
+@Builder(toBuilder = true)
 public class ApplicationEntity {
 
     @Schema(description = "Application's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
