@@ -15,7 +15,7 @@
  */
 
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,13 +30,14 @@ import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular'
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiPortalSubscriptionListComponent } from './list/api-portal-subscription-list.component';
+import { ApiPortalSubscriptionEditComponent } from './edit/api-portal-subscription-edit.component';
 
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApiPortalSubscriptionListComponent],
-  exports: [ApiPortalSubscriptionListComponent],
+  declarations: [ApiPortalSubscriptionListComponent, ApiPortalSubscriptionEditComponent],
+  exports: [ApiPortalSubscriptionListComponent, ApiPortalSubscriptionEditComponent],
   imports: [
     CommonModule,
     DragDropModule,
@@ -57,5 +58,6 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioIconsModule,
     GioLoaderModule,
   ],
+  providers: [DatePipe],
 })
 export class ApiPortalSubscriptionsModule {}

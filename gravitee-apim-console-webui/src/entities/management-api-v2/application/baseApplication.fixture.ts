@@ -20,6 +20,13 @@ export function fakeBaseApplication(modifier?: Partial<BaseApplication>): BaseAp
     id: 'my-application-1',
     name: 'My first application',
     description: 'My first application with a description',
+    domain: 'https://my-domain.com',
+    type: 'My special type',
+    primaryOwner: {
+      id: 'owner-id',
+      type: 'USER',
+      displayName: 'Primary Owner',
+    },
   };
 
   return {

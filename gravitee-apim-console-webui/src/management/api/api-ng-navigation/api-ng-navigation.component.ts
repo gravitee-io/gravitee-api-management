@@ -124,7 +124,7 @@ export class ApiNgNavigationComponent implements OnInit {
       plansMenuItem.tabs.push({
         displayName: 'Subscriptions',
         targetRoute: 'management.apis.ng.subscriptions',
-        baseRoute: 'management.apis.ng.subscriptions',
+        baseRoute: ['management.apis.ng.subscriptions', 'management.apis.ng.subscription'],
       });
     }
     if (plansMenuItem.tabs.length > 0) {
