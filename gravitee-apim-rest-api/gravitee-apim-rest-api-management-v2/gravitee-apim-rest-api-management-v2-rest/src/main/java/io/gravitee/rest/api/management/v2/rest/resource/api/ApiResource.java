@@ -74,6 +74,7 @@ import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedE
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -121,6 +122,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private WorkflowService workflowService;
+
+    @Inject
+    private ApiLicenseService apiLicenseService;
 
     @Context
     protected UriInfo uriInfo;
@@ -234,21 +238,10 @@ public class ApiResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response deployApi(@PathParam("apiId") String apiId, @Valid final ApiDeploymentEntity apiDeploymentEntity) {
-        try {
-            GenericApiEntity apiEntity = apiStateService.deploy(
-                GraviteeContext.getExecutionContext(),
-                apiId,
-                getAuthenticatedUser(),
-                apiDeploymentEntity
-            );
-            return Response
-                .accepted()
-                .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
-                .lastModified(apiEntity.getUpdatedAt())
-                .build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
-        }
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        apiLicenseService.checkLicense(executionContext, apiId);
+        GenericApiEntity apiEntity = apiStateService.deploy(executionContext, apiId, getAuthenticatedUser(), apiDeploymentEntity);
+        return Response.accepted().tag(Long.toString(apiEntity.getUpdatedAt().getTime())).lastModified(apiEntity.getUpdatedAt()).build();
     }
 
     @GET
@@ -272,15 +265,16 @@ public class ApiResource extends AbstractResource {
     @Path("/_start")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response startAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
         GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
+
+        apiLicenseService.checkLicense(executionContext, genericApiEntity);
+
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiLifeCycle(genericApiEntity, LifecycleAction.START);
-        ApiEntity updatedApi = apiStateService.start(
-            GraviteeContext.getExecutionContext(),
-            genericApiEntity.getId(),
-            getAuthenticatedUser()
-        );
+        ApiEntity updatedApi = apiStateService.start(executionContext, genericApiEntity.getId(), getAuthenticatedUser());
 
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
     }

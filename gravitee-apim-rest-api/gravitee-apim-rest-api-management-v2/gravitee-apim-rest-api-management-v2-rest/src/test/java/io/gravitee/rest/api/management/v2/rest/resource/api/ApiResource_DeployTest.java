@@ -15,23 +15,23 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.common.http.HttpStatusCode.ACCEPTED_202;
-import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import fixtures.ApiFixtures;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
+import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Response;
@@ -73,6 +73,23 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
         verify(apiService, never()).deploy(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void shouldDeployApiWithFailingLicenseCheck() {
+        ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
+        deployEntity.setDeploymentLabel("label");
+        doThrow(new ForbiddenFeatureException(GraviteeLicenseService.FEATURE_ENDPOINT_MQTT5))
+            .when(apiLicenseService)
+            .checkLicense(any(), anyString());
+
+        final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
+
+        assertEquals(FORBIDDEN_403, response.getStatus());
+
+        var body = response.readEntity(Error.class);
+        assertNotNull(body);
+        assertEquals("Feature 'apim-en-endpoint-mqtt5' is not available with your license tier", body.getMessage());
     }
 
     @Test
