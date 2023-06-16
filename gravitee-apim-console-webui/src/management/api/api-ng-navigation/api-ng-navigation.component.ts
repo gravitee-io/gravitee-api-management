@@ -78,6 +78,7 @@ export class ApiNgNavigationComponent implements OnInit {
     this.appendDesign();
     this.appendPortalGroup();
     this.appendProxyGroup();
+    this.appendEndpointsGroup();
 
     this.selectedItemWithTabs = this.findMenuItemWithTabs();
     this.breadcrumbItems = this.computeBreadcrumbItems();
@@ -148,6 +149,23 @@ export class ApiNgNavigationComponent implements OnInit {
       };
       this.groupItems.push(proxyGroup);
     }
+  }
+
+  private appendEndpointsGroup() {
+    const endpointsGroup: GroupItem = {
+      title: 'Endpoints',
+      items: [],
+    };
+
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      endpointsGroup.items.push({
+        displayName: 'Backend services',
+        targetRoute: 'management.apis.ng.endpoints',
+        baseRoute: ['management.apis.ng.endpoints', 'management.apis.ng.endpoint'],
+      });
+    }
+
+    this.groupItems.push(endpointsGroup);
   }
 
   private findMenuItemWithTabs(): MenuItem {
