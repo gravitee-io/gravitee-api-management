@@ -16,13 +16,14 @@
 package fixtures;
 
 import io.gravitee.rest.api.management.v2.rest.model.*;
-import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.time.OffsetDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -60,6 +61,22 @@ public class SubscriptionFixtures {
         .metadata(Map.of("meta1", "value1", "meta2", "value2"))
         .subscribedBy("subscribed-by")
         .processedBy("processed-by");
+
+    protected static final ApiKeyEntity.ApiKeyEntityBuilder BASE_API_KEY_ENTITY = ApiKeyEntity
+        .builder()
+        .key("custom")
+        .application(ApplicationFixtures.anApplicationEntity())
+        .createdAt(new Date())
+        .updatedAt(new Date())
+        .expireAt(new Date())
+        .revokedAt(new Date())
+        .updatedAt(new Date())
+        .daysToExpirationOnLastNotification(10)
+        .expired(true)
+        .paused(true)
+        .revoked(true)
+        .subscriptions(Set.of(BASE_SUBSCRIPTION_ENTITY.build()))
+        .revokedAt(new Date());
 
     private static final CreateSubscription.CreateSubscriptionBuilder BASE_CREATE_SUBSCRIPTION = CreateSubscription
         .builder()
@@ -122,5 +139,9 @@ public class SubscriptionFixtures {
 
     public static TransferSubscription aTransferSubscription() {
         return TransferSubscription.builder().planId("other-plan").build();
+    }
+
+    public static ApiKeyEntity anApiKeyEntity() {
+        return BASE_API_KEY_ENTITY.build();
     }
 }

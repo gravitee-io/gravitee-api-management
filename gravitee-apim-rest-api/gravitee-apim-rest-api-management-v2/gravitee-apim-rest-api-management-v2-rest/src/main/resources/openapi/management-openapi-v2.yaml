@@ -911,6 +911,7 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/subscriptions/_export:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -969,6 +970,7 @@ paths:
                         text/csv: {}
                 default:
                     $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/subscriptions/_verify:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -997,6 +999,7 @@ paths:
                                 $ref: "#/components/schemas/VerifySubscriptionResponse"
                 default:
                     $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1213,6 +1216,26 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Subscription"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        get:
+            tags:
+                - API Subscriptions
+            summary: Get subscription's api keys
+            description: |-
+                Get the subscription api keys.
+                
+                User must have the API_SUBSCRIPTION[READ] permission.
+            operationId: getApiSubscriptionApiKeys
+            responses:
+                "200":
+                    $ref: "#/components/responses/SubscriptionApiKeysResponse"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2800,8 +2823,11 @@ components:
                           example: 2023-05-25T12:40:46.184Z
                       commentMessage:
                           type: string
+                          description: A message from the API Publisher that is displayed to the consumer at subscription time.
+                          example: Explain why you want to subscribe.
                       commentRequired:
                           type: boolean
+                          description: A flag indicating if the consumer has to write a "consumer message" or if he/she can leave the field blank.
                       createdAt:
                           type: string
                           format: date-time
@@ -2936,8 +2962,11 @@ components:
                         type: string
                 commentMessage:
                     type: string
+                    description: A message from the API Publisher that is displayed to the consumer at subscription time.
+                    example: Explain why you want to subscribe.
                 commentRequired:
                     type: boolean
+                    description: A flag indicating if the consumer has to write a "consumer message" or if he/she can leave the field blank.
                 definitionVersion:
                     $ref: "#/components/schemas/DefinitionVersion"
                 description:
@@ -3033,8 +3062,11 @@ components:
                         type: string
                 commentMessage:
                     type: string
+                    description: A message from the API Publisher that is displayed to the consumer at subscription time.
+                    example: Explain why you want to subscribe.
                 commentRequired:
                     type: boolean
+                    description: A flag indicating if the consumer has to write a "consumer message" or if he/she can leave the field blank.
                 definitionVersion:
                     $ref: "#/components/schemas/DefinitionVersion"
                 description:
@@ -3111,91 +3143,92 @@ components:
                           items:
                               $ref: "#/components/schemas/FlowV4"
 
-        Subscription:
+        BaseSubscription:
             type: object
             properties:
                 id:
                     type: string
                     description: Subscription's uuid.
                     example: 34f8c9e7-68fd-4922-b8c9-e778fc790777
-                api:
-                    $ref: "#/components/schemas/BaseApi"
-                plan:
-                    $ref: "#/components/schemas/BasePlan"
-                application:
-                    $ref: "#/components/schemas/BaseApplication"
-                consumerMessage:
-                    type: string
-                    description: Message given by the api consumer when subscribing to the api.
-                publisherMessage:
-                    type: string
-                    description: Message given by the api publisher when accepting or rejecting the subscription.
-                metadata:
-                    type: object
-                    description: A list of metadata associated to this subscription.
-                    additionalProperties:
+
+        Subscription:
+            allOf:
+                - $ref: "#/components/schemas/BaseSubscription"
+                - properties:
+                    api:
+                        $ref: "#/components/schemas/BaseApi"
+                    plan:
+                        $ref: "#/components/schemas/BasePlan"
+                    application:
+                        $ref: "#/components/schemas/BaseApplication"
+                    consumerMessage:
                         type: string
-                daysToExpirationOnLastNotification:
-                    type: integer
-                    format: int32
-                    description: Number of days before the expiration of this subscription when the last pre-expiration notification was sent
-                consumerConfiguration:
-                    $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
-                failureCause:
-                    type: string
-                    description: Details about the last failure encountered on this subscription.
-                status:
-                    $ref: "#/components/schemas/SubscriptionStatus"
-                consumerStatus:
-                    $ref: "#/components/schemas/SubscriptionConsumerStatus"
-                processedBy:
-                    $ref: "#/components/schemas/BaseUser"
-                subscribedBy:
-                    $ref: "#/components/schemas/BaseUser"
-                processedAt:
-                    type: string
-                    format: date-time
-                    description: The datetime when the subscription was processed.
-                    example: 2023-05-18T12:40:46.184Z
-                startingAt:
-                    type: string
-                    format: date-time
-                    description: The datetime when the subscription starts. No starting date means the subscription starts immediately.
-                    example: 2023-05-20T12:30:42.101Z
-                endingAt:
-                    type: string
-                    format: date-time
-                    description: The datetime when the subscription ends. No ending date means the subscription never ends.
-                    example: 2023-05-25T12:40:46.184Z
-                commentMessage:
-                    type: string
-                commentRequired:
-                    type: boolean
-                createdAt:
-                    type: string
-                    format: date-time
-                    description: The datetime when the subscription was created.
-                    example: 2023-05-18T12:40:46.184Z
-                updatedAt:
-                    type: string
-                    format: date-time
-                    description: The last datetime when the subscription was updated.
-                    example: 2023-05-25T12:40:46.184Z
-                closedAt:
-                    type: string
-                    format: date-time
-                    description: The datetime when the subscription was closed.
-                    example: 2023-05-31T13:40:46.184Z
-                pausedAt:
-                    type: string
-                    format: date-time
-                    description: The datetime when the subscription was paused by the api publisher.
-                    example: 2023-05-25T12:40:46.184Z
-                consumerPausedAt:
-                    type: string
-                    format: date-time
-                    description: The datetime when the subscription was paused by the api consumer.
-                    example: 2023-05-25T12:40:46.184Z
+                        description: Message given by the api consumer when subscribing to the api.
+                    publisherMessage:
+                        type: string
+                        description: Message given by the api publisher when accepting or rejecting the subscription.
+                    metadata:
+                        type: object
+                        description: A list of metadata associated to this subscription.
+                        additionalProperties:
+                            type: string
+                    daysToExpirationOnLastNotification:
+                        type: integer
+                        format: int32
+                        description: Number of days before the expiration of this subscription when the last pre-expiration notification was sent.
+                    consumerConfiguration:
+                        $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
+                    failureCause:
+                        type: string
+                        description: Details about the last failure encountered on this subscription.
+                    status:
+                        $ref: "#/components/schemas/SubscriptionStatus"
+                    consumerStatus:
+                        $ref: "#/components/schemas/SubscriptionConsumerStatus"
+                    processedBy:
+                        $ref: "#/components/schemas/BaseUser"
+                    subscribedBy:
+                        $ref: "#/components/schemas/BaseUser"
+                    processedAt:
+                        type: string
+                        format: date-time
+                        description: The datetime when the subscription was processed.
+                        example: 2023-05-18T12:40:46.184Z
+                    startingAt:
+                        type: string
+                        format: date-time
+                        description: The datetime when the subscription starts. No starting date means the subscription starts immediately.
+                        example: 2023-05-20T12:30:42.101Z
+                    endingAt:
+                        type: string
+                        format: date-time
+                        description: The datetime when the subscription ends. No ending date means the subscription never ends.
+                        example: 2023-05-25T12:40:46.184Z
+                    createdAt:
+                        type: string
+                        format: date-time
+                        description: The datetime when the subscription was created.
+                        example: 2023-05-18T12:40:46.184Z
+                    updatedAt:
+                        type: string
+                        format: date-time
+                        description: The last datetime when the subscription was updated.
+                        example: 2023-05-25T12:40:46.184Z
+                    closedAt:
+                        type: string
+                        format: date-time
+                        description: The datetime when the subscription was closed.
+                        example: 2023-05-31T13:40:46.184Z
+                    pausedAt:
+                        type: string
+                        format: date-time
+                        description: The datetime when the subscription was paused by the api publisher.
+                        example: 2023-05-25T12:40:46.184Z
+                    consumerPausedAt:
+                        type: string
+                        format: date-time
+                        description: The datetime when the subscription was paused by the api consumer.
+                        example: 2023-05-25T12:40:46.184Z
 
         SubscriptionStatus:
             type: string
@@ -3346,6 +3379,58 @@ components:
                 planId:
                     type: string
                     description: The plan identifier to transfer the subscription to.
+
+        ApiKey:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The internal UUID of the api key.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                key:
+                    type: string
+                    description: The api key value to use to call the protected api.
+                    example: my-api-key
+                application:
+                    $ref: '#/components/schemas/BaseApplication'
+                subscriptions:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/BaseSubscription"
+                    description: The list of subscriptions using this api key. Multiple subscription is possible with shared api key.
+                revoked:
+                    type: boolean
+                    description: Flag indicating that the api key has been revoked.
+                paused:
+                    type: boolean
+                    description: Flag indicating that the api key has been paused.
+                expired:
+                    type: boolean
+                    description: Flag indicating that the api key has expired.
+                daysToExpirationOnLastNotification:
+                    type: integer
+                    format: int32
+                    description: Number of days before the expiration of this subscription when the last pre-expiration notification was sent.
+                expireAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the api key expires. No date means no expiration.
+                    example: 2023-05-18T12:40:46.184Z
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the api key has been created.
+                    example: 2023-01-18T12:40:46.184Z
+                updatedAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the api key has been updated.
+                    example: 2023-01-18T12:40:46.184Z
+                revokedAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the api key has been revoke. No date means not revoked.
+                    example: 2023-01-18T12:40:46.184Z
 
         BaseUser:
             type: object
@@ -4883,6 +4968,24 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+
+        SubscriptionApiKeysResponse:
+            description: Page of subscription api keys
+            content:
+                application/json:
+                    schema:
+                        title: "SubscriptionApiKeysResponse"
+                        properties:
+                            data:
+                                description: List of subscription api keys.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/ApiKey"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
+
 
         MembersResponse:
             description: Page of API members

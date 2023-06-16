@@ -449,6 +449,36 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
     }
 
+    @GET
+    @Path("/{subscriptionId}/api-keys")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
+    public Response getApiSubscriptionApiKeys(
+        @PathParam("subscriptionId") String subscriptionId,
+        @BeanParam @Valid PaginationParam paginationParam
+    ) {
+        final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!subscriptionEntity.getApi().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
+        final List<ApiKey> apiKeys = subscriptionMapper.mapToApiKeyList(
+            apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), subscriptionId)
+        );
+
+        final List<ApiKey> apiKeysSubList = computePaginationData(apiKeys, paginationParam);
+
+        return Response
+            .ok(
+                new SubscriptionApiKeysResponse()
+                    .data(apiKeysSubList)
+                    .pagination(computePaginationInfo(apiKeys.size(), apiKeysSubList.size(), paginationParam))
+                    .links(computePaginationLinks(apiKeys.size(), paginationParam))
+            )
+            .build();
+    }
+
     private Error subscriptionNotFoundError(String subscriptionId) {
         return new Error()
             .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
