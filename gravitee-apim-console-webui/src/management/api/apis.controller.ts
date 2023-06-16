@@ -82,6 +82,7 @@ export class ApisController {
       $timeout.cancel(this.timer);
       this.timer = $timeout(() => {
         if (query !== undefined && query !== previousQuery) {
+          this.order = null;
           this.searchWithQuery(query);
         }
       }, 300);
