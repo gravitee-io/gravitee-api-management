@@ -1245,7 +1245,7 @@ jobs:
 
     job-e2e-test:
         machine:
-            image: ubuntu-2004:202101-01
+            image: ubuntu-2004:current
         resource_class: large
         parameters:
             database:
@@ -1269,7 +1269,7 @@ jobs:
 
     job-e2e-cypress:
         machine:
-            image: ubuntu-2004:202101-01
+            image: ubuntu-2004:current
         resource_class: medium
         steps:
             - checkout
@@ -1296,7 +1296,7 @@ jobs:
                 type: string
                 default: ""
         machine:
-            image: ubuntu-2004:202201-01
+            image: ubuntu-2004:current
         resource_class: medium
         steps:
             - keeper/env-export:
