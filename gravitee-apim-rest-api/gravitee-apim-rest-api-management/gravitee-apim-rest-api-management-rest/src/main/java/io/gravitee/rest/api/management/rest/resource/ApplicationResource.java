@@ -149,18 +149,6 @@ public class ApplicationResource extends AbstractResource {
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }
 
-        // To preserve backward compatibility, ensure that we have at least default settings for simple application type
-        if (
-            updatedApplication.getSettings() == null ||
-            (updatedApplication.getSettings().getoAuthClient() == null && updatedApplication.getSettings().getApp() == null)
-        ) {
-            ApplicationSettings settings = new ApplicationSettings();
-            SimpleApplicationSettings simpleAppSettings = new SimpleApplicationSettings();
-            simpleAppSettings.setType(updatedApplication.getType());
-            simpleAppSettings.setClientId(updatedApplication.getClientId());
-            updatedApplication.setSettings(settings);
-        }
-
         return applicationService.update(GraviteeContext.getExecutionContext(), application, updatedApplication);
     }
 
