@@ -37,6 +37,7 @@ import { ApiPortalSubscriptionListComponent } from './portal/ng-subscriptions/li
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
 import { ApiProxyV4EntrypointsComponent } from './proxy-v4/api-proxy-v4-entrypoints.component';
 import { ApiProxyV4Module } from './proxy-v4/api-proxy-v4.module';
+import { ApiPortalSubscriptionEditComponent } from './portal/ng-subscriptions/edit/api-portal-subscription-edit.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
@@ -188,6 +189,32 @@ const states: Ng2StateDeclaration[] = [
     name: 'management.apis.ng.proxy',
     url: '/proxy',
     component: ApiProxyV4EntrypointsComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-r'],
+      // },
+    },
+  },
+  {
+    name: 'management.apis.ng.subscription',
+    url: '/subscription',
+    component: GioEmptyComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-r'],
+      // },
+    },
+  },
+  {
+    name: 'management.apis.ng.subscription.edit',
+    url: '/:subscriptionId',
+    component: ApiPortalSubscriptionEditComponent,
     data: {
       useAngularMaterial: true,
       docs: null,

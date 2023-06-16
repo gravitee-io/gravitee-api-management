@@ -28,10 +28,17 @@ export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: S
     application: {
       id: 'cee23b1e-34b1-4551-a23b-1e34b165516a',
       name: 'My Application',
+      domain: 'https://my-domain.com',
+      type: 'My special type',
+      primaryOwner: {
+        id: 'my-primary-owner',
+        displayName: 'Primary Owner',
+      },
     },
     plan: {
       id: 'dee23b1e-34b1-4551-a23b-1e34b165516a',
       name: 'My Plan',
+      security: { type: 'API_KEY', configuration: {} },
     },
     consumerMessage: 'My consumer message',
     publisherMessage: 'My publisher message',

@@ -14,17 +14,28 @@
  * limitations under the License.
  */
 
+import { PrimaryOwner } from '../api';
+
 export interface BaseApplication {
   /**
    * Application's uuid.
    */
   id?: string;
   /**
-   * Application's name. Duplicate names can exists.
+   * Application's name. Duplicate names can exist.
    */
   name?: string;
   /**
    * Application's description. A short description of your App.
    */
   description?: string;
+  /**
+   * Application's domain.
+   */
+  domain?: string;
+  /**
+   * Application's type.
+   */
+  type?: string;
+  primaryOwner?: PrimaryOwner;
 }

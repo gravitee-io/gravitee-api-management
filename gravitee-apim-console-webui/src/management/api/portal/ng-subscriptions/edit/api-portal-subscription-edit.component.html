@@ -1,0 +1,143 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div id="subscription-edit">
+  <div class="subscription__nav">
+    <button mat-icon-button aria-label="Go back to your subscriptions" (click)="goBackToSubscriptions()">
+      <mat-icon svgIcon="gio:nav-arrow-left"></mat-icon> Go back to your subscriptions
+    </button>
+  </div>
+  <mat-card>
+    <h3>Subscription details</h3>
+    <ng-container *ngIf="subscription">
+      <div class="subscription__rows">
+        <div class="subscription__row">
+          <div class="mat-body-2">ID</div>
+          <div id="subscription-id">
+            {{ subscription.id }}
+          </div>
+        </div>
+        <div class="subscription__row">
+          <div class="mat-body-2">Plan</div>
+          <div id="subscription-plan">
+            {{ subscription.plan }}
+          </div>
+        </div>
+        <div class="subscription__row">
+          <div class="mat-body-2">Status</div>
+          <div id="subscription-status">
+            {{ subscription.status }}
+          </div>
+        </div>
+        <div class="subscription__row">
+          <div class="mat-body-2">Subscribed by</div>
+          <div id="subscription-subscribed-by">
+            {{ subscription.subscribedBy }}
+          </div>
+        </div>
+        <div class="subscription__row">
+          <div class="mat-body-2">Application</div>
+          <div id="subscription-application">
+            <div>{{ subscription.application.label }}</div>
+            <div>{{ subscription.application.description }}</div>
+          </div>
+        </div>
+        <div class="subscription__row">
+          <div class="mat-body-2">Publisher message to subscriber</div>
+          <div id="subscription-publisher-message">
+            {{ subscription.publisherMessage }}
+          </div>
+        </div>
+        <div class="subscription__row">
+          <div class="mat-body-2">Subscriber message to publisher</div>
+          <div id="subscription-subscriber-message">
+            {{ subscription.subscriberMessage }}
+          </div>
+        </div>
+        <div class="subscription__row">
+          <div class="mat-body-2">Created at</div>
+          <div id="subscription-created-at">
+            {{ subscription.createdAt }}
+          </div>
+        </div>
+        <div class="subscription__row">
+          <div class="mat-body-2">Processed at</div>
+          <div id="subscription-processed-at">
+            {{ subscription.processedAt }}
+          </div>
+        </div>
+        <ng-container *ngIf="subscription.status !== 'REJECTED'">
+          <div class="subscription__row">
+            <div class="mat-body-2">Starting at</div>
+            <div id="subscription-starting-at">
+              {{ subscription.startingAt }}
+            </div>
+          </div>
+          <div class="subscription__row">
+            <div class="mat-body-2">Paused at</div>
+            <div id="subscription-paused-at">
+              {{ subscription.pausedAt }}
+            </div>
+          </div>
+          <div class="subscription__row">
+            <div class="mat-body-2">Ending at</div>
+            <div id="subscription-ending-at">
+              {{ subscription.endingAt }}
+            </div>
+          </div>
+        </ng-container>
+        <div class="subscription__row">
+          <div class="mat-body-2">Closed at</div>
+          <div id="subscription-closed-at">
+            {{ subscription.closedAt }}
+          </div>
+        </div>
+        <div class="subscription__row">
+          <div class="mat-body-2">Domain</div>
+          <div id="subscription-domain">
+            {{ subscription.domain }}
+          </div>
+        </div>
+      </div>
+      <div class="subscription__footer" *gioPermission="{ anyOf: ['api-subscription-u'] }">
+        <ng-container *ngIf="subscription?.status !== 'PENDING'; else pendingSubscription">
+          <button mat-stroked-button (click)="transferSubscription()">
+            <mat-icon svgIcon="gio:data-transfer-both"></mat-icon>
+            Transfer
+          </button>
+          <button mat-stroked-button (click)="pauseSubscription()">
+            <mat-icon svgIcon="gio:pause-circle"></mat-icon>
+            Pause
+          </button>
+          <button mat-stroked-button (click)="changeEndDate()">
+            <mat-icon svgIcon="gio:calendar"></mat-icon>
+            Change end date
+          </button>
+          <button mat-raised-button color="warn" (click)="closeSubscription()">
+            <mat-icon svgIcon="gio:x-circle"></mat-icon>
+            Close
+          </button>
+        </ng-container>
+        <ng-template #pendingSubscription>
+          <button mat-raised-button color="primary" (click)="validateSubscription()">Validate subscription</button>
+          <button mat-stroked-button (click)="rejectSubscription()">Reject subscription</button>
+        </ng-template>
+      </div>
+    </ng-container>
+    <!--  TODO: Add Shared API Key section -->
+  </mat-card>
+</div>
