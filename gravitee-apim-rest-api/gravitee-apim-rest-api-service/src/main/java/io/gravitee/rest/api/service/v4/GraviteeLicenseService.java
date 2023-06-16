@@ -24,8 +24,19 @@ public interface GraviteeLicenseService {
     String FEATURE_OPEN_ID_CONNECT_SSO = "apim-openid-connect-sso";
     String FEATURE_AUDIT_TRAIL = "apim-audit-trail";
     String FEATURE_DCR_REGISTRATION = "apim-dcr-registration";
+    String FEATURE_ENTRYPOINT_WEBHOOK = "apim-en-entrypoint-webhook";
+    String FEATURE_ENTRYPOINT_HTTP_GET = "apim-en-entrypoint-http-get";
+    String FEATURE_ENTRYPOINT_WEBSOCKET = "apim-en-entrypoint-websocket";
+    String FEATURE_ENTRYPOINT_HTTP_POST = "apim-en-entrypoint-http-post";
+    String FEATURE_ENTRYPOINT_SSE = "apim-en-entrypoint-sse";
+    String FEATURE_ENDPOINT_MQTT5 = "apim-en-endpoint-mqtt5";
+    String FEATURE_ENDPOINT_KAFKA = "apim-en-endpoint-kafka";
 
     GraviteeLicenseEntity getLicense();
 
     boolean isFeatureEnabled(String featureName);
+
+    default boolean isFeatureMissing(String featureName) {
+        return !isFeatureEnabled(featureName);
+    }
 }

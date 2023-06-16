@@ -17,10 +17,13 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static java.util.stream.Collectors.*;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.Feature;
 import io.gravitee.node.api.license.License;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;

@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
@@ -182,5 +183,10 @@ public class ResourceContextConfiguration {
     @Bean
     public UserService userService() {
         return mock(UserService.class);
+    }
+
+    @Bean
+    public ApiLicenseService apiLicenseService() {
+        return mock(ApiLicenseService.class);
     }
 }
