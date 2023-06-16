@@ -103,6 +103,7 @@
     "@types/angular-local-storage": "0.7.0",
     "@types/angular-material": "1.1.73",
     "@types/angular-mocks": "1.7.1",
+    "@types/angular-sanitize": "1.8.1",
     "@types/core-js": "2.5.5",
     "@types/diff": "5.0.2",
     "@types/jest": "27.4.0",
