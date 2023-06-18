@@ -25,9 +25,13 @@ import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class, RuleMapper.class })
+@Mapper(
+    uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class, RuleMapper.class },
+    nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT
+)
 public interface PlanMapper {
     PlanMapper INSTANCE = Mappers.getMapper(PlanMapper.class);
 
@@ -63,6 +67,8 @@ public interface PlanMapper {
 
     @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "validation", defaultValue = "MANUAL")
+    @Mapping(target = "mode", defaultValue = "STANDARD")
     NewPlanEntity map(CreatePlanV4 plan);
 
     @Mapping(target = "security", source = "security.type")
