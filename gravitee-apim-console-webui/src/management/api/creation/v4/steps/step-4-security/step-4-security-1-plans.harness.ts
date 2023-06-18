@@ -36,12 +36,12 @@ export class Step4Security1PlansHarness extends ComponentHarness {
       }),
     )();
 
-  async getColumnTextByRowIndex(index: number): Promise<{ name: string; security: string }> {
+  async getColumnTextByRowIndex(index: number): Promise<{ name: string; mode: string; security: string }> {
     return this.matTable()
       .then((x) => x.getRows())
       .then((rows) => rows[index])
       .then((row) => row.getCellTextByColumnName())
-      .then((cell) => ({ name: cell.name, security: cell.security }));
+      .then((cell) => ({ name: cell.name, mode: cell.mode, security: cell.security }));
   }
 
   async countNumberOfRows(): Promise<number> {

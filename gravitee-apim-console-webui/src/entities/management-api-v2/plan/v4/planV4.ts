@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PlanMode } from './planMode';
+
 import { FlowV4 } from '../../api/v4';
 import { BasePlan } from '../basePlan';
 
 export interface PlanV4 extends BasePlan {
   definitionVersion: 'V4';
   flows?: FlowV4[];
+  mode: PlanMode;
 }

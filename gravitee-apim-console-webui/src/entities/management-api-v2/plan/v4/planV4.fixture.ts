@@ -27,6 +27,7 @@ export function fakeV4Plan(modifier?: Partial<PlanV4> | ((baseApi: PlanV4) => Pl
     status: 'PUBLISHED',
     apiId: 'api#1',
     order: 0,
+    mode: 'STANDARD',
   };
 
   if (isFunction(modifier)) {

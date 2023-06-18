@@ -49,6 +49,7 @@ import {
   CreatePlan,
   Plan,
   UpdatePlan,
+  PlanMode,
 } from '../../../../entities/management-api-v2';
 import { isApiV2FromMAPIV2 } from '../../../../util';
 import { PlanSecurityVM } from '../../../../services-ngx/constants.service';
@@ -94,7 +95,7 @@ export type PlanFormValue = Pick<
   | 'security'
   | 'selectionRule'
   | 'flows'
->;
+> & { mode?: PlanMode };
 
 @Component({
   selector: 'api-plan-form',

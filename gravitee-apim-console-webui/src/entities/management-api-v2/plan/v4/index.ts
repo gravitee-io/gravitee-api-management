@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export * from './planMode';
 export * from './planV4';
 export * from './createPlanV4';
 export * from './updatePlanV4';

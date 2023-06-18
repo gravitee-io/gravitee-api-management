@@ -116,6 +116,7 @@ export function fakePlanV4(modifier?: Partial<PlanV4> | ((base: PlanV4) => PlanV
         enabled: true,
       },
     ],
+    mode: 'STANDARD',
   };
 
   if (isFunction(modifier)) {
