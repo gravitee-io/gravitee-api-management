@@ -37,9 +37,6 @@ export class ApiPlanV2Service {
   }
 
   public create(apiId: string, plan: CreatePlan): Observable<Plan> {
-    if (plan.security.type === 'PUSH') {
-      plan.security.type = 'SUBSCRIPTION';
-    }
     return this.http.post<Plan>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans`, plan);
   }
 

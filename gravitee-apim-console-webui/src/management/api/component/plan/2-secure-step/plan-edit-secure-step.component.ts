@@ -27,7 +27,7 @@ import { ResourceService } from '../../../../../services-ngx/resource.service';
 import { ResourceListItem } from '../../../../../entities/resource/resourceListItem';
 import { ApiV2, ApiV4 } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { PlanSecurityVM } from '../../../../../services-ngx/constants.service';
+import { PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
 
 @Component({
   selector: 'plan-edit-secure-step',
@@ -47,7 +47,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   public api: ApiV2 | ApiV4;
 
   @Input()
-  securityType: PlanSecurityVM;
+  securityType: PlanMenuItemVM;
   constructor(
     @Inject('Constants') private readonly constants: Constants,
     private readonly policyService: PolicyV2Service,
@@ -63,7 +63,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
       selectionRule: new FormControl(),
     });
 
-    if (['KEY_LESS', 'PUSH'].includes(this.securityType.id)) {
+    if (['KEY_LESS', 'PUSH'].includes(this.securityType.planFormType)) {
       return;
     }
 
@@ -82,7 +82,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
       });
 
     // Load resources only if API has resources and when user select OAuth2 security type once
-    if (this.api?.resources && this.securityType.id === 'OAUTH2') {
+    if (this.api?.resources && this.securityType.planFormType === 'OAUTH2') {
       this.resourceService
         .list({ expandSchema: false, expandIcon: true })
         .pipe(

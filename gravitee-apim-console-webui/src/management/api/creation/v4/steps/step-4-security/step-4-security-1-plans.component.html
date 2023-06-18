@@ -33,7 +33,7 @@
 
   <ng-container *ngIf="view === 'add'">
     <step-4-security-1-plans-add
-      [securityType]="securityType"
+      [planMenuItem]="selectedPlanMenuItem"
       (planChanges)="addPlan($event)"
       (exitPlanCreation)="onExitPlanCreation()"
     ></step-4-security-1-plans-add>
@@ -42,7 +42,7 @@
   <ng-container *ngIf="view === 'edit'">
     <step-4-security-1-plans-add
       [plan]="planToEdit"
-      [securityType]="securityType"
+      [planMenuItem]="selectedPlanMenuItem"
       (planChanges)="editPlan($event)"
       (exitPlanCreation)="onExitPlanCreation()"
     ></step-4-security-1-plans-add>

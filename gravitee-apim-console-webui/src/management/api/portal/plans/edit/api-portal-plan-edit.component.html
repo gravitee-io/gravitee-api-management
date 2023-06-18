@@ -21,9 +21,9 @@
     Plan
   </span>
 </div>
-<form *ngIf="planForm && planSecurity" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm" (ngSubmit)="onSubmit()">
+<form *ngIf="planForm && planMenuItem" autocomplete="off" gioFormFocusInvalid [formGroup]="planForm" (ngSubmit)="onSubmit()">
   <mat-card>
-    <api-plan-form #apiPlanForm formControlName="plan" [mode]="mode" [api]="api" [securityType]="planSecurity"></api-plan-form>
+    <api-plan-form #apiPlanForm formControlName="plan" [mode]="mode" [api]="api" [planMenuItem]="planMenuItem"></api-plan-form>
   </mat-card>
 
   <gio-save-bar

@@ -52,7 +52,7 @@ describe('ApiPortalPlanEditComponent', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPortalPlansModule, MatIconTestingModule],
       providers: [
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, planId, securityType: 'JWT' } },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID, planId, selectedPlanMenuItem: 'JWT' } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         {
           provide: 'Constants',
@@ -296,7 +296,7 @@ describe('ApiPortalPlanEditComponent', () => {
   describe('With a V4 API', () => {
     describe('Edit', () => {
       const TAG_1_ID = 'tag-1';
-      const PLAN = fakePlanV4({ apiId: API_ID, security: { type: 'SUBSCRIPTION' } });
+      const PLAN = fakePlanV4({ apiId: API_ID, mode: 'PUSH' });
 
       beforeEach(async () => {
         configureTestingModule(PLAN.id);

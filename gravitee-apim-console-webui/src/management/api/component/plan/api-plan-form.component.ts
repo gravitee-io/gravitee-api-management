@@ -45,14 +45,13 @@ import {
   FlowV4,
   StepV2,
   StepV4,
-  PlanSecurityType,
   CreatePlan,
   Plan,
   UpdatePlan,
   PlanMode,
 } from '../../../../entities/management-api-v2';
 import { isApiV2FromMAPIV2 } from '../../../../util';
-import { PlanSecurityVM } from '../../../../services-ngx/constants.service';
+import { PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
 
 type InternalPlanFormValue = {
   general: {
@@ -121,7 +120,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   mode: 'create' | 'edit';
 
   @Input()
-  securityType: PlanSecurityVM;
+  planMenuItem: PlanMenuItemVM;
 
   public isInit = false;
 
@@ -287,10 +286,10 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     }
 
     // Display subscriptions section only for none KEY_LESS security type
-    this.displaySubscriptionsSection = this.securityType.id !== 'KEY_LESS';
+    this.displaySubscriptionsSection = this.planMenuItem.planFormType !== 'KEY_LESS';
 
     // Disable unnecessary fields with KEY_LESS security type
-    if (this.securityType.id === 'KEY_LESS') {
+    if (this.planMenuItem.planFormType === 'KEY_LESS') {
       this.planForm.get('general').get('commentRequired').disable();
       this.planForm.get('general').get('commentRequired').setValue(false);
       this.planForm.get('general').get('autoValidation').disable();
@@ -319,8 +318,8 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   private getPlanFormValue(): PlanFormValue {
     return this.isV2Api
-      ? internalFormValueToPlanV2(this.planForm.getRawValue(), this.mode, this.securityType.id)
-      : internalFormValueToPlanV4(this.planForm.getRawValue(), this.mode, this.securityType.id);
+      ? internalFormValueToPlanV2(this.planForm.getRawValue(), this.mode, this.planMenuItem.planFormType)
+      : internalFormValueToPlanV4(this.planForm.getRawValue(), this.mode, this.planMenuItem.planFormType);
   }
 }
 
@@ -342,17 +341,13 @@ const planToInternalFormValue = (plan: PlanFormValue | undefined): InternalPlanF
       excludedGroups: plan.excludedGroups,
     },
     secure: {
-      securityConfig: plan.security.configuration,
+      securityConfig: plan.security?.configuration,
       selectionRule: plan.selectionRule,
     },
   };
 };
 
-const internalFormValueToPlanV2 = (
-  value: InternalPlanFormValue,
-  mode: 'create' | 'edit',
-  securityType: PlanSecurityType,
-): PlanFormValue => {
+const internalFormValueToPlanV2 = (value: InternalPlanFormValue, mode: 'create' | 'edit', planFormType: PlanFormType): PlanFormValue => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): FlowV2[] => {
     const restrictionPolicies: StepV2[] = [
@@ -401,6 +396,10 @@ const internalFormValueToPlanV2 = (
     ];
   };
 
+  if (planFormType === 'PUSH') {
+    throw new Error('Push plan is not supported in V2 API');
+  }
+
   return {
     name: value.general.name,
     description: value.general.description,
@@ -414,7 +413,7 @@ const internalFormValueToPlanV2 = (
 
     // Secure
     security: {
-      type: securityType,
+      type: planFormType,
       configuration: value.secure.securityConfig,
     },
     selectionRule: value.secure.selectionRule,
@@ -424,11 +423,7 @@ const internalFormValueToPlanV2 = (
   };
 };
 
-const internalFormValueToPlanV4 = (
-  value: InternalPlanFormValue,
-  mode: 'create' | 'edit',
-  securityType: PlanSecurityType,
-): PlanFormValue => {
+const internalFormValueToPlanV4 = (value: InternalPlanFormValue, mode: 'create' | 'edit', planFormType: PlanFormType): PlanFormValue => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): FlowV4[] => {
     const restrictionPolicies: StepV4[] = [
@@ -482,13 +477,20 @@ const internalFormValueToPlanV4 = (
     commentRequired: value.general.commentRequired,
     commentMessage: value.general.commentMessage,
     validation: value.general.autoValidation ? 'AUTO' : 'MANUAL',
-    excludedGroups: value.general.excludedGroups,
 
     // Secure
-    security: {
-      type: securityType,
-      configuration: value.secure.securityConfig,
-    },
+    mode: planFormType === 'PUSH' ? 'PUSH' : 'STANDARD',
+    // Security only availble in standard mode
+    ...(planFormType !== 'PUSH'
+      ? {
+          security: {
+            type: planFormType,
+            configuration: value.secure.securityConfig,
+          },
+        }
+      : {}),
+
+    excludedGroups: value.general.excludedGroups,
     selectionRule: value.secure.selectionRule,
 
     // Restriction (only for create mode)

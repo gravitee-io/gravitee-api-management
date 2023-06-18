@@ -983,10 +983,6 @@ describe('ApiCreationV4Component', () => {
               definitionVersion: 'V4',
               name: 'Default PUSH plan',
               description: 'Default push plan',
-              security: {
-                type: 'PUSH',
-                configuration: {},
-              },
               mode: 'PUSH',
               validation: 'MANUAL',
             },
@@ -1208,10 +1204,6 @@ describe('ApiCreationV4Component', () => {
             definitionVersion: 'V4',
             name: 'Default PUSH plan',
             description: 'Default push plan',
-            security: {
-              type: 'PUSH',
-              configuration: {},
-            },
             mode: 'PUSH',
             validation: 'MANUAL',
           },
