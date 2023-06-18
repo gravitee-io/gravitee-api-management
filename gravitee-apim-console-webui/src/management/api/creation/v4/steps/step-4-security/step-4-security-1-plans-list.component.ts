@@ -43,7 +43,7 @@ export class Step4Security1PlansListComponent implements OnInit {
   planSecurityOptions: PlanSecurityVM[];
 
   public form = new FormGroup({});
-  displayedColumns: string[] = ['name', 'security', 'actions'];
+  displayedColumns: string[] = ['name', 'mode', 'security', 'actions'];
 
   constructor(private readonly stepService: ApiCreationStepService, private readonly constantsService: ConstantsService) {}
 

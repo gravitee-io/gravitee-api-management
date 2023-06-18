@@ -55,6 +55,7 @@ export class Step4Security1PlansComponent implements OnInit {
         definitionVersion: 'V4',
         name: 'Default Keyless (UNSECURED)',
         description: 'Default unsecured plan',
+        mode: 'STANDARD',
         security: {
           type: 'KEY_LESS',
           configuration: {},
@@ -74,6 +75,7 @@ export class Step4Security1PlansComponent implements OnInit {
           type: 'PUSH',
           configuration: {},
         },
+        mode: 'PUSH',
         validation: 'MANUAL',
       });
     }

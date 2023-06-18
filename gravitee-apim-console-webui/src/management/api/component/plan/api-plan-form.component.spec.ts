@@ -700,6 +700,7 @@ describe('ApiPlanFormComponent', () => {
         excludedGroups: ['group-a'],
         generalConditions: '',
         tags: [],
+        mode: 'STANDARD',
         security: {
           configuration: {},
           type: 'JWT',
@@ -973,6 +974,7 @@ describe('ApiPlanFormComponent', () => {
           commentMessage: 'comment message',
           commentRequired: false,
           excludedGroups: ['group-a'],
+          mode: 'STANDARD',
           security: {
             type: 'KEY_LESS',
             configuration: {},
