@@ -111,7 +111,7 @@
             <div class="step-6-summary__step__info__security__content__card" *ngFor="let plan of currentStepPayload.plans">
               <div class="step-6-summary__step__info__security__content__card__title">
                 <span class="mat-body-strong">{{ plan.name }}</span
-                ><span class="gio-badge-neutral">{{ plan.security.type }}</span>
+                ><span class="gio-badge-neutral">{{ plan.security?.type || plan.mode }}</span>
               </div>
               <div class="step-6-summary__step__info__security__content__card__content">
                 <span>Entrypoints type: http</span>

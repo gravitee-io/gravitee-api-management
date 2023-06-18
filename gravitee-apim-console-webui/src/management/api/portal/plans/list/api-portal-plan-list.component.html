@@ -70,11 +70,11 @@
     </td>
   </ng-container>
 
-  <!-- Display Security Column -->
-  <ng-container matColumnDef="security">
-    <th mat-header-cell *matHeaderCellDef id="security">Security</th>
+  <!-- Display Type Column -->
+  <ng-container matColumnDef="type">
+    <th mat-header-cell *matHeaderCellDef id="type">Type</th>
     <td mat-cell *matCellDef="let element">
-      {{ element.security.type }}
+      {{ element.security?.type || element.mode }}
     </td>
   </ng-container>
 
