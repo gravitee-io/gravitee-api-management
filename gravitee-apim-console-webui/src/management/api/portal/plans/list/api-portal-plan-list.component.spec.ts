@@ -133,9 +133,9 @@ describe('ApiPortalPlanListComponent', () => {
         {
           'drag-icon': '',
           name: 'Name',
-          security: 'Security',
           status: 'Status',
           'deploy-on': 'Deploy on',
+          type: 'Type',
           actions: '',
         },
       ]);
@@ -151,9 +151,9 @@ describe('ApiPortalPlanListComponent', () => {
         {
           'drag-icon': '',
           name: 'Name',
-          security: 'Security',
           status: 'Status',
           'deploy-on': 'Deploy on',
+          type: 'Type',
           actions: '',
         },
       ]);
@@ -530,9 +530,9 @@ describe('ApiPortalPlanListComponent', () => {
       expect(headerCells).toEqual([
         {
           name: 'Name',
-          security: 'Security',
           status: 'Status',
           'deploy-on': 'Deploy on',
+          type: 'Type',
           actions: '',
         },
       ]);

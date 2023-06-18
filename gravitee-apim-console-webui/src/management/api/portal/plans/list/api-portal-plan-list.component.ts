@@ -46,7 +46,7 @@ import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.servic
 export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private api: Api;
-  public displayedColumns = ['name', 'security', 'status', 'deploy-on', 'actions'];
+  public displayedColumns = ['name', 'type', 'status', 'deploy-on', 'actions'];
   public plansTableDS: Plan[] = [];
   public isLoadingData = true;
   public apiPlanStatus: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map((status) => ({ name: status, number: null }));
