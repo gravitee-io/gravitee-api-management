@@ -24,8 +24,8 @@ import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPlanFormComponent, PlanFormValue } from '../../../component/plan/api-plan-form.component';
-import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../../services-ngx/constants.service';
-import { Api, Plan } from '../../../../../entities/management-api-v2';
+import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
+import { Api, CreatePlanV2, CreatePlanV4, Plan } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
@@ -43,7 +43,7 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
   public initialPlanFormValue: unknown;
   public api: Api;
   public isReadOnly = false;
-  public planSecurity: PlanSecurityVM;
+  public planMenuItem: PlanMenuItemVM;
   public portalPlansRoute: string;
 
   @ViewChild('apiPlanForm')
@@ -90,17 +90,16 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
       )
-      .subscribe(() => {
-        if (this.mode === 'edit') {
-          // TODO remove this when the SUBSCRIPTION security type is renamed on the backend side
-          if (this.planForm.value.plan.security.type === 'SUBSCRIPTION') {
-            this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === 'PUSH');
-          } else {
-            this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === this.planForm.value.plan.security.type);
-          }
-        } else {
-          this.planSecurity = PLAN_SECURITY_TYPES.find((vm) => vm.id === this.ajsStateParams.securityType);
-        }
+      .subscribe((plan) => {
+        const planFormType =
+          this.mode === 'edit'
+            ? plan.definitionVersion === 'V4' && plan.mode === 'PUSH'
+              ? 'PUSH'
+              : plan.security.type
+            : this.ajsStateParams.selectedPlanMenuItem;
+
+        this.planMenuItem = AVAILABLE_PLANS_FOR_MENU.find((vm) => vm.planFormType === planFormType);
+
         this.changeDetectorRef.detectChanges();
       });
   }
@@ -125,9 +124,9 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
             .get(this.ajsStateParams.apiId, this.ajsStateParams.planId)
             .pipe(switchMap((planToUpdate) => this.planService.update(this.api.id, planToUpdate.id, { ...planToUpdate, ...planFormValue })))
         : this.planService.create(this.api.id, {
-            ...planFormValue,
-            definitionVersion: this.api.definitionVersion === 'V4' ? 'V4' : 'V2',
-            security: { type: this.planSecurity.id, configuration: planFormValue.security.configuration },
+            ...(this.api.definitionVersion === 'V4'
+              ? createV4Plan(planFormValue, this.planMenuItem.planFormType)
+              : createV2Plan(planFormValue, this.planMenuItem.planFormType)),
           });
 
     savePlan$
@@ -141,4 +140,34 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => this.ajsState.go(this.portalPlansRoute));
   }
+}
+
+function createV2Plan(planFormValue: PlanFormValue, planFormType: PlanFormType): CreatePlanV2 {
+  if (planFormType === 'PUSH') {
+    throw new Error('Push plans are not supported in V2');
+  }
+  return {
+    ...planFormValue,
+    definitionVersion: 'V2',
+    security: {
+      type: planFormType,
+      configuration: planFormValue.security.configuration,
+    },
+  };
+}
+
+function createV4Plan(planFormValue: PlanFormValue, planFormType: PlanFormType): CreatePlanV4 {
+  return {
+    ...planFormValue,
+    definitionVersion: 'V4',
+    mode: planFormType === 'PUSH' ? 'PUSH' : 'STANDARD',
+    ...(planFormType === 'PUSH'
+      ? { security: undefined }
+      : {
+          security: {
+            type: planFormType,
+            configuration: planFormValue.security.configuration,
+          },
+        }),
+  };
 }

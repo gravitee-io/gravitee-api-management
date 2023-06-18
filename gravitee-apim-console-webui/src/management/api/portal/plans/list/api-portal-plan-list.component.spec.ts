@@ -281,7 +281,7 @@ describe('ApiPortalPlanListComponent', () => {
         expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
 
         await planSecurityDropdown.clickItem({ text: 'Keyless (public)' });
-        expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.new', { securityType: 'KEY_LESS' });
+        expect(fakeUiRouter.go).toBeCalledWith('management.apis.ng.plan.new', { selectedPlanMenuItem: 'KEY_LESS' });
       });
       it('should navigate to edit when click on the name', async () => {
         await init(fakeAjsGlobals);
@@ -318,7 +318,7 @@ describe('ApiPortalPlanListComponent', () => {
       expect(await planSecurityDropdown.getItems().then((items) => items.length)).toEqual(4);
 
       await planSecurityDropdown.clickItem({ text: 'Keyless (public)' });
-      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plan.new', { securityType: 'KEY_LESS' });
+      expect(fakeUiRouter.go).toBeCalledWith('management.apis.detail.portal.plan.new', { selectedPlanMenuItem: 'KEY_LESS' });
     });
 
     it('should navigate to edit when click on the name', async () => {

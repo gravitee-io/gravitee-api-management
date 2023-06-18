@@ -17,7 +17,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { PlanSecurityVM } from '../../../../../../services-ngx/constants.service';
+import { PlanMenuItemVM } from '../../../../../../services-ngx/constants.service';
 import { CreatePlanV4 } from '../../../../../../entities/management-api-v2';
 
 @Component({
@@ -31,7 +31,7 @@ export class Step4Security1PlansAddComponent implements OnInit {
   plan?: CreatePlanV4;
 
   @Input()
-  securityType: PlanSecurityVM;
+  planMenuItem: PlanMenuItemVM;
 
   @Output()
   planChanges = new EventEmitter<CreatePlanV4>();

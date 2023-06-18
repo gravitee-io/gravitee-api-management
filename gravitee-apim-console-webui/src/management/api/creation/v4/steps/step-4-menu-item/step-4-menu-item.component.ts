@@ -17,11 +17,11 @@ import { Component, Inject, OnInit } from '@angular/core';
 
 import { MENU_ITEM_PAYLOAD } from '../../components/api-creation-stepper-menu/api-creation-stepper-menu.component';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { PlanSecurityType } from '../../../../../../entities/management-api-v2';
+import { PlanFormType } from '../../../../../../services-ngx/constants.service';
 
 interface MenuItemVM {
   name: string;
-  type: PlanSecurityType;
+  type: PlanFormType;
 }
 
 @Component({
@@ -37,7 +37,7 @@ export class Step4MenuItemComponent implements OnInit {
   ngOnInit(): void {
     this.menuItems = this.menuItemPayload?.plans?.map((plan) => ({
       name: plan.name,
-      type: plan.security.type,
+      type: plan.mode === 'PUSH' ? 'PUSH' : plan.security.type,
     }));
   }
 }

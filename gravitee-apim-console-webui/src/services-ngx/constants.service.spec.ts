@@ -16,7 +16,7 @@
 import { TestBed } from '@angular/core/testing';
 import { set } from 'lodash';
 
-import { ConstantsService, PLAN_SECURITY_TYPES, PlanSecurityVM } from './constants.service';
+import { ConstantsService, AVAILABLE_PLANS_FOR_MENU, PlanMenuItemVM } from './constants.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 
@@ -64,9 +64,9 @@ describe('ConstantsService', () => {
           enabled: true,
         },
       });
-      const expectedPlanSecurityTypes = PLAN_SECURITY_TYPES;
+      const expectedPlanSecurityTypes = AVAILABLE_PLANS_FOR_MENU;
 
-      expect(constantsService.getEnabledPlanSecurityTypes()).toMatchObject(expectedPlanSecurityTypes);
+      expect(constantsService.getEnabledPlanMenuItems()).toMatchObject(expectedPlanSecurityTypes);
     });
     it('should return empty list when all disabled', async () => {
       await init({
@@ -89,16 +89,16 @@ describe('ConstantsService', () => {
           enabled: false,
         },
       });
-      const expectedPlanSecurityTypes: PlanSecurityVM[] = [];
+      const expectedPlanSecurityTypes: PlanMenuItemVM[] = [];
 
-      expect(constantsService.getEnabledPlanSecurityTypes()).toMatchObject(expectedPlanSecurityTypes);
+      expect(constantsService.getEnabledPlanMenuItems()).toMatchObject(expectedPlanSecurityTypes);
     });
 
     it('should return empty list if no plan settings', async () => {
       await init({});
-      const expectedPlanSecurityTypes: PlanSecurityVM[] = [];
+      const expectedPlanSecurityTypes: PlanMenuItemVM[] = [];
 
-      expect(constantsService.getEnabledPlanSecurityTypes()).toMatchObject(expectedPlanSecurityTypes);
+      expect(constantsService.getEnabledPlanMenuItems()).toMatchObject(expectedPlanSecurityTypes);
     });
   });
 });
