@@ -837,7 +837,7 @@ public class SubscriptionServiceTest {
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
-        planEntity.setSecurity(PlanSecurityType.SUBSCRIPTION);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
         // Run

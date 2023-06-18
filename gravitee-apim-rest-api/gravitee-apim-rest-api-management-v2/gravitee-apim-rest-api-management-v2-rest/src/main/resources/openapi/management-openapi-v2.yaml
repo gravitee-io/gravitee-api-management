@@ -2946,7 +2946,6 @@ components:
                 - API_KEY
                 - OAUTH2
                 - JWT
-                - SUBSCRIPTION
         PlanStatus:
             type: string
             description: Plan status.
