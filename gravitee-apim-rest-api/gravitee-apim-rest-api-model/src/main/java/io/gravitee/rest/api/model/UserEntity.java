@@ -22,10 +22,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,6 +33,9 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode(of = "id")
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class UserEntity implements Indexable {
 
     /**

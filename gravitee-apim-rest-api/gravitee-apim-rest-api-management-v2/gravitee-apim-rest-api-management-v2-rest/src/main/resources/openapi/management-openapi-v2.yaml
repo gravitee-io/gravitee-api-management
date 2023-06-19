@@ -871,6 +871,7 @@ paths:
                           enum:
                               - application
                               - plan
+                              - subscribedBy
                   explode: false
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
@@ -1019,6 +1020,7 @@ paths:
                           enum:
                               - application
                               - plan
+                              - subscribedBy
             summary: Get one API's subscription
             description: |-
                 Get the API's subscription by its identifier.
