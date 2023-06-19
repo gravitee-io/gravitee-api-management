@@ -322,6 +322,7 @@ describe('ApiProxyEndpointListComponent', () => {
           ],
         },
       });
+      initComponent(api);
 
       let rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
       let rtTableRows0 = await rtTable0.getCellTextByIndex();
