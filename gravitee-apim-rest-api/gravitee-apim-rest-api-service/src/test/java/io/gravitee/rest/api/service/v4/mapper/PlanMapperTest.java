@@ -25,6 +25,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
@@ -44,6 +45,20 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class PlanMapperTest {
 
     private final PlanMapper planMapper = new PlanMapper();
+
+    @Test
+    public void shouldConvertPlanEntityToPlan() {
+        var planEntity = buildTestPlanEntity();
+
+        io.gravitee.definition.model.v4.plan.Plan plan = planMapper.toDefinition(planEntity);
+        assertEquals(plan.getId(), planEntity.getId());
+        assertEquals(plan.getName(), planEntity.getName());
+        assertEquals(plan.getMode().name(), planEntity.getMode().name());
+        assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
+        assertEquals(plan.getSecurity().getType(), planEntity.getSecurity().getType());
+        assertEquals(plan.getSelectionRule(), planEntity.getSelectionRule());
+        assertSame(plan.getTags(), planEntity.getTags());
+    }
 
     @Test
     public void shouldConvertPlanToPlanEntity() {
@@ -198,6 +213,7 @@ public class PlanMapperTest {
         PlanSecurity security = new PlanSecurity();
         security.setType(PlanSecurityType.JWT.getLabel());
         security.setConfiguration("definition");
+        planEntity.setMode(PlanMode.STANDARD);
         planEntity.setSecurity(security);
         planEntity.setType(PlanType.API);
         planEntity.setStatus(PlanStatus.STAGING);

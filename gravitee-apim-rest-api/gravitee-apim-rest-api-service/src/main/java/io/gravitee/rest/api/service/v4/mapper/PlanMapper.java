@@ -135,6 +135,7 @@ public class PlanMapper {
         io.gravitee.definition.model.v4.plan.Plan planDefinition = new io.gravitee.definition.model.v4.plan.Plan();
         planDefinition.setId(planEntity.getId());
         planDefinition.setSecurity(planEntity.getSecurity());
+        planDefinition.setMode(io.gravitee.definition.model.v4.plan.PlanMode.valueOf(planEntity.getMode().name()));
         planDefinition.setFlows(planEntity.getFlows());
         planDefinition.setId(planEntity.getId());
         planDefinition.setName(planEntity.getName());
