@@ -35,6 +35,7 @@
     "**/*.spec.ts.snap",
     "ui-test/fixtures/keys/**",
     "lib/management-webclient-sdk",
+    "lib/management-v2-webclient-sdk",
     "lib/portal-webclient-sdk",
     "api-test/resources/**",
     "jacoco/lib/**",

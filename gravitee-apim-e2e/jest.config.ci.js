@@ -7,6 +7,7 @@ module.exports = {
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
     '@gravitee/fixtures/(.*)': '<rootDir>/dist/lib/fixtures/$1',
     '@gravitee/management-webclient-sdk/(.*)': '<rootDir>/dist/lib/management-webclient-sdk/$1',
+    '@gravitee/management-v2-webclient-sdk/(.*)': '<rootDir>/dist/lib/management-v2-webclient-sdk/$1',
     '@gravitee/portal-webclient-sdk/(.*)': '<rootDir>/dist/lib/portal-webclient-sdk/$1',
     '@gravitee/utils/(.*)': '<rootDir>/dist/lib/utils/$1',
     '@lib/jest-utils': '<rootDir>/dist/lib/jest-utils',

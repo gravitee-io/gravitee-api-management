@@ -15,17 +15,16 @@
  */
 import faker from '@faker-js/faker';
 import {
-  FlowExecutionV4,
-  FlowExecutionV4ModeEnum,
-  HttpListenerV4,
-  ListenerV4,
-  NewApiEntityV4,
-  NewApiEntityV4DefinitionVersionEnum,
-  NewApiEntityV4TypeEnum,
-  SubscriptionListenerV4,
-} from '@gravitee/management-webclient-sdk/src/lib/models';
+  ApiType,
+  CreateApiV4,
+  DefinitionVersion,
+  FlowExecution,
+  FlowMode,
+  HttpListener,
+  SubscriptionListener,
+} from '../../management-v2-webclient-sdk/src/lib';
 
-export class ApisV4Faker {
+export class MAPIV2ApisFaker {
   static version() {
     const major = faker.datatype.number({ min: 1, max: 5 });
     const minor = faker.datatype.number({ min: 1, max: 10 });
@@ -33,14 +32,14 @@ export class ApisV4Faker {
     return `${major}.${minor}.${patch}`;
   }
 
-  static newApi(attributes?: Partial<NewApiEntityV4>): NewApiEntityV4 {
+  static newApi(attributes?: Partial<CreateApiV4>): CreateApiV4 {
     const name = faker.commerce.productName();
     const apiVersion = this.version();
     const description = faker.commerce.productDescription();
 
     return {
       apiVersion,
-      definitionVersion: NewApiEntityV4DefinitionVersionEnum._4_0_0,
+      definitionVersion: DefinitionVersion.V4,
       description,
       name,
       endpointGroups: [
@@ -56,22 +55,22 @@ export class ApisV4Faker {
         },
       ],
       flowExecution: {
-        flowMode: FlowExecutionV4ModeEnum.DEFAULT,
+        flowMode: FlowMode.DEFAULT,
         matchRequired: false,
-      } as FlowExecutionV4,
+      } as FlowExecution,
       flows: [],
       groups: [],
       listeners: [],
       tags: [],
-      type: NewApiEntityV4TypeEnum.MESSAGE,
+      type: ApiType.MESSAGE,
       ...attributes,
     };
   }
 
-  static newHttpListener(attributes?: Partial<HttpListenerV4>): ListenerV4 {
+  static newHttpListener(attributes?: Partial<HttpListener>): HttpListener {
     return {
       // @ts-ignore
-      type: 'http',
+      type: 'HTTP',
       paths: [],
       pathMappings: [],
       entrypoints: [],
@@ -79,12 +78,10 @@ export class ApisV4Faker {
     };
   }
 
-  static newSubscriptionListener(attributes?: Partial<SubscriptionListenerV4>): ListenerV4 {
+  static newSubscriptionListener(attributes?: Partial<SubscriptionListener>): SubscriptionListener {
     return {
       // @ts-ignore
-      type: 'subscription',
-      paths: [],
-      pathMappings: [],
+      type: 'SUBSCRIPTION',
       entrypoints: [],
       ...attributes,
     };

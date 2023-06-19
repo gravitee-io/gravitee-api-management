@@ -25,6 +25,7 @@ services:
     command: npm run test:api:ci
     environment:
       - MANAGEMENT_BASE_URL=http://management_api:8083/management
+      - MANAGEMENT_V2_BASE_URL=http://management_api:8083/management/v2
       - PORTAL_BASE_URL=http://management_api:8083/portal/environments
       - GATEWAY_BASE_URL=http://gateway:8082
       - WIREMOCK_BASE_URL=http://wiremock:8080
