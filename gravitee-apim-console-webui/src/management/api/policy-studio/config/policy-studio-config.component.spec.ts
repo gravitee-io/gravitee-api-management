@@ -104,8 +104,11 @@ describe('PolicyStudioConfigComponent', () => {
   });
 
   it('should enable jupiter mode', async (done) => {
+    await fixture.whenStable();
+    fixture.detectChanges();
     const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'jupiterModeEnabled' }));
     expect(await activateSupportSlideToggle.isDisabled()).toEqual(false);
+    await fixture.whenStable();
 
     // Expect last apiDefinition
     policyStudioService.getApiDefinitionToSave$().subscribe((apiDefinition) => {
