@@ -1,0 +1,57 @@
+{
+  "id": "webhook-entrypoint-solace-endpoint",
+  "name": "my-api-auto",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using Webhook entrypoint",
+  "listeners": [
+    {
+      "type": "subscription",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "webhook"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "solace",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "solace",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "url": "solace-url",
+            "vpnName": "default"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topics": ["test-topic"]
+            },
+            "security": {
+              "auth" : {
+                "username" : "admin",
+                "password" : "admin"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}
