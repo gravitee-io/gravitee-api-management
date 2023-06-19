@@ -76,7 +76,7 @@ public interface SubscriptionMapper {
     @Mapping(target = "plan", source = "transferSubscription.planId")
     TransferSubscriptionEntity map(TransferSubscription transferSubscription, String subscriptionId);
 
-    ApiKey mapApiKey(ApiKeyEntity apiKeyEntity);
+    ApiKey mapToApiKey(ApiKeyEntity apiKeyEntity);
 
     List<ApiKey> mapToApiKeyList(List<ApiKeyEntity> apiKeyEntities);
 }

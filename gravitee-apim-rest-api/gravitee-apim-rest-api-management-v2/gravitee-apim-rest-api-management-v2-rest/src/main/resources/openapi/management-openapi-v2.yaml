@@ -1239,6 +1239,33 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+            - $ref: "#/components/parameters/apiKeyIdParam"
+        put:
+            tags:
+                - API Subscriptions
+            summary: Update a subscription api key
+            description: |-
+                Update the subscription api key.
+
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: updateApiSubscriptionApiKey
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateApiKey"
+                required: true
+            responses:
+                "200":
+                    $ref: "#/components/responses/SubscriptionApiKey"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # Plugins - Endpoints
     /plugins/endpoints:
         get:
@@ -3432,6 +3459,15 @@ components:
                     description: The datetime when the api key has been revoke. No date means not revoked.
                     example: 2023-01-18T12:40:46.184Z
 
+        UpdateApiKey:
+            type: object
+            properties:
+                expireAt:
+                    type: string
+                    format: date-time
+                    description: The datetime when the api key expires. No date means no expiration.
+                    example: 2023-05-18T12:40:46.184Z
+
         BaseUser:
             type: object
             description: Base information about a user.
@@ -4821,6 +4857,13 @@ components:
             in: path
             required: true
             description: Id of a subscription.
+            schema:
+                type: string
+        apiKeyIdParam:
+            name: apiKeyId
+            in: path
+            required: true
+            description: Id of an api key.
             schema:
                 type: string
         endpointIdParam:

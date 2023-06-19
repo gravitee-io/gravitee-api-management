@@ -43,6 +43,7 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -479,6 +480,35 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .build();
     }
 
+    @PUT
+    @Path("/{subscriptionId}/api-keys/{apiKeyId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiSubscriptionApiKey(
+        @PathParam("subscriptionId") String subscriptionId,
+        @PathParam("apiKeyId") String apiKeyId,
+        @Valid @NotNull UpdateApiKey updateApiKey
+    ) {
+        final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!subscriptionEntity.getApi().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        checkApplicationDoesntUseSharedApiKey(executionContext, subscriptionEntity.getApplication());
+
+        final ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apiKeyId);
+
+        if (!apiKeyEntity.getSubscriptionIds().contains(subscriptionId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(apiKeyNotFoundError(apiKeyId)).build();
+        }
+
+        apiKeyEntity.setExpireAt(Date.from(updateApiKey.getExpireAt().toInstant()));
+
+        return Response.ok(subscriptionMapper.mapToApiKey(apiKeyService.update(executionContext, apiKeyEntity))).build();
+    }
+
     private Error subscriptionNotFoundError(String subscriptionId) {
         return new Error()
             .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
@@ -487,7 +517,29 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .technicalCode("subscription.notFound");
     }
 
+    private Error apiKeyNotFoundError(String apiKeyId) {
+        return new Error()
+            .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
+            .message("No API Key can be found.")
+            .putParametersItem("apiKeyId", apiKeyId)
+            .technicalCode("apiKey.notFound");
+    }
+
     private Error subscriptionInvalid(String message) {
         return new Error().httpStatus(Response.Status.BAD_REQUEST.getStatusCode()).message(message).technicalCode("subscription.invalid");
+    }
+
+    private void checkApplicationDoesntUseSharedApiKey(ExecutionContext executionContext, String applicationId) {
+        final ApplicationEntity applicationEntity = applicationService.findById(executionContext, applicationId);
+
+        if (applicationEntity.hasApiKeySharedMode()) {
+            throw new InvalidApplicationApiKeyModeException(
+                String.format(
+                    "Invalid operation for api key mode [%s] of application [%s].",
+                    applicationEntity.getApiKeyMode(),
+                    applicationEntity.getId()
+                )
+            );
+        }
     }
 }
