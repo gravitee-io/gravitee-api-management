@@ -314,8 +314,8 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response updateApiPicture(@PathParam("apiId") String apiId, String pictureContent) {
         try {
-            ImageUtils.Image picture = ImageUtils.verifyAndRescale(pictureContent);
-            apiImagesService.updateApiPicture(GraviteeContext.getExecutionContext(), apiId, picture.toBase64());
+            ImageUtils.verify(pictureContent);
+            apiImagesService.updateApiPicture(GraviteeContext.getExecutionContext(), apiId, pictureContent);
             return Response.noContent().build();
         } catch (InvalidImageException e) {
             log.warn("Error while parsing picture for api {}", apiId, e);
@@ -333,10 +333,10 @@ public class ApiResource extends AbstractResource {
     @PUT
     @Path("background")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
-    public Response updateApiBackground(@PathParam("apiId") String apiId, String pictureContent) {
+    public Response updateApiBackground(@PathParam("apiId") String apiId, String backgroundContent) {
         try {
-            ImageUtils.Image picture = ImageUtils.verifyAndRescale(pictureContent);
-            apiImagesService.updateApiBackground(GraviteeContext.getExecutionContext(), apiId, picture.toBase64());
+            ImageUtils.verifyAndRescale(backgroundContent);
+            apiImagesService.updateApiBackground(GraviteeContext.getExecutionContext(), apiId, backgroundContent);
             return Response.noContent().build();
         } catch (InvalidImageException e) {
             log.warn("Error while parsing background image for api {}", apiId, e);
