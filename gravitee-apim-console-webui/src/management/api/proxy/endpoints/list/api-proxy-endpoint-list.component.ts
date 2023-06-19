@@ -25,8 +25,9 @@ import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { EndpointGroup, toEndpoints } from '../endpoint.adapter';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ApiV2 } from '../../../../../entities/management-api-v2';
+import { ApiV2, EndpointGroupV2, UpdateApi } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { remove } from 'lodash';
 
 @Component({
   selector: 'api-proxy-endpoint-list',
@@ -84,13 +85,10 @@ export class ApiProxyEndpointListComponent implements OnInit {
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
-        /*
-        // TODO: make it work with UpdateApi type
-        switchMap((api: Api) => {
-          _.remove(api.proxy.groups, (g) => g.name === groupName);
+        switchMap((api: ApiV2) => {
+          remove(api.proxy.groups, (g: EndpointGroupV2) => g.name === groupName);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
         }),
-        */
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
