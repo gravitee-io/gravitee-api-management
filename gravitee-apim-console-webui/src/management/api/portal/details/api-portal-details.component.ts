@@ -265,14 +265,20 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
         switchMap((api: Api) => {
           if (this.apiImagesForm.controls['picture'].dirty) {
             const picture = getBase64(apiImagesFormValue.picture[0]);
-            return this.apiService.updatePicture(this.apiId, picture).pipe(switchMap(() => of(api)));
+            if (picture) {
+              return this.apiService.updatePicture(this.apiId, picture).pipe(switchMap(() => of(api)));
+            }
+            return this.apiService.deletePicture(this.apiId).pipe(switchMap(() => of(api)));
           }
           return of(api);
         }),
         switchMap((api: Api) => {
           if (this.apiImagesForm.controls['background'].dirty) {
             const background = getBase64(apiImagesFormValue.background[0]);
-            return this.apiService.updateBackground(this.apiId, background).pipe(switchMap(() => of(api)));
+            if (background) {
+              return this.apiService.updateBackground(this.apiId, background).pipe(switchMap(() => of(api)));
+            }
+            return this.apiService.deleteBackground(this.apiId).pipe(switchMap(() => of(api)));
           }
           return of(api);
         }),
