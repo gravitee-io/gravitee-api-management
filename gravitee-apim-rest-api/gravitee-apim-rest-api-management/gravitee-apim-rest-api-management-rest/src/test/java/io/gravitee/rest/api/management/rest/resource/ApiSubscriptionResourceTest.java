@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
@@ -152,6 +154,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         PlanSecurity planSecurity = new PlanSecurity();
         planSecurity.setType("oauth2");
         planV4.setSecurity(planSecurity);
+        planV4.setMode(PlanMode.STANDARD);
         when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
 
         Response response = envTarget(SUBSCRIPTION_ID).request().get();
@@ -159,5 +162,20 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         JsonNode responseBody = response.readEntity(JsonNode.class);
         assertEquals("oauth2", responseBody.get("plan").get("security").asText());
+    }
+
+    @Test
+    public void getApiSubscription_onPushPlanV4() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        planV4.setMode(PlanMode.PUSH);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+
+        Response response = envTarget(SUBSCRIPTION_ID).request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        JsonNode responseBody = response.readEntity(JsonNode.class);
+        assertNull(responseBody.get("plan").get("security"));
     }
 }

@@ -38,6 +38,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
@@ -130,6 +131,7 @@ public class ApplicationSubscriptionsResourceTest extends AbstractResourceTest {
         PlanSecurity planSecurity = new PlanSecurity();
         planSecurity.setType("oauth2");
         foundPlan.setSecurity(planSecurity);
+        foundPlan.setMode(PlanMode.STANDARD);
         when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN))).thenReturn(foundPlan);
 
         final Response response = envTarget()
