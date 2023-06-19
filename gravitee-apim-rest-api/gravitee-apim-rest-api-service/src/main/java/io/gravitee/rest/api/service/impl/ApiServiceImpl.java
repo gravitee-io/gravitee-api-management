@@ -96,7 +96,12 @@ import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiEntrypointService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
+import io.gravitee.rest.api.service.v4.ApiTemplateService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
@@ -775,6 +780,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     ) {
         try {
             LOGGER.debug("Find APIs page by user {}", userId);
+            if (apiQuery == null) {
+                apiQuery = new ApiQuery();
+            }
+
+            // By default, in this service, we do not care for V4 APIs.
+            apiQuery.setDefinitionVersions(getAllowedDefinitionVersion());
+
             Set<String> apiIds = apiAuthorizationService.findIdsByUser(executionContext, userId, apiQuery, sortable, manageOnly);
             return loadPage(executionContext, apiIds, pageable);
         } catch (TechnicalException ex) {
@@ -2526,13 +2538,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @NotNull
     private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
-        // By default in this service, we do not care for V4 APIs.
+        // By default, in this service, we do not care for V4 APIs.
+        return new ApiCriteria.Builder().definitionVersion(getAllowedDefinitionVersion());
+    }
+
+    @NotNull
+    private static List<DefinitionVersion> getAllowedDefinitionVersion() {
         List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
         allowedDefinitionVersion.add(null);
         allowedDefinitionVersion.add(DefinitionVersion.V1);
         allowedDefinitionVersion.add(DefinitionVersion.V2);
-
-        return new ApiCriteria.Builder().definitionVersion(allowedDefinitionVersion);
+        return allowedDefinitionVersion;
     }
 
     private Query<ApiEntity> addDefaultExcludedFilters(Query<ApiEntity> searchEngineQuery) {
