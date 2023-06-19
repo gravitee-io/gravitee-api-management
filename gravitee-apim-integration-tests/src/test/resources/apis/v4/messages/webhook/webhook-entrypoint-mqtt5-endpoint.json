@@ -1,0 +1,51 @@
+{
+  "id": "webhook-entrypoint-mqtt5-endpoint",
+  "name": "my-api-auto",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using Webhook entrypoint",
+  "listeners": [
+    {
+      "type": "subscription",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "webhook"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mqtt5",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mqtt5",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "serverHost": "localhost",
+            "serverPort": "mqtt5-port"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topic": "test-topic"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}
