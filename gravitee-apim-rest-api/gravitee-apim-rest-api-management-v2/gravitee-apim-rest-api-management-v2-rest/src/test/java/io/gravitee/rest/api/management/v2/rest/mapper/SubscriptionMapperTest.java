@@ -136,7 +136,7 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
     @Test
     void should_map_ApiKeyEntity_to_ApiKey() {
         final var apiKeyEntity = SubscriptionFixtures.anApiKeyEntity();
-        final var apiKey = subscriptionMapper.mapApiKey(apiKeyEntity);
+        final var apiKey = subscriptionMapper.mapToApiKey(apiKeyEntity);
 
         assertEquals(apiKeyEntity.getId(), apiKey.getId());
         assertEquals(apiKeyEntity.getKey(), apiKey.getKey());

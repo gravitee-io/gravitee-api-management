@@ -144,4 +144,8 @@ public class SubscriptionFixtures {
     public static ApiKeyEntity anApiKeyEntity() {
         return BASE_API_KEY_ENTITY.build();
     }
+
+    public static UpdateApiKey anUpdateApiKey() {
+        return UpdateApiKey.builder().expireAt(OffsetDateTime.now()).build();
+    }
 }
