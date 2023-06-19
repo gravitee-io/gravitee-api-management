@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -29,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
@@ -50,13 +48,11 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -148,13 +144,7 @@ public class ApiAuthorizationServiceImplTest {
         when(roleService.findById(userRoleId)).thenReturn(userRole);
         when(api.getId()).thenReturn("api-1");
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-        apiCriteriaList.add(
-            new ApiCriteria.Builder()
-                .environmentId("DEFAULT")
-                .ids("api-1")
-                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
-                .build()
-        );
+        apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids("api-1").build());
 
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
@@ -258,16 +248,10 @@ public class ApiAuthorizationServiceImplTest {
                 .environmentId("DEFAULT")
                 .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
                 .visibility(Visibility.PUBLIC)
-                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
                 .build()
         );
         apiCriteriaList.add(
-            new ApiCriteria.Builder()
-                .environmentId("DEFAULT")
-                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
-                .ids("api-1")
-                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
-                .build()
+            new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
@@ -313,16 +297,10 @@ public class ApiAuthorizationServiceImplTest {
                 .environmentId("DEFAULT")
                 .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
                 .visibility(Visibility.PUBLIC)
-                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
                 .build()
         );
         apiCriteriaList.add(
-            new ApiCriteria.Builder()
-                .environmentId("DEFAULT")
-                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
-                .ids("api-1")
-                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
-                .build()
+            new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
@@ -373,16 +351,10 @@ public class ApiAuthorizationServiceImplTest {
                 .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
                 .ids("api-1")
                 .visibility(Visibility.PUBLIC)
-                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
                 .build()
         );
         apiCriteriaList.add(
-            new ApiCriteria.Builder()
-                .environmentId("DEFAULT")
-                .lifecycleStates(List.of(ApiLifecycleState.PUBLISHED))
-                .ids("api-1")
-                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
-                .build()
+            new ApiCriteria.Builder().environmentId("DEFAULT").lifecycleStates(List.of(ApiLifecycleState.PUBLISHED)).ids("api-1").build()
         );
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
 
@@ -419,14 +391,7 @@ public class ApiAuthorizationServiceImplTest {
         when(searchEngineService.search(any(), any())).thenReturn(new SearchResult(List.of("api-2")));
 
         List<ApiCriteria> apiCriteriaList = new ArrayList<>();
-        apiCriteriaList.add(
-            new ApiCriteria.Builder()
-                .environmentId("DEFAULT")
-                .ids(List.of("api-2"))
-                .visibility(Visibility.PUBLIC)
-                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
-                .build()
-        );
+        apiCriteriaList.add(new ApiCriteria.Builder().environmentId("DEFAULT").ids(List.of("api-2")).visibility(Visibility.PUBLIC).build());
         when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-2"), 0, 1, 1));
 
         final Set<String> apisId = apiAuthorizationService.findIdsByUser(
@@ -442,9 +407,7 @@ public class ApiAuthorizationServiceImplTest {
         SoftAssertions.assertSoftly(soft -> {
             var query = searchEngineQueryCaptor.getValue();
             soft.assertThat(query.getQuery()).isEqualTo("tag:a\\-tag");
-            soft
-                .assertThat(query.getExcludedFilters())
-                .containsEntry(FIELD_DEFINITION_VERSION, singletonList(DefinitionVersion.V4.getLabel()));
+            soft.assertThat(query.getExcludedFilters()).isEmpty();
         });
     }
 
