@@ -20,11 +20,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import fixtures.ApplicationFixtures;
 import fixtures.PlanFixtures;
 import fixtures.SubscriptionFixtures;
+import fixtures.UserFixtures;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -124,6 +125,7 @@ public class ApiSubscriptionsResource_GetTest extends ApiSubscriptionsResourceTe
             .api(API)
             .plan(PLAN)
             .application(APPLICATION)
+            .subscribedBy(SUBSCRIBED_BY)
             .build();
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
@@ -139,7 +141,20 @@ public class ApiSubscriptionsResource_GetTest extends ApiSubscriptionsResourceTe
         )
             .thenReturn(Set.of(ApplicationFixtures.anApplicationListItem().toBuilder().id(APPLICATION).build()));
 
-        final Response response = rootTarget().queryParam("expands", "plan,application").request().get();
+        when(
+            userService.findByIds(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(argument -> List.of(SUBSCRIBED_BY).containsAll(argument))
+            )
+        )
+            .thenReturn(
+                Set.of(
+                    UserFixtures.aUserEntity().toBuilder().id("first-user").build(),
+                    UserFixtures.aUserEntity().toBuilder().id("second-user").build()
+                )
+            );
+
+        final Response response = rootTarget().queryParam("expands", "plan,application,subscribedBy").request().get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -151,5 +166,7 @@ public class ApiSubscriptionsResource_GetTest extends ApiSubscriptionsResourceTe
         assertEquals(subscriptionEntity.getApplication(), subscription.getApplication().getId());
         assertNotNull(subscription.getApplication().getName());
         assertNotNull(subscription.getApplication().getDescription());
+
+        verify(userService, times(1)).findByIds(any(), any());
     }
 }
