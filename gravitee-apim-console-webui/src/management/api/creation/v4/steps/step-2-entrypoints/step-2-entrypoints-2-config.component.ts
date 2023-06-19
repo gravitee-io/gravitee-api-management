@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
@@ -33,6 +33,7 @@ import { PathV4 } from '../../../../../../entities/management-api-v2';
   selector: 'step-2-entrypoints-2-config',
   template: require('./step-2-entrypoints-2-config.component.html'),
   styles: [require('./step-2-entrypoints-2-config.component.scss'), require('../api-creation-steps-common.component.scss')],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
@@ -51,6 +52,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly stepService: ApiCreationStepService,
     private readonly environmentService: EnvironmentService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -95,6 +97,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         // Remove schema with empty input
         this.entrypointSchemas = omitBy(schemas, (schema) => !GioFormJsonSchemaComponent.isDisplayable(schema));
         this.selectedEntrypoints = currentStepPayload.selectedEntrypoints;
+        this.changeDetectorRef.markForCheck();
       });
   }
 

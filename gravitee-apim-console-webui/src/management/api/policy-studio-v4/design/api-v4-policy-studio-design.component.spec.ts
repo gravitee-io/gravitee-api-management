@@ -411,6 +411,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
               enabled: true,
               name: 'Test policy',
               policy: 'test-policy',
+              configuration: {},
             },
           ],
         },
