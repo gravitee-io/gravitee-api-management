@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -54,6 +55,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
@@ -212,6 +214,15 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         }
         if (!isBlank(query.getTag())) {
             searchEngineQuery.addExplicitFilter("tag", query.getTag());
+        }
+        if (query.getDefinitionVersions() != null && !query.getDefinitionVersions().isEmpty()) {
+            var allPossibleDefinitionVersions = DefinitionVersion.values();
+            List<String> definitionVersionsToExclude = Arrays
+                .stream(allPossibleDefinitionVersions)
+                .filter(definitionVersion -> !query.getDefinitionVersions().contains(definitionVersion))
+                .map(DefinitionVersion::getLabel)
+                .collect(toList());
+            searchEngineQuery.setExcludedFilters(Map.of(ApiDocumentTransformer.FIELD_DEFINITION_VERSION, definitionVersionsToExclude));
         }
         return searchEngineQuery;
     }
@@ -489,6 +500,10 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             return builder;
         }
         builder.label(query.getLabel()).name(query.getName()).version(query.getVersion());
+
+        if (query.getDefinitionVersions() != null && !query.getDefinitionVersions().isEmpty()) {
+            builder.definitionVersion(query.getDefinitionVersions());
+        }
 
         if (!isBlank(query.getCategory())) {
             builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());

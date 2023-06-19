@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
@@ -48,6 +49,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
@@ -169,6 +171,66 @@ public class ApiAuthorizationServiceImplTest {
         final Set<String> apis = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, true);
 
         assertThat(apis).hasSize(1);
+    }
+
+    @Test
+    public void shouldFindIdsByUserWithCriteria() {
+        final String userRoleId = "API_USER";
+        final String poRoleId = "API_PRIMARY_OWNER";
+
+        var allowedDefinitionVersion = new ArrayList<DefinitionVersion>();
+        allowedDefinitionVersion.add(null);
+        allowedDefinitionVersion.add(DefinitionVersion.V1);
+        allowedDefinitionVersion.add(DefinitionVersion.V2);
+
+        when(searchEngineService.search(any(), any())).thenReturn(new SearchResult(List.of("api-1")));
+
+        Map<String, char[]> userPermissions = ImmutableMap.of("MEMBER", "CRUD".toCharArray());
+        RoleEntity userRole = new RoleEntity();
+        userRole.setId(userRoleId);
+        userRole.setPermissions(userPermissions);
+        userRole.setScope(RoleScope.API);
+
+        when(roleService.findById(userRoleId)).thenReturn(userRole);
+        when(api.getId()).thenReturn("api-1");
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(
+            new ApiCriteria.Builder().definitionVersion(allowedDefinitionVersion).environmentId("DEFAULT").ids("api-1").build()
+        );
+
+        when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
+
+        MembershipEntity membership = new MembershipEntity();
+        membership.setId("id");
+        membership.setMemberId(USER_NAME);
+        membership.setMemberType(MembershipMemberType.USER);
+        membership.setReferenceId(api.getId());
+        membership.setReferenceType(MembershipReferenceType.API);
+        membership.setRoleId(userRoleId);
+
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
+            .thenReturn(Collections.singleton(membership));
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(poRoleId);
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
+
+        ApiQuery apiQuery = ApiQuery.builder().definitionVersions(allowedDefinitionVersion).tag("tag-1").build();
+        final Set<String> apis = apiAuthorizationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME, apiQuery, true);
+
+        assertThat(apis).hasSize(1);
+        verify(searchEngineService)
+            .search(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(query ->
+                    query.getExcludedFilters().containsKey(FIELD_DEFINITION_VERSION) &&
+                    query.getExcludedFilters().get(FIELD_DEFINITION_VERSION).contains(DefinitionVersion.V4.getLabel()) &&
+                    query.getQuery().contains("tag\\-1")
+                )
+            );
     }
 
     @Test
