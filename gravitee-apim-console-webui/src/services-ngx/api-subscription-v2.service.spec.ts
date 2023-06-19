@@ -78,4 +78,22 @@ describe('ApiSubscriptionV2Service', () => {
       req.flush(fakeApiSubscriptionsResponse);
     });
   });
+
+  describe('getById', () => {
+    const SUBSCRIPTION_ID = 'my-subscription';
+    it('should call API', (done) => {
+      const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
+      apiSubscriptionV2Service.getById(API_ID, SUBSCRIPTION_ID, ['application', 'plan', 'subscribedBy']).subscribe((response) => {
+        expect(response).toEqual(subscription);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}?expands=application,plan,subscribedBy`,
+          method: 'GET',
+        })
+        .flush(subscription);
+    });
+  });
 });
