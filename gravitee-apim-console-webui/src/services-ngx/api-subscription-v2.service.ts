@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApiSubscriptionsResponse } from '../entities/management-api-v2';
+import { ApiSubscriptionsResponse, Subscription } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -47,5 +47,9 @@ export class ApiSubscriptionV2Service {
         ...(expands ? { expands: expands.join(',') } : {}),
       },
     });
+  }
+
+  getById(apiId: string, subscriptionId: string, expands: string[] = []): Observable<Subscription> {
+    return this.http.get<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}?expands=${expands}`);
   }
 }
