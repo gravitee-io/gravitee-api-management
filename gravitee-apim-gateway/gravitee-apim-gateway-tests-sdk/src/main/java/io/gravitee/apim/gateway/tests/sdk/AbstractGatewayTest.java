@@ -51,6 +51,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.platform.commons.PreconditionViolationException;
@@ -69,6 +71,7 @@ import org.springframework.util.StringUtils;
  */
 @Slf4j
 @ExtendWith(VertxExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigurer, ApplicationContextAware {
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
