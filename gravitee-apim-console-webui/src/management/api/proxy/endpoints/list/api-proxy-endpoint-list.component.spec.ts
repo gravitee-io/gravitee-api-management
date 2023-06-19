@@ -405,7 +405,7 @@ describe('ApiProxyEndpointListComponent', () => {
   }
 
   function expectApiPutRequest(api: ApiV2) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
     fixture.detectChanges();
   }
 });
