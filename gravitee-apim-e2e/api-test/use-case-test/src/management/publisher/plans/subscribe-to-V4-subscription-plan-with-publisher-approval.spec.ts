@@ -17,50 +17,42 @@ import { afterAll, beforeAll, describe, expect } from '@jest/globals';
 import { Application } from '@gravitee/portal-webclient-sdk/src/lib/models/Application';
 import { PortalApplicationFaker } from '@gravitee/fixtures/portal/PortalApplicationFaker';
 import { SubscriptionApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/SubscriptionApi';
-import { forManagementAsApiUser, forPortalAsAppUser } from '@gravitee/utils/configuration';
+import { forManagementV2AsApiUser, forPortalAsAppUser } from '@gravitee/utils/configuration';
 import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
-import {
-  ApiEntityV4,
-  LifecycleAction,
-  PlanEntityV4,
-  PlanModeV4,
-  PlanValidationTypeV4,
-} from '@gravitee/management-webclient-sdk/src/lib/models';
-import { PlansV4Faker } from '@gravitee/fixtures/management/PlansV4Faker';
-import { ApisV4Faker } from '@gravitee/fixtures/management/ApisV4Faker';
-import { V4APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/V4APIPlansApi';
-import { V4APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/V4APIsApi';
+import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models';
+import { MAPIV2PlansFaker } from '../../../../../../lib/fixtures/management/MAPIV2PlansFaker';
+import { MAPIV2ApisFaker } from '../../../../../../lib/fixtures/management/MAPIV2ApisFaker';
 import { Subscription, SubscriptionStatusEnum } from '@gravitee/portal-webclient-sdk/src/lib';
-import { APISubscriptionsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APISubscriptionsApi';
+import { APISubscriptionsApi } from '@gravitee/management-v2-webclient-sdk/src/lib/apis/APISubscriptionsApi';
 import { teardownV4ApisAndApplications } from '@gravitee/utils/management';
 import { verifyWiremockRequest } from '@gravitee/utils/wiremock';
 import faker from '@faker-js/faker';
 import { sleep } from '@gravitee/utils/gateway';
 import { describeIfV4EmulationEngine } from '@lib/jest-utils';
+import { Api, APIPlansApi, APIsApi, Plan, PlanMode, PlanValidation } from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
-const apisResource = new V4APIsApi(forManagementAsApiUser());
-const apiPlansResource = new V4APIPlansApi(forManagementAsApiUser());
-const apiSubscriptionResource = new APISubscriptionsApi(forManagementAsApiUser());
+const apisResource = new APIsApi(forManagementV2AsApiUser());
+const apiPlansResource = new APIPlansApi(forManagementV2AsApiUser());
+const apiSubscriptionResource = new APISubscriptionsApi(forManagementV2AsApiUser());
 const portalApplicationResource = new ApplicationApi(forPortalAsAppUser());
 const portalSubscriptionResource = new SubscriptionApi(forPortalAsAppUser());
 
 describeIfV4EmulationEngine('V4 subscription plan subscription and approval workflow', () => {
-  let api: ApiEntityV4;
-  let plan: PlanEntityV4;
+  let api: Api;
+  let plan: Plan;
   let application: Application;
   let subscription: Subscription;
 
-  const setupApiAndPlan = async function (planValidation: PlanValidationTypeV4) {
+  const setupApiAndPlan = async function (planValidation: PlanValidation) {
     // create a V4 API with a webhook entrypoint and a mock endpoint
-    api = await apisResource.createApi1({
-      orgId,
+    api = await apisResource.createApi({
       envId,
-      newApiEntityV4: ApisV4Faker.newApi({
+      createApiV4: MAPIV2ApisFaker.newApi({
         listeners: [
-          ApisV4Faker.newSubscriptionListener({
+          MAPIV2ApisFaker.newSubscriptionListener({
             entrypoints: [
               {
                 type: 'webhook',
@@ -87,31 +79,27 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
     });
 
     // create a subscription plan
-    plan = await apisResource.createApiPlan1({
+    plan = await apiPlansResource.createApiPlan({
       envId,
-      orgId,
-      api: api.id,
-      newPlanEntityV4: PlansV4Faker.newPlan({
+      apiId: api.id,
+      createPlan: MAPIV2PlansFaker.newPlanV4({
         validation: planValidation,
-        mode: PlanModeV4.PUSH,
+        mode: PlanMode.PUSH,
         security: null,
       }),
     });
 
     // publish the plan
-    await apiPlansResource.publishApiPlan1({
+    await apiPlansResource.publishApiPlan({
       envId,
-      orgId,
-      api: api.id,
-      plan: plan.id,
+      apiId: api.id,
+      planId: plan.id,
     });
 
     // start the API
-    await apisResource.doApiLifecycleAction1({
+    await apisResource.startApi({
       envId,
-      orgId,
-      api: api.id,
-      action: LifecycleAction.START,
+      apiId: api.id,
     });
 
     // create an application from portal
@@ -124,7 +112,7 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
     let callbackUrl = `/${faker.random.word()}`;
 
     beforeAll(async () => {
-      await setupApiAndPlan(PlanValidationTypeV4.MANUAL);
+      await setupApiAndPlan(PlanValidationType.MANUAL);
     });
 
     describe('Consumer subscribes to API from portal', () => {
@@ -157,12 +145,11 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
 
     describe('Publisher approves subscription', () => {
       test('Publisher should approve subscription', async () => {
-        await apiSubscriptionResource.processApiSubscription({
+        await apiSubscriptionResource.acceptApiSubscription({
           envId,
-          orgId,
-          subscription: subscription.id,
-          api: api.id,
-          processSubscriptionEntity: { accepted: true },
+          apiId: api.id,
+          subscriptionId: subscription.id,
+          acceptSubscription: {},
         });
       });
 
@@ -172,7 +159,7 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
       });
 
       test('Should send messages to entrypoint', async () => {
-        await sleep(1000);
+        await sleep(5000);
         const { count: webhookRequestCount } = await verifyWiremockRequest(callbackUrl, 'POST').then((res) => res.json());
         expect(webhookRequestCount).toBeGreaterThan(0);
       });
@@ -209,12 +196,11 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
 
     describe('Publisher rejects subscription', () => {
       test('Publisher should reject subscription', async () => {
-        await apiSubscriptionResource.processApiSubscription({
+        await apiSubscriptionResource.rejectApiSubscription({
           envId,
-          orgId,
-          subscription: subscription.id,
-          api: api.id,
-          processSubscriptionEntity: { accepted: false },
+          apiId: api.id,
+          subscriptionId: subscription.id,
+          rejectSubscription: {},
         });
       });
 
@@ -239,7 +225,7 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
     let callbackUrl = `/${faker.random.word()}`;
 
     beforeAll(async () => {
-      await setupApiAndPlan(PlanValidationTypeV4.AUTO);
+      await setupApiAndPlan(PlanValidationType.AUTO);
     });
 
     describe('Consumer subscribes to API from portal', () => {

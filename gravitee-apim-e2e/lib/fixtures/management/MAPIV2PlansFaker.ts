@@ -14,29 +14,20 @@
  * limitations under the License.
  */
 import faker from '@faker-js/faker';
-import {
-  NewPlanEntityV4,
-  NewPlanEntityV4StatusEnum,
-  PlanModeV4,
-  PlanSecurityTypeV4,
-  PlanTypeV4,
-  PlanValidationTypeV4,
-} from '@gravitee/management-webclient-sdk/src/lib/models';
-import { PlanSecurityEnum } from '@gravitee/portal-webclient-sdk/src/lib';
+import { PlanValidation, PlanSecurityType, CreatePlanV4, PlanMode, CreatePlan } from '../../management-v2-webclient-sdk/src/lib';
 
-export class PlansV4Faker {
-  static newPlan(attributes?: Partial<NewPlanEntityV4>): NewPlanEntityV4 {
+export class MAPIV2PlansFaker {
+  static newPlanV4(attributes?: Partial<CreatePlan>): CreatePlan {
     const name = faker.commerce.productName();
     const description = faker.commerce.productDescription();
 
     return {
       name,
       description,
-      validation: PlanValidationTypeV4.AUTO,
-      security: { type: PlanSecurityTypeV4.KEY_LESS },
-      type: PlanTypeV4.API,
-      mode: PlanModeV4.STANDARD,
-      status: NewPlanEntityV4StatusEnum.STAGING,
+      definitionVersion: 'V4',
+      validation: PlanValidation.AUTO,
+      security: { type: PlanSecurityType.KEY_LESS },
+      mode: PlanMode.STANDARD,
       order: 1,
       characteristics: [],
       flows: [],

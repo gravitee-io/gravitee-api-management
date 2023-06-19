@@ -16,9 +16,10 @@
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { Api } from '@model/apis';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { NewApiEntityV4DefinitionVersionEnum, Visibility } from '../../../../../lib/management-webclient-sdk/src/lib/models';
-import { ApisV4Faker } from '@gravitee/fixtures/management/ApisV4Faker';
+import { Visibility } from '../../../../../lib/management-webclient-sdk/src/lib/models';
+import { MAPIV2ApisFaker } from '../../../../../lib/fixtures/management/MAPIV2ApisFaker';
 import { ApiImport } from '@model/api-imports';
+import { ApiV4 } from '../../../../../lib/management-v2-webclient-sdk/src/lib';
 
 const envId = 'DEFAULT';
 
@@ -58,8 +59,8 @@ describe('API List feature', () => {
   });
 
   describe('Verifying API list', () => {
-    let api: Api[];
-    let v4api: ApiImport[];
+    let api: ApiImport[];
+    let v4api: ApiV4[];
     const noOfApis = 4;
 
     before(() => {
@@ -70,9 +71,34 @@ describe('API List feature', () => {
         cy.log('Create v4 API');
         cy.request({
           method: 'POST',
-          url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/v4/apis`,
+          url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis`,
           auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
-          body: ApisV4Faker.newApi(),
+          body: MAPIV2ApisFaker.newApi({
+            listeners: [
+              MAPIV2ApisFaker.newSubscriptionListener({
+                entrypoints: [
+                  {
+                    type: 'webhook',
+                  },
+                ],
+              }),
+            ],
+            endpointGroups: [
+              {
+                name: 'default-group',
+                type: 'mock',
+                endpoints: [
+                  {
+                    name: 'default',
+                    type: 'mock',
+                    configuration: {
+                      messageInterval: 0,
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
         }).then((response) => {
           expect(response.status).to.eq(201);
           v4api.push(response.body);
@@ -142,7 +168,7 @@ describe('API List feature', () => {
       });
 
       it(`should display ${noOfApis} APIs when searching for v2 APIs`, function () {
-        cy.getByDataTestId('search').type(`definition_version: ${NewApiEntityV4DefinitionVersionEnum._2_0_0}{enter}`);
+        cy.getByDataTestId('search').type(`definition_version: 2.0.0{enter}`);
         cy.getByDataTestId('api_list_table_row').should('have.length', noOfApis);
         cy.getByDataTestId('api_list_table_row').should('contain.text', 'admin');
         cy.getByDataTestId('api_list_edit_button').first().click();
@@ -150,7 +176,7 @@ describe('API List feature', () => {
       });
 
       it(`should display ${noOfApis} APIs when searching for v4 APIs`, function () {
-        cy.getByDataTestId('search').type(`definition_version: ${NewApiEntityV4DefinitionVersionEnum._4_0_0}{enter}`);
+        cy.getByDataTestId('search').type(`definition_version: 4.0.0{enter}`);
         cy.getByDataTestId('api_list_table_row').should('have.length', noOfApis);
         cy.getByDataTestId('api_list_table_row').should('contain.text', 'api1');
         cy.getByDataTestId('api_list_edit_button').first().click();
@@ -164,12 +190,12 @@ describe('API List feature', () => {
       Cypress._.times(noOfApis, (i) => {
         cy.request({
           method: 'DELETE',
-          url: `${Cypress.env('managementApi')}/management/v2/environments/${envId}/apis/${api[i].id}`,
+          url: `${Cypress.env('managementApi')}/management/v2/environments/${envId}/apis/${v4api[i].id}?closePlans=true`,
           auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
         }).then((response) => {
           expect(response.status).to.eq(204);
         });
-        cy.teardownApi(v4api[i]);
+        cy.teardownApi(api[i]);
       });
     });
   });

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsAdminUser, forManagementAsApiUser } from './configuration';
+import { APIsApi as APIsV2Api } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { forManagementAsAdminUser, forManagementV2AsApiUser } from './configuration';
 import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIPlansApi';
+import { APIPlansApi as APIPlansV2Api } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/models/LifecycleAction';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 import { ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
-import { V4APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/V4APIsApi';
-import { V4APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/V4APIPlansApi';
-import { UpdateApiEntityV4TypeEnum } from '@gravitee/management-webclient-sdk/src/lib/models';
+import { ApiType, ApiV4 } from '../management-v2-webclient-sdk/src/lib';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
 const apiPlansResource = new APIPlansApi(forManagementAsAdminUser());
 const applicationsResource = new ApplicationsApi(forManagementAsAdminUser());
-const apisV4Resource = new V4APIsApi(forManagementAsApiUser());
-const apiPlansV4Resource = new V4APIPlansApi(forManagementAsApiUser());
+const apisV4Resource = new APIsV2Api(forManagementV2AsApiUser());
+const apiPlansV4Resource = new APIPlansV2Api(forManagementV2AsApiUser());
 
 /**
  * Teardown apis and applications
@@ -126,54 +126,42 @@ const deleteApi = async (orgId: string, envId: string, apiId: string) => {
  * @param apiId
  */
 const deleteV4Api = async (orgId: string, envId: string, apiId: string) => {
-  const apiToDelete = await apisV4Resource.getApi1({ api: apiId, envId, orgId });
+  const apiToDelete = (await apisV4Resource.getApi({ envId, apiId })) as ApiV4;
 
   if (apiToDelete) {
     if (apiToDelete.state === ApiEntityStateEnum.STARTED) {
       // Stop API
-      await apisV4Resource.doApiLifecycleAction1({
+      await apisV4Resource.stopApi({
         envId,
-        orgId,
-        api: apiToDelete.id,
-        action: LifecycleAction.STOP,
-      });
-    }
-    // Close each api plan
-    for (const planToClose of apiToDelete.plans) {
-      await apiPlansV4Resource.closeApiPlan1({
-        envId,
-        orgId,
-        plan: planToClose.id,
-        api: apiToDelete.id,
+        apiId: apiToDelete.id,
       });
     }
 
     if (apiToDelete.lifecycleState === ApiLifecycleState.PUBLISHED) {
       // Un-publish the API
-      await apisV4Resource.updateApi1({
+      await apisV4Resource.updateApi({
         envId,
-        orgId,
-        api: apiToDelete.id,
-        updateApiEntityV4: {
+        apiId: apiToDelete.id,
+        updateApi: {
           lifecycleState: ApiLifecycleState.UNPUBLISHED,
           description: apiToDelete.description,
           name: apiToDelete.name,
           apiVersion: apiToDelete.apiVersion,
           visibility: apiToDelete.visibility,
-          definitionVersion: apiToDelete.definitionVersion,
+          definitionVersion: 'V4',
           endpointGroups: apiToDelete.endpointGroups,
           listeners: apiToDelete.listeners,
           analytics: apiToDelete.analytics,
-          type: UpdateApiEntityV4TypeEnum.MESSAGE,
+          type: ApiType.MESSAGE,
         },
       });
     }
 
     // Delete API
-    await apisV4Resource.deleteApi1({
+    await apisV4Resource.deleteApi({
       envId,
-      orgId,
-      api: apiToDelete.id,
+      apiId: apiToDelete.id,
+      closePlans: true,
     });
   }
 };

@@ -16,6 +16,7 @@
 import 'dotenv/config';
 import fetchApi from 'node-fetch';
 import { Configuration as ManagementConfiguration } from '@gravitee/management-webclient-sdk/src/lib/runtime';
+import { Configuration as ManagementV2Configuration } from '@gravitee/management-v2-webclient-sdk/src/lib/runtime';
 import { Configuration as PortalConfiguration, HTTPHeaders } from '@gravitee/portal-webclient-sdk/src/lib';
 
 export interface BasicAuthentication {
@@ -64,6 +65,32 @@ export const forManagementAsSimpleUser = () => {
 export const forManagement = (auth: BasicAuthentication = ADMIN_USER, headers = {}) => {
   return new ManagementConfiguration({
     basePath: process.env.MANAGEMENT_BASE_URL,
+    // @ts-ignore
+    fetchApi,
+    ...auth,
+    headers: { ...defaultHeaders, ...headers },
+  });
+};
+
+export const forManagementV2AsAdminUser = () => {
+  return forManagementV2();
+};
+
+export const forManagementV2AsApiUser = () => {
+  return forManagementV2(API_USER);
+};
+
+export const forManagementV2AsAppUser = () => {
+  return forManagementV2(APP_USER);
+};
+
+export const forManagementV2AsSimpleUser = () => {
+  return forManagementV2(SIMPLE_USER);
+};
+
+export const forManagementV2 = (auth: BasicAuthentication = ADMIN_USER, headers = {}) => {
+  return new ManagementV2Configuration({
+    basePath: process.env.MANAGEMENT_V2_BASE_URL,
     // @ts-ignore
     fetchApi,
     ...auth,

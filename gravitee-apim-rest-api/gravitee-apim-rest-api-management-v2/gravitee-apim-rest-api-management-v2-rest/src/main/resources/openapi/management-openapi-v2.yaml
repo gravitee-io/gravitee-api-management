@@ -1765,6 +1765,12 @@ components:
                 - $ref: "#/components/schemas/ApiV1"
                 - $ref: "#/components/schemas/ApiV2"
                 - $ref: "#/components/schemas/ApiV4"
+            discriminator:
+                propertyName: definitionVersion
+                mapping:
+                    V1: ApiV1
+                    V2: ApiV2
+                    V4: ApiV4
 
         BaseApi:
             type: object
@@ -1892,6 +1898,8 @@ components:
                     V1: ApiV1
                     V2: ApiV2
                     V4: ApiV4
+            required:
+                - definitionVersion
         ApiV1:
             type: object
             allOf:
@@ -2007,6 +2015,12 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/CreateApiV2"
                 - $ref: "#/components/schemas/CreateApiV4"
+            discriminator:
+                propertyName: definitionVersion
+                mapping:
+                    V2: CreateApiV2
+                    V4: CreateApiV4
+
         CreateGenericApi:
             type: object
             properties:
@@ -2146,6 +2160,11 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/UpdateApiV2"
                 - $ref: "#/components/schemas/UpdateApiV4"
+            discriminator:
+                propertyName: definitionVersion
+                mapping:
+                    V2: UpdateApiV2
+                    V4: UpdateApiV4
         UpdateGenericApi:
             type: object
             properties:
@@ -2790,6 +2809,12 @@ components:
                 - $ref: "#/components/schemas/HttpListener"
                 - $ref: "#/components/schemas/SubscriptionListener"
                 - $ref: "#/components/schemas/TcpListener"
+            discriminator:
+                propertyName: type
+                mapping:
+                    HTTP: HttpListener
+                    TCP: TcpListener
+                    SUBSCRIPTION: SubscriptionListener
         BaseListener:
             type: object
             required:
@@ -3044,6 +3069,8 @@ components:
                           example: 2023-05-25T12:40:46.184Z
                       validation:
                           $ref: "#/components/schemas/PlanValidation"
+            required:
+                - definitionVersion
             discriminator:
                 propertyName: definitionVersion
                 mapping:
@@ -3064,6 +3091,11 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/PlanV2"
                 - $ref: "#/components/schemas/PlanV4"
+            discriminator:
+                propertyName: definitionVersion
+                mapping:
+                    V2: PlanV2
+                    V4: PlanV4
         PlanSecurity:
             type: object
             properties:
@@ -3110,7 +3142,11 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/CreatePlanV2"
                 - $ref: "#/components/schemas/CreatePlanV4"
-
+            discriminator:
+                propertyName: definitionVersion
+                mapping:
+                    V2: CreatePlanV2
+                    V4: CreatePlanV4
         CreateGenericPlan:
             type: object
             properties:
@@ -3175,7 +3211,8 @@ components:
                 mapping:
                     V2: CreatePlanV2
                     V4: CreatePlanV4
-
+            required:
+                - definitionVersion
         CreatePlanV2:
             type: object
             allOf:
@@ -3197,7 +3234,6 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       mode:
                           $ref: "#/components/schemas/PlanMode"
-
         PlanMode:
             type: string
             description: The behavioural mode of the Plan (Standard for classical plan, Push for subscription plan).
@@ -3210,7 +3246,11 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/UpdatePlanV2"
                 - $ref: "#/components/schemas/UpdatePlanV4"
-
+            discriminator:
+                propertyName: definitionVersion
+                mapping:
+                    V2: UpdatePlanV2
+                    V4: UpdatePlanV4
         UpdateGenericPlan:
             type: object
             properties:
@@ -3278,7 +3318,8 @@ components:
                 mapping:
                     V2: UpdatePlanV2
                     V4: UpdatePlanV4
-
+            required:
+                - definitionVersion
         UpdatePlanV2:
             type: object
             allOf:
@@ -3854,6 +3895,12 @@ components:
                 - $ref: "#/components/schemas/HttpSelector"
                 - $ref: "#/components/schemas/ChannelSelector"
                 - $ref: "#/components/schemas/ConditionSelector"
+            discriminator:
+                propertyName: type
+                mapping:
+                    HTTP: HttpSelector
+                    CHANNEL: ChannelSelector
+                    CONDITION: ConditionSelector
         BaseSelector:
             properties:
                 type:
@@ -3870,6 +3917,8 @@ components:
                     HTTP: HttpSelector
                     CHANNEL: ChannelSelector
                     CONDITION: ConditionSelector
+            required:
+                - type
         ServiceV4:
             type: object
             properties:
@@ -4405,6 +4454,13 @@ components:
                 - $ref: "#/components/schemas/PEMKeyStore"
                 - $ref: "#/components/schemas/PKCS12KeyStore"
                 - $ref: "#/components/schemas/NoneKeyStore"
+            discriminator:
+                propertyName: type
+                mapping:
+                    JKS: "#/components/schemas/JKSKeyStore"
+                    PEM: "#/components/schemas/PEMKeyStore"
+                    PKCS12: "#/components/schemas/PKCS12KeyStore"
+                    NONE: "#/components/schemas/NoneKeyStore"
         KeyStoreType:
             type: string
             description: The type of the key store.
@@ -4426,6 +4482,8 @@ components:
                     PEM: "#/components/schemas/PEMKeyStore"
                     PKCS12: "#/components/schemas/PKCS12KeyStore"
                     NONE: "#/components/schemas/NoneKeyStore"
+            required:
+                - type
         JKSKeyStore:
             allOf:
                 - $ref: "#/components/schemas/BaseKeyStore"
@@ -4609,6 +4667,13 @@ components:
                 - $ref: "#/components/schemas/PEMTrustStore"
                 - $ref: "#/components/schemas/PKCS12TrustStore"
                 - $ref: "#/components/schemas/NoneTrustStore"
+            discriminator:
+                propertyName: type
+                mapping:
+                    JKS: "#/components/schemas/JKSTrustStore"
+                    PEM: "#/components/schemas/PEMTrustStore"
+                    PKCS12: "#/components/schemas/PKCS12TrustStore"
+                    NONE: "#/components/schemas/NoneTrustStore"
         TrustStoreType:
             type: string
             description: The type of the trust store.
