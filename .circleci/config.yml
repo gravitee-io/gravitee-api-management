@@ -1642,13 +1642,14 @@ jobs:
                       export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
                       git clone git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
 
-                      cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x
+                      cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x
                       ./build.sh -v << parameters.graviteeio_version >>
 
                       if [ "<< parameters.dry_run >>" = "false" ]; then
-                          docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/3.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
+                          docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
                       else
-                          echo "This is just a DRY RUN, no RPMs will be published"
+                          echo "This is just a DRY RUN, RPMs will be published in https://packagecloud.io/graviteeio/nightly"
+                          docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/nightly/el/7 /packages/*.rpm
                       fi;
 
     job-package-bundle:
