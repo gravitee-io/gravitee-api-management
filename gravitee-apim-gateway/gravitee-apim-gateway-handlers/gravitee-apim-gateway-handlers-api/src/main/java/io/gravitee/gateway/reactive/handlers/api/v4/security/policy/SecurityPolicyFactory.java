@@ -41,22 +41,23 @@ public class SecurityPolicyFactory {
         final PolicyManager policyManager,
         final ExecutionPhase executionPhase
     ) {
-        PlanSecurity planSecurity = plan.getSecurity();
-        final String security = planSecurity.getType();
+        if (plan.useStandardMode()) {
+            PlanSecurity planSecurity = plan.getSecurity();
+            if (planSecurity == null || planSecurity.getType() == null) {
+                return null;
+            }
 
-        if (security == null) {
-            return null;
+            String policyName = planSecurity.getType().toLowerCase().replaceAll("_", "-");
+            final Policy policy = policyManager.create(executionPhase, new PolicyMetadata(policyName, planSecurity.getConfiguration()));
+
+            if (policy instanceof SecurityPolicy) {
+                return (SecurityPolicy) policy;
+            }
+
+            log.warn("Policy [{}] (plan [{}], api [{}]) is not a security policy.", policyName, plan.getName(), apiId);
+        } else {
+            log.debug("Plan [{}] is using [{}] mode, no security type for this mode", plan.getName(), plan.getMode());
         }
-
-        String policyName = security.toLowerCase().replaceAll("_", "-");
-        final Policy policy = policyManager.create(executionPhase, new PolicyMetadata(policyName, planSecurity.getConfiguration()));
-
-        if (policy instanceof SecurityPolicy) {
-            return (SecurityPolicy) policy;
-        }
-
-        log.warn("Policy [{}] (plan [{}], api [{}]) is not a security policy.", policyName, plan.getName(), apiId);
-
         return null;
     }
 }

@@ -289,6 +289,7 @@ public class ApiPlansResource extends AbstractResource {
         filtered.setName(entity.getName());
         filtered.setDescription(entity.getDescription());
         filtered.setOrder(entity.getOrder());
+        filtered.setMode(entity.getPlanMode());
         filtered.setSecurity(entity.getPlanSecurity());
         filtered.setType(filtered.getType());
         filtered.setValidation(filtered.getValidation());

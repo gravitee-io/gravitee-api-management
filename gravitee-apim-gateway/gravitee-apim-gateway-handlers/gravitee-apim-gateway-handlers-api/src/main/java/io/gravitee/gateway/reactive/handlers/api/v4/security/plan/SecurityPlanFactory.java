@@ -43,6 +43,11 @@ public class SecurityPlanFactory {
         @Nonnull PolicyManager policyManager,
         @Nonnull ExecutionPhase executionPhase
     ) {
+        if (plan.usePushMode()) {
+            log.debug("The plan [{}] (api [{}]) is using the {} mode, it has no security policy.", plan.getName(), apiId, plan.getMode());
+            return null;
+        }
+
         final SecurityPolicy policy = SecurityPolicyFactory.forPlan(apiId, plan, policyManager, executionPhase);
 
         if (policy != null) {

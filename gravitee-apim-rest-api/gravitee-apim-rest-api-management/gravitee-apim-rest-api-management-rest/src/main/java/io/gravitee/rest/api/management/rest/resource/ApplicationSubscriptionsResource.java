@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -199,7 +200,9 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
 
         GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
-        subscription.getPlan().setSecurity(plan.getPlanSecurity().getType());
+        if (plan.getPlanMode() == PlanMode.STANDARD) {
+            subscription.getPlan().setSecurity(plan.getPlanSecurity().getType());
+        }
 
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, subscriptionEntity.getApi());
         subscription.setApi(
