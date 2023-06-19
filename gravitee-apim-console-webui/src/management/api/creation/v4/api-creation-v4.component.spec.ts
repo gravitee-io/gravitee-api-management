@@ -963,7 +963,8 @@ describe('ApiCreationV4Component', () => {
 
           const pushPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(1);
           expect(pushPlan.name).toEqual('Default PUSH plan');
-          expect(pushPlan.security).toEqual('PUSH');
+          expect(pushPlan.mode).toEqual('PUSH');
+          expect(pushPlan.security).toEqual('');
 
           await step4Security1PlansHarness.clickValidate();
           expect(component.currentStep.payload.plans).toEqual([
@@ -971,6 +972,7 @@ describe('ApiCreationV4Component', () => {
               definitionVersion: 'V4',
               name: 'Default Keyless (UNSECURED)',
               description: 'Default unsecured plan',
+              mode: 'STANDARD',
               security: {
                 type: 'KEY_LESS',
                 configuration: {},
@@ -981,10 +983,7 @@ describe('ApiCreationV4Component', () => {
               definitionVersion: 'V4',
               name: 'Default PUSH plan',
               description: 'Default push plan',
-              security: {
-                type: 'PUSH',
-                configuration: {},
-              },
+              mode: 'PUSH',
               validation: 'MANUAL',
             },
           ]);
@@ -1038,6 +1037,7 @@ describe('ApiCreationV4Component', () => {
             definitionVersion: 'V4',
             name: 'Default Keyless (UNSECURED)',
             description: 'Default unsecured plan',
+            mode: 'STANDARD',
             security: {
               type: 'KEY_LESS',
               configuration: {},
@@ -1067,6 +1067,7 @@ describe('ApiCreationV4Component', () => {
               definitionVersion: 'V4',
               name: 'Default Keyless (UNSECURED)',
               description: 'Default unsecured plan',
+              mode: 'STANDARD',
               security: {
                 type: 'KEY_LESS',
                 configuration: {},
@@ -1094,6 +1095,7 @@ describe('ApiCreationV4Component', () => {
               ],
               generalConditions: '',
               name: 'Secure by ApiKey',
+              mode: 'STANDARD',
               security: {
                 configuration: {},
                 type: 'API_KEY',
@@ -1117,6 +1119,7 @@ describe('ApiCreationV4Component', () => {
             {
               name: 'Update name',
               description: 'Default unsecured plan',
+              mode: 'STANDARD',
               security: {
                 type: 'KEY_LESS',
                 configuration: {},
@@ -1192,7 +1195,8 @@ describe('ApiCreationV4Component', () => {
 
         const pushPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
         expect(pushPlan.name).toEqual('Default PUSH plan');
-        expect(pushPlan.security).toEqual('PUSH');
+        expect(pushPlan.mode).toEqual('PUSH');
+        expect(pushPlan.security).toEqual('');
 
         await step4Security1PlansHarness.clickValidate();
         expect(component.currentStep.payload.plans).toEqual([
@@ -1200,10 +1204,7 @@ describe('ApiCreationV4Component', () => {
             definitionVersion: 'V4',
             name: 'Default PUSH plan',
             description: 'Default push plan',
-            security: {
-              type: 'PUSH',
-              configuration: {},
-            },
+            mode: 'PUSH',
             validation: 'MANUAL',
           },
         ]);

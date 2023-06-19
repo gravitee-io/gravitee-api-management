@@ -118,14 +118,14 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.ng.plan.new',
-    url: '/new?{securityType:string}',
+    url: '/new?{selectedPlanMenuItem:string}',
     component: ApiPortalPlanEditComponent,
     data: {
       useAngularMaterial: true,
       docs: null,
     },
     params: {
-      securityType: {
+      selectedPlanMenuItem: {
         dynamic: true,
       },
     },

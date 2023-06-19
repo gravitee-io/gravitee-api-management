@@ -18,7 +18,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { CreatePlanV4 } from '../../../../../../entities/management-api-v2';
-import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../../../services-ngx/constants.service';
+import { AVAILABLE_PLANS_FOR_MENU, PlanMenuItemVM } from '../../../../../../services-ngx/constants.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
@@ -33,7 +33,7 @@ export class Step4Security1PlansComponent implements OnInit {
 
   public planToEdit: CreatePlanV4 | undefined = undefined;
 
-  securityType: PlanSecurityVM;
+  selectedPlanMenuItem: PlanMenuItemVM;
 
   constructor(private readonly stepService: ApiCreationStepService) {}
 
@@ -55,6 +55,7 @@ export class Step4Security1PlansComponent implements OnInit {
         definitionVersion: 'V4',
         name: 'Default Keyless (UNSECURED)',
         description: 'Default unsecured plan',
+        mode: 'STANDARD',
         security: {
           type: 'KEY_LESS',
           configuration: {},
@@ -70,18 +71,15 @@ export class Step4Security1PlansComponent implements OnInit {
         definitionVersion: 'V4',
         name: 'Default PUSH plan',
         description: 'Default push plan',
-        security: {
-          type: 'PUSH',
-          configuration: {},
-        },
+        mode: 'PUSH',
         validation: 'MANUAL',
       });
     }
   }
 
-  onAddPlanClicked(securityType: PlanSecurityVM) {
+  onAddPlanClicked(selectedPlanMenuItem: PlanMenuItemVM) {
     this.planToEdit = undefined;
-    this.securityType = securityType;
+    this.selectedPlanMenuItem = selectedPlanMenuItem;
     this.view = 'add';
   }
 
@@ -96,7 +94,8 @@ export class Step4Security1PlansComponent implements OnInit {
 
   onEditPlanClicked(plan: CreatePlanV4) {
     this.planToEdit = plan;
-    this.securityType = PLAN_SECURITY_TYPES.find((vm) => vm.id === plan.security.type);
+    const planFormType = plan.mode === 'PUSH' ? 'PUSH' : plan.security.type;
+    this.selectedPlanMenuItem = AVAILABLE_PLANS_FOR_MENU.find((vm) => vm.planFormType === planFormType);
     this.view = 'edit';
   }
 

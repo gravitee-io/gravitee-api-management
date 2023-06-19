@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PlanMode } from './planMode';
 
-import { CreateBasePlan } from '../createBasePlan';
-import { FlowV4 } from '../../api/v4';
-
-export interface CreatePlanV4 extends CreateBasePlan {
-  definitionVersion: 'V4';
-  flows?: FlowV4[];
-  mode: PlanMode;
-}
+/**
+ * Plan mode.
+ */
+export const PLAN_MODE = ['STANDARD', 'PUSH'] as const;
+export type PlanMode = (typeof PLAN_MODE)[number];

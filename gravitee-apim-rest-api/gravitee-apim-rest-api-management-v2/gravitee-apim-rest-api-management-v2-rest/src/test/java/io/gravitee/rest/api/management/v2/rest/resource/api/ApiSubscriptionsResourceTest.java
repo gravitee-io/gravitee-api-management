@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.Optional;
@@ -38,6 +39,7 @@ public abstract class ApiSubscriptionsResourceTest extends AbstractResourceTest 
     protected static final String PLAN = "my-plan";
     protected static final String APPLICATION = "my-application";
     protected static final String SUBSCRIPTION = "my-subscription";
+    protected static final String SUBSCRIBED_BY = "my-subscriber-id";
     protected static final String ENVIRONMENT = "my-env";
 
     @Autowired
@@ -51,6 +53,9 @@ public abstract class ApiSubscriptionsResourceTest extends AbstractResourceTest 
 
     @Autowired
     protected ApiKeyService apiKeyService;
+
+    @Autowired
+    protected UserService userService;
 
     @Before
     public void init() throws TechnicalException {

@@ -46,19 +46,18 @@ import {
   Plan,
   PlanV2,
   PlanV4,
-  PlanSecurityType,
 } from '../../../../entities/management-api-v2';
-import { PLAN_SECURITY_TYPES, PlanSecurityVM } from '../../../../services-ngx/constants.service';
+import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
 
 @Component({
   template: `
-    <api-plan-form #apiPlanForm [formControl]="planControl" [mode]="mode" [api]="api" [securityType]="securityType"></api-plan-form>
+    <api-plan-form #apiPlanForm [formControl]="planControl" [mode]="mode" [api]="api" [planMenuItem]="planMenuItem"></api-plan-form>
   `,
 })
 class TestComponent {
   @ViewChild('apiPlanForm') apiPlanForm: ApiPlanFormComponent;
   mode: 'create' | 'edit' = 'create';
-  securityType: PlanSecurityVM;
+  planMenuItem: PlanMenuItemVM;
   planControl = new FormControl();
   api?: Api;
   plan?: Plan;
@@ -85,7 +84,7 @@ describe('ApiPlanFormComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const configureTestingModule = (mode: 'create' | 'edit', securityType: PlanSecurityType, api?: Api) => {
+  const configureTestingModule = (mode: 'create' | 'edit', planFormType: PlanFormType, api?: Api) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [ReactiveFormsModule, NoopAnimationsModule, GioHttpTestingModule, ApiPlanFormModule, MatIconTestingModule],
@@ -111,7 +110,7 @@ describe('ApiPlanFormComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     testComponent = fixture.componentInstance;
     testComponent.mode = mode;
-    testComponent.securityType = PLAN_SECURITY_TYPES.find((vm) => vm.id === securityType);
+    testComponent.planMenuItem = AVAILABLE_PLANS_FOR_MENU.find((vm) => vm.planFormType === planFormType);
     testComponent.api = api;
   };
 
@@ -700,6 +699,7 @@ describe('ApiPlanFormComponent', () => {
         excludedGroups: ['group-a'],
         generalConditions: '',
         tags: [],
+        mode: 'STANDARD',
         security: {
           configuration: {},
           type: 'JWT',
@@ -973,6 +973,7 @@ describe('ApiPlanFormComponent', () => {
           commentMessage: 'comment message',
           commentRequired: false,
           excludedGroups: ['group-a'],
+          mode: 'STANDARD',
           security: {
             type: 'KEY_LESS',
             configuration: {},

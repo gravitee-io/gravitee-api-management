@@ -17,12 +17,15 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.PlanFixtures;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
+import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import java.util.HashSet;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.junit.jupiter.api.Assertions;
@@ -109,6 +112,18 @@ public class PlanMapperTest {
 
         assertSecurityV4Equals(newPlanEntity.getSecurity(), createPlanV4.getSecurity());
         assertEquals(newPlanEntity.getFlows().size(), createPlanV4.getFlows().size()); // Flow mapping is tested in FlowMapperTest
+    }
+
+    @Test
+    void should_map_CreatePlanV4_to_NewPlanEntity_with_default_values() {
+        final var createPlanV4 = PlanFixtures.aCreatePlanV4().toBuilder().validation(null).mode(null).flows(null).build();
+        final var newPlanEntity = planMapper.map(createPlanV4);
+
+        Assertions.assertNull(newPlanEntity.getId());
+        assertEquals(PlanValidationType.MANUAL, newPlanEntity.getValidation());
+        assertEquals(PlanMode.STANDARD, newPlanEntity.getMode());
+        assertNotNull(newPlanEntity.getFlows());
+        assertEquals(0, newPlanEntity.getFlows().size());
     }
 
     @Test

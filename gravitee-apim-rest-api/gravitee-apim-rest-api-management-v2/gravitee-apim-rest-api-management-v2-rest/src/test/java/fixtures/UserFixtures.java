@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PlanMode } from './planMode';
+package fixtures;
 
-import { CreateBasePlan } from '../createBasePlan';
-import { FlowV4 } from '../../api/v4';
+import io.gravitee.rest.api.model.UserEntity;
 
-export interface CreatePlanV4 extends CreateBasePlan {
-  definitionVersion: 'V4';
-  flows?: FlowV4[];
-  mode: PlanMode;
+public class UserFixtures {
+
+    private static UserEntity.UserEntityBuilder USER_ENTITY = UserEntity
+        .builder()
+        .id("id")
+        .firstname("John")
+        .lastname("Doe")
+        .email("john@doe.com");
+
+    public static UserEntity aUserEntity() {
+        return USER_ENTITY.build();
+    }
 }

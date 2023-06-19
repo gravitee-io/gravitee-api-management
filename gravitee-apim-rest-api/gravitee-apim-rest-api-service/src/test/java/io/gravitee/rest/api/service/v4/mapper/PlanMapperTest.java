@@ -90,6 +90,35 @@ public class PlanMapperTest {
     }
 
     @Test
+    public void shouldConvertPushPlanToPlanEntity() {
+        Plan plan = new Plan();
+        plan.setId("123123-1531-4563456166");
+        plan.setName("Push plan name");
+        plan.setDescription("Description for the new plan");
+        plan.setValidation(Plan.PlanValidationType.AUTO);
+        plan.setType(Plan.PlanType.API);
+        plan.setMode(Plan.PlanMode.PUSH);
+        plan.setStatus(Plan.Status.STAGING);
+        plan.setApi("api1");
+        plan.setGeneralConditions("general_conditions");
+
+        List<Flow> flows = new ArrayList<>();
+
+        PlanEntity planEntity = planMapper.toEntity(plan, flows);
+
+        assertEquals(plan.getId(), planEntity.getId());
+        assertEquals(plan.getName(), planEntity.getName());
+        assertEquals(plan.getDescription(), planEntity.getDescription());
+        assertEquals(plan.getValidation().name(), planEntity.getValidation().name());
+        assertEquals(plan.getStatus().name(), planEntity.getStatus().name());
+        assertEquals(plan.getApi(), planEntity.getApiId());
+        assertEquals(plan.getGeneralConditions(), planEntity.getGeneralConditions());
+        assertEquals(PlanMode.PUSH, planEntity.getMode());
+        assertNull(planEntity.getSecurity());
+        assertSame(flows, planEntity.getFlows());
+    }
+
+    @Test
     public void shouldConvertPlanEntityToUpdatePlanEntity() {
         final PlanEntity actual = buildTestPlanEntity();
         final UpdatePlanEntity result = planMapper.toUpdatePlanEntity(actual);

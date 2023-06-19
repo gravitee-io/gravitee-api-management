@@ -67,14 +67,12 @@ public class PlanMapper {
             entity.setStatus(PlanStatus.PUBLISHED);
         }
 
-        PlanSecurity security = new PlanSecurity();
-        if (plan.getSecurity() != null) {
+        if (plan.getMode() == Plan.PlanMode.STANDARD) {
+            PlanSecurity security = new PlanSecurity();
             security.setType(PlanSecurityType.valueOf(plan.getSecurity().name()).getLabel());
-        } else {
-            security.setType(PlanSecurityType.API_KEY.getLabel());
+            security.setConfiguration(plan.getSecurityDefinition());
+            entity.setSecurity(security);
         }
-        security.setConfiguration(plan.getSecurityDefinition());
-        entity.setSecurity(security);
 
         entity.setValidation(PlanValidationType.valueOf(plan.getValidation().name()));
         entity.setCharacteristics(plan.getCharacteristics());

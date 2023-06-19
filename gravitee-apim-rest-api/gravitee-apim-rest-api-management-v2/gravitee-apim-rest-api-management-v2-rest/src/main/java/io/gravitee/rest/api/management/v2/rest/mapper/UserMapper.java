@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PlanMode } from './planMode';
+package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import { CreateBasePlan } from '../createBasePlan';
-import { FlowV4 } from '../../api/v4';
+import io.gravitee.rest.api.management.v2.rest.model.BaseUser;
+import io.gravitee.rest.api.model.UserEntity;
+import java.util.Collection;
+import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-export interface CreatePlanV4 extends CreateBasePlan {
-  definitionVersion: 'V4';
-  flows?: FlowV4[];
-  mode: PlanMode;
+@Mapper
+public interface UserMapper {
+    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
+
+    BaseUser map(UserEntity user);
+    List<BaseUser> mapToBaseUserList(Collection<UserEntity> users);
 }

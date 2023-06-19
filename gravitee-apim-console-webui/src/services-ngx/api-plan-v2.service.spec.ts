@@ -112,6 +112,7 @@ describe('ApiPlanV2Service', () => {
         flows: [],
         validation: 'AUTO',
         name: 'free',
+        mode: 'STANDARD',
         security: { type: 'API_KEY', configuration: '{}' },
       };
 
@@ -135,7 +136,7 @@ describe('ApiPlanV2Service', () => {
         flows: [],
         validation: 'AUTO',
         name: 'free',
-        security: { type: 'PUSH', configuration: '{}' },
+        mode: 'PUSH',
       };
 
       apiPlanV2Service.create(API_ID, plan).subscribe((response) => {
@@ -147,7 +148,8 @@ describe('ApiPlanV2Service', () => {
         method: 'POST',
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans`,
       });
-      expect(planReq.request.body.security.type).toEqual('SUBSCRIPTION');
+      expect(planReq.request.body.security).toBeUndefined();
+      expect(planReq.request.body.mode).toEqual('PUSH');
       planReq.flush(plan);
     });
   });

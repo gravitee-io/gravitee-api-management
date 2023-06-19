@@ -19,10 +19,7 @@ import static java.lang.String.format;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
-import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
-import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
-import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.*;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus;
@@ -37,10 +34,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-import io.gravitee.rest.api.service.ApiKeyService;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
@@ -66,9 +60,10 @@ public class ApiSubscriptionsResource extends AbstractResource {
     private final PageMapper pageMapper = PageMapper.INSTANCE;
     private final PlanMapper planMapper = PlanMapper.INSTANCE;
     private final ApplicationMapper applicationMapper = ApplicationMapper.INSTANCE;
-
+    private final UserMapper userMapper = UserMapper.INSTANCE;
     private static final String EXPAND_PLAN = "plan";
     private static final String EXPAND_APPLICATION = "application";
+    private static final String EXPAND_SUBSCRIBED_BY = "subscribedBy";
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -84,6 +79,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private ApiKeyService apiKeyService;
+
+    @Inject
+    private UserService userService;
 
     @PathParam("apiId")
     private String apiId;
@@ -446,6 +444,20 @@ public class ApiSubscriptionsResource extends AbstractResource {
                     .stream()
                     .filter(subscription -> subscription.getApplication().getId().equals(application.getId()))
                     .forEach(subscription -> subscription.setApplication(application))
+            );
+        }
+
+        if (expands.contains(EXPAND_SUBSCRIBED_BY)) {
+            final Set<String> userIds = subscriptions
+                .stream()
+                .map(subscription -> subscription.getSubscribedBy().getId())
+                .collect(Collectors.toSet());
+            final Collection<BaseUser> users = userMapper.mapToBaseUserList(userService.findByIds(executionContext, userIds));
+            users.forEach(user ->
+                subscriptions
+                    .stream()
+                    .filter(subscription -> subscription.getSubscribedBy().getId().equals(user.getId()))
+                    .forEach(subscription -> subscription.setSubscribedBy(user))
             );
         }
     }

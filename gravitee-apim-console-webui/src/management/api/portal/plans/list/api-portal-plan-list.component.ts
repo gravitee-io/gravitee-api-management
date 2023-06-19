@@ -33,7 +33,7 @@ import { PlanService } from '../../../../../services-ngx/plan.service';
 import { SubscriptionService } from '../../../../../services-ngx/subscription.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ConstantsService, PlanSecurityVM } from '../../../../../services-ngx/constants.service';
+import { ConstantsService, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { Api, PLAN_STATUS, Plan, PlanStatus, ApiV4 } from '../../../../../entities/management-api-v2';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
@@ -46,14 +46,14 @@ import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.servic
 export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private api: Api;
-  public displayedColumns = ['name', 'security', 'status', 'deploy-on', 'actions'];
+  public displayedColumns = ['name', 'type', 'status', 'deploy-on', 'actions'];
   public plansTableDS: Plan[] = [];
   public isLoadingData = true;
   public apiPlanStatus: { name: PlanStatus; number: number | null }[] = PLAN_STATUS.map((status) => ({ name: status, number: null }));
   public status: PlanStatus;
   public isReadOnly = false;
   public isV2Api: boolean;
-  public planSecurityOptions: PlanSecurityVM[];
+  public planMenuItems: PlanMenuItemVM[];
   private routeBase: string;
 
   constructor(
@@ -136,8 +136,8 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     this.ajsState.go(`${this.routeBase}.plan.edit`, { planId });
   }
 
-  public navigateToNewPlan(securityType: string): void {
-    this.ajsState.go(`${this.routeBase}.plan.new`, { securityType });
+  public navigateToNewPlan(selectedPlanMenuItem: string): void {
+    this.ajsState.go(`${this.routeBase}.plan.new`, { selectedPlanMenuItem });
   }
 
   public designPlan(planId: string): void {
@@ -215,7 +215,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         switchMap((subscriptions) => {
           let content = '';
-          if (plan.security.type === 'KEY_LESS') {
+          if (plan.security?.type === 'KEY_LESS') {
             content = 'A keyless plan may have consumers. <br/>' + 'By closing this plan you will remove free access to this API.';
           } else {
             if (subscriptions.page.size === 0) {
@@ -225,7 +225,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
             }
           }
           let confirmButton = 'Yes, close this plan.';
-          if (subscriptions.page.size === 0 && plan.security.type === 'API_KEY') {
+          if (subscriptions.page.size === 0 && plan.security?.type === 'API_KEY') {
             confirmButton = 'Yes, delete this plan';
           }
           return this.matDialog
@@ -301,17 +301,17 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   }
 
   private computePlanOptions(): void {
-    this.planSecurityOptions = this.constantsService.getEnabledPlanSecurityTypes();
+    this.planMenuItems = this.constantsService.getEnabledPlanMenuItems();
 
     if (this.api && this.api.definitionVersion !== 'V4') {
-      this.planSecurityOptions = this.planSecurityOptions.filter((security) => security.id !== 'PUSH');
+      this.planMenuItems = this.planMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
     } else {
       if ((this.api as ApiV4)?.listeners?.every((entrypoint) => entrypoint.type === 'SUBSCRIPTION')) {
-        this.planSecurityOptions = this.planSecurityOptions.filter((planSecurityType) => planSecurityType.id === 'PUSH');
+        this.planMenuItems = this.planMenuItems.filter((planMenuItem) => planMenuItem.planFormType === 'PUSH');
       }
 
       if ((this.api as ApiV4)?.listeners?.every((entrypoint) => ['HTTP', 'TCP'].includes(entrypoint.type))) {
-        this.planSecurityOptions = this.planSecurityOptions.filter((planSecurityType) => planSecurityType.id !== 'PUSH');
+        this.planMenuItems = this.planMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
       }
     }
   }

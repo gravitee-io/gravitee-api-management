@@ -19,33 +19,35 @@ import { camelCase } from 'lodash';
 import { Constants } from '../entities/Constants';
 import { PlanSecurityType } from '../entities/management-api-v2';
 
-export interface PlanSecurityVM {
-  id: PlanSecurityType;
+export type PlanFormType = PlanSecurityType | 'PUSH';
+
+export interface PlanMenuItemVM {
+  planFormType: PlanFormType;
   name: string;
   policy?: string;
 }
-export const PLAN_SECURITY_TYPES: PlanSecurityVM[] = [
+export const AVAILABLE_PLANS_FOR_MENU: PlanMenuItemVM[] = [
   {
-    id: 'OAUTH2',
+    planFormType: 'OAUTH2',
     name: 'OAuth2',
     policy: 'oauth2',
   },
   {
-    id: 'JWT',
+    planFormType: 'JWT',
     name: 'JWT',
     policy: 'jwt',
   },
   {
-    id: 'API_KEY',
+    planFormType: 'API_KEY',
     name: 'API Key',
     policy: 'api-key',
   },
   {
-    id: 'KEY_LESS',
+    planFormType: 'KEY_LESS',
     name: 'Keyless (public)',
   },
   {
-    id: 'PUSH',
+    planFormType: 'PUSH',
     name: 'Push plan',
   },
 ];
@@ -56,11 +58,11 @@ export const PLAN_SECURITY_TYPES: PlanSecurityVM[] = [
 export class ConstantsService {
   constructor(@Inject('Constants') private readonly constants: Constants) {}
 
-  getEnabledPlanSecurityTypes(): PlanSecurityVM[] {
+  getEnabledPlanMenuItems(): PlanMenuItemVM[] {
     const planSecuritySettings: [string, { enabled: boolean }][] = Object.entries(this.constants.env?.settings?.plan?.security ?? {});
 
-    return PLAN_SECURITY_TYPES.filter((securityType) => {
-      const cleanSecurityType = camelCase(securityType.id.replace('_', ''));
+    return AVAILABLE_PLANS_FOR_MENU.filter((planMenuItem) => {
+      const cleanSecurityType = camelCase(planMenuItem.planFormType.replace('_', ''));
 
       // One of the portal settings security types matches the security type from PLAN_SECURITY_TYPES
       const matchedSecurityType = planSecuritySettings

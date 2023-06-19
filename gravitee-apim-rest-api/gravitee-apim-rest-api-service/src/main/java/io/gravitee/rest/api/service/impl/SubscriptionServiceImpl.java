@@ -791,11 +791,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             SubscriptionEntity subscriptionEntity = convert(subscription);
             PlanSecurity planSecurity = genericPlanEntity.getPlanSecurity();
-            PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(planSecurity.getType());
-            if (planSecurityType == PlanSecurityType.API_KEY && subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED) {
+            if (
+                planSecurity != null &&
+                PlanSecurityType.API_KEY == PlanSecurityType.valueOfLabel(planSecurity.getType()) &&
+                subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED
+            ) {
                 apiKeyService.generate(executionContext, application, subscriptionEntity, processSubscription.getCustomApiKey());
             }
-
             subscription = subscriptionRepository.update(subscription);
 
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();

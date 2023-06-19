@@ -19,7 +19,7 @@ import { FormGroup } from '@angular/forms';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step5DocumentationComponent } from '../step-5-documentation/step-5-documentation.component';
-import { ConstantsService, PlanSecurityVM } from '../../../../../../services-ngx/constants.service';
+import { ConstantsService, PlanMenuItemVM } from '../../../../../../services-ngx/constants.service';
 import { CreatePlanV4 } from '../../../../../../entities/management-api-v2';
 
 @Component({
@@ -32,7 +32,7 @@ export class Step4Security1PlansListComponent implements OnInit {
   plans: CreatePlanV4[] = [];
 
   @Output()
-  addPlanClicked = new EventEmitter<PlanSecurityVM>();
+  addPlanClicked = new EventEmitter<PlanMenuItemVM>();
 
   @Output()
   editPlanClicked = new EventEmitter<CreatePlanV4>();
@@ -40,21 +40,21 @@ export class Step4Security1PlansListComponent implements OnInit {
   @Output()
   removePlanClicked = new EventEmitter<CreatePlanV4>();
 
-  planSecurityOptions: PlanSecurityVM[];
+  planMenuItems: PlanMenuItemVM[];
 
   public form = new FormGroup({});
-  displayedColumns: string[] = ['name', 'security', 'actions'];
+  displayedColumns: string[] = ['name', 'mode', 'security', 'actions'];
 
   constructor(private readonly stepService: ApiCreationStepService, private readonly constantsService: ConstantsService) {}
 
   ngOnInit(): void {
-    this.planSecurityOptions = this.constantsService.getEnabledPlanSecurityTypes();
+    this.planMenuItems = this.constantsService.getEnabledPlanMenuItems();
     if (this.stepService?.payload?.selectedEntrypoints.every((entrypoint) => entrypoint.supportedListenerType === 'SUBSCRIPTION')) {
-      this.planSecurityOptions = this.planSecurityOptions.filter((planSecurityType) => planSecurityType.id === 'PUSH');
+      this.planMenuItems = this.planMenuItems.filter((planMenuItem) => planMenuItem.planFormType === 'PUSH');
     }
 
     if (this.stepService?.payload?.selectedEntrypoints.every((entrypoint) => ['HTTP', 'TCP'].includes(entrypoint.supportedListenerType))) {
-      this.planSecurityOptions = this.planSecurityOptions.filter((planSecurityType) => planSecurityType.id !== 'PUSH');
+      this.planMenuItems = this.planMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
     }
   }
 
@@ -71,8 +71,8 @@ export class Step4Security1PlansListComponent implements OnInit {
     this.stepService.goToPreviousStep();
   }
 
-  addPlan(securityType: PlanSecurityVM) {
-    this.addPlanClicked.emit(securityType);
+  addPlan(selectedPlanMenuItem: PlanMenuItemVM) {
+    this.addPlanClicked.emit(selectedPlanMenuItem);
   }
 
   editPlan(plan: CreatePlanV4) {
