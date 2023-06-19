@@ -198,7 +198,7 @@ describe('ApiV2Service', () => {
   });
 
   describe('picture', () => {
-    it('should call the API', (done) => {
+    it('should update', (done) => {
       const apiId = 'apiId';
 
       apiV2Service.updatePicture(apiId, 'newPicture').subscribe(() => {
@@ -213,10 +213,25 @@ describe('ApiV2Service', () => {
       expect(req.request.body).toEqual('newPicture');
       req.flush(null);
     });
+
+    it('should delete', (done) => {
+      const apiId = 'apiId';
+
+      apiV2Service.deletePicture(apiId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/picture`,
+        method: 'DELETE',
+      });
+
+      req.flush(null);
+    });
   });
 
   describe('background', () => {
-    it('should call the API', (done) => {
+    it('should update', (done) => {
       const apiId = 'apiId';
 
       apiV2Service.updateBackground(apiId, 'newBackground').subscribe(() => {
@@ -229,6 +244,21 @@ describe('ApiV2Service', () => {
       });
 
       expect(req.request.body).toEqual('newBackground');
+      req.flush(null);
+    });
+
+    it('should delete', (done) => {
+      const apiId = 'apiId';
+
+      apiV2Service.deleteBackground(apiId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/background`,
+        method: 'DELETE',
+      });
+
       req.flush(null);
     });
   });

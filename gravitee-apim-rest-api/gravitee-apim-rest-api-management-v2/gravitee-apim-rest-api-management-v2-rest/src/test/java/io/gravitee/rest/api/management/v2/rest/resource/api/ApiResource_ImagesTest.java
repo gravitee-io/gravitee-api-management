@@ -106,6 +106,14 @@ public class ApiResource_ImagesTest extends ApiResourceTest {
     }
 
     @Test
+    public void should_delete_api_picture() {
+        final Response response = rootTarget("picture").request().delete();
+        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
+
+        verify(apiImagesService, times(1)).updateApiPicture(GraviteeContext.getExecutionContext(), API, null);
+    }
+
+    @Test
     public void should_get_invalid_format_picture() {
         final Response response = rootTarget("picture").request().put(Entity.text(""));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
@@ -171,6 +179,14 @@ public class ApiResource_ImagesTest extends ApiResourceTest {
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
         verify(apiImagesService, times(1)).updateApiBackground(GraviteeContext.getExecutionContext(), API, PICTURE);
+    }
+
+    @Test
+    public void should_delete_api_background() {
+        final Response response = rootTarget("background").request().delete();
+        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
+
+        verify(apiImagesService, times(1)).updateApiBackground(GraviteeContext.getExecutionContext(), API, null);
     }
 
     @Test

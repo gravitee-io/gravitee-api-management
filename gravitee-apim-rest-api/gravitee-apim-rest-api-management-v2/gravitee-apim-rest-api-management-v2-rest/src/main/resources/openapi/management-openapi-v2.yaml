@@ -250,6 +250,21 @@ paths:
                     description: API background successfully updated
                 default:
                     $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - APIs
+            summary: Delete an API's background
+            description: |-
+                Delete the API's background.
+
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: deleteApiBackground
+            responses:
+                "204":
+                    description: API background successfully deleted.
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/deployments:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -310,6 +325,20 @@ paths:
             responses:
                 "204":
                     description: API picture successfully updated
+                default:
+                    $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - APIs
+            summary: Delete an API's picture
+            description: |-
+                Delete the API's picture.
+
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: deleteApiPicture
+            responses:
+                "204":
+                    description: API picture successfully deleted.
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_export/definition:

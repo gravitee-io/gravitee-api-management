@@ -323,6 +323,14 @@ public class ApiResource extends AbstractResource {
         }
     }
 
+    @DELETE
+    @Path("picture")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response deleteApiPicture(@PathParam("apiId") String apiId) {
+        apiImagesService.updateApiPicture(GraviteeContext.getExecutionContext(), apiId, null);
+        return Response.noContent().build();
+    }
+
     @GET
     @Path("background")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
@@ -342,6 +350,14 @@ public class ApiResource extends AbstractResource {
             log.warn("Error while parsing background image for api {}", apiId, e);
             throw new BadRequestException("Invalid image format");
         }
+    }
+
+    @DELETE
+    @Path("background")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response deleteApiBackground(@PathParam("apiId") String apiId) {
+        apiImagesService.updateApiBackground(GraviteeContext.getExecutionContext(), apiId, null);
+        return Response.noContent().build();
     }
 
     @GET

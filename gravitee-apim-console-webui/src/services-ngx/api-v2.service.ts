@@ -82,6 +82,14 @@ export class ApiV2Service {
     return this.http.put<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/background`, newImage);
   }
 
+  deletePicture(apiId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/picture`);
+  }
+
+  deleteBackground(apiId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/background`);
+  }
+
   getSubscribers(apiId: string, name?: string, page = 1, perPage = 10): Observable<ApiSubscribersResponse> {
     return this.http.get<ApiSubscribersResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscribers`, {
       params: {
