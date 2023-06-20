@@ -88,7 +88,11 @@
               <button mat-icon-button aria-label="Edit endpoint" matTooltip="Edit endpoint">
                 <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
               </button>
-              <button mat-icon-button aria-label="Delete endpoint" matTooltip="Delete endpoint">
+              <button
+                mat-icon-button
+                aria-label="Delete endpoint"
+                matTooltip="Delete endpoint"
+                (click)="deleteEndpoint(group.name, element.name)">
                 <mat-icon svgIcon="gio:trash"></mat-icon>
               </button>
             </div>
