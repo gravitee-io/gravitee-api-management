@@ -1297,6 +1297,29 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_revoke:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+            - $ref: "#/components/parameters/apiKeyIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Revoke a subscription api key
+            description: |-
+                Revoke the subscription api key by setting the revocation date to the current date and flagging it as revoked.<br>
+                A notification will be sent to the subscriber according to his portal notification options.
+                
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: revokeApiSubscriptionApiKey
+            responses:
+                "200":
+                    $ref: "#/components/responses/SubscriptionApiKey"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # Plugins - Endpoints
     /plugins/endpoints:
         get:
