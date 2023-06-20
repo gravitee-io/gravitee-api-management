@@ -2952,8 +2952,8 @@ components:
                     type: string
                     description: Id of the API owning the plan.
                     example: 6c530064-0b2c-4004-9300-640b2ce0047b
-                type:
-                    $ref: "#/components/schemas/PlanType"
+                security:
+                    $ref: "#/components/schemas/PlanSecurity"
         GenericPlan:
             type: object
             allOf:
@@ -3007,8 +3007,6 @@ components:
                           format: date-time
                           description: The last datetime when the plan was published.
                           example: 2023-05-25T12:40:46.184Z
-                      security:
-                          $ref: "#/components/schemas/PlanSecurity"
                       selectionRule:
                           type: string
                       status:
@@ -3021,6 +3019,8 @@ components:
                               - private
                           items:
                               type: string
+                      type:
+                          $ref: "#/components/schemas/PlanType"
                       updatedAt:
                           type: string
                           format: date-time
@@ -3616,13 +3616,22 @@ components:
                     example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
                 name:
                     type: string
-                    description: Application's name. Duplicate names can exists.
+                    description: Application's name. Duplicate names can exist.
                     example: My App
                 description:
                     type: string
                     description: Application's description. A short description of your App.
                     example: I can use a hundred characters to describe this App.
-
+                domain:
+                    type: string
+                    description: Application's domain. Domain used by application, if relevant.
+                    example: https://my-app.com
+                type:
+                    type: string
+                    description: Application's type.
+                    example: iOS
+                primaryOwner:
+                    $ref: "#/components/schemas/PrimaryOwner"
         Member:
             type: object
             properties:

@@ -101,6 +101,8 @@ public interface PlanMapper {
         return io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOf(securityType.name()).getLabel();
     }
 
+    @Mapping(source = "planSecurity.type", target = "security.type", qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(source = "planSecurity.configuration", target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     BasePlan map(GenericPlanEntity plan);
 
     Collection<BasePlan> mapToBasePlans(Set<GenericPlanEntity> plans);
