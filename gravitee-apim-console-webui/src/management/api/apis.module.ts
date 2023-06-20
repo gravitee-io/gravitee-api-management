@@ -33,13 +33,14 @@ import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-
 import { ApisPortalModule } from './portal/apis-portal.module';
 import { ApiProxyV4EntrypointsComponent } from './proxy-v4/api-proxy-v4-entrypoints.component';
 import { ApiProxyV4Module } from './proxy-v4/api-proxy-v4.module';
+import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
+import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
+import { ApiBackendServicesComponent } from './endpoints-v4/backend-services/api-backend-services.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
 import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
-import { ApiEndpointsModule } from './endpoints/api-endpoints.module';
-import { ApiBackendServicesComponent } from './endpoints/backend-services/api-backend-services.component';
 
 // New Angular routing
 const states: Ng2StateDeclaration[] = [
@@ -199,6 +200,21 @@ const states: Ng2StateDeclaration[] = [
     name: 'management.apis.ng.endpoints',
     url: '/endpoints',
     component: ApiBackendServicesComponent,
+    data: {
+      useAngularMaterial: true,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-r'],
+      // },
+      docs: {
+        page: 'management-api-proxy-endpoints',
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.endpoint',
+    url: '/groups/:groupName/endpoints/:endpointName',
+    component: ApiProxyGroupEndpointEditComponent,
     data: {
       useAngularMaterial: true,
       // TODO: Implement permissions
