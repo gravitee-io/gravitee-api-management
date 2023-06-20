@@ -521,6 +521,32 @@ public class ApiSubscriptionsResource extends AbstractResource {
         return Response.ok(subscriptionMapper.mapToApiKey(apiKeyService.update(executionContext, apiKeyEntity))).build();
     }
 
+    @POST
+    @Path("/{subscriptionId}/api-keys/{apiKeyId}/_revoke")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
+    public Response revokeApiSubscriptionApiKey(
+        @PathParam("subscriptionId") String subscriptionId,
+        @PathParam("apiKeyId") String apiKeyId
+    ) {
+        final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!subscriptionEntity.getApi().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apiKeyId);
+
+        if (!apiKeyEntity.getSubscriptionIds().contains(subscriptionId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(apiKeyNotFoundError(apiKeyId)).build();
+        }
+
+        apiKeyService.revoke(executionContext, apiKeyEntity, true);
+
+        return Response.ok(subscriptionMapper.mapToApiKey(apiKeyService.findById(executionContext, apiKeyId))).build();
+    }
+
     private Error subscriptionNotFoundError(String subscriptionId) {
         return new Error()
             .httpStatus(Response.Status.NOT_FOUND.getStatusCode())
