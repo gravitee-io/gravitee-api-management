@@ -1,5 +1,7 @@
 @use 'sass:map';
-@use '../../../../../../scss/gio-layout' as gio-layout;
+@use '../../../../../scss/gio-layout' as gio-layout;
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 
 :host {
   @include gio-layout.gio-responsive-content-container;
@@ -23,11 +25,11 @@
     &__title {
       display: flex;
       flex-direction: row;
-      width: 40%;
+      width: 50%;
 
       .mat-h4 {
         margin: auto 8px auto 0;
-        max-width: 70%;
+        max-width: 60%;
       }
 
       .gio-badge-accent {
@@ -36,14 +38,41 @@
     }
 
     &__actions {
-      width: 60%;
+      width: 50%;
       display: flex;
       flex-direction: row;
       justify-content: flex-end;
 
-      .mat-stroked-button, .mat-flat-button {
+      .mat-stroked-button,
+      .mat-flat-button {
         margin-right: 8px;
       }
     }
+  }
+
+  .gio-table-light {
+    width: 100%;
+    margin-bottom: 32px;
+  }
+
+  &__table {
+    &__actions {
+      display: flex;
+      justify-content: center;
+
+      mat-icon {
+        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter50');
+      }
+    }
+  }
+
+  .mat-column-actions {
+    width: 10%;
+  }
+
+  .mat-column-name,
+  .mat-column-options,
+  .mat-column-weight {
+    width: 30%;
   }
 }
