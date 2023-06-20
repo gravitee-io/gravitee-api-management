@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { remove } from 'lodash';
+import { EMPTY, Subject } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 
-import { ApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { ApiV4, UpdateApi } from '../../../../../entities/management-api-v2';
 import { EndpointGroup, toEndpoints } from './api-endpoints-groups.adapter';
 
 @Component({
@@ -23,12 +30,59 @@ import { EndpointGroup, toEndpoints } from './api-endpoints-groups.adapter';
   template: require('./api-endpoints-groups.component.html'),
   styles: [require('./api-endpoints-groups.component.scss')],
 })
-export class ApiEndpointsGroupsComponent implements OnInit {
+export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
   @Input() public api: ApiV4;
   public endpointsDisplayedColumns = ['name', 'options', 'weight', 'actions'];
   public groupsTableData: EndpointGroup[];
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  constructor(
+    private readonly matDialog: MatDialog,
+    private readonly apiService: ApiV2Service,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   public ngOnInit() {
-    this.groupsTableData = toEndpoints(this.api);
+    this.initData(this.api);
+  }
+
+  public initData(api: ApiV4) {
+    this.groupsTableData = toEndpoints(api);
+  }
+
+  public ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.complete();
+  }
+
+  public deleteGroup(groupName: string): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Delete Endpoint Group',
+          content: `Are you sure you want to delete the Group <strong>${groupName}</strong>?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deleteEndpointGroupConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.get(this.api.id)),
+        switchMap((api: ApiV4) => {
+          remove(api.endpointGroups, (g) => g.name === groupName);
+          return this.apiService.update(api.id, { ...api } as UpdateApi);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap((api: ApiV4) => this.initData(api)),
+        map(() => this.snackBarService.success(`Endpoint group ${groupName} successfully deleted!`)),
+      )
+      .subscribe();
   }
 }
