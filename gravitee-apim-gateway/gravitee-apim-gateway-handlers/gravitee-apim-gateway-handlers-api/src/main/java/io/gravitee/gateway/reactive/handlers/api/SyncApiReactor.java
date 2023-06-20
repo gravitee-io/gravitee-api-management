@@ -301,7 +301,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             return null;
         }
 
-        if (!(invoker instanceof InvokerAdapter)) {
+        if ((invoker instanceof io.gravitee.gateway.api.Invoker) && !(invoker instanceof InvokerAdapter)) {
             return new InvokerAdapter((io.gravitee.gateway.api.Invoker) invoker);
         }
 
