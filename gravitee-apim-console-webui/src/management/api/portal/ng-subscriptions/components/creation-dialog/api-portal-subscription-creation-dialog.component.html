@@ -1,0 +1,82 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form [formGroup]="form" *ngIf="form">
+  <h2 mat-dialog-title class="title">Create a subscription</h2>
+
+  <mat-dialog-content class="subscription-creation__content">
+    <ng-container *ngIf="plans?.length > 0; else noPlansForCreation">
+      <mat-form-field class="subscription-creation__content__applications" #searchField>
+        <mat-icon matPrefix>search</mat-icon>
+        <mat-label>Search an application by name</mat-label>
+        <!--Using focus workaround to avoid label overlapping border https://github.com/angular/components/issues/15027#issuecomment-1335147036-->
+        <input
+          matInput
+          type="search"
+          [matAutocomplete]="auto"
+          formControlName="selectedApplication"
+          (focus)="searchField.updateOutlineGap()"
+        />
+
+        <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayApplication">
+          <mat-option *ngFor="let application of applications$ | async" [value]="application">
+            {{ application.name }}
+          </mat-option>
+          <mat-option *ngIf="(applications$ | async)?.length === 0" disabled>No application matching</mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="form.get('selectedApplication').hasError('selectionRequired')"
+          >Please select an application from the list</mat-error
+        >
+      </mat-form-field>
+
+      <label id="radio-group-label">Select a plan to subscribe</label>
+      <mat-radio-group
+        aria-labelledby="radio-group-label"
+        formControlName="selectedPlan"
+        arial-label="Select an plan"
+        class="subscription-creation__content__plans"
+      >
+        <mat-radio-button *ngFor="let plan of plans" [value]="plan" [disabled]="!!plan.generalConditions || plan.mode === 'PUSH'">
+          {{ plan.name }}
+        </mat-radio-button>
+      </mat-radio-group>
+
+      <mat-form-field class="subscription-creation__content__custom-apikey" *ngIf="shouldDisplayCustomApiKey()">
+        <mat-label>Custom API-Key</mat-label>
+        <input matInput type="text" formControlName="customApiKey" />
+        <mat-hint>You can provide a custom API key if you already have one. Leave it blank to get a generated apikey</mat-hint>
+      </mat-form-field>
+    </ng-container>
+    <ng-template #noPlansForCreation>
+      <div>No plans available to subscribe</div>
+    </ng-template>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="actions">
+    <button class="actions__cancelBtn" mat-flat-button [mat-dialog-close]="false">Cancel</button>
+    <button
+      class="actions__saveBtn"
+      color="primary"
+      mat-stroked-button
+      role="dialog"
+      (click)="onSave()"
+      [disabled]="this.form.invalid || this.form.pristine"
+    >
+      Create
+    </button>
+  </mat-dialog-actions>
+</form>

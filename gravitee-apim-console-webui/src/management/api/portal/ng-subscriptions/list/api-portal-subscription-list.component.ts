@@ -19,6 +19,7 @@ import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
 import { StateService, UIRouterGlobals } from '@uirouter/core';
 import { isEqual } from 'lodash';
 import { FormControl, FormGroup } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SubscriptionStatus } from '../../../../../entities/subscription/subscription';
@@ -26,9 +27,14 @@ import { GioTableWrapperFilters } from '../../../../../shared/components/gio-tab
 import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { Api } from '../../../../../entities/management-api-v2';
+import { Api, Plan } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import {
+  ApiPortalSubscriptionCreationDialogComponent,
+  ApiPortalSubscriptionCreationDialogData,
+  ApiPortalSubscriptionCreationDialogResult,
+} from '../components/creation-dialog/api-portal-subscription-creation-dialog.component';
 
 type SubscriptionsTableDS = {
   id: string;
@@ -58,7 +64,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     apikey: new FormControl(),
   });
 
-  public plans$ = new Observable<{ id: string; name: string }[]>();
+  public plans: Plan[] = [];
   public applications$ = new Observable<{ id: string; name: string }[]>();
   public statuses: { id: SubscriptionStatus; name: string }[] = [
     { id: 'ACCEPTED', name: 'Accepted' },
@@ -108,6 +114,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
+    private readonly matDialog: MatDialog,
   ) {}
 
   public ngOnInit(): void {
@@ -139,10 +146,11 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
         tap((api) => {
           this.api = api;
           this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-subscription-u']) || api.definitionContext?.origin === 'KUBERNETES';
+            !this.permissionService.hasAnyMatching(['api-subscription-u', 'api-subscription-c']) ||
+            api.definitionContext?.origin === 'KUBERNETES';
         }),
         switchMap(() => this.apiPlanService.list(this.ajsStateParams.apiId, null, null, null, 1, 9999)),
-        tap((plans) => (this.plans$ = of(plans?.data?.map((plan) => ({ id: plan.id, name: plan.name }))))),
+        tap((plansResponse) => (this.plans = plansResponse.data)),
         switchMap(() => this.apiService.getSubscribers(this.ajsStateParams.apiId, undefined, 1, 9999)),
         tap(
           (subscribers) =>
@@ -227,8 +235,33 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     this.ajsState.go(`${this.routeBase}.subscription.edit`, { subscriptionId });
   }
 
-  public navigateToNewSubscription(): void {
-    this.ajsState.go(`${this.routeBase}.subscription.new`, { apiId: this.api.id });
+  public createSubscription(): void {
+    this.matDialog
+      .open<
+        ApiPortalSubscriptionCreationDialogComponent,
+        ApiPortalSubscriptionCreationDialogData,
+        ApiPortalSubscriptionCreationDialogResult
+      >(ApiPortalSubscriptionCreationDialogComponent, {
+        role: 'alertdialog',
+        id: 'createSubscriptionDialog',
+        data: {
+          plans: this.plans.filter((plan) => plan.status),
+        },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((result) => {
+          return result ? this.apiSubscriptionService.create(this.api.id, result.subscriptionToCreate) : EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (subscription) => {
+          this.snackBarService.success(`Subscription successfully created`);
+          this.ajsState.go('management.apis.ng.subscription.edit', { subscriptionId: subscription.id });
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {

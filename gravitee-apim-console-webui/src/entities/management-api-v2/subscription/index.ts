@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export * from './createSubscription';
 export * from './subscription';
 export * from './subscription.fixture';
 export * from './subscriptionConsumerConfiguration';

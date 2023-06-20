@@ -19,12 +19,14 @@ import { TestBed } from '@angular/core/testing';
 import { ApiSubscriptionV2Service } from './api-subscription-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { ApiSubscriptionsResponse, fakeSubscription } from '../entities/management-api-v2';
+import { ApiSubscriptionsResponse, CreateSubscription, fakeSubscription } from '../entities/management-api-v2';
 
 describe('ApiSubscriptionV2Service', () => {
   let httpTestingController: HttpTestingController;
   let apiSubscriptionV2Service: ApiSubscriptionV2Service;
   const API_ID = 'api-id';
+  const PLAN_ID = 'plan-id';
+  const APPLICATION_ID = 'application-id';
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -152,6 +154,31 @@ describe('ApiSubscriptionV2Service', () => {
       expect(req.request.body).toEqual({});
 
       req.flush(subscription);
+    });
+  });
+
+  describe('creation', () => {
+    it('should call the API', (done) => {
+      const createSubscription: CreateSubscription = {
+        applicationId: APPLICATION_ID,
+        planId: PLAN_ID,
+        customApiKey: 'my-custom-api-key',
+        metadata: {
+          key: 'value',
+        },
+      };
+
+      apiSubscriptionV2Service.create(API_ID, createSubscription).subscribe((subscription) => {
+        expect(subscription).toEqual(fakeSubscription());
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual(createSubscription);
+      req.flush(fakeSubscription());
     });
   });
 });
