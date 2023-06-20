@@ -51,18 +51,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
-            <artifactId>gravitee-apim-repository-gateway-bridge-http-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
-            <artifactId>gravitee-apim-repository-gateway-bridge-http-server</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-hazelcast</artifactId>
             <version>${project.version}</version>
