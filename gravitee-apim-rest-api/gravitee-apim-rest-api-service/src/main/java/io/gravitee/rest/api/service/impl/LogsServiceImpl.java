@@ -465,6 +465,10 @@ public class LogsServiceImpl implements LogsService {
 
     private String getJwtOrOauth2Subscription(ExecutionContext executionContext, ExtendedLog log) {
         GenericPlanEntity plan = planSearchService.findById(executionContext, log.getPlan());
+        if (plan.getPlanSecurity() == null || plan.getPlanSecurity().getType() == null) {
+            return null;
+        }
+
         io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType =
             io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
         if (

@@ -135,8 +135,12 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
                     filtered = query.getName().equals(p.getName());
                 }
                 if (filtered && query.getSecurityType() != null && !query.getSecurityType().isEmpty()) {
-                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
-                    filtered = query.getSecurityType().contains(planSecurityType);
+                    if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
+                        filtered = false;
+                    } else {
+                        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
+                        filtered = query.getSecurityType().contains(planSecurityType);
+                    }
                 }
                 if (filtered && query.getStatus() != null && !query.getStatus().isEmpty()) {
                     PlanStatus planStatus = PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());

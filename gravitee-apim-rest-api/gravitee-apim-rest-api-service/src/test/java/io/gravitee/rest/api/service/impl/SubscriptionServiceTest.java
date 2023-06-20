@@ -1338,6 +1338,87 @@ public class SubscriptionServiceTest {
         subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
     }
 
+    @Test(expected = TransferNotAllowedException.class)
+    public void shouldNotTransferSubscription_onNonPublishedPlan() throws Exception {
+        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+        transferSubscription.setId(SUBSCRIPTION_ID);
+        transferSubscription.setPlan(PLAN_ID);
+
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        planEntity.setStatus(PlanStatus.STAGING);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        planEntity.setApi("another");
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+    }
+
+    @Test(expected = TransferNotAllowedException.class)
+    public void shouldNotTransferSubscription_onStandardPlanFromPushPlan() throws Exception {
+        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+        transferSubscription.setId(SUBSCRIPTION_ID);
+        transferSubscription.setPlan(PLAN_ID);
+
+        when(subscription.getPlan()).thenReturn("push-plan-id");
+        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        planEntity.setApi("another");
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        PlanEntity pushPlan = new PlanEntity();
+        pushPlan.setStatus(PlanStatus.PUBLISHED);
+        pushPlan.setApi("another");
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), "push-plan-id")).thenReturn(pushPlan);
+
+        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+    }
+
+    @Test(expected = TransferNotAllowedException.class)
+    public void shouldNotTransferSubscription_onPushPlanFromStandardPlan() throws Exception {
+        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+        transferSubscription.setId(SUBSCRIPTION_ID);
+        transferSubscription.setPlan("push-plan-id");
+
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        planEntity.setApi("another");
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        PlanEntity pushPlan = new PlanEntity();
+        pushPlan.setStatus(PlanStatus.PUBLISHED);
+        pushPlan.setApi("another");
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), "push-plan-id")).thenReturn(pushPlan);
+
+        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+    }
+
+    @Test(expected = TransferNotAllowedException.class)
+    public void shouldNotTransferSubscription_onPlanWithDifferentSecurity() throws Exception {
+        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+        transferSubscription.setId(SUBSCRIPTION_ID);
+        transferSubscription.setPlan(PLAN_ID);
+
+        when(subscription.getPlan()).thenReturn("JWT-plan-id");
+        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        planEntity.setStatus(PlanStatus.PUBLISHED);
+        planEntity.setSecurity(PlanSecurityType.API_KEY);
+        planEntity.setApi("another");
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        PlanEntity jwtPlan = new PlanEntity();
+        jwtPlan.setStatus(PlanStatus.PUBLISHED);
+        jwtPlan.setSecurity(PlanSecurityType.JWT);
+        jwtPlan.setApi("another");
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), "JWT-plan-id")).thenReturn(jwtPlan);
+
+        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+    }
+
     @Test(expected = PlanRestrictedException.class)
     public void shouldNotCreateBecauseRestricted() {
         // Stub

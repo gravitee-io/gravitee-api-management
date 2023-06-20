@@ -415,6 +415,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         .map(Subscription::getPlan)
                         .distinct()
                         .map(plan1 -> planSearchService.findById(executionContext, plan1))
+                        .filter(subPlan -> subPlan.getPlanMode() == PlanMode.STANDARD)
                         .filter(subPlan -> {
                             PlanSecurity subPlanSecurity = subPlan.getPlanSecurity();
                             PlanSecurityType subPlanSecurityType = PlanSecurityType.valueOfLabel(subPlanSecurity.getType());
@@ -436,6 +437,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         .map(Subscription::getPlan)
                         .distinct()
                         .map(plan1 -> planSearchService.findById(executionContext, plan1))
+                        .filter(subPlan -> subPlan.getPlanMode() == PlanMode.STANDARD)
                         .filter(subPlan -> {
                             PlanSecurity subPlanSecurity = subPlan.getPlanSecurity();
                             PlanSecurityType subPlanSecurityType = PlanSecurityType.valueOfLabel(subPlanSecurity.getType());
@@ -716,16 +718,18 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 );
 
                 // Update the expiration date for not yet revoked api-keys relative to this subscription (except for shared API keys)
-                Date endingAt = subscription.getEndingAt();
                 PlanSecurity planSecurity = genericPlanEntity.getPlanSecurity();
-                PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(planSecurity.getType());
-                if (planSecurityType == PlanSecurityType.API_KEY && endingAt != null) {
-                    streamActiveApiKeys(executionContext, subscription.getId())
-                        .filter(apiKey -> !apiKey.getApplication().hasApiKeySharedMode())
-                        .forEach(apiKey -> {
-                            apiKey.setExpireAt(endingAt);
-                            apiKeyService.update(executionContext, apiKey);
-                        });
+                if (planSecurity != null) {
+                    Date endingAt = subscription.getEndingAt();
+                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(planSecurity.getType());
+                    if (planSecurityType == PlanSecurityType.API_KEY && endingAt != null) {
+                        streamActiveApiKeys(executionContext, subscription.getId())
+                            .filter(apiKey -> !apiKey.getApplication().hasApiKeySharedMode())
+                            .forEach(apiKey -> {
+                                apiKey.setExpireAt(endingAt);
+                                apiKeyService.update(executionContext, apiKey);
+                            });
+                    }
                 }
 
                 return convert(subscription);
@@ -1440,8 +1444,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         planSearchService
             .findByIdIn(executionContext, subscriptionsByPlan.keySet())
             .forEach(plan -> {
-                PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
-                subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(planSecurityType.name()));
+                PlanSecurity planSecurity = plan.getPlanSecurity();
+                if (planSecurity != null) {
+                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(planSecurity.getType());
+                    subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(planSecurityType.name()));
+                }
             });
     }
 
@@ -1494,10 +1501,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .orElseThrow(() -> new SubscriptionNotFoundException(transferSubscription.getId()));
             GenericPlanEntity subscriptionGenericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
             if (
-                !transferGenericPlanEntity.getApiId().equals(subscription.getApi()) ||
-                transferGenericPlanEntity.getPlanStatus() != PlanStatus.PUBLISHED ||
-                !transferGenericPlanEntity.getPlanSecurity().getType().equals(subscriptionGenericPlanEntity.getPlanSecurity().getType()) ||
-                (transferGenericPlanEntity.getGeneralConditions() != null && !transferGenericPlanEntity.getGeneralConditions().isEmpty())
+                !transferGenericPlanEntity.getApiId().equals(subscription.getApi()) || //Don't transfer to another API
+                transferGenericPlanEntity.getPlanStatus() != PlanStatus.PUBLISHED || //Don't transfer to a non published plan
+                (transferGenericPlanEntity.getPlanSecurity() == null && subscriptionGenericPlanEntity.getPlanSecurity() != null) || //Don't transfer to a plan with security (Mode STANDARD) if the plan to transfer has no security (Mode PUSH)
+                (transferGenericPlanEntity.getPlanSecurity() != null && subscriptionGenericPlanEntity.getPlanSecurity() == null) || //Don't transfer to a plan with no security (Mode PUSH) if the plan to transfer has security (Mode STANDARD)
+                (
+                    transferGenericPlanEntity.getPlanSecurity() != null &&
+                    !transferGenericPlanEntity.getPlanSecurity().getType().equals(subscriptionGenericPlanEntity.getPlanSecurity().getType())
+                ) || //Don't transfer to a plan with a different security type (Both mode STANDARD)
+                (transferGenericPlanEntity.getGeneralConditions() != null && !transferGenericPlanEntity.getGeneralConditions().isEmpty()) //Don't transfer to a plan with general conditions
             ) {
                 throw new TransferNotAllowedException(transferGenericPlanEntity.getId());
             }
@@ -1689,7 +1701,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         if (plans.containsKey(subscription.getPlan())) {
             GenericPlanEntity plan = plans.get(subscription.getPlan());
             metadata.put(plan.getId(), "name", plan.getName());
-            metadata.put(plan.getId(), "securityType", PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType()).name());
+            if (plan.getPlanSecurity() != null) {
+                metadata.put(plan.getId(), "securityType", PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType()).name());
+            }
         }
         return metadata;
     }
@@ -1799,6 +1813,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .stream()
             .filter(subscription -> {
                 GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
+                if (genericPlanEntity.getPlanMode() != PlanMode.STANDARD) {
+                    return false;
+                }
                 PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(genericPlanEntity.getPlanSecurity().getType());
                 return planSecurityType == PlanSecurityType.API_KEY;
             })
