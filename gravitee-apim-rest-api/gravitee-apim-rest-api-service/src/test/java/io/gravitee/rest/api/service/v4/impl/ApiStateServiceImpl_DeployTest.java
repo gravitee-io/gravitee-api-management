@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -53,6 +54,7 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -117,6 +119,9 @@ public class ApiStateServiceImpl_DeployTest {
     @Mock
     private ApiMetadataService apiMetadataService;
 
+    @Mock
+    private ApiValidationService apiValidationService;
+
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
 
@@ -162,7 +167,8 @@ public class ApiStateServiceImpl_DeployTest {
                 auditService,
                 eventService,
                 objectMapper,
-                apiMetadataService
+                apiMetadataService,
+                apiValidationService
             );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -184,6 +190,13 @@ public class ApiStateServiceImpl_DeployTest {
     public void should_throw_when_deploying_if_managed_by_kubernetes() {
         api.setOrigin(ORIGIN_KUBERNETES);
         when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+        apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
+    }
+
+    @Test(expected = ApiNotDeployableException.class)
+    public void should_not_deploy_when_no_active_plan_for_api() {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(false);
         apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
     }
 
@@ -192,6 +205,7 @@ public class ApiStateServiceImpl_DeployTest {
         final EventEntity previousPublishedEvent = new EventEntity();
         previousPublishedEvent.setProperties(new HashMap<>());
 
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
         when(eventService.search(any(ExecutionContext.class), any())).thenReturn(singleton(previousPublishedEvent));
@@ -222,6 +236,7 @@ public class ApiStateServiceImpl_DeployTest {
 
     @Test(expected = TechnicalManagementException.class)
     public void should_throw_technical_exception_during_update() throws TechnicalException {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
         when(apiRepository.update(api)).thenThrow(new TechnicalException());
         apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());

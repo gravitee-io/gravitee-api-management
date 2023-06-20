@@ -44,4 +44,6 @@ public interface ApiValidationService {
         final ApiEntity apiEntity,
         final PrimaryOwnerEntity primaryOwnerEntity
     );
+
+    boolean canDeploy(ExecutionContext executionContext, String apiId);
 }

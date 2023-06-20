@@ -376,7 +376,8 @@ public class ApiServiceImplTest {
                 auditService,
                 eventService,
                 objectMapper,
-                apiMetadataService
+                apiMetadataService,
+                apiValidationService
             );
         //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         reset(searchEngineService);
@@ -1170,6 +1171,7 @@ public class ApiServiceImplTest {
     @Test(expected = ApiNotManagedException.class)
     public void shouldThrowWhenDeployingIfManagedByKubernetes() throws TechnicalException {
         api.setOrigin(ORIGIN_KUBERNETES);
+        when(apiValidationService.canDeploy(any(), any())).thenReturn(true);
         Mockito.when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
     }
@@ -1179,6 +1181,7 @@ public class ApiServiceImplTest {
         final EventEntity previousPublishedEvent = new EventEntity();
         previousPublishedEvent.setProperties(new HashMap<>());
 
+        when(apiValidationService.canDeploy(any(), any())).thenReturn(true);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(api)).thenReturn(api);
         when(eventService.search(any(ExecutionContext.class), any())).thenReturn(singleton(previousPublishedEvent));

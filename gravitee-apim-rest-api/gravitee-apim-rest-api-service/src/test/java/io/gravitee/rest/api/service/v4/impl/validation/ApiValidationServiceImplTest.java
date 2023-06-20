@@ -22,24 +22,32 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
@@ -49,7 +57,6 @@ import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.Before;
@@ -86,6 +93,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private AnalyticsValidationService loggingValidationService;
 
+    @Mock
+    private PlanService planService;
+
     private ApiValidationService apiValidationService;
 
     @Before
@@ -98,7 +108,8 @@ public class ApiValidationServiceImplTest {
                 endpointGroupsValidationService,
                 flowValidationService,
                 resourcesValidationService,
-                loggingValidationService
+                loggingValidationService,
+                planService
             );
     }
 
@@ -280,6 +291,43 @@ public class ApiValidationServiceImplTest {
             new PrimaryOwnerEntity(),
             existingApiEntity
         );
+    }
+
+    @Test
+    public void canDeployWithOnePublishedPlan() {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final String apiId = "api-id";
+
+        when(planService.findByApi(executionContext, apiId)).thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.PUBLISHED)));
+        assertTrue(apiValidationService.canDeploy(executionContext, apiId));
+    }
+
+    @Test
+    public void canDeployWithOneDeprecatedPlan() {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final String apiId = "api-id";
+
+        when(planService.findByApi(executionContext, apiId)).thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.DEPRECATED)));
+        assertTrue(apiValidationService.canDeploy(executionContext, apiId));
+    }
+
+    @Test
+    public void cannotDeployWithNoPlan() {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final String apiId = "api-id";
+
+        when(planService.findByApi(executionContext, apiId)).thenReturn(Set.of());
+        assertFalse(apiValidationService.canDeploy(executionContext, apiId));
+    }
+
+    @Test
+    public void cannotDeployWithNoActivePlan() {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final String apiId = "api-id";
+
+        when(planService.findByApi(executionContext, apiId))
+            .thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.STAGING), new PlanEntity().withStatus(PlanStatus.CLOSED)));
+        assertFalse(apiValidationService.canDeploy(executionContext, apiId));
     }
 
     private void assertUpdate(

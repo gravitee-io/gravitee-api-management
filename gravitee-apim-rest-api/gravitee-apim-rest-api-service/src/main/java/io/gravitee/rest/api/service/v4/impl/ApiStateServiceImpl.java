@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -48,6 +49,7 @@ import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -76,6 +78,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final EventService eventService;
     private final ObjectMapper objectMapper;
     private final ApiMetadataService apiMetadataService;
+    private final ApiValidationService apiValidationService;
 
     public ApiStateServiceImpl(
         @Lazy final ApiSearchService apiSearchService,
@@ -87,7 +90,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         final AuditService auditService,
         @Lazy final EventService eventService,
         final ObjectMapper objectMapper,
-        @Lazy final ApiMetadataService apiMetadataService
+        @Lazy final ApiMetadataService apiMetadataService,
+        @Lazy final ApiValidationService apiValidationService
     ) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
@@ -99,6 +103,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.eventService = eventService;
         this.objectMapper = objectMapper;
         this.apiMetadataService = apiMetadataService;
+        this.apiValidationService = apiValidationService;
     }
 
     @Override
@@ -111,6 +116,9 @@ public class ApiStateServiceImpl implements ApiStateService {
         log.debug("Deploy API: {}", apiId);
 
         Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
+        if (!apiValidationService.canDeploy(executionContext, apiId)) {
+            throw new ApiNotDeployableException("The api {" + apiId + "} can not be deployed without at least one published plan");
+        }
 
         if (DefinitionContext.isKubernetes(api.getOrigin())) {
             throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to deploy it.");
