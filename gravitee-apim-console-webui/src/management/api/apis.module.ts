@@ -34,16 +34,14 @@ import { ApisPortalModule } from './portal/apis-portal.module';
 import { ApiProxyV4EntrypointsComponent } from './proxy-v4/api-proxy-v4-entrypoints.component';
 import { ApiProxyV4Module } from './proxy-v4/api-proxy-v4.module';
 import { ApiPortalSubscriptionEditComponent } from './portal/ng-subscriptions/edit/api-portal-subscription-edit.component';
+import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
+import { ApiBackendServicesComponent } from './endpoints-v4/backend-services/api-backend-services.component';
+import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
 import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
-import { ApiEndpointsModule } from "./endpoints-v4/api-endpoints.module";
-import { ApiBackendServicesComponent } from "./endpoints-v4/backend-services/api-backend-services.component";
-import {
-  ApiProxyGroupEndpointEditComponent
-} from "./proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component";
 
 // New Angular routing
 const states: Ng2StateDeclaration[] = [
@@ -187,7 +185,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.proxy',
+    name: 'management.apis.ng.entrypoints',
     url: '/proxy',
     component: ApiProxyV4EntrypointsComponent,
     data: {
