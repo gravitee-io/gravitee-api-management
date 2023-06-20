@@ -41,6 +41,9 @@ import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.c
 import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
 import { ApiEndpointsModule } from "./endpoints-v4/api-endpoints.module";
 import { ApiBackendServicesComponent } from "./endpoints-v4/backend-services/api-backend-services.component";
+import {
+  ApiProxyGroupEndpointEditComponent
+} from "./proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component";
 
 // New Angular routing
 const states: Ng2StateDeclaration[] = [
@@ -226,6 +229,21 @@ const states: Ng2StateDeclaration[] = [
     name: 'management.apis.ng.endpoints',
     url: '/endpoints',
     component: ApiBackendServicesComponent,
+    data: {
+      useAngularMaterial: true,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-r'],
+      // },
+      docs: {
+        page: 'management-api-proxy-endpoints',
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.endpoint',
+    url: '/groups/:groupName/endpoints/:endpointName',
+    component: ApiProxyGroupEndpointEditComponent,
     data: {
       useAngularMaterial: true,
       // TODO: Implement permissions

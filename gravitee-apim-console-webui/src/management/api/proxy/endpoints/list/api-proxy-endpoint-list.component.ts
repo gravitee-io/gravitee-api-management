@@ -19,6 +19,7 @@ import { StateService } from '@uirouter/angular';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { UIRouterGlobals } from '@uirouter/core';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
@@ -37,9 +38,9 @@ export class ApiProxyEndpointListComponent implements OnInit {
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public isReadOnly = false;
-  public apiId: string;
   public endpointGroupsTableData: EndpointGroup[];
   public endpointTableDisplayedColumns = ['name', 'healthCheck', 'target', 'type', 'weight', 'actions'];
+  private routeBase: string;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -48,9 +49,11 @@ export class ApiProxyEndpointListComponent implements OnInit {
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    private readonly ajsGlobals: UIRouterGlobals,
   ) {}
 
   ngOnInit(): void {
+    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.proxy';
     if (this.api) {
       this.initData(this.api);
     }
@@ -61,7 +64,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
   }
 
   navigateToEndpoint(groupName: string, endpointName: string): void {
-    this.ajsState.go('management.apis.detail.proxy.endpoint', { endpointName, groupName });
+    this.ajsState.go(`${this.routeBase}.endpoint`, { endpointName, groupName });
   }
 
   deleteGroup(groupName: string): void {
@@ -80,7 +83,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
       .pipe(
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.apiId)),
+        switchMap(() => this.apiService.get(this.api.id)),
         /*
         // TODO: make it work with UpdateApi type
         switchMap((api: Api) => {
@@ -114,7 +117,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
       .pipe(
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.apiId)),
+        switchMap(() => this.apiService.get(this.api.id)),
         /*
         // TODO: make it work with UpdateApi type
         switchMap((api: Api) => {
