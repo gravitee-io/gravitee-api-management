@@ -45,6 +45,7 @@ describe('ApiEndpointsGroupsComponent', () => {
       {
         name: 'default-group',
         type: 'kafka',
+        loadBalancer: { type: 'ROUND_ROBIN' },
         endpoints: [
           {
             name: 'a kafka',
