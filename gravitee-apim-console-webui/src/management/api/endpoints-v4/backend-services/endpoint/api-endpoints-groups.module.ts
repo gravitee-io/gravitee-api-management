@@ -21,12 +21,23 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
 
 @NgModule({
   declarations: [ApiEndpointsGroupsComponent],
   exports: [ApiEndpointsGroupsComponent],
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatTableModule, MatTooltipModule, GioIconsModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatTableModule,
+    MatTooltipModule,
+    MatSnackBarModule,
+    GioIconsModule,
+  ],
 })
 export class ApiEndpointsGroupsModule {}
