@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApiSubscriptionsResponse, Subscription } from '../entities/management-api-v2';
+import { ApiSubscriptionsResponse, CreateSubscription, Subscription } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -65,5 +65,9 @@ export class ApiSubscriptionV2Service {
 
   resume(subscriptionId: string, apiId: string): Observable<Subscription> {
     return this.http.post<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/_resume`, {});
+  }
+
+  create(apiId: string, createSubscription: CreateSubscription): Observable<Subscription> {
+    return this.http.post<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions`, createSubscription);
   }
 }

@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { HarnessLoader, parallel } from '@angular/cdk/testing';
-import { HttpTestingController } from '@angular/common/http/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { UIRouterGlobals } from '@uirouter/core';
+import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatTableHarness } from '@angular/material/table/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { Component, ViewChild } from '@angular/core';
+import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
+import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatRadioGroupHarness } from '@angular/material/radio/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { UIRouterGlobals } from '@uirouter/core';
 
 import { ApiPortalSubscriptionListComponent } from './api-portal-subscription-list.component';
+import { ApiPortalSubscriptionListHarness } from './api-portal-subscription-list.harness';
 
+import { ApiPortalSubscriptionsModule } from '../api-portal-subscriptions.module';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiPortalSubscriptionsModule } from '../api-portal-subscriptions.module';
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import {
   Api,
@@ -46,6 +49,16 @@ import {
   Plan,
   Subscription,
 } from '../../../../../entities/management-api-v2';
+import { PagedResult } from '../../../../../entities/pagedResult';
+import { Application } from '../../../../../entities/application/application';
+import { fakeApplication } from '../../../../../entities/application/Application.fixture';
+
+@Component({
+  template: ` <api-portal-subscription-list #apiPortalSubscriptionList></api-portal-subscription-list> `,
+})
+class TestComponent {
+  @ViewChild('apiPortalSubscriptionList') apiPortalSubscriptionList: ApiPortalSubscriptionListComponent;
+}
 
 describe('ApiPortalSubscriptionListComponent', () => {
   const API_ID = 'api_1';
@@ -56,14 +69,15 @@ describe('ApiPortalSubscriptionListComponent', () => {
   const aBaseApplication = fakeBaseApplication({ id: APPLICATION_ID });
   const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
-  currentUser.userPermissions = ['api-plan-u', 'api-plan-r', 'api-plan-d'];
+  currentUser.userPermissions = ['api-subscription-c', 'api-subscription-r'];
 
-  let fixture: ComponentFixture<ApiPortalSubscriptionListComponent>;
+  let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   const init = async (ajsGlobals: any = {}) => {
     await TestBed.configureTestingModule({
+      declarations: [TestComponent],
       imports: [ApiPortalSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
@@ -72,6 +86,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
           provide: InteractivityChecker,
           useValue: {
             isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+            isTabbable: () => true, // This traps tabbable checks and so avoid warnings when dealing with
           },
         },
         {
@@ -94,20 +109,25 @@ describe('ApiPortalSubscriptionListComponent', () => {
   describe('filters tests', () => {
     it('should display default filters', fakeAsync(async () => {
       await initComponent([]);
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
 
-      const planSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="planIds"]' }));
+      const planSelectInput = await harness.getPlanSelectInput();
       expect(await planSelectInput.isDisabled()).toEqual(false);
       expect(await planSelectInput.isEmpty()).toEqual(true);
+      // const plansOptions = await planSelectInput.getOptions();
+      // expect(plansOptions.length).toEqual(1);
 
-      const applicationSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="applicationIds"]' }));
+      const applicationSelectInput = await harness.getApplicationSelectInput();
       expect(await applicationSelectInput.isDisabled()).toEqual(false);
       expect(await applicationSelectInput.isEmpty()).toEqual(true);
+      // const applicationsOptions = await applicationSelectInput.getOptions();
+      // expect(applicationsOptions.length).toEqual(1);
 
-      const statusSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="statuses"]' }));
+      const statusSelectInput = await harness.getStatusSelectInput();
       expect(await statusSelectInput.isDisabled()).toEqual(false);
       expect(await statusSelectInput.getValueText()).toEqual('Accepted, Paused, Pending');
 
-      const apikeyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="apikey"]' }));
+      const apikeyInput = await harness.getApiKeyInput();
       expect(await apikeyInput.isDisabled()).toEqual(false);
       expect(await apikeyInput.getValue()).toEqual('');
     }));
@@ -119,20 +139,25 @@ describe('ApiPortalSubscriptionListComponent', () => {
         status: 'CLOSED,REJECTED',
         apikey: 'apikey_1',
       });
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
 
-      const planSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="planIds"]' }));
+      const planSelectInput = await harness.getPlanSelectInput();
       expect(await planSelectInput.isDisabled()).toEqual(false);
       expect(await planSelectInput.getValueText()).toEqual('Default plan');
+      // const plansOptions = await planSelectInput.getOptions();
+      // expect(plansOptions.length).toEqual(1);
 
-      const applicationSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="applicationIds"]' }));
+      const applicationSelectInput = await harness.getApplicationSelectInput();
       expect(await applicationSelectInput.isDisabled()).toEqual(false);
       expect(await applicationSelectInput.getValueText()).toEqual('My first application');
+      // const applicationsOptions = await applicationSelectInput.getOptions();
+      // expect(applicationsOptions.length).toEqual(1);
 
-      const statusSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="statuses"]' }));
+      const statusSelectInput = await harness.getStatusSelectInput();
       expect(await statusSelectInput.isDisabled()).toEqual(false);
       expect(await statusSelectInput.getValueText()).toEqual('Closed, Rejected');
 
-      const apikeyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="apikey"]' }));
+      const apikeyInput = await harness.getApiKeyInput();
       expect(await apikeyInput.isDisabled()).toEqual(false);
       expect(await apikeyInput.getValue()).toEqual('apikey_1');
     }));
@@ -144,25 +169,26 @@ describe('ApiPortalSubscriptionListComponent', () => {
         status: 'CLOSED,REJECTED',
         apikey: 'apikey_1',
       });
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
 
-      const resetFilterButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Reset filters"]' }));
+      const resetFilterButton = await harness.getResetFilterButton();
       await resetFilterButton.click();
       tick(800);
       expectApiSubscriptionsGetRequest([]);
 
-      const planSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="planIds"]' }));
+      const planSelectInput = await harness.getPlanSelectInput();
       expect(await planSelectInput.isDisabled()).toEqual(false);
       expect(await planSelectInput.isEmpty()).toEqual(true);
 
-      const applicationSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="applicationIds"]' }));
+      const applicationSelectInput = await harness.getApplicationSelectInput();
       expect(await applicationSelectInput.isDisabled()).toEqual(false);
       expect(await applicationSelectInput.isEmpty()).toEqual(true);
 
-      const statusSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="statuses"]' }));
+      const statusSelectInput = await harness.getStatusSelectInput();
       expect(await statusSelectInput.isDisabled()).toEqual(false);
       expect(await statusSelectInput.getValueText()).toEqual('Accepted, Paused, Pending');
 
-      const apikeyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="apikey"]' }));
+      const apikeyInput = await harness.getApiKeyInput();
       expect(await apikeyInput.isDisabled()).toEqual(false);
       expect(await apikeyInput.getValue()).toEqual('');
     }));
@@ -221,10 +247,11 @@ describe('ApiPortalSubscriptionListComponent', () => {
 
     it('should search closed subscription', fakeAsync(async () => {
       await initComponent([fakeSubscription()]);
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
 
-      const statusSelectInput = await getEmptyFilterForm();
+      const statusSelectInput = await getEmptyFilterForm(harness);
       await statusSelectInput.clickOptions({ text: 'Closed' });
-      tick(800); // Wait for the debounce
+      tick(400); // Wait for the debounce
       const closedSubscription = fakeSubscription({ status: 'CLOSED' });
       expectApiSubscriptionsGetRequest([closedSubscription], ['CLOSED']);
 
@@ -237,13 +264,82 @@ describe('ApiPortalSubscriptionListComponent', () => {
     it('should search and not find any subscription', fakeAsync(async () => {
       await initComponent([fakeSubscription()]);
 
-      const statusSelectInput = await getEmptyFilterForm();
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+
+      const statusSelectInput = await getEmptyFilterForm(harness);
       await statusSelectInput.clickOptions({ text: 'Rejected' });
-      tick(800); // Wait for the debounce
+      tick(400); // Wait for the debounce
       expectApiSubscriptionsGetRequest([], ['REJECTED']);
 
       const { rowCells } = await computeSubscriptionsTableCells();
       expect(rowCells).toEqual([['There is no subscription (yet).']]);
+    }));
+  });
+
+  describe('create subscription', () => {
+    it('should create subscription to a api key plan', fakeAsync(async () => {
+      const planV4 = fakePlanV4({ generalConditions: undefined });
+      const application = fakeApplication();
+
+      await initComponent([], anAPI, [planV4]);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+
+      expect(await harness.getCreateSubscriptionButton()).toBeDefined();
+
+      await harness.openCreationDialog();
+
+      const creationDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#createSubscriptionDialog' }),
+      );
+      expect(await creationDialog.getTitleText()).toEqual('Create a subscription');
+
+      const radioGroup = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatRadioGroupHarness);
+      const radioButtons = await radioGroup.getRadioButtons();
+
+      expect(radioButtons.length).toEqual(1);
+      await radioButtons[0].check();
+
+      const createBtn = await creationDialog.getHarness(MatButtonHarness.with({ text: 'Create' }));
+      expect(await createBtn.isDisabled()).toEqual(true);
+
+      const applicationAutocomplete = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatAutocompleteHarness);
+      await applicationAutocomplete.enterText('application');
+      tick(400);
+
+      expectApplicationsSearch('application', [application]);
+
+      const options = await applicationAutocomplete.getOptions();
+      expect(options.length).toEqual(1);
+      await options[0].click();
+
+      expect(await createBtn.isDisabled()).toEqual(false);
+      await createBtn.click();
+
+      const subscription = fakeSubscription();
+
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, subscription);
+      tick(400);
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
+
+      flush();
+    }));
+
+    it('should not create subscription on cancel', fakeAsync(async () => {
+      await initComponent([]);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+
+      await harness.openCreationDialog();
+
+      const creationDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#createSubscriptionDialog' }),
+      );
+      expect(await creationDialog.getTitleText()).toEqual('Create a subscription');
+
+      await creationDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' })).then((btn) => btn.click());
+
+      expect(fakeUiRouter.go).not.toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
     }));
   });
 
@@ -255,7 +351,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     params?: { plan?: string; application?: string; status?: string; apikey?: string },
   ) {
     await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id, ...(params ? params : {}) } }).compileComponents();
-    fixture = TestBed.createComponent(ApiPortalSubscriptionListComponent);
+    fixture = TestBed.createComponent(TestComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
@@ -270,9 +366,9 @@ describe('ApiPortalSubscriptionListComponent', () => {
       params?.plan?.split(','),
       params?.apikey,
     );
-
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
+    tick(400);
   }
 
   async function computeSubscriptionsTableCells() {
@@ -286,8 +382,8 @@ describe('ApiPortalSubscriptionListComponent', () => {
     return { headerCells, rowCells };
   }
 
-  async function getEmptyFilterForm() {
-    const statusSelectInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="statuses"]' }));
+  async function getEmptyFilterForm(harness: ApiPortalSubscriptionListHarness) {
+    const statusSelectInput = await harness.getStatusSelectInput();
     expect(await statusSelectInput.isDisabled()).toEqual(false);
 
     // remove default selected values
@@ -361,6 +457,42 @@ describe('ApiPortalSubscriptionListComponent', () => {
         }${applicationIds ? `&applicationIds=${applicationIds.join(',')}` : ''}${planIds ? `&planIds=${planIds.join(',')}` : ''}${
           apikey ? `&apikey=${apikey}` : ''
         }&expands=application,plan`,
+        method: 'GET',
+      })
+      .flush(response);
+    fixture.detectChanges();
+  }
+
+  function expectApiSubscriptionsPostRequest(planId: string, applicationId: string, subscription: Subscription) {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual({
+      planId,
+      applicationId,
+      customApiKey: undefined,
+    });
+    req.flush(subscription);
+    fixture.detectChanges();
+  }
+
+  function expectApplicationsSearch(searchTerm: string, applications: Application[]) {
+    const response: PagedResult<Application> = new PagedResult<Application>();
+    response.populate({
+      data: applications,
+      page: {
+        per_page: 20,
+        total_elements: applications.length,
+        current: 1,
+        size: applications.length,
+        total_pages: 1,
+      },
+      metadata: {},
+    });
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=1&size=20&status=ACTIVE&query=${searchTerm}&order=name`,
         method: 'GET',
       })
       .flush(response);

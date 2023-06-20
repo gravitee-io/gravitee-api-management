@@ -1,0 +1,16 @@
+.subscription-creation {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 600px;
+
+    &__plans {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+}
