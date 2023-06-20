@@ -493,16 +493,16 @@
         </dependency>
         <!-- Repositories -->
         <dependency>
-            <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
-            <artifactId>gravitee-apim-repository-gateway-bridge-http-server</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.graviteesource.apim</groupId>
+            <artifactId>gravitee-apim-repository-bridge-http-server</artifactId>
+            <version>${gravitee-repository-bridge.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
-            <artifactId>gravitee-apim-repository-gateway-bridge-http-client</artifactId>
-            <version>${project.version}</version>
+            <groupId>com.graviteesource.apim</groupId>
+            <artifactId>gravitee-apim-repository-bridge-http-client</artifactId>
+            <version>${gravitee-repository-bridge.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
