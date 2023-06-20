@@ -22,11 +22,12 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component, ViewChild } from '@angular/core';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
 import { ApiEndpointsGroupsHarness } from './api-endpoints-groups.harness';
 import { ApiEndpointsGroupsModule } from './api-endpoints-groups.module';
+
+import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 
 @Component({
   template: ` <api-endpoints-groups #apiPortalEndpoints [api]="api"></api-endpoints-groups> `,
