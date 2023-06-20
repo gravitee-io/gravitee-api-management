@@ -185,13 +185,15 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
       const listenerFormArrayControls = listenerFormArrayControl.controls;
       const listenerValues = listenerFormArrayControls.map((listener) => listener.value);
 
-      const errors = listenerFormArrayControls.reduce((acc, listenerControl, index) => {
-        const validationError = this.validateListenerControl(listenerControl, listenerValues, index);
-        if (validationError) {
-          acc[`${index}`] = validationError;
-        }
-        return acc;
-      }, {});
+      const errors = listenerFormArrayControls
+        .reduce((acc, listenerControl, index) => {
+          const validationError = this.validateListenerControl(listenerControl, listenerValues, index);
+          if (validationError) {
+            acc[`${index}`] = validationError;
+          }
+          return acc;
+        }, [])
+        .filter((err) => err !== null && !isEmpty(err));
 
       return isEmpty(errors) ? null : errors;
     };

@@ -90,7 +90,7 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
 
     const fistVirtualHost = virtualHosts.shift();
     const existingContextPathRow = await formVirtualHosts.getLastListenerRow();
-    await existingContextPathRow.hostInput.setValue(fistVirtualHost.host);
+    await existingContextPathRow.hostSubDomainInput.setValue(fistVirtualHost.host);
     await existingContextPathRow.pathInput.setValue(fistVirtualHost.path);
 
     for (const virtualHost of virtualHosts) {
