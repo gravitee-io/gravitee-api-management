@@ -22,18 +22,23 @@
       <div class="entrypoints__context-path__title">
         <span class="mat-body-strong">Entrypoints context</span>
 
-        <button id="switchListenerType" mat-button type="button" (click)="this.enableVirtualHost = !this.enableVirtualHost">
+        <button id="switchListenerType" mat-button type="button" (click)="switchEntrypointsMode()">
           <ng-container *ngIf="!this.enableVirtualHost"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
           <ng-container *ngIf="this.enableVirtualHost"> <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts </ng-container>
         </button>
       </div>
       <gio-form-listeners-context-path
         *ngIf="!this.enableVirtualHost"
-        formControlName="paths"
+        [formControl]="pathsFormControl"
         [pathsToIgnore]="apiExistingPaths"
       ></gio-form-listeners-context-path>
 
-      <gio-form-listeners-virtual-host *ngIf="this.enableVirtualHost" formControlName="paths"></gio-form-listeners-virtual-host>
+      <gio-form-listeners-virtual-host
+        *ngIf="this.enableVirtualHost"
+        [formControl]="pathsFormControl"
+        [pathsToIgnore]="apiExistingPaths"
+        [domainRestrictions]="domainRestrictions"
+      ></gio-form-listeners-virtual-host>
     </div>
 
     <table mat-table [dataSource]="dataSource" class="entrypoints__table" aria-label="entrypoints" *ngIf="api?.type === 'MESSAGE'">

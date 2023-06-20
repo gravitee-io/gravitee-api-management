@@ -20,6 +20,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 import { ApiProxyV4EntrypointsComponent } from './api-proxy-v4-entrypoints.component';
 import { ApiProxyV4Module } from './api-proxy-v4.module';
@@ -29,18 +32,21 @@ import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api, ApiV4, ConnectorPlugin, fakeApiV4, UpdateApiV4 } from '../../../entities/management-api-v2';
 import { GioFormListenersContextPathHarness } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
+import { GioFormListenersVirtualHostHarness } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
+import { Environment } from '../../../entities/environment/environment';
+import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
 
 describe('ApiProxyV4EntrypointsComponent', () => {
   const API_ID = 'apiId';
-  const API = fakeApiV4({ listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] }] });
   let fixture: ComponentFixture<ApiProxyV4EntrypointsComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const createComponent = (api: ApiV4) => {
+  const createComponent = (environment: Environment, api: ApiV4) => {
     fixture = TestBed.createComponent(ApiProxyV4EntrypointsComponent);
     fixture.detectChanges();
 
+    expectGetCurrentEnvironment(environment);
     expectGetEntrypoints();
     expectGetApi(api);
     expectGetPortalSettings();
@@ -51,59 +57,147 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyV4Module, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [{ provide: UIRouterStateParams, useValue: { apiId: API_ID } }],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
-  });
-
-  beforeEach(() => {
-    createComponent(API);
   });
 
   afterEach(() => {
     httpTestingController.verify({ ignoreCancelled: true });
   });
 
-  it('should show context paths', async () => {
-    const harness = await loader.getHarness(GioFormListenersContextPathHarness);
-    const listeners = await harness.getListenerRows();
-    expect(listeners.length).toEqual(1);
-    expect(await listeners[0].pathInput.getValue()).toEqual('/context-path');
+  describe('API with context path', () => {
+    const ENV = fakeEnvironment();
+    const API = fakeApiV4({ listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] }] });
+
+    beforeEach(() => {
+      createComponent(ENV, API);
+      fixture.detectChanges();
+    });
+
+    it('should show context paths', async () => {
+      const harness = await loader.getHarness(GioFormListenersContextPathHarness);
+      const listeners = await harness.getListenerRows();
+      expect(listeners.length).toEqual(1);
+      expect(await listeners[0].pathInput.getValue()).toEqual('/context-path');
+    });
+
+    it('should save changes to context paths', async () => {
+      const harness = await loader.getHarness(GioFormListenersContextPathHarness);
+
+      await harness.addListener({ path: '/new-context-path' });
+      expectApiVerify();
+      fixture.detectChanges();
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+
+      expect(await saveButton.isDisabled()).toBeFalsy();
+      await saveButton.click();
+
+      // GET
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [
+          {
+            type: 'HTTP',
+            paths: [{ path: '/context-path' }, { path: '/new-context-path' }],
+            entrypoints: API.listeners[0].entrypoints,
+          },
+        ],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+
+    it('should switch to virtual host mode', async () => {
+      const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Enable virtual hosts' }));
+      await switchButton.click();
+
+      const harness = await loader.getHarness(GioFormListenersVirtualHostHarness);
+      expect(harness).toBeDefined();
+      expect(await harness.getLastListenerRow().then((row) => row.pathInput.getValue())).toEqual('/context-path');
+      expectGetPortalSettings();
+    });
   });
 
-  it('should save changes to context paths', async () => {
-    const harness = await loader.getHarness(GioFormListenersContextPathHarness);
+  describe('API with virtual host', () => {
+    const ENV = fakeEnvironment({ domainRestrictions: ['host', 'host2'] });
+    const API = fakeApiV4({
+      listeners: [{ type: 'HTTP', paths: [{ path: '/context-path', host: 'host' }], entrypoints: [{ type: 'http-get' }] }],
+    });
 
-    await harness.addListener({ path: '/new-context-path' });
-    expectApiVerify();
-    fixture.detectChanges();
+    beforeEach(() => {
+      createComponent(ENV, API);
+      fixture.detectChanges();
+    });
 
-    const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+    it('should show virtual host', async () => {
+      const harness = await loader.getHarness(GioFormListenersVirtualHostHarness);
+      const listeners = await harness.getListenerRows();
+      expect(listeners.length).toEqual(1);
+      expect(await listeners[0].pathInput.getValue()).toEqual('/context-path');
 
-    expect(await saveButton.isDisabled()).toBeFalsy();
-    await saveButton.click();
+      expect(await listeners[0].hostDomainSuffix.getText()).toEqual('host');
+    });
 
-    // GET
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
-    // UPDATE
-    const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
-    const expectedUpdateApi: UpdateApiV4 = {
-      ...API,
-      listeners: [
-        {
-          type: 'HTTP',
-          paths: [{ path: '/context-path' }, { path: '/new-context-path' }],
-          entrypoints: API.listeners[0].entrypoints,
-        },
-      ],
-    };
-    expect(saveReq.request.body).toEqual(expectedUpdateApi);
-    saveReq.flush(API);
+    it('should save changes to virtual host', async () => {
+      const harness = await loader.getHarness(GioFormListenersVirtualHostHarness);
+
+      await harness.addListener({ host: 'host2', path: '/new-context-path' });
+      expectApiVerify();
+      fixture.detectChanges();
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+
+      expect(await saveButton.isDisabled()).toBeFalsy();
+      await saveButton.click();
+
+      // GET
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [
+          {
+            type: 'HTTP',
+            paths: [
+              { host: 'host', path: '/context-path', overrideAccess: false },
+              { host: 'host2', path: '/new-context-path', overrideAccess: false },
+            ],
+            entrypoints: API.listeners[0].entrypoints,
+          },
+        ],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+
+    it('should switch to context path mode', async () => {
+      const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Disable virtual hosts' }));
+      await switchButton.click();
+
+      const dialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialog.confirm();
+
+      const harness = await loader.getHarness(GioFormListenersContextPathHarness);
+      expect(harness).toBeDefined();
+      expect(await harness.getLastListenerRow().then((row) => row.pathInput.getValue())).toEqual('/context-path');
+      expectGetPortalSettings();
+    });
   });
 
-  // TODO: add test for virtual host mode
-
+  const expectGetCurrentEnvironment = (environment: Environment) => {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
+  };
   const expectGetApi = (api: Api) => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);
     fixture.detectChanges();

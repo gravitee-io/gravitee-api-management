@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
 
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
@@ -24,6 +26,7 @@ import { ApiV4, ConnectorPlugin, HttpListener, PathV4, UpdateApiV4 } from '../..
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../services-ngx/icon.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { EnvironmentService } from '../../../services-ngx/environment.service';
 
 type EntrypointVM = {
   id: string;
@@ -40,27 +43,37 @@ export class ApiProxyV4EntrypointsComponent implements OnInit {
   public apiId: string;
   public api: ApiV4;
   public formGroup: FormGroup;
+  public pathsFormControl: FormControl;
   public displayedColumns = ['type', 'actions'];
   public dataSource: EntrypointVM[] = [];
   private allEntrypoints: ConnectorPlugin[];
   public enableVirtualHost = false;
-  public enableContextPath = true;
   public apiExistingPaths: PathV4[] = [];
+  public domainRestrictions: string[] = [];
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
+    private readonly environmentService: EnvironmentService,
     private readonly formBuilder: FormBuilder,
     private readonly iconService: IconService,
     private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
+    private readonly changeDetector: ChangeDetectorRef,
   ) {
     this.apiId = this.ajsStateParams.apiId;
   }
 
   ngOnInit(): void {
-    forkJoin([this.apiService.get(this.apiId), this.connectorPluginsV2Service.listAsyncEntrypointPlugins()])
+    forkJoin([
+      this.environmentService.getCurrent(),
+      this.apiService.get(this.apiId),
+      this.connectorPluginsV2Service.listAsyncEntrypointPlugins(),
+    ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([api, availableEntrypoints]) => {
+      .subscribe(([environment, api, availableEntrypoints]) => {
+        this.domainRestrictions = environment.domainRestrictions || [];
+
         if (api.definitionVersion === 'V4') {
           this.allEntrypoints = availableEntrypoints;
           this.initForm(api);
@@ -77,10 +90,11 @@ export class ApiProxyV4EntrypointsComponent implements OnInit {
         return (listener as HttpListener).paths;
       });
       this.formGroup = new FormGroup({});
-      this.formGroup.addControl('paths', this.formBuilder.control(this.apiExistingPaths, Validators.required));
+      this.pathsFormControl = this.formBuilder.control(this.apiExistingPaths, Validators.required);
+      this.formGroup.addControl('paths', this.pathsFormControl);
       this.enableVirtualHost = this.apiExistingPaths.some((path) => path.host !== undefined);
     } else {
-      this.enableContextPath = false;
+      this.enableVirtualHost = false;
     }
 
     const entrypoints = this.api.listeners.flatMap((l) => l.entrypoints);
@@ -95,6 +109,7 @@ export class ApiProxyV4EntrypointsComponent implements OnInit {
         return entry;
       }
     });
+    this.changeDetector.detectChanges();
   }
 
   onEdit(element: EntrypointVM) {
@@ -113,7 +128,9 @@ export class ApiProxyV4EntrypointsComponent implements OnInit {
     const formValue = this.formGroup.getRawValue();
     const updatedHttpListener: HttpListener = {
       ...this.api.listeners.find((listener) => listener.type === 'HTTP'),
-      paths: formValue.paths,
+      paths: this.enableVirtualHost
+        ? formValue.paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
+        : formValue.paths.map(({ path }) => ({ path })),
     };
     this.apiService
       .get(this.apiId)
@@ -138,5 +155,38 @@ export class ApiProxyV4EntrypointsComponent implements OnInit {
       .subscribe((api) => {
         this.initForm(api as ApiV4);
       });
+  }
+
+  switchEntrypointsMode() {
+    if (this.enableVirtualHost) {
+      this.matDialog
+        .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+          width: '500px',
+          data: {
+            title: 'Switch to context-path mode',
+            content: `By moving back to context-path you will loose all virtual-hosts. Are you sure to continue?`,
+            confirmButton: 'Switch',
+          },
+          role: 'alertdialog',
+          id: 'switchContextPathConfirmDialog',
+        })
+        .afterClosed()
+        .pipe(
+          takeUntil(this.unsubscribe$),
+          tap((response) => {
+            if (response) {
+              // Keep only the path
+              const currentValue = this.formGroup.getRawValue().paths;
+              this.formGroup.get('paths').setValue(currentValue.map(({ path }) => ({ path })));
+              this.enableVirtualHost = !this.enableVirtualHost;
+              this.changeDetector.detectChanges();
+            }
+          }),
+        )
+        .subscribe();
+      return;
+    }
+
+    this.enableVirtualHost = !this.enableVirtualHost;
   }
 }

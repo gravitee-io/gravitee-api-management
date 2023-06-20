@@ -22,6 +22,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiProxyV4EntrypointsComponent } from './api-proxy-v4-entrypoints.component';
 
@@ -42,6 +43,7 @@ import { GioFormListenersVirtualHostModule } from '../component/gio-form-listene
     MatSnackBarModule,
     MatIconModule,
     GioIconsModule,
+    MatDialogModule,
   ],
   declarations: [ApiProxyV4EntrypointsComponent],
 })
