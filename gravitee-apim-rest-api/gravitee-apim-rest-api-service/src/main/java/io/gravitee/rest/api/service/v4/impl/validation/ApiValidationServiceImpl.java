@@ -22,6 +22,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
@@ -58,6 +60,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final FlowValidationService flowValidationService;
     private final ResourcesValidationService resourcesValidationService;
     private final AnalyticsValidationService analyticsValidationService;
+    private final PlanService planService;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -66,7 +69,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final EndpointGroupsValidationService endpointGroupsValidationService,
         final FlowValidationService flowValidationService,
         final ResourcesValidationService resourcesValidationService,
-        final AnalyticsValidationService loggingValidationService
+        final AnalyticsValidationService loggingValidationService,
+        PlanService planService
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -75,6 +79,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.flowValidationService = flowValidationService;
         this.resourcesValidationService = resourcesValidationService;
         this.analyticsValidationService = loggingValidationService;
+        this.planService = planService;
     }
 
     @Override
@@ -190,6 +195,16 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
 
         // Validate and clean resources
         apiEntity.setResources(resourcesValidationService.validateAndSanitize(apiEntity.getResources()));
+    }
+
+    @Override
+    public boolean canDeploy(ExecutionContext executionContext, String apiId) {
+        return planService
+            .findByApi(executionContext, apiId)
+            .stream()
+            .anyMatch(planEntity ->
+                PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus()) || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus())
+            );
     }
 
     private void validateDefinitionVersion(final DefinitionVersion oldDefinitionVersion, final DefinitionVersion newDefinitionVersion) {

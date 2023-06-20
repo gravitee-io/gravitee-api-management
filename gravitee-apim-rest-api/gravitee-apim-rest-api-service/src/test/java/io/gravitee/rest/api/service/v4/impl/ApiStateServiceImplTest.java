@@ -55,6 +55,7 @@ import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -123,6 +124,9 @@ public class ApiStateServiceImplTest {
     @Mock
     private ApiMetadataService apiMetadataService;
 
+    @Mock
+    private ApiValidationService apiValidationService;
+
     @InjectMocks
     private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
 
@@ -168,7 +172,8 @@ public class ApiStateServiceImplTest {
                 auditService,
                 eventService,
                 objectMapper,
-                apiMetadataService
+                apiMetadataService,
+                apiValidationService
             );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -189,6 +194,7 @@ public class ApiStateServiceImplTest {
     @Test
     public void shouldStartApiForTheFirstTime() throws TechnicalException {
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
 
