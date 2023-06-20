@@ -13,27 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
 
-import { EndpointServices } from './endpointServices';
-
-export interface EndpointV4 {
-  /**
-   * The name of the endpoint
-   */
-  name?: string;
-  /**
-   * The type of the endpoint
-   */
-  type: string;
-  /**
-   * The weight of the endpoint
-   */
-  weight?: number;
-  /**
-   * Is the configuration of the endpoint inherited from the endpoint group it belongs to.
-   */
-  inheritConfiguration?: boolean;
-  configuration?: any;
-  services?: EndpointServices;
-  secondary?: boolean;
+export class ApiProxyEndpointListHarness extends ComponentHarness {
+  static hostSelector = 'api-proxy-endpoint-list';
 }

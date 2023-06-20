@@ -27,11 +27,10 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ApiProxyEndpointListComponent } from './api-proxy-endpoint-list.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
-import { Api } from '../../../../../entities/api';
 import { ApiProxyEndpointModule } from '../api-proxy-endpoints.module';
+import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiProxyEndpointListComponent', () => {
   const API_ID = 'apiId';
@@ -45,7 +44,7 @@ describe('ApiProxyEndpointListComponent', () => {
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-r'];
 
-  beforeEach(() => {
+  const initComponent = (api: ApiV2): void => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEndpointModule, MatIconTestingModule],
       providers: [
@@ -60,12 +59,13 @@ describe('ApiProxyEndpointListComponent', () => {
     });
 
     fixture = TestBed.createComponent(ApiProxyEndpointListComponent);
+    fixture.componentInstance.api = api;
+
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-  });
+  };
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -73,25 +73,23 @@ describe('ApiProxyEndpointListComponent', () => {
   });
 
   describe('navigateToGroup', () => {
-    it('should navigate to new Proxy Endpoint Group page on click to add button', async () => {
-      const api = fakeApi({
-        id: API_ID,
-      });
-      expectApiGetRequest(api);
-      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
+    let routerSpy: jest.SpyInstance;
+    beforeEach(() => {
+      initComponent(
+        fakeApiV2({
+          id: API_ID,
+        }),
+      );
+      routerSpy = jest.spyOn(fakeUiRouter, 'go');
+    });
 
+    it('should navigate to new Proxy Endpoint Group page on click to add button', async () => {
       await loader.getHarness(MatButtonHarness.with({ text: /Add new endpoint group/ })).then((button) => button.click());
 
       expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.group', { groupName: '' });
     });
 
     it('should navigate to existing group', async () => {
-      const api = fakeApi({
-        id: API_ID,
-      });
-      expectApiGetRequest(api);
-      const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-
       await loader.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Edit group"]' })).then((btn) => btn.click());
 
       expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.group', { groupName: 'default-group' });
@@ -101,16 +99,16 @@ describe('ApiProxyEndpointListComponent', () => {
   describe('navigateToEndpoint', () => {
     it.each`
       definitionContext | buttonAreaLabel
-      ${'management'}   | ${'Button to edit an endpoint'}
-      ${'kubernetes'}   | ${'Button to open endpoint detail'}
+      ${'MANAGEMENT'}   | ${'Button to edit an endpoint'}
+      ${'KUBERNETES'}   | ${'Button to open endpoint detail'}
     `('should be able to open an endpoint for API with origin $definitionContext', async ({ definitionContext, buttonAreaLabel }) => {
       const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-
-      const api = fakeApi({
-        id: API_ID,
-        definition_context: { origin: definitionContext },
-      });
-      expectApiGetRequest(api);
+      initComponent(
+        fakeApiV2({
+          id: API_ID,
+          definitionContext: { origin: definitionContext },
+        }),
+      );
 
       const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
       const rtTableRows = await rtTable.getRows();
@@ -130,49 +128,50 @@ describe('ApiProxyEndpointListComponent', () => {
   });
 
   describe('mat table tests', () => {
-    it('should display the first endpoint group table', async () => {
-      const api = fakeApi({
-        id: API_ID,
-        proxy: {
-          groups: [
-            {
-              name: 'default-group',
-              endpoints: [
-                {
-                  name: 'default',
-                  target: 'https://api.le-systeme-solaire.net/rest/',
-                  weight: 1,
-                  backup: false,
-                  type: 'HTTP',
-                  inherit: false,
-                },
-                {
-                  name: 'secondary endpoint',
-                  target: 'https://api.gravitee.io/echo',
-                  weight: 1,
-                  backup: false,
-                  type: 'HTTP',
-                  inherit: false,
-                },
-              ],
-            },
-            {
-              name: 'second group',
-              endpoints: [
-                {
-                  name: 'default',
-                  target: 'https://api.gravitee.io/echo',
-                  weight: 1,
-                  backup: false,
-                  type: 'HTTP',
-                  inherit: false,
-                },
-              ],
-            },
-          ],
-        },
-      });
-      expectApiGetRequest(api);
+    it('should display the endpoint groups tables', async () => {
+      initComponent(
+        fakeApiV2({
+          id: API_ID,
+          proxy: {
+            groups: [
+              {
+                name: 'default-group',
+                endpoints: [
+                  {
+                    name: 'default',
+                    target: 'https://api.le-systeme-solaire.net/rest/',
+                    weight: 1,
+                    backup: false,
+                    type: 'HTTP',
+                    inherit: false,
+                  },
+                  {
+                    name: 'secondary endpoint',
+                    target: 'https://api.gravitee.io/echo',
+                    weight: 1,
+                    backup: false,
+                    type: 'HTTP',
+                    inherit: false,
+                  },
+                ],
+              },
+              {
+                name: 'second group',
+                endpoints: [
+                  {
+                    name: 'default',
+                    target: 'https://api.gravitee.io/echo',
+                    weight: 1,
+                    backup: false,
+                    type: 'HTTP',
+                    inherit: false,
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      );
 
       const rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
       const rtTableRows0 = await rtTable0.getCellTextByIndex();
@@ -189,67 +188,70 @@ describe('ApiProxyEndpointListComponent', () => {
     });
 
     it("should display health check icon when it's configured at endpoint level", async () => {
-      const api = fakeApi({
-        id: API_ID,
-        services: {
-          'health-check': {
-            enabled: false,
-          },
-        },
-        proxy: {
-          groups: [
-            {
-              name: 'default-group',
-              endpoints: [
-                {
-                  name: 'default',
-                  target: 'https://api.le-systeme-solaire.net/rest/',
-                  weight: 1,
-                  backup: false,
-                  type: 'HTTP',
-                  inherit: true,
-                  healthcheck: {
-                    enabled: true,
-                    inherit: false,
-                    schedule: '0 0/1 * 1/1 * ? *',
-                    steps: [],
-                  },
-                },
-              ],
+      initComponent(
+        fakeApiV2({
+          id: API_ID,
+          services: {
+            healthCheck: {
+              enabled: false,
             },
-          ],
-        },
-      });
-      expectApiGetRequest(api);
+          },
+          proxy: {
+            groups: [
+              {
+                name: 'default-group',
+                endpoints: [
+                  {
+                    name: 'default',
+                    target: 'https://api.le-systeme-solaire.net/rest/',
+                    weight: 1,
+                    backup: false,
+                    type: 'HTTP',
+                    inherit: true,
+                    healthCheck: {
+                      enabled: true,
+                      inherit: false,
+                      schedule: '0 0/1 * 1/1 * ? *',
+                      steps: [],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      );
 
       expect(await loader.getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))).toBeTruthy();
     });
 
     it("should display health check icon when it's configured at API level", async () => {
-      const api = fakeApi({
-        id: API_ID,
-        services: {
-          'health-check': {
-            enabled: true,
+      initComponent(
+        fakeApiV2({
+          id: API_ID,
+          services: {
+            healthCheck: {
+              enabled: true,
+            },
           },
-        },
-      });
-      expectApiGetRequest(api);
+        }),
+      );
 
       expect(await loader.getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))).toBeTruthy();
     });
 
     it('should not display health check icon', async () => {
       expect.assertions(1);
-      const api = fakeApi({
-        id: API_ID,
-        services: {
-          'health-check': {
-            enabled: false,
+      initComponent(
+        fakeApiV2({
+          id: API_ID,
+          services: {
+            healthCheck: {
+              enabled: false,
+            },
           },
-        },
-      });
-      expectApiGetRequest(api);
+        }),
+      );
 
       await loader
         .getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))
@@ -264,10 +266,10 @@ describe('ApiProxyEndpointListComponent', () => {
 
   describe('deleteGroup', () => {
     it('should delete the endpoint group', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
       });
-      expectApiGetRequest(api);
+      initComponent(api);
 
       const rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
       let rtTableRows0 = await rtTable0.getCellTextByIndex();
@@ -290,7 +292,7 @@ describe('ApiProxyEndpointListComponent', () => {
 
   describe('deleteEndpoint', () => {
     it('should delete the endpoint', async () => {
-      const api = fakeApi({
+      const api = fakeApiV2({
         id: API_ID,
         proxy: {
           groups: [
@@ -318,7 +320,6 @@ describe('ApiProxyEndpointListComponent', () => {
           ],
         },
       });
-      expectApiGetRequest(api);
 
       let rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
       let rtTableRows0 = await rtTable0.getCellTextByIndex();
@@ -365,38 +366,43 @@ describe('ApiProxyEndpointListComponent', () => {
 
   describe('HTTP configuration', () => {
     it('should display inherit HTTP configuration icon', async () => {
-      const api = fakeApi({
-        id: API_ID,
-        proxy: {
-          groups: [
-            {
-              name: 'default-group',
-              endpoints: [
-                {
-                  name: 'default',
-                  target: 'https://api.le-systeme-solaire.net/rest/',
-                  weight: 1,
-                  backup: true,
-                  type: 'HTTP',
-                  inherit: true,
-                },
-              ],
-            },
-          ],
-        },
-      });
-      expectApiGetRequest(api);
+      initComponent(
+        fakeApiV2({
+          id: API_ID,
+          proxy: {
+            groups: [
+              {
+                name: 'default-group',
+                endpoints: [
+                  {
+                    name: 'default',
+                    target: 'https://api.le-systeme-solaire.net/rest/',
+                    weight: 1,
+                    backup: true,
+                    type: 'HTTP',
+                    inherit: true,
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      );
 
       expect(await loader.getHarness(MatIconHarness.with({ selector: '[mattooltip="HTTP configuration inherited"]' }))).toBeTruthy();
     });
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
-    fixture.detectChanges();
+  function expectApiGetRequest(api: ApiV2) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+        method: 'GET',
+      })
+      .flush(api);
   }
 
-  function expectApiPutRequest(api: Api) {
+  function expectApiPutRequest(api: ApiV2) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
     fixture.detectChanges();
   }
