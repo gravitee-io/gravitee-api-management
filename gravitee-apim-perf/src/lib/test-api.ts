@@ -20,6 +20,8 @@ import { ApiEntityV4 } from '@models/v4/ApiEntityV4';
 import { PlanEntityV4 } from '@models/v4/PlanEntityV4';
 import { ApplicationEntityV4 } from './models/v4/ApplicationEntityV4';
 import { SubscriptionEntityV4 } from './models/v4/SubscriptionEntityV4';
+import { SubscriptionEntity } from '@models/v3/SubscriptionEntity';
+import { ApiKeyEntity } from '@models/v3/ApiKeyEntity';
 
 export interface GatewayTestData {
   api?: ApiEntity | ApiEntityV4;
@@ -28,4 +30,6 @@ export interface GatewayTestData {
   msg?: any;
   applications?: Array<ApplicationEntityV4>;
   subscriptions?: Array<SubscriptionEntityV4>;
+  subscription?: SubscriptionEntity | SubscriptionEntityV4;
+  keys?: Array<ApiKeyEntity>;
 }

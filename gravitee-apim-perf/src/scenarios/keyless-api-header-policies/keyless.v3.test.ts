@@ -28,6 +28,11 @@ import { GatewayTestData } from '@lib/test-api';
 import { GatewayClient } from '@clients/GatewayClient';
 import { PathOperatorOperatorEnum } from '@models/v3/Flow';
 
+/**
+ * Create an API that add two headers on the request and remove one on the response
+ * Used with an KEYLESS plan.
+ * Expects 200 status and to contain the right header
+ */
 export const options = k6Options;
 
 export function setup(): GatewayTestData {

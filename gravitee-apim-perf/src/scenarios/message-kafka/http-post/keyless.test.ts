@@ -32,6 +32,10 @@ import { ApiEntityV4 } from '@models/v4/ApiEntityV4';
 import { PlanEntityV4 } from '@models/v4/PlanEntityV4';
 import { NewApiEntityV4TypeEnum } from '@models/v4/NewApiEntityV4';
 
+/**
+ * Creates an API with HTTP-POST entrypoint and Kafka Endpoint.
+ * Expects a 202 response when posting message
+ */
 export const options = k6Options;
 
 const connection = new Connection({

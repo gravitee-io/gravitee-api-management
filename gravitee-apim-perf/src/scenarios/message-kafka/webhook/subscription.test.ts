@@ -34,6 +34,9 @@ import { SubscriptionEntityV4 } from '@models/v4/SubscriptionEntityV4';
 import { ApplicationEntityV4 } from '@models/v4/ApplicationEntityV4';
 import { randomString } from '@helpers/random.helper';
 
+/**
+ * Creates an API with Webhook entrypoint consuming messages from Kafka Endpoint.
+ */
 const schemaRegistry = new SchemaRegistry();
 const connection = new Connection({
   // ConnectionConfig object
