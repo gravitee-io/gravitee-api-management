@@ -18,7 +18,7 @@
     "@fontsource/libre-franklin": "4.4.5",
     "@gravitee/ui-analytics": "7.14.0",
     "@gravitee/ui-components": "3.39.6",
-    "@gravitee/ui-particles-angular": "7.14.0",
+    "@gravitee/ui-particles-angular": "7.15.0-apim-1415-table-style-c615123",
     "@gravitee/ui-policy-studio-angular": "7.14.0",
     "@highcharts/map-collection": "1.1.4",
     "@ngx-formly/core": "6.1.1",

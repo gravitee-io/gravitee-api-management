@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 import { ApiV4 } from '../../../../../entities/management-api-v2';
+import { EndpointGroup, toEndpoints } from './api-endpoints-groups.adapter';
 
 @Component({
   selector: 'api-endpoints-groups',
   template: require('./api-endpoints-groups.component.html'),
   styles: [require('./api-endpoints-groups.component.scss')],
 })
-export class ApiEndpointsGroupsComponent {
+export class ApiEndpointsGroupsComponent implements OnInit {
   @Input() public api: ApiV4;
+  public endpointsDisplayedColumns = ['name', 'options', 'weight', 'actions'];
+  public groupsTableData: EndpointGroup[];
+
+  public ngOnInit() {
+    this.groupsTableData = toEndpoints(this.api);
+  }
 }

@@ -16,7 +16,7 @@
 
 -->
 <ng-container *ngIf="api">
-  <mat-card class="endpoints-group-card" *ngFor="let group of api.endpointGroups">
+  <mat-card class="endpoints-group-card" *ngFor="let group of groupsTableData; let i = index">
     <div class="endpoints-group-card__header">
       <span class="gio-badge-primary">
         <mat-icon *ngIf="group?.type === 'kafka'" svgIcon="gio:kafka"></mat-icon>
@@ -29,7 +29,7 @@
         <span class="mat-h4">{{ group?.name }}</span>
         <span class="gio-badge-accent">
           <mat-icon svgIcon="gio:share-2"></mat-icon>
-          {{ group?.loadBalancer?.type }}
+          {{ group.loadBalancerType }}
         </span>
       </div>
 
@@ -48,6 +48,62 @@
         </button>
       </div>
     </div>
-    <mat-card-content></mat-card-content>
+    <mat-card-content>
+      <table
+        mat-table
+        [dataSource]="group.endpoints"
+        [attr.id]="'groupsTable-' + i"
+        aria-label="Endpoint group table"
+        class="gio-table-light"
+      >
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.name }}
+          </td>
+        </ng-container>
+
+        <!-- Options Column -->
+        <ng-container matColumnDef="options">
+          <th mat-header-cell *matHeaderCellDef id="options">Options</th>
+          <td mat-cell *matCellDef="let element">
+            <span class="neutral" *ngIf="element.options.healthCheck"> Health-check </span>
+          </td>
+        </ng-container>
+
+        <!-- Weight Column -->
+        <ng-container matColumnDef="weight">
+          <th mat-header-cell *matHeaderCellDef id="weight">Weight</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.weight }}
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
+          <td mat-cell *matCellDef="let element">
+            <div class="endpoints-group-card__table__actions">
+              <button mat-icon-button aria-label="Edit endpoint" matTooltip="Edit endpoint">
+                <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+              </button>
+              <button mat-icon-button aria-label="Delete endpoint" matTooltip="Delete endpoint">
+                <mat-icon svgIcon="gio:trash"></mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="endpointsDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: endpointsDisplayedColumns"></tr>
+
+        <!-- Row shown when there is no data -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="endpointsDisplayedColumns.length">No Endpoints</td>
+        </tr>
+      </table>
+    </mat-card-content>
   </mat-card>
 </ng-container>
+

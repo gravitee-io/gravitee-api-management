@@ -19,11 +19,11 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-
-import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
 import { ApiProxyEndpointModule } from '../../../proxy/endpoints/api-proxy-endpoints.module';
 
 describe('ApiEndpointsGroupsComponent', () => {
@@ -50,9 +50,47 @@ describe('ApiEndpointsGroupsComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should init the component with proxy API V4', async () => {
-    initComponent(fakeApiV4({ id: API_ID }));
+  describe('table display tests', () => {
+    it('should display the endpoint groups tables', async () => {
+      initComponent(
+        fakeApiV4({
+          id: API_ID,
+          endpointGroups: [
+            {
+              name: 'default-group',
+              type: 'kafka',
+              endpoints: [
+                {
+                  name: 'a kafka',
+                  type: 'kafka',
+                  weight: 1,
+                  inheritConfiguration: false,
+                  configuration: {
+                    bootstrapServers: 'localhost:9092',
+                  },
+                },
+                {
+                  name: 'another kafka',
+                  type: 'kafka',
+                  weight: 5,
+                  inheritConfiguration: false,
+                  configuration: {
+                    bootstrapServers: 'localhost:9093',
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      );
 
-    expect(fixture.componentInstance).toBeTruthy();
+      const rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#groupsTable-0' }));
+      const rtTableRows0 = await rtTable0.getCellTextByIndex();
+
+      expect(rtTableRows0).toEqual([
+        ['a kafka', '', '1', ''],
+        ['another kafka', '', '5', ''],
+      ]);
+    });
   });
 });
