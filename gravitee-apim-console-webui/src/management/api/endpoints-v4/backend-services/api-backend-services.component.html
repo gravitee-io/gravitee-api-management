@@ -15,7 +15,5 @@
     limitations under the License.
 
 -->
-<api-proxy-endpoint-list *ngIf="apiV2; else v4Block" [api]="apiV2"></api-proxy-endpoint-list>
-<ng-template #v4Block>
-  <!-- TODO V4 block -->
-</ng-template>
+<api-proxy-endpoint-list *ngIf="apiV2" [api]="apiV2"></api-proxy-endpoint-list>
+<api-endpoints-groups *ngIf="apiV4" [api]="apiV4"></api-endpoints-groups>

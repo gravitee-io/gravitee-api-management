@@ -1,0 +1,49 @@
+@use 'sass:map';
+@use '../../../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+  overflow: visible;
+}
+
+.endpoints-group-card {
+  margin-bottom: 24px;
+
+  &__header {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 24px;
+    width: 100%;
+    height: 36px;
+
+    mat-icon {
+      margin-right: 6px;
+    }
+
+    &__title {
+      display: flex;
+      flex-direction: row;
+      width: 40%;
+
+      .mat-h4 {
+        margin: auto 8px auto 0;
+        max-width: 70%;
+      }
+
+      .gio-badge-accent {
+        margin: auto 0;
+      }
+    }
+
+    &__actions {
+      width: 60%;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+
+      .mat-stroked-button, .mat-flat-button {
+        margin-right: 8px;
+      }
+    }
+  }
+}

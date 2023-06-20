@@ -23,11 +23,12 @@ import { UIRouterGlobals } from '@uirouter/core';
 
 import { ApiBackendServicesComponent } from './api-backend-services.component';
 import { ApiBackendServicesModule } from './api-backend-services.module';
+import { ApiEndpointsGroupsHarness } from './endpoints-groups/api-endpoints-groups.harness';
 
 import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { Api, fakeApiV2 } from '../../../../entities/management-api-v2';
+import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { ApiProxyEndpointListHarness } from '../../proxy/endpoints/list/api-proxy-endpoint-list.harness';
 
 describe('ApiPortalProxyEndpointsComponent', () => {
@@ -36,6 +37,9 @@ describe('ApiPortalProxyEndpointsComponent', () => {
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-r'];
   const proxyApiV2 = fakeApiV2({
+    id: API_ID,
+  });
+  const proxyApiV4 = fakeApiV4({
     id: API_ID,
   });
 
@@ -69,6 +73,12 @@ describe('ApiPortalProxyEndpointsComponent', () => {
     expectApiGetRequest(proxyApiV2);
 
     expect(await loader.getHarness(ApiProxyEndpointListHarness)).toBeTruthy();
+  });
+
+  it('should init the component with message API V4', async () => {
+    expectApiGetRequest(proxyApiV4);
+
+    expect(await loader.getHarness(ApiEndpointsGroupsHarness)).toBeTruthy();
   });
 
   function expectApiGetRequest(api: Api) {
