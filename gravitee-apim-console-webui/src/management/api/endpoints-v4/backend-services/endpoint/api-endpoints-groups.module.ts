@@ -16,15 +16,17 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
-import { ApiBackendServicesComponent } from './api-backend-services.component';
-import { ApiEndpointsGroupsModule } from './endpoint/api-endpoints-groups.module';
-
-import { ApiProxyEndpointModule } from '../../proxy/endpoints/api-proxy-endpoints.module';
+import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
 
 @NgModule({
-  declarations: [ApiBackendServicesComponent],
-  exports: [ApiBackendServicesComponent],
-  imports: [CommonModule, ApiProxyEndpointModule, ApiEndpointsGroupsModule],
+  declarations: [ApiEndpointsGroupsComponent],
+  exports: [ApiEndpointsGroupsComponent],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatTableModule, MatTooltipModule, GioIconsModule],
 })
-export class ApiBackendServicesModule {}
+export class ApiEndpointsGroupsModule {}

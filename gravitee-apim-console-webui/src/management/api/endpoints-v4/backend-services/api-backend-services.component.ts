@@ -19,7 +19,7 @@ import { Subject } from 'rxjs';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { Api, ApiV2 } from '../../../../entities/management-api-v2';
+import { Api, ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-portal-proxy-endpoints',
@@ -28,6 +28,7 @@ import { Api, ApiV2 } from '../../../../entities/management-api-v2';
 })
 export class ApiBackendServicesComponent implements OnInit, OnDestroy {
   public apiV2: ApiV2;
+  public apiV4: ApiV4;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(@Inject(UIRouterStateParams) private readonly ajsStateParams, private readonly apiService: ApiV2Service) {}
@@ -40,6 +41,8 @@ export class ApiBackendServicesComponent implements OnInit, OnDestroy {
         tap((api: Api) => {
           if (api?.definitionVersion !== 'V4') {
             this.apiV2 = api as ApiV2;
+          } else {
+            this.apiV4 = api as ApiV4;
           }
         }),
       )
