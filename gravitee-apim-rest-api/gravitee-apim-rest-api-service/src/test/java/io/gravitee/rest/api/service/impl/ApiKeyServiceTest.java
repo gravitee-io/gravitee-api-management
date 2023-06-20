@@ -677,6 +677,16 @@ public class ApiKeyServiceTest {
         apiKeyService.renew(GraviteeContext.getExecutionContext(), subscriptionEntity, CUSTOM_API_KEY);
     }
 
+    @Test(expected = TechnicalManagementException.class)
+    public void shouldNotRenewSubscriptionWithoutSecurity() {
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setPlan(PLAN_ID);
+
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(new PlanEntity());
+
+        apiKeyService.renew(GraviteeContext.getExecutionContext(), subscriptionEntity, CUSTOM_API_KEY);
+    }
+
     @Test
     public void shouldRenewForCustomApiKeyAssociatedToClosedSubscription() throws TechnicalException {
         apiKey = new ApiKey();

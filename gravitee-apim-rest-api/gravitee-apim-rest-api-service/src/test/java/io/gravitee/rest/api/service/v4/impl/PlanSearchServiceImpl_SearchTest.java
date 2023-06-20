@@ -119,13 +119,13 @@ public class PlanSearchServiceImpl_SearchTest {
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
-            PlanQuery.builder().apiId(API_ID).build(),
+            PlanQuery.builder().apiId(API_ID).securityType(List.of(PlanSecurityType.API_KEY)).build(),
             USER,
             true
         );
 
         assertNotNull(plans);
-        assertEquals(3, plans.size());
+        assertEquals(2, plans.size());
     }
 
     @Test

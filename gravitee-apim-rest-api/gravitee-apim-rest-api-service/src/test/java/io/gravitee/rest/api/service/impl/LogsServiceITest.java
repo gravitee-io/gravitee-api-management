@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.log.api.LogRepository;
@@ -155,6 +156,38 @@ public class LogsServiceITest extends TestCase {
         assertThat(apiLog.getApplication()).isEqualTo(LOG_APPLICATION_ID);
         assertThat(apiLog.getPlan()).isEqualTo(LOG_PLAN_ID);
         assertThat(apiLog.getSubscription()).isEqualTo(LOG_SUBSCRIPTION_ID);
+    }
+
+    @Test
+    public void findApiLogShouldHaveEmptySubscriptionWithNoSecurity() throws Exception {
+        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(null));
+        when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
+        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlan(null));
+
+        ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
+
+        assertThat(apiLog).isNotNull();
+        assertThat(apiLog.getSecurityType()).isNull();
+        assertThat(apiLog.getApi()).isEqualTo(LOG_API_ID);
+        assertThat(apiLog.getApplication()).isEqualTo(LOG_APPLICATION_ID);
+        assertThat(apiLog.getPlan()).isEqualTo(LOG_PLAN_ID);
+        assertThat(apiLog.getSubscription()).isNull();
+    }
+
+    @Test
+    public void findApiLogShouldHaveEmptySubscriptionWithNoSecurityInV4Plan() throws Exception {
+        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(null));
+        when(applicationService.findById(EXECUTION_CONTEXT, LOG_APPLICATION_ID)).thenReturn(newApplication());
+        when(planSearchService.findById(EXECUTION_CONTEXT, LOG_PLAN_ID)).thenReturn(newPlanV4(null));
+
+        ApiRequest apiLog = logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP);
+
+        assertThat(apiLog).isNotNull();
+        assertThat(apiLog.getSecurityType()).isNull();
+        assertThat(apiLog.getApi()).isEqualTo(LOG_API_ID);
+        assertThat(apiLog.getApplication()).isEqualTo(LOG_APPLICATION_ID);
+        assertThat(apiLog.getPlan()).isEqualTo(LOG_PLAN_ID);
+        assertThat(apiLog.getSubscription()).isNull();
     }
 
     @Test
@@ -359,12 +392,20 @@ public class LogsServiceITest extends TestCase {
         return plan;
     }
 
+    private static io.gravitee.rest.api.model.v4.plan.PlanEntity newPlanV4(PlanSecurity security) {
+        var plan = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        plan.setSecurity(security);
+        return plan;
+    }
+
     private static ExtendedLog newLog(PlanSecurityType securityType) {
         ExtendedLog log = new ExtendedLog();
         log.setApi(LOG_API_ID);
         log.setApplication(LOG_APPLICATION_ID);
         log.setPlan(LOG_PLAN_ID);
-        log.setSecurityType(securityType.name());
+        if (securityType != null) {
+            log.setSecurityType(securityType.name());
+        }
         log.setUri(LOG_URI);
         log.setSecurityToken(LOG_API_KEY);
         return log;

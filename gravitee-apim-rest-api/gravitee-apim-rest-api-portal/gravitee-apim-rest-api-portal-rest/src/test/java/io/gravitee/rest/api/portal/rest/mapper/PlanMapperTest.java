@@ -121,4 +121,14 @@ public class PlanMapperTest {
         assertEquals(SecurityEnum.API_KEY, responsePlan.getSecurity());
         assertEquals(ValidationEnum.AUTO, responsePlan.getValidation());
     }
+
+    @Test
+    public void testConvertPushPlan() {
+        planEntity.setSecurity(null);
+        planEntity.setSecurityDefinition(null);
+        Plan responsePlan = planMapper.convert(planEntity);
+        assertNotNull(responsePlan);
+
+        assertNull(responsePlan.getSecurity());
+    }
 }
