@@ -58,7 +58,11 @@ public class PlanMapper {
         entity.setExcludedGroups(plan.getExcludedGroups());
         entity.setFlows(flows);
         entity.setType(PlanType.valueOf(plan.getType().name()));
-        entity.setMode(PlanMode.valueOf(plan.getMode().name()));
+        if (plan.getMode() != null) {
+            entity.setMode(PlanMode.valueOf(plan.getMode().name()));
+        } else {
+            entity.setMode(PlanMode.STANDARD);
+        }
 
         // Backward compatibility
         if (plan.getStatus() != null) {
@@ -67,7 +71,7 @@ public class PlanMapper {
             entity.setStatus(PlanStatus.PUBLISHED);
         }
 
-        if (plan.getMode() == Plan.PlanMode.STANDARD) {
+        if (Plan.PlanMode.PUSH != plan.getMode()) {
             PlanSecurity security = new PlanSecurity();
             security.setType(PlanSecurityType.valueOf(plan.getSecurity().name()).getLabel());
             security.setConfiguration(plan.getSecurityDefinition());
