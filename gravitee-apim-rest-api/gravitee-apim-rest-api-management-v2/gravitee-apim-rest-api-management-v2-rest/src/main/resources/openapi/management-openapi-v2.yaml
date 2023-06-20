@@ -1089,6 +1089,7 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_close:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1112,6 +1113,7 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_pause:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1135,6 +1137,7 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_resume:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1267,6 +1270,37 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/SubscriptionApiKeysResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/_renew:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Renew the subscription api keys.
+            description: |-
+                Renew the subscription api key by setting an expiration date on the existing active api keys and creating a new api key.<br>
+                The newly created api key is returned in response.
+                
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: renewApiSubscriptionApiKeys
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/RenewApiKey"
+                required: true
+            responses:
+                "200":
+                    description: API's subscription api key successfully renewed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiKey"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -3552,6 +3586,13 @@ components:
                     format: date-time
                     description: The datetime when the api key expires. No date means no expiration.
                     example: 2023-05-18T12:40:46.184Z
+
+        RenewApiKey:
+            type: object
+            properties:
+                customApiKey:
+                    type: string
+                    description: Optional custom api key that can be given when custom api key support is enabled.
 
         BaseUser:
             type: object

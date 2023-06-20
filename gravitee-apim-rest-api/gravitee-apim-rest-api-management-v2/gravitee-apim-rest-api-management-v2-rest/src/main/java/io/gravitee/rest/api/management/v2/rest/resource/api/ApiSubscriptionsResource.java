@@ -492,6 +492,28 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .build();
     }
 
+    @POST
+    @Path("/{subscriptionId}/api-keys/_renew")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
+    public Response renewApiSubscriptionApiKeys(
+        @PathParam("subscriptionId") String subscriptionId,
+        @Valid @NotNull RenewApiKey renewApiKey
+    ) {
+        final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!subscriptionEntity.getApi().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        checkApplicationDoesntUseSharedApiKey(executionContext, subscriptionEntity.getApplication());
+
+        final ApiKeyEntity apiKeyEntity = apiKeyService.renew(executionContext, subscriptionEntity, renewApiKey.getCustomApiKey());
+
+        return Response.ok(subscriptionMapper.mapToApiKey(apiKeyEntity)).build();
+    }
+
     @PUT
     @Path("/{subscriptionId}/api-keys/{apiKeyId}")
     @Produces(MediaType.APPLICATION_JSON)

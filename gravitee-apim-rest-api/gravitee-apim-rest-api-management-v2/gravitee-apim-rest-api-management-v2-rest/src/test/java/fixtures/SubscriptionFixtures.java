@@ -64,6 +64,7 @@ public class SubscriptionFixtures {
 
     protected static final ApiKeyEntity.ApiKeyEntityBuilder BASE_API_KEY_ENTITY = ApiKeyEntity
         .builder()
+        .id("my-api-key")
         .key("custom")
         .application(ApplicationFixtures.anApplicationEntity())
         .createdAt(new Date())
@@ -147,5 +148,9 @@ public class SubscriptionFixtures {
 
     public static UpdateApiKey anUpdateApiKey() {
         return UpdateApiKey.builder().expireAt(OffsetDateTime.now()).build();
+    }
+
+    public static RenewApiKey aRenewApiKey() {
+        return RenewApiKey.builder().customApiKey("custom").build();
     }
 }
