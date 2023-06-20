@@ -20,10 +20,11 @@ import { find, remove } from 'lodash';
 import { EMPTY, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 
+import { EndpointGroup, toEndpoints } from './api-endpoints-groups.adapter';
+
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiV4, UpdateApi } from '../../../../../entities/management-api-v2';
-import { EndpointGroup, toEndpoints } from './api-endpoints-groups.adapter';
 
 @Component({
   selector: 'api-endpoints-groups',
