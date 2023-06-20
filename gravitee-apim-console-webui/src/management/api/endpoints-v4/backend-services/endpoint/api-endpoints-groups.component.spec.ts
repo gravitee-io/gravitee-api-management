@@ -137,6 +137,49 @@ describe('ApiEndpointsGroupsComponent', () => {
     });
   });
 
+  describe('deleteEndpoint', () => {
+    it('should delete the endpoint', async () => {
+      await initComponent(apiV4);
+
+      await componentHarness.deleteEndpoint(1, rootLoader);
+
+      expectApiGetRequest(apiV4);
+      expectApiPutRequest({
+        ...apiV4,
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'kafka',
+            endpoints: [
+              {
+                name: 'a kafka',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+            ],
+          },
+          {
+            name: 'default-mock',
+            type: 'kafka',
+            endpoints: [
+              {
+                name: 'a kafka',
+                type: 'mock',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {},
+              },
+            ],
+          },
+        ],
+      });
+    });
+  });
+
   describe('deleteGroup', () => {
     it('should delete the endpoint group', async () => {
       await initComponent(apiV4);

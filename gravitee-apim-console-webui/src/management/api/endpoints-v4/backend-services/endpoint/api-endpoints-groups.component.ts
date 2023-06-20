@@ -16,7 +16,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { remove } from 'lodash';
+import { find, remove } from 'lodash';
 import { EMPTY, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -82,6 +82,37 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
         }),
         tap((api: ApiV4) => this.initData(api)),
         map(() => this.snackBarService.success(`Endpoint group ${groupName} successfully deleted!`)),
+      )
+      .subscribe();
+  }
+
+  public deleteEndpoint(groupName: string, endpointName: string): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Delete Endpoint',
+          content: `Are you sure you want to delete the Endpoint <strong>${endpointName}</strong>?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deleteEndpointConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.get(this.api.id)),
+        switchMap((api: ApiV4) => {
+          remove(find(api.endpointGroups, (g) => g.name === groupName).endpoints, (e) => e.name === endpointName);
+          return this.apiService.update(api.id, { ...api } as UpdateApi);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap((api: ApiV4) => this.initData(api)),
+        map(() => this.snackBarService.success(`Endpoint ${endpointName} successfully deleted!`)),
       )
       .subscribe();
   }

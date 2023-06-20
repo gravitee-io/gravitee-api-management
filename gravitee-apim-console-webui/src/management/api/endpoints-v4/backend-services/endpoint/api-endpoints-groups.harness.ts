@@ -22,6 +22,7 @@ export class ApiEndpointsGroupsHarness extends ComponentHarness {
   static hostSelector = 'api-endpoints-groups';
 
   private getDeleteEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete endpoints group"]' }));
+  private getDeleteEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete endpoint"]' }));
 
   public async getTableRows(index: number) {
     const table = this.locatorFor(MatTableHarness.with({ selector: `#groupsTable-${index}` }));
@@ -30,6 +31,15 @@ export class ApiEndpointsGroupsHarness extends ComponentHarness {
 
   public async deleteEndpointGroup(index: number, rootLoader: HarnessLoader) {
     const button = (await this.getDeleteEndpointGroupButtons())[index];
+    await button.click();
+    return await rootLoader
+      .getHarness(MatDialogHarness)
+      .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
+      .then((element) => element.click());
+  }
+
+  public async deleteEndpoint(index: number, rootLoader: HarnessLoader) {
+    const button = (await this.getDeleteEndpointButtons())[index];
     await button.click();
     return await rootLoader
       .getHarness(MatDialogHarness)
