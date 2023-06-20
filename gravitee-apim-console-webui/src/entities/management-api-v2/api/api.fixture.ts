@@ -248,3 +248,91 @@ export function fakeApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => ApiV4
     ...modifier,
   };
 }
+
+export function fakeProxyApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => ApiV4)): ApiV4 {
+  const base: ApiV4 = {
+    ...fakeBaseApi({ ...modifier }),
+    definitionVersion: 'V4',
+    type: 'PROXY',
+    listeners: [
+      {
+        type: 'HTTP',
+        entrypoints: [
+          {
+            type: 'http-proxy',
+          },
+        ],
+      },
+    ],
+    endpointGroups: [
+      {
+        name: 'Default Endpoint HTTP proxy group',
+        type: 'http-proxy',
+        loadBalancer: {
+          type: 'ROUND_ROBIN',
+        },
+        sharedConfiguration: {
+          proxy: {
+            useSystemProxy: false,
+            enabled: false,
+          },
+          http: {
+            keepAlive: true,
+            followRedirects: false,
+            readTimeout: 10000,
+            idleTimeout: 60000,
+            connectTimeout: 3000,
+            useCompression: true,
+            maxConcurrentConnections: 20,
+            version: 'HTTP_1_1',
+            pipelining: false,
+          },
+          ssl: {
+            hostnameVerifier: true,
+            trustAll: false,
+            truststore: {
+              type: '',
+            },
+            keystore: {
+              type: '',
+            },
+          },
+        },
+        endpoints: [
+          {
+            name: 'Default Endpoint HTTP proxy',
+            type: 'http-proxy',
+            weight: 1,
+            inheritConfiguration: true,
+            configuration: {
+              target: 'https://api.gravitee.io/echo',
+            },
+            services: {},
+            secondary: false,
+          },
+        ],
+        services: {},
+      },
+    ],
+    flows: [
+      {
+        name: '',
+        selectors: [],
+        request: [],
+        response: [],
+        subscribe: [],
+        publish: [],
+        enabled: true,
+      },
+    ],
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
