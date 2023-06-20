@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { StateService } from '@uirouter/angular';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import * as _ from 'lodash';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { EndpointGroup, toEndpoints } from '../endpoint.adapter';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { Api } from '../../../../../entities/api';
+import { ApiV2 } from '../../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-proxy-endpoint-list',
@@ -34,6 +33,8 @@ import { Api } from '../../../../../entities/api';
   styles: [require('./api-proxy-endpoint-list.component.scss')],
 })
 export class ApiProxyEndpointListComponent implements OnInit {
+  @Input() api: ApiV2;
+
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public isReadOnly = false;
   public apiId: string;
@@ -43,22 +44,16 @@ export class ApiProxyEndpointListComponent implements OnInit {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
-    this.apiService
-      .get(this.ajsStateParams.apiId)
-      .pipe(
-        takeUntil(this.unsubscribe$),
-        tap((api) => {
-          this.initData(api);
-        }),
-      )
-      .subscribe();
+    if (this.api) {
+      this.initData(this.api);
+    }
   }
 
   navigateToGroup(groupName: string): void {
@@ -86,15 +81,18 @@ export class ApiProxyEndpointListComponent implements OnInit {
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.apiId)),
-        switchMap((api) => {
+        /*
+        // TODO: make it work with UpdateApi type
+        switchMap((api: Api) => {
           _.remove(api.proxy.groups, (g) => g.name === groupName);
-          return this.apiService.update(api);
+          return this.apiService.update(api.id, { ...api } as UpdateApi);
         }),
+        */
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap((api) => this.initData(api)),
+        tap((api: ApiV2) => this.initData(api)),
         map(() => this.snackBarService.success(`Endpoint group ${groupName} successfully deleted!`)),
       )
       .subscribe();
@@ -117,23 +115,25 @@ export class ApiProxyEndpointListComponent implements OnInit {
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.apiId)),
-        switchMap((api) => {
+        /*
+        // TODO: make it work with UpdateApi type
+        switchMap((api: Api) => {
           _.remove(_.find(api.proxy.groups, (g) => g.name === groupName).endpoints, (e) => e.name === endpointName);
-          return this.apiService.update(api);
+          return this.apiService.update(api.id, api);
         }),
+        */
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap((api) => this.initData(api)),
+        tap((api: ApiV2) => this.initData(api)),
         map(() => this.snackBarService.success(`Endpoint ${endpointName} successfully deleted!`)),
       )
       .subscribe();
   }
 
-  private initData(api: Api): void {
-    this.apiId = api.id;
+  private initData(api: ApiV2): void {
     this.endpointGroupsTableData = toEndpoints(api);
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definition_context?.origin === 'kubernetes';
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
   }
 }

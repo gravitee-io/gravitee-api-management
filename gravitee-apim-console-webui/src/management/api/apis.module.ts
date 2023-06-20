@@ -22,11 +22,6 @@ import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 import { ApiListModule } from './list/api-list.module';
 import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiNgNavigationModule } from './api-ng-navigation/api-ng-navigation.module';
-import { ApiPortalDetailsModule } from './portal/details/api-portal-details.module';
-import { ApiPortalDocumentationModule } from './portal/documentation/api-portal-documentation.module';
-import { ApiPortalPlansModule } from './portal/plans/api-portal-plans.module';
-import { ApiPortalSubscriptionsModule } from './portal/ng-subscriptions/api-portal-subscriptions.module';
-import { ApiPortalUserGroupModule } from './portal/user-group-access/api-portal-user-group.module';
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
 import { ApiNgNavigationComponent } from './api-ng-navigation/api-ng-navigation.component';
@@ -35,15 +30,17 @@ import { ApiPortalPlanEditComponent } from './portal/plans/edit/api-portal-plan-
 import { ApiPortalPlanListComponent } from './portal/plans/list/api-portal-plan-list.component';
 import { ApiPortalSubscriptionListComponent } from './portal/ng-subscriptions/list/api-portal-subscription-list.component';
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
+import { ApisPortalModule } from './portal/apis-portal.module';
 import { ApiProxyV4EntrypointsComponent } from './proxy-v4/api-proxy-v4-entrypoints.component';
 import { ApiProxyV4Module } from './proxy-v4/api-proxy-v4.module';
-import { ApiPortalProxyEndpointsComponent } from './portal/proxy/endpoints/api-portal-proxy-endpoints.component';
 import { ApiPortalSubscriptionEditComponent } from './portal/ng-subscriptions/edit/api-portal-subscription-edit.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
 import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
+import { ApiEndpointsModule } from "./endpoints-v4/api-endpoints.module";
+import { ApiBackendServicesComponent } from "./endpoints-v4/backend-services/api-backend-services.component";
 
 // New Angular routing
 const states: Ng2StateDeclaration[] = [
@@ -228,12 +225,13 @@ const states: Ng2StateDeclaration[] = [
   {
     name: 'management.apis.ng.endpoints',
     url: '/endpoints',
-    component: ApiPortalProxyEndpointsComponent,
+    component: ApiBackendServicesComponent,
     data: {
       useAngularMaterial: true,
-      perms: {
-        only: ['api-definition-r'],
-      },
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-r'],
+      // },
       docs: {
         page: 'management-api-proxy-endpoints',
       },
@@ -248,13 +246,10 @@ const states: Ng2StateDeclaration[] = [
     ApiNavigationModule,
     ApiNgNavigationModule,
     ApiV4PolicyStudioModule,
-    ApiPortalDetailsModule,
-    ApiPortalDocumentationModule,
-    ApiPortalPlansModule,
-    ApiPortalSubscriptionsModule,
+    ApisPortalModule,
     ApiProxyModule,
     ApiProxyV4Module,
-    ApiPortalUserGroupModule,
+    ApiEndpointsModule,
 
     GioEmptyModule,
 

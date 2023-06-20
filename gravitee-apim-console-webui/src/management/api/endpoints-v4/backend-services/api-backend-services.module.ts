@@ -14,26 +14,16 @@
  * limitations under the License.
  */
 
-import { EndpointServices } from './endpointServices';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
-export interface EndpointV4 {
-  /**
-   * The name of the endpoint
-   */
-  name?: string;
-  /**
-   * The type of the endpoint
-   */
-  type: string;
-  /**
-   * The weight of the endpoint
-   */
-  weight?: number;
-  /**
-   * Is the configuration of the endpoint inherited from the endpoint group it belongs to.
-   */
-  inheritConfiguration?: boolean;
-  configuration?: any;
-  services?: EndpointServices;
-  secondary?: boolean;
-}
+import { ApiBackendServicesComponent } from './api-backend-services.component';
+
+import { ApiProxyEndpointModule } from '../../proxy/endpoints/api-proxy-endpoints.module';
+
+@NgModule({
+  declarations: [ApiBackendServicesComponent],
+  exports: [ApiBackendServicesComponent],
+  imports: [CommonModule, ApiProxyEndpointModule],
+})
+export class ApiBackendServicesModule {}

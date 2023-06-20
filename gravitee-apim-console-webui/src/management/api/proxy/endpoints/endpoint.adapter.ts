@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { ProxyGroupEndpoint } from '../../../../entities/proxy';
-import { Api } from '../../../../entities/api';
+import { ApiV2, HttpEndpointV2 } from '../../../../entities/management-api-v2';
 
 export type EndpointGroup = {
   name: string;
@@ -31,25 +30,29 @@ export type Endpoint = {
   healthcheck: boolean;
 };
 
-export const toEndpoints = (api: Api): EndpointGroup[] => {
+export const toEndpoints = (api: ApiV2): EndpointGroup[] => {
+  return toEndpointsFromApiV2(api);
+};
+
+const toEndpointsFromApiV2 = (api: ApiV2): EndpointGroup[] => {
   if (!api.proxy.groups) {
     return [];
   }
 
-  const hasApiHealthCheckService = api.services && api.services['health-check'] && api.services['health-check'].enabled;
+  const hasApiHealthCheckService = api.services && api.services.healthCheck && api.services.healthCheck.enabled;
 
   return api.proxy.groups.flatMap((endpointGroup) => {
     return {
       name: endpointGroup.name,
       endpoints:
         endpointGroup.endpoints && endpointGroup.endpoints.length > 0
-          ? endpointGroup.endpoints.map((endpoint: ProxyGroupEndpoint) => ({
+          ? endpointGroup.endpoints.map((endpoint) => ({
               name: endpoint.name,
               type: endpoint.type,
               target: endpoint.target,
               weight: endpoint.weight,
               isBackup: endpoint.backup,
-              healthcheck: hasHealthCheck(hasApiHealthCheckService, endpoint),
+              healthcheck: hasApiV2HealthCheck(hasApiHealthCheckService, endpoint),
               inherit: endpoint.inherit,
             }))
           : [],
@@ -57,10 +60,10 @@ export const toEndpoints = (api: Api): EndpointGroup[] => {
   });
 };
 
-const hasHealthCheck = (hasApiHealthCheckService: boolean, endpoint: ProxyGroupEndpoint): boolean => {
+const hasApiV2HealthCheck = (hasApiHealthCheckService: boolean, endpoint: HttpEndpointV2): boolean => {
   if (endpoint.backup || (endpoint.type.toLowerCase() !== 'http' && endpoint.type.toLowerCase() !== 'grpc')) {
     return false;
   }
 
-  return endpoint.healthcheck != null ? endpoint.healthcheck.enabled : hasApiHealthCheckService;
+  return endpoint.healthCheck != null ? endpoint.healthCheck.enabled : hasApiHealthCheckService;
 };

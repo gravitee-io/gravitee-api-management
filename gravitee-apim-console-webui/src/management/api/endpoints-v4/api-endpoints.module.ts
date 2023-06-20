@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-import { EndpointServices } from './endpointServices';
+import { NgModule } from '@angular/core';
 
-export interface EndpointV4 {
-  /**
-   * The name of the endpoint
-   */
-  name?: string;
-  /**
-   * The type of the endpoint
-   */
-  type: string;
-  /**
-   * The weight of the endpoint
-   */
-  weight?: number;
-  /**
-   * Is the configuration of the endpoint inherited from the endpoint group it belongs to.
-   */
-  inheritConfiguration?: boolean;
-  configuration?: any;
-  services?: EndpointServices;
-  secondary?: boolean;
-}
+import { ApiBackendServicesModule } from './backend-services/api-backend-services.module';
+
+@NgModule({
+  imports: [ApiBackendServicesModule],
+})
+export class ApiEndpointsModule {}
