@@ -16,15 +16,21 @@
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
+import { GioLicenseOptions } from '../../../shared/components/gio-license/gio-license.directive';
+import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
 
 interface MenuItem {
   targetRoute: string;
   displayName: string;
   permissions?: string[];
+  license?: GioLicenseOptions;
+  iconRight$?: Observable<any>;
 }
 
 interface GroupItem {
@@ -44,6 +50,7 @@ export class OrgNavigationComponent implements OnInit {
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly permissionService: GioPermissionService,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly gioLicenseService: GioLicenseService,
   ) {}
   ngOnInit(): void {
     this.hasGoBackButton = this.constants.org.environments && this.constants.org.environments.length > 0;
@@ -154,10 +161,14 @@ export class OrgNavigationComponent implements OnInit {
   }
 
   private appendAuditItems() {
+    const license = { feature: 'apim-audit-trail' };
+    const iconRight$ = this.gioLicenseService.notAllowed(license.feature).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
     const items = this.filterMenuByPermission([
       {
         displayName: 'Audit',
         targetRoute: 'organization.audit',
+        license,
+        iconRight$,
       },
     ]);
 
