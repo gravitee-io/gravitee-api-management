@@ -25,15 +25,17 @@
     &__title {
       display: flex;
       flex-direction: row;
-      width: 50%;
+      width: 70%;
 
       .mat-h4 {
         margin: auto 8px auto 0;
         max-width: 60%;
       }
 
-      .gio-badge-accent {
-        margin: auto 0;
+      .gio-badge-accent,
+      .gio-badge-primary {
+        margin: auto 4px auto 0;
+        text-transform: unset;
       }
     }
 
@@ -52,6 +54,10 @@
 
   .gio-table-light {
     width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .add_endpoint {
     margin-bottom: 32px;
   }
 
