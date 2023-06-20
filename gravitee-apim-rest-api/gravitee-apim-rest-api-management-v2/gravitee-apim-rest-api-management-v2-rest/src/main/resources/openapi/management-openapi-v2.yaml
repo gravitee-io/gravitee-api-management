@@ -1293,10 +1293,13 @@ paths:
                 required: true
             responses:
                 "200":
-                    $ref: "#/components/responses/SubscriptionApiKey"
+                    description: The subscription api key.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiKey"
                 default:
                     $ref: "#/components/responses/Error"
-
 
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_revoke:
         parameters:
@@ -1316,7 +1319,36 @@ paths:
             operationId: revokeApiSubscriptionApiKey
             responses:
                 "200":
-                    $ref: "#/components/responses/SubscriptionApiKey"
+                    description: The revoked subscription api key.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiKey"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_reactivate:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/subscriptionIdParam"
+            - $ref: "#/components/parameters/apiKeyIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Reactivate subscription api key
+            description: |-
+                Reactivate the revoked or expired subscription api key.
+                
+                User must have the API_SUBSCRIPTION[UPDATE] permission.
+            operationId: reactivateApiSubscriptionApiKey
+            responses:
+                "200":
+                    description: The reactivated subscription api key.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiKey"
                 default:
                     $ref: "#/components/responses/Error"
 

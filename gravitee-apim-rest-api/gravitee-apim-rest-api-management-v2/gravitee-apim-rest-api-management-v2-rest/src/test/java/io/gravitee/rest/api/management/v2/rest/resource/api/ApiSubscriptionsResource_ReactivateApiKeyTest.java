@@ -17,8 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,7 +25,6 @@ import fixtures.ApplicationFixtures;
 import fixtures.SubscriptionFixtures;
 import io.gravitee.rest.api.management.v2.rest.model.ApiKey;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiKey;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -39,17 +36,18 @@ import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
-import java.time.OffsetDateTime;
 import java.util.Set;
 import org.junit.Test;
 
-public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_ReactivateApiKeyTest extends ApiSubscriptionsResourceTest {
 
     private static final String API_KEY_ID = "my-api-key";
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/apis/" + API + "/subscriptions/" + SUBSCRIPTION + "/api-keys/" + API_KEY_ID + "/_revoke";
+        return (
+            "/environments/" + ENVIRONMENT + "/apis/" + API + "/subscriptions/" + SUBSCRIPTION + "/api-keys/" + API_KEY_ID + "/_reactivate"
+        );
     }
 
     @Test
@@ -170,17 +168,12 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
     }
 
     @Test
-    public void should_revoke_api_key() {
+    public void should_reactivate_api_key() {
         final ApiKeyEntity apiKeyEntity = SubscriptionFixtures
             .anApiKeyEntity()
             .toBuilder()
             .id(API_KEY_ID)
-            .subscriptions(
-                Set.of(
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id("ANOTHER-SUBSCRIPTION").build(),
-                    SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).build()
-                )
-            )
+            .subscriptions(Set.of(SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).build()))
             .build();
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -189,6 +182,7 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
         when(applicationService.findById(executionContext, APPLICATION))
             .thenReturn(ApplicationFixtures.anApplicationEntity().toBuilder().id(APPLICATION).build());
         when(apiKeyService.findById(executionContext, API_KEY_ID)).thenReturn(apiKeyEntity);
+        when(apiKeyService.reactivate(executionContext, apiKeyEntity)).thenReturn(apiKeyEntity);
 
         final Response response = rootTarget().request().post(Entity.json(null));
 
@@ -197,6 +191,6 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
         var apiKey = response.readEntity(ApiKey.class);
         assertEquals(API_KEY_ID, apiKey.getId());
 
-        verify(apiKeyService).revoke(executionContext, apiKeyEntity, true);
+        verify(apiKeyService).reactivate(executionContext, apiKeyEntity);
     }
 }

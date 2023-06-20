@@ -542,9 +542,37 @@ public class ApiSubscriptionsResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(apiKeyNotFoundError(apiKeyId)).build();
         }
 
+        checkApplicationDoesntUseSharedApiKey(executionContext, apiKeyEntity.getApplication().getId());
         apiKeyService.revoke(executionContext, apiKeyEntity, true);
 
         return Response.ok(subscriptionMapper.mapToApiKey(apiKeyService.findById(executionContext, apiKeyId))).build();
+    }
+
+    @POST
+    @Path("/{subscriptionId}/api-keys/{apiKeyId}/_reactivate")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
+    public Response reactivateApiSubscriptionApiKey(
+        @PathParam("subscriptionId") String subscriptionId,
+        @PathParam("apiKeyId") String apiKeyId
+    ) {
+        final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+
+        if (!subscriptionEntity.getApi().equals(apiId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
+        }
+
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apiKeyId);
+
+        if (!apiKeyEntity.getSubscriptionIds().contains(subscriptionId)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(apiKeyNotFoundError(apiKeyId)).build();
+        }
+
+        checkApplicationDoesntUseSharedApiKey(executionContext, apiKeyEntity.getApplication().getId());
+        apiKeyEntity = apiKeyService.reactivate(executionContext, apiKeyEntity);
+
+        return Response.ok(subscriptionMapper.mapToApiKey(apiKeyEntity)).build();
     }
 
     private Error subscriptionNotFoundError(String subscriptionId) {
