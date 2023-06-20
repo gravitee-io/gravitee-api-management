@@ -65,7 +65,14 @@
     </table>
 
     <div class="entrypoints__footer">
-      <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.pristine || formGroup.invalid">Save changes</button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="(formGroup.pristine || formGroup.invalid) && entrypointToBeRemoved.length === 0"
+      >
+        Save changes
+      </button>
       <button mat-stroked-button type="button" (click)="addNewEntrypoint()">Add an entrypoint</button>
     </div>
   </form>

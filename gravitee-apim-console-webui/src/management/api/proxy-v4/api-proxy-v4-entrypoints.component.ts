@@ -50,6 +50,7 @@ export class ApiProxyV4EntrypointsComponent implements OnInit {
   public enableVirtualHost = false;
   public apiExistingPaths: PathV4[] = [];
   public domainRestrictions: string[] = [];
+  public entrypointToBeRemoved: string[] = [];
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiV2Service,
@@ -116,8 +117,9 @@ export class ApiProxyV4EntrypointsComponent implements OnInit {
     throw new Error(`Edit not implemented yet ${element}`);
   }
 
-  onDelete(element: EntrypointVM) {
-    throw new Error(`Delete not implemented yet ${element}`);
+  onDelete(elementToRemove: EntrypointVM) {
+    this.entrypointToBeRemoved.push(elementToRemove.id);
+    this.dataSource = this.dataSource.filter((e) => e !== elementToRemove);
   }
 
   addNewEntrypoint() {
@@ -126,11 +128,13 @@ export class ApiProxyV4EntrypointsComponent implements OnInit {
 
   onSaveChanges() {
     const formValue = this.formGroup.getRawValue();
+    const currentHttpListener = this.api.listeners.find((listener) => listener.type === 'HTTP');
     const updatedHttpListener: HttpListener = {
-      ...this.api.listeners.find((listener) => listener.type === 'HTTP'),
+      ...currentHttpListener,
       paths: this.enableVirtualHost
         ? formValue.paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
         : formValue.paths.map(({ path }) => ({ path })),
+      entrypoints: [...currentHttpListener.entrypoints.filter((listener) => !this.entrypointToBeRemoved.includes(listener.type))],
     };
     this.apiService
       .get(this.apiId)
@@ -139,7 +143,15 @@ export class ApiProxyV4EntrypointsComponent implements OnInit {
         switchMap((api) => {
           const updateApi: UpdateApiV4 = {
             ...(api as ApiV4),
-            listeners: [...this.api.listeners.filter((listener) => listener.type !== 'HTTP'), updatedHttpListener],
+            listeners: [
+              updatedHttpListener,
+              ...this.api.listeners
+                .filter((listener) => listener.type !== 'HTTP')
+                .map((l) => {
+                  return { ...l, entrypoints: l.entrypoints.filter((listener) => !this.entrypointToBeRemoved.includes(listener.type)) };
+                })
+                .filter((listener) => listener.entrypoints.length > 0),
+            ],
           };
 
           return this.apiService.update(this.apiId, updateApi);

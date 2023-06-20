@@ -15,7 +15,7 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
@@ -23,9 +23,11 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatRowHarnessColumnsText } from '@angular/material/table/testing';
 
 import { ApiProxyV4EntrypointsComponent } from './api-proxy-v4-entrypoints.component';
 import { ApiProxyV4Module } from './api-proxy-v4.module';
+import { ApiProxyV4EntrypointsHarness } from './api-proxy-v4-entrypoints.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
@@ -195,6 +197,132 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
   });
 
+  describe('Entrypoints management', () => {
+    const ENV = fakeEnvironment();
+    const API = fakeApiV4({
+      listeners: [
+        { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }, { type: 'http-post' }] },
+        { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
+      ],
+    });
+
+    beforeEach(() => {
+      createComponent(ENV, API);
+      fixture.detectChanges();
+    });
+
+    it('should show entrypoints list with action buttons', async () => {
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiProxyV4EntrypointsHarness);
+      const rows = await harness.getEntrypointsTableRows();
+      expect(rows.length).toEqual(3);
+      const entrypointsTypes: MatRowHarnessColumnsText[] = await Promise.all(rows.map(async (row) => await row.getCellTextByColumnName()));
+      expect(entrypointsTypes.map((cell) => cell.type)).toEqual(['HTTP GET', 'HTTP POST', 'Webhook']);
+
+      const actionCell = await rows[0].getCells({ columnName: 'actions' });
+      expect(actionCell.length).toEqual(1);
+      const actionButtons = await actionCell[0].getAllHarnesses(MatButtonHarness);
+      expect(actionButtons.length).toEqual(2);
+      expect(await actionButtons[0].getHarness(MatIconHarness).then((icon) => icon.getName())).toEqual('edit-pencil');
+      expect(await actionButtons[1].getHarness(MatIconHarness).then((icon) => icon.getName())).toEqual('trash');
+    });
+
+    it('should remove entrypoint and save changes', async () => {
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiProxyV4EntrypointsHarness);
+
+      const tableRows = await harness.getEntrypointsTableRows();
+
+      // Find row to delete
+      const allEntrypointsType = await Promise.all(
+        tableRows
+          .map(async (row) => {
+            return (await row.getCells({ columnName: 'type' }))[0];
+          })
+          .map(async (cell) => {
+            return await (await cell).getText();
+          }),
+      );
+      const indexToRemove = allEntrypointsType.indexOf('HTTP POST');
+      expect(indexToRemove).toEqual(1);
+
+      // Delete
+      const actionCell = await tableRows[1].getCells({ columnName: 'actions' });
+      const actionButtons = await actionCell[0].getAllHarnesses(MatButtonHarness);
+      const deleteButton = actionButtons[1];
+      await deleteButton.click();
+
+      // Check row is removed and entrypoint marked for deletion
+      const rows = await harness.getEntrypointsTableRows();
+      expect(rows.length).toEqual(2);
+      expect(fixture.componentInstance.entrypointToBeRemoved).toEqual(['http-post']);
+
+      // Check deletion is done on save
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+
+      expect(await saveButton.isDisabled()).toBeFalsy();
+      await saveButton.click();
+
+      // GET
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [
+          { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] },
+          { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
+        ],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+
+    it('should remove empty listener before save changes', async () => {
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiProxyV4EntrypointsHarness);
+
+      const tableRows = await harness.getEntrypointsTableRows();
+
+      // Find row to delete
+      const allEntrypointsType = await Promise.all(
+        tableRows
+          .map(async (row) => {
+            return (await row.getCells({ columnName: 'type' }))[0];
+          })
+          .map(async (cell) => {
+            return await (await cell).getText();
+          }),
+      );
+      const indexToRemove = allEntrypointsType.indexOf('Webhook');
+      expect(indexToRemove).toEqual(2);
+
+      // Delete
+      const actionCell = await tableRows[2].getCells({ columnName: 'actions' });
+      const actionButtons = await actionCell[0].getAllHarnesses(MatButtonHarness);
+      const deleteButton = actionButtons[1];
+      await deleteButton.click();
+
+      // Check row is removed and entrypoint marked for deletion
+      const rows = await harness.getEntrypointsTableRows();
+      expect(rows.length).toEqual(2);
+      expect(fixture.componentInstance.entrypointToBeRemoved).toEqual(['webhook']);
+
+      // Check deletion is done on save
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+
+      expect(await saveButton.isDisabled()).toBeFalsy();
+      await saveButton.click();
+
+      // GET
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }, { type: 'http-post' }] }],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+  });
   const expectGetCurrentEnvironment = (environment: Environment) => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
   };
@@ -216,6 +344,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     const entrypoints: Partial<ConnectorPlugin>[] = [
       { id: 'http-get', supportedApiType: 'MESSAGE', name: 'HTTP GET' },
       { id: 'http-post', supportedApiType: 'MESSAGE', name: 'HTTP POST' },
+      { id: 'sse', supportedApiType: 'MESSAGE', name: 'Server-Sent Events' },
+      { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook' },
     ];
 
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(entrypoints);
