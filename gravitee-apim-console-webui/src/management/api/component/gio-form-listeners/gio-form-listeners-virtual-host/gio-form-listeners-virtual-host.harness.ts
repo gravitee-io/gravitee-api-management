@@ -18,6 +18,7 @@ import { AsyncFactoryFn, BaseHarnessFilters, HarnessPredicate } from '@angular/c
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { DivHarness, SpanHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { GioFormListenersContextPathHarness } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { PathV4 } from '../../../../../entities/management-api-v2';
@@ -38,7 +39,8 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
 
   public async getListenerRows(): Promise<
     {
-      hostInput: MatInputHarness;
+      hostDomainSuffix: DivHarness;
+      hostSubDomainInput: MatInputHarness;
       pathInput: MatInputHarness;
       overrideAccessInput: MatSlideToggleHarness;
       removeButton: MatButtonHarness | null;
@@ -48,7 +50,8 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
 
     return Promise.all(
       rows.map(async (_, rowIndex) => ({
-        hostInput: await this.getListenerRowInputHost(rowIndex)(),
+        hostDomainSuffix: await this.getListenerRowInputHostDomain(rowIndex)(),
+        hostSubDomainInput: await this.getListenerRowInputHostSubDomain(rowIndex)(),
         pathInput: await this.getListenerRowInputPath(rowIndex)(),
         overrideAccessInput: await this.getListenerRowInputOverrideAccess(rowIndex)(),
         removeButton: await this.getListenerRowRemoveButton(rowIndex)(),
@@ -56,7 +59,10 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
     );
   }
 
-  private getListenerRowInputHost = (rowIndex: number): AsyncFactoryFn<MatInputHarness> =>
+  private getListenerRowInputHostDomain = (rowIndex: number): AsyncFactoryFn<DivHarness> =>
+    this.locatorFor(DivHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '.mat-form-field-suffix' }));
+
+  private getListenerRowInputHostSubDomain = (rowIndex: number): AsyncFactoryFn<MatInputHarness> =>
     this.locatorFor(MatInputHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '[formControlName=_hostSubDomain]' }));
 
   private getListenerRowInputOverrideAccess = (rowIndex: number): AsyncFactoryFn<MatSlideToggleHarness> =>
@@ -65,14 +71,16 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
     );
 
   public async getLastListenerRow(): Promise<{
-    hostInput: MatInputHarness;
+    hostDomainInput: SpanHarness;
+    hostSubDomainInput: MatInputHarness;
     pathInput: MatInputHarness;
     overrideAccessInput: MatSlideToggleHarness;
   }> {
     const rows = await this.getListenerRowsElement();
 
     return {
-      hostInput: await this.getListenerRowInputHost(rows.length - 1)(),
+      hostDomainInput: await this.getListenerRowInputHostDomain(rows.length - 1)(),
+      hostSubDomainInput: await this.getListenerRowInputHostSubDomain(rows.length - 1)(),
       pathInput: await this.getListenerRowInputPath(rows.length - 1)(),
       overrideAccessInput: await this.getListenerRowInputOverrideAccess(rows.length - 1)(),
     };
@@ -81,9 +89,9 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
   public async addListener({ host, path, overrideAccess }: PathV4): Promise<void> {
     await this.addListenerRow();
 
-    const { hostInput, pathInput, overrideAccessInput } = await this.getLastListenerRow();
+    const { hostSubDomainInput, pathInput, overrideAccessInput } = await this.getLastListenerRow();
 
-    await hostInput.setValue(host);
+    await hostSubDomainInput.setValue(host);
     await pathInput.setValue(path);
     if (overrideAccess) {
       await overrideAccessInput.check();

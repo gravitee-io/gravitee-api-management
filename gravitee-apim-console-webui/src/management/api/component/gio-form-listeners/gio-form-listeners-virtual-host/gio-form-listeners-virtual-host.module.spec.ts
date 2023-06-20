@@ -78,7 +78,7 @@ describe('GioFormListenersVirtualHostModule', () => {
 
     const listeners = await Promise.all(
       virtualHostRows.map(async (row) => ({
-        host: await row.hostInput.getValue(),
+        host: await row.hostSubDomainInput.getValue(),
         path: await row.pathInput.getValue(),
         overrideAccess: await row.overrideAccessInput.isChecked(),
       })),
@@ -94,19 +94,19 @@ describe('GioFormListenersVirtualHostModule', () => {
 
     // Add path on last path row
     const emptyLastContextPathRow = await formVirtualHosts.getLastListenerRow();
-    await emptyLastContextPathRow.hostInput.setValue('hostname');
+    await emptyLastContextPathRow.hostSubDomainInput.setValue('hostname');
     await emptyLastContextPathRow.pathInput.setValue('/api/my-api-3');
 
     // Expect new row was added
     expect((await formVirtualHosts.getListenerRows()).length).toEqual(1);
 
-    await emptyLastContextPathRow.hostInput.setValue('localhost');
+    await emptyLastContextPathRow.hostSubDomainInput.setValue('localhost');
     await emptyLastContextPathRow.pathInput.setValue('/api/my-api-4');
     await emptyLastContextPathRow.overrideAccessInput.check();
 
     let addedContextPathRow = (await formVirtualHosts.getListenerRows())[0];
     expect({
-      host: await addedContextPathRow.hostInput.getValue(),
+      host: await addedContextPathRow.hostSubDomainInput.getValue(),
       path: await addedContextPathRow.pathInput.getValue(),
       overrideAccess: await addedContextPathRow.overrideAccessInput.isChecked(),
     }).toEqual({
@@ -120,7 +120,7 @@ describe('GioFormListenersVirtualHostModule', () => {
 
     addedContextPathRow = (await formVirtualHosts.getListenerRows())[1];
     expect({
-      host: await addedContextPathRow.hostInput.getValue(),
+      host: await addedContextPathRow.hostSubDomainInput.getValue(),
       path: await addedContextPathRow.pathInput.getValue(),
       overrideAccess: await addedContextPathRow.overrideAccessInput.isChecked(),
     }).toEqual({
@@ -154,12 +154,12 @@ describe('GioFormListenersVirtualHostModule', () => {
 
     // Add path on last path row
     const emptyLastContextPathRow = await formVirtualHosts.getLastListenerRow();
-    await emptyLastContextPathRow.hostInput.setValue('');
+    await emptyLastContextPathRow.hostSubDomainInput.setValue('');
     await emptyLastContextPathRow.pathInput.setValue('/api/my-api-3');
 
-    const hostTestElement = await emptyLastContextPathRow.hostInput.host();
+    const hostTestElement = await emptyLastContextPathRow.hostSubDomainInput.host();
     expect(await hostTestElement.hasClass('ng-invalid')).toEqual(true);
-    await emptyLastContextPathRow.hostInput.setValue('localhost');
+    await emptyLastContextPathRow.hostSubDomainInput.setValue('localhost');
     expect(await hostTestElement.hasClass('ng-invalid')).toEqual(false);
   });
 
@@ -173,7 +173,7 @@ describe('GioFormListenersVirtualHostModule', () => {
 
     const editedContextPathRow = (await formContextPaths.getListenerRows())[1];
     expect({
-      host: await editedContextPathRow.hostInput.getValue(),
+      host: await editedContextPathRow.hostSubDomainInput.getValue(),
       path: await editedContextPathRow.pathInput.getValue(),
       overrideAccess: await editedContextPathRow.overrideAccessInput.isChecked(),
     }).toEqual({
