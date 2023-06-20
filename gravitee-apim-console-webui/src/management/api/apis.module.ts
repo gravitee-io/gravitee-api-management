@@ -184,7 +184,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.proxy',
+    name: 'management.apis.ng.entrypoints',
     url: '/proxy',
     component: ApiProxyV4EntrypointsComponent,
     data: {
