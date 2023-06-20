@@ -27,6 +27,8 @@
             <gio-submenu-item
               *ngIf="subItem?.targetRoute"
               tabIndex="1"
+              [gioLicense]="subItem?.license"
+              [iconRight]="subItem?.iconRight$ | async"
               [active]="isActive(subItem?.targetRoute)"
               (click)="navigateTo(subItem?.targetRoute)"
               >{{ subItem?.displayName }}
