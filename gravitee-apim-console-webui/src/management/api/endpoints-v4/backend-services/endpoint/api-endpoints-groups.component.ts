@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, Input } from '@angular/core';
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ApiV4 } from '../../../../../entities/management-api-v2';
 
-import { ApiBackendServicesComponent } from './api-backend-services.component';
-import { ApiEndpointsGroupsModule } from './endpoint/api-endpoints-groups.module';
-
-import { ApiProxyEndpointModule } from '../../proxy/endpoints/api-proxy-endpoints.module';
-
-@NgModule({
-  declarations: [ApiBackendServicesComponent],
-  exports: [ApiBackendServicesComponent],
-  imports: [CommonModule, ApiProxyEndpointModule, ApiEndpointsGroupsModule],
+@Component({
+  selector: 'api-endpoints-groups',
+  template: require('./api-endpoints-groups.component.html'),
+  styles: [require('./api-endpoints-groups.component.scss')],
 })
-export class ApiBackendServicesModule {}
+export class ApiEndpointsGroupsComponent {
+  @Input() public api: ApiV4;
+}
