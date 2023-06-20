@@ -73,7 +73,7 @@ public class PathParametersExtractor extends AbstractPathParametersExtractor<Api
             .flatMap(f -> f.selectorByType(SelectorType.HTTP).map(selector -> (HttpSelector) selector).stream())
             .flatMap(selector -> {
                 List<Map.Entry<PathParameterHttpMethod, PathParameters>> flowByMethod;
-                if (selector.getMethods().isEmpty()) {
+                if (selector.getMethods() == null || selector.getMethods().isEmpty()) {
                     flowByMethod =
                         List.of(
                             Map.entry(PathParameterHttpMethod.WILDCARD, new PathParameters(selector.getPath(), selector.getPathOperator()))
