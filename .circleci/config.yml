@@ -617,7 +617,7 @@ jobs:
     job-community-build:
         executor:
             name: openjdk
-            version: "11.0"
+            version: "17.0"
         steps:
             - checkout
             - cmd-restore-maven-job-cache:
@@ -1911,17 +1911,16 @@ workflows:
             and:
                 - equal: [pull_requests, << pipeline.parameters.gio_action >>]
         jobs:
-            # Deactivated until https://gravitee.atlassian.net/browse/APIM-1598
-            # - job-community-build:
-            #      name: Check build as Community user
-            #       context: cicd-orchestrator
-            #       filters:
-            #           branches:
-            #               only:
-            #                   - master
-            #                   - /^\d+\.\d+\.x$/
-            #                   - /.*-run-e2e.*/
-            #                   - /.*merge.*/
+            - job-community-build:
+                  name: Check build as Community user
+                  context: cicd-orchestrator
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - /^\d+\.\d+\.x$/
+                              - /.*-run-e2e.*/
+                              - /.*merge.*/
             - job-setup:
                   name: Setup
                   context: cicd-orchestrator
