@@ -121,7 +121,7 @@
         <jsonassert.version>1.5.0</jsonassert.version>
         <json-patch.version>1.13</json-patch.version>
         <json-path.version>2.6.0</json-path.version>
-        <json-smart.version>2.4.9</json-smart.version>
+        <json-smart.version>2.4.11</json-smart.version>
         <jsoup.version>1.15.3</jsoup.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <lucene.version>9.5.0</lucene.version>
