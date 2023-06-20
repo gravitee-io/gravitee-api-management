@@ -18,7 +18,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ApiBackendServicesComponent } from './api-backend-services.component';
-import { ApiEndpointsGroupsModule } from './endpoint/api-endpoints-groups.module';
+import { ApiEndpointsGroupsModule } from './endpoints-groups/api-endpoints-groups.module';
 
 import { ApiProxyEndpointModule } from '../../proxy/endpoints/api-proxy-endpoints.module';
 
