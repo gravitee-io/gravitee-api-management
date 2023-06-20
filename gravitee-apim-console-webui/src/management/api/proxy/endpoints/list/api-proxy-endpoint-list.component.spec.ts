@@ -21,11 +21,12 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { UIRouterGlobals } from '@uirouter/core';
+import { Component, ViewChild } from '@angular/core';
 
 import { ApiProxyEndpointListComponent } from './api-proxy-endpoint-list.component';
+import { ApiProxyEndpointListHarness } from './api-proxy-endpoint-list.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
@@ -33,20 +34,30 @@ import { User } from '../../../../../entities/user';
 import { ApiProxyEndpointModule } from '../api-proxy-endpoints.module';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
+@Component({
+  template: ` <api-proxy-endpoint-list #apiEndpointList [api]="api"></api-proxy-endpoint-list> `,
+})
+class TestComponent {
+  @ViewChild('apiEndpointList') apiEndpointList: ApiProxyEndpointListComponent;
+  api?: ApiV2;
+}
+
 describe('ApiProxyEndpointListComponent', () => {
   const API_ID = 'apiId';
   const fakeUiRouter = { go: jest.fn() };
 
-  let fixture: ComponentFixture<ApiProxyEndpointListComponent>;
+  let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let endpointsGroupHarness: ApiProxyEndpointListHarness;
 
   const currentUser = new User();
   currentUser.userPermissions = ['api-definition-u', 'api-definition-r'];
 
-  const initComponent = (api: ApiV2): void => {
+  const initComponent = async (api: ApiV2) => {
     TestBed.configureTestingModule({
+      declarations: [TestComponent],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEndpointModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
@@ -60,13 +71,15 @@ describe('ApiProxyEndpointListComponent', () => {
       },
     });
 
-    fixture = TestBed.createComponent(ApiProxyEndpointListComponent);
+    fixture = TestBed.createComponent(TestComponent);
     fixture.componentInstance.api = api;
 
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+
+    endpointsGroupHarness = await loader.getHarness(ApiProxyEndpointListHarness);
   };
 
   afterEach(() => {
@@ -76,8 +89,8 @@ describe('ApiProxyEndpointListComponent', () => {
 
   describe('navigateToGroup', () => {
     let routerSpy: jest.SpyInstance;
-    beforeEach(() => {
-      initComponent(
+    beforeEach(async () => {
+      await initComponent(
         fakeApiV2({
           id: API_ID,
         }),
@@ -86,14 +99,12 @@ describe('ApiProxyEndpointListComponent', () => {
     });
 
     it('should navigate to new Proxy Endpoint Group page on click to add button', async () => {
-      await loader.getHarness(MatButtonHarness.with({ text: /Add new endpoint group/ })).then((button) => button.click());
-
+      await endpointsGroupHarness.addEndpointGroup();
       expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.group', { groupName: '' });
     });
 
     it('should navigate to existing group', async () => {
-      await loader.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Edit group"]' })).then((btn) => btn.click());
-
+      await endpointsGroupHarness.editEndpointGroup();
       expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.group', { groupName: 'default-group' });
     });
   });
@@ -105,7 +116,7 @@ describe('ApiProxyEndpointListComponent', () => {
       ${'KUBERNETES'}   | ${'Button to open endpoint detail'}
     `('should be able to open an endpoint for API with origin $definitionContext', async ({ definitionContext, buttonAreaLabel }) => {
       const routerSpy = jest.spyOn(fakeUiRouter, 'go');
-      initComponent(
+      await initComponent(
         fakeApiV2({
           id: API_ID,
           definitionContext: { origin: definitionContext },
@@ -131,7 +142,7 @@ describe('ApiProxyEndpointListComponent', () => {
 
   describe('mat table tests', () => {
     it('should display the endpoint groups tables', async () => {
-      initComponent(
+      await initComponent(
         fakeApiV2({
           id: API_ID,
           proxy: {
@@ -175,22 +186,18 @@ describe('ApiProxyEndpointListComponent', () => {
         }),
       );
 
-      const rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
-      const rtTableRows0 = await rtTable0.getCellTextByIndex();
-
-      expect(rtTableRows0).toEqual([
+      expect(await endpointsGroupHarness.getTableRows(0)).toEqual([
         ['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
         ['secondary endpoint', 'favorite', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
       ]);
 
-      const rtTable1 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-1' }));
-      const rtTableRows1 = await rtTable1.getCellTextByIndex();
-
-      expect(rtTableRows1).toEqual([['default', 'favorite', 'https://api.gravitee.io/echo', 'HTTP', '1', '']]);
+      expect(await endpointsGroupHarness.getTableRows(1)).toEqual([
+        ['default', 'favorite', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
+      ]);
     });
 
     it("should display health check icon when it's configured at endpoint level", async () => {
-      initComponent(
+      await initComponent(
         fakeApiV2({
           id: API_ID,
           services: {
@@ -228,7 +235,7 @@ describe('ApiProxyEndpointListComponent', () => {
     });
 
     it("should display health check icon when it's configured at API level", async () => {
-      initComponent(
+      await initComponent(
         fakeApiV2({
           id: API_ID,
           services: {
@@ -244,7 +251,7 @@ describe('ApiProxyEndpointListComponent', () => {
 
     it('should not display health check icon', async () => {
       expect.assertions(1);
-      initComponent(
+      await initComponent(
         fakeApiV2({
           id: API_ID,
           services: {
@@ -271,24 +278,16 @@ describe('ApiProxyEndpointListComponent', () => {
       const api = fakeApiV2({
         id: API_ID,
       });
-      initComponent(api);
+      await initComponent(api);
 
-      const rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
-      let rtTableRows0 = await rtTable0.getCellTextByIndex();
-      expect(rtTableRows0).toEqual([
+      expect(await endpointsGroupHarness.getTableRows(0)).toEqual([
         ['default', 'favoritesubdirectory_arrow_right', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
       ]);
 
-      await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Delete group"]' })).then((element) => element.click());
-      await rootLoader
-        .getHarness(MatDialogHarness)
-        .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
-        .then((element) => element.click());
+      await endpointsGroupHarness.deleteEndpointGroup(rootLoader);
 
       expectApiGetRequest(api);
       expectApiPutRequest({ ...api, proxy: { groups: [] } });
-      rtTableRows0 = await rtTable0.getCellTextByIndex();
-      expect(rtTableRows0).toEqual([]);
     });
   });
 
@@ -322,22 +321,14 @@ describe('ApiProxyEndpointListComponent', () => {
           ],
         },
       });
-      initComponent(api);
+      await initComponent(api);
 
-      let rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
-      let rtTableRows0 = await rtTable0.getCellTextByIndex();
-      expect(rtTableRows0).toEqual([
+      expect(await endpointsGroupHarness.getTableRows(0)).toEqual([
         ['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
         ['secondary endpoint', 'favorite', 'https://api.gravitee.io/echo', 'HTTP', '1', ''],
       ]);
 
-      await loader
-        .getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Delete endpoint"]' }))
-        .then((elements) => elements[1].click());
-      await rootLoader
-        .getHarness(MatDialogHarness)
-        .then((dialog) => dialog.getHarness(MatButtonHarness.with({ text: /Delete/ })))
-        .then((element) => element.click());
+      await endpointsGroupHarness.deleteEndpoint(1, rootLoader);
 
       expectApiGetRequest(api);
       expectApiPutRequest({
@@ -361,15 +352,15 @@ describe('ApiProxyEndpointListComponent', () => {
         },
       });
 
-      rtTable0 = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
-      rtTableRows0 = await rtTable0.getCellTextByIndex();
-      expect(rtTableRows0).toEqual([['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', '']]);
+      expect(await endpointsGroupHarness.getTableRows(0)).toEqual([
+        ['default', 'favorite', 'https://api.le-systeme-solaire.net/rest/', 'HTTP', '1', ''],
+      ]);
     });
   });
 
   describe('HTTP configuration', () => {
     it('should display inherit HTTP configuration icon', async () => {
-      initComponent(
+      await initComponent(
         fakeApiV2({
           id: API_ID,
           proxy: {
