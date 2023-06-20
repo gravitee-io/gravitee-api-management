@@ -52,4 +52,32 @@ export class ApisClient {
       },
     );
   }
+
+  static createSubscriptions(api: string, app: string, plan: string, params: RefinedParams<any>) {
+    return http.post(`${apisUrl}/${api}/subscriptions?application=${app}&plan=${plan}`, null, {
+      tags: { name: OUT_OF_SCENARIO },
+      ...params,
+    });
+  }
+
+  static stopSubscription(api: string, subscription: string, params: RefinedParams<any>) {
+    return http.post(`${apisUrl}/${api}/subscriptions/${subscription}/status?status=CLOSED`, null, {
+      tags: { name: OUT_OF_SCENARIO },
+      ...params,
+    });
+  }
+
+  static getApiKeys(api: string, subscription: string, params: RefinedParams<any>) {
+    return http.get(`${apisUrl}/${api}/subscriptions/${subscription}/apikeys`, {
+      tags: { name: OUT_OF_SCENARIO },
+      ...params,
+    });
+  }
+
+  static deleteApiKey(api: string, subscription: string, apikey: string, params: RefinedParams<any>) {
+    return http.del(`${apisUrl}/${api}/subscriptions/${subscription}/apikeys/${apikey}`, null, {
+      tags: { name: OUT_OF_SCENARIO },
+      ...params,
+    });
+  }
 }

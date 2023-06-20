@@ -32,6 +32,10 @@ import { NewApiEntityV4TypeEnum } from '@models/v4/NewApiEntityV4';
 import { randomString } from '@helpers/random.helper';
 import { LoadTestEndpointClient } from '@clients/LoadTestEndpointClient';
 
+/**
+ * Creates an API with Websocket entrypoint consuming messages from Kafka Endpoint.
+ * Expects a 202 response when posting message
+ */
 const schemaRegistry = new SchemaRegistry();
 const connection = new Connection({
   // ConnectionConfig object

@@ -31,6 +31,11 @@ import { ApiEntityV4 } from '@models/v4/ApiEntityV4';
 import { PlanEntityV4 } from '@models/v4/PlanEntityV4';
 import { NewApiEntityV4TypeEnum } from '@models/v4/NewApiEntityV4';
 
+/**
+ * Create an API that assign a JSON body to the request and apply Transform JSON to XML on the response.
+ * Used with an KEYLESS plan.
+ * Expects 200 status and to contains 'Content-Type: application/xml' header
+ */
 export const options = k6Options;
 
 export function setup(): GatewayTestData {

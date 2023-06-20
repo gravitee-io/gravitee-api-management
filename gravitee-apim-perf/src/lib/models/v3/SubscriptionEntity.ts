@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { check } from 'k6';
-import http from 'k6/http';
-import { k6Options } from '@env/environment';
 
-/**
- * Calls an api and verify status is 200
- */
-export const options = k6Options;
-
-export default () => {
-  const res = http.get(k6Options.apim.apiEndpointUrl);
-  check(res, {
-    'status is 200': () => res.status === 200,
-  });
-};
+export interface SubscriptionEntity {
+  id?: string;
+  application?: string;
+  plan?: string;
+  request?: string;
+  consumerStatus?: string;
+  status?: boolean;
+}
