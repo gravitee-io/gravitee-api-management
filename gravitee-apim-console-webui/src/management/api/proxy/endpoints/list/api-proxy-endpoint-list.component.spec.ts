@@ -23,6 +23,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { UIRouterGlobals } from '@uirouter/core';
 
 import { ApiProxyEndpointListComponent } from './api-proxy-endpoint-list.component';
 
@@ -51,6 +52,7 @@ describe('ApiProxyEndpointListComponent', () => {
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: UIRouterGlobals, useValue: { current: { data: { baseRouteState: null } } } },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
