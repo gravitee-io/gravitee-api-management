@@ -186,10 +186,15 @@ public class SearchIndexInitializer implements Initializer {
         } catch (PrimaryOwnerNotFoundException e) {
             LOGGER.warn("Failed to retrieve API primary owner, API will we indexed without his primary owner", e);
         }
-        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            indexable = apiMapper.toEntity(executionContext, api, primaryOwner, null, false);
-        } else {
-            indexable = apiConverter.toApiEntity(api, primaryOwner);
+        try {
+            if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+                indexable = apiMapper.toEntity(executionContext, api, primaryOwner, null, false);
+            } else {
+                indexable = apiConverter.toApiEntity(api, primaryOwner);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to convert API {} to indexable", api.getId(), e);
+            return CompletableFuture.failedFuture(e);
         }
         return runApiIndexationAsync(executionContext, api.getId(), indexable, executorService);
     }
