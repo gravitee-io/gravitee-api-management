@@ -1,0 +1,14 @@
+.subscription-transfer {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  &__radio-group {
+    display: flex;
+    flex-direction: column;
+    margin: 15px 0;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

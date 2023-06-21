@@ -20,7 +20,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { DragDropModule } from '@angular/cdk/drag-drop';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
@@ -28,15 +28,18 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatRadioModule } from '@angular/material/radio';
 
 import { ApiPortalSubscriptionListComponent } from './list/api-portal-subscription-list.component';
 import { ApiPortalSubscriptionEditComponent } from './edit/api-portal-subscription-edit.component';
+import { ApiPortalSubscriptionTransferDialogComponent } from './components/transfer-dialog/api-portal-subscription-transfer-dialog.component';
 
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApiPortalSubscriptionListComponent, ApiPortalSubscriptionEditComponent],
+  declarations: [ApiPortalSubscriptionListComponent, ApiPortalSubscriptionEditComponent, ApiPortalSubscriptionTransferDialogComponent],
   exports: [ApiPortalSubscriptionListComponent, ApiPortalSubscriptionEditComponent],
   imports: [
     CommonModule,
@@ -57,6 +60,9 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatSnackBarModule,
     GioIconsModule,
     GioLoaderModule,
+    MatDialogModule,
+    MatRadioModule,
+    FormsModule,
   ],
   providers: [DatePipe],
 })
