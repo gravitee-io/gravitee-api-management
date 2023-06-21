@@ -24,7 +24,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 
-import { ApiProxyV4EntrypointsComponent } from './api-proxy-v4-entrypoints.component';
+import { ApiEntrypointsV4GeneralComponent } from './api-entrypoints-v4-general.component';
 
 import { GioFormListenersContextPathModule } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
 import { GioFormListenersVirtualHostModule } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
@@ -45,6 +45,6 @@ import { GioFormListenersVirtualHostModule } from '../component/gio-form-listene
     GioIconsModule,
     MatDialogModule,
   ],
-  declarations: [ApiProxyV4EntrypointsComponent],
+  declarations: [ApiEntrypointsV4GeneralComponent],
 })
-export class ApiProxyV4Module {}
+export class ApiEntrypointsV4Module {}

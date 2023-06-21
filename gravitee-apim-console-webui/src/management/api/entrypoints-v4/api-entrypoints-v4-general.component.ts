@@ -34,11 +34,11 @@ type EntrypointVM = {
   type: string;
 };
 @Component({
-  selector: 'api-proxy-v4-entrypoints',
-  template: require('./api-proxy-v4-entrypoints.component.html'),
-  styles: [require('./api-proxy-v4-entrypoints.component.scss')],
+  selector: 'api-entrypoints-v4-general',
+  template: require('./api-entrypoints-v4-general.component.html'),
+  styles: [require('./api-entrypoints-v4-general.component.scss')],
 })
-export class ApiProxyV4EntrypointsComponent implements OnInit {
+export class ApiEntrypointsV4GeneralComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public apiId: string;
   public api: ApiV4;

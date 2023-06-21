@@ -31,8 +31,8 @@ import { ApiPortalPlanListComponent } from './portal/plans/list/api-portal-plan-
 import { ApiPortalSubscriptionListComponent } from './portal/ng-subscriptions/list/api-portal-subscription-list.component';
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
 import { ApisPortalModule } from './portal/apis-portal.module';
-import { ApiProxyV4EntrypointsComponent } from './proxy-v4/api-proxy-v4-entrypoints.component';
-import { ApiProxyV4Module } from './proxy-v4/api-proxy-v4.module';
+import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
+import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
 import { ApiPortalSubscriptionEditComponent } from './portal/ng-subscriptions/edit/api-portal-subscription-edit.component';
 import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
 import { ApiBackendServicesComponent } from './endpoints-v4/backend-services/api-backend-services.component';
@@ -187,7 +187,7 @@ const states: Ng2StateDeclaration[] = [
   {
     name: 'management.apis.ng.entrypoints',
     url: '/proxy',
-    component: ApiProxyV4EntrypointsComponent,
+    component: ApiEntrypointsV4GeneralComponent,
     data: {
       useAngularMaterial: true,
       docs: null,
@@ -264,7 +264,7 @@ const states: Ng2StateDeclaration[] = [
     ApiV4PolicyStudioModule,
     ApisPortalModule,
     ApiProxyModule,
-    ApiProxyV4Module,
+    ApiEntrypointsV4Module,
     ApiEndpointsModule,
 
     GioEmptyModule,

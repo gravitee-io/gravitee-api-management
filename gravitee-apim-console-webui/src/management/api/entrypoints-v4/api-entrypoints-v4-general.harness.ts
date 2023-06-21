@@ -16,8 +16,8 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-export class ApiProxyV4EntrypointsHarness extends ComponentHarness {
-  public static hostSelector = 'api-proxy-v4-entrypoints';
+export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
+  public static hostSelector = 'api-entrypoints-v4-general';
 
   private tableLocator = this.locatorFor(MatTableHarness);
 
