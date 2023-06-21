@@ -102,7 +102,7 @@
             <td class="mat-cell" [attr.colspan]="endpointsDisplayedColumns.length">No Endpoints</td>
           </tr>
         </table>
-        <button mat-stroked-button aria-label="Add endpoint" class="add_endpoint">Add endpoint</button>
+        <a mat-stroked-button aria-label="Add endpoint" class="add_endpoint" (click)="addEndpoint(group.name)">Add endpoint</a>
       </mat-card-content>
     </ng-container>
   </mat-card>

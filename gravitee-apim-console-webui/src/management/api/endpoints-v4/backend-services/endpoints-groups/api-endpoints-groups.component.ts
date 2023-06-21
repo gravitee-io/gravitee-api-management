@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { find, remove } from 'lodash';
 import { EMPTY, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { StateService } from '@uirouter/angular';
 
 import { EndpointGroup, toEndpoints } from './api-endpoints-groups.adapter';
 
@@ -27,6 +28,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiV4, ConnectorPlugin, UpdateApi } from '../../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
+import { UIRouterState } from '../../../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'api-endpoints-groups',
@@ -41,6 +43,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly matDialog: MatDialog,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
@@ -132,5 +135,9 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  public addEndpoint(groupName: string): void {
+    this.ajsState.go('management.apis.ng.endpoint-new', { groupName });
   }
 }
