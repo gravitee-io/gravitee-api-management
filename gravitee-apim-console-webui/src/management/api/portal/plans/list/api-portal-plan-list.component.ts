@@ -265,7 +265,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   private onInit(selectedStatus: PlanStatus, fullReload = false): void {
     // For full reload, we need to reset the number of plans for each status
     const getApiPlans$: Observable<Plan[]> = fullReload
-      ? this.plansService.list(this.ajsStateParams.apiId, undefined, [...PLAN_STATUS], 1, 9999).pipe(
+      ? this.plansService.list(this.ajsStateParams.apiId, undefined, [...PLAN_STATUS], undefined, 1, 9999).pipe(
           map((plans) => {
             // Update the number of plans for each status
             const plansNumber = plans.data.reduce((acc, plan) => {
@@ -282,7 +282,9 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
             return plans.data.filter((p) => p.status === selectedStatus);
           }),
         )
-      : this.plansService.list(this.ajsStateParams.apiId, undefined, [selectedStatus], 1, 9999).pipe(map((response) => response.data));
+      : this.plansService
+          .list(this.ajsStateParams.apiId, undefined, [selectedStatus], undefined, 1, 9999)
+          .pipe(map((response) => response.data));
 
     getApiPlans$
       .pipe(

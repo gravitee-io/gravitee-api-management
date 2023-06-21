@@ -18,20 +18,28 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApiPlansResponse, CreatePlan, Plan, PlanStatus, UpdatePlan } from '../entities/management-api-v2';
+import { ApiPlansResponse, CreatePlan, Plan, PlanMode, PlanStatus, UpdatePlan } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiPlanV2Service {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
-  list(apiId: string, securities?: string[], statuses?: PlanStatus[], page = 1, perPage = 10): Observable<ApiPlansResponse> {
+  list(
+    apiId: string,
+    securities?: string[],
+    statuses?: PlanStatus[],
+    mode?: PlanMode,
+    page = 1,
+    perPage = 10,
+  ): Observable<ApiPlansResponse> {
     return this.http.get<ApiPlansResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/plans`, {
       params: {
         page,
         perPage,
         ...(securities ? { securities: securities.join(',') } : {}),
         ...(statuses ? { statuses: statuses.join(',') } : {}),
+        ...(mode ? { mode } : {}),
       },
     });
   }

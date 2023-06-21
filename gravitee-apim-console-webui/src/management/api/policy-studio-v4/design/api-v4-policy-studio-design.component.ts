@@ -75,6 +75,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           this.ajsStateParams.apiId,
           undefined,
           ['PUBLISHED'],
+          undefined,
           1,
           // No pagination here. Policy Studio doesn't support it for now.
           9999,
