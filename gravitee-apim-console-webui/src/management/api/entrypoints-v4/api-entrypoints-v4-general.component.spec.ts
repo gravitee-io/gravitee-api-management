@@ -25,9 +25,9 @@ import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatRowHarnessColumnsText } from '@angular/material/table/testing';
 
-import { ApiProxyV4EntrypointsComponent } from './api-proxy-v4-entrypoints.component';
-import { ApiProxyV4Module } from './api-proxy-v4.module';
-import { ApiProxyV4EntrypointsHarness } from './api-proxy-v4-entrypoints.harness';
+import { ApiEntrypointsV4GeneralComponent } from './api-entrypoints-v4-general.component';
+import { ApiEntrypointsV4Module } from './api-entrypoints-v4.module';
+import { ApiEntrypointsV4GeneralHarness } from './api-entrypoints-v4-general.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
@@ -40,12 +40,12 @@ import { fakeEnvironment } from '../../../entities/environment/environment.fixtu
 
 describe('ApiProxyV4EntrypointsComponent', () => {
   const API_ID = 'apiId';
-  let fixture: ComponentFixture<ApiProxyV4EntrypointsComponent>;
+  let fixture: ComponentFixture<ApiEntrypointsV4GeneralComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   const createComponent = (environment: Environment, api: ApiV4) => {
-    fixture = TestBed.createComponent(ApiProxyV4EntrypointsComponent);
+    fixture = TestBed.createComponent(ApiEntrypointsV4GeneralComponent);
     fixture.detectChanges();
 
     expectGetCurrentEnvironment(environment);
@@ -59,7 +59,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyV4Module, MatIconTestingModule, MatAutocompleteModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [{ provide: UIRouterStateParams, useValue: { apiId: API_ID } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -212,7 +212,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     it('should show entrypoints list with action buttons', async () => {
-      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiProxyV4EntrypointsHarness);
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
       const rows = await harness.getEntrypointsTableRows();
       expect(rows.length).toEqual(3);
       const entrypointsTypes: MatRowHarnessColumnsText[] = await Promise.all(rows.map(async (row) => await row.getCellTextByColumnName()));
@@ -227,7 +227,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     it('should remove entrypoint and save changes', async () => {
-      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiProxyV4EntrypointsHarness);
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
 
       const tableRows = await harness.getEntrypointsTableRows();
 
@@ -277,7 +277,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     it('should remove empty listener before save changes', async () => {
-      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiProxyV4EntrypointsHarness);
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
 
       const tableRows = await harness.getEntrypointsTableRows();
 
