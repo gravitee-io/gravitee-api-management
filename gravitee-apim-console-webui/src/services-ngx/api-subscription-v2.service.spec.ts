@@ -96,4 +96,24 @@ describe('ApiSubscriptionV2Service', () => {
         .flush(subscription);
     });
   });
+
+  describe('transfer', () => {
+    const SUBSCRIPTION_ID = 'my-subscription';
+    const PLAN_ID = 'my-plan';
+    it('should call API', (done) => {
+      const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
+      apiSubscriptionV2Service.transfer(API_ID, SUBSCRIPTION_ID, PLAN_ID).subscribe((response) => {
+        expect(response).toEqual(subscription);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/_transfer`,
+        method: 'POST',
+      });
+      expect(req.request.body.planId).toEqual(PLAN_ID);
+
+      req.flush(subscription);
+    });
+  });
 });

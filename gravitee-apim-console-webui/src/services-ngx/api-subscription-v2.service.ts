@@ -52,4 +52,10 @@ export class ApiSubscriptionV2Service {
   getById(apiId: string, subscriptionId: string, expands: string[] = []): Observable<Subscription> {
     return this.http.get<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}?expands=${expands}`);
   }
+
+  transfer(apiId: string, subscriptionId: string, planId: string): Observable<Subscription> {
+    return this.http.post<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/_transfer`, {
+      planId,
+    });
+  }
 }
