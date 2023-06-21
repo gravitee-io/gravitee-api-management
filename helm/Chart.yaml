@@ -20,3 +20,4 @@ annotations:
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
     - Add support for managed Service Account for each product
+    - Fix resources missing in ui-deployment.yaml
