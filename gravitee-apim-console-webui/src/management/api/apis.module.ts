@@ -34,9 +34,9 @@ import { ApisPortalModule } from './portal/apis-portal.module';
 import { ApiPortalSubscriptionEditComponent } from './portal/ng-subscriptions/edit/api-portal-subscription-edit.component';
 import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
 import { ApiBackendServicesComponent } from './endpoints-v4/backend-services/api-backend-services.component';
-import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
+import { ApiEndpointComponent } from './endpoints-v4/backend-services/endpoint/api-endpoint.component';
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -253,9 +253,9 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.endpoint',
-    url: '/groups/:groupName/endpoints/:endpointName',
-    component: ApiProxyGroupEndpointEditComponent,
+    name: 'management.apis.ng.endpoint-new',
+    url: '/groups/:groupName/endpoint/new',
+    component: ApiEndpointComponent,
     data: {
       useAngularMaterial: true,
       // TODO: Implement permissions
