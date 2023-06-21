@@ -17,6 +17,7 @@
 *~
 # Previous helm packages
 apim3-*.tgz
+apim-*.tgz
 # Various IDEs
 .project
 .idea/
