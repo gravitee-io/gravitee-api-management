@@ -1721,10 +1721,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     ) throws Exception {
         Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
 
-        if (DefinitionContext.isKubernetes(api.getOrigin())) {
-            throw new ApiNotManagedException("The api is managed externally (" + api.getOrigin() + "). Unable to deploy it.");
-        }
-
         // add deployment date
         api.setUpdatedAt(new Date());
         api.setDeployedAt(api.getUpdatedAt());
