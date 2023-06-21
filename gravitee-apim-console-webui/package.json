@@ -1,6 +1,6 @@
 {
   "name": "gravitee-apim-console-webui",
-  "version": "3.20.0-SNAPSHOT",
+  "version": "0.0.0",
   "description": "Gravitee.io APIM - UI Console",
   "dependencies": {
     "@angular/animations": "13.3.12",
