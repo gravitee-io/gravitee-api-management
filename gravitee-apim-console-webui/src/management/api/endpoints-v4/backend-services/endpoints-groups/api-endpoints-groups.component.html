@@ -22,9 +22,12 @@
         <div class="endpoints-group-card__header__title">
           <span class="mat-h4">{{ group?.name }}</span>
           <span class="gio-badge-primary">
-            <mat-icon *ngIf="group?.type === 'kafka'" svgIcon="gio:kafka"></mat-icon>
-            <mat-icon *ngIf="group?.type === 'mock'" svgIcon="gio:page"></mat-icon>
-            {{ group?.type | titlecase }}
+            <mat-icon *ngIf="group.type.toLowerCase() === 'kafka'" svgIcon="gio:kafka"></mat-icon>
+            <mat-icon *ngIf="group.type.toLowerCase() === 'mock'" svgIcon="gio:page"></mat-icon>
+            <mat-icon *ngIf="group.type.toLowerCase() === 'mqtt5'" svgIcon="gio:mqtt"></mat-icon>
+            <mat-icon *ngIf="group.type.toLowerCase() === 'solace'" svgIcon="gio:circle-filled"></mat-icon>
+            <mat-icon *ngIf="group.type.toLowerCase() === 'http proxy'" svgIcon="gio:language"></mat-icon>
+            {{ group.type }}
           </span>
           <span class="gio-badge-accent">
             <mat-icon svgIcon="gio:share-2"></mat-icon>
