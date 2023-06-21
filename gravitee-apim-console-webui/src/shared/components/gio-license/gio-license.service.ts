@@ -15,8 +15,8 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, shareReplay } from 'rxjs/operators';
 
 import { License } from '../../../entities/license/License';
 import { Constants } from '../../../entities/Constants';
@@ -54,21 +54,12 @@ const featureMoreInformationData = {
   providedIn: 'root',
 })
 export class GioLicenseService {
-  private readonly license$: BehaviorSubject<License>;
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {
-    this.license$ = new BehaviorSubject<License>(null);
-  }
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
-  loadLicense(): Observable<License> {
-    return this.http.get<License>(`${this.constants.v2BaseURL}/license`).pipe(
-      tap((license) => {
-        this.license$.next(license);
-      }),
-    );
-  }
+  private loadLicense$: Observable<License> = this.http.get<License>(`${this.constants.v2BaseURL}/license`).pipe(shareReplay(1));
 
   getLicense() {
-    return this.license$.asObservable();
+    return this.loadLicense$;
   }
 
   notAllowed(feature: string) {

@@ -74,6 +74,7 @@ describe('GioPolicyStudioLayoutComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/license`);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
 

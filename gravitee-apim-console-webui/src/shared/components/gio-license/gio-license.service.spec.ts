@@ -49,7 +49,7 @@ describe('GioLicenseService', () => {
   };
 
   it('should call the API', (done) => {
-    gioLicenseService.loadLicense().subscribe((response) => {
+    gioLicenseService.getLicense().subscribe((response) => {
       expect(response).toMatchObject(mockLicense);
       done();
     });
@@ -62,16 +62,9 @@ describe('GioLicenseService', () => {
     req.flush(mockLicense);
   });
 
-  it('should get default license', (done) => {
-    gioLicenseService.getLicense().subscribe((response) => {
-      expect(response).toBeNull();
-      done();
-    });
-  });
-
   it('should get license', (done) => {
     gioLicenseService
-      .loadLicense()
+      .getLicense()
       .pipe(
         switchMap(() => gioLicenseService.getLicense()),
         tap((license) => {
