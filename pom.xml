@@ -103,6 +103,8 @@
         <guava.version>31.0.1-jre</guava.version>
         <hamcrest.version>1.3</hamcrest.version>
         <hazelcast.version>5.0.4</hazelcast.version>
+        <!-- Not used in APIM but necessary to override version brought by Hazelcast to fix Snyk alert. Revise when Hazelcast will be upgraded -->
+        <hazelcast-json-org.version>20230227</hazelcast-json-org.version>
         <httpclient.version>4.5.13</httpclient.version>
         <imageio.version>3.8.1</imageio.version>
         <java-jwt.version>3.19.1</java-jwt.version>
@@ -438,6 +440,12 @@
                 <groupId>com.hazelcast</groupId>
                 <artifactId>hazelcast</artifactId>
                 <version>${hazelcast.version}</version>
+            </dependency>
+            <!-- Not used in APIM but necessary to override version brought by Hazelcast to fix Snyk alert. Revise when Hazelcast will be upgraded -->
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>${hazelcast-json-org.version}</version>
             </dependency>
 
             <dependency>
