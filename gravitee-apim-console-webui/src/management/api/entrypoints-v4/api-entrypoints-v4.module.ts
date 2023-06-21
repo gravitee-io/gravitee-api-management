@@ -19,15 +19,17 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaModule, GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiEntrypointsV4GeneralComponent } from './api-entrypoints-v4-general.component';
+import { ApiEntrypointsV4EditComponent } from './edit/api-entrypoints-v4-edit.component';
 
 import { GioFormListenersContextPathModule } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
 import { GioFormListenersVirtualHostModule } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
+import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
   imports: [
@@ -44,7 +46,10 @@ import { GioFormListenersVirtualHostModule } from '../component/gio-form-listene
     MatIconModule,
     GioIconsModule,
     MatDialogModule,
+    GioFormJsonSchemaModule,
+    GioGoBackButtonModule,
+    GioLoaderModule,
   ],
-  declarations: [ApiEntrypointsV4GeneralComponent],
+  declarations: [ApiEntrypointsV4GeneralComponent, ApiEntrypointsV4EditComponent],
 })
 export class ApiEntrypointsV4Module {}

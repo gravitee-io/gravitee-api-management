@@ -30,7 +30,7 @@ import { ApiEntrypointsV4Module } from './api-entrypoints-v4.module';
 import { ApiEntrypointsV4GeneralHarness } from './api-entrypoints-v4-general.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api, ApiV4, ConnectorPlugin, fakeApiV4, UpdateApiV4 } from '../../../entities/management-api-v2';
 import { GioFormListenersContextPathHarness } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
@@ -40,6 +40,7 @@ import { fakeEnvironment } from '../../../entities/environment/environment.fixtu
 
 describe('ApiProxyV4EntrypointsComponent', () => {
   const API_ID = 'apiId';
+  const fakeUiRouter = { go: jest.fn() };
   let fixture: ComponentFixture<ApiEntrypointsV4GeneralComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -59,7 +60,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
-      providers: [{ provide: UIRouterStateParams, useValue: { apiId: API_ID } }],
+      providers: [
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
+        { provide: UIRouterState, useValue: fakeUiRouter },
+      ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with

@@ -37,6 +37,7 @@ import { ApiBackendServicesComponent } from './endpoints-v4/backend-services/api
 import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
+import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
@@ -188,6 +189,19 @@ const states: Ng2StateDeclaration[] = [
     name: 'management.apis.ng.entrypoints',
     url: '/entrypoints',
     component: ApiEntrypointsV4GeneralComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-r'],
+      // },
+    },
+  },
+  {
+    name: 'management.apis.ng.entrypoints-edit',
+    url: '/entrypoints/:entrypointId',
+    component: ApiEntrypointsV4EditComponent,
     data: {
       useAngularMaterial: true,
       docs: null,
