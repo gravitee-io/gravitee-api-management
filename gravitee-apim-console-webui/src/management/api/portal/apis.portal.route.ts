@@ -66,7 +66,7 @@ function apisPortalRouterConfig($stateProvider) {
       url: '/plan',
     })
     .state('management.apis.detail.portal.plan.new', {
-      url: '/new?securityType',
+      url: '/new?selectedPlanMenuItem',
       component: 'ngApiPortalPlanEdit',
       data: {
         useAngularMaterial: true,
