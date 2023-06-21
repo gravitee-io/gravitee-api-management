@@ -17,6 +17,8 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { SelectorItem } from '@gravitee/ui-particles-angular';
 import { IRootScopeService } from 'angular';
+import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 import { AjsRootScope, CurrentUserService, PortalSettingsService, UIRouterState } from '../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -24,6 +26,8 @@ import { Constants } from '../../entities/Constants';
 import { EnvironmentService } from '../../services-ngx/environment.service';
 import UserService from '../../services/user.service';
 import PortalConfigService from '../../services/portalConfig.service';
+import { GioLicenseService } from '../../shared/components/gio-license/gio-license.service';
+import { GioLicenseOptions } from '../../shared/components/gio-license/gio-license.directive';
 
 interface MenuItem {
   icon: string;
@@ -31,6 +35,8 @@ interface MenuItem {
   baseRoute: string;
   displayName: string;
   permissions?: string[];
+  license?: GioLicenseOptions;
+  iconRight$?: Observable<any>;
 }
 
 @Component({
@@ -52,6 +58,7 @@ export class GioSideNavComponent implements OnInit {
     @Inject(PortalSettingsService) private readonly portalConfigService: PortalConfigService,
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly gioLicenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
@@ -64,6 +71,10 @@ export class GioSideNavComponent implements OnInit {
   }
 
   private buildMainMenuItems(): MenuItem[] {
+    const auditLicense = { feature: 'apim-audit-trail' };
+    const auditIconRight$ = this.gioLicenseService
+      .notAllowed(auditLicense.feature)
+      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
     const mainMenuItems: MenuItem[] = [
       { icon: 'gio:home', targetRoute: 'management.dashboard.home', baseRoute: 'management.dashboard', displayName: 'Dashboard' },
       { icon: 'gio:upload-cloud', targetRoute: 'management.apis.ng-list', baseRoute: 'management.apis', displayName: 'APIs' },
@@ -87,6 +98,8 @@ export class GioSideNavComponent implements OnInit {
         baseRoute: 'management.audit',
         displayName: 'Audit',
         permissions: ['environment-audit-r'],
+        license: auditLicense,
+        iconRight$: auditIconRight$,
       },
       {
         icon: 'gio:message-text',
