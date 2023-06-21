@@ -34,6 +34,7 @@ public class PlanQuery {
 
     private String apiId;
     private String name;
+    private PlanMode mode;
     private List<PlanSecurityType> securityType;
     private List<PlanStatus> status;
 }

@@ -81,6 +81,7 @@ public class ApiPlansResource extends AbstractResource {
     public PlansResponse getApiPlans(
         @QueryParam("statuses") @DefaultValue("PUBLISHED") final Set<PlanStatus> statuses,
         @QueryParam("securities") @Nonnull Set<PlanSecurityType> securities,
+        @QueryParam("mode") PlanMode planMode,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
         var planQuery = PlanQuery
@@ -97,7 +98,8 @@ public class ApiPlansResource extends AbstractResource {
                     .stream()
                     .map(planStatus -> io.gravitee.definition.model.v4.plan.PlanStatus.valueOf(planStatus.name()))
                     .collect(Collectors.toList())
-            );
+            )
+            .mode(planMode);
 
         List<GenericPlanEntity> plans = planSearchService
             .search(GraviteeContext.getExecutionContext(), planQuery.build(), getAuthenticatedUser(), isAdmin())
