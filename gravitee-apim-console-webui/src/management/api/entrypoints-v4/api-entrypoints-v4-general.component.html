@@ -41,7 +41,13 @@
       ></gio-form-listeners-virtual-host>
     </div>
 
-    <table mat-table [dataSource]="dataSource" class="entrypoints__table" aria-label="entrypoints" *ngIf="api?.type === 'MESSAGE'">
+    <table
+      mat-table
+      [dataSource]="dataSource"
+      class="entrypoints__table gio-table-light"
+      aria-label="entrypoints"
+      *ngIf="api?.type === 'MESSAGE'"
+    >
       <ng-container matColumnDef="type">
         <th mat-header-cell *matHeaderCellDef>Entrypoint type</th>
         <td mat-cell *matCellDef="let element">
