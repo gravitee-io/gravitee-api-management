@@ -37,16 +37,13 @@ import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -134,17 +131,19 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
                 if (query.getName() != null) {
                     filtered = query.getName().equals(p.getName());
                 }
-                if (filtered && query.getSecurityType() != null && !query.getSecurityType().isEmpty()) {
+                if (filtered && !CollectionUtils.isEmpty(query.getSecurityType())) {
                     if (p.getPlanSecurity() == null || p.getPlanSecurity().getType() == null) {
-                        filtered = false;
-                    } else {
-                        PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
-                        filtered = query.getSecurityType().contains(planSecurityType);
+                        return false;
                     }
+                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(p.getPlanSecurity().getType());
+                    filtered = query.getSecurityType().contains(planSecurityType);
                 }
-                if (filtered && query.getStatus() != null && !query.getStatus().isEmpty()) {
+                if (filtered && !CollectionUtils.isEmpty(query.getStatus())) {
                     PlanStatus planStatus = PlanStatus.valueOfLabel(p.getPlanStatus().getLabel());
                     filtered = query.getStatus().contains(planStatus);
+                }
+                if (filtered && query.getMode() != null) {
+                    filtered = query.getMode().equals(p.getPlanMode());
                 }
                 return filtered;
             })

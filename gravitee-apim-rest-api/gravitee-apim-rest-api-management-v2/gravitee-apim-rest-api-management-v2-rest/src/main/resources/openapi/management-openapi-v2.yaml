@@ -547,6 +547,12 @@ paths:
                       items:
                           $ref: "#/components/schemas/PlanSecurityType"
                   explode: false
+                - name: mode
+                  in: query
+                  required: false
+                  description: Mode of plan
+                  schema:
+                      $ref: "#/components/schemas/PlanMode"
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:

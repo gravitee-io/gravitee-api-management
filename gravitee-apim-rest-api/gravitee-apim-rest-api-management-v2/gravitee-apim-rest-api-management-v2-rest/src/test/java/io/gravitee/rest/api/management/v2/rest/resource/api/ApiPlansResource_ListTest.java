@@ -34,6 +34,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PlansResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -151,6 +152,7 @@ public class ApiPlansResource_ListTest extends ApiPlansResourceTest {
             .apiId(API)
             .securityType(List.of(PlanSecurityType.JWT))
             .status(List.of(PlanStatus.DEPRECATED))
+            .mode(PlanMode.STANDARD)
             .build();
 
         var rule = new Rule();
@@ -185,6 +187,7 @@ public class ApiPlansResource_ListTest extends ApiPlansResourceTest {
             .queryParam("securities", "JWT")
             .queryParam("statuses", "DEPRECATED")
             .queryParam("perPage", 1)
+            .queryParam("mode", "STANDARD")
             .request()
             .get();
 

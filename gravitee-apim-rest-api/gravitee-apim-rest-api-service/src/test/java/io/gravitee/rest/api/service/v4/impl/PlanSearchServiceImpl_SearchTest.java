@@ -31,10 +31,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanQuery;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
+import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -205,7 +202,13 @@ public class PlanSearchServiceImpl_SearchTest {
 
         List<GenericPlanEntity> plans = planSearchService.search(
             GraviteeContext.getExecutionContext(),
-            PlanQuery.builder().apiId(API_ID).securityType(List.of(PlanSecurityType.JWT)).status(List.of(PlanStatus.DEPRECATED)).build(),
+            PlanQuery
+                .builder()
+                .apiId(API_ID)
+                .securityType(List.of(PlanSecurityType.JWT))
+                .status(List.of(PlanStatus.DEPRECATED))
+                .mode(PlanMode.STANDARD)
+                .build(),
             USER,
             true
         );
