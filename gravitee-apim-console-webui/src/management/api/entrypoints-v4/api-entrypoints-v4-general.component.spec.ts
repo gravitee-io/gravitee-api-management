@@ -51,7 +51,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     expectGetCurrentEnvironment(environment);
     expectGetEntrypoints();
     expectGetApi(api);
-    expectGetPortalSettings();
     fixture.detectChanges();
 
     loader = TestbedHarnessEnvironment.loader(fixture);
@@ -73,12 +72,36 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     httpTestingController.verify({ ignoreCancelled: true });
   });
 
+  describe('API with subscription listener only', () => {
+    const ENV = fakeEnvironment();
+    const API = fakeApiV4({ listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }] });
+
+    beforeEach(() => {
+      createComponent(ENV, API);
+      fixture.detectChanges();
+    });
+
+    it('should not show context paths', async () => {
+      const contextPath = await loader.getAllHarnesses(GioFormListenersContextPathHarness);
+      expect(contextPath.length).toEqual(0);
+      const virtualHost = await loader.getAllHarnesses(GioFormListenersVirtualHostHarness);
+      expect(virtualHost.length).toEqual(0);
+    });
+
+    it('should show listener', async () => {
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
+      const rows = await harness.getEntrypointsTableRows();
+      expect(rows.length).toEqual(1);
+    });
+  });
+
   describe('API with context path', () => {
     const ENV = fakeEnvironment();
     const API = fakeApiV4({ listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] }] });
 
     beforeEach(() => {
       createComponent(ENV, API);
+      expectGetPortalSettings();
       fixture.detectChanges();
     });
 
@@ -138,6 +161,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
     beforeEach(() => {
       createComponent(ENV, API);
+      expectGetPortalSettings();
       fixture.detectChanges();
     });
 
@@ -208,6 +232,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
     beforeEach(() => {
       createComponent(ENV, API);
+      expectGetPortalSettings();
       fixture.detectChanges();
     });
 

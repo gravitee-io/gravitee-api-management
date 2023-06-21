@@ -84,13 +84,13 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
 
   private initForm(api: ApiV4) {
     this.api = api as ApiV4;
+    this.formGroup = new FormGroup({});
 
     const httpListeners = this.api.listeners.filter((listener) => listener.type === 'HTTP');
     if (httpListeners.length > 0) {
       this.apiExistingPaths = httpListeners.flatMap((listener) => {
         return (listener as HttpListener).paths;
       });
-      this.formGroup = new FormGroup({});
       this.pathsFormControl = this.formBuilder.control(this.apiExistingPaths, Validators.required);
       this.formGroup.addControl('paths', this.pathsFormControl);
       this.enableVirtualHost = this.apiExistingPaths.some((path) => path.host !== undefined);

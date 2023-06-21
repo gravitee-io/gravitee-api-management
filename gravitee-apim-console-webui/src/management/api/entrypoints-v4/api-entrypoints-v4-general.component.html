@@ -18,7 +18,7 @@
 <mat-card class="entrypoints">
   <h3>Entrypoints</h3>
   <form [formGroup]="formGroup" *ngIf="formGroup" (ngSubmit)="onSaveChanges()">
-    <div class="entrypoints__context-path">
+    <div class="entrypoints__context-path" *ngIf="pathsFormControl">
       <div class="entrypoints__context-path__title">
         <span class="mat-body-strong">Entrypoints context</span>
 
@@ -75,7 +75,7 @@
         mat-flat-button
         color="primary"
         type="submit"
-        [disabled]="(formGroup.pristine || formGroup.invalid) && entrypointToBeRemoved.length === 0"
+        [disabled]="((formGroup.pristine || formGroup.invalid) && entrypointToBeRemoved.length === 0) || dataSource.length === 0"
       >
         Save changes
       </button>
