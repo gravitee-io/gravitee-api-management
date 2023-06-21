@@ -19,8 +19,9 @@ import { EMPTY, forkJoin, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
+import { StateService } from '@uirouter/core';
 
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { ApiV4, ConnectorPlugin, HttpListener, PathV4, UpdateApiV4 } from '../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
@@ -53,6 +54,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   public entrypointToBeRemoved: string[] = [];
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly environmentService: EnvironmentService,
@@ -116,7 +118,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   }
 
   onEdit(element: EntrypointVM) {
-    throw new Error(`Edit not implemented yet ${element}`);
+    this.ajsState.go(`management.apis.ng.entrypoints-edit`, { entrypointId: element.id });
   }
 
   onDelete(elementToRemove: EntrypointVM) {
