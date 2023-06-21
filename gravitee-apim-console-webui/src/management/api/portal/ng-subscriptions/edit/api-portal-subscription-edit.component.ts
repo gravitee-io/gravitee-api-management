@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
+import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/core';
 import { DatePipe } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
 
-import { SubscriptionStatus } from '../../../../../entities/management-api-v2';
+import { PlanMode, PlanSecurityType, SubscriptionStatus } from '../../../../../entities/management-api-v2';
 import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import {
+  ApiPortalSubscriptionTransferDialogComponent,
+  SubscriptionTransferData,
+} from '../components/transfer-dialog/api-portal-subscription-transfer-dialog.component';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 interface SubscriptionDetailVM {
   id: string;
-  plan: string;
+  plan: { id: string; label: string; securityType: PlanSecurityType; mode: PlanMode };
   status: SubscriptionStatus;
   subscribedBy: string;
   application?: { label: string; description: string };
@@ -49,43 +55,57 @@ interface SubscriptionDetailVM {
 export class ApiPortalSubscriptionEditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   subscription: SubscriptionDetailVM;
+  private apiId: string;
+  private subscriptionId: string;
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
     private datePipe: DatePipe,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
-    const apiId = this.ajsStateParams.apiId;
-    const subscriptionId = this.ajsStateParams.subscriptionId;
+    this.apiId = this.ajsStateParams.apiId;
+    this.subscriptionId = this.ajsStateParams.subscriptionId;
 
     this.apiSubscriptionService
-      .getById(apiId, subscriptionId, ['plan', 'application', 'subscribedBy'])
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((subscription) => {
-        if (subscription) {
-          this.subscription = {
-            id: subscription.id,
-            plan: subscription.plan.security ? `${subscription.plan.name} (${subscription.plan.security.type})` : subscription.plan.name,
-            application: {
-              label: `${subscription.application.name} (${subscription.application.primaryOwner.displayName}) - Type: ${subscription.application.type}`,
-              description: subscription.application.description,
-            },
-            status: subscription.status,
-            subscribedBy: subscription.subscribedBy.displayName,
-            publisherMessage: subscription.publisherMessage ?? '-',
-            subscriberMessage: subscription.consumerMessage ?? '-',
-            createdAt: this.formatDate(subscription.createdAt),
-            pausedAt: this.formatDate(subscription.pausedAt),
-            startingAt: this.formatDate(subscription.startingAt),
-            endingAt: this.formatDate(subscription.endingAt),
-            processedAt: this.formatDate(subscription.processedAt),
-            closedAt: this.formatDate(subscription.closedAt),
-            domain: subscription.application.domain ?? '-',
-          };
-        }
-      });
+      .getById(this.apiId, this.subscriptionId, ['plan', 'application', 'subscribedBy'])
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((subscription) => {
+          if (subscription) {
+            this.subscription = {
+              id: subscription.id,
+              plan: {
+                id: subscription.plan.id,
+                label: subscription.plan.security
+                  ? `${subscription.plan.name} (${subscription.plan.security.type})`
+                  : subscription.plan.name,
+                securityType: subscription.plan.security?.type,
+                mode: subscription.plan.security?.type ? 'STANDARD' : 'PUSH',
+              },
+              application: {
+                label: `${subscription.application.name} (${subscription.application.primaryOwner.displayName}) - Type: ${subscription.application.type}`,
+                description: subscription.application.description,
+              },
+              status: subscription.status,
+              subscribedBy: subscription.subscribedBy.displayName,
+              publisherMessage: subscription.publisherMessage ?? '-',
+              subscriberMessage: subscription.consumerMessage ?? '-',
+              createdAt: this.formatDate(subscription.createdAt),
+              pausedAt: this.formatDate(subscription.pausedAt),
+              startingAt: this.formatDate(subscription.startingAt),
+              endingAt: this.formatDate(subscription.endingAt),
+              processedAt: this.formatDate(subscription.processedAt),
+              closedAt: this.formatDate(subscription.closedAt),
+              domain: subscription.application.domain ?? '-',
+            };
+          }
+        }),
+      )
+      .subscribe();
   }
 
   validateSubscription() {
@@ -97,7 +117,30 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
   }
 
   transferSubscription() {
-    // Do nothing for now
+    this.matDialog
+      .open<ApiPortalSubscriptionTransferDialogComponent, SubscriptionTransferData, string>(ApiPortalSubscriptionTransferDialogComponent, {
+        width: '500px',
+        data: {
+          apiId: this.apiId,
+          securityType: this.subscription.plan.securityType,
+          currentPlanId: this.subscription.plan.id,
+          mode: this.subscription.plan.mode,
+        },
+        role: 'alertdialog',
+        id: 'transferSubscriptionDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((planId) => (planId ? this.apiSubscriptionService.transfer(this.apiId, this.subscription.id, planId) : EMPTY)),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`Subscription successfully transferred`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
   }
 
   pauseSubscription() {
