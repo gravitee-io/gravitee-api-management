@@ -6,14 +6,17 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 3.20.12
 
 - Add support for managed Service Account for each product
+- Fix resources missing in ui-deployment.yaml
 
 ### 3.19.17
 
 - Add support for managed Service Account for each product
+- Fix resources missing in ui-deployment.yaml
 
 ### 3.18.28
 
 - Add support for managed Service Account for each product
+- Fix resources missing in ui-deployment.yaml
 
 ### 3.20.11
 

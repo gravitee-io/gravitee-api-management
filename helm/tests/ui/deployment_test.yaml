@@ -47,3 +47,12 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env[1].value
           value: "/test/"
+
+  - it: Should have default resources
+    template: ui/ui-deployment.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: "100m"
