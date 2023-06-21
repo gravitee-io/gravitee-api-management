@@ -26,6 +26,7 @@ import {
   fakePlanV4,
   fakeUpdatePlanV2,
   fakeUpdatePlanV4,
+  PlanMode,
   PlanStatus,
 } from '../entities/management-api-v2';
 
@@ -74,9 +75,10 @@ describe('ApiPlanV2Service', () => {
 
       req.flush(fakeApiPlansResponse);
     });
-    it('should list with statuses and security', (done) => {
+    it('should list with statuses, security and mode', (done) => {
       const security = ['API_KEY'];
       const statuses: PlanStatus[] = ['STAGING', 'PUBLISHED'];
+      const mode: PlanMode = 'STANDARD';
 
       const fakeApiPlansResponse: ApiPlansResponse = {
         data: [
@@ -86,7 +88,7 @@ describe('ApiPlanV2Service', () => {
         ],
       };
 
-      apiPlanV2Service.list(API_ID, security, statuses).subscribe((apiPlansResponse) => {
+      apiPlanV2Service.list(API_ID, security, statuses, mode).subscribe((apiPlansResponse) => {
         expect(apiPlansResponse.data).toEqual([
           fakePlanV4({
             id: PLAN_ID,
@@ -96,7 +98,7 @@ describe('ApiPlanV2Service', () => {
       });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=10&securities=API_KEY&statuses=STAGING,PUBLISHED`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=10&securities=API_KEY&statuses=STAGING,PUBLISHED&mode=STANDARD`,
         method: 'GET',
       });
 
