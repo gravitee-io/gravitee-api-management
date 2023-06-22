@@ -15,4 +15,34 @@
     limitations under the License.
 
 -->
-👍🏼
+<mat-card class="endpoint-card">
+  <div>
+    <div class="mat-h4">Configure your API endpoints access</div>
+    <p class="body-1">Choose the type of event-brokers/backend that will be exposed through the API</p>
+  </div>
+
+  <form *ngIf="formGroup; else loadingTpl" [formGroup]="formGroup">
+    <div>
+      <mat-form-field appearance="outline" class="endpoint-card__form__name">
+        <input id="name" type="text" matInput formControlName="name" required="true" />
+        <mat-label>Endpoint name</mat-label>
+        <mat-error *ngIf="formGroup.controls.name.errors?.required">Endpoint name is required</mat-error>
+      </mat-form-field>
+      <div class="endpoint-card__form__config">
+        <gio-form-json-schema formControlName="configuration" [jsonSchema]="endpointSchema.config"></gio-form-json-schema>
+      </div>
+      <div class="endpoint-card__form__shared-config">
+        <gio-form-json-schema formControlName="sharedConfiguration" [jsonSchema]="endpointSchema.sharedConfig"></gio-form-json-schema>
+      </div>
+    </div>
+
+    <div class="endpoint-card__actions">
+      <button mat-stroked-button type="button">Previous</button>
+      <button mat-flat-button aria-label="Validate my endpoints" color="primary" type="submit" [disabled]="formGroup.invalid">
+        Validate my endpoints
+      </button>
+    </div>
+  </form>
+</mat-card>
+
+<ng-template #loadingTpl><mat-progress-bar mode="indeterminate"></mat-progress-bar></ng-template>

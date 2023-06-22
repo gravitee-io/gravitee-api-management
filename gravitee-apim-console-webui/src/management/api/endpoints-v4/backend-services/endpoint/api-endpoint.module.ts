@@ -16,12 +16,28 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 
 @NgModule({
   declarations: [ApiEndpointComponent],
   exports: [ApiEndpointComponent],
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    GioFormJsonSchemaModule,
+    MatProgressBarModule,
+  ],
 })
 export class ApiEndpointModule {}

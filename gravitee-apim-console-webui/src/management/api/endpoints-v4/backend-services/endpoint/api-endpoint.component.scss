@@ -1,0 +1,27 @@
+@use 'sass:map';
+@use '../../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.endpoint-card {
+  margin-bottom: 24px;
+
+  &__form {
+    &__name {
+      width: 100%;
+    }
+
+    &__config,
+    &__shared-config {
+      margin-bottom: 16px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
