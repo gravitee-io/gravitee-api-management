@@ -138,6 +138,18 @@ module.exports = {
           to: 'assets/monaco-editor',
         },
         {
+          from: './node_modules/@asciidoctor/core/dist/browser/asciidoctor.min.js',
+          to: 'assets/asciidoctor/asciidoctor.js',
+        },
+        {
+          from: './node_modules/prismjs/prism.js',
+          to: 'assets/prismjs',
+        },
+        {
+          from: './node_modules/prismjs/components/prism-json.js',
+          to: 'assets/prismjs/components',
+        },
+        {
           from: './src/assets',
           to: 'assets',
         },
