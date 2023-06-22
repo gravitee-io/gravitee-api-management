@@ -76,4 +76,8 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
   }
+
+  public onPrevious() {
+    this.ajsState.go('management.apis.ng.endpoints');
+  }
 }
