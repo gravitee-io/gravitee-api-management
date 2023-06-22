@@ -306,6 +306,53 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     });
   });
 
+  describe('resume subscription', () => {
+    const pausedSubscription = BASIC_SUBSCRIPTION();
+    pausedSubscription.status = 'PAUSED';
+
+    it('should resume subscription', async () => {
+      await initComponent(pausedSubscription);
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      expect(await harness.resumeBtnIsVisible()).toEqual(true);
+
+      await harness.openResumeDialog();
+
+      const resumeDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#confirmResumeSubscriptionDialog' }),
+      );
+      expect(await resumeDialog.getTitleText()).toEqual('Resume your subscription');
+
+      const resumeBtn = await resumeDialog.getHarness(MatButtonHarness.with({ text: 'Resume' }));
+      expect(await resumeBtn.isDisabled()).toEqual(false);
+      await resumeBtn.click();
+
+      expectApiSubscriptionResume(SUBSCRIPTION_ID, BASIC_SUBSCRIPTION());
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApplicationGet();
+
+      expect(await harness.getStatus()).toEqual('ACCEPTED');
+      expect(await harness.pauseBtnIsVisible()).toEqual(true);
+      expect(await harness.resumeBtnIsVisible()).toEqual(false);
+    });
+    it('should not resume subscription on cancel', async () => {
+      await initComponent(pausedSubscription);
+      expectApplicationGet();
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness.openResumeDialog();
+
+      const resumeDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#confirmResumeSubscriptionDialog' }),
+      );
+      const cancelBtn = await resumeDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+      await cancelBtn.click();
+
+      expect(await harness.getStatus()).toEqual('PAUSED');
+    });
+  });
+
   async function initComponent(
     subscription: Subscription = BASIC_SUBSCRIPTION(),
     permissions: string[] = ['api-subscription-r', 'api-subscription-u', 'api-subscription-d'],
@@ -358,6 +405,15 @@ describe('ApiPortalSubscriptionEditComponent', () => {
   function expectApiSubscriptionPause(subscriptionId: string, subscription: Subscription): void {
     const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscriptionId}/_pause`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual({});
+    req.flush(subscription);
+  }
+
+  function expectApiSubscriptionResume(subscriptionId: string, subscription: Subscription): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscriptionId}/_resume`,
       method: 'POST',
     });
     expect(req.request.body).toEqual({});

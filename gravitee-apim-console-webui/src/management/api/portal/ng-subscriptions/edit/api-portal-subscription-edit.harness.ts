@@ -116,6 +116,10 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
     return this.btnIsVisible('Resume');
   }
 
+  public async openResumeDialog(): Promise<void> {
+    return this.getBtnByText('Resume').then((btn) => btn.click());
+  }
+
   public async changeEndDateBtnIsVisible(): Promise<boolean> {
     return this.btnIsVisible('Change end date');
   }
