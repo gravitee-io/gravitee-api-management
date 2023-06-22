@@ -367,7 +367,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         return of({});
       };
       component.policyDocumentationFetcher = (_policy) => {
-        return of({});
+        return of('');
       };
 
       await policyStudioHarness.selectFlowInMenu('my flow');
@@ -424,7 +424,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         return of({});
       };
       component.policyDocumentationFetcher = (_policy) => {
-        return of({});
+        return of('');
       };
 
       await policyStudioHarness.selectFlowInMenu('PlanA');
