@@ -70,4 +70,8 @@ export class ApplicationService {
   restore(applicationId: string): Observable<Application> {
     return this.http.post<Application>(`${this.constants.env.baseURL}/applications/${applicationId}/_restore`, {});
   }
+
+  getById(applicationId: string): Observable<Application> {
+    return this.http.get<Application>(`${this.constants.env.baseURL}/applications/${applicationId}`);
+  }
 }

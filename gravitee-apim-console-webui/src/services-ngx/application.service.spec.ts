@@ -107,4 +107,22 @@ describe('ApplicationService', () => {
       req.flush(mockApplications);
     });
   });
+
+  describe('getById', () => {
+    it('should call the API', (done) => {
+      const mockApplication = fakeApplication({ id: 'my-app-id' });
+
+      applicationService.getById('my-app-id').subscribe((response) => {
+        expect(response).toMatchObject(mockApplication);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/my-app-id`,
+      });
+
+      req.flush(mockApplication);
+    });
+  });
 });

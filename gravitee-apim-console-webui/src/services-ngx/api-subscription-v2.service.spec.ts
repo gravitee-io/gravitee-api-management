@@ -116,4 +116,42 @@ describe('ApiSubscriptionV2Service', () => {
       req.flush(subscription);
     });
   });
+
+  describe('pause', () => {
+    const SUBSCRIPTION_ID = 'my-subscription';
+    it('should call API', (done) => {
+      const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
+      apiSubscriptionV2Service.pause(SUBSCRIPTION_ID, API_ID).subscribe((response) => {
+        expect(response).toEqual(subscription);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/_pause`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({});
+
+      req.flush(subscription);
+    });
+  });
+
+  describe('resume', () => {
+    const SUBSCRIPTION_ID = 'my-subscription';
+    it('should call API', (done) => {
+      const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
+      apiSubscriptionV2Service.resume(SUBSCRIPTION_ID, API_ID).subscribe((response) => {
+        expect(response).toEqual(subscription);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/_resume`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({});
+
+      req.flush(subscription);
+    });
+  });
 });
