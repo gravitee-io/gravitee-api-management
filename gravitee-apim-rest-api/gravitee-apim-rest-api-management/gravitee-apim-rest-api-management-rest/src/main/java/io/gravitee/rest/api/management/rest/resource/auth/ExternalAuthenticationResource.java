@@ -34,7 +34,6 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,14 +84,14 @@ public class ExternalAuthenticationResource extends AbstractAuthenticationResour
     @Autowired
     private AuthoritiesProvider authoritiesProvider;
 
-    @Autowired
-    private ApiSearchService apiSearchService;
+    private String uiURL;
 
     @PostConstruct
     public void afterPropertiesSet() {
         enabled = environment.getProperty("auth.external.enabled", Boolean.class, false);
 
         if (enabled) {
+            uiURL = environment.getProperty("console.ui.url", "http://localhost:3000");
             try {
                 algorithm = environment.getProperty("auth.external.algorithm", Signature.class);
                 SignatureKeyResolver keyResolver = () -> environment.getProperty("auth.external.signature");
@@ -145,6 +144,14 @@ public class ExternalAuthenticationResource extends AbstractAuthenticationResour
                 organizationId = "DEFAULT";
             }
 
+            // Set user to Authentication Context
+            String environmentId = jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM);
+            if (environmentId == null) {
+                environmentId = "DEFAULT";
+            }
+
+            GraviteeContext.setCurrentEnvironment(environmentId);
+
             GraviteeContext.setCurrentOrganization(organizationId);
 
             // Retrieve the user or try to create unknown user
@@ -174,11 +181,6 @@ public class ExternalAuthenticationResource extends AbstractAuthenticationResour
                 user = userService.create(GraviteeContext.getExecutionContext(), userEntity, true);
             }
 
-            //set user to Authentication Context
-            String environmentId = jwtClaimsSet.getStringClaim(ENVIRONMENT_CLAIM);
-            if (environmentId == null) {
-                environmentId = "DEFAULT";
-            }
             final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
 
             UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
@@ -189,7 +191,7 @@ public class ExternalAuthenticationResource extends AbstractAuthenticationResour
             super.connectUser(user, httpResponse);
 
             String url = String.format(
-                "http://localhost:3000?organization=%s/#!/environments/%s",
+                    uiURL + "?organization=%s/#!/environments/%s",
                 organizationId,
                 environmentId
             );

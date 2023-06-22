@@ -49,12 +49,12 @@ public class VertxDebugConfiguration {
             .withEnvironment(environment)
             .withPort(Integer.parseInt(environment.getProperty("debug.port", "8482")))
             .withHost(environment.getProperty("debug.host", "localhost"))
-            .build()
+            .build();/*
             // We can't use the default withDefaultProxyProtocol because the implementation of HttpServerConfiguration rely on the environment value and not the one passed in builder
             .withSecured(Boolean.TRUE.equals(environment.getProperty("http.secured", Boolean.class)))
             .withAlpn(Boolean.TRUE.equals(environment.getProperty("http.alpn", Boolean.class)))
             .withOpenssl(Boolean.TRUE.equals(environment.getProperty("http.ssl.openssl", Boolean.class)))
-            .withProxyProtocol(false);
+            .withProxyProtocol(false);*/
     }
 
     @Bean("debugGatewayHttpServer")
