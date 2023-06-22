@@ -252,13 +252,6 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.graviteesource.policy</groupId>
-            <artifactId>gravitee-policy-json-threat-protection</artifactId>
-            <version>${gravitee-policy-json-threat-protection.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-json-to-json</artifactId>
             <version>${gravitee-policy-json-to-json.version}</version>
@@ -269,13 +262,6 @@
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-json-validation</artifactId>
             <version>${gravitee-policy-json-validation.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.policy</groupId>
-            <artifactId>gravitee-policy-json-xml</artifactId>
-            <version>${gravitee-policy-json-xml.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
@@ -392,13 +378,6 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.graviteesource.policy</groupId>
-            <artifactId>gravitee-policy-rest-to-soap</artifactId>
-            <version>${gravitee-policy-rest-to-soap.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-retry</artifactId>
             <version>${gravitee-policy-retry.version}</version>
@@ -455,30 +434,9 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.graviteesource.policy</groupId>
-            <artifactId>gravitee-policy-xml-json</artifactId>
-            <version>${gravitee-policy-xml-json.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.policy</groupId>
-            <artifactId>gravitee-policy-xml-threat-protection</artifactId>
-            <version>${gravitee-policy-xml-threat-protection.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-xml-validation</artifactId>
             <version>${gravitee-policy-xml-validation.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.policy</groupId>
-            <artifactId>gravitee-policy-xslt</artifactId>
-            <version>${gravitee-policy-xslt.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
@@ -498,14 +456,6 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>com.graviteesource.reporter</groupId>
-            <artifactId>gravitee-reporter-tcp</artifactId>
-            <version>${gravitee-reporter-tcp.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-
         <!-- Repositories -->
         <dependency>
             <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
@@ -765,19 +715,6 @@
                     <scope>runtime</scope>
                 </dependency>
                 <dependency>
-                    <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-data-logging-masking</artifactId>
-                    <version>${gravitee-policy-data-logging-masking.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>com.jayway.jsonpath</groupId>
-                            <artifactId>json-path</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
                     <groupId>io.gravitee.policy</groupId>
                     <artifactId>gravitee-policy-geoip-filtering</artifactId>
                     <version>${gravitee-policy-geoip-filtering.version}</version>
@@ -802,6 +739,69 @@
                     <groupId>io.gravitee.policy</groupId>
                     <artifactId>gravitee-policy-interrupt</artifactId>
                     <version>${gravitee-policy-interrupt.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-json-threat-protection</artifactId>
+                    <version>${gravitee-policy-json-threat-protection.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-data-logging-masking</artifactId>
+                    <version>${gravitee-policy-data-logging-masking.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>com.jayway.jsonpath</groupId>
+                            <artifactId>json-path</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-json-xml</artifactId>
+                    <version>${gravitee-policy-json-xml.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-rest-to-soap</artifactId>
+                    <version>${gravitee-policy-rest-to-soap.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-xml-json</artifactId>
+                    <version>${gravitee-policy-xml-json.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-xml-threat-protection</artifactId>
+                    <version>${gravitee-policy-xml-threat-protection.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-xslt</artifactId>
+                    <version>${gravitee-policy-xslt.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <!-- Reporters -->
+                <dependency>
+                    <groupId>com.graviteesource.reporter</groupId>
+                    <artifactId>gravitee-reporter-tcp</artifactId>
+                    <version>${gravitee-reporter-tcp.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
