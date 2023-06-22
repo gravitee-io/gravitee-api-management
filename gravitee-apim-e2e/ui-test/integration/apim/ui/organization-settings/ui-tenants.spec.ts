@@ -23,7 +23,7 @@ describe('Tenants', () => {
 
   beforeEach(() => {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
-    cy.visit('/#!/organization/settings/tenants');
+    cy.visit('/#!/organization/tenants');
   });
 
   it('should create a tenant', () => {
