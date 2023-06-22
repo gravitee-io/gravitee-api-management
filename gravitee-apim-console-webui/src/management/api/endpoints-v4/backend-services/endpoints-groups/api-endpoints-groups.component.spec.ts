@@ -28,6 +28,7 @@ import { ApiEndpointsGroupsModule } from './api-endpoints-groups.module';
 
 import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { UIRouterState } from '../../../../../ajs-upgraded-providers';
 
 @Component({
   template: ` <api-endpoints-groups #apiPortalEndpoints [api]="api"></api-endpoints-groups> `,
@@ -95,6 +96,7 @@ describe('ApiEndpointsGroupsComponent', () => {
       },
     ],
   });
+  const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<TestComponent>;
   let httpTestingController: HttpTestingController;
@@ -106,6 +108,7 @@ describe('ApiEndpointsGroupsComponent', () => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointsGroupsModule, MatIconTestingModule],
+      providers: [{ provide: UIRouterState, useValue: fakeUiRouter }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true,
@@ -210,6 +213,16 @@ describe('ApiEndpointsGroupsComponent', () => {
         ],
       });
       expectEndpointsGetRequest();
+    });
+  });
+
+  describe('addEndpoint', () => {
+    it('should navigate to endpoint creation page', async () => {
+      await initComponent(apiV4);
+
+      await componentHarness.clickAddEndpointGroup(0);
+
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-new', { groupName: expect.any(String) });
     });
   });
 
