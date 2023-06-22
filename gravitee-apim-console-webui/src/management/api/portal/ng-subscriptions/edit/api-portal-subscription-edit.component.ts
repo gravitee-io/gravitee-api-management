@@ -19,6 +19,7 @@ import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { PlanMode, PlanSecurityType, SubscriptionStatus } from '../../../../../entities/management-api-v2';
 import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
@@ -28,6 +29,8 @@ import {
   SubscriptionTransferData,
 } from '../components/transfer-dialog/api-portal-subscription-transfer-dialog.component';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { ApplicationService } from '../../../../../services-ngx/application.service';
+import { ApiKeyMode } from '../../../../../entities/application/application';
 
 interface SubscriptionDetailVM {
   id: string;
@@ -56,11 +59,12 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   subscription: SubscriptionDetailVM;
   private apiId: string;
-  private subscriptionId: string;
+  private hasSharedApiKeyMode: boolean;
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
+    private readonly applicationService: ApplicationService,
     private datePipe: DatePipe,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
@@ -68,18 +72,17 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
 
   ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
-    this.subscriptionId = this.ajsStateParams.subscriptionId;
 
     this.apiSubscriptionService
-      .getById(this.apiId, this.subscriptionId, ['plan', 'application', 'subscribedBy'])
+      .getById(this.apiId, this.ajsStateParams.subscriptionId, ['plan', 'application', 'subscribedBy'])
       .pipe(
-        tap((subscription) => {
+        switchMap((subscription) => {
           if (subscription) {
             this.subscription = {
               id: subscription.id,
               plan: {
                 id: subscription.plan.id,
-                label: subscription.plan.security
+                label: subscription.plan.security?.type
                   ? `${subscription.plan.name} (${subscription.plan.security.type})`
                   : subscription.plan.name,
                 securityType: subscription.plan.security?.type,
@@ -101,7 +104,16 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
               closedAt: this.formatDate(subscription.closedAt),
               domain: subscription.application.domain ?? '-',
             };
+
+            if (this.subscription.plan.securityType === 'API_KEY') {
+              return this.applicationService.getById(subscription.application.id);
+            }
           }
+          this.hasSharedApiKeyMode = false;
+          return EMPTY;
+        }),
+        tap((application) => {
+          this.hasSharedApiKeyMode = this.subscription.plan.securityType === 'API_KEY' && application.api_key_mode === ApiKeyMode.SHARED;
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -144,6 +156,40 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
   }
 
   pauseSubscription() {
+    let content = 'The application will not be able to consume this API anymore.';
+    if (this.subscription.plan.securityType === 'API_KEY' && !this.hasSharedApiKeyMode) {
+      content += '<br/>All Api-keys associated to this subscription will be paused and unusable.';
+    }
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        data: {
+          title: `Pause your subscription`,
+          content,
+          confirmButton: 'Pause',
+        },
+        role: 'alertdialog',
+        id: 'confirmPauseSubscriptionDialog',
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((confirm) => {
+          if (confirm) {
+            return this.apiSubscriptionService.pause(this.subscription.id, this.apiId);
+          }
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`Subscription paused`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
+  }
+
+  resumeSubscription() {
     // Do nothing for now
   }
 

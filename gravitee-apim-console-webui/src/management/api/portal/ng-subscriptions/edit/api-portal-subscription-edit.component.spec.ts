@@ -32,9 +32,31 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { ApiPortalSubscriptionsModule } from '../api-portal-subscriptions.module';
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import { fakeBasePlan, fakePlanV4, fakeSubscription, Plan, PlanMode, Subscription } from '../../../../../entities/management-api-v2';
+import { fakeApplication } from '../../../../../entities/application/Application.fixture';
+import { ApiKeyMode } from '../../../../../entities/application/application';
+
+const SUBSCRIPTION_ID = 'my-nice-subscription';
+const API_ID = 'api_1';
+const APP_ID = 'my-application';
+const PLAN_ID = 'a-nice-plan-id';
+const BASIC_SUBSCRIPTION = () =>
+  fakeSubscription({
+    id: SUBSCRIPTION_ID,
+    plan: fakeBasePlan({ id: PLAN_ID }),
+    status: 'ACCEPTED',
+    application: {
+      id: APP_ID,
+      name: 'My Application',
+      domain: 'https://my-domain.com',
+      type: 'My special type',
+      primaryOwner: {
+        id: 'my-primary-owner',
+        displayName: 'Primary Owner',
+      },
+    },
+  });
 
 describe('ApiPortalSubscriptionEditComponent', () => {
-  const API_ID = 'api_1';
   const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['api-subscription-u', 'api-subscription-r', 'api-subscription-d'];
@@ -71,14 +93,12 @@ describe('ApiPortalSubscriptionEditComponent', () => {
 
   describe('details', () => {
     it('should load accepted subscription', async () => {
-      await initComponent(fakeSubscription({ id: 'my-id', plan: fakeBasePlan(), status: 'ACCEPTED' }), {
-        apiId: API_ID,
-        subscriptionId: 'my-id',
-      });
+      await initComponent();
+      expectApplicationGet();
 
       const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
 
-      expect(await harness.getId()).toEqual('my-id');
+      expect(await harness.getId()).toEqual(SUBSCRIPTION_ID);
       expect(await harness.getPlan()).toEqual('Default plan (API_KEY)');
       expect(await harness.getStatus()).toEqual('ACCEPTED');
       expect(await harness.getApplication()).toEqual('My Application (Primary Owner) - Type: My special type');
@@ -97,6 +117,7 @@ describe('ApiPortalSubscriptionEditComponent', () => {
 
       expect(await harness.transferBtnIsVisible()).toEqual(true);
       expect(await harness.pauseBtnIsVisible()).toEqual(true);
+      expect(await harness.resumeBtnIsVisible()).toEqual(false);
       expect(await harness.changeEndDateBtnIsVisible()).toEqual(true);
       expect(await harness.closeBtnIsVisible()).toEqual(true);
 
@@ -108,10 +129,10 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     });
 
     it('should load pending subscription', async () => {
-      await initComponent(fakeSubscription({ id: 'my-id', plan: fakeBasePlan(), status: 'PENDING' }), {
-        apiId: API_ID,
-        subscriptionId: 'my-id',
-      });
+      const pendingSubscription = BASIC_SUBSCRIPTION();
+      pendingSubscription.status = 'PENDING';
+      await initComponent(pendingSubscription);
+      expectApplicationGet();
 
       const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
 
@@ -129,9 +150,8 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     });
 
     it('should not load footer in read-only mode', async () => {
-      await initComponent(fakeSubscription({ id: 'my-id', plan: fakeBasePlan() }), { apiId: API_ID, subscriptionId: 'my-id' }, [
-        'api-subscription-r',
-      ]);
+      await initComponent(BASIC_SUBSCRIPTION(), ['api-subscription-r']);
+      expectApplicationGet(ApiKeyMode.SHARED);
 
       const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
       expect(await harness.footerIsVisible()).toEqual(false);
@@ -139,21 +159,10 @@ describe('ApiPortalSubscriptionEditComponent', () => {
   });
 
   describe('transfer subscription', () => {
-    const PLAN_ID = 'my-favorite-plan';
-    const SUBSCRIPTION_ID = 'my-id';
-
     it('should transfer subscription to new push plan', async () => {
-      await initComponent(
-        fakeSubscription({
-          id: SUBSCRIPTION_ID,
-          plan: fakeBasePlan({ id: PLAN_ID, security: { type: undefined, configuration: {} } }),
-          status: 'ACCEPTED',
-        }),
-        {
-          apiId: API_ID,
-          subscriptionId: SUBSCRIPTION_ID,
-        },
-      );
+      const pushPlanSubscription = BASIC_SUBSCRIPTION();
+      pushPlanSubscription.plan = fakeBasePlan({ id: PLAN_ID, security: { type: undefined, configuration: {} } });
+      await initComponent(pushPlanSubscription);
 
       const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
       expect(await harness.transferBtnIsVisible()).toEqual(true);
@@ -193,15 +202,21 @@ describe('ApiPortalSubscriptionEditComponent', () => {
         'new-id',
         fakeSubscription({ id: SUBSCRIPTION_ID, plan: fakeBasePlan({ id: 'new-id', name: 'new' }) }),
       );
-      expectApiSubscriberGet(fakeSubscription({ id: SUBSCRIPTION_ID, plan: fakeBasePlan({ id: 'new-id', name: 'new' }) }));
-      expect(await harness.getPlan()).toEqual('new (API_KEY)');
+      const newSubscription = BASIC_SUBSCRIPTION();
+      newSubscription.plan = fakePlanV4({
+        id: 'new-id',
+        name: 'new',
+        generalConditions: '',
+        security: { type: undefined, configuration: {} },
+      });
+      expectApiSubscriptionGet(newSubscription);
+
+      expect(await harness.getPlan()).toEqual('new');
     });
 
     it('should not transfer subscription on cancel', async () => {
-      await initComponent(fakeSubscription({ id: SUBSCRIPTION_ID, plan: fakeBasePlan({ id: PLAN_ID }), status: 'ACCEPTED' }), {
-        apiId: API_ID,
-        subscriptionId: SUBSCRIPTION_ID,
-      });
+      await initComponent();
+      expectApplicationGet();
 
       const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
       expect(await harness.transferBtnIsVisible()).toEqual(true);
@@ -227,12 +242,77 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     });
   });
 
+  describe('pause subscription', () => {
+    const API_KEYS_DIALOG_TXT = 'All Api-keys associated to this subscription will be paused and unusable.';
+
+    it('should pause subscription', async () => {
+      await initComponent(BASIC_SUBSCRIPTION());
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      expect(await harness.pauseBtnIsVisible()).toEqual(true);
+
+      await harness.openPauseDialog();
+
+      const pauseDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#confirmPauseSubscriptionDialog' }),
+      );
+      expect(await pauseDialog.getTitleText()).toEqual('Pause your subscription');
+      // expect the dialog specific to sharedApiKeyMode to be present
+      expect(await pauseDialog.getContentText().then((txt) => txt.indexOf(API_KEYS_DIALOG_TXT) !== -1)).toEqual(true);
+
+      const pauseBtn = await pauseDialog.getHarness(MatButtonHarness.with({ text: 'Pause' }));
+      expect(await pauseBtn.isDisabled()).toEqual(false);
+      await pauseBtn.click();
+
+      const pausedSubscription = BASIC_SUBSCRIPTION();
+      pausedSubscription.status = 'PAUSED';
+
+      expectApiSubscriptionPause(SUBSCRIPTION_ID, pausedSubscription);
+      expectApiSubscriptionGet(pausedSubscription);
+      expectApplicationGet();
+
+      expect(await harness.getStatus()).toEqual('PAUSED');
+      expect(await harness.pauseBtnIsVisible()).toEqual(false);
+      expect(await harness.resumeBtnIsVisible()).toEqual(true);
+    });
+    it('should not pause subscription on cancel', async () => {
+      await initComponent();
+      expectApplicationGet();
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness.openPauseDialog();
+
+      const pauseDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#confirmPauseSubscriptionDialog' }),
+      );
+      const cancelBtn = await pauseDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+      await cancelBtn.click();
+
+      expect(await harness.getStatus()).toEqual('ACCEPTED');
+    });
+    it('should not contain info about shared api key', async () => {
+      const keylessSubscription = BASIC_SUBSCRIPTION();
+      keylessSubscription.plan = fakeBasePlan({ security: { type: 'KEY_LESS' } });
+      await initComponent(keylessSubscription);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness.openPauseDialog();
+
+      const pauseDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#confirmPauseSubscriptionDialog' }),
+      );
+      expect(await pauseDialog.getContentText().then((txt) => txt.indexOf(API_KEYS_DIALOG_TXT))).toEqual(-1);
+    });
+  });
+
   async function initComponent(
-    subscription: Subscription,
-    params: { apiId?: string; subscriptionId?: string } = {},
+    subscription: Subscription = BASIC_SUBSCRIPTION(),
     permissions: string[] = ['api-subscription-r', 'api-subscription-u', 'api-subscription-d'],
   ) {
-    await TestBed.overrideProvider(UIRouterStateParams, { useValue: { ...params } }).compileComponents();
+    await TestBed.overrideProvider(UIRouterStateParams, {
+      useValue: { apiId: API_ID, subscriptionId: SUBSCRIPTION_ID },
+    }).compileComponents();
     if (permissions) {
       const overrideUser = currentUser;
       overrideUser.userPermissions = permissions;
@@ -242,13 +322,13 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
-    expectApiSubscriberGet(subscription);
+    expectApiSubscriptionGet(subscription);
 
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
   }
 
-  function expectApiSubscriberGet(subscription: Subscription): void {
+  function expectApiSubscriptionGet(subscription: Subscription): void {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscription.id}?expands=plan,application,subscribedBy`,
@@ -273,5 +353,23 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     });
     expect(req.request.body.planId).toEqual(planId);
     req.flush(subscription);
+  }
+
+  function expectApiSubscriptionPause(subscriptionId: string, subscription: Subscription): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscriptionId}/_pause`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual({});
+    req.flush(subscription);
+  }
+
+  function expectApplicationGet(apiKeyMode: ApiKeyMode = ApiKeyMode.UNSPECIFIED): void {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APP_ID}`,
+        method: 'GET',
+      })
+      .flush(fakeApplication({ id: APP_ID, api_key_mode: apiKeyMode }));
   }
 });
