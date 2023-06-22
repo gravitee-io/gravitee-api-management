@@ -104,12 +104,16 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
     return this.getBtnByText('Transfer').then((btn) => btn.click());
   }
 
-  public async getTransferDialog(): Promise<MatDialogHarness> {
-    return this.getDialog('api-portal-subscription-transfer');
-  }
-
   public async pauseBtnIsVisible(): Promise<boolean> {
     return this.btnIsVisible('Pause');
+  }
+
+  public async openPauseDialog(): Promise<void> {
+    return this.getBtnByText('Pause').then((btn) => btn.click());
+  }
+
+  public async resumeBtnIsVisible(): Promise<boolean> {
+    return this.btnIsVisible('Resume');
   }
 
   public async changeEndDateBtnIsVisible(): Promise<boolean> {

@@ -127,7 +127,7 @@
             <mat-icon svgIcon="gio:pause-circle"></mat-icon>
             Pause
           </button>
-          <button mat-stroked-button (click)="pauseSubscription()" *ngIf="subscription.status === 'PAUSED'">
+          <button mat-stroked-button (click)="resumeSubscription()" *ngIf="subscription.status === 'PAUSED'">
             <mat-icon svgIcon="gio:play-circle"></mat-icon>
             Resume
           </button>
