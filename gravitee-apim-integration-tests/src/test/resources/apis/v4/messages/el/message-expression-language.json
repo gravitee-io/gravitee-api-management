@@ -1,0 +1,76 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-post",
+          "configuration" : {
+            "requestHeadersToMessage" : true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1000,
+            "messageContent": "{ \"message\": \"hello\" }"
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "request": [],
+      "response": [],
+      "subscribe": [],
+      "publish": [
+        {
+          "name": "Transform Headers",
+          "description": "Transform Headers on response",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "addHeaders": [
+              {
+                "name": "x-header-test-added",
+                "value": "{#message.content}"
+              },
+              {
+                "name": "x-header-test-renamed",
+                "value": "{#message.headers['x-header-test'][0]}"
+              }
+            ],
+            "removeHeaders": [
+              "x-header-test"
+            ],
+            "scope": "REQUEST"
+          }
+        }
+      ]
+    }
+  ]
+}
