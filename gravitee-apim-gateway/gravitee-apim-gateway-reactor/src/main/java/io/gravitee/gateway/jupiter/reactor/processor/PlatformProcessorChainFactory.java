@@ -39,6 +39,7 @@ public class PlatformProcessorChainFactory {
 
     private final TransactionProcessorFactory transactionHandlerFactory;
     private final boolean traceContext;
+    private final boolean xForwardProcessor;
     private final ReporterService reporterService;
     private final AlertEventProducer eventProducer;
     private final Node node;
@@ -50,6 +51,7 @@ public class PlatformProcessorChainFactory {
     public PlatformProcessorChainFactory(
         TransactionProcessorFactory transactionHandlerFactory,
         boolean traceContext,
+        boolean xForwardProcessor,
         ReporterService reporterService,
         AlertEventProducer eventProducer,
         Node node,
@@ -58,6 +60,7 @@ public class PlatformProcessorChainFactory {
     ) {
         this.transactionHandlerFactory = transactionHandlerFactory;
         this.traceContext = traceContext;
+        this.xForwardProcessor = xForwardProcessor;
         this.reporterService = reporterService;
         this.eventProducer = eventProducer;
         this.node = node;
@@ -84,7 +87,9 @@ public class PlatformProcessorChainFactory {
     protected List<Processor> buildPreProcessorList() {
         List<Processor> preProcessorList = new ArrayList<>();
 
-        preProcessorList.add(new XForwardForProcessor());
+        if (xForwardProcessor) {
+            preProcessorList.add(new XForwardForProcessor());
+        }
 
         // Trace context is executed before the transaction to ensure that we can use the traceparent span value as the
         // transaction ID

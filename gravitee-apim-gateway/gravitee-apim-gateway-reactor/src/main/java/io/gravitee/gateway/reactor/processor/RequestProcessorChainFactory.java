@@ -49,9 +49,14 @@ public class RequestProcessorChainFactory implements InitializingBean {
     @Value("${handlers.request.trace-context.enabled:false}")
     private boolean traceContext;
 
+    @Value("${handlers.request.x-forward.enabled:true}")
+    private boolean xForwardProcessor;
+
     @Override
     public void afterPropertiesSet() throws Exception {
-        providers.add(new ProcessorSupplier<>(XForwardForProcessor::new));
+        if (xForwardProcessor) {
+            providers.add(new ProcessorSupplier<>(XForwardForProcessor::new));
+        }
 
         // Trace context is executed before the transaction to ensure that we can use the traceparent span value as the
         // transaction ID

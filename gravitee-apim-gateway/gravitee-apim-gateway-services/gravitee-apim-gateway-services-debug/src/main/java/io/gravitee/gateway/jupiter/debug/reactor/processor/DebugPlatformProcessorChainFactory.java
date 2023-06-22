@@ -37,6 +37,7 @@ public class DebugPlatformProcessorChainFactory extends PlatformProcessorChainFa
     public DebugPlatformProcessorChainFactory(
         final TransactionProcessorFactory transactionHandlerFactory,
         final boolean traceContext,
+        final boolean xForwardProcessor,
         final ReporterService reporterService,
         final AlertEventProducer eventProducer,
         final Node node,
@@ -45,7 +46,7 @@ public class DebugPlatformProcessorChainFactory extends PlatformProcessorChainFa
         final EventRepository eventRepository,
         final ObjectMapper objectMapper
     ) {
-        super(transactionHandlerFactory, traceContext, reporterService, eventProducer, node, port, tracing);
+        super(transactionHandlerFactory, traceContext, xForwardProcessor, reporterService, eventProducer, node, port, tracing);
         this.eventRepository = eventRepository;
         this.objectMapper = objectMapper;
     }
