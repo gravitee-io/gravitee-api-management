@@ -99,17 +99,19 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     }
 
     const entrypoints = this.api.listeners.flatMap((l) => l.entrypoints);
-    this.dataSource = entrypoints.map((entrypoint) => {
-      const matchingEntrypoint = this.allEntrypoints.find((e) => e.id === entrypoint.type);
-      if (matchingEntrypoint) {
-        const entry: EntrypointVM = {
-          id: entrypoint.type,
-          icon: this.iconService.registerSvg(matchingEntrypoint.id, matchingEntrypoint.icon),
-          type: matchingEntrypoint.name,
-        };
-        return entry;
-      }
-    });
+    this.dataSource = entrypoints
+      .map((entrypoint) => {
+        const matchingEntrypoint = this.allEntrypoints.find((e) => e.id === entrypoint.type);
+        if (matchingEntrypoint) {
+          const entry: EntrypointVM = {
+            id: entrypoint.type,
+            icon: this.iconService.registerSvg(matchingEntrypoint.id, matchingEntrypoint.icon),
+            type: matchingEntrypoint.name,
+          };
+          return entry;
+        }
+      })
+      .sort((a, b) => a.id.localeCompare(b.id));
     this.changeDetector.detectChanges();
   }
 
