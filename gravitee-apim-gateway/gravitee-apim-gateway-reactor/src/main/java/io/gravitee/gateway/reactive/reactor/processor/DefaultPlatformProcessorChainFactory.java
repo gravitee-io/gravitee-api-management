@@ -34,12 +34,14 @@ import java.util.List;
  */
 public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProcessorChainFactory {
 
+    private final boolean xForwardProcessor;
     private final boolean traceContext;
     private final GatewayConfiguration gatewayConfiguration;
 
     public DefaultPlatformProcessorChainFactory(
         TransactionPreProcessorFactory transactionHandlerFactory,
         boolean traceContext,
+        boolean xForwardProcessor,
         ReporterService reporterService,
         AlertEventProducer eventProducer,
         Node node,
@@ -49,6 +51,7 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
     ) {
         super(transactionHandlerFactory, reporterService, eventProducer, node, port, tracing);
         this.traceContext = traceContext;
+        this.xForwardProcessor = xForwardProcessor;
         this.gatewayConfiguration = gatewayConfiguration;
     }
 
@@ -58,7 +61,9 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
         preProcessorList.add(transactionHandlerFactory.create());
         preProcessorList.add(new MetricsProcessor(gatewayConfiguration));
 
-        preProcessorList.add(new XForwardForProcessor());
+        if (xForwardProcessor) {
+            preProcessorList.add(new XForwardForProcessor());
+        }
 
         // Trace context is executed before the transaction to ensure that we can use the traceparent span value as the
         // transaction ID
