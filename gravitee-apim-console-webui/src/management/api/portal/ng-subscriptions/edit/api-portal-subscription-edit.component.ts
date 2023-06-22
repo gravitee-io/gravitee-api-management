@@ -190,7 +190,33 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
   }
 
   resumeSubscription() {
-    // Do nothing for now
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        data: {
+          title: `Resume your subscription`,
+          content: 'The application will be able to consume your API.',
+          confirmButton: 'Resume',
+        },
+        role: 'alertdialog',
+        id: 'confirmResumeSubscriptionDialog',
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((confirm) => {
+          if (confirm) {
+            return this.apiSubscriptionService.resume(this.subscription.id, this.apiId);
+          }
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`Subscription resumed`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
   }
 
   changeEndDate() {
