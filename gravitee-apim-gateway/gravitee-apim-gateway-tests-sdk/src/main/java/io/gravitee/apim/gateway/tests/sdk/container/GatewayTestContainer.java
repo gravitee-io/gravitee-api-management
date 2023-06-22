@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.container;
 
+import io.gravitee.apim.gateway.tests.sdk.connector.fakes.MessageStorage;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.apim.gateway.tests.sdk.tracer.NoOpTracer;
 import io.gravitee.gateway.api.service.ApiKeyService;
@@ -121,6 +122,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public SubscriptionService subscriptionService() {
             return Mockito.mock(SubscriptionService.class);
+        }
+
+        @Bean
+        public MessageStorage messageStorage() {
+            return new MessageStorage();
         }
     }
 }
