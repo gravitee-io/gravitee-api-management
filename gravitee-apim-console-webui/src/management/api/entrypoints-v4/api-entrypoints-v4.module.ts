@@ -26,10 +26,12 @@ import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiEntrypointsV4GeneralComponent } from './api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4EditComponent } from './edit/api-entrypoints-v4-edit.component';
+import { ApiEntrypointsV4AddDialogComponent } from './edit/api-entrypoints-v4-add-dialog.component';
 
 import { GioFormListenersContextPathModule } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
 import { GioFormListenersVirtualHostModule } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioEntrypointsSelectionListModule } from '../component/gio-entrypoints-selection-list/gio-entrypoints-selection-list.module';
 
 @NgModule({
   imports: [
@@ -38,6 +40,7 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
 
     GioFormListenersContextPathModule,
     GioFormListenersVirtualHostModule,
+    GioEntrypointsSelectionListModule,
 
     MatCardModule,
     MatTableModule,
@@ -50,6 +53,6 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
     GioGoBackButtonModule,
     GioLoaderModule,
   ],
-  declarations: [ApiEntrypointsV4GeneralComponent, ApiEntrypointsV4EditComponent],
+  declarations: [ApiEntrypointsV4GeneralComponent, ApiEntrypointsV4EditComponent, ApiEntrypointsV4AddDialogComponent],
 })
 export class ApiEntrypointsV4Module {}

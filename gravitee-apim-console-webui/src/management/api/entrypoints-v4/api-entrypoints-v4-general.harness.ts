@@ -21,6 +21,11 @@ export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
 
   private tableLocator = this.locatorFor(MatTableHarness);
 
+  async hasEntrypointsTable(): Promise<boolean> {
+    return this.tableLocator()
+      .then((_) => true)
+      .catch((_) => false);
+  }
   async getEntrypointsTableRows() {
     return this.tableLocator().then((table) => table.getRows());
   }
