@@ -298,6 +298,7 @@ public class DebugConfiguration {
     public PlatformProcessorChainFactory debugPlatformProcessorChainFactory(
         io.gravitee.gateway.jupiter.reactor.processor.transaction.TransactionProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
+        @Value("${handlers.request.x-forward.enabled:false}") boolean xForwardProcessor,
         ReporterService reporterService,
         AlertEventProducer eventProducer,
         Node node,
@@ -309,6 +310,7 @@ public class DebugConfiguration {
         return new DebugPlatformProcessorChainFactory(
             transactionHandlerFactory,
             traceContext,
+            xForwardProcessor,
             reporterService,
             eventProducer,
             node,
