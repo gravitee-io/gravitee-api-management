@@ -52,13 +52,13 @@ describe('ApiEndpointComponent', () => {
   let loader: HarnessLoader;
   let componentHarness: ApiEndpointHarness;
 
-  const initComponent = async (api: ApiV4) => {
+  const initComponent = async (api: ApiV4, routerParams: unknown = { apiId: API_ID, groupIndex: 0 }) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterState, useValue: fakeAjsState },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, groupIndex: 0 } },
+        { provide: UIRouterStateParams, useValue: routerParams },
       ],
     });
 
@@ -125,6 +125,56 @@ describe('ApiEndpointComponent', () => {
               },
               {
                 name: 'endpoint-name',
+                type: 'kafka',
+              },
+            ],
+          },
+        ],
+      };
+      expectApiPutRequest(updatedApi);
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoints');
+    });
+
+    it('should edit and save an existing endpoint', async () => {
+      await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+
+      expectApiGetRequest(apiV4);
+      expectEndpointSchemaGetRequest(apiV4.endpointGroups[0].type);
+      expectEndpointsSharedConfigurationSchemaGetRequest(apiV4.endpointGroups[0].type);
+
+      fixture.detectChanges();
+      expect(await componentHarness.getEndpointName()).toStrictEqual('default');
+
+      await componentHarness.fillInputName('endpoint-name updated');
+      fixture.detectChanges();
+
+      expect(await componentHarness.getEndpointName()).toStrictEqual('endpoint-name updated');
+
+      await componentHarness.clickSaveButton();
+
+      expectApiGetRequest(apiV4);
+
+      const updatedApi: ApiV4 = {
+        ...apiV4,
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'kafka',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
+            },
+            endpoints: [
+              {
+                name: 'default',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+              {
+                name: 'endpoint-name updated',
                 type: 'kafka',
               },
             ],

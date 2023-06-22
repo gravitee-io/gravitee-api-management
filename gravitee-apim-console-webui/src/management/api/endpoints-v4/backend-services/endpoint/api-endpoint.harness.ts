@@ -28,6 +28,10 @@ export class ApiEndpointHarness extends ComponentHarness {
     return this.getNameInput().then((input) => input.setValue(name));
   }
 
+  public async getEndpointName() {
+    return this.getNameInput().then((input) => input.getValue());
+  }
+
   public async isSaveButtonDisabled() {
     return this.getSaveButton().then((button) => button.isDisabled());
   }

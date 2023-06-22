@@ -253,6 +253,21 @@ const states: Ng2StateDeclaration[] = [
       },
     },
   },
+  {
+    name: 'management.apis.ng.endpoint-edit',
+    url: '/groups/:groupIndex/endpoint/:endpointIndex/edit',
+    component: ApiEndpointComponent,
+    data: {
+      useAngularMaterial: true,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-plan-r'],
+      // },
+      docs: {
+        page: 'management-api-proxy-endpoints',
+      },
+    },
+  },
 ];
 
 @NgModule({

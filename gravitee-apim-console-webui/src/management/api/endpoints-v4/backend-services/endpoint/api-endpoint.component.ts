@@ -22,7 +22,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiV4, EndpointGroupV4, EndpointV4, UpdateApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, EndpointGroupV4, EndpointV4 } from '../../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
@@ -34,6 +34,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 export class ApiEndpointComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private groupIndex: number;
+  private endpointIndex: number;
   public endpointGroup: EndpointGroupV4;
   public formGroup: FormGroup;
   public endpointSchema: { config: GioJsonSchema; sharedConfig: GioJsonSchema };
@@ -70,6 +71,15 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
             configuration: new FormControl(GioFormJsonSchemaComponent.isDisplayable(config) ? config : {}),
             sharedConfiguration: new FormControl(GioFormJsonSchemaComponent.isDisplayable(sharedConfig) ? sharedConfig : {}),
           });
+
+          if (this.ajsStateParams.endpointIndex !== undefined) {
+            this.endpointIndex = +this.ajsStateParams.endpointIndex;
+            this.formGroup.get('name').patchValue(this.endpointGroup.endpoints[this.ajsStateParams.endpointIndex].name);
+            this.formGroup.get('configuration').patchValue(this.endpointGroup.endpoints[this.ajsStateParams.endpointIndex].configuration);
+            this.formGroup
+              .get('sharedConfiguration')
+              .patchValue(this.endpointGroup.endpoints[this.ajsStateParams.endpointIndex].sharedConfigurationOverride);
+          }
         }),
       )
       .subscribe(() => (this.isLoading = false));
@@ -90,9 +100,9 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap((api: ApiV4) => {
-          const endpointGroups = api.endpointGroups.map((group, index) => {
-            if (index === this.groupIndex) {
-              const endpoint: EndpointV4 = {
+          const endpointGroups = api.endpointGroups.map((group, i) => {
+            if (i === this.groupIndex) {
+              const updatedEndpoint: EndpointV4 = {
                 name: this.formGroup.get('name').value,
                 type: group.type,
                 configuration: this.formGroup.get('configuration').value,
@@ -100,16 +110,15 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
               };
               return {
                 ...group,
-                endpoints: [...group.endpoints, endpoint],
+                endpoints:
+                  this.endpointIndex !== undefined
+                    ? group.endpoints.map((endpoint, j) => (j === this.endpointIndex ? updatedEndpoint : endpoint))
+                    : [...group.endpoints, updatedEndpoint],
               };
             }
             return group;
           });
-          const updatedApi: UpdateApiV4 = {
-            ...api,
-            endpointGroups,
-          };
-          return this.apiService.update(api.id, updatedApi);
+          return this.apiService.update(api.id, { ...api, endpointGroups });
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
