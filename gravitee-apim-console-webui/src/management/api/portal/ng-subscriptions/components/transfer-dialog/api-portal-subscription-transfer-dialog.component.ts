@@ -28,6 +28,11 @@ export interface SubscriptionTransferData {
   securityType: PlanSecurityType;
   mode: PlanMode;
 }
+
+export interface SubscriptionTransferResult {
+  selectedPlanId: string;
+}
+
 interface PlanVM {
   id: string;
   name: string;
@@ -46,7 +51,7 @@ export class ApiPortalSubscriptionTransferDialogComponent implements OnInit {
   private data: SubscriptionTransferData;
 
   constructor(
-    private readonly dialogRef: MatDialogRef<string>,
+    private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionTransferDialogComponent, SubscriptionTransferResult>,
     @Inject(MAT_DIALOG_DATA) dialogData: SubscriptionTransferData,
     private readonly apiPlanService: ApiPlanV2Service,
   ) {
@@ -70,6 +75,8 @@ export class ApiPortalSubscriptionTransferDialogComponent implements OnInit {
   }
 
   onClose() {
-    this.dialogRef.close(this.form.getRawValue().selectedPlanId);
+    this.dialogRef.close({
+      selectedPlanId: this.form.getRawValue().selectedPlanId,
+    });
   }
 }
