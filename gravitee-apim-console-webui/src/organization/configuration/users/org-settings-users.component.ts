@@ -134,7 +134,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   }
 
   onAddUserClick() {
-    this.$state.go('organization.users.new');
+    this.$state.go('organization.user-new');
   }
 
   private setDataSourceFromUsersList(users: PagedResult<User>) {

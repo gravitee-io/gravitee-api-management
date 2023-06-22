@@ -131,7 +131,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'organization.identities.edit',
+    name: 'organization.identity-edit',
     url: '/identities/:id',
     component: OrgSettingsIdentityProviderComponent,
     data: {
@@ -146,7 +146,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'organization.identities.new',
+    name: 'organization.identity-new',
     url: '/identities/:id',
     component: OrgSettingsIdentityProviderComponent,
     data: {
@@ -185,7 +185,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'organization.users.new',
+    name: 'organization.user-new',
     url: '/users/new',
     component: OrgSettingsNewUserComponent,
     data: {
@@ -200,7 +200,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'organization.users.edit',
+    name: 'organization.user-edit',
     url: '/users/:userId',
     component: OrgSettingsUserDetailComponent,
     data: {
@@ -230,7 +230,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'organization.roles.new',
+    name: 'organization.role-new',
     url: '/role/:roleScope/',
     component: OrgSettingsRolesComponent,
     data: {
@@ -245,7 +245,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'organization.roles.edit',
+    name: 'organization.role-edit',
     url: '/role/:roleScope/:role',
     component: OrgSettingsRoleComponent,
     data: {
@@ -260,7 +260,7 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'organization.roles.members',
+    name: 'organization.role-members',
     url: '/role/:roleScope/:role/members',
     component: OrgSettingsRoleMembersComponent,
     data: {

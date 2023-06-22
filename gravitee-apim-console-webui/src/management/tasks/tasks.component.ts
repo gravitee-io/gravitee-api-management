@@ -108,7 +108,7 @@ export class TasksComponent implements OnInit, OnDestroy {
       }
       case 'USER_REGISTRATION_APPROVAL': {
         const { id } = task.data as any;
-        this.ajsState.go('organization.users.edit', { userId: id });
+        this.ajsState.go('organization.user-edit', { userId: id });
         break;
       }
     }

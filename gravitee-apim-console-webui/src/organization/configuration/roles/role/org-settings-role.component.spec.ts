@@ -308,7 +308,7 @@ describe('OrgSettingsRoleComponent', () => {
       });
       fixture.detectChanges();
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.roles.edit', {
+      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.role-edit', {
         role: 'CREATED_ROLE_NAME',
         roleScope: 'ORGANIZATION',
       });

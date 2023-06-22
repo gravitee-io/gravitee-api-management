@@ -65,7 +65,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     ];
 
     this.create = (type) => {
-      $state.go('organization.identities.new', { type: type });
+      $state.go('organization.identity-new', { type: type });
     };
 
     this.delete = (provider: IdentityProvider) => {

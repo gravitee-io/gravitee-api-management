@@ -85,11 +85,11 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   }
 
   onAddARoleClicked(scope: string) {
-    this.ajsState.go('organization.roles.new', { roleScope: scope });
+    this.ajsState.go('organization.role-new', { roleScope: scope });
   }
 
   onEditRoleClicked(scope: string, role: RoleVM) {
-    this.ajsState.go('organization.roles.edit', { roleScope: scope, role: role.name });
+    this.ajsState.go('organization.role-edit', { roleScope: scope, role: role.name });
   }
 
   onDeleteRoleClicked(scope: string, role: RoleVM) {
@@ -119,7 +119,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   }
 
   onMembersClicked(scope: string, role: RoleVM) {
-    this.ajsState.go('organization.roles.members', { roleScope: scope.toUpperCase(), role: role.name });
+    this.ajsState.go('organization.role-members', { roleScope: scope.toUpperCase(), role: role.name });
   }
 
   private convertToRoleVMs(roles: Role[]): RoleVM[] {
