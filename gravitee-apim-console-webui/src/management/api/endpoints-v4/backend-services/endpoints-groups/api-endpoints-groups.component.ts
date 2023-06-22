@@ -24,7 +24,9 @@ import { EndpointGroup, toEndpoints } from './api-endpoints-groups.adapter';
 
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ApiV4, UpdateApi } from '../../../../../entities/management-api-v2';
+import { ApiV4, ConnectorPlugin, UpdateApi } from '../../../../../entities/management-api-v2';
+import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
+import { IconService } from '../../../../../services-ngx/icon.service';
 
 @Component({
   selector: 'api-endpoints-groups',
@@ -35,12 +37,15 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
   @Input() public api: ApiV4;
   public endpointsDisplayedColumns = ['name', 'options', 'weight', 'actions'];
   public groupsTableData: EndpointGroup[];
+  public plugins: Map<string, ConnectorPlugin>;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
     private readonly matDialog: MatDialog,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
+    private readonly iconService: IconService,
   ) {}
 
   public ngOnInit() {
@@ -48,6 +53,17 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
   }
 
   public initData(api: ApiV4) {
+    this.connectorPluginsV2Service
+      .listEndpointPlugins()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((plugins) => {
+          this.plugins = new Map(
+            plugins.map((plugin) => [plugin.id, { ...plugin, icon: this.iconService.registerSvg(plugin.id, plugin.icon) }]),
+          );
+        }),
+      )
+      .subscribe();
     this.groupsTableData = toEndpoints(api);
   }
 

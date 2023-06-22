@@ -41,10 +41,9 @@ const toEndpointsFromApiV4 = (api: ApiV4): EndpointGroup[] => {
 
   return api.endpointGroups.flatMap((endpointGroup) => {
     const loadBalancerType = endpointGroup?.loadBalancer?.type?.replace(/_/g, ' ');
-    const type = endpointGroup.type.replace(/-/g, ' ');
     return {
       name: endpointGroup.name,
-      type: type[0].toUpperCase() + type.substring(1).toLowerCase(),
+      type: endpointGroup.type,
       loadBalancerType: loadBalancerType[0].toUpperCase() + loadBalancerType.substring(1).toLowerCase(),
       endpoints:
         endpointGroup.endpoints && endpointGroup.endpoints.length > 0

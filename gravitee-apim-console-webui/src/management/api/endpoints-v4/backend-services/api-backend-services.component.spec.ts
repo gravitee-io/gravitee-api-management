@@ -28,7 +28,7 @@ import { ApiEndpointsGroupsHarness } from './endpoints-groups/api-endpoints-grou
 import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { Api, fakeApiV2, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
 import { ApiProxyEndpointListHarness } from '../../proxy/endpoints/list/api-proxy-endpoint-list.harness';
 
 describe('ApiPortalProxyEndpointsComponent', () => {
@@ -77,6 +77,7 @@ describe('ApiPortalProxyEndpointsComponent', () => {
 
   it('should init the component with message API V4', async () => {
     expectApiGetRequest(proxyApiV4);
+    expectEndpointsGetRequest();
 
     expect(await loader.getHarness(ApiEndpointsGroupsHarness)).toBeTruthy();
   });
@@ -84,5 +85,11 @@ describe('ApiPortalProxyEndpointsComponent', () => {
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
+  }
+
+  function expectEndpointsGetRequest() {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' })
+      .flush([fakeConnectorPlugin({ id: 'kafka', name: 'kafka' }), fakeConnectorPlugin({ id: 'mock', name: 'mock' })]);
   }
 });
