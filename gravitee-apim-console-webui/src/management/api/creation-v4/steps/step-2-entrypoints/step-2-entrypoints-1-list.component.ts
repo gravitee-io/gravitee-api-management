@@ -25,11 +25,7 @@ import { isEqual } from 'lodash';
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { ConnectorVM } from '../../models/ConnectorVM';
-import {
-  GioConnectorDialogComponent,
-  GioConnectorDialogData,
-} from '../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
+import { ConnectorVM, fromConnector } from '../../models/ConnectorVM';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 
@@ -68,15 +64,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       .listAsyncEntrypointPlugins()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((entrypointPlugins) => {
-        this.entrypoints = entrypointPlugins.map((entrypoint) => ({
-          id: entrypoint.id,
-          name: entrypoint.name,
-          description: entrypoint.description,
-          isEnterprise: entrypoint.id.endsWith('-advanced'),
-          supportedListenerType: entrypoint.supportedListenerType,
-          icon: this.iconService.registerSvg(entrypoint.id, entrypoint.icon),
-          deployed: entrypoint.deployed,
-        }));
+        this.entrypoints = entrypointPlugins.map((entrypoint) => fromConnector(this.iconService, entrypoint));
         this.changeDetectorRef.detectChanges();
       });
   }

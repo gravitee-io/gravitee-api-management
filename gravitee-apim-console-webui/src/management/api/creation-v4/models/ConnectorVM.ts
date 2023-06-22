@@ -1,4 +1,4 @@
-import { ListenerType } from '../../../../entities/management-api-v2';
+import { ConnectorPlugin, ListenerType } from '../../../../entities/management-api-v2';
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -23,4 +23,17 @@ export type ConnectorVM = {
   supportedListenerType: ListenerType;
   icon: string;
   deployed: boolean;
+};
+
+export const fromConnector: (iconService, connector: ConnectorPlugin) => ConnectorVM = (iconService, connector: ConnectorPlugin) => {
+  const result: ConnectorVM = {
+    id: connector.id,
+    name: connector.name,
+    description: connector.description,
+    isEnterprise: connector.id.endsWith('-advanced'),
+    supportedListenerType: connector.supportedListenerType,
+    icon: iconService.registerSvg(connector.id, connector.icon),
+    deployed: connector.deployed,
+  };
+  return result;
 };
