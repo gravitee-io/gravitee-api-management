@@ -76,7 +76,6 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
 
     combineLatest([this.apiService.get(this.apiId), this.connectorService.list(true), this.tenantService.list()])
       .pipe(
-        takeUntil(this.unsubscribe$),
         map(([api, connectors, tenants]) => {
           this.api = api;
           this.connectors = connectors;
@@ -88,6 +87,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
             this.connectors.find((connector) => connector.supportedTypes.includes(this.endpoint?.type?.toLowerCase() ?? 'http'))?.schema,
           );
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -101,7 +101,6 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => {
           const groupIndex = api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName);
 
@@ -148,6 +147,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           ),
         ),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

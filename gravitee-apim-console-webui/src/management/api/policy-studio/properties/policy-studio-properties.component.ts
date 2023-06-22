@@ -56,7 +56,6 @@ export class PolicyStudioPropertiesComponent implements OnInit, OnDestroy {
       this.policyStudioPropertiesService.getDynamicPropertySchema(),
     ])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([apiDefinition, providers, dynamicPropertySchema]) => {
           this.apiDefinition = apiDefinition;
           this.provider = apiDefinition.services['dynamic-property'];
@@ -64,6 +63,7 @@ export class PolicyStudioPropertiesComponent implements OnInit, OnDestroy {
           this.dynamicPropertySchema = dynamicPropertySchema;
           this.isReadonly = apiDefinition.origin === 'kubernetes';
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

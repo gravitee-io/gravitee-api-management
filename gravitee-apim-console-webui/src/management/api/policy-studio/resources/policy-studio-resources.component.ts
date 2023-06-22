@@ -50,12 +50,12 @@ export class PolicyStudioResourcesComponent implements OnInit, OnDestroy {
       this.policyStudioResourcesService.listResources({ expandSchema: true, expandIcon: true }),
     ])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([definition, resourceTypes]) => {
           this.apiDefinition = definition;
           this.isReadonly = definition.origin === 'kubernetes' ? true : null;
           this.resourceTypes = resourceTypes;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

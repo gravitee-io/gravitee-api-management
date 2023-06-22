@@ -39,8 +39,8 @@ export class GioNotificationMenuComponent implements OnInit, OnDestroy {
   public ngOnInit(): void {
     this.startNotificationFetch$
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap(() => this.userNotificationService.getNotificationsAutoFetch()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((notificationPagedResult) => {
         this.userNotificationsCount = notificationPagedResult.page.total_elements;
@@ -59,7 +59,6 @@ export class GioNotificationMenuComponent implements OnInit, OnDestroy {
     this.userNotificationService
       .deleteAll()
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('Notifications successfully deleted!');
         }),
@@ -67,6 +66,7 @@ export class GioNotificationMenuComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.startNotificationFetch$.next());
   }
@@ -75,7 +75,6 @@ export class GioNotificationMenuComponent implements OnInit, OnDestroy {
     this.userNotificationService
       .delete(userNotification.id)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('Notification successfully deleted!');
         }),
@@ -83,6 +82,7 @@ export class GioNotificationMenuComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.startNotificationFetch$.next());
   }

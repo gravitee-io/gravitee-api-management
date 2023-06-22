@@ -53,7 +53,6 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           const cors = api.proxy?.cors ?? {
             enabled: false,
@@ -110,6 +109,7 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
             });
           });
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -156,7 +156,6 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) =>
           this.apiService.update({
             ...api,
@@ -182,6 +181,7 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

@@ -71,7 +71,6 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
     this.usersTokenService
       .createToken(this.userId, newToken)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('Token successfully created!');
         }),
@@ -79,6 +78,7 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((response) => {
         this.hasBeenGenerated = true;

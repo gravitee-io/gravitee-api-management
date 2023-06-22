@@ -90,10 +90,10 @@ interface TokenDS {
 export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   user: UserVM;
 
-  organizationRoles$ = this.roleService.list('ORGANIZATION').pipe(shareReplay());
-  environmentRoles$ = this.roleService.list('ENVIRONMENT').pipe(shareReplay());
-  apiRoles$ = this.roleService.list('API').pipe(shareReplay());
-  applicationRoles$ = this.roleService.list('APPLICATION').pipe(shareReplay());
+  organizationRoles$ = this.roleService.list('ORGANIZATION').pipe(shareReplay(1));
+  environmentRoles$ = this.roleService.list('ENVIRONMENT').pipe(shareReplay(1));
+  apiRoles$ = this.roleService.list('API').pipe(shareReplay(1));
+  applicationRoles$ = this.roleService.list('APPLICATION').pipe(shareReplay(1));
 
   organizationRolesControl: FormControl;
   environmentsRolesFormGroup: FormGroup;
@@ -281,7 +281,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     // After all observables emit, emit all success message as an array
     zip(...observableToZip)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('Roles successfully updated');
         }),
@@ -289,6 +288,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
         observableToZip = [];
@@ -314,7 +314,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.usersService.resetPassword(this.user.id)),
         tap(() => this.snackBarService.success(`The password of user "${this.user.displayName}" has been successfully reset`)),
@@ -322,6 +321,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -353,7 +353,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.usersService.processRegistration(this.user.id, state === 'accept')),
         tap(() => this.snackBarService.success(wording[state].success)),
@@ -361,6 +360,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -401,7 +401,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.groupService.deleteMember(group.id, this.user.id)),
         tap(() => this.snackBarService.success(`"${this.user.displayName}" has been deleted from the group "${group.name}"`)),
@@ -409,6 +408,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -429,7 +429,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((groupeAdded) => !isEmpty(groupeAdded)),
         switchMap((groupeAdded) =>
           this.groupService.addOrUpdateMemberships(groupeAdded.groupId, [
@@ -450,6 +449,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -536,7 +536,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.usersTokenService.revokeToken(this.ajsStateParams.userId, token.id)),
         tap(() => this.snackBarService.success(`Token successfully deleted!`)),
@@ -544,6 +543,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }

@@ -110,7 +110,6 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
     combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.categoryService.list()])
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap(([api, categories]) =>
           combineLatest([isImgUrl(api._links['pictureUrl']), isImgUrl(api._links['backgroundUrl'])]).pipe(
             map(
@@ -216,6 +215,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
 
           this.initialApiDetailsFormValue = this.parentForm.getRawValue();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -232,7 +232,6 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         map((api: Api) => {
           if (api.definitionVersion === 'V2') {
             const apiToUpdate: UpdateApiV2 = {
@@ -293,6 +292,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           this.apiId = undefined; // force to reload quality metrics
           this.ngOnInit();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -301,7 +301,6 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
     this.policyService
       .listSwaggerPolicies()
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((policies) =>
           this.matDialog
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
@@ -321,6 +320,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -336,9 +336,10 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((apiDuplicated) => !!apiDuplicated),
         tap((apiDuplicated) => this.ajsState.go('management.apis.detail.portal.general', { apiId: apiDuplicated.id })),
+
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -348,13 +349,13 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
       this.apiService
         .export(this.apiId)
         .pipe(
-          takeUntil(this.unsubscribe$),
           tap((blob) => {
             const anchor = document.createElement('a');
             anchor.download = buildFileName(this.api);
             anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
             anchor.click();
           }),
+          takeUntil(this.unsubscribe$),
         )
         .subscribe();
     } else {
@@ -408,6 +409,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           this.updateState = 'TO_UPDATE';
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

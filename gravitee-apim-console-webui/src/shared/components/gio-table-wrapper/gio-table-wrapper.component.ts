@@ -142,7 +142,6 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
       this.sort?.sortChange ?? of(),
     )
       .pipe(
-        takeUntil(this.unsubscribe$),
         map(() => {
           // In each event get all values
           const filters: GioTableWrapperFilters = {
@@ -174,6 +173,7 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
         debounceTime(300),
         // Alway start with initial filters values
         startWith(this.filters ?? INITIAL_FILTERS_VALUE),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((filters) => {
         this.filters = filters;

@@ -87,7 +87,6 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.filters$
       .pipe(
-        takeUntil(this.unsubscribe$),
         debounceTime(200),
         distinctUntilChanged(isEqual),
         tap(({ pagination, searchTerm, sort }) => {
@@ -104,6 +103,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
           this.apisTableDSUnpaginatedLength = apisPage.page.total_elements;
           this.isLoadingData = false;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
 

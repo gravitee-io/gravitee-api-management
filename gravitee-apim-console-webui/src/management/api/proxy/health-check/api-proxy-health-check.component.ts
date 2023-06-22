@@ -49,13 +49,13 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           const isReadOnly =
             !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u']) || api.definition_context?.origin === 'kubernetes';
 
           this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(api.services['health-check'], isReadOnly);
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -69,7 +69,6 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) =>
           this.apiService.update({
             ...api,
@@ -85,6 +84,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

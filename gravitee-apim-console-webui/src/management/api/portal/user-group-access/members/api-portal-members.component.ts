@@ -93,7 +93,6 @@ export class ApiPortalMembersComponent implements OnInit {
 
     combineLatest([this.apiService.get(this.apiId), this.apiMembersService.getMembers(this.apiId), this.roleService.list('API')])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([api, members, roles]) => {
           this.members = members;
           this.roles = roles;
@@ -102,6 +101,7 @@ export class ApiPortalMembersComponent implements OnInit {
           this.initDataSource(members);
           this.initForm(api, members);
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -127,7 +127,6 @@ export class ApiPortalMembersComponent implements OnInit {
     }
     combineLatest(queries)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('Changes successfully saved!');
         }),
@@ -136,6 +135,7 @@ export class ApiPortalMembersComponent implements OnInit {
           return EMPTY;
         }),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -152,13 +152,13 @@ export class ApiPortalMembersComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((selectedUsers) => !isEmpty(selectedUsers)),
         tap((selectedUsers) => {
           selectedUsers.forEach((user) => {
             this.addMemberToForm(user);
           });
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

@@ -67,7 +67,6 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => {
           this.api = api;
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
@@ -77,6 +76,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           this.serviceDiscoveryItems = serviceDiscoveryItems;
           this.initForms();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -90,7 +90,6 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => {
           const groupIndex =
             this.mode === 'edit' ? api.proxy.groups.findIndex((group) => group.name === this.ajsStateParams.groupName) : -1;
@@ -118,6 +117,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
             { reload: true },
           ),
         ),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

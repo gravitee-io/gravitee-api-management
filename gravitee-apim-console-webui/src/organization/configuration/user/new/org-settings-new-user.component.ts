@@ -86,6 +86,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
         this.userForm
           .get('type')
           ?.valueChanges.pipe(takeUntil(this.unsubscribe$))
+          // eslint-disable-next-line rxjs/no-nested-subscribe
           .subscribe((type) => {
             this.userForm.removeControl('firstName');
             this.userForm.removeControl('lastName');
@@ -104,6 +105,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
         this.userForm
           .get('source')
           ?.valueChanges.pipe(takeUntil(this.unsubscribe$))
+          // eslint-disable-next-line rxjs/no-nested-subscribe
           .subscribe((source) => {
             if (source !== this.graviteeIdp.id) {
               this.userForm.get('sourceId').addValidators(Validators.required);
@@ -142,7 +144,6 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
     this.usersService
       .create(userToCreate)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('New user successfully registered!');
           this.$state.go('organization.users');
@@ -151,6 +152,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

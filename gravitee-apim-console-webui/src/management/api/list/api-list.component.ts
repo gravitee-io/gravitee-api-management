@@ -103,7 +103,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
 
     this.filters$
       .pipe(
-        takeUntil(this.unsubscribe$),
         debounceTime(100),
         distinctUntilChanged(isEqual),
         tap(({ pagination, searchTerm, status, sort }) => {
@@ -124,6 +123,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
           this.apisTableDSUnpaginatedLength = apisPage.pagination.totalCount;
           this.isLoadingData = false;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

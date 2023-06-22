@@ -48,7 +48,6 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.tagService.list()])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([api, shardingTags]) => {
           this.shardingTags = shardingTags;
 
@@ -64,6 +63,7 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
 
           this.initialDeploymentsFormValue = this.deploymentsForm.getRawValue();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -77,7 +77,6 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => this.apiService.update({ ...api, tags: this.deploymentsForm.get('tags').value ?? [] })),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError(({ error }) => {
@@ -85,6 +84,7 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

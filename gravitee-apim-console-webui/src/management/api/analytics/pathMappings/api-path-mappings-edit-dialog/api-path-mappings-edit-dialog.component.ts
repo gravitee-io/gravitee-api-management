@@ -64,7 +64,6 @@ export class ApiPathMappingsEditDialogComponent {
     this.apiService
       .get(this.api.id)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => {
           remove(api.path_mappings, (p) => p === this.pathToUpdate);
           api.path_mappings.push(this.pathFormGroup.getRawValue().path);
@@ -78,6 +77,7 @@ export class ApiPathMappingsEditDialogComponent {
           this.snackBarService.success(`The path mapping has been successfully updated!`);
           this.dialogRef.close();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

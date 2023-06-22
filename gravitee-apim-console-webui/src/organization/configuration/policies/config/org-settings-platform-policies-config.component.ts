@@ -50,7 +50,6 @@ export class OrgSettingsPlatformPoliciesConfigComponent implements OnInit, OnDes
 
     combineLatest([this.orgSettingsPlatformPoliciesService.getConfigurationSchemaForm(), this.organizationService.get()])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([flowSchema, organization]) => {
           this.flowConfigurationSchema = flowSchema;
 
@@ -63,6 +62,7 @@ export class OrgSettingsPlatformPoliciesConfigComponent implements OnInit, OnDes
           });
           this.isLoading = false;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

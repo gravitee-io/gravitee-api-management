@@ -285,12 +285,12 @@ export class GioApiImportDialogComponent implements OnDestroy {
 
     importRequest$
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => this.snackBarService.success('API imported successfully')),
         catchError(({ error }) => {
           this.snackBarService.error(error.message ?? 'An error occurred while importing the API');
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((api) => {
         this.dialogRef.close(api.id);

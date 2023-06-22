@@ -82,7 +82,6 @@ export class ApiProxyEndpointListComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api: ApiV2) => {
@@ -95,6 +94,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
         }),
         tap((api: ApiV2) => this.initData(api)),
         map(() => this.snackBarService.success(`Endpoint group ${groupName} successfully deleted!`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -113,7 +113,6 @@ export class ApiProxyEndpointListComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api: ApiV2) => {
@@ -129,6 +128,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
         }),
         tap((api: ApiV2) => this.initData(api)),
         map(() => this.snackBarService.success(`Endpoint ${endpointName} successfully deleted!`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

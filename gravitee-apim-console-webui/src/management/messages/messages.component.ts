@@ -42,7 +42,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   scope: MessageScope;
   sending = false;
   private apiId: string;
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
     private readonly roleService: RoleService,
@@ -82,6 +82,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
         // Disable URL field as initial value for channel is PORTAL.
         this.form.controls['url'].disable();
 
+        // eslint-disable-next-line rxjs/no-nested-subscribe
         this.form.controls['channel'].valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((values) => {
           if (values === 'HTTP') {
             this.form.controls['title'].disable();

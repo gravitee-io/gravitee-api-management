@@ -76,10 +76,10 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           this.policyStudioService.setApiDefinition(this.toApiDefinition(api));
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
     this.policyStudioService.getApiDefinitionToSave$().pipe(takeUntil(this.unsubscribe$)).subscribe(this.onDefinitionChange.bind(this));
@@ -94,13 +94,13 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.apiDefinition.id)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => this.apiService.update({ ...api, ...this.apiDefinition })),
         tap((api) => {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
           this.policyStudioService.setApiDefinition(this.toApiDefinition(api));
           this.isDirty = false;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

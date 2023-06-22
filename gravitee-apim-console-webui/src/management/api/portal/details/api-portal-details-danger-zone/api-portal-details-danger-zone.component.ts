@@ -120,7 +120,6 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.legacyApiService.askForReview(this.api.id)),
         catchError(({ error }) => {
@@ -129,6 +128,7 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
         }),
         tap(() => this.reloadDetails.emit()),
         map(() => this.snackBarService.success(`Review has been asked.`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -147,7 +147,6 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => (state === 'START' ? this.apiService.start(this.api.id) : this.apiService.stop(this.api.id))),
         catchError(({ error }) => {
@@ -179,7 +178,6 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api) => {
@@ -196,6 +194,7 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
         }),
         tap(() => this.reloadDetails.emit()),
         map(() => this.snackBarService.success(`The API has been ${actionLabel[lifecycleState].toLowerCase()} with success.`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -218,7 +217,6 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api) => {
@@ -237,6 +235,7 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
         }),
         tap(() => this.reloadDetails.emit()),
         map(() => this.snackBarService.success(`The API has been ${actionLabel[visibility]} with success.`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -258,7 +257,6 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.delete(this.api.id)),
         catchError(({ error }) => {
@@ -266,6 +264,7 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
           return EMPTY;
         }),
         map(() => this.snackBarService.success(`The API has been deleted.`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
         this.ajsState.go('management.apis.ng-list');

@@ -43,8 +43,8 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
   isUpdate = false;
   addGroupForm: FormGroup;
   groups$: Observable<Group[]>;
-  apiRoles$ = this.roleService.list('API').pipe(shareReplay());
-  applicationRoles$ = this.roleService.list('APPLICATION').pipe(shareReplay());
+  apiRoles$ = this.roleService.list('API').pipe(shareReplay(1));
+  applicationRoles$ = this.roleService.list('APPLICATION').pipe(shareReplay(1));
 
   constructor(
     public readonly dialogRef: MatDialogRef<OrgSettingsUserDetailAddGroupDialogComponent, OrgSettingsUserDetailAddGroupDialogReturn>,
@@ -53,7 +53,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
     private readonly roleService: RoleService,
   ) {
     this.groups$ = this.groupService.listByOrganization().pipe(
-      shareReplay(),
+      shareReplay(1),
       map((groups) => groups.filter((g) => !this.userDetailData.groupIdAlreadyAdded.includes(g.id))),
     );
 

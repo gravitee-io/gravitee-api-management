@@ -64,12 +64,12 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     this.environmentService
       .getCurrent()
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((environment) => {
           this.domainRestrictions = environment.domainRestrictions || [];
           this.enableVirtualHost =
             !isEmpty(this.domainRestrictions) || paths.find((path) => path.host !== undefined || path.overrideAccess !== undefined) != null;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
     this.formGroup = this.formBuilder.group({});

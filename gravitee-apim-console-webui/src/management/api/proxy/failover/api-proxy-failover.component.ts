@@ -59,13 +59,13 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           const isReadOnly =
             !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definition_context?.origin === 'kubernetes';
           this.createForm(isReadOnly, api.proxy?.failover);
           this.setupDisablingFields();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -107,7 +107,6 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap(({ proxy, ...api }) =>
           this.apiService.update({
             ...api,
@@ -123,6 +122,7 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

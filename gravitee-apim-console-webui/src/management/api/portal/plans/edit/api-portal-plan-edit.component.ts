@@ -69,7 +69,6 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           this.api = api;
           this.isReadOnly = !this.permissionService.hasAnyMatching(['api-plan-u']) || this.api.definitionContext?.origin === 'KUBERNETES';
@@ -89,6 +88,7 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.error?.message ?? 'An error occurred.');
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((plan) => {
         const planFormType =
@@ -131,12 +131,12 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
 
     savePlan$
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError((error) => {
           this.snackBarService.error(error.error?.message ?? 'An error occurs while saving configuration');
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ajsState.go(this.portalPlansRoute));
   }

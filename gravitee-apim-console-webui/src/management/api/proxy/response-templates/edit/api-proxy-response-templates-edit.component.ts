@@ -61,7 +61,6 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           this.apiId = api.id;
 
@@ -121,11 +120,13 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
             }),
           );
           this.selectedStatusCodes$ = this.responseTemplatesForm.get('statusCode')?.valueChanges.pipe(
-            takeUntil(this.unsubscribe$),
             startWith(this.responseTemplatesForm.get('statusCode')?.value),
             map((value) => HttpUtil.statusCodes.find((statusCode) => toString(statusCode.code) === toString(value))),
+
+            takeUntil(this.unsubscribe$),
           );
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -151,7 +152,6 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => {
           const responseTemplates = toResponseTemplates(api.response_templates);
 
@@ -174,6 +174,7 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
           return EMPTY;
         }),
         tap(() => this.ajsState.go('management.apis.detail.proxy.responsetemplates.list', { apiId: this.apiId })),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

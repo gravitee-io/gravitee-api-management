@@ -76,7 +76,6 @@ export class ApiPortalGroupsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => this.apiService.update({ ...api, groups: this.form.getRawValue()?.selectedGroups ?? this.initialFormValue })),
         tap(
           () => this.snackBarService.success('Configuration successfully saved!'),
@@ -86,6 +85,7 @@ export class ApiPortalGroupsComponent implements OnInit, OnDestroy {
           },
         ),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

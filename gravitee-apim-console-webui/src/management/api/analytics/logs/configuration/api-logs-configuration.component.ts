@@ -74,12 +74,12 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           this.api = api;
           this.initForm(api);
           this.cdr.detectChanges();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -88,7 +88,6 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     this.logsConfigurationForm
       .get('enabled')
       .valueChanges.pipe(
-        takeUntil(this.unsubscribe$),
         tap((enabled) => {
           if (enabled === null || enabled === true) {
             this.logsConfigurationForm.get('mode').enable();
@@ -106,6 +105,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
             this.logsConfigurationForm.get('condition').disable();
           }
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -118,7 +118,6 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => {
           const configurationValues = this.logsConfigurationForm.getRawValue();
           const updatedApi = {
@@ -149,6 +148,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

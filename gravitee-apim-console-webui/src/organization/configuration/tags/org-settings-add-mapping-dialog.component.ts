@@ -34,7 +34,7 @@ export class OrgSettingAddMappingDialogComponent {
   entrypoint?: Entrypoint;
   isUpdate = false;
   mappingForm: FormGroup;
-  tags$? = this.tagService.list().pipe(shareReplay());
+  tags$? = this.tagService.list().pipe(shareReplay(1));
 
   constructor(
     public dialogRef: MatDialogRef<OrgSettingAddMappingDialogComponent>,

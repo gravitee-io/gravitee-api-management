@@ -42,10 +42,10 @@ export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy
     combineLatest([
       this.serviceDiscoveryForm
         .get('enabled')
-        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.serviceDiscoveryForm.get('enabled').value)),
+        .valueChanges.pipe(startWith(this.serviceDiscoveryForm.get('enabled').value), takeUntil(this.unsubscribe$)),
       this.serviceDiscoveryForm
         .get('type')
-        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.serviceDiscoveryForm.get('type').value)),
+        .valueChanges.pipe(startWith(this.serviceDiscoveryForm.get('type').value), takeUntil(this.unsubscribe$)),
     ])
       .pipe(
         switchMap(([enabled, type]) => {

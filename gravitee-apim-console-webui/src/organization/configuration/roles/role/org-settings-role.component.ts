@@ -87,7 +87,6 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
       this.roleService.getPermissionsByScope(this.roleScope),
     ])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([role, permissions]) => {
           this.role = role;
           this.roleForm = new FormGroup({
@@ -143,6 +142,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
             this.updateSelectAllCheckboxState('D');
           }
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => (this.isLoading = false));
   }
@@ -166,7 +166,6 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
 
     createOrUpdateRole$
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('Role successfully saved!');
         }),
@@ -174,6 +173,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((resultingRole) => {
         if (!this.isEditMode) {

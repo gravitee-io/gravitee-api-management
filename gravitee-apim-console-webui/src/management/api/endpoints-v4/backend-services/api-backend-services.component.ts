@@ -37,7 +37,6 @@ export class ApiBackendServicesComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api: Api) => {
           if (api?.definitionVersion !== 'V4') {
             this.apiV2 = api as ApiV2;
@@ -45,6 +44,7 @@ export class ApiBackendServicesComponent implements OnInit, OnDestroy {
             this.apiV4 = api as ApiV4;
           }
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

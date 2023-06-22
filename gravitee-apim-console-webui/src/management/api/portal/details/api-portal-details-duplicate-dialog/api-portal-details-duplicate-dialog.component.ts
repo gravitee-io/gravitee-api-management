@@ -86,12 +86,12 @@ export class ApiPortalDetailsDuplicateDialogComponent implements OnDestroy {
         filtered_fields: this.optionsCheckbox.filter((option) => !configsFormValue.options[option.id]).map((option) => option.id),
       })
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => this.snackBarService.success('API duplicated successfully.')),
         catchError(({ error }) => {
           this.snackBarService.error(error.message ?? 'An error occurred while duplicate the API.');
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((apiDuplicated) => {
         this.dialogRef.close(apiDuplicated);

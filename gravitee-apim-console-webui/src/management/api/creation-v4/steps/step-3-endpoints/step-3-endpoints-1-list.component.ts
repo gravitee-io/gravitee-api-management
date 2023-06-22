@@ -68,7 +68,6 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     this.connectorPluginsV2Service
       .listEndpointPlugins()
       .pipe(
-        takeUntil(this.unsubscribe$),
         map((endpointPlugins) =>
           endpointPlugins
             .filter((endpoint) => endpoint.supportedApiType === 'MESSAGE')
@@ -78,6 +77,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
               return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
             }),
         ),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((endpointPlugins) => {
         this.endpoints = endpointPlugins.map((endpoint) => ({
@@ -149,7 +149,6 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     this.connectorPluginsV2Service
       .getEndpointPluginMoreInformation(endpoint.id)
       .pipe(
-        takeUntil(this.unsubscribe$),
         catchError(() => of({})),
         tap((pluginMoreInformation) => {
           this.matDialog
@@ -165,6 +164,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.unsubscribe$))
             .subscribe();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

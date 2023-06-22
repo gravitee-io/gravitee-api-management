@@ -68,7 +68,6 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
       this.alertService.getStatus(Scope.ENVIRONMENT),
     ])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([notificationTemplates, alertStatus]) => {
           this.hasAlertingPlugin = alertStatus.available_plugins > 0;
           this.notificationTemplates = notificationTemplates;
@@ -79,6 +78,7 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
 
           this.isLoading = false;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -140,7 +140,6 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
 
     combineLatest(requests)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('Template has been successfully saved!');
         }),
@@ -148,6 +147,7 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }

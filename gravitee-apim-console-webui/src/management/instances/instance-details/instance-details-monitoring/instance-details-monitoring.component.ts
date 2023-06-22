@@ -17,7 +17,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { duration } from 'moment/moment';
 import { isNil, isNumber, round } from 'lodash';
-import { delay, mergeMap, repeat, takeUntil, tap } from 'rxjs/operators';
+import { delay, mergeMap, repeat, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
@@ -43,22 +43,25 @@ export class InstanceDetailsMonitoringComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.instanceService
       .get(this.ajsStateParams.instanceId)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((instance) => {
-        this.instance = instance;
-        this.instanceStarted = instance.state === 'STARTED';
-
-        if (this.instanceStarted) {
-          this.monitoringPolling = of({})
-            .pipe(
-              mergeMap((_) => this.instanceService.getMonitoringData(this.ajsStateParams.instanceId, this.instance.id)),
-              tap((monitoringData) => (this.monitoringData = monitoringData)),
-              delay(5000),
-              repeat(),
-            )
-            .subscribe();
-        }
-      });
+      .pipe(
+        tap((instance) => {
+          this.instance = instance;
+          this.instanceStarted = instance.state === 'STARTED';
+        }),
+        switchMap((instance) => {
+          if (instance.state !== 'STARTED') {
+            return of();
+          }
+          return of({}).pipe(
+            mergeMap((_) => this.instanceService.getMonitoringData(this.ajsStateParams.instanceId, this.instance.id)),
+            tap((monitoringData) => (this.monitoringData = monitoringData)),
+            delay(5000),
+            repeat(),
+          );
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {

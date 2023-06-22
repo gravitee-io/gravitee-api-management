@@ -52,7 +52,6 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           this.apiId = api.id;
           this.responseTemplateTableData = toResponseTemplates(api.response_templates);
@@ -60,6 +59,7 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.definition_context?.origin === 'kubernetes';
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -91,7 +91,6 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
         switchMap((api) => {
@@ -106,6 +105,8 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
           return EMPTY;
         }),
         tap(() => this.snackBarService.success(`Response Template ${element.key} - ${element.contentType} successfully deleted!`)),
+
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }

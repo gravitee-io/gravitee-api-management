@@ -40,9 +40,9 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
     this.timeRangeControl.valueChanges
       .pipe(
         startWith(this.timeRangeControl.value),
-        takeUntil(this.unsubscribe$),
         distinctUntilChanged(),
         switchMap((timeRange) => this.getRequestStats(GioQuickTimeRangeComponent.getTimeFrameRangesParams(timeRange))),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

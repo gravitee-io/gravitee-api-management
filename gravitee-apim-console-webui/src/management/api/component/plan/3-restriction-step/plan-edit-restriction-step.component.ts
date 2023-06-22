@@ -49,21 +49,24 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
     });
 
     this.rateLimitSchema$ = this.restrictionForm.get('rateLimitEnabled').valueChanges.pipe(
-      takeUntil(this.unsubscribe$),
       switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit'))),
       tap(() => this.restrictionForm.setControl('rateLimitConfig', new FormControl({}), { emitEvent: false })),
+
+      takeUntil(this.unsubscribe$),
     );
 
     this.quotaSchema$ = this.restrictionForm.get('quotaEnabled').valueChanges.pipe(
-      takeUntil(this.unsubscribe$),
       switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('quota'))),
       tap(() => this.restrictionForm.setControl('quotaConfig', new FormControl({}), { emitEvent: false })),
+
+      takeUntil(this.unsubscribe$),
     );
 
     this.resourceFilteringSchema$ = this.restrictionForm.get('resourceFilteringEnabled').valueChanges.pipe(
-      takeUntil(this.unsubscribe$),
       switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('resource-filtering'))),
       tap(() => this.restrictionForm.setControl('resourceFilteringConfig', new FormControl({}), { emitEvent: false })),
+
+      takeUntil(this.unsubscribe$),
     );
   }
 

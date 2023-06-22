@@ -139,7 +139,6 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     this.apiService
       .get(this.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => {
           const updateApi: UpdateApiV4 = {
             ...(api as ApiV4),
@@ -163,6 +162,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
           this.snackBarService.error(err.error?.message ?? err.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((api) => {
         this.initForm(api as ApiV4);
@@ -184,7 +184,6 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
         })
         .afterClosed()
         .pipe(
-          takeUntil(this.unsubscribe$),
           tap((response) => {
             if (response) {
               // Keep only the path
@@ -194,6 +193,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
               this.changeDetector.detectChanges();
             }
           }),
+          takeUntil(this.unsubscribe$),
         )
         .subscribe();
       return;

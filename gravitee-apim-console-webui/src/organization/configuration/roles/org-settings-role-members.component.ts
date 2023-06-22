@@ -62,12 +62,12 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
     this.roleService
       .listMemberships(this.roleScope, this.role)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((memberships) => {
           this.memberships = memberships;
           this.filteredMemberships = memberships;
           this.membershipsTableUnpaginatedLength = memberships.length;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -132,7 +132,6 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.roleService.deleteMembership(this.roleScope, this.role, membership.id)),
         tap(() => this.snackBarService.success(`Membership has been successfully deleted`)),
@@ -140,6 +139,7 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }

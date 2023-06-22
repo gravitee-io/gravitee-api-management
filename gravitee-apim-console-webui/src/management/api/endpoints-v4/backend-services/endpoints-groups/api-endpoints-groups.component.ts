@@ -56,12 +56,12 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
     this.connectorPluginsV2Service
       .listEndpointPlugins()
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((plugins) => {
           this.plugins = new Map(
             plugins.map((plugin) => [plugin.id, { ...plugin, icon: this.iconService.registerSvg(plugin.id, plugin.icon) }]),
           );
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
     this.groupsTableData = toEndpoints(api);
@@ -86,7 +86,6 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api: ApiV4) => {
@@ -99,6 +98,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
         }),
         tap((api: ApiV4) => this.initData(api)),
         map(() => this.snackBarService.success(`Endpoint group ${groupName} successfully deleted!`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -117,7 +117,6 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api: ApiV4) => {
@@ -130,6 +129,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
         }),
         tap((api: ApiV4) => this.initData(api)),
         map(() => this.snackBarService.success(`Endpoint ${endpointName} successfully deleted!`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

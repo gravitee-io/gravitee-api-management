@@ -76,7 +76,6 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
       this.apiMembersService.getMembers(this.apiId),
     ])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([api, groups, roles, apiMembers]) => {
           this.poGroups = groups.filter((group) => group.apiPrimaryOwner != null);
           if (api.owner.type === 'GROUP') {
@@ -98,6 +97,7 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
 
           this.initForm(defaultRolePO, this.mode);
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -140,7 +140,6 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
     confirm
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirmed) => confirmed),
         switchMap(() => this.apiService.transferOwnership(this.apiId, isUserMode ? transferOwnershipToUser : transferOwnershipToGroup)),
         tap(
@@ -151,6 +150,7 @@ export class ApiPortalTransferOwnershipComponent implements OnInit {
           },
         ),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
