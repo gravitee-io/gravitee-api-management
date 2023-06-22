@@ -499,9 +499,9 @@ import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy
 import { ApiPortalPlanListComponent } from './api/portal/plans/list/api-portal-plan-list.component';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
-import { ApiCreationV4Component } from './api/creation/v4/api-creation-v4.component';
+import { ApiCreationV4Component } from './api/creation-v4/api-creation-v4.component';
 import { ApiPathMappingsComponent } from './api/analytics/pathMappings/api-path-mappings.component';
-import { ApiCreationV4ConfirmationComponent } from './api/creation/v4/api-creation-v4-confirmation.component';
+import { ApiCreationV4ConfirmationComponent } from './api/creation-v4/api-creation-v4-confirmation.component';
 import { ApiPortalGroupsComponent } from './api/portal/user-group-access/groups/api-portal-groups.component';
 import { ApiPortalMembersComponent } from './api/portal/user-group-access/members/api-portal-members.component';
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
