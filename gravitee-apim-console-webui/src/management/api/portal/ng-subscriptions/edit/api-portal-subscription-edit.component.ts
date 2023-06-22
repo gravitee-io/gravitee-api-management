@@ -27,6 +27,7 @@ import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-
 import {
   ApiPortalSubscriptionTransferDialogComponent,
   SubscriptionTransferData,
+  SubscriptionTransferResult,
 } from '../components/transfer-dialog/api-portal-subscription-transfer-dialog.component';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
@@ -130,20 +131,25 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
 
   transferSubscription() {
     this.matDialog
-      .open<ApiPortalSubscriptionTransferDialogComponent, SubscriptionTransferData, string>(ApiPortalSubscriptionTransferDialogComponent, {
-        width: '500px',
-        data: {
-          apiId: this.apiId,
-          securityType: this.subscription.plan.securityType,
-          currentPlanId: this.subscription.plan.id,
-          mode: this.subscription.plan.mode,
+      .open<ApiPortalSubscriptionTransferDialogComponent, SubscriptionTransferData, SubscriptionTransferResult>(
+        ApiPortalSubscriptionTransferDialogComponent,
+        {
+          width: '500px',
+          data: {
+            apiId: this.apiId,
+            securityType: this.subscription.plan.securityType,
+            currentPlanId: this.subscription.plan.id,
+            mode: this.subscription.plan.mode,
+          },
+          role: 'alertdialog',
+          id: 'transferSubscriptionDialog',
         },
-        role: 'alertdialog',
-        id: 'transferSubscriptionDialog',
-      })
+      )
       .afterClosed()
       .pipe(
-        switchMap((planId) => (planId ? this.apiSubscriptionService.transfer(this.apiId, this.subscription.id, planId) : EMPTY)),
+        switchMap((result) =>
+          result ? this.apiSubscriptionService.transfer(this.apiId, this.subscription.id, result.selectedPlanId) : EMPTY,
+        ),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
