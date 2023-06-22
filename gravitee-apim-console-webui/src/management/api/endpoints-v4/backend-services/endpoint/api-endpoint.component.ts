@@ -15,15 +15,16 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
-import { combineLatest, Subject } from 'rxjs';
+import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiV4, EndpointGroupV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, EndpointGroupV4, EndpointV4, UpdateApiV4 } from '../../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-endpoint',
@@ -32,6 +33,7 @@ import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector
 })
 export class ApiEndpointComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private groupIndex: number;
   public endpointGroup: EndpointGroupV4;
   public formGroup: FormGroup;
   public endpointSchema: { config: GioJsonSchema; sharedConfig: GioJsonSchema };
@@ -42,19 +44,20 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   public ngOnInit(): void {
     this.isLoading = true;
     const apiId = this.ajsStateParams.apiId;
-    const groupName = this.ajsStateParams.groupName;
+    this.groupIndex = +this.ajsStateParams.groupIndex;
 
     this.apiService
       .get(apiId)
       .pipe(
         takeUntil(this.unsubscribe$),
         switchMap((api: ApiV4) => {
-          this.endpointGroup = api.endpointGroups.find((group) => group.name === groupName);
+          this.endpointGroup = api.endpointGroups[this.groupIndex];
           return combineLatest([
             this.connectorPluginsV2Service.getEndpointPluginSchema(this.endpointGroup.type),
             this.connectorPluginsV2Service.getEndpointPluginSharedConfigurationSchema(this.endpointGroup.type),
@@ -79,5 +82,44 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
   public onPrevious() {
     this.ajsState.go('management.apis.ng.endpoints');
+  }
+
+  public onSave() {
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap((api: ApiV4) => {
+          const endpointGroups = api.endpointGroups.map((group, index) => {
+            if (index === this.groupIndex) {
+              const endpoint: EndpointV4 = {
+                name: this.formGroup.get('name').value,
+                type: group.type,
+                configuration: this.formGroup.get('configuration').value,
+                sharedConfigurationOverride: this.formGroup.get('sharedConfiguration').value,
+              };
+              return {
+                ...group,
+                endpoints: [...group.endpoints, endpoint],
+              };
+            }
+            return group;
+          });
+          const updatedApi: UpdateApiV4 = {
+            ...api,
+            endpointGroups,
+          };
+          return this.apiService.update(api.id, updatedApi);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        map(() => {
+          this.snackBarService.success(`Endpoint successfully created!`);
+          this.ajsState.go('management.apis.ng.endpoints');
+        }),
+      )
+      .subscribe();
   }
 }

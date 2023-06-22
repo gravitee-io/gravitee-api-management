@@ -220,9 +220,9 @@ describe('ApiEndpointsGroupsComponent', () => {
     it('should navigate to endpoint creation page', async () => {
       await initComponent(apiV4);
 
-      await componentHarness.clickAddEndpointGroup(0);
+      await componentHarness.clickAddEndpoint(0);
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-new', { groupName: expect.any(String) });
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-new', { groupIndex: 0 });
     });
   });
 

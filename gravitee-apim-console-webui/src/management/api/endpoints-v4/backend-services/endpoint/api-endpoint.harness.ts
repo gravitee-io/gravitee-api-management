@@ -32,6 +32,10 @@ export class ApiEndpointHarness extends ComponentHarness {
     return this.getSaveButton().then((button) => button.isDisabled());
   }
 
+  public async clickSaveButton() {
+    return this.getSaveButton().then((button) => button.click());
+  }
+
   public async clickPreviousButton() {
     return this.getPreviousButton().then((button) => button.click());
   }
