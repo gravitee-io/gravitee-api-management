@@ -19,7 +19,7 @@
   <div class="org-navigation__nav">
     <gio-submenu theme="light">
       <button gioSubmenuTitle mat-button aria-label="Organization Settings" *ngIf="hasGoBackButton" (click)="goBack()">
-        <mat-icon svgIcon="gio:arrow-left"></mat-icon>Organization Settings
+        <mat-icon svgIcon="gio:arrow-left"></mat-icon>Organization
       </button>
       <ng-container *ngFor="let group of this.groupItems">
         <gio-submenu-group [title]="group.title" *ngIf="group.title">
