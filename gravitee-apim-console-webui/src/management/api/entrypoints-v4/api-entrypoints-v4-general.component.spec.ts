@@ -28,6 +28,7 @@ import { MatRowHarnessColumnsText } from '@angular/material/table/testing';
 import { ApiEntrypointsV4GeneralComponent } from './api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4Module } from './api-entrypoints-v4.module';
 import { ApiEntrypointsV4GeneralHarness } from './api-entrypoints-v4-general.harness';
+import { ApiEntrypointsV4AddDialogHarness } from './edit/api-entrypoints-v4-add-dialog.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
@@ -67,6 +68,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        isTabbable: () => true, // This checks tabbable trap, set it to true to  avoid the warning
       },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -74,6 +76,31 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
   afterEach(() => {
     httpTestingController.verify({ ignoreCancelled: true });
+  });
+
+  describe('When API has PROXY architecture type', () => {
+    const ENV = fakeEnvironment();
+    const API = fakeApiV4({
+      type: 'PROXY',
+      listeners: [{ type: 'HTTP', entrypoints: [{ type: 'http-get' }], paths: [{ path: '/path' }] }],
+    });
+
+    beforeEach(() => {
+      createComponent(ENV, API);
+      expectGetPortalSettings();
+      fixture.detectChanges();
+    });
+
+    it('should show context paths only', async () => {
+      const contextPath = await loader.getAllHarnesses(GioFormListenersContextPathHarness);
+      expect(contextPath.length).toEqual(1);
+      const virtualHost = await loader.getAllHarnesses(GioFormListenersVirtualHostHarness);
+      expect(virtualHost.length).toEqual(0);
+      const addEntrypointButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add an entrypoint' }));
+      expect(addEntrypointButton.length).toEqual(0);
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
+      expect(await harness.hasEntrypointsTable()).toEqual(false);
+    });
   });
 
   describe('API with subscription listener only', () => {
@@ -351,7 +378,123 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
     });
+
+    it('should not add listener when clicking on cancel', async () => {
+      const addListenerButton = await loader.getHarness(MatButtonHarness.with({ text: 'Add an entrypoint' }));
+      expect(await addListenerButton.isDisabled()).toEqual(false);
+      await addListenerButton.click();
+
+      const rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const dialog = await rootLoader.getHarness(ApiEntrypointsV4AddDialogHarness);
+      const entrypointList = await dialog.getEntrypointSelectionList();
+      const items = await entrypointList.getItems();
+      expect(items.length).toEqual(1);
+      expect(await items[0].getText()).toContain('Server-Sent Events');
+
+      // check new entrypoint type
+      await items[0].select();
+
+      // click on save
+      await dialog.getCancelButton().then((btn) => btn.click());
+    });
+
+    it('should add a new listener', async () => {
+      const addListenerButton = await loader.getHarness(MatButtonHarness.with({ text: 'Add an entrypoint' }));
+      expect(await addListenerButton.isDisabled()).toEqual(false);
+      await addListenerButton.click();
+
+      const rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const dialog = await rootLoader.getHarness(ApiEntrypointsV4AddDialogHarness);
+      const entrypointList = await dialog.getEntrypointSelectionList();
+      const items = await entrypointList.getItems();
+      // check new entrypoint type
+      await items[0].select();
+
+      // click on save
+      await dialog.getSaveButton().then((btn) => btn.click());
+      expectGetApi(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [
+          {
+            type: 'HTTP',
+            ...API.listeners.find((l) => l.type === 'HTTP'),
+            entrypoints: [...API.listeners.find((l) => l.type === 'HTTP').entrypoints, { type: 'sse', configuration: {} }],
+          },
+          ...API.listeners.filter((l) => l.type !== 'HTTP'),
+        ],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
   });
+
+  describe('When API does not have corresponding listener for entrypoint to add', () => {
+    const ENV = fakeEnvironment();
+    const API = fakeApiV4({
+      listeners: [
+        { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }, { type: 'http-post' }, { type: 'sse' }] },
+      ],
+    });
+
+    beforeEach(() => {
+      createComponent(ENV, API);
+      expectGetPortalSettings();
+      fixture.detectChanges();
+    });
+
+    it('should add the corresponding listener', async () => {
+      const addListenerButton = await loader.getHarness(MatButtonHarness.with({ text: 'Add an entrypoint' }));
+      expect(await addListenerButton.isDisabled()).toBeFalsy();
+      await addListenerButton.click();
+
+      const rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const dialog = await rootLoader.getHarness(ApiEntrypointsV4AddDialogHarness);
+      const entrypointList = await dialog.getEntrypointSelectionList();
+      const items = await entrypointList.getItems();
+      // check new entrypoint type
+      await items[0].select();
+
+      // click on save
+      await dialog.getSaveButton().then((btn) => btn.click());
+      expectGetApi(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [
+          { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }, { type: 'http-post' }, { type: 'sse' }] },
+          { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook', configuration: {} }] },
+        ],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+  });
+
+  describe('When API already has all existing listener type', () => {
+    const ENV = fakeEnvironment();
+    const API = fakeApiV4({
+      listeners: [
+        { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }, { type: 'http-post' }, { type: 'sse' }] },
+        { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
+      ],
+    });
+
+    beforeEach(() => {
+      createComponent(ENV, API);
+      expectGetPortalSettings();
+      fixture.detectChanges();
+    });
+
+    it('should disable add button if no listener type available', async () => {
+      const addListenerButton = await loader.getHarness(MatButtonHarness.with({ text: 'Add an entrypoint' }));
+      expect(await addListenerButton.isDisabled()).toBeTruthy();
+    });
+  });
+
   const expectGetCurrentEnvironment = (environment: Environment) => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
   };
@@ -371,10 +514,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
   const expectGetEntrypoints = () => {
     const entrypoints: Partial<ConnectorPlugin>[] = [
-      { id: 'http-get', supportedApiType: 'MESSAGE', name: 'HTTP GET' },
-      { id: 'http-post', supportedApiType: 'MESSAGE', name: 'HTTP POST' },
-      { id: 'sse', supportedApiType: 'MESSAGE', name: 'Server-Sent Events' },
-      { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook' },
+      { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET' },
+      { id: 'http-post', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP POST' },
+      { id: 'sse', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Server-Sent Events' },
+      { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook' },
     ];
 
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(entrypoints);

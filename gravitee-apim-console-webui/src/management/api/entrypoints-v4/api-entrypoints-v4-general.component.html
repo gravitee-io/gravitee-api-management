@@ -79,7 +79,15 @@
       >
         Save changes
       </button>
-      <button mat-stroked-button type="button" (click)="addNewEntrypoint()">Add an entrypoint</button>
+      <button
+        mat-stroked-button
+        type="button"
+        *ngIf="api?.type === 'MESSAGE'"
+        [disabled]="entrypointAvailableForAdd.length < 1"
+        (click)="addNewEntrypoint()"
+      >
+        Add an entrypoint
+      </button>
     </div>
   </form>
 </mat-card>

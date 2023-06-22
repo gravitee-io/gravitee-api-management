@@ -15,19 +15,23 @@
  */
 import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { EMPTY, forkJoin, Subject } from 'rxjs';
+import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/core';
+import { flatten, isEmpty } from 'lodash';
+
+import { ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData } from './edit/api-entrypoints-v4-add-dialog.component';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { ApiV4, ConnectorPlugin, HttpListener, PathV4, UpdateApiV4 } from '../../../entities/management-api-v2';
+import { Api, ApiV4, ConnectorPlugin, Entrypoint, HttpListener, Listener, PathV4, UpdateApiV4 } from '../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../services-ngx/icon.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
+import { ConnectorVM, fromConnector } from '../creation-v4/models/ConnectorVM';
 
 type EntrypointVM = {
   id: string;
@@ -52,6 +56,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   public apiExistingPaths: PathV4[] = [];
   public domainRestrictions: string[] = [];
   public entrypointToBeRemoved: string[] = [];
+  public entrypointAvailableForAdd: ConnectorVM[] = [];
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -100,6 +105,10 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
       this.enableVirtualHost = false;
     }
 
+    const existingEntrypoints = flatten(this.api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
+    this.entrypointAvailableForAdd = this.allEntrypoints
+      .filter((entrypoint) => !existingEntrypoints.includes(entrypoint.id))
+      .map((entrypoint) => fromConnector(this.iconService, entrypoint));
     const entrypoints = this.api.listeners.flatMap((l) => l.entrypoints);
     this.dataSource = entrypoints
       .map((entrypoint) => {
@@ -127,7 +136,33 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   }
 
   addNewEntrypoint() {
-    throw new Error('Add new entrypoint not implemented yet');
+    // Show dialog to add a new entrypoint
+    this.matDialog
+      .open<ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData>(ApiEntrypointsV4AddDialogComponent, {
+        data: { entrypoints: this.entrypointAvailableForAdd },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((entrypointsToAdd: string[]) => {
+          if (entrypointsToAdd.length > 0) {
+            // Save new entrypoint with default config
+            return this.addEntrypointsToApi(entrypointsToAdd);
+          }
+          return EMPTY;
+        }),
+        tap(() => {
+          this.snackBarService.success('Configuration successfully saved!');
+        }),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message ?? err.message);
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((api) => {
+        // Update page
+        this.initForm(api as ApiV4);
+      });
   }
 
   onSaveChanges() {
@@ -204,5 +239,47 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     }
 
     this.enableVirtualHost = !this.enableVirtualHost;
+  }
+
+  private addEntrypointsToApi(entrypointsToAdd: string[]): Observable<Api> {
+    if (isEmpty(entrypointsToAdd)) {
+      return of(this.api);
+    }
+
+    return this.apiService.get(this.apiId).pipe(
+      switchMap((api: ApiV4) => {
+        const entrypointVMToAdd: ConnectorPlugin[] = this.allEntrypoints.filter((e) => entrypointsToAdd.includes(e.id));
+        const allListenerTypes = [
+          ...new Set([...api.listeners.map((l) => l.type), ...entrypointVMToAdd.map(({ supportedListenerType }) => supportedListenerType)]),
+        ];
+        const updatedListeners: Listener[] = allListenerTypes.reduce((listeners: Listener[], listenerType) => {
+          const existingListener: Listener = api.listeners.find((l) => l.type === listenerType);
+          const emptyListener: Listener = listenerType === 'HTTP' ? { type: listenerType, paths: [] } : { type: listenerType };
+          const listener = existingListener ?? emptyListener;
+          const existingEntrypoints: Entrypoint[] = existingListener?.entrypoints ?? [];
+          const entrypointsToAdd: Entrypoint[] = entrypointVMToAdd
+            .filter((e) => e.supportedListenerType === listenerType)
+            .map((e) => {
+              const newEntrypoint: Entrypoint = { type: e.id, configuration: {} };
+              return newEntrypoint;
+            });
+
+          return [
+            ...listeners,
+            {
+              ...listener,
+              entrypoints: [...existingEntrypoints, ...entrypointsToAdd],
+            },
+          ];
+        }, [] as Listener[]);
+
+        const updateApi: UpdateApiV4 = {
+          ...api,
+          listeners: updatedListeners,
+        };
+        return this.apiService.update(this.apiId, updateApi);
+      }),
+      takeUntil(this.unsubscribe$),
+    );
   }
 }
