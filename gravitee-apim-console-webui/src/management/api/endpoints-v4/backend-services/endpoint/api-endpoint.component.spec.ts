@@ -58,7 +58,7 @@ describe('ApiEndpointComponent', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterState, useValue: fakeAjsState },
-        { provide: UIRouterStateParams, useValue: { apiId: API_ID, groupName: 'default-group' } },
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID, groupIndex: 0 } },
       ],
     });
 
@@ -100,7 +100,39 @@ describe('ApiEndpointComponent', () => {
 
       expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
 
-      // TODO implement save on button click
+      await componentHarness.clickSaveButton();
+
+      expectApiGetRequest(apiV4);
+
+      const updatedApi: ApiV4 = {
+        ...apiV4,
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'kafka',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
+            },
+            endpoints: [
+              {
+                name: 'default',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+              {
+                name: 'endpoint-name',
+                type: 'kafka',
+              },
+            ],
+          },
+        ],
+      };
+      expectApiPutRequest(updatedApi);
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoints');
     });
   });
 
@@ -137,6 +169,11 @@ describe('ApiEndpointComponent', () => {
 
   function expectApiGetRequest(api: ApiV4) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectApiPutRequest(api: ApiV4) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
     fixture.detectChanges();
   }
 });
