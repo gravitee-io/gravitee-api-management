@@ -23,41 +23,11 @@
   </div>
 
   <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
-    <mat-selection-list
+    <gio-entrypoints-selection-list
       *ngIf="entrypoints; else loadingTpl"
       formControlName="selectedEntrypointsIds"
-      class="gio-selection-list"
-      disableRipple="true"
-    >
-      <mat-list-option
-        *ngFor="let entrypoint of entrypoints"
-        [value]="entrypoint.id"
-        checkboxPosition="before"
-        #listOption
-        [class.api-creation-v4__list-option__selected]="listOption.selected"
-      >
-        <gio-selection-list-option-layout>
-          <gio-selection-list-option-layout-title>
-            <mat-icon class="api-creation-v4__icon" [svgIcon]="entrypoint.icon"></mat-icon>
-            {{ entrypoint.name }}
-            <span class="gio-badge-primary api-creation-v4__badge">New</span>
-            <span class="gio-badge-accent api-creation-v4__badge" *ngIf="entrypoint.isEnterprise">Enterprise</span>
-            <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!entrypoint.deployed">Not deployed</span>
-          </gio-selection-list-option-layout-title>
-
-          <gio-selection-list-option-layout-body>
-            {{ entrypoint.description }}
-          </gio-selection-list-option-layout-body>
-
-          <gio-selection-list-option-layout-action>
-            <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, entrypoint)">
-              <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-              More information
-            </button>
-          </gio-selection-list-option-layout-action>
-        </gio-selection-list-option-layout>
-      </mat-list-option>
-    </mat-selection-list>
+      [entrypoints]="entrypoints"
+    ></gio-entrypoints-selection-list>
 
     <mat-card class="step-2-entrypoints-1-list__banner">
       <mat-card-content class="step-2-entrypoints-1-list__banner__container">

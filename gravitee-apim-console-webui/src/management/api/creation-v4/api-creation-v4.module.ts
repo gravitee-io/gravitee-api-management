@@ -18,11 +18,11 @@ import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import {
-  GioConfirmDialogModule,
-  GioIconsModule,
-  GioFormJsonSchemaModule,
   GioBannerModule,
+  GioConfirmDialogModule,
   GioFormFocusInvalidModule,
+  GioFormJsonSchemaModule,
+  GioIconsModule,
 } from '@gravitee/ui-particles-angular';
 import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -56,11 +56,12 @@ import { Step4Security1PlansAddComponent } from './steps/step-4-security/step-4-
 import { Step4Security1PlansComponent } from './steps/step-4-security/step-4-security-1-plans.component';
 
 import { GioSelectionListModule } from '../../../shared/components/gio-selection-list-option/gio-selection-list.module';
+import { GioFormListenersContextPathModule } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
+import { GioFormListenersVirtualHostModule } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
+import { GioEntrypointsSelectionListModule } from '../component/gio-entrypoints-selection-list/gio-entrypoints-selection-list.module';
 import { GioConnectorDialogModule } from '../../../components/gio-connector-dialog/gio-connector-dialog.module';
 import { ApiPlanFormModule } from '../component/plan/api-plan-form.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { GioFormListenersContextPathModule } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
-import { GioFormListenersVirtualHostModule } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 
 @NgModule({
   imports: [
@@ -87,6 +88,7 @@ import { GioFormListenersVirtualHostModule } from '../component/gio-form-listene
     ApiCreationStepperMenuModule,
     GioFormListenersContextPathModule,
     GioFormListenersVirtualHostModule,
+    GioEntrypointsSelectionListModule,
     GioConnectorDialogModule,
     GioBannerModule,
     ApiPlanFormModule,
