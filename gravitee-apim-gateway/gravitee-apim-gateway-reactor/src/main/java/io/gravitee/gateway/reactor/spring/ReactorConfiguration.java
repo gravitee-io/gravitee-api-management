@@ -117,6 +117,7 @@ public class ReactorConfiguration {
     public DefaultPlatformProcessorChainFactory defaultPlatformProcessorChainFactory(
         TransactionPreProcessorFactory transactionHandlerFactory,
         @Value("${handlers.request.trace-context.enabled:false}") boolean traceContext,
+        @Value("${handlers.request.x-forward.enabled:true}") boolean xForwardProcessor,
         ReporterService reporterService,
         AlertEventProducer eventProducer,
         Node node,
@@ -127,6 +128,7 @@ public class ReactorConfiguration {
         return new DefaultPlatformProcessorChainFactory(
             transactionHandlerFactory,
             traceContext,
+            xForwardProcessor,
             reporterService,
             eventProducer,
             node,

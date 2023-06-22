@@ -80,6 +80,7 @@ class DefaultPlatformProcessorChainFactoryTest {
             DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
                 transactionHandlerFactory,
                 true,
+                true,
                 reporterService,
                 eventProducer,
                 node,
@@ -101,6 +102,7 @@ class DefaultPlatformProcessorChainFactoryTest {
             DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
                 transactionHandlerFactory,
                 false,
+                true,
                 reporterService,
                 eventProducer,
                 node,
@@ -125,6 +127,7 @@ class DefaultPlatformProcessorChainFactoryTest {
             DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
                 transactionHandlerFactory,
                 false,
+                true,
                 reporterService,
                 eventProducer,
                 node,
@@ -146,6 +149,7 @@ class DefaultPlatformProcessorChainFactoryTest {
             DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
                 transactionHandlerFactory,
                 false,
+                true,
                 reporterService,
                 eventProducer,
                 node,
