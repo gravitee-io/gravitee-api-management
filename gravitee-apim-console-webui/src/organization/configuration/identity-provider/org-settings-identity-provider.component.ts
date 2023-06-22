@@ -200,7 +200,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
       )
       .subscribe((identityProvider) => {
         if (this.mode === 'new') {
-          this.ajsState.go('organization.identities.edit', { id: identityProvider.id });
+          this.ajsState.go('organization.identity-edit', { id: identityProvider.id });
         } else {
           this.resetComponent();
         }
