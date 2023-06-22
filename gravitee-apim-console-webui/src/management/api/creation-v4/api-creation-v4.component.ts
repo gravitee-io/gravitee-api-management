@@ -140,7 +140,6 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     // When then stepper is finished, create the API
     this.stepper.finished$
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((p) => this.createApi$(p)),
         switchMap((apiCreationResult) => {
           if (apiCreationResult.apiCreationPayload.plans && apiCreationResult.status === 'success') {
@@ -160,6 +159,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
           }
           return of(planPublishResult);
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((result) => {
         // TODO: Improve handling various errors non-related to creating API

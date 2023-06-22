@@ -110,7 +110,6 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     this.connectorPluginsV2Service
       .getEndpointPlugin('http-proxy')
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((httpProxyEndpoint) => {
           this.stepService.validStep((previousPayload) => ({
             ...previousPayload,
@@ -138,6 +137,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
             component: Step2Entrypoints2ConfigComponent,
           });
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

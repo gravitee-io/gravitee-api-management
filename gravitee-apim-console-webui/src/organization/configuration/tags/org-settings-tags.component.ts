@@ -156,7 +156,6 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
     this.portalSettingsService
       .save(portalSettingsToSave)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('Configuration saved!');
           this.ngOnInit();
@@ -165,6 +164,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -179,7 +179,6 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((result) => !!result),
         switchMap((newTag) => this.tagService.create(newTag)),
         tap(() => {
@@ -189,6 +188,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -205,7 +205,6 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((result) => !!result),
         switchMap((updatedTag) => this.tagService.update(updatedTag)),
         tap(() => {
@@ -215,6 +214,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -260,7 +260,6 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         // Remove tag in each entrypoints and update them all
         switchMap(() => {
@@ -285,6 +284,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -305,7 +305,6 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((result) => !!result),
         switchMap((newEntrypoint) => this.entrypointService.create(newEntrypoint)),
         tap(() => {
@@ -315,6 +314,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -331,7 +331,6 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((result) => !!result),
         switchMap((newEntrypoint) => this.entrypointService.update(newEntrypoint)),
         tap(() => {
@@ -341,6 +340,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -359,7 +359,6 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.entrypointService.delete(entrypoint.id)),
         tap(() => this.snackBarService.success(`Entrypoint "${entrypoint.url}" has been delete`)),
@@ -367,6 +366,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }

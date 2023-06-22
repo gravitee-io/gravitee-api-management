@@ -104,7 +104,6 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
         switchMap((api) => {
@@ -117,6 +116,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
           return EMPTY;
         }),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -137,8 +137,8 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       })
       .beforeClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -155,8 +155,8 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
       })
       .beforeClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => this.ngOnInit()),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

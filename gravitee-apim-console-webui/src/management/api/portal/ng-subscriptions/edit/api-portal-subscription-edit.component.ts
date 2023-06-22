@@ -73,7 +73,6 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
     this.apiSubscriptionService
       .getById(this.apiId, this.subscriptionId, ['plan', 'application', 'subscribedBy'])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((subscription) => {
           if (subscription) {
             this.subscription = {
@@ -104,6 +103,7 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
             };
           }
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -131,8 +131,8 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((planId) => (planId ? this.apiSubscriptionService.transfer(this.apiId, this.subscription.id, planId) : EMPTY)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(
         (_) => {

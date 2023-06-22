@@ -81,7 +81,6 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
     // Create filters stream
     this.filtersStream
       .pipe(
-        takeUntil(this.unsubscribe$),
         debounceTime(100),
         distinctUntilChanged(),
         tap(({ pagination, searchTerm }) => {
@@ -94,6 +93,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
             catchError(() => of(new PagedResult<User>())),
           ),
         ),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((users) => this.setDataSourceFromUsersList(users));
   }
@@ -121,10 +121,10 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.usersService.remove(userId)),
         tap(() => this.snackBarService.success(`User ${displayName} successfully deleted!`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.filtersStream.next({ ...this.filtersStream.value }));
   }

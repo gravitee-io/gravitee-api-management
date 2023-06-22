@@ -124,7 +124,6 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     this.connectorPluginsV2Service
       .getEntrypointPluginMoreInformation(entrypoint.id)
       .pipe(
-        takeUntil(this.unsubscribe$),
         catchError(() => of({})),
         tap((pluginMoreInformation) => {
           this.matDialog
@@ -140,6 +139,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.unsubscribe$))
             .subscribe();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

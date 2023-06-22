@@ -41,13 +41,13 @@ interface HealthAvailabilityTimeFrameColors {
 export class HealthAvailabilityTimeFrameComponent implements AfterViewInit, OnChanges {
   @Input()
   public option: HealthAvailabilityTimeFrameOption;
-  private optionChange$ = new ReplaySubject<HealthAvailabilityTimeFrameOption>();
+  private optionChange$ = new ReplaySubject<HealthAvailabilityTimeFrameOption>(1);
 
   @ViewChild('colorBad') colorBadElement: ElementRef;
   @ViewChild('colorWarning') colorWarningElement: ElementRef;
   @ViewChild('colorGood') colorGoodElement: ElementRef;
 
-  private colors$ = new ReplaySubject<HealthAvailabilityTimeFrameColors>();
+  private colors$ = new ReplaySubject<HealthAvailabilityTimeFrameColors>(1);
 
   Highcharts: typeof Highcharts = Highcharts;
   chartOptions$: Observable<Highcharts.Options> = combineLatest([this.optionChange$, this.colors$]).pipe(

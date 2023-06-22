@@ -71,7 +71,6 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
     this.apiService
       .get(this.api.id)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => {
           if (this.selectedSwaggerDoc) {
             return this.apiService.importPathMappings(api.id, this.selectedSwaggerDoc, this.api.gravitee);
@@ -88,6 +87,7 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
           this.snackBarService.success(`The path mapping has been successfully added!`);
           this.dialogRef.close();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

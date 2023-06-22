@@ -9,12 +9,13 @@ module.exports = {
     sourceType: 'module',
   },
   ignorePatterns: ['**/*.js', '**/*.json'],
-  plugins: ['eslint-plugin-jsdoc', '@typescript-eslint', 'eslint-plugin-import'],
+  plugins: ['eslint-plugin-jsdoc', '@typescript-eslint', 'eslint-plugin-import', 'rxjs'],
   extends: [
     'angular',
     'eslint:recommended',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:rxjs/recommended',
     'plugin:import/recommended',
     'plugin:import/typescript',
     'prettier',
@@ -111,5 +112,8 @@ module.exports = {
         'newlines-between': 'always',
       },
     ],
+    'rxjs/no-sharereplay': ['off'],
+    'rxjs/no-subject-unsubscribe': ['off'],
+    'rxjs/no-implicit-any-catch': ['off'],
   },
 };

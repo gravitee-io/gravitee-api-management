@@ -100,7 +100,6 @@ export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         tap(() => {
           this.isLoading = true;
@@ -127,6 +126,7 @@ export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
         this.ngOnInit();

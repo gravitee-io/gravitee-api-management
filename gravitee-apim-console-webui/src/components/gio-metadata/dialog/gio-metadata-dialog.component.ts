@@ -81,7 +81,6 @@ export class GioMetadataDialogComponent implements OnInit, AfterViewChecked {
     this.form
       .get('format')
       .valueChanges.pipe(
-        takeUntil(this.unsubscribe$),
         distinctUntilChanged(),
         tap((val: MetadataFormat) => {
           if (val === 'BOOLEAN') {
@@ -90,6 +89,7 @@ export class GioMetadataDialogComponent implements OnInit, AfterViewChecked {
             this.form.get('value').reset();
           }
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

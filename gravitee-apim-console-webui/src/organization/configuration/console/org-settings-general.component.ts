@@ -116,6 +116,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
         this.formSettings
           .get('management.userCreation.enabled')
           .valueChanges.pipe(takeUntil(this.unsubscribe$))
+          // eslint-disable-next-line rxjs/no-nested-subscribe
           .subscribe((checked) => {
             if (checked) {
               this.formSettings.get('management.automaticValidation.enabled').enable();
@@ -137,6 +138,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
           'properties.startTlsEnable',
           'properties.sslTrust',
         ];
+        // eslint-disable-next-line rxjs/no-nested-subscribe
         this.formSettings.get('email.enabled').valueChanges.subscribe((checked) => {
           controlKeys
             .filter((k) => !isReadonlySetting(this.settings, `email.${k}`))
@@ -197,8 +199,8 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
     this.consoleSettingsService
       .save(settingsToSave)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }

@@ -172,9 +172,9 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     const parentControl = this.ngControl.control.parent;
     parentControl?.statusChanges
       ?.pipe(
-        takeUntil(this.unsubscribe$),
         map(() => parentControl?.touched),
         distinctUntilChanged(),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
         this.planForm.markAllAsTouched();
@@ -302,7 +302,6 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     // After init internal planForm. Subscribe to it and emit changes when needed
     this.planForm.valueChanges
       .pipe(
-        takeUntil(this.unsubscribe$),
         map(() => this.getPlanFormValue()),
         distinctUntilChanged(isEqual),
         tap((plan) => {
@@ -310,6 +309,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
           this._onTouched();
         }),
         observeOn(asyncScheduler),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
         this.ngControl?.control?.updateValueAndValidity();

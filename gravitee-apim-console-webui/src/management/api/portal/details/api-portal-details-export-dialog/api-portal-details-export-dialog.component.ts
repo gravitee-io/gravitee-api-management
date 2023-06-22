@@ -106,7 +106,6 @@ export class ApiPortalDetailsExportDialogComponent implements OnDestroy {
 
     export$
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(({ blob, fileName }) => {
           const anchor = document.createElement('a');
           anchor.download = fileName;
@@ -117,6 +116,7 @@ export class ApiPortalDetailsExportDialogComponent implements OnDestroy {
           this.snackBarService.error('An error occurred while export the API.');
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
         this.dialogRef.close();

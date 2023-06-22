@@ -41,11 +41,11 @@ export class OrgSettingsCockpitComponent implements OnInit, OnDestroy {
     this.installationService
       .get()
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((installation) => {
           this.setupVM(installation);
           this.isLoading = false;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

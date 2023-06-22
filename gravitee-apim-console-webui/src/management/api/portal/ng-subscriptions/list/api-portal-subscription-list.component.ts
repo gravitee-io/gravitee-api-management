@@ -115,7 +115,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.portal';
 
     this.filtersForm.valueChanges
-      .pipe(takeUntil(this.unsubscribe$), distinctUntilChanged(isEqual))
+      .pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
       .subscribe(({ planIds, applicationIds, statuses, apikey }) =>
         this.filtersStream.next({
           tableWrapper: {
@@ -136,7 +136,6 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           this.api = api;
           this.isReadOnly =
@@ -153,12 +152,12 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
 
     this.filtersStream
       .pipe(
-        takeUntil(this.unsubscribe$),
         debounceTime(400),
         distinctUntilChanged(isEqual),
         tap(({ subscriptionsFilters, tableWrapper }) => {
@@ -201,6 +200,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
               }),
             ),
         ),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((apiSubscriptionsResponse) => {
         this.nbTotalSubscriptions = apiSubscriptionsResponse.pagination.totalCount;

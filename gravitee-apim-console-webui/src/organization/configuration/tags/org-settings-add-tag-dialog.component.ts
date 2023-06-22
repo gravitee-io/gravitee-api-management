@@ -34,7 +34,7 @@ export class OrgSettingAddTagDialogComponent {
   tag?: Tag;
   isUpdate = false;
   tagForm: FormGroup;
-  groups$? = this.groupService.listByOrganization().pipe(shareReplay());
+  groups$? = this.groupService.listByOrganization().pipe(shareReplay(1));
 
   constructor(
     public dialogRef: MatDialogRef<OrgSettingAddTagDialogComponent>,

@@ -109,8 +109,8 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
     this.listenerFormArray?.valueChanges
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((listeners) => listeners.length > 0 && this._onChange(listeners)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
 

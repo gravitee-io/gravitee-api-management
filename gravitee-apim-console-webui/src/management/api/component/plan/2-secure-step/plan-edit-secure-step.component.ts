@@ -70,11 +70,11 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
     this.policyService
       .getSchema(this.securityType.policy)
       .pipe(
-        takeUntil(this.unsubscribe$),
         catchError((error) => {
           this.snackBarService.error(error.error?.message ?? 'An error occurred while loading security schema.');
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((schema) => {
         this.securityConfigSchema = schema;
@@ -86,11 +86,11 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
       this.resourceService
         .list({ expandSchema: false, expandIcon: true })
         .pipe(
-          takeUntil(this.unsubscribe$),
           catchError((error) => {
             this.snackBarService.error(error.error?.message ?? 'An error occurred while loading resources.');
             return EMPTY;
           }),
+          takeUntil(this.unsubscribe$),
         )
         .subscribe((resourceTypes) => {
           this.resourceTypes = resourceTypes;

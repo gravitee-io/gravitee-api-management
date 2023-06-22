@@ -62,7 +62,6 @@ export class TasksComponent implements OnInit, OnDestroy {
     this.taskService
       .getTasks()
       .pipe(
-        takeUntil(this.unsubscribe$),
         map((result) => {
           this.tasks = result;
           this.data = result.data
@@ -81,6 +80,7 @@ export class TasksComponent implements OnInit, OnDestroy {
             })
             .sort((task1, task2) => task2.createdAt - task1.createdAt);
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => (this.loading = false));
   }
@@ -129,10 +129,10 @@ export class TasksComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.promotionService.processPromotion(promotionId, false)),
         tap(() => this.snackBarService.success(`API promotion rejected`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe({ next: () => this.removeTask(task), error: ({ error }) => this.snackBarService.error(error.message) });
   }
@@ -157,10 +157,10 @@ export class TasksComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.promotionService.processPromotion(promotionId, true)),
         tap(() => this.snackBarService.success(`API promotion accepted`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe({ next: () => this.removeTask(task), error: ({ error }) => this.snackBarService.error(error.message) });
   }

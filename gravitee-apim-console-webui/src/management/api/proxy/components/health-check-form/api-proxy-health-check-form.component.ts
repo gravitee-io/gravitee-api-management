@@ -146,7 +146,6 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
         this.healthCheckForm.get('enabled').valueChanges.pipe(startWith(this.healthCheckForm.get('enabled').value)),
         this.healthCheckForm.get('inherit').valueChanges.pipe(startWith(this.healthCheckForm.get('inherit').value)),
       ]).pipe(
-        takeUntil(this.unsubscribe$),
         map(([enabledChecked, inheritChecked]) => {
           // if the enabled field is disabled, all fields are disabled
           if (this.healthCheckForm.get('enabled').disabled) {
@@ -168,6 +167,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
           return false;
         }),
         shareReplay(1),
+        takeUntil(this.unsubscribe$),
       );
 
       this.isDisabled$.subscribe((disableAll) => {
@@ -184,7 +184,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
       // On disabled, the value is set inherit to true
       this.healthCheckForm
         .get('enabled')
-        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.healthCheckForm.get('enabled').value))
+        .valueChanges.pipe(startWith(this.healthCheckForm.get('enabled').value), takeUntil(this.unsubscribe$))
         .subscribe((enabledChecked) => {
           if (enabledChecked) {
             this.healthCheckForm.get('inherit').enable({ emitEvent: true });
@@ -196,7 +196,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
 
       this.healthCheckForm
         .get('inherit')
-        .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.healthCheckForm.get('inherit').value))
+        .valueChanges.pipe(startWith(this.healthCheckForm.get('inherit').value), takeUntil(this.unsubscribe$))
         .subscribe((checked) => {
           // Save or restore previous health check value.
           if (checked) {

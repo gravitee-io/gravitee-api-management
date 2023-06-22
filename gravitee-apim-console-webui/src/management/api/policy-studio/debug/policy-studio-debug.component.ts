@@ -43,10 +43,10 @@ export class PolicyStudioDebugComponent implements OnInit {
     this.policyStudioDebugService
       .listPolicies()
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((listPolicies) => {
           this.listPolicies = listPolicies;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -73,8 +73,6 @@ export class PolicyStudioDebugComponent implements OnInit {
     this.policyStudioDebugService
       .debug(debugRequest)
       .pipe(
-        takeUntil(this.unsubscribe$),
-        takeUntil(this.cancelRequest$),
         catchError(() => {
           this.snackBarService.error('Unable to try the request, please try again');
           this.debugResponse = {
@@ -91,6 +89,8 @@ export class PolicyStudioDebugComponent implements OnInit {
           };
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
+        takeUntil(this.cancelRequest$),
       )
       .subscribe((debugResponse) => {
         this.debugResponse = debugResponse;

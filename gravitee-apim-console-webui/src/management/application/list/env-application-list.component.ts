@@ -110,7 +110,6 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
     // Create filters stream
     this.filtersStream
       .pipe(
-        takeUntil(this.unsubscribe$),
         debounceTime(100),
         distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
         tap(({ pagination, searchTerm, status, sort }) => {
@@ -123,6 +122,7 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
             catchError(() => of(new PagedResult<Application>())),
           );
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((applications) => this.setDataSourceFromApplicationsList(applications));
   }
@@ -182,10 +182,10 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.applicationService.restore(application.applicationId)),
         tap(() => this.snackBarService.success(`Application ${application.name} has been restored`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() =>
         this.$state.go(

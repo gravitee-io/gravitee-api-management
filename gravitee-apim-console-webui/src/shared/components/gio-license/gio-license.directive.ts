@@ -45,7 +45,6 @@ export class GioLicenseDirective implements OnInit, OnDestroy {
     this.licenseService
       .notAllowed(this.gioLicense?.feature)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.elRef.nativeElement.removeEventListener('click', this.onClick, true);
         }),
@@ -55,6 +54,7 @@ export class GioLicenseDirective implements OnInit, OnDestroy {
           this.featureMoreInformation = featureMoreInformation;
           this.elRef.nativeElement.addEventListener('click', this.onClick, true);
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

@@ -111,7 +111,7 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
           this.changeDetectorRef.detectChanges();
         },
       ),
-      shareReplay(),
+      shareReplay(1),
     );
   }
 

@@ -65,7 +65,6 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
       this.roleService.list('APPLICATION'),
     ])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([orgRoles, envRoles, apiRoles, appRoles]) => {
           this.rolesByScope = [
             { scope: 'Organization', scopeId: 'ORGANIZATION', roles: this.convertToRoleVMs(orgRoles) },
@@ -75,6 +74,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
           ];
           this.loading = false;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -106,7 +106,6 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.roleService.delete(scope, role.name)),
         tap(() => this.snackBarService.success(`Role ${role.name} successfully deleted!`)),
@@ -114,6 +113,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
           this.snackBarService.error(`Failed to delete Role ${role.name}`);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }

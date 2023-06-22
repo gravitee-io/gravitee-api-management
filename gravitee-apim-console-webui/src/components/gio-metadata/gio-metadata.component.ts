@@ -74,7 +74,6 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
     this.metadataSaveServices
       .list()
       .pipe(
-        takeUntil(this.unsubscribe$),
         map((metadata) =>
           metadata.map((m) => ({
             name: m.name,
@@ -85,6 +84,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
             isDeletable: !this.referenceType || (this.referenceType && m.value !== undefined),
           })),
         ),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((metadata) => {
         this.dataSource = new MatTableDataSource(metadata);

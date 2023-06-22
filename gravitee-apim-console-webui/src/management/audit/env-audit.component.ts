@@ -101,7 +101,7 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.filtersForm.valueChanges
-      .pipe(takeUntil(this.unsubscribe$), distinctUntilChanged(isEqual))
+      .pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
       .subscribe(({ event, referenceType, applicationId, apiId, range }) => {
         this.filtersStream.next({
           tableWrapper: {
@@ -123,7 +123,6 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
 
     this.filtersStream
       .pipe(
-        takeUntil(this.unsubscribe$),
         throttleTime(100),
         distinctUntilChanged(isEqual),
         switchMap(({ auditFilters, tableWrapper }) =>
@@ -134,6 +133,7 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
             }),
           ),
         ),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((auditsPage) => {
         this.nbTotalAudit = auditsPage.totalElements;

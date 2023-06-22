@@ -39,10 +39,10 @@ export class ApiProxyGroupConfigurationComponent implements OnInit, OnDestroy {
     this.connectorService
       .list(true)
       .pipe(
-        takeUntil(this.unsubscribe$),
         map((connectors) => {
           this.schemaForm = JSON.parse(connectors.find((connector) => connector.supportedTypes.includes('http'))?.schema);
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

@@ -67,7 +67,6 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
       this.orgSettingsPlatformPoliciesService.listResources({ expandSchema: true, expandIcon: true }),
     ])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([flowSchema, policies, organization, resourceTypes]) => {
           this.platformFlowSchema = flowSchema;
           this.policies = policies;
@@ -82,6 +81,7 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
 
           this.resourceTypes = resourceTypes;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
 

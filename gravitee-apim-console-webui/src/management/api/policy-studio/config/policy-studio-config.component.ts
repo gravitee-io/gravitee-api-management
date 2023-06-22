@@ -62,7 +62,6 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
     this.displayJupiterToggle = this.constants.org?.settings?.jupiterMode?.enabled ?? false;
     combineLatest([this.policyStudioService.getApiDefinition$(), this.policyStudioSettingsService.getConfigurationSchemaForm()])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([definition, flowConfigurationSchema]) => {
           this.apiDefinition = definition;
 
@@ -90,6 +89,7 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
           });
           this.flowConfigurationSchema = flowConfigurationSchema;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

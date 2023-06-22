@@ -73,7 +73,6 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
       this.policyStudioDesignService.listResources({ expandSchema: true, expandIcon: true }),
     ])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([flowSchema, policies, definition, resourceTypes]) => {
           this.apiFlowSchema = flowSchema;
           this.policies = policies;
@@ -84,6 +83,7 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
             this.readonlyPlans = true;
           }
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
 

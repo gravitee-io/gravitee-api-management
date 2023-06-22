@@ -53,7 +53,6 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.environmentService.getCurrent()])
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(([api, environment]) => {
           this.apiProxy = api.proxy;
 
@@ -69,6 +68,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
             !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']) ||
             api.definition_context?.origin === 'kubernetes';
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -82,7 +82,6 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api) => this.apiService.update({ ...api, proxy: apiProxy })),
         tap((api) => (this.apiProxy = api.proxy)),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
@@ -90,6 +89,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -109,7 +109,6 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
         })
         .afterClosed()
         .pipe(
-          takeUntil(this.unsubscribe$),
           tap((response) => {
             if (response) {
               // Keep only the first virtual_host path
@@ -124,6 +123,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
               this.virtualHostModeEnabled = !this.virtualHostModeEnabled;
             }
           }),
+          takeUntil(this.unsubscribe$),
         )
         .subscribe();
       return;

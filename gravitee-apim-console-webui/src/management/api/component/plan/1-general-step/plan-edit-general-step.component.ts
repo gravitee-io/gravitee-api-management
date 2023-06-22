@@ -32,7 +32,7 @@ import { TagService } from '../../../../../services-ngx/tag.service';
 })
 export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  public api$ = new ReplaySubject<ApiV2 | ApiV4>();
+  public api$ = new ReplaySubject<ApiV2 | ApiV4>(1);
 
   public generalForm: FormGroup;
 
@@ -94,7 +94,7 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
     // Enable comment message only if comment required is checked
     this.generalForm
       .get('commentRequired')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$), startWith(this.generalForm.get('commentRequired').value))
+      .valueChanges.pipe(startWith(this.generalForm.get('commentRequired').value), takeUntil(this.unsubscribe$))
       .subscribe((value) => {
         value ? this.generalForm.get('commentMessage').enable() : this.generalForm.get('commentMessage').disable();
       });

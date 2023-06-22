@@ -71,7 +71,6 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((result) => !!result),
         switchMap((newTenant) => this.tenantService.create([newTenant])),
         tap(() => {
@@ -81,6 +80,7 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -99,10 +99,10 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.tenantService.delete(tenant.id)),
         tap(() => this.snackBarService.success(`Tenant successfully deleted!`)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -119,7 +119,6 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((result) => !!result),
         switchMap((updatedTenant) => this.tenantService.update([updatedTenant])),
         tap(() => {
@@ -129,6 +128,7 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }

@@ -63,11 +63,11 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
 
     (hasInstallationPermission ? this.installationService.get() : of(undefined))
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((installation) => {
           this.cockpitLink = this.getCockpitLink(installation);
           this.isLoading = false;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -89,7 +89,6 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
     this.policyService
       .listSwaggerPolicies()
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((policies) =>
           this.matDialog
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
@@ -108,6 +107,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
           this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

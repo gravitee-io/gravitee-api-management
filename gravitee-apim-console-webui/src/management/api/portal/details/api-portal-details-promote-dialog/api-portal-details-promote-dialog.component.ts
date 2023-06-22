@@ -69,7 +69,6 @@ export class ApiPortalDetailsPromoteDialogComponent implements OnDestroy {
       }),
     ])
       .pipe(
-        takeUntil(this.unsubscribe$),
         map(([targetEnvs, promotions]) => {
           this.promotionTargets = targetEnvs
             .map((promotionTarget) => ({
@@ -96,6 +95,7 @@ export class ApiPortalDetailsPromoteDialogComponent implements OnDestroy {
           this.snackBarService.error(error.error?.message ?? error.message ?? 'An error occurred while loading promotion targets.');
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -111,7 +111,6 @@ export class ApiPortalDetailsPromoteDialogComponent implements OnDestroy {
     this.promotionService
       .promote(this.apiId, promotionTarget)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('Promotion requested.');
         }),
@@ -119,6 +118,7 @@ export class ApiPortalDetailsPromoteDialogComponent implements OnDestroy {
           this.snackBarService.error(error.error?.message ?? error.message ?? 'An error occurred while requesting promotion.');
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.dialogRef.close());
   }

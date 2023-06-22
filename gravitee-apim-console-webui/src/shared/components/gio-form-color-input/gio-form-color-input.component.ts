@@ -182,7 +182,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
       this.stateChanges.next();
     });
 
-    this.colorFormControl.valueChanges.pipe(takeUntil(this.unsubscribe$), debounceTime(300)).subscribe((value) => {
+    this.colorFormControl.valueChanges.pipe(debounceTime(300), takeUntil(this.unsubscribe$)).subscribe((value) => {
       this.value = value;
 
       this.colorFormControl.setValue(value, { onlySelf: true, emitEvent: false, emitModelToViewChange: true });

@@ -78,7 +78,6 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((api) => {
           this.api = api;
           this.isV2Api = api && api.definitionVersion === 'V2';
@@ -95,6 +94,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -122,12 +122,12 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     this.plansService
       .update(this.api.id, movedPlan.id, movedPlan)
       .pipe(
-        takeUntil(this.unsubscribe$),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return of({});
         }),
         tap(() => this.onInit(this.status)),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -158,7 +158,6 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.plansService.publish(this.api.id, plan.id)),
         catchError(({ error }) => {
@@ -172,6 +171,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           this.snackBarService.success(`The plan ${plan.name} has been published with success.`);
           this.onInit(this.status, true);
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -190,7 +190,6 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.plansService.deprecate(this.api.id, plan.id)),
         catchError(({ error }) => {
@@ -204,6 +203,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           this.snackBarService.success(`The plan ${plan.name} has been deprecated with success.`);
           this.onInit(this.status, true);
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -212,7 +212,6 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
     this.subscriptionService
       .getApiSubscriptionsByPlan(plan.apiId, plan.id)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((subscriptions) => {
           let content = '';
           if (plan.security?.type === 'KEY_LESS') {
@@ -258,6 +257,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           this.snackBarService.success(`The plan ${plan.name} has been closed with success.`);
           this.onInit(this.status, true);
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
@@ -288,7 +288,6 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
 
     getApiPlans$
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap((plans) => {
           this.ajsState.go(`${this.routeBase}.plans`, { status: this.status }, { notify: false });
           this.plansTableDS = orderBy(plans, 'order', 'asc');
@@ -298,6 +297,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return of({});
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

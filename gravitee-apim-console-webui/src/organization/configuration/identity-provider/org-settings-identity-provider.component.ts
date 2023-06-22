@@ -64,14 +64,14 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
   identityProviderType: IdentityProvider['type'] | null = null;
 
-  groups$ = this.groupService.list().pipe(shareReplay());
+  groups$ = this.groupService.list().pipe(shareReplay(1));
 
-  organizationRoles$ = this.roleService.list('ORGANIZATION').pipe(shareReplay());
+  organizationRoles$ = this.roleService.list('ORGANIZATION').pipe(shareReplay(1));
 
-  environments$ = this.environmentService.list().pipe(shareReplay());
+  environments$ = this.environmentService.list().pipe(shareReplay(1));
   allEnvironments: Environment[];
 
-  environmentRoles$ = this.roleService.list('ENVIRONMENT').pipe(shareReplay());
+  environmentRoles$ = this.roleService.list('ENVIRONMENT').pipe(shareReplay(1));
 
   environmentTableDisplayedColumns = ['name', 'description', 'actions'];
 
@@ -104,7 +104,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
     this.identityProviderFormGroup
       .get('type')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$), distinctUntilChanged())
+      .valueChanges.pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$))
       .subscribe((type) => {
         this.identityProviderType = type;
         this.identityProviderFormGroup.markAsUntouched();
@@ -115,7 +115,6 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
       combineLatest([this.identityProviderService.get(this.ajsStateParams.id), this.environments$])
         .pipe(
-          takeUntil(this.unsubscribe$),
           tap(([identityProvider, environments]) => {
             this.identityProviderType = identityProvider.type;
             this.initialIdentityProviderValue = cloneDeep(identityProvider);
@@ -129,6 +128,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
             this.isLoading = false;
           }),
+          takeUntil(this.unsubscribe$),
         )
         .subscribe();
     } else {
@@ -189,7 +189,6 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
     upsertIdentityProvider$
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('Identity provider successfully saved!');
         }),
@@ -197,6 +196,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((identityProvider) => {
         if (this.mode === 'new') {

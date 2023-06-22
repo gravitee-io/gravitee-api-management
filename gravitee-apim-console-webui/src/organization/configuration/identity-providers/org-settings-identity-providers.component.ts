@@ -105,10 +105,11 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.identityProviderService.delete(identityProvider.id)),
         tap(() => this.snackBarService.success(`Identity Provider ${identityProvider.name} successfully deleted!`)),
+
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -133,7 +134,6 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
       })
       .afterClosed()
       .pipe(
-        takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => {
           identityProvider.activated = !identityProvider.activated;
@@ -145,6 +145,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
             `Identity Provider ${identityProvider.name} successfully ${identityProvider.activated ? 'activated' : 'deactivated'}!`,
           ),
         ),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -161,8 +162,8 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
         },
       })
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => this.snackBarService.success('Configuration successfully updated!')),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe((updatedConsoleSettings) => {
         this.consoleSettings = updatedConsoleSettings;

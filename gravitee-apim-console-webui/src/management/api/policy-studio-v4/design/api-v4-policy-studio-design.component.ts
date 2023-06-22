@@ -148,15 +148,14 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     }
     forkJoin(updates$)
       .pipe(
-        takeUntil(this.unsubscribe$),
         tap(() => this.snackBarService.success('Policy Studio configuration saved')),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
 
   private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
     return this.apiV2Service.get(this.ajsStateParams.apiId).pipe(
-      takeUntil(this.unsubscribe$),
       switchMap((api: ApiV4) => {
         const updatedApi: UpdateApiV4 = {
           ...api,
@@ -170,6 +169,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         this.snackBarService.error(err.error?.message ?? err.message);
         return EMPTY;
       }),
+      takeUntil(this.unsubscribe$),
     );
   }
 

@@ -52,13 +52,13 @@ export class ApiPortalDetailsQualityComponent implements OnChanges, OnDestroy {
     if (changes.apiId) {
       combineLatest([this.qualityRuleService.list(), this.apiService.getQualityMetrics(this.apiId)])
         .pipe(
-          takeUntil(this.unsubscribe$),
           tap(([qualityRules, qualityMetrics]) => {
             forEach(qualityRules, (qualityRule) => {
               this.qualityMetricsDescription[qualityRule.id] = qualityRule.description;
             });
             this.qualityMetrics = qualityMetrics;
           }),
+          takeUntil(this.unsubscribe$),
         )
         .subscribe();
     }
