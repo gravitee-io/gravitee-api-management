@@ -22,43 +22,48 @@
 
 @import 'constants';
 
-@import 'components/circularPercentage/circularPercentage';
+// Not encapsulated because used when encapsulation is .mat
 @import 'components/contextual/contextual-doc.component';
-@import 'components/dashboard/dashboard';
-@import 'components/documentation/page/page';
-@import 'components/identityPicture/identityPicture';
-@import 'components/image/image';
-@import 'components/error/error';
-@import 'components/newsletter-subcription/newsletter-reminder';
-@import 'components/notifications/notifications';
-@import 'components/quick-time-range/quick-time-range';
-@import 'components/user-autocomplete/user-autocomplete';
-@import 'components/widget/widget';
-@import 'components/alerts/dashboard/alerts-dashboard';
-@import 'components/alerts/alert/alert';
-@import 'components/dialog/apiKeyMode/api-key-mode-choice.dialog';
-@import 'components/alerts/alertEnginePromotion/alert-engine-promotion';
-
-@import 'management/analytics';
 @import 'management/api/api';
-@import 'management/api/creation/newApi';
-@import 'management/configuration/theme/theme';
-@import 'management/configuration/portal/portal';
-@import 'management/configuration/groups/group/group';
-@import 'management/configuration/categories/category/category';
-@import 'management/datatable';
-@import 'management/forms';
-@import 'management/instances/instances';
-@import 'management/stepper';
-@import 'management/submenu';
-@import 'management/dashboard-ajs/analytics-dashboard/analytics-dashboard';
-@import 'management/dashboard-ajs/apis-status-dashboard/apis-status-dashboard';
-@import 'management/dashboard-ajs/home-dashboard/home-dashboard';
-@import 'management/api-key/api-keys';
-
-@import 'user/user';
-@import 'user/newsletter/newsletter-subscription';
 @import 'user/login/login';
+
+// Try to encapsulate all scss with .bootstrap class
+:where(.bootstrap) {
+  @import 'components/circularPercentage/circularPercentage';
+  @import 'components/dashboard/dashboard';
+  @import 'components/documentation/page/page';
+  @import 'components/identityPicture/identityPicture';
+  @import 'components/image/image';
+  @import 'components/error/error';
+  @import 'components/newsletter-subcription/newsletter-reminder';
+  @import 'components/notifications/notifications';
+  @import 'components/quick-time-range/quick-time-range';
+  @import 'components/user-autocomplete/user-autocomplete';
+  @import 'components/widget/widget';
+  @import 'components/alerts/dashboard/alerts-dashboard';
+  @import 'components/alerts/alert/alert';
+  @import 'components/dialog/apiKeyMode/api-key-mode-choice.dialog';
+  @import 'components/alerts/alertEnginePromotion/alert-engine-promotion';
+
+  @import 'management/analytics';
+  @import 'management/api/creation/newApi';
+  @import 'management/configuration/theme/theme';
+  @import 'management/configuration/portal/portal';
+  @import 'management/configuration/groups/group/group';
+  @import 'management/configuration/categories/category/category';
+  @import 'management/datatable';
+  @import 'management/forms';
+  @import 'management/instances/instances';
+  @import 'management/stepper';
+  @import 'management/submenu';
+  @import 'management/dashboard-ajs/analytics-dashboard/analytics-dashboard';
+  @import 'management/dashboard-ajs/apis-status-dashboard/apis-status-dashboard';
+  @import 'management/dashboard-ajs/home-dashboard/home-dashboard';
+  @import 'management/api-key/api-keys';
+
+  @import 'user/user';
+  @import 'user/newsletter/newsletter-subscription';
+}
 
 @import '../node_modules/@fontsource/libre-franklin/scss/mixins';
 
