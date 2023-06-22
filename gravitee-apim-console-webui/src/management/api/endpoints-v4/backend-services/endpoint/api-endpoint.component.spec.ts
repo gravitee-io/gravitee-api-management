@@ -104,6 +104,20 @@ describe('ApiEndpointComponent', () => {
     });
   });
 
+  describe('onPreviousClick', () => {
+    it('should go back to endpoints groups list page', async () => {
+      await initComponent(apiV4);
+
+      expectApiGetRequest(apiV4);
+      expectEndpointSchemaGetRequest(apiV4.endpointGroups[0].type);
+      expectEndpointsSharedConfigurationSchemaGetRequest(apiV4.endpointGroups[0].type);
+
+      await componentHarness.clickPreviousButton();
+
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoints');
+    });
+  });
+
   function expectEndpointsSharedConfigurationSchemaGetRequest(id: string) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${id}/shared-configuration-schema`, method: 'GET' })

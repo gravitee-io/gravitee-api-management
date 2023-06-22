@@ -37,7 +37,7 @@
     </div>
 
     <div class="endpoint-card__actions">
-      <button mat-stroked-button type="button">Previous</button>
+      <a mat-stroked-button type="button" (click)="onPrevious()">Previous</a>
       <button mat-flat-button aria-label="Validate my endpoints" color="primary" type="submit" [disabled]="formGroup.invalid">
         Validate my endpoints
       </button>

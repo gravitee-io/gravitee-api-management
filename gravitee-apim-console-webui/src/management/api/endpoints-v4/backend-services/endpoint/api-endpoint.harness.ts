@@ -22,6 +22,7 @@ export class ApiEndpointHarness extends ComponentHarness {
 
   private getNameInput = this.locatorFor(MatInputHarness.with({ selector: '#name' }));
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: 'Validate my endpoints' }));
+  private getPreviousButton = this.locatorFor(MatButtonHarness.with({ text: 'Previous' }));
 
   public async fillInputName(name: string) {
     return this.getNameInput().then((input) => input.setValue(name));
@@ -29,5 +30,9 @@ export class ApiEndpointHarness extends ComponentHarness {
 
   public async isSaveButtonDisabled() {
     return this.getSaveButton().then((button) => button.isDisabled());
+  }
+
+  public async clickPreviousButton() {
+    return this.getPreviousButton().then((button) => button.click());
   }
 }
