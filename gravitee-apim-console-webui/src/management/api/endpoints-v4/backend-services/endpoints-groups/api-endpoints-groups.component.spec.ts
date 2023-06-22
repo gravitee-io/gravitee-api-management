@@ -26,7 +26,7 @@ import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
 import { ApiEndpointsGroupsHarness } from './api-endpoints-groups.harness';
 import { ApiEndpointsGroupsModule } from './api-endpoints-groups.module';
 
-import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 
 @Component({
@@ -121,6 +121,8 @@ describe('ApiEndpointsGroupsComponent', () => {
     fixture.detectChanges();
 
     componentHarness = await loader.getHarness(ApiEndpointsGroupsHarness);
+
+    expectEndpointsGetRequest();
   };
 
   afterEach(() => {
@@ -179,6 +181,7 @@ describe('ApiEndpointsGroupsComponent', () => {
           },
         ],
       });
+      expectEndpointsGetRequest();
     });
   });
 
@@ -206,6 +209,7 @@ describe('ApiEndpointsGroupsComponent', () => {
           },
         ],
       });
+      expectEndpointsGetRequest();
     });
   });
 
@@ -221,5 +225,11 @@ describe('ApiEndpointsGroupsComponent', () => {
   function expectApiPutRequest(api: ApiV4) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
     fixture.detectChanges();
+  }
+
+  function expectEndpointsGetRequest() {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' })
+      .flush([fakeConnectorPlugin({ id: 'kafka', name: 'kafka' }), fakeConnectorPlugin({ id: 'mock', name: 'mock' })]);
   }
 });
