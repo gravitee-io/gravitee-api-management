@@ -254,7 +254,7 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.ng.endpoint-new',
-    url: '/groups/:groupName/endpoint/new',
+    url: '/groups/:groupIndex/endpoint/new',
     component: ApiEndpointComponent,
     data: {
       useAngularMaterial: true,

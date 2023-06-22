@@ -23,7 +23,7 @@ export class ApiEndpointsGroupsHarness extends ComponentHarness {
 
   private getDeleteEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete endpoints group"]' }));
   private getDeleteEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete endpoint"]' }));
-  private getAddEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Add endpoint"]' }));
+  private getAddEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Add endpoint"]' }));
 
   public async getTableRows(index: number) {
     const table = this.locatorFor(MatTableHarness.with({ selector: `#groupsTable-${index}` }));
@@ -48,8 +48,8 @@ export class ApiEndpointsGroupsHarness extends ComponentHarness {
       .then((element) => element.click());
   }
 
-  public async clickAddEndpointGroup(index: number) {
-    const button = (await this.getAddEndpointGroupButtons())[index];
+  public async clickAddEndpoint(index: number) {
+    const button = (await this.getAddEndpointButtons())[index];
     return button.click();
   }
 }

@@ -34,6 +34,7 @@ export interface EndpointV4 {
    */
   inheritConfiguration?: boolean;
   configuration?: any;
+  sharedConfigurationOverride?: any;
   services?: EndpointServices;
   secondary?: boolean;
 }
