@@ -204,10 +204,6 @@ data:
         {{- end }}
       {{- end }}
 
-    cache:
-      type: ehcache
-      enabled: true
-
     # Sharding tags configuration
     # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
     tags: {{ .Values.gateway.sharding_tags }}  

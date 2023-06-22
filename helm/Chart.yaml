@@ -22,3 +22,4 @@ annotations:
     - Change the versioning
     - Remove duplicate annotation in ui deployment
     - Add support for managed Service Account for each product
+    - Remove old and unused `cache.type` from gateway config map
