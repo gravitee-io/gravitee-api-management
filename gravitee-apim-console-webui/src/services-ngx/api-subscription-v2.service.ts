@@ -58,4 +58,12 @@ export class ApiSubscriptionV2Service {
       planId,
     });
   }
+
+  pause(subscriptionId: string, apiId: string): Observable<Subscription> {
+    return this.http.post<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/_pause`, {});
+  }
+
+  resume(subscriptionId: string, apiId: string): Observable<Subscription> {
+    return this.http.post<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/_resume`, {});
+  }
 }
