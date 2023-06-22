@@ -17,8 +17,8 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { of, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
@@ -48,7 +48,6 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
-    private readonly matDialog: MatDialog,
     private readonly confirmDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
     private readonly changeDetectorRef: ChangeDetectorRef,
@@ -116,32 +115,6 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     this.stepService.goToPreviousStep();
-  }
-
-  onMoreInfoClick(event, entrypoint: ConnectorVM) {
-    event.stopPropagation();
-
-    this.connectorPluginsV2Service
-      .getEntrypointPluginMoreInformation(entrypoint.id)
-      .pipe(
-        catchError(() => of({})),
-        tap((pluginMoreInformation) => {
-          this.matDialog
-            .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
-              data: {
-                name: entrypoint.name,
-                pluginMoreInformation,
-              },
-              role: 'alertdialog',
-              id: 'moreInfoDialog',
-            })
-            .afterClosed()
-            .pipe(takeUntil(this.unsubscribe$))
-            .subscribe();
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
   }
 
   private saveChanges() {
