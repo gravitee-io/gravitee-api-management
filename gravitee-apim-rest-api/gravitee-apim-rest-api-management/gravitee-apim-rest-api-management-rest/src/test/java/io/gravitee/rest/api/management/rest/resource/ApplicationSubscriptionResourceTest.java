@@ -72,17 +72,17 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldGetApplicationSubscription_onPlanV3() {
+    public void shouldGetApplicationSubscription_onPlanV2() {
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
         when(userService.findById(eq(GraviteeContext.getExecutionContext()), any(), anyBoolean())).thenReturn(mock(UserEntity.class));
 
-        ApiEntity apiV3 = new ApiEntity();
-        apiV3.setPrimaryOwner(new PrimaryOwnerEntity());
-        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID))).thenReturn(apiV3);
+        ApiEntity apiV2 = new ApiEntity();
+        apiV2.setPrimaryOwner(new PrimaryOwnerEntity());
+        when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID))).thenReturn(apiV2);
 
-        PlanEntity planV3 = new PlanEntity();
-        planV3.setSecurity(PlanSecurityType.OAUTH2);
-        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV3);
+        PlanEntity planV2 = new PlanEntity();
+        planV2.setSecurity(PlanSecurityType.OAUTH2);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV2);
 
         Response response = envTarget(SUBSCRIPTION_ID).request().get();
 
@@ -110,7 +110,7 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         JsonNode responseBody = response.readEntity(JsonNode.class);
-        assertEquals("oauth2", responseBody.get("plan").get("security").asText());
+        assertEquals(PlanSecurityType.OAUTH2.name(), responseBody.get("plan").get("security").asText());
     }
 
     @Test

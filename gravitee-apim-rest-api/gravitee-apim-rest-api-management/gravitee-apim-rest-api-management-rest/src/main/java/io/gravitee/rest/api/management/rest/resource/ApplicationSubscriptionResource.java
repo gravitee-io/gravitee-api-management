@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -218,7 +219,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
         GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
         if (plan.getPlanSecurity() != null) {
-            subscription.getPlan().setSecurity(plan.getPlanSecurity().getType());
+            subscription.getPlan().setSecurity(PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType()).name());
         }
 
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, subscriptionEntity.getApi());
