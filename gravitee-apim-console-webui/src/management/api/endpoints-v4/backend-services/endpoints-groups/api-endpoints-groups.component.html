@@ -77,11 +77,11 @@
           <!-- Actions Column -->
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
-            <td mat-cell *matCellDef="let element">
+            <td mat-cell *matCellDef="let element; let j = index">
               <div class="endpoints-group-card__table__actions">
-                <button mat-icon-button aria-label="Edit endpoint" matTooltip="Edit endpoint">
+                <a mat-icon-button aria-label="Edit endpoint" matTooltip="Edit endpoint" (click)="editEndpoint(i, j)">
                   <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-                </button>
+                </a>
                 <button
                   mat-icon-button
                   aria-label="Delete endpoint"
