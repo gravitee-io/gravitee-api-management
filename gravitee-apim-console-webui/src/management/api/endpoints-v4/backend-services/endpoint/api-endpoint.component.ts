@@ -22,9 +22,10 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiV4, EndpointGroupV4, EndpointV4, UpdateApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4 } from '../../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { IconService } from '../../../../../services-ngx/icon.service';
 
 @Component({
   selector: 'api-endpoint',
@@ -34,9 +35,11 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 export class ApiEndpointComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private groupIndex: number;
+  private endpointIndex: number;
   public endpointGroup: EndpointGroupV4;
   public formGroup: FormGroup;
   public endpointSchema: { config: GioJsonSchema; sharedConfig: GioJsonSchema };
+  public connectorPlugin: ConnectorPlugin;
   public isLoading = false;
 
   constructor(
@@ -45,6 +48,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly iconService: IconService,
   ) {}
 
   public ngOnInit(): void {
@@ -55,22 +59,23 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     this.apiService
       .get(apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api: ApiV4) => {
           this.endpointGroup = api.endpointGroups[this.groupIndex];
           return combineLatest([
             this.connectorPluginsV2Service.getEndpointPluginSchema(this.endpointGroup.type),
             this.connectorPluginsV2Service.getEndpointPluginSharedConfigurationSchema(this.endpointGroup.type),
+            this.connectorPluginsV2Service.getEndpointPlugin(this.endpointGroup.type),
           ]);
         }),
-        tap(([config, sharedConfig]) => {
-          this.endpointSchema = { config, sharedConfig };
-          this.formGroup = new FormGroup({
-            name: new FormControl(null, Validators.required),
-            configuration: new FormControl(GioFormJsonSchemaComponent.isDisplayable(config) ? config : {}),
-            sharedConfiguration: new FormControl(GioFormJsonSchemaComponent.isDisplayable(sharedConfig) ? sharedConfig : {}),
-          });
+        tap(([config, sharedConfig, connectorPlugin]) => {
+          this.endpointSchema = {
+            config: GioFormJsonSchemaComponent.isDisplayable(config) ? config : null,
+            sharedConfig: GioFormJsonSchemaComponent.isDisplayable(sharedConfig) ? sharedConfig : null,
+          };
+          this.connectorPlugin = { ...connectorPlugin, icon: this.iconService.registerSvg(connectorPlugin.id, connectorPlugin.icon) };
+          this.initForm();
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => (this.isLoading = false));
   }
@@ -85,31 +90,33 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   }
 
   public onSave() {
+    const inheritConfiguration = this.formGroup.get('inheritConfiguration').value;
+
+    const updatedEndpoint: EndpointV4 = {
+      type: this.endpointGroup.type,
+      name: this.formGroup.get('name').value,
+      configuration: this.formGroup.get('configuration').value,
+      sharedConfigurationOverride: inheritConfiguration ? {} : this.formGroup.get('sharedConfiguration').value,
+      inheritConfiguration,
+    };
+
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api: ApiV4) => {
-          const endpointGroups = api.endpointGroups.map((group, index) => {
-            if (index === this.groupIndex) {
-              const endpoint: EndpointV4 = {
-                name: this.formGroup.get('name').value,
-                type: group.type,
-                configuration: this.formGroup.get('configuration').value,
-                sharedConfigurationOverride: this.formGroup.get('sharedConfiguration').value,
-              };
+          const endpointGroups = api.endpointGroups.map((group, i) => {
+            if (i === this.groupIndex) {
               return {
                 ...group,
-                endpoints: [...group.endpoints, endpoint],
+                endpoints:
+                  this.endpointIndex !== undefined
+                    ? group.endpoints.map((endpoint, j) => (j === this.endpointIndex ? updatedEndpoint : endpoint))
+                    : [...group.endpoints, updatedEndpoint],
               };
             }
             return group;
           });
-          const updatedApi: UpdateApiV4 = {
-            ...api,
-            endpointGroups,
-          };
-          return this.apiService.update(api.id, updatedApi);
+          return this.apiService.update(api.id, { ...api, endpointGroups });
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -119,7 +126,39 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
           this.snackBarService.success(`Endpoint successfully created!`);
           this.ajsState.go('management.apis.ng.endpoints');
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  public onInheritConfigurationChange() {
+    if (this.formGroup.get('inheritConfiguration').value) {
+      this.formGroup.get('sharedConfiguration').disable();
+    } else {
+      this.formGroup.get('sharedConfiguration').enable();
+    }
+  }
+
+  private initForm() {
+    let name = null;
+    let inheritConfiguration = false;
+    let configuration = null;
+    let sharedConfiguration = null;
+
+    if (this.ajsStateParams.endpointIndex !== undefined) {
+      this.endpointIndex = +this.ajsStateParams.endpointIndex;
+      const endpoint = this.endpointGroup.endpoints[this.endpointIndex];
+      name = endpoint.name;
+      inheritConfiguration = endpoint.inheritConfiguration;
+      configuration = endpoint.configuration;
+      sharedConfiguration = inheritConfiguration ? this.endpointGroup.sharedConfiguration : endpoint.sharedConfigurationOverride;
+    }
+
+    this.formGroup = new FormGroup({
+      name: new FormControl(name, Validators.required),
+      inheritConfiguration: new FormControl(inheritConfiguration),
+      configuration: new FormControl(configuration),
+      sharedConfiguration: new FormControl({ value: sharedConfiguration, disabled: inheritConfiguration }),
+    });
   }
 }

@@ -16,6 +16,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 export class ApiEndpointHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint';
@@ -23,9 +24,14 @@ export class ApiEndpointHarness extends ComponentHarness {
   private getNameInput = this.locatorFor(MatInputHarness.with({ selector: '#name' }));
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: 'Validate my endpoints' }));
   private getPreviousButton = this.locatorFor(MatButtonHarness.with({ text: 'Previous' }));
+  private getConfigurationToggle = this.locatorFor(MatSlideToggleHarness);
 
   public async fillInputName(name: string) {
     return this.getNameInput().then((input) => input.setValue(name));
+  }
+
+  public async getEndpointName() {
+    return this.getNameInput().then((input) => input.getValue());
   }
 
   public async isSaveButtonDisabled() {
@@ -38,5 +44,17 @@ export class ApiEndpointHarness extends ComponentHarness {
 
   public async clickPreviousButton() {
     return this.getPreviousButton().then((button) => button.click());
+  }
+
+  public async isConfigurationButtonToggled() {
+    return this.getConfigurationToggle().then((toggle) => toggle.isChecked());
+  }
+
+  public async toggleConfigurationButton() {
+    return this.getConfigurationToggle().then((toggle) => toggle.toggle());
+  }
+
+  public async topicInputText(text: string) {
+    return this.locatorFor(MatInputHarness.with({ value: text }))();
   }
 }

@@ -16,7 +16,7 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GioFormJsonSchemaModule } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -24,6 +24,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 
@@ -33,13 +35,18 @@ import { ApiEndpointComponent } from './api-endpoint.component';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatProgressBarModule,
     MatSnackBarModule,
+    MatIconModule,
+    MatSlideToggleModule,
+
     GioFormJsonSchemaModule,
+    GioFormSlideToggleModule,
   ],
 })
 export class ApiEndpointModule {}

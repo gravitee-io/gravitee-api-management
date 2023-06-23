@@ -16,12 +16,20 @@
 
 -->
 <mat-card class="endpoint-card">
-  <div>
+  <div class="endpoint-card__header">
+    <div class="endpoint-card__header__group-name">
+      <span class="mat-h2">{{ endpointGroup?.name }}</span>
+      <span class="gio-badge-primary">
+        <mat-icon *ngIf="connectorPlugin" [svgIcon]="connectorPlugin?.icon"></mat-icon>
+        {{ connectorPlugin?.name }}
+      </span>
+    </div>
+
     <div class="mat-h4">Configure your API endpoints access</div>
     <p class="body-1">Choose the type of event-brokers/backend that will be exposed through the API</p>
   </div>
 
-  <form *ngIf="formGroup; else loadingTpl" [formGroup]="formGroup">
+  <form *ngIf="formGroup && endpointSchema; else loadingTpl" [formGroup]="formGroup">
     <div>
       <mat-form-field appearance="outline" class="endpoint-card__form__name">
         <input id="name" type="text" matInput formControlName="name" required="true" />
@@ -29,10 +37,19 @@
         <mat-error *ngIf="formGroup.controls.name.errors?.required">Endpoint name is required</mat-error>
       </mat-form-field>
       <div class="endpoint-card__form__config">
-        <gio-form-json-schema formControlName="configuration" [jsonSchema]="endpointSchema.config"></gio-form-json-schema>
+        <gio-form-json-schema formControlName="configuration" [jsonSchema]="endpointSchema?.config"></gio-form-json-schema>
       </div>
+      <gio-form-slide-toggle class="endpoint-card__form__toggle" *ngIf="endpointSchema.sharedConfig">
+        <gio-form-label>Inherit configuration from the endpoint group</gio-form-label>
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="inheritConfiguration"
+          aria-label="Inherit configuration from the endpoint group"
+          (change)="onInheritConfigurationChange()"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
       <div class="endpoint-card__form__shared-config">
-        <gio-form-json-schema formControlName="sharedConfiguration" [jsonSchema]="endpointSchema.sharedConfig"></gio-form-json-schema>
+        <gio-form-json-schema formControlName="sharedConfiguration" [jsonSchema]="endpointSchema?.sharedConfig"></gio-form-json-schema>
       </div>
     </div>
 
@@ -43,7 +60,7 @@
         aria-label="Validate my endpoints"
         color="primary"
         type="submit"
-        [disabled]="formGroup.invalid"
+        [disabled]="formGroup.invalid || !formGroup.dirty"
         (click)="onSave()"
       >
         Validate my endpoints
