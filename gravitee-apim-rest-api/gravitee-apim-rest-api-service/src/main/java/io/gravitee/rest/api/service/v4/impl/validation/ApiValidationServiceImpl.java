@@ -128,7 +128,11 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate and clean flow
         newApiEntity.setFlows(flowValidationService.validateAndSanitize(newApiEntity.getType(), newApiEntity.getFlows()));
 
-        pathParametersValidationService.validate(newApiEntity.getType(), newApiEntity.getFlows().stream(), Stream.empty());
+        pathParametersValidationService.validate(
+            newApiEntity.getType(),
+            (newApiEntity.getFlows() != null ? newApiEntity.getFlows().stream() : Stream.empty()),
+            Stream.empty()
+        );
     }
 
     @Override
@@ -181,7 +185,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate path parameters
         pathParametersValidationService.validate(
             updateApiEntity.getType(),
-            updateApiEntity.getFlows().stream(),
+            (updateApiEntity.getFlows() != null ? updateApiEntity.getFlows().stream() : Stream.empty()),
             getPlansFlows(updateApiEntity.getPlans())
         );
 
@@ -222,7 +226,11 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         apiEntity.setPlans(planValidationService.validateAndSanitize(apiEntity.getType(), apiEntity.getPlans()));
 
         // Validate path parameters
-        pathParametersValidationService.validate(apiEntity.getType(), apiEntity.getFlows().stream(), getPlansFlows(apiEntity.getPlans()));
+        pathParametersValidationService.validate(
+            apiEntity.getType(),
+            (apiEntity.getFlows() != null ? apiEntity.getFlows().stream() : Stream.empty()),
+            getPlansFlows(apiEntity.getPlans())
+        );
 
         // Validate and clean resources
         apiEntity.setResources(resourcesValidationService.validateAndSanitize(apiEntity.getResources()));
