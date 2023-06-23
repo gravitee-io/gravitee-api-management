@@ -28,4 +28,5 @@ export class ClientRegistrationProvider {
   public renew_client_secret_endpoint: string;
   public renew_client_secret_method: string;
   public software_id: string;
+  public updated_at: number;
 }

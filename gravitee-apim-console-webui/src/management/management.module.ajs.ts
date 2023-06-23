@@ -327,10 +327,7 @@ import SelectFolderDialogController from '../components/documentation/dialog/sel
 import SelectPageDialogController from '../components/documentation/dialog/selectpage.controller';
 import AnalyticsSettingsComponent from './configuration/analytics/analytics.component';
 // Settings - Client Registration
-import ClientRegistrationProviderService from '../services/clientRegistrationProvider.service';
-import ClientRegistrationProvidersComponent from '../management/configuration/application/registration/client-registration-providers.component';
-import ClientRegistrationProviderComponent from '../management/configuration/application/registration/client-registration-provider.component';
-import ClientRegistrationProviderController from '../management/configuration/application/registration/client-registration-provider.controller';
+import { ClientRegistrationProvidersComponent } from './configuration/client-registration-providers/client-registration-providers.component';
 
 import DashboardService from '../services/dashboard.service';
 import AnalyticsDashboardComponent from './configuration/analytics/dashboard/dashboard.components';
@@ -514,6 +511,7 @@ import { ApiPortalDocumentationMetadataComponent } from './api/portal/documentat
 import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { ApiBackendServicesComponent } from './api/endpoints-v4/backend-services/api-backend-services.component';
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
+import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -977,10 +975,11 @@ graviteeManagementModule.component('identityProviders', IdentityProvidersCompone
 graviteeManagementModule.service('IdentityProviderService', IdentityProviderService);
 
 // Settings: Client Registration
-graviteeManagementModule.component('clientRegistrationProviders', ClientRegistrationProvidersComponent);
-graviteeManagementModule.component('clientRegistrationProvider', ClientRegistrationProviderComponent);
-graviteeManagementModule.controller('ClientRegistrationProviderController', ClientRegistrationProviderController);
-graviteeManagementModule.service('ClientRegistrationProviderService', ClientRegistrationProviderService);
+graviteeManagementModule.directive(
+  'ngClientRegistrationProviders',
+  downgradeComponent({ component: ClientRegistrationProvidersComponent }),
+);
+graviteeManagementModule.directive('ngClientRegistrationProvider', downgradeComponent({ component: ClientRegistrationProviderComponent }));
 
 // Alerts
 graviteeManagementModule.service('AlertService', AlertService);

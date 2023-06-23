@@ -13,12 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ClientRegistrationProviderComponent: ng.IComponentOptions = {
-  bindings: {
-    clientRegistrationProvider: '<',
-  },
-  controller: 'ClientRegistrationProviderController',
-  template: require('./client-registration-provider.html'),
-};
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../scss/gio-layout' as gio-layout;
 
-export default ClientRegistrationProviderComponent;
+$textColor: map.get(gio.$mat-dove-palette, default);
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.client-registration-provider {
+  &__card {
+    margin-bottom: 16px;
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+
+      &__form-field {
+        width: 100%;
+      }
+    }
+  }
+}

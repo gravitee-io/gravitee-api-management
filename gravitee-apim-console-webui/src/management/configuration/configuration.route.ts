@@ -20,7 +20,6 @@ import { StateProvider } from '@uirouter/angularjs';
 import { ApiService } from '../../services/api.service';
 import ApiHeaderService from '../../services/apiHeader.service';
 import CategoryService from '../../services/category.service';
-import ClientRegistrationProviderService from '../../services/clientRegistrationProvider.service';
 import ConsoleSettingsService from '../../services/consoleSettings.service';
 import CustomUserFieldsService from '../../services/custom-user-fields.service';
 import DashboardService from '../../services/dashboard.service';
@@ -289,12 +288,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
     })
     .state('management.settings.clientregistrationproviders.list', {
       url: '/',
-      component: 'clientRegistrationProviders',
-      resolve: {
-        clientRegistrationProviders: (ClientRegistrationProviderService: ClientRegistrationProviderService) =>
-          ClientRegistrationProviderService.list().then((response) => response),
-        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
-      },
+      component: 'ngClientRegistrationProviders',
       data: {
         menu: null,
         docs: {
@@ -307,7 +301,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
     })
     .state('management.settings.clientregistrationproviders.create', {
       url: '/new',
-      component: 'clientRegistrationProvider',
+      component: 'ngClientRegistrationProvider',
       data: {
         menu: null,
         docs: {
@@ -320,11 +314,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
     })
     .state('management.settings.clientregistrationproviders.clientregistrationprovider', {
       url: '/:id',
-      component: 'clientRegistrationProvider',
-      resolve: {
-        clientRegistrationProvider: (ClientRegistrationProviderService: ClientRegistrationProviderService, $stateParams) =>
-          ClientRegistrationProviderService.get($stateParams.id).then((response) => response),
-      },
+      component: 'ngClientRegistrationProvider',
       data: {
         menu: null,
         docs: {
