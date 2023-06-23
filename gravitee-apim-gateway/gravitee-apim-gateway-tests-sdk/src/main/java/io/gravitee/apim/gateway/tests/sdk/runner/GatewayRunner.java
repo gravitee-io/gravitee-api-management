@@ -21,6 +21,7 @@ import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder.GatewayConfiguration;
 import io.gravitee.apim.gateway.tests.sdk.connector.ConnectorBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.container.GatewayTestContainer;
@@ -32,6 +33,7 @@ import io.gravitee.apim.gateway.tests.sdk.policy.KeylessPolicy;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.protocolhandlers.grpc.Handler;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
+import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderException;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.apim.plugin.reactor.ReactorPluginManager;
 import io.gravitee.common.component.Lifecycle;
@@ -47,7 +49,12 @@ import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
+import io.gravitee.node.api.secrets.SecretManagerConfiguration;
+import io.gravitee.node.api.secrets.SecretProviderFactory;
+import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.gravitee.node.reporter.ReporterManager;
+import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
+import io.gravitee.node.secrets.plugins.SecretProviderPluginManager;
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.connector.ConnectorPluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -79,13 +86,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import org.junit.platform.commons.PreconditionViolationException;
@@ -93,6 +94,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
 
 /**
  * <pre>
@@ -158,15 +161,27 @@ public class GatewayRunner {
      * @param technicalApiPort is the port used to reach the technical api.
      * @throws Exception
      */
-    public void configureAndStart(int gatewayPort, int technicalApiPort) throws IOException, InterruptedException {
+    public void configureAndStart(int gatewayPort, int technicalApiPort) throws IOException, InterruptedException, SecretProviderException {
         try {
-            configure(gatewayPort, technicalApiPort);
-            gatewayContainer = new GatewayTestContainer();
-            final ApplicationContext applicationContext = gatewayContainer.applicationContext();
+            // gather extra config from the test class
+            GatewayConfiguration gatewayConfiguration = gatewayConfigurationBuilder.build();
 
-            testInstance.setApplicationContext(applicationContext);
+            // prepare Gateway
+            configure(gatewayPort, technicalApiPort, gatewayConfiguration);
+
+            // create Gateway
+            gatewayContainer = new GatewayTestContainer();
+
+            // add extra configuration to gravitee.yaml
+            applyOnGraviteeYaml(gatewayContainer, gatewayConfiguration.yamlProperties());
+
+            // inject requirements to tests
+            testInstance.setApplicationContext(gatewayContainer.applicationContext());
             testInstance.setDeployCallback(this::deployFromTest);
             testInstance.setUndeployCallback(this::undeployFromTest);
+
+            // register plugins
+            registerSecretProvider(gatewayContainer);
 
             registerReactors(gatewayContainer);
 
@@ -182,6 +197,7 @@ public class GatewayRunner {
 
             registerResources(gatewayContainer);
 
+            // start Gateway
             vertxContainer = startServer(gatewayContainer);
             isRunning = true;
         } finally {
@@ -189,7 +205,7 @@ public class GatewayRunner {
         }
     }
 
-    private void configure(int gatewayPort, int technicalApiPort) throws IOException {
+    private void configure(int gatewayPort, int technicalApiPort, GatewayConfiguration gatewayConfiguration) throws IOException {
         String graviteeHome;
         final String homeFolder = testInstance.getClass().getAnnotation(GatewayTest.class).configFolder();
 
@@ -215,16 +231,28 @@ public class GatewayRunner {
         } else {
             System.setProperty("api.v2.emulateV4Engine.default", "yes");
         }
-
-        gatewayConfigurationBuilder
-            .build()
+        gatewayConfiguration
+            .systemProperties()
             .forEach((k, v) -> {
                 configuredSystemProperties.put(k, v);
                 System.setProperty(String.valueOf(k), String.valueOf(v));
             });
+
         System.setProperty("http.port", String.valueOf(gatewayPort));
         System.setProperty("services.core.http.port", String.valueOf(technicalApiPort));
         System.setProperty("services.core.http.enabled", String.valueOf(false));
+    }
+
+    private static void applyOnGraviteeYaml(GatewayTestContainer gatewayContainer, Properties extraProperties) {
+        ConfigurableEnvironment configurableEnvironment = (ConfigurableEnvironment) gatewayContainer
+            .applicationContext()
+            .getBean(Environment.class);
+        GraviteeYamlPropertySource graviteeProperties = (GraviteeYamlPropertySource) configurableEnvironment
+            .getPropertySources()
+            .get("graviteeYamlConfiguration");
+        if (graviteeProperties != null) {
+            extraProperties.forEach((k, v) -> graviteeProperties.getSource().put(String.valueOf(k), v));
+        }
     }
 
     /**
@@ -244,11 +272,11 @@ public class GatewayRunner {
             final URL configFolderURL = getClass().getResource(DEFAULT_CONFIGURATION_FOLDER);
             assert configFolderURL != null;
             final URLConnection urlConnection = configFolderURL.openConnection();
-            if (urlConnection instanceof JarURLConnection && Files.notExists(Path.of(DEFAULT_CONFIGURATION_FOLDER))) {
+            if (urlConnection instanceof JarURLConnection jarUrlConnection && Files.notExists(Path.of(DEFAULT_CONFIGURATION_FOLDER))) {
                 final Path targetDir = Files.createTempDirectory(String.format("%s-config", testInstance.getClass().getSimpleName()));
                 tempDir = targetDir;
 
-                copyJarResourcesRecursively(targetDir, (JarURLConnection) urlConnection);
+                copyJarResourcesRecursively(targetDir, jarUrlConnection);
                 return targetDir + DEFAULT_CONFIGURATION_FOLDER;
             }
         }
@@ -295,8 +323,7 @@ public class GatewayRunner {
             organizationManager.register(organization);
             deployedOrganization = organization;
         } catch (Exception e) {
-            LOGGER.error("An error occurred deploying the organization {}: {}", organization.getId(), e.getMessage());
-            throw e;
+            throw new IllegalStateException("An error occurred deploying the organization %s".formatted(organization.getId()), e);
         }
     }
 
@@ -398,8 +425,7 @@ public class GatewayRunner {
             }
             apiManager.register(reactableApi);
         } catch (Exception e) {
-            LOGGER.error("An error occurred deploying the api {}: {}", reactableApi.getId(), e.getMessage());
-            throw e;
+            throw new IllegalStateException("An error occurred deploying the api %s".formatted(reactableApi.getId()), e);
         }
         deployedApis.put(reactableApi.getId(), reactableApi);
     }
@@ -477,6 +503,18 @@ public class GatewayRunner {
 
     private void ensureMinimalRequirementForApi(ReactableApi<?> reactableApi) {
         apiDeploymentPreparers.get(reactableApi.getDefinitionVersion()).ensureMinimalRequirementForApi(reactableApi.getDefinition());
+    }
+
+    private void registerSecretProvider(GatewayTestContainer container) throws SecretProviderException {
+        SecretProviderPluginManager pluginManager = container.applicationContext().getBean(SecretProviderPluginManager.class);
+        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderFactories =
+            new HashSet<>();
+        try {
+            testInstance.configureSecretProviders(secretProviderFactories);
+        } catch (Exception e) {
+            throw new SecretProviderException(e);
+        }
+        secretProviderFactories.forEach(pluginManager::register);
     }
 
     private void registerReactors(GatewayTestContainer container) {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.gateway.tests.sdk.configuration;
 
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -23,23 +24,43 @@ import java.util.Properties;
  */
 public class GatewayConfigurationBuilder {
 
-    private final Properties properties;
+    private final Properties systemProperties;
+    private final Properties yamlProperties;
 
-    public GatewayConfigurationBuilder(Properties properties) {
-        this.properties = properties;
+    public record GatewayConfiguration(Properties systemProperties, Properties yamlProperties) {}
+
+    public GatewayConfigurationBuilder(Properties systemProperties, Properties yamlProperties) {
+        this.systemProperties = Objects.requireNonNull(systemProperties);
+        this.yamlProperties = Objects.requireNonNull(yamlProperties);
+    }
+
+    public GatewayConfigurationBuilder(Properties systemProperties) {
+        this(systemProperties, new Properties());
     }
 
     public static GatewayConfigurationBuilder emptyConfiguration() {
         return new GatewayConfigurationBuilder(new Properties());
     }
 
-    public GatewayConfigurationBuilder set(String key, Object value) {
-        this.properties.put(key, value);
+    public GatewayConfigurationBuilder setSystemProperty(String key, Object value) {
+        this.systemProperties.put(key, value);
         return this;
     }
 
-    public Properties build() {
-        return properties;
+    public GatewayConfigurationBuilder setYamlProperty(String key, Object value) {
+        this.yamlProperties.put(key, value);
+        return this;
+    }
+
+    /**
+     * @see #setSystemProperty(String, Object)
+     */
+    public GatewayConfigurationBuilder set(String key, Object value) {
+        return this.setSystemProperty(key, value);
+    }
+
+    public GatewayConfiguration build() {
+        return new GatewayConfiguration((Properties) this.systemProperties.clone(), (Properties) yamlProperties.clone());
     }
 
     public GatewayConfigurationBuilder v2EmulateV4Engine(String mode) {
@@ -60,5 +81,9 @@ public class GatewayConfigurationBuilder {
     public GatewayConfigurationBuilder httpSslKeystoreType(String type) {
         this.set("http.ssl.keystore.type", type);
         return this;
+    }
+
+    public GatewayConfigurationBuilder httpSslSecret(String secret) {
+        return this.set("http.ssl.keystore.secret", secret);
     }
 }

@@ -1054,6 +1054,14 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- secret providers -->
+        <dependency>
+            <groupId>io.gravitee.secretprovider</groupId>
+            <artifactId>gravitee-secret-provider-kubernetes</artifactId>
+            <version>${gravitee-secretprovider-kubernetes.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- Tracers -->
         <dependency>
@@ -1330,6 +1338,15 @@
                             <artifactId>*</artifactId>
                         </exclusion>
                     </exclusions>
+                </dependency>
+
+                <!-- Secret Providers -->
+                <dependency>
+                    <groupId>com.graviteesource.secretprovider</groupId>
+                    <artifactId>gravitee-secret-provider-hc-vault</artifactId>
+                    <version>${gravitee-secretprovider-hc-vault.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
                 </dependency>
             </dependencies>
         </profile>

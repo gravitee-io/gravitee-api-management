@@ -172,6 +172,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- secret managers -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>k3s</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Gravitee plugins -->
         <!-- Clusters -->
         <dependency>
@@ -509,6 +516,12 @@
             <version>${gravitee-tracer-jaeger.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- secret providers -->
+        <dependency>
+            <groupId>io.gravitee.secretprovider</groupId>
+            <artifactId>gravitee-secret-provider-kubernetes</artifactId>
+            <version>${gravitee-secretprovider-kubernetes.version}</version>
+        </dependency>
         <!-- EE or not bundled-->
         <!-- Reactors -->
         <dependency>
@@ -683,11 +696,29 @@
             <artifactId>gravitee-resource-oauth2-provider-keycloak</artifactId>
             <version>${gravitee-resource-oauth2-provider-keycloak.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15on</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.graviteesource.resource</groupId>
             <artifactId>gravitee-resource-schema-registry-confluent</artifactId>
             <version>${gravitee-resource-schema-registry-confluent.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- secret providers -->
+        <dependency>
+            <groupId>com.graviteesource.secretprovider</groupId>
+            <artifactId>gravitee-secret-provider-hc-vault</artifactId>
+            <version>${gravitee-secretprovider-hc-vault.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>vault</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
