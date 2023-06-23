@@ -17,6 +17,9 @@ package io.gravitee.apim.gateway.tests.sdk.plugin;
 
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
+import io.gravitee.node.api.secrets.SecretManagerConfiguration;
+import io.gravitee.node.api.secrets.SecretProviderFactory;
+import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -25,6 +28,7 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.reporter.api.Reporter;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -161,4 +165,27 @@ public interface PluginRegister {
      * @param reporters is the map containing reporters to deploy
      */
     default void configureReporters(Map<String, Reporter> reporters) {}
+
+    /**
+     * Override this method to register a secret provider plugins.
+     * <pre>
+     *    {@code
+     *     @Override
+     *     public void configureSecretProviders(Map<String, Reporter> secretProviderFactories)  {
+     *            super.configureSecretProviders(secretProviderFactories);
+     *            secretProviderFactories.add(SecretProviderBuilder.build("kubernetes", KubernetesSecretProviderFactory.class, K8sConfig.class));
+     *
+     *            // add secrets in kubernetes here
+     *     }
+     *     }
+     *
+     * </pre>
+     *
+     * @param secretProviderPlugins plugins to register
+     */
+    default void configureSecretProviders(
+        Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderPlugins
+    ) throws Exception {
+        Objects.requireNonNull(secretProviderPlugins);
+    }
 }

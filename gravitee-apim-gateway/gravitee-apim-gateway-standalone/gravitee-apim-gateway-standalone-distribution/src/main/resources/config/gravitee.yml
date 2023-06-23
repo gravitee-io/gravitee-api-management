@@ -11,6 +11,61 @@
 # Please have a look to http://docs.gravitee.io/ for more options and fine-grained granularity
 ############################################################################################################
 
+# Secret managers config in order to use secret://<plugin id>/<secret-path>[:key][?namespace=<name>&keymap=<mapping>&option=value...] syntax
+secrets:
+  # loadFirst: kubernetes # if ever we want to store creds for another secret provider (e.g. store TLS information for VAULT in k8s)
+  kubernetes:
+    enabled: false
+    # namespace: default   # if left empty will assume the namespace is the current namespace in which gravitee is deployed
+    # kubeConfigFile: /opt/gravitee/config/kube-config.json
+    # timeoutMs: 3000      # client timeout
+  vault:
+    enabled: false
+#    host: 127.0.0.1
+#    port: 8200
+#    # namespace:
+#    # kvEngine: V2                          # defaults to v2 can be "v1", no mixing supported
+#    # readTimeoutSec: 2
+#    # connectTimeoutSec: 3
+#    ssl:
+#      enabled: false                        # not for production
+#      # format: "pemfile"                   # one of "pem","pemfile" "truststore"
+#      # pem:                                # pem in base64 with headers
+#      # file: /opt/gravitee/vault.pem       # for 'pemfile' and 'truststore'
+#    auth:
+#      method: token # one of "token", "github", "userpass", "approle", "cert" (mTLS)
+#      config:
+#        ### token config
+#        # token:
+#        ### github config
+#        # token:
+#        ## path: <non standard github mount path>
+#        ### userpass config
+#        # username:
+#        # password:
+#        ## path: <non standard userpass mount path>
+#        ### approle
+#        # roleId:
+#        # secretId:
+#        ## path: <non standard approle mount path>
+#        ### cert
+#        # format:        # one of "pem", "pemfile", "keystore"
+#        ## path: <non standard cert mount path>
+#        ## for 'pem' and 'pemfile' format
+#        # cert:          # filename or inline cert
+#        # key:           # filename or inline private key
+#        ## for 'keystore' format
+#        # keyStore:      # for "keystore": keystore filename
+#        # password:      # keystore password
+#    retry:
+#      attempts: 2          # set '0' to disable
+#      intervalMs: 1000
+#    # if false an error will be displayed at load time if http.ssl.keystore.secret is used with watch enabled
+#    watch:
+#      enabled: true
+#      pollIntervalSec: 30
+
+
 # Gateway HTTP server
 #http:
 #  port: 8092
@@ -42,6 +97,9 @@
 #          key: ${gravitee.home}/security/mycompany.com.key
 #      password: secret
 #      watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#      The following is for type 'pem', report to 'secrets' section for other secret-provider plugins.
+#      This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
+#      secret: secret://kubernetes/my-tls-secret
 #    truststore:
 #      type: jks # Supports jks, pem, pkcs12
 #      path: ${gravitee.home}/security/truststore.jks

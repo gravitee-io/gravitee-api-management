@@ -62,9 +62,9 @@ public class GatewayNode extends AbstractNode {
 
         components.add(NodeMonitoringReporterService.class);
         components.add(ReactorEventListener.class);
-        components.add(VertxEmbeddedContainer.class);
         components.addAll(super.components());
-
+        // at this stage secret providers are loaded if any, so TLS can be resolved.
+        components.add(VertxEmbeddedContainer.class);
         components.add(AlertEventProducerManager.class);
         return components;
     }
