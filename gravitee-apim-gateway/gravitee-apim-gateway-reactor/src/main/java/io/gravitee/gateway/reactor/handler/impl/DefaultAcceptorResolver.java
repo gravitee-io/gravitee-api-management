@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactor.handler.impl;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.AcceptorResolver;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -38,7 +39,9 @@ public class DefaultAcceptorResolver implements AcceptorResolver {
     @Override
     public HttpAcceptor resolve(ExecutionContext context) {
         for (HttpAcceptor acceptor : handlerRegistry.getAcceptors(HttpAcceptor.class)) {
-            if (acceptor.accept(context.request())) {
+            // DefaultAcceptorResolver is only used for v3 API.
+            // we test here the reactor type to ignore v4 & compatibleV4 API
+            if (!(acceptor.reactor() instanceof ApiReactor) && acceptor.accept(context.request())) {
                 context.setAttribute(ATTR_ENTRYPOINT, acceptor);
 
                 return acceptor;
