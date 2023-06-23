@@ -226,6 +226,16 @@ describe('ApiEndpointsGroupsComponent', () => {
     });
   });
 
+  describe('editEndpoint', () => {
+    it('should navigate to endpoint edition page', async () => {
+      await initComponent(apiV4);
+
+      await componentHarness.clickEditEndpoint(0);
+
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-edit', { groupIndex: 0, endpointIndex: 0 });
+    });
+  });
+
   function expectApiGetRequest(api: ApiV4) {
     httpTestingController
       .expectOne({

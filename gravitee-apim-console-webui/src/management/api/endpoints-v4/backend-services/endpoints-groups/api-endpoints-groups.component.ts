@@ -140,4 +140,8 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
   public addEndpoint(groupIndex: number): void {
     this.ajsState.go('management.apis.ng.endpoint-new', { groupIndex });
   }
+
+  public editEndpoint(groupIndex: number, endpointIndex: number): void {
+    this.ajsState.go('management.apis.ng.endpoint-edit', { groupIndex, endpointIndex });
+  }
 }
