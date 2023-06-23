@@ -22,9 +22,10 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiV4, EndpointGroupV4, EndpointV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4 } from '../../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { IconService } from '../../../../../services-ngx/icon.service';
 
 @Component({
   selector: 'api-endpoint',
@@ -38,6 +39,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   public endpointGroup: EndpointGroupV4;
   public formGroup: FormGroup;
   public endpointSchema: { config: GioJsonSchema; sharedConfig: GioJsonSchema };
+  public connectorPlugin: ConnectorPlugin;
   public isLoading = false;
 
   constructor(
@@ -46,6 +48,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly snackBarService: SnackBarService,
+    private readonly iconService: IconService,
   ) {}
 
   public ngOnInit(): void {
@@ -56,16 +59,17 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     this.apiService
       .get(apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api: ApiV4) => {
           this.endpointGroup = api.endpointGroups[this.groupIndex];
           return combineLatest([
             this.connectorPluginsV2Service.getEndpointPluginSchema(this.endpointGroup.type),
             this.connectorPluginsV2Service.getEndpointPluginSharedConfigurationSchema(this.endpointGroup.type),
+            this.connectorPluginsV2Service.getEndpointPlugin(this.endpointGroup.type),
           ]);
         }),
-        tap(([config, sharedConfig]) => {
+        tap(([config, sharedConfig, connectorPlugin]) => {
           this.endpointSchema = { config, sharedConfig };
+          this.connectorPlugin = { ...connectorPlugin, icon: this.iconService.registerSvg(connectorPlugin.id, connectorPlugin.icon) };
           this.formGroup = new FormGroup({
             name: new FormControl(null, Validators.required),
             configuration: new FormControl(GioFormJsonSchemaComponent.isDisplayable(config) ? config : {}),
@@ -81,6 +85,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
               .patchValue(this.endpointGroup.endpoints[this.ajsStateParams.endpointIndex].sharedConfigurationOverride);
           }
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe(() => (this.isLoading = false));
   }
@@ -98,7 +103,6 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        takeUntil(this.unsubscribe$),
         switchMap((api: ApiV4) => {
           const endpointGroups = api.endpointGroups.map((group, i) => {
             if (i === this.groupIndex) {
@@ -128,6 +132,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
           this.snackBarService.success(`Endpoint successfully created!`);
           this.ajsState.go('management.apis.ng.endpoints');
         }),
+        takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }

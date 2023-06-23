@@ -8,6 +8,24 @@
 .endpoint-card {
   margin-bottom: 24px;
 
+  &__group-name {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 16px;
+
+    .gio-badge-primary {
+      margin: auto 8px;
+    }
+
+    .mat-h2 {
+      margin: auto 0;
+    }
+
+    mat-icon {
+      margin-right: 4px;
+    }
+  }
+
   &__form {
     &__name {
       width: 100%;

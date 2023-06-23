@@ -27,7 +27,7 @@ import { ApiEndpointModule } from './api-endpoint.module';
 import { ApiEndpointHarness } from './api-endpoint.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 
 @Component({
@@ -70,6 +70,11 @@ describe('ApiEndpointComponent', () => {
     fixture.detectChanges();
 
     componentHarness = await loader.getHarness(ApiEndpointHarness);
+
+    expectApiGetRequest(apiV4);
+    expectEndpointSchemaGetRequest(apiV4.endpointGroups[0].type);
+    expectEndpointsSharedConfigurationSchemaGetRequest(apiV4.endpointGroups[0].type);
+    expectEndpointPluginGetRequest(apiV4.endpointGroups[0].type);
   };
 
   afterEach(() => {
@@ -80,18 +85,10 @@ describe('ApiEndpointComponent', () => {
   describe('add endpoints in a group', () => {
     it('should load kafka endpoint form dynamically', async () => {
       await initComponent(apiV4);
-
-      expectApiGetRequest(apiV4);
-      expectEndpointSchemaGetRequest(apiV4.endpointGroups[0].type);
-      expectEndpointsSharedConfigurationSchemaGetRequest(apiV4.endpointGroups[0].type);
     });
 
     it('should edit and save the endpoint', async () => {
       await initComponent(apiV4);
-
-      expectApiGetRequest(apiV4);
-      expectEndpointSchemaGetRequest(apiV4.endpointGroups[0].type);
-      expectEndpointsSharedConfigurationSchemaGetRequest(apiV4.endpointGroups[0].type);
 
       expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
 
@@ -137,10 +134,6 @@ describe('ApiEndpointComponent', () => {
 
     it('should edit and save an existing endpoint', async () => {
       await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
-
-      expectApiGetRequest(apiV4);
-      expectEndpointSchemaGetRequest(apiV4.endpointGroups[0].type);
-      expectEndpointsSharedConfigurationSchemaGetRequest(apiV4.endpointGroups[0].type);
 
       fixture.detectChanges();
       expect(await componentHarness.getEndpointName()).toStrictEqual('default');
@@ -190,10 +183,6 @@ describe('ApiEndpointComponent', () => {
     it('should go back to endpoints groups list page', async () => {
       await initComponent(apiV4);
 
-      expectApiGetRequest(apiV4);
-      expectEndpointSchemaGetRequest(apiV4.endpointGroups[0].type);
-      expectEndpointsSharedConfigurationSchemaGetRequest(apiV4.endpointGroups[0].type);
-
       await componentHarness.clickPreviousButton();
 
       expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoints');
@@ -225,5 +214,11 @@ describe('ApiEndpointComponent', () => {
   function expectApiPutRequest(api: ApiV4) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
     fixture.detectChanges();
+  }
+
+  function expectEndpointPluginGetRequest(pluginId: string) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${pluginId}`, method: 'GET' })
+      .flush([fakeConnectorPlugin({ id: pluginId, name: pluginId })]);
   }
 });

@@ -17,6 +17,14 @@
 -->
 <mat-card class="endpoint-card">
   <div>
+    <div class="endpoint-card__group-name">
+      <span class="mat-h2">{{ endpointGroup?.name }}</span>
+      <span class="gio-badge-primary">
+        <mat-icon *ngIf="connectorPlugin" [svgIcon]="connectorPlugin?.icon"></mat-icon>
+        {{ connectorPlugin?.name }}
+      </span>
+    </div>
+
     <div class="mat-h4">Configure your API endpoints access</div>
     <p class="body-1">Choose the type of event-brokers/backend that will be exposed through the API</p>
   </div>

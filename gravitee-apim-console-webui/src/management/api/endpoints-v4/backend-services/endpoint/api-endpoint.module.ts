@@ -24,6 +24,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 
@@ -40,6 +41,7 @@ import { ApiEndpointComponent } from './api-endpoint.component';
     MatProgressBarModule,
     MatSnackBarModule,
     GioFormJsonSchemaModule,
+    MatIconModule,
   ],
 })
 export class ApiEndpointModule {}
