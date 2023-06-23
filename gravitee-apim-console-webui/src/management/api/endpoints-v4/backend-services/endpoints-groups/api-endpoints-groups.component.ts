@@ -96,7 +96,9 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
           return this.apiService.update(api.id, { ...api } as UpdateApi);
         }),
         catchError(({ error }) => {
-          this.snackBarService.error(error.message);
+          this.snackBarService.error(
+            error.message === 'Validation error' ? `${error.message}: ${error.details[0].message}` : error.message,
+          );
           return EMPTY;
         }),
         tap((api: ApiV4) => this.initData(api)),
@@ -127,7 +129,9 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
           return this.apiService.update(api.id, { ...api } as UpdateApi);
         }),
         catchError(({ error }) => {
-          this.snackBarService.error(error.message);
+          this.snackBarService.error(
+            error.message === 'Validation error' ? `${error.message}: ${error.details[0].message}` : error.message,
+          );
           return EMPTY;
         }),
         tap((api: ApiV4) => this.initData(api)),
