@@ -36,7 +36,12 @@
             <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             Edit
           </button>
-          <button mat-stroked-button aria-label="Delete endpoints group" (click)="deleteGroup(group.name)">
+          <button
+            *ngIf="groupsTableData?.length > 1"
+            mat-stroked-button
+            aria-label="Delete endpoints group"
+            (click)="deleteGroup(group.name)"
+          >
             <mat-icon svgIcon="gio:trash"></mat-icon>
             Delete
           </button>
