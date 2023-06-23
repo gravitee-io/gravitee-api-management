@@ -1,0 +1,213 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="title">
+  <h1>Client Registration</h1>
+</div>
+
+<form [formGroup]="applicationForm" autocomplete="off">
+  <mat-card class="client-registration-providers__card">
+    <mat-card-content>
+      <h3>Configuration</h3>
+      <strong class="client-registration-providers__card__subtitle">Enable Dynamic Client Registration</strong>
+
+      <gio-form-slide-toggle
+        class="client-registration-providers__card__toggle"
+        formGroupName="registration"
+        [matTooltip]="disabledMessage"
+        [matTooltipDisabled]="!this.applicationForm.get('registration.enabled').disabled"
+      >
+        <gio-form-label> Client registration for applications (OpenID Connect - Dynamic Client Registration) </gio-form-label>
+        <mat-slide-toggle
+          data-testid="registrationEnabled"
+          gioFormSlideToggle
+          formControlName="enabled"
+          aria-label="Client registration for applications (OpenID Connect - Dynamic Client Registration)"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+
+      <strong class="client-registration-providers__card__subtitle">Allowed application types</strong>
+      <div formGroupName="types">
+        <gio-form-slide-toggle
+          class="client-registration-providers__card__toggle"
+          formGroupName="simple"
+          [matTooltip]="disabledMessage"
+          [matTooltipDisabled]="!this.applicationForm.get('types.simple.enabled').disabled"
+        >
+          <gio-form-label
+            >Simple (A hands-free application. Using this type, you will be able to define the client_id by your own)</gio-form-label
+          >
+          <mat-slide-toggle
+            data-testid="typesSimpleEnabled"
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Simple (A hands-free application. Using this type, you will be able to define the client_id by your own)"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle
+          class="client-registration-providers__card__toggle"
+          formGroupName="browser"
+          [matTooltip]="disabledMessage"
+          [matTooltipDisabled]="!this.applicationForm.get('types.browser.enabled').disabled"
+        >
+          <gio-form-label>Browser (Angular, React, ...)</gio-form-label>
+          <mat-slide-toggle
+            data-testid="typesBrowserEnabled"
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Browser (Angular, React, ...)"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle
+          class="client-registration-providers__card__toggle"
+          formGroupName="web"
+          [matTooltip]="disabledMessage"
+          [matTooltipDisabled]="!this.applicationForm.get('types.web.enabled').disabled"
+        >
+          <gio-form-label>Web (Java, .Net, ...)</gio-form-label>
+          <mat-slide-toggle
+            data-testid="typesWebEnabled"
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Web (Java, .Net, ...)"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle
+          class="client-registration-providers__card__toggle"
+          formGroupName="native"
+          [matTooltip]="disabledMessage"
+          [matTooltipDisabled]="!this.applicationForm.get('types.native.enabled').disabled"
+        >
+          <gio-form-label>Native (iOS, Android, ...)</gio-form-label>
+          <mat-slide-toggle
+            data-testid="typesNativeEnabled"
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Native (iOS, Android, ...)"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <gio-form-slide-toggle
+          class="client-registration-providers__card__toggle"
+          formGroupName="backend_to_backend"
+          [matTooltip]="disabledMessage"
+          [matTooltipDisabled]="!this.applicationForm.get('types.backend_to_backend.enabled').disabled"
+        >
+          <gio-form-label>Backend-to-Backend</gio-form-label>
+          <mat-slide-toggle
+            data-testid="typesBackendEnabled"
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Backend-to-Backend"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</form>
+
+<mat-card class="client-registration-providers__card">
+  <mat-card-content>
+    <div class="client-registration-providers__card__title">
+      <h3>DCR Providers</h3>
+      <button
+        *gioPermission="{ anyOf: ['environment-client_registration_provider-c'] }"
+        mat-button
+        type="button"
+        mat-raised-button
+        color="primary"
+        (click)="onAddProvider()"
+      >
+        <mat-icon>add</mat-icon> Add a provider
+      </button>
+    </div>
+
+    <table
+      mat-table
+      matSort
+      [dataSource]="providersTableDS"
+      class="client-registration-providers__card__table"
+      id="providersTable"
+      aria-label="Providers table"
+    >
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef id="name" width="30%">Name</th>
+        <td mat-cell *matCellDef="let element">
+          <span [matTooltip]="element.name">
+            {{ element.name }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Description Column -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef id="description" width="40%">Description</th>
+        <td mat-cell *matCellDef="let element">
+          <span [matTooltip]="element.description">
+            {{ element.description }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- updatedAt Column -->
+      <ng-container matColumnDef="updatedAt">
+        <th mat-header-cell *matHeaderCellDef id="updatedAt" width="20%">Last updated at</th>
+        <td mat-cell *matCellDef="let element">
+          <span [matTooltip]="element.updatedAt">
+            {{ element.updatedAt | date : 'medium' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef id="actions" width="10%">Actions</th>
+        <td mat-cell *matCellDef="let element">
+          <button (click)="onEditActionClicked(element)" mat-icon-button aria-label="Button to edit a provider" matTooltip="Edit provider">
+            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+          </button>
+          <button
+            *gioPermission="{ anyOf: ['environment-client_registration_provider-d'] }"
+            (click)="onRemoveActionClicked(element)"
+            mat-icon-button
+            aria-label="Button to remove a provider"
+            matTooltip="Remove provider"
+          >
+            <mat-icon svgIcon="gio:trash"></mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+      <!-- Row shown when there is no data -->
+      <tr class="mat-row" *matNoDataRow>
+        <td *ngIf="!isLoadingData && providersTableDS.length === 0" class="mat-cell" [attr.colspan]="displayedColumns.length">
+          {{ 'There is no API (yet).' }}
+        </td>
+        <td *ngIf="isLoadingData" class="mat-cell" [attr.colspan]="displayedColumns.length">
+          {{ 'Loading...' }}
+        </td>
+      </tr>
+    </table>
+  </mat-card-content>
+</mat-card>

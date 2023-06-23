@@ -19,9 +19,33 @@
 export interface PortalSettings {
   portal?: PortalSettingsPortal;
   metadata?: PortalSettingsMetadata;
+  application?: PortalSettingsApplication;
 }
 
 export type PortalSettingsMetadata = Record<string, string[]>;
+
+export interface PortalSettingsApplication {
+  registration: {
+    enabled: boolean;
+  };
+  types?: {
+    simple: {
+      enabled: boolean;
+    };
+    browser: {
+      enabled: boolean;
+    };
+    web: {
+      enabled: boolean;
+    };
+    native: {
+      enabled: boolean;
+    };
+    backend_to_backend: {
+      enabled: boolean;
+    };
+  };
+}
 
 export interface PortalSettingsPortal {
   analytics?: {
