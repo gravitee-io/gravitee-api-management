@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.jupiter.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.impl.DefaultAcceptorResolver;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -339,5 +340,20 @@ public class HttpAcceptorResolverTest {
                 assertEquals(expected, handlerResolver.resolve(context));
             });
         }
+    }
+
+    @Test
+    public void test_ignoreApiReactorHandler() {
+        DefaultHttpAcceptor acceptor = new DefaultHttpAcceptor("/v4");
+        acceptor.reactor(mock(ApiReactor.class));
+
+        final ConcurrentSkipListSet<HttpAcceptor> httpAcceptorHandlers = new ConcurrentSkipListSet<>();
+        httpAcceptorHandlers.add(acceptor);
+
+        when(reactorHandlerRegistry.getAcceptors(HttpAcceptor.class)).thenReturn(httpAcceptorHandlers);
+        when(request.path()).thenReturn("/v4");
+
+        assertNull(handlerResolver.resolve(context));
+        verify(context, never()).setAttribute(eq(DefaultAcceptorResolver.ATTR_ENTRYPOINT), any());
     }
 }
