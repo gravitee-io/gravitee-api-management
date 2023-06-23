@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.service.JupiterModeService.DefaultMode.ALWAYS;
+import static io.gravitee.rest.api.service.V4EmulationEngineService.DefaultMode.YES;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -56,7 +56,6 @@ import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ConnectorService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.JupiterModeService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -64,6 +63,7 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.V4EmulationEngineService;
 import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
@@ -178,7 +178,7 @@ public class ApiService_CreateTest {
     private ApiConverter apiConverter = Mockito.spy(new ApiConverter());
 
     @Spy
-    private JupiterModeService jupiterModeService = new JupiterModeServiceImpl(true, ALWAYS.getLabel());
+    private V4EmulationEngineService v4EmulationEngine = new V4EmulationEngineServiceImpl(YES.getLabel());
 
     @Mock
     private PrimaryOwnerService primaryOwnerService;
@@ -417,6 +417,6 @@ public class ApiService_CreateTest {
 
         ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), apiToCreate, USER_NAME);
 
-        assertEquals(ExecutionMode.JUPITER, apiEntity.getExecutionMode());
+        assertEquals(ExecutionMode.V4_EMULATION_ENGINE, apiEntity.getExecutionMode());
     }
 }

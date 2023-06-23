@@ -69,9 +69,10 @@ public class PolicyFactoryImpl implements PolicyFactory {
         final ExecutablePolicy executablePolicy = new ExecutablePolicy(policyManifest.id(), policy, headMethod, streamMethod);
 
         if (
-            conditionEvaluator != null && ExecutionMode.JUPITER != policyMetadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE)
+            conditionEvaluator != null &&
+            ExecutionMode.V4_EMULATION_ENGINE != policyMetadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE)
         ) {
-            // Conditional policy are directly managed by Jupiter. ConditionalExecutablePolicy must only be instantiated for v3 execution.
+            // Conditional policy are directly managed when emulating V4 Engine. ConditionalExecutablePolicy must only be instantiated for v3 execution.
             final String condition = policyMetadata.getCondition();
             if (condition != null && !condition.isBlank()) {
                 return new ConditionalExecutablePolicy(executablePolicy, condition, conditionEvaluator);

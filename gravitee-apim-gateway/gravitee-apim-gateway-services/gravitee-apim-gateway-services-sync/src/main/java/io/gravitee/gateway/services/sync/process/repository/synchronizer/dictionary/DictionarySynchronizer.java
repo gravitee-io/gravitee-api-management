@@ -57,12 +57,12 @@ public class DictionarySynchronizer implements RepositorySynchronizer {
         AtomicLong launchTime = new AtomicLong();
         return eventsFetcher
             .fetchLatest(from, to, DICTIONARY_ID, environments, from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
+            .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
             // fetch per page
             .flatMap(events ->
                 Flowable
                     .just(events)
-                    .subscribeOn(Schedulers.from(syncFetcherExecutor))
                     .flatMapIterable(e -> e)
                     .groupBy(Event::getType)
                     .flatMap(eventsByType -> {

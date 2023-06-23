@@ -289,7 +289,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     /**
      * Get the invoker currently referenced in the execution context.
-     * If the invoker has been overridden by a v3 policy, the {@link io.gravitee.gateway.api.Invoker} will be adapted to match with the expected jupiter {@link Invoker} type.
+     * If the invoker has been overridden by a v3 policy, the {@link io.gravitee.gateway.api.Invoker} will be adapted to match with the expected v4 emulation {@link Invoker} type.
      *
      * @param ctx the current context where the invoker is referenced.
      * @return the current invoker in the expected type.

@@ -45,12 +45,6 @@ public class GrpcServerStreamingV4IntegrationTest extends AbstractGrpcV4GatewayT
     private static final int STREAM_MESSAGE_NUMBER = 3;
     private static final long STREAM_SLEEP_MILLIS = 10;
 
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(true).jupiterModeDefault("always");
-    }
-
     @Test
     void should_request_grpc_server(VertxTestContext testContext) throws InterruptedException {
         StreamingGreeterGrpc.StreamingGreeterImplBase service = buildRPCService();

@@ -20,7 +20,7 @@ import io.gravitee.gateway.http.vertx.TimeoutServerResponse;
 import io.vertx.core.Vertx;
 
 /**
- * This class is created for V3 compatibility in Jupiter when using Debug Mode.
+ * This class is created for V3 compatibility when using Debug Mode.
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */

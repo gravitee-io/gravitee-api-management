@@ -24,6 +24,7 @@ import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventF
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -77,6 +78,7 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
         boolean initialSync = from == null || from == -1;
         return eventsFetcher
             .fetchLatest(from, to, API_ID, environments, initialSync ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES)
+            .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
             .compose(eventsFlowable -> processEvents(initialSync, eventsFlowable))
             .count()

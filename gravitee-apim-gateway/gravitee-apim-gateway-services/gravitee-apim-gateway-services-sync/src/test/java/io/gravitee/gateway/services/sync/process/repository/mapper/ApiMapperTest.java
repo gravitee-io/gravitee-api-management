@@ -21,8 +21,10 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -95,6 +97,27 @@ class ApiMapperTest {
         repoApiV4.setEnvironmentId("env");
         repoApiV4.setDefinitionVersion(DefinitionVersion.V4);
         repoApiV4.setDefinition(objectMapper.writeValueAsString(apiV4));
+    }
+
+    @Test
+    void should_map_api_v2_with_jupiter_to_v4_emulation_engine() throws JsonProcessingException {
+        Event event = new Event();
+        // Force old jupiter mode
+        ObjectNode apiV2Def = (ObjectNode) objectMapper.readTree(repoApiV2.getDefinition());
+        apiV2Def.put("execution_mode", "jupiter");
+        repoApiV2.setDefinition(objectMapper.writeValueAsString(apiV2Def));
+        String payload = objectMapper.writeValueAsString(repoApiV2);
+        event.setPayload(payload);
+        cut
+            .to(event)
+            .test()
+            .assertValue(reactableApi -> {
+                assertThat(reactableApi.getId()).isEqualTo(apiV2.getId());
+                io.gravitee.definition.model.Api eventApi = (io.gravitee.definition.model.Api) reactableApi.getDefinition();
+                assertThat(eventApi.getExecutionMode()).isEqualTo(ExecutionMode.V4_EMULATION_ENGINE);
+                return true;
+            })
+            .assertComplete();
     }
 
     @Test

@@ -107,7 +107,6 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     public static final String REPORTERS_LOGGING_MAX_SIZE_PROPERTY = "reporters.logging.max_size";
     public static final String HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY = "handlers.request.headers.x-forwarded-prefix";
     public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
-    public static final String API_JUPITER_MODE_ENABLED_PROPERTY = "api.jupiterMode.enabled";
     public static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
 
     protected final ContentTemplateVariableProvider contentTemplateVariableProvider;
@@ -288,7 +287,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                     return createSyncApiReactor(
                         api,
                         apiComponentProvider,
-                        jupiterTemplateVariableProviders(api, referenceRegister),
+                        v4EmulationEngineTemplateVariableProviders(api, referenceRegister),
                         new InvokerAdapter(invoker),
                         resourceLifecycleManager,
                         apiProcessorChainFactory,
@@ -365,11 +364,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     }
 
     private boolean isV3ExecutionMode(Api api) {
-        return (
-            !configuration.getProperty(API_JUPITER_MODE_ENABLED_PROPERTY, Boolean.class, false) ||
-            api.getDefinition().getExecutionMode() == null ||
-            api.getDefinition().getExecutionMode() == ExecutionMode.V3
-        );
+        return (api.getDefinition().getExecutionMode() == null || api.getDefinition().getExecutionMode() == ExecutionMode.V3);
     }
 
     protected V3ExecutionContextFactory v3ExecutionContextFactory(
@@ -390,7 +385,10 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         return templateVariableProviders;
     }
 
-    protected List<TemplateVariableProvider> jupiterTemplateVariableProviders(Api api, DefaultReferenceRegister referenceRegister) {
+    protected List<TemplateVariableProvider> v4EmulationEngineTemplateVariableProviders(
+        Api api,
+        DefaultReferenceRegister referenceRegister
+    ) {
         List<TemplateVariableProvider> templateVariableProviders = v3TemplateVariableProviders(api, referenceRegister);
         templateVariableProviders.add(contentTemplateVariableProvider);
         return templateVariableProviders;

@@ -21,6 +21,7 @@ import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemp
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -98,11 +99,7 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
         return executor.execute(request);
     }
 
-    protected boolean isJupiterModeEnabled() {
-        final Environment env = apiDeployer.getGatewayApplicationContext().get().getBean(Environment.class);
-        return (
-            Boolean.TRUE.equals(env.getProperty("api.jupiterMode.enabled", Boolean.class)) &&
-            "always".equalsIgnoreCase(env.getProperty("api.jupiterMode.default", String.class))
-        );
+    protected boolean isV2EmulateV4Engine() {
+        return api.getExecutionMode() == ExecutionMode.V4_EMULATION_ENGINE;
     }
 }

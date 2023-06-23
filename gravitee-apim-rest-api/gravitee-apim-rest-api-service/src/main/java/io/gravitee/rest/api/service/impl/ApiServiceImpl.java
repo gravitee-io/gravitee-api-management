@@ -262,7 +262,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private FlowService flowService;
 
     @Autowired
-    private JupiterModeService jupiterModeService;
+    private V4EmulationEngineService v4EmulationEngine;
 
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
@@ -454,7 +454,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 apiDefinition = ((ObjectNode) apiDefinition).put("id", id);
             }
             if (api.getExecutionMode() == null) {
-                api.setExecutionMode(jupiterModeService.getExecutionModeFor(apiDefinition));
+                api.setExecutionMode(v4EmulationEngine.getExecutionModeFor(apiDefinition));
             }
 
             Api repoApi = convert(executionContext, id, api, apiDefinition != null ? apiDefinition.toString() : null);

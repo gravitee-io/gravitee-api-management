@@ -49,12 +49,7 @@ public class GrpcSecuredServerStreamingV4IntegrationTest extends AbstractGrpcV4G
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
         super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder
-            .jupiterModeEnabled(true)
-            .jupiterModeDefault("always")
-            .httpSecured(true)
-            .httpAlpn(true)
-            .httpSslKeystoreType("self-signed");
+        gatewayConfigurationBuilder.httpSecured(true).httpAlpn(true).httpSslKeystoreType("self-signed");
     }
 
     @Test

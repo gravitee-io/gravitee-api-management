@@ -20,7 +20,6 @@ import static io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionPa
 import static io.gravitee.apim.integration.tests.http.flows.FlowPhaseExecutionParameterProviders.responseFlowHeader;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -34,7 +33,6 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
-import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
@@ -47,7 +45,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.http.HttpClient;
-import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;

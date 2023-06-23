@@ -415,27 +415,26 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>jupiter-v3-mode-test</id>
+                        <id>v3-engine-test</id>
                         <goals>
                             <goal>test</goal>
                         </goals>
                         <configuration>
-                            <reportsDirectory>${project.build.directory}/surefire-reports-jupiter-v3-mode</reportsDirectory>
+                            <reportsDirectory>${project.build.directory}/surefire-reports-v3-engine</reportsDirectory>
                             <environmentVariables>
-                                <gravitee.api.jupiterMode.enabled>true</gravitee.api.jupiterMode.enabled>
+                                <gravitee.api.v2.emulateV4Engine.default>no</gravitee.api.v2.emulateV4Engine.default>
                             </environmentVariables>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>jupiter-test</id>
+                        <id>emulate-v4-engine-test</id>
                         <goals>
                             <goal>test</goal>
                         </goals>
                         <configuration>
-                            <reportsDirectory>${project.build.directory}/surefire-reports-jupiter</reportsDirectory>
+                            <reportsDirectory>${project.build.directory}/surefire-reports-emulate-v4-engine</reportsDirectory>
                             <environmentVariables>
-                                <gravitee.api.jupiterMode.enabled>true</gravitee.api.jupiterMode.enabled>
-                                <gravitee.api.jupiterMode.default>always</gravitee.api.jupiterMode.default>
+                                <gravitee.api.v2.emulateV4Engine.default>yes</gravitee.api.v2.emulateV4Engine.default>
                             </environmentVariables>
                             <excludes>
                                 <!-- TODO: https://github.com/gravitee-io/issues/issues/8075 -->

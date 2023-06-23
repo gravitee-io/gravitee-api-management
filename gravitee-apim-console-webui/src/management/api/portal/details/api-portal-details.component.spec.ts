@@ -65,8 +65,8 @@ describe('ApiPortalDetailsComponent', () => {
               ...CONSTANTS_TESTING.org,
               settings: {
                 ...CONSTANTS_TESTING.org.settings,
-                jupiterMode: {
-                  enabled: true,
+                v4EmulationEngine: {
+                  defaultValue: 'v4-emulation-engine',
                 },
               },
             },
@@ -146,9 +146,9 @@ describe('ApiPortalDetailsComponent', () => {
       expect(await categoriesInput.getValueText()).toEqual('Category 1');
       await categoriesInput.clickOptions({ text: 'Category 2' });
 
-      const jupiterModeInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enableJupiter"]' }));
-      expect(await jupiterModeInput.isChecked()).toBe(false);
-      await jupiterModeInput.check();
+      const emulateV4EngineInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="emulateV4Engine"]' }));
+      expect(await emulateV4EngineInput.isChecked()).toBe(false);
+      await emulateV4EngineInput.check();
 
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
@@ -165,7 +165,7 @@ describe('ApiPortalDetailsComponent', () => {
       expect(req.request.body.description).toEqual('🦊 API description');
       expect(req.request.body.labels).toEqual(['label1', 'label2', 'label3']);
       expect(req.request.body.categories).toEqual(['category1', 'category2']);
-      expect(req.request.body.executionMode).toEqual('JUPITER');
+      expect(req.request.body.executionMode).toEqual('V4_EMULATION_ENGINE');
       req.flush(api);
 
       const pictureReq = httpTestingController.expectOne({
@@ -234,8 +234,8 @@ describe('ApiPortalDetailsComponent', () => {
       const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
       expect(await categoriesInput.isDisabled()).toEqual(true);
 
-      const jupiterModeInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enableJupiter"]' }));
-      expect(await jupiterModeInput.isDisabled()).toEqual(true);
+      const emulateV4EngineInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="emulateV4Engine"]' }));
+      expect(await emulateV4EngineInput.isDisabled()).toEqual(true);
 
       await Promise.all(
         [/Import/, /Duplicate/, /Promote/].map(async (btnText) => {
@@ -357,9 +357,11 @@ describe('ApiPortalDetailsComponent', () => {
       expect(await categoriesInput.getValueText()).toEqual('Category 1');
       await categoriesInput.clickOptions({ text: 'Category 2' });
 
-      // Should not display Jupiter toggle for v4 APIs
-      const jupiterModeInput = await loader.getAllHarnesses(MatSlideToggleHarness.with({ selector: '[formControlName="enableJupiter"]' }));
-      expect(jupiterModeInput.length).toEqual(0);
+      // Should not display emulateV4Engine toggle for v4 APIs
+      const emulateV4EngineInput = await loader.getAllHarnesses(
+        MatSlideToggleHarness.with({ selector: '[formControlName="emulateV4Engine"]' }),
+      );
+      expect(emulateV4EngineInput.length).toEqual(0);
 
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();

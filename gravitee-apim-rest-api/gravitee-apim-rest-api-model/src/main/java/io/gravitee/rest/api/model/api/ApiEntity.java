@@ -103,7 +103,7 @@ public class ApiEntity implements GenericApiEntity {
     )
     private String description;
 
-    @Schema(description = "API's execution mode. Define if the execution mode should use v3 or jupiter mode.", example = "v3")
+    @Schema(description = "API's execution mode. Define if the execution mode should use v3 or v4-emulation-engine.", example = "v3")
     @DeploymentRequired
     @JsonProperty(value = "execution_mode")
     private ExecutionMode executionMode;

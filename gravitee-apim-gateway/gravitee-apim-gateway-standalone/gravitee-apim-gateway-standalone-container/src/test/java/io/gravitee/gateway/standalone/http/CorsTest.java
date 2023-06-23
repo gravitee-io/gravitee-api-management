@@ -85,8 +85,8 @@ public class CorsTest extends AbstractWiremockGatewayTest {
             .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        // CORS behavior differs from V3 to Jupiter. Jupiter fixes default '*' return to use instead the Origin header from the request.
-        if (isJupiterModeEnabled()) {
+        // CORS behavior differs from V3 to V4 emulation. V4 engine fixes default '*' return to use instead the Origin header from the request.
+        if (isV2EmulateV4Engine()) {
             assertEquals("http://localhost", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());
         } else {
             assertEquals("*", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());

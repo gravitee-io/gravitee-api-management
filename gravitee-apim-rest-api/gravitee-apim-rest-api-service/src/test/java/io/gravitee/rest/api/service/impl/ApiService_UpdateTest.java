@@ -1273,14 +1273,14 @@ public class ApiService_UpdateTest {
     }
 
     @Test
-    public void shouldUpdateExistingApiWithJupiterExecutionMode() throws TechnicalException {
+    public void shouldUpdateExistingApiWithV4EmulationEngineExecutionMode() throws TechnicalException {
         prepareUpdate();
-        updateApiEntity.setExecutionMode(ExecutionMode.JUPITER);
+        updateApiEntity.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
         when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
         final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
         assertNotNull(apiEntity);
-        assertEquals(ExecutionMode.JUPITER, apiEntity.getExecutionMode());
+        assertEquals(ExecutionMode.V4_EMULATION_ENGINE, apiEntity.getExecutionMode());
     }
 
     @Test

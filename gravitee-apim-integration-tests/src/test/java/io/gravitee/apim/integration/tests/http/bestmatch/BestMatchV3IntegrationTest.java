@@ -18,21 +18,22 @@ package io.gravitee.apim.integration.tests.http.bestmatch;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
+import io.gravitee.definition.model.ExecutionMode;
 import org.junit.jupiter.api.Nested;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BestMatchV3IntegrationTest extends BestMatchIntegrationTest {
+public class BestMatchV3IntegrationTest extends AbstractBestMatchIntegrationTest {
 
     @Nested
-    @GatewayTest(mode = GatewayMode.V3)
+    @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
     @DeployApi("/apis/http/bestmatch/api.json")
-    class StartsWithOperator extends BestMatchIntegrationTest.StartsWithOperator {}
+    class StartsWithOperator extends AbstractBestMatchIntegrationTest.StartsWithOperator {}
 
     @Nested
-    @GatewayTest(mode = GatewayMode.V3)
+    @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
     @DeployApi("/apis/http/bestmatch/api.json")
-    class EqualsOperator extends BestMatchIntegrationTest.EqualsOperator {}
+    class EqualsOperator extends AbstractBestMatchIntegrationTest.EqualsOperator {}
 }

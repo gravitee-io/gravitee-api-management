@@ -33,10 +33,7 @@ import org.junit.jupiter.api.DisplayName;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@GatewayTest
 abstract class AbstractMultiServersApiDeployIntegrationTest extends AbstractGatewayTest {
-
-    protected int REQUEST_TIMEOUT = 500;
 
     int firstServerPort;
     int secondServerPort;
@@ -56,7 +53,6 @@ abstract class AbstractMultiServersApiDeployIntegrationTest extends AbstractGate
         gatewayConfigurationBuilder.set("servers[1].port", secondServerPort);
     }
 
-    @DisplayName("Should receive 200 - api deployed on both http and http_other")
     void should_get_200_when_calling_on_both_first_and_second_servers(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 
@@ -98,7 +94,6 @@ abstract class AbstractMultiServersApiDeployIntegrationTest extends AbstractGate
         wiremock.verify(2, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
 
-    @DisplayName("Should receive 200 on second server and 404 on first server")
     void should_get_200_when_calling_on_second_server_and_404_on_first_server(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
 

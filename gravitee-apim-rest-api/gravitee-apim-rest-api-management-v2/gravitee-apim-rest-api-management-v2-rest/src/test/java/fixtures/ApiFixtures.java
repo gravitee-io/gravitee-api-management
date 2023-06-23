@@ -163,7 +163,7 @@ public class ApiFixtures {
         .name("api-name")
         .description("api-description")
         .visibility(Visibility.PUBLIC)
-        .executionMode(ExecutionMode.JUPITER)
+        .executionMode(ExecutionMode.V4_EMULATION_ENGINE)
         .proxy(new Proxy())
         .flowMode(FlowMode.DEFAULT)
         .flows(List.of(FlowFixtures.aFlowV2()))
@@ -176,7 +176,7 @@ public class ApiFixtures {
         .categories(List.of("my-category1", "my-category2"))
         .lifecycleState(ApiLifecycleState.CREATED)
         .disableMembershipNotifications(true)
-        .executionMode(ExecutionMode.JUPITER);
+        .executionMode(ExecutionMode.V4_EMULATION_ENGINE);
 
     private static final UpdateApiV4.UpdateApiV4Builder BASE_UPDATE_API_V4 = UpdateApiV4
         .builder()

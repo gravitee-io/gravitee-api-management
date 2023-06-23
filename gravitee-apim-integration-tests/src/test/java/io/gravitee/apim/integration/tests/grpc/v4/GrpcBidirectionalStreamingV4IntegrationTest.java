@@ -48,17 +48,6 @@ public class GrpcBidirectionalStreamingV4IntegrationTest extends AbstractGrpcV4G
 
     private static final int MESSAGE_COUNT = 3;
 
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(true).jupiterModeDefault("always");
-    }
-
-    @Override
-    public void configureEntrypoints(final Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
-        super.configureEntrypoints(entrypoints);
-    }
-
     @Test
     void should_request_and_get_response(VertxTestContext testContext) throws InterruptedException {
         StreamingGreeterGrpc.StreamingGreeterImplBase service = buildRPCService();

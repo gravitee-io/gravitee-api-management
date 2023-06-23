@@ -35,12 +35,12 @@ import org.junit.jupiter.api.Nested;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BestMatchV4IntegrationTest extends BestMatchIntegrationTest {
+public class BestMatchV4IntegrationTest extends AbstractBestMatchIntegrationTest {
 
     @Nested
     @GatewayTest
     @DeployApi("/apis/v4/http/bestmatch/api.json")
-    class StartsWithOperator extends BestMatchIntegrationTest.StartsWithOperator {
+    class StartsWithOperator extends AbstractBestMatchIntegrationTest.StartsWithOperator {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -56,7 +56,7 @@ public class BestMatchV4IntegrationTest extends BestMatchIntegrationTest {
     @Nested
     @GatewayTest
     @DeployApi("/apis/v4/http/bestmatch/api.json")
-    class EqualsOperator extends BestMatchIntegrationTest.EqualsOperator {
+    class EqualsOperator extends AbstractBestMatchIntegrationTest.EqualsOperator {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {

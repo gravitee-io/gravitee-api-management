@@ -27,7 +27,7 @@ export interface ConsoleSettings {
   management?: ConsoleSettingsManagement;
   newsletter?: ConsoleSettingsNewsletter;
   theme?: ConsoleSettingsTheme;
-  jupiterMode?: ConsoleSettingsJupiterMode;
+  emulateV4Engine?: ConsoleSettingsV4EmulationEngine;
   alertEngine?: ConsoleSettingsAlertEngine;
 }
 
@@ -136,9 +136,8 @@ export interface ConsoleSettingsTheme {
   css?: string;
 }
 
-export interface ConsoleSettingsJupiterMode {
-  enabled?: boolean;
-  isDefault?: string;
+export interface ConsoleSettingsV4EmulationEngine {
+  defaultValue?: string;
 }
 
 export interface ConsoleSettingsAlertEngine {

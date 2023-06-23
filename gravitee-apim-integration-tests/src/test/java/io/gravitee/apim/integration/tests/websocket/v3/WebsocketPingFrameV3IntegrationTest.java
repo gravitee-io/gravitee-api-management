@@ -17,7 +17,8 @@ package io.gravitee.apim.integration.tests.websocket.v3;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
-import io.gravitee.apim.integration.tests.websocket.reactive.WebsocketPingFrameJupiterIntegrationTest;
+import io.gravitee.apim.integration.tests.websocket.v4Emulation.WebsocketPingFrameV4EmulationIntegrationTest;
+import io.gravitee.definition.model.ExecutionMode;
 
-@GatewayTest(mode = GatewayMode.V3)
-public class WebsocketPingFrameV3IntegrationTest extends WebsocketPingFrameJupiterIntegrationTest {}
+@GatewayTest(v2ExecutionMode = ExecutionMode.V3)
+public class WebsocketPingFrameV3IntegrationTest extends WebsocketPingFrameV4EmulationIntegrationTest {}

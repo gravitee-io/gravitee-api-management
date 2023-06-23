@@ -17,7 +17,6 @@ package io.gravitee.apim.integration.tests.http.cors;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -29,10 +28,10 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class CorsV4IntegrationTest extends CorsIntegrationTest {
+public class CorsV4IntegrationTest extends CorsV4EmulationIntegrationTest {
 
     @Nested
-    @GatewayTest(mode = GatewayMode.JUPITER)
+    @GatewayTest
     @DeployApi(
         {
             "/apis/v4/http/cors-running-policies.json",
@@ -40,22 +39,22 @@ public class CorsV4IntegrationTest extends CorsIntegrationTest {
             "/apis/v4/http/cors-with-response-template.json",
         }
     )
-    class CheckingResponseStatus extends CorsIntegrationTest.CheckingResponseStatus {}
+    class CheckingResponseStatus extends CorsV4EmulationIntegrationTest.CheckingResponseStatus {}
 
     @Nested
-    @GatewayTest(mode = GatewayMode.JUPITER)
+    @GatewayTest
     @DeployApi({ "/apis/v4/http/cors-running-policies.json", "/apis/v4/http/cors-not-running-policies.json" })
-    class CheckingPoliciesExecution extends CorsIntegrationTest.CheckingPoliciesExecution {}
+    class CheckingPoliciesExecution extends CorsV4EmulationIntegrationTest.CheckingPoliciesExecution {}
 
     @Nested
-    @GatewayTest(mode = GatewayMode.JUPITER)
+    @GatewayTest
     @DeployApi({ "/apis/v4/http/cors-running-policies.json", "/apis/v4/http/cors-not-running-policies.json" })
-    class CheckingRejection extends CorsIntegrationTest.CheckingRejection {}
+    class CheckingRejection extends CorsV4EmulationIntegrationTest.CheckingRejection {}
 
     @Nested
-    @GatewayTest(mode = GatewayMode.JUPITER)
+    @GatewayTest
     @DeployApi({ "/apis/v4/http/cors-running-policies.json" })
-    class CheckingSecurityChainSkip extends CorsIntegrationTest.CheckingSecurityChainSkip {
+    class CheckingSecurityChainSkip extends CorsV4EmulationIntegrationTest.CheckingSecurityChainSkip {
 
         @Override
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {

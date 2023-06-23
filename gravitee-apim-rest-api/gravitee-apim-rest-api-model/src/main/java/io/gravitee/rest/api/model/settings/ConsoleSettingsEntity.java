@@ -39,7 +39,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private Management management;
     private Newsletter newsletter;
     private Theme theme;
-    private JupiterMode jupiterMode;
+    private V4EmulationEngine v4EmulationEngine;
     private AlertEngine alertEngine;
 
     public ConsoleSettingsEntity() {
@@ -55,7 +55,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         scheduler = new ConsoleScheduler();
         analyticsPendo = new ConsoleAnalyticsPendo();
         theme = new Theme();
-        jupiterMode = new JupiterMode();
+        v4EmulationEngine = new V4EmulationEngine();
         alertEngine = new AlertEngine();
     }
 

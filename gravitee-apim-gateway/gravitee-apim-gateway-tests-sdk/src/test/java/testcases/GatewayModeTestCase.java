@@ -31,15 +31,15 @@ import org.springframework.core.env.Environment;
 public class GatewayModeTestCase {
 
     @Nested
-    @GatewayTest(mode = GatewayMode.JUPITER)
+    @GatewayTest
     @DeployApi({ "/apis/nothing.json" })
-    class JupiterMode extends AbstractGatewayTest {
+    class V4EmulationEngine extends AbstractGatewayTest {
 
         @Test
         void should_set_the_api_execution_mode_for_api_deployed_on_class() {
             var a = getDeployedForTestClass().get("my-api");
             final Api api = (Api) a.getDefinition();
-            assertThat(api.getExecutionMode()).isEqualTo(ExecutionMode.JUPITER);
+            assertThat(api.getExecutionMode()).isEqualTo(ExecutionMode.V4_EMULATION_ENGINE);
         }
 
         @Test
@@ -47,20 +47,20 @@ public class GatewayModeTestCase {
         void should_set_the_api_execution_mode_for_api_deployed_on_method() {
             var a = deployedApis.get("api-test");
             final Api api = (Api) a.getDefinition();
-            assertThat(api.getExecutionMode()).isEqualTo(ExecutionMode.JUPITER);
+            assertThat(api.getExecutionMode()).isEqualTo(ExecutionMode.V4_EMULATION_ENGINE);
         }
 
         @Test
-        void should_enable_jupiter_mode() {
+        void should_enable_emulate_engine() {
             var env = getBean(Environment.class);
-            assertThat(env).isNotNull().extracting(e -> e.getProperty("api.jupiterMode.enabled")).isEqualTo("true");
+            assertThat(env).isNotNull().extracting(e -> e.getProperty("api.v2.emulateV4Engine.default")).isEqualTo("yes");
         }
     }
 
     @Nested
-    @GatewayTest(mode = GatewayMode.COMPATIBILITY)
+    @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
     @DeployApi({ "/apis/nothing.json" })
-    class CompatibilityMode extends AbstractGatewayTest {
+    class V3Engine extends AbstractGatewayTest {
 
         @Test
         void should_set_the_api_execution_mode_for_api_deployed_on_class() {
@@ -78,36 +78,9 @@ public class GatewayModeTestCase {
         }
 
         @Test
-        void should_enable_jupiter_mode() {
+        void should_disable_emulate_engine() {
             var env = getBean(Environment.class);
-            assertThat(env).isNotNull().extracting(e -> e.getProperty("api.jupiterMode.enabled")).isEqualTo("true");
-        }
-    }
-
-    @Nested
-    @GatewayTest(mode = GatewayMode.V3)
-    @DeployApi({ "/apis/nothing.json" })
-    class V3Mode extends AbstractGatewayTest {
-
-        @Test
-        void should_set_the_api_execution_mode_for_api_deployed_on_class() {
-            var a = getDeployedForTestClass().get("my-api");
-            final Api api = (Api) a.getDefinition();
-            assertThat(api.getExecutionMode()).isEqualTo(ExecutionMode.V3);
-        }
-
-        @Test
-        @DeployApi({ "/apis/teams.json" })
-        void should_set_the_api_execution_mode_for_api_deployed_on_method() {
-            var a = deployedApis.get("api-test");
-            final Api api = (Api) a.getDefinition();
-            assertThat(api.getExecutionMode()).isEqualTo(ExecutionMode.V3);
-        }
-
-        @Test
-        void should_disable_jupiter_mode() {
-            var env = getBean(Environment.class);
-            assertThat(env).isNotNull().extracting(e -> e.getProperty("api.jupiterMode.enabled")).isEqualTo("false");
+            assertThat(env).isNotNull().extracting(e -> e.getProperty("api.v2.emulateV4Engine.default")).isEqualTo("no");
         }
     }
 }

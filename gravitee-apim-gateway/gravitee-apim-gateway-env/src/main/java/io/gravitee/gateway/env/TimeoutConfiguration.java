@@ -15,9 +15,6 @@
  */
 package io.gravitee.gateway.env;
 
-import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_BY_DEFAULT;
-import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,25 +33,13 @@ public class TimeoutConfiguration {
     @Bean
     public RequestTimeoutConfiguration httpRequestTimeoutConfiguration(
         @Value("${http.requestTimeout:#{null}}") Long httpRequestTimeout,
-        @Value("${http.requestTimeoutGraceDelay:30}") long httpRequestTimeoutGraceDelay,
-        @Value("${" + JUPITER_MODE_ENABLED_KEY + ":" + JUPITER_MODE_ENABLED_BY_DEFAULT + "}") boolean isJupiterEnabled
+        @Value("${http.requestTimeoutGraceDelay:30}") long httpRequestTimeoutGraceDelay
     ) {
-        if (isJupiterEnabled) {
-            if (httpRequestTimeout == null) {
-                log.warn("Http request timeout cannot be unset. Setting it to default value: 30_000 ms");
-                httpRequestTimeout = 30_000L;
-            } else if (httpRequestTimeout <= 0) {
-                log.warn(
-                    "A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms"
-                );
-            }
-        } else {
-            if (httpRequestTimeout == null || httpRequestTimeout <= 0) {
-                log.warn(
-                    "A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms"
-                );
-                httpRequestTimeout = 0L;
-            }
+        if (httpRequestTimeout == null) {
+            log.warn("Http request timeout cannot be unset. Setting it to default value: 30_000 ms");
+            httpRequestTimeout = 30_000L;
+        } else if (httpRequestTimeout <= 0) {
+            log.warn("A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms");
         }
         return new RequestTimeoutConfiguration(httpRequestTimeout, httpRequestTimeoutGraceDelay);
     }

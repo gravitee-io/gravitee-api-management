@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-@GatewayTest(mode = GatewayMode.JUPITER)
+@GatewayTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class MessageExpressionLanguage extends AbstractGatewayTest {
 
@@ -74,12 +74,6 @@ public class MessageExpressionLanguage extends AbstractGatewayTest {
             "transform-headers",
             PolicyBuilder.build("transform-headers", TransformHeadersPolicy.class, TransformHeadersPolicyConfiguration.class)
         );
-    }
-
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.set("api.jupiterMode.enabled", "true");
     }
 
     @Override

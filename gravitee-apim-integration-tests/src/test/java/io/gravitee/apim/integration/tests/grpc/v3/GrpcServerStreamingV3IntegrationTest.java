@@ -15,8 +15,9 @@
  */
 package io.gravitee.apim.integration.tests.grpc.v3;
 
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.apim.integration.tests.grpc.reactive.GrpcServerStreamingReactiveIntegrationTest;
+import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
+import io.gravitee.apim.integration.tests.grpc.v4Emulation.GrpcServerStreamingV4EmulationIntegrationTest;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -25,19 +26,5 @@ import io.gravitee.gateway.reactor.ReactableApi;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-class GrpcServerStreamingV3IntegrationTest extends GrpcServerStreamingReactiveIntegrationTest {
-
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(false);
-    }
-
-    public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
-        super.configureApi(api, definitionClass);
-        if (isLegacyApi(definitionClass)) {
-            final Api definition = (Api) api.getDefinition();
-            definition.setExecutionMode(ExecutionMode.V3);
-        }
-    }
-}
+@GatewayTest(v2ExecutionMode = ExecutionMode.V3)
+class GrpcServerStreamingV3IntegrationTest extends GrpcServerStreamingV4EmulationIntegrationTest {}

@@ -1572,10 +1572,10 @@ jobs:
                   command: |
                       echo "Running API & E2E tests in << parameters.execution_mode >> mode with << parameters.database >> database"
                       cd gravitee-apim-e2e
-                      if [ "<< parameters.execution_mode >>" = "jupiter" ]
+                      if [ "<< parameters.execution_mode >>" = "v3" ]
                       then
-                        echo "Enabling jupiter mode on APIM Gateway and Rest API"
-                        export JUPITER_MODE_ENABLED=true
+                        echo "Disable v4 emulation engine on APIM Gateway and Rest API"
+                        export V4_EMULATION_ENGINE_DEFAULT=no
                       fi
                       if [ -z "<< parameters.apim_client_tag >>" ]
                       then
@@ -2111,7 +2111,7 @@ workflows:
                       - Build and push rest api and gateway images
                   matrix:
                       parameters:
-                          execution_mode: ["v3", "jupiter"]
+                          execution_mode: ["v3", "v4-emulation-engine"]
                           database: ["mongo", "jdbc", "bridge"]
                   filters:
                       branches:
@@ -2483,7 +2483,7 @@ workflows:
                       - Lint & Build APIM e2e
                   matrix:
                       parameters:
-                          execution_mode: ["v3", "jupiter"]
+                          execution_mode: ["v3", "v4-emulation-engine"]
                           database: ["bridge"]
                           apim_client_tag: ["3.20.x-latest", "3.19.x-latest", "3.18.x-latest"]
 

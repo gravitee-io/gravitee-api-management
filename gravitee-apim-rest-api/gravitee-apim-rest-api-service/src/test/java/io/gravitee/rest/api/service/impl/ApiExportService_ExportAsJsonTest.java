@@ -263,7 +263,7 @@ public class ApiExportService_ExportAsJsonTest extends ApiExportService_ExportAs
     }
 
     @Test
-    public void shouldConvertAsJsonForExportWithExecutionMode_jupiter() throws IOException {
-        shouldConvertAsJsonForExportWithExecutionMode(ApiSerializer.Version.DEFAULT, ExecutionMode.JUPITER);
+    public void shouldConvertAsJsonForExportWithExecutionMode_v4_emulation_engine() throws IOException {
+        shouldConvertAsJsonForExportWithExecutionMode(ApiSerializer.Version.DEFAULT, ExecutionMode.V4_EMULATION_ENGINE);
     }
 }

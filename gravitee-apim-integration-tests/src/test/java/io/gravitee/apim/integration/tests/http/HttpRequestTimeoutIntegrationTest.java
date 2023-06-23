@@ -65,7 +65,7 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
 
     @Override
     public void configureApi(Api api) {
-        api.setExecutionMode(ExecutionMode.JUPITER);
+        api.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
     }
 
     @Override
@@ -225,7 +225,7 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
         );
     }
 
-    // In Jupiter mode, if an exception is thrown during api flows, then platform response flow is executed
+    // With V4 Emulation engine, if an exception is thrown during api flows, then platform response flow is executed
     protected void assertPlatformHeaders(HttpClientResponse response) {
         assertThat(response.headers().get(AddHeaderPolicy.HEADER_NAME)).isEqualTo(AddHeaderPolicy.RESPONSE_HEADER);
     }

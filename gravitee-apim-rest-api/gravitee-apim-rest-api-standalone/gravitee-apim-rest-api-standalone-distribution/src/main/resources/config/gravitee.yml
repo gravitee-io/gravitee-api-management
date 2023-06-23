@@ -573,6 +573,12 @@ notifiers:
 #  url: https://cockpit.gravitee.io
 
 api:
+  v2:
+    # V4 Emulation engine allows strict respect of the policy execution order, as it defines it the policy studio whereas, in "v3" mode, execution order may differ depending on policy REQUEST_CONTENT or RESPONSE_CONTENT scope.
+    emulateV4Engine:
+      # Allow to emulate v4 engine by default when no execution mode is specified on an api
+      # Possible values: yes | creation_only | no; Default: yes
+      default: yes
   # Encrypt API properties using this secret
   properties:
     encryption:

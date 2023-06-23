@@ -220,7 +220,7 @@ public class DebugConfiguration {
     }
 
     /*******************
-     *  Jupiter Beans
+     *  V4 emulation engine Beans
      ******************/
 
     @Bean

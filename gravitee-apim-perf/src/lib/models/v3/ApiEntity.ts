@@ -94,7 +94,7 @@ export interface ApiEntity {
    * @type {ExecutionMode}
    * @memberof ApiEntity
    */
-  execution_mode?: 'v3' | 'jupiter';
+  execution_mode?: 'v3' | 'v4-emulation-engine';
   /**
    * API's flow mode.
    * @type {string}

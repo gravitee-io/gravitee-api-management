@@ -20,7 +20,7 @@ export interface DebugEvent {
 }
 
 interface DebugEventPayload {
-  execution_mode: 'v3' | 'jupiter';
+  execution_mode: 'v3' | 'v4-emulation-engine';
   response?: {
     statusCode?: number;
     method?: string;

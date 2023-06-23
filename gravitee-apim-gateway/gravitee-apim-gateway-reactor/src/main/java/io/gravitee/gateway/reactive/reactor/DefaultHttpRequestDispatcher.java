@@ -27,7 +27,6 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
-import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -65,7 +64,7 @@ import org.slf4j.LoggerFactory;
  * Request dispatcher responsible to dispatch any HTTP request to the appropriate {@link io.gravitee.gateway.reactor.handler.ReactorHandler}.
  * The execution mode depends on the reactable resolved and the associated handler:
  * <ul>
- *     <li>{@link ExecutionMode#JUPITER}: request is handled by an instance of {@link ApiReactor}</li>
+ *     <li>{@link ExecutionMode#V4_EMULATION_ENGINE}: request is handled by an instance of {@link ApiReactor}</li>
  *     <li>{@link ExecutionMode#V3}: request is handled by an instance of {@link ReactorHandler}</li>
  * </ul>
  *
@@ -126,7 +125,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      * Each incoming request is dispatched respecting the following step order:
      * <ul>
      *     <li>Api resolution: resolves the {@link ReactorHandler} that is able to handle the request based on the request host path.</li>
-     *     <li>Api request: invokes the V3 or Jupiter {@link ReactorHandler} to handle the api request. Eventually, handle not found if no handler has been resolved.</li>
+     *     <li>Api request: invokes the V3 or V4 emulation engine {@link ReactorHandler} to handle the api request. Eventually, handle not found if no handler has been resolved.</li>
      *     <li>Platform processors: in case of V3 {@link ReactorHandler} pre and post platform processor are executed</li>
      * </ul>
      */

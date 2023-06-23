@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -49,7 +50,7 @@ public class LatestEventFetcher {
         List<String> environments,
         Set<EventType> eventTypes
     ) {
-        return Flowable.generate(
+        return Flowable.<List<Event>, EventPageable>generate(
             () ->
                 EventPageable
                     .builder()

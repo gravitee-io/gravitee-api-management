@@ -70,8 +70,8 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
               ...CONSTANTS_TESTING.org,
               settings: {
                 ...CONSTANTS_TESTING.org.settings,
-                jupiterMode: {
-                  enabled: true,
+                emulateV4Engine: {
+                  defaultValue: 'v4-emulation-engine',
                 },
               },
             },
