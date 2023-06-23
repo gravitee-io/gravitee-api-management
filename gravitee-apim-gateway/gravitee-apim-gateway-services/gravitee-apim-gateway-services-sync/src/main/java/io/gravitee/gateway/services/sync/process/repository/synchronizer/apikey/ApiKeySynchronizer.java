@@ -55,11 +55,11 @@ public class ApiKeySynchronizer implements RepositorySynchronizer {
             AtomicLong launchTime = new AtomicLong();
             return apiKeyFetcher
                 .fetchLatest(from, to)
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
                 // append per page
                 .flatMap(apiKeys ->
                     Flowable
                         .just(apiKeys)
-                        .subscribeOn(Schedulers.from(syncFetcherExecutor))
                         .flatMapIterable(s -> s)
                         .flatMap(apiKey ->
                             Flowable

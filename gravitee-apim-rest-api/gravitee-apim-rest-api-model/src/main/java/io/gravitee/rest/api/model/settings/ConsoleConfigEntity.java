@@ -33,7 +33,7 @@ public class ConsoleConfigEntity {
     private Management management;
     private Newsletter newsletter;
     private Theme theme;
-    private JupiterMode jupiterMode;
+    private V4EmulationEngine v4EmulationEngine;
     private AlertEngine alertEngine;
 
     public ConsoleConfigEntity() {
@@ -48,7 +48,7 @@ public class ConsoleConfigEntity {
         scheduler = new ConsoleScheduler();
         analyticsPendo = new ConsoleAnalyticsPendo();
         theme = new Theme();
-        jupiterMode = new JupiterMode();
+        v4EmulationEngine = new V4EmulationEngine();
         alertEngine = new AlertEngine();
     }
 }

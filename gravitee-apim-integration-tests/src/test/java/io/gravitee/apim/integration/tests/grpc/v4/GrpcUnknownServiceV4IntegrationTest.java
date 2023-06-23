@@ -42,12 +42,6 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class GrpcUnknownServiceV4IntegrationTest extends AbstractGrpcV4GatewayTest {
 
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(true).jupiterModeDefault("always");
-    }
-
     @Test
     void should_request_and_not_get_response(VertxTestContext testContext) throws InterruptedException {
         // Prepare gRPC Client

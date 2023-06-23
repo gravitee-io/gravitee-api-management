@@ -17,7 +17,11 @@ package io.gravitee.gateway.standalone.junit.stmt;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
@@ -26,9 +30,7 @@ import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.plugin.PluginRegister;
 import io.gravitee.gateway.standalone.reporter.FakeReporter;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
-import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.reporter.ReporterManager;
-import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.gravitee.plugin.connector.ConnectorPluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -151,20 +153,13 @@ public class ApiDeployerStatement extends Statement {
                 throw new RuntimeException("API Definition version should be >= 2.0.0");
             }
 
-            final boolean jupiterEnabled = environment.getProperty("api.jupiterMode.enabled", Boolean.class, false);
-
-            if (jupiterEnabled) {
-                final String jupiterDefault = environment.getProperty("api.jupiterMode.default", String.class);
-
-                if (jupiterDefault != null) {
-                    if (jupiterDefault.equalsIgnoreCase("always")) {
-                        // Force the execution mode to JUPITER as required by the environment variable.
-                        apiToRegister.getDefinition().setExecutionMode(ExecutionMode.JUPITER);
-                    } else if (jupiterDefault.equalsIgnoreCase("never")) {
-                        // Switch back the execution mode to V3 as required by the environment variable.
-                        apiToRegister.getDefinition().setExecutionMode(ExecutionMode.V3);
-                    }
-                }
+            final String v2EmulateV4EngineDefault = environment.getProperty("api.v2.emulateV4Engine.default", String.class, "yes");
+            if (v2EmulateV4EngineDefault.equalsIgnoreCase("yes") || v2EmulateV4EngineDefault.equalsIgnoreCase("creation_only")) {
+                // Force the execution mode to V4 EMULATION ENGINE as required by the environment variable.
+                apiToRegister.getDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+            } else if (v2EmulateV4EngineDefault.equalsIgnoreCase("no")) {
+                // Switch back the execution mode to V3 as required by the environment variable.
+                apiToRegister.getDefinition().setExecutionMode(ExecutionMode.V3);
             }
             apiToRegister.setDeployedAt(new Date());
             apiManager.register(apiToRegister);

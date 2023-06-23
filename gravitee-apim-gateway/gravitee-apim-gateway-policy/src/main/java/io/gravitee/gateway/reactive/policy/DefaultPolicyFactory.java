@@ -45,7 +45,7 @@ public class DefaultPolicyFactory implements PolicyFactory {
     ) {
         this.policyPluginFactory = policyPluginFactory;
         this.filter = filter;
-        // V3 policy factory doesn't need condition evaluator anymore as condition is directly handled by jupiter.
+        // V3 policy factory doesn't need condition evaluator anymore as condition is directly handled by v4 engine.
         this.v3PolicyFactory = new io.gravitee.gateway.policy.impl.PolicyFactoryImpl(policyPluginFactory);
     }
 

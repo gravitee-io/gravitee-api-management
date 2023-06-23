@@ -82,13 +82,6 @@ public class VertxReactorConfiguration {
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public ReactorVerticle v3GraviteeVerticle() {
-        // V3 ReactorVerticle bean must be kept while we are still supporting v3 execution mode.
-        return new ReactorVerticle();
-    }
-
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public HttpProtocolVerticle graviteeVerticle(
         ServerManager serverManager,
         @Qualifier("httpRequestDispatcher") HttpRequestDispatcher requestDispatcher

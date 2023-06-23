@@ -653,10 +653,17 @@ public class ApiDeserializerTest extends AbstractTest {
     }
 
     @Test
-    public void shouldDefinitionExecutionModeEqualJupiterWhenJsonContainsJupiter() throws Exception {
+    public void shouldDefinitionExecutionModeEqualV4EmulationEngineWhenJsonContainsV4EmulationEngine() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-executionmode-v4-emulation-engine.json", Api.class);
+
+        Assertions.assertEquals(ExecutionMode.V4_EMULATION_ENGINE, api.getExecutionMode());
+    }
+
+    @Test
+    public void shouldDefinitionExecutionModeEqualV4EmulationEngineWhenJsonContainsJupiter() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-executionmode-jupiter.json", Api.class);
 
-        Assertions.assertEquals(ExecutionMode.JUPITER, api.getExecutionMode());
+        Assertions.assertEquals(ExecutionMode.V4_EMULATION_ENGINE, api.getExecutionMode());
     }
 
     @Test

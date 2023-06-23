@@ -32,12 +32,6 @@ import java.util.Map;
 public class AbstractWebsocketV4GatewayTest extends AbstractWebsocketGatewayTest {
 
     @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(true).jupiterModeDefault("always");
-    }
-
-    @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
         entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }

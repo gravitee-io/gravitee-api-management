@@ -57,7 +57,7 @@ describe('PolicyStudioConfigComponent', () => {
               ...CONSTANTS_TESTING.org,
               settings: {
                 ...CONSTANTS_TESTING.org.settings,
-                jupiterMode: { enabled: true },
+                emulateV4Engine: { enabled: true },
               },
             },
           },
@@ -103,16 +103,16 @@ describe('PolicyStudioConfigComponent', () => {
     });
   });
 
-  it('should enable jupiter mode', async (done) => {
+  it('should emulate v4 engine', async (done) => {
     await fixture.whenStable();
     fixture.detectChanges();
-    const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'jupiterModeEnabled' }));
+    const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emulateV4Engine' }));
     expect(await activateSupportSlideToggle.isDisabled()).toEqual(false);
     await fixture.whenStable();
 
     // Expect last apiDefinition
     policyStudioService.getApiDefinitionToSave$().subscribe((apiDefinition) => {
-      expect(apiDefinition.execution_mode).toEqual('jupiter');
+      expect(apiDefinition.execution_mode).toEqual('v4-emulation-engine');
       done();
     });
 
@@ -125,7 +125,7 @@ describe('PolicyStudioConfigComponent', () => {
     });
     policyStudioService.setApiDefinition(toApiDefinition(api));
 
-    const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'jupiterModeEnabled' }));
+    const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emulateV4Engine' }));
     expect(await activateSupportSlideToggle.isDisabled()).toEqual(true);
   });
 

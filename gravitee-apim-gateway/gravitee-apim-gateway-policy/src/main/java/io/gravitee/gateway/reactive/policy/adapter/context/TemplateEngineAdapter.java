@@ -20,7 +20,7 @@ import io.gravitee.el.TemplateEngine;
 import io.reactivex.rxjava3.core.Maybe;
 
 /**
- * {@link TemplateEngine} adapter that uses a {@link TemplateContextAdapter} allowing to restore jupiter's variables that may have been overridden during policy or invoker execution.
+ * {@link TemplateEngine} adapter that uses a {@link TemplateContextAdapter} allowing to restore v4 engine's variables that may have been overridden during policy or invoker execution.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team

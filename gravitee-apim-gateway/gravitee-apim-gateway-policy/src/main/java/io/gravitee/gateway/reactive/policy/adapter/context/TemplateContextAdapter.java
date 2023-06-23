@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * {@link TemplateContext} adapter that can be passed to V3 policy or invoker and can be restore any variables that may have been overridden.
  * This is especially the case when some existing policies are replacing {@link io.gravitee.gateway.reactive.api.el.EvaluableRequest} or {@link io.gravitee.gateway.reactive.api.el.EvaluableResponse}
- * with their own instance making impossible for other policies to benefit from Jupiter enhancements.
+ * with their own instance making impossible for other policies to benefit from V4 emulation engine enhancements.
  *
  * This adapter keeps track of all variables that are replaced and allows to restore them by simply calling the {@link #restore()} method
  *

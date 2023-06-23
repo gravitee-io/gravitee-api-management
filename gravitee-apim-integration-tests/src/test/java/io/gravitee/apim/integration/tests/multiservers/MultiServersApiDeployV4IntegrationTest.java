@@ -36,12 +36,6 @@ import org.junit.jupiter.api.Test;
 class MultiServersApiDeployV4IntegrationTest extends AbstractMultiServersApiDeployIntegrationTest {
 
     @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.set("api.jupiterMode.enabled", "true");
-    }
-
-    @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
         entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
     }

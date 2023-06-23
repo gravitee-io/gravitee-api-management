@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.definition.model.flow.Operator;
@@ -33,28 +32,24 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionIntegrationTest {
+class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionV4EmulationIntegrationTest {
 
     @Nested
     @GatewayTest
     @DeployApi("/apis/v4/http/flows/api.json")
     @DisplayName("Flows without condition and operator 'STARTS_WITH'")
-    class NoConditionOperatorStartsWith extends FlowPhaseExecutionIntegrationTest.NoConditionOperatorStartsWith {
+    class NoConditionOperatorStartsWith extends FlowPhaseExecutionV4EmulationIntegrationTest.NoConditionOperatorStartsWith {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -71,7 +66,7 @@ class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionIntegrationT
     @GatewayTest
     @DeployApi("/apis/v4/http/flows/api.json")
     @DisplayName("Flows without condition and operator 'EQUALS'")
-    class NoConditionOperatorEquals extends FlowPhaseExecutionIntegrationTest.NoConditionOperatorEquals {
+    class NoConditionOperatorEquals extends FlowPhaseExecutionV4EmulationIntegrationTest.NoConditionOperatorEquals {
 
         @Override
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
@@ -102,7 +97,7 @@ class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionIntegrationT
     @GatewayTest
     @DeployApi("/apis/v4/http/flows/api-flows-equals-and-starts-with.json")
     @DisplayName("Flows without condition and mixed operators")
-    class NoConditionOperatorMixed extends FlowPhaseExecutionIntegrationTest.NoConditionOperatorMixed {
+    class NoConditionOperatorMixed extends FlowPhaseExecutionV4EmulationIntegrationTest.NoConditionOperatorMixed {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -121,7 +116,7 @@ class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionIntegrationT
         { "/apis/v4/http/flows/api-conditional-flows.json", "/apis/v4/http/flows/api-conditional-flows-double-evaluation-case.json" }
     )
     @DisplayName("Flows without condition and mixed operators")
-    class ConditionalFlows extends FlowPhaseExecutionIntegrationTest.ConditionalFlows {
+    class ConditionalFlows extends FlowPhaseExecutionV4EmulationIntegrationTest.ConditionalFlows {
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {

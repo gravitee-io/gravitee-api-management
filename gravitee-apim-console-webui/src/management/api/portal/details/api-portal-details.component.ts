@@ -83,7 +83,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
     canDelete: false,
   };
   public canPromote = false;
-  public canDisplayJupiterToggle = false;
+  public canDisplayV4EmulationEngineToggle = false;
 
   public isQualityEnabled = false;
 
@@ -163,7 +163,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
             canDeprecate: api.lifecycleState !== 'DEPRECATED',
             canDelete: !(api.state === 'STARTED' || api.lifecycleState === 'PUBLISHED'),
           };
-          this.canDisplayJupiterToggle = (this.constants.org?.settings?.jupiterMode?.enabled && api.definitionVersion === 'V2') ?? false;
+          this.canDisplayV4EmulationEngineToggle = (api.definitionVersion != null && api.definitionVersion === 'V2') ?? false;
           this.canPromote = this.dangerActions.canChangeApiLifecycle && api.lifecycleState !== 'DEPRECATED';
 
           this.apiDetailsForm = new FormGroup({
@@ -193,8 +193,8 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               value: api.categories,
               disabled: this.isReadOnly,
             }),
-            enableJupiter: new FormControl({
-              value: api.definitionVersion === 'V2' && (api as ApiV2).executionMode === 'JUPITER',
+            emulateV4Engine: new FormControl({
+              value: api.definitionVersion === 'V2' && (api as ApiV2).executionMode === 'V4_EMULATION_ENGINE',
               disabled: this.isReadOnly,
             }),
           });
@@ -241,7 +241,9 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
               description: apiDetailsFormValue.description,
               labels: apiDetailsFormValue.labels,
               categories: apiDetailsFormValue.categories,
-              ...(this.canDisplayJupiterToggle ? { executionMode: apiDetailsFormValue.enableJupiter ? 'JUPITER' : 'V3' } : {}),
+              ...(this.canDisplayV4EmulationEngineToggle
+                ? { executionMode: apiDetailsFormValue.emulateV4Engine ? 'V4_EMULATION_ENGINE' : 'V3' }
+                : {}),
             };
             return apiToUpdate;
           }

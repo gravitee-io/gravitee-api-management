@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Specific implementation of {@link Invoker} that adapt the behavior of an existing {@link io.gravitee.gateway.api.Invoker}
  * to make it work in a reactive chain.
- * The adapter implements both {@link Invoker} and {@link io.gravitee.gateway.api.Invoker} to keep cross compatability between jupiter and v3 policies
+ * The adapter implements both {@link Invoker} and {@link io.gravitee.gateway.api.Invoker} to keep cross compatability between v4 emulation and v3 policies
  * that expect v3 {@link io.gravitee.gateway.api.Invoker} type.
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)

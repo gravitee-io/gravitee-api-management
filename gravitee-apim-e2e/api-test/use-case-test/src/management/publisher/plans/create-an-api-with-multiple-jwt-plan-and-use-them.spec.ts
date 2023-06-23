@@ -33,7 +33,7 @@ import { fetchGatewaySuccess, fetchGatewayUnauthorized } from '@gravitee/utils/g
 import * as jwt from 'jsonwebtoken';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
-import { describeIfJupiter } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine } from '@lib/jest-utils';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';

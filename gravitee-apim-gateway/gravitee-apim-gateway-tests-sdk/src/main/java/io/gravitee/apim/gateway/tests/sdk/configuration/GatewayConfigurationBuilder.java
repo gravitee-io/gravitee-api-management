@@ -42,14 +42,8 @@ public class GatewayConfigurationBuilder {
         return properties;
     }
 
-    // Provide some often used properties
-    public GatewayConfigurationBuilder jupiterModeEnabled(boolean enabled) {
-        this.set("api.jupiterMode.enabled", enabled);
-        return this;
-    }
-
-    public GatewayConfigurationBuilder jupiterModeDefault(String mode) {
-        this.set("api.jupiterMode.default", mode);
+    public GatewayConfigurationBuilder v2EmulateV4Engine(String mode) {
+        this.set("api.v2.emulateV4Engine.default", mode);
         return this;
     }
 

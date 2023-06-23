@@ -115,8 +115,8 @@ class ApiCreationController {
       groups: [],
     };
 
-    if (this.Constants.org.settings.jupiterMode.enabled && this.Constants.org.settings.jupiterMode.isDefault !== 'never') {
-      this.api.execution_mode = 'jupiter';
+    if (this.Constants.org.settings.v4EmulationEngine.defaultValue !== 'no') {
+      this.api.execution_mode = 'v4-emulation-engine';
     } else {
       this.api.execution_mode = 'v3';
     }

@@ -34,7 +34,7 @@ import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { PathOperatorOperatorEnum } from '@gravitee/management-webclient-sdk/src/lib/models/PathOperator';
 import { UpdateApiEntityFromJSON } from '@gravitee/management-webclient-sdk/src/lib/models/UpdateApiEntity';
 import { Resource } from '@gravitee/management-webclient-sdk/src/lib/models/Resource';
-import { describeIfJupiter } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine } from '@lib/jest-utils';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -44,7 +44,7 @@ const applicationsResource = new ApplicationsApi(forManagementAsApiUser());
 const applicationSubscriptionsResource = new ApplicationSubscriptionsApi(forManagementAsApiUser());
 
 // FIXME : restore this test for gateway V3 when V3 behavior is fixed
-describeIfJupiter('Create an API with mutiple OAuth2 plans and use them', () => {
+describeIfV4EmulationEngine('Create an API with mutiple OAuth2 plans and use them', () => {
   const OAUTH2_RESOURCE_NAME = 'OAuth2-resource';
 
   let createdApi: ApiEntity;

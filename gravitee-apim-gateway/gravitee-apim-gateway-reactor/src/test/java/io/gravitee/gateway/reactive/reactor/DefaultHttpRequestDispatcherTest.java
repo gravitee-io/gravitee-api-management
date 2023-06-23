@@ -177,10 +177,10 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    void shouldHandleJupiterRequest() {
+    void shouldHandleV4EmulationRequest() {
         final ApiReactor apiReactor = mock(ApiReactor.class);
 
-        this.prepareJupiterMock(handlerEntrypoint, apiReactor);
+        this.prepareV4EmulationMock(handlerEntrypoint, apiReactor);
 
         when(apiReactor.handle(any(MutableExecutionContext.class))).thenReturn(Completable.complete());
 
@@ -190,10 +190,10 @@ class DefaultHttpRequestDispatcherTest {
     }
 
     @Test
-    void shouldPropagateErrorWhenErrorWithJupiterRequest() {
+    void shouldPropagateErrorWhenErrorWithV4EmulationRequest() {
         final ApiReactor apiReactor = mock(ApiReactor.class, withSettings().extraInterfaces(ReactorHandler.class));
 
-        this.prepareJupiterMock(handlerEntrypoint, apiReactor);
+        this.prepareV4EmulationMock(handlerEntrypoint, apiReactor);
 
         when(apiReactor.handle(any(MutableExecutionContext.class))).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
@@ -373,7 +373,7 @@ class DefaultHttpRequestDispatcherTest {
         verify(processorChain).execute(any(), any());
     }
 
-    private void prepareJupiterMock(HttpAcceptor handlerEntrypoint, ApiReactor apiReactor) {
+    private void prepareV4EmulationMock(HttpAcceptor handlerEntrypoint, ApiReactor apiReactor) {
         when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(handlerEntrypoint);
         when(handlerEntrypoint.path()).thenReturn(PATH);
         when(handlerEntrypoint.reactor()).thenReturn(apiReactor);

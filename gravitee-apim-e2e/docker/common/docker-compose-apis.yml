@@ -37,8 +37,7 @@ services:
       - gravitee_newsletter_enabled=false
       - gravitee_security_providers[0].users[0].email=user@gravitee.io
       - gravitee_security_providers[0].users[1].email=admin@gravitee.io
-      - gravitee_api_jupiterMode_enabled=${JUPITER_MODE_ENABLED:-false}
-      - gravitee_api_jupiterMode_default=always
+      - gravitee_api_v2_emulateV4Engine_default=${V4_EMULATION_ENGINE_DEFAULT:-yes}
       - gravitee_services_sync_cron=*/2 * * * * *
       - "JAVA_OPTS=${JAVA_OPTS} ${JACOCO_OPTS}"
     healthcheck:
@@ -65,7 +64,6 @@ services:
     environment:
       - gravitee_license_key=${GRAVITEE_LICENSE}
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_api_jupiterMode_enabled=${JUPITER_MODE_ENABLED:-false}
       - gravitee_services_sync_delay=500
       - "JAVA_OPTS=${JAVA_OPTS} ${JACOCO_OPTS}"
     healthcheck:

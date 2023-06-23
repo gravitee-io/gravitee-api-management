@@ -34,7 +34,6 @@ public class AbstractGrpcV4GatewayTest extends AbstractGrpcGatewayTest {
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
         super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(true).jupiterModeDefault("always");
     }
 
     @Override

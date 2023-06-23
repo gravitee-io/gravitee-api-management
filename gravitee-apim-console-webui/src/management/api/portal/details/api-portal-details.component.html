@@ -93,13 +93,16 @@
             </mat-select>
           </mat-form-field>
 
-          <gio-form-slide-toggle *ngIf="canDisplayJupiterToggle" class="etails-card__header__info-inputs__second-row__jupiter-field">
-            Enable Jupiter mode
+          <gio-form-slide-toggle
+            *ngIf="canDisplayV4EmulationEngineToggle"
+            class="details-card__header__info-inputs__second-row__emulate-v4-engine-field"
+          >
+            Emulate v4 engine
             <mat-slide-toggle
               gioFormSlideToggle
-              formControlName="enableJupiter"
-              aria-label="Enable Jupiter mode"
-              name="enableJupiter"
+              formControlName="emulateV4Engine"
+              aria-label="Emulate v4 engine"
+              name="emulateV4Engine"
             ></mat-slide-toggle>
           </gio-form-slide-toggle>
         </div>

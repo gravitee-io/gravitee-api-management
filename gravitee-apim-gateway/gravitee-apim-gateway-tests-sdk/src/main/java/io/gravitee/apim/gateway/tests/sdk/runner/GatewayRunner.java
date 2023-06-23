@@ -21,7 +21,6 @@ import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.gateway.tests.sdk.connector.ConnectorBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.container.GatewayTestContainer;
@@ -41,6 +40,7 @@ import io.gravitee.connector.http.HttpConnectorFactory;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
@@ -112,7 +112,7 @@ public class GatewayRunner {
 
     private final GatewayConfigurationBuilder gatewayConfigurationBuilder;
     private final AbstractGatewayTest testInstance;
-    private final GatewayMode gatewayMode;
+    private final ExecutionMode v2ExecutionMode;
     private final ObjectMapper graviteeMapper;
     private final Map<String, ReactableApi<?>> deployedForTestClass;
     private final Map<String, ReactableApi<?>> deployedForTest;
@@ -127,16 +127,16 @@ public class GatewayRunner {
     public GatewayRunner(GatewayConfigurationBuilder gatewayConfigurationBuilder, AbstractGatewayTest testInstance) {
         this.gatewayConfigurationBuilder = gatewayConfigurationBuilder;
         this.testInstance = testInstance;
-        this.gatewayMode = testInstance.getClass().getAnnotation(GatewayTest.class).mode();
-        graviteeMapper = new GraviteeMapper();
-        deployedForTestClass = new HashMap<>();
-        deployedForTest = new HashMap<>();
-        configuredSystemProperties = new Properties();
+        this.v2ExecutionMode = testInstance.getClass().getAnnotation(GatewayTest.class).v2ExecutionMode();
+        this.graviteeMapper = new GraviteeMapper();
+        this.deployedForTestClass = new HashMap<>();
+        this.deployedForTest = new HashMap<>();
+        this.configuredSystemProperties = new Properties();
 
         // Allow test instance to access api deployed at class level
-        testInstance.setDeployedClassApis(deployedForTestClass);
+        testInstance.setDeployedClassApis(this.deployedForTestClass);
 
-        apiDeploymentPreparers =
+        this.apiDeploymentPreparers =
             Map.of(
                 DefinitionVersion.V1,
                 new LegacyApiDeploymentPreparer(),
@@ -207,7 +207,11 @@ public class GatewayRunner {
 
         registerCustomProtocolHandlers(Handler.class);
 
-        System.setProperty("api.jupiterMode.enabled", gatewayMode.getJupiterEnabled().toString());
+        if (v2ExecutionMode == ExecutionMode.V3) {
+            System.setProperty("api.v2.emulateV4Engine.default", "no");
+        } else {
+            System.setProperty("api.v2.emulateV4Engine.default", "yes");
+        }
 
         gatewayConfigurationBuilder
             .build()
@@ -347,7 +351,7 @@ public class GatewayRunner {
 
         if (!DefinitionVersion.V4.equals(reactableApi.getDefinitionVersion())) {
             final Api api = (Api) reactableApi.getDefinition();
-            api.setExecutionMode(gatewayMode.getExecutionMode());
+            api.setExecutionMode(v2ExecutionMode);
             testInstance.configureApi(api);
         }
 

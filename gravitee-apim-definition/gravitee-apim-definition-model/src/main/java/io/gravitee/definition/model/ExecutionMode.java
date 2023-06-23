@@ -25,13 +25,13 @@ import java.util.Map;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Schema(enumAsRef = true, type = "string", allowableValues = { "v3", "jupiter" })
+@Schema(enumAsRef = true, type = "string", allowableValues = { "v3", "v4-emulation-engine" })
 public enum ExecutionMode {
     @JsonEnumDefaultValue
     V3("v3"),
-    JUPITER("jupiter");
+    V4_EMULATION_ENGINE("v4-emulation-engine");
 
-    private static final Map<String, ExecutionMode> BY_LABEL = Map.of(V3.label, V3, JUPITER.label, JUPITER);
+    private static final Map<String, ExecutionMode> BY_LABEL = Map.of(V3.label, V3, V4_EMULATION_ENGINE.label, V4_EMULATION_ENGINE);
 
     @JsonValue
     private final String label;
@@ -42,7 +42,13 @@ public enum ExecutionMode {
 
     @JsonCreator
     public static ExecutionMode fromLabel(final String label) {
-        return BY_LABEL.getOrDefault(label, V3);
+        if (label != null) {
+            if (label.equals("jupiter")) { // Keep for compatibilty
+                return V4_EMULATION_ENGINE;
+            }
+            return BY_LABEL.getOrDefault(label, V3);
+        }
+        return V3;
     }
 
     public String getLabel() {

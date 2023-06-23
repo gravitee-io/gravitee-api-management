@@ -15,12 +15,14 @@
  */
 package io.gravitee.gateway.standalone.flow;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.Assert.assertEquals;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.flow.policy.RemoveQueryParameterPolicy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
@@ -45,8 +47,8 @@ public class ExpressionLanguageConditionFlowTest extends AbstractWiremockGateway
 
         final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team?my-param=value")).returnResponse();
 
-        if (isJupiterMode()) {
-            // With Jupiter, flow condition is now evaluated once for the whole flow (EL based on a param suppressed during request policy chain and re-evaluated at response phase).
+        if (emulateV4Engine()) {
+            // With V4 engine, flow condition is now evaluated once for the whole flow (EL based on a param suppressed during request policy chain and re-evaluated at response phase).
             assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         } else {
             assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatusLine().getStatusCode());
@@ -63,10 +65,7 @@ public class ExpressionLanguageConditionFlowTest extends AbstractWiremockGateway
         policyPluginManager.register(myPolicy);
     }
 
-    private boolean isJupiterMode() {
-        final Configuration configuration = context.getBean(Configuration.class);
-        return (
-            configuration.getProperty("api.jupiterMode.enabled", Boolean.class, false) && api.getExecutionMode() == ExecutionMode.JUPITER
-        );
+    private boolean emulateV4Engine() {
+        return (api.getExecutionMode() == ExecutionMode.V4_EMULATION_ENGINE);
     }
 }

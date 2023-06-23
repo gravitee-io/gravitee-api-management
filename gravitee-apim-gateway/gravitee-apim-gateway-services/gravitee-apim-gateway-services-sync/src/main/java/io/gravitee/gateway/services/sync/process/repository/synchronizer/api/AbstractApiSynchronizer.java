@@ -58,7 +58,6 @@ public abstract class AbstractApiSynchronizer {
             .flatMap(events ->
                 Flowable
                     .just(events)
-                    .subscribeOn(Schedulers.from(syncFetcherExecutor))
                     .doOnNext(e -> log.debug("New api events fetch"))
                     .flatMapIterable(e -> e)
                     .groupBy(Event::getType)

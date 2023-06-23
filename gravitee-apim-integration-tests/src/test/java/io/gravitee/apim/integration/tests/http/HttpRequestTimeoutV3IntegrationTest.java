@@ -17,7 +17,9 @@ package io.gravitee.apim.integration.tests.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.integration.tests.fake.AddHeaderPolicy;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
@@ -27,19 +29,8 @@ import io.vertx.rxjava3.core.http.HttpClientResponse;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@GatewayTest(v2ExecutionMode = ExecutionMode.V3)
 class HttpRequestTimeoutV3IntegrationTest extends HttpRequestTimeoutIntegrationTest {
-
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.set("api.jupiterMode.enabled", "false");
-    }
-
-    @Override
-    public void configureApi(Api api) {
-        super.configureApi(api);
-        api.setExecutionMode(ExecutionMode.V3);
-    }
 
     // IN V3 mode, if an exception is thrown during api flows, then platform response flow is not executed.
     @Override

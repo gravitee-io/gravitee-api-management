@@ -4121,11 +4121,11 @@ components:
         ExecutionMode:
             type: string
             description: The execution mode of the API.
-            example: JUPITER
-            default: JUPITER
+            example: V4_EMULATION_ENGINE
+            default: V4_EMULATION_ENGINE
             enum:
                 - V3
-                - JUPITER
+                - V4_EMULATION_ENGINE
         ExecutionPhase:
             type: string
             description: The execution phase of a policy.

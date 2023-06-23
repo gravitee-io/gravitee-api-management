@@ -18,6 +18,8 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.testkit.engine.EngineTestKit;
 import testcases.*;
@@ -26,6 +28,7 @@ import testcases.*;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GatewayTestingExtensionTest {
 
     /**
@@ -43,8 +46,7 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    @DisplayName("Should success tests")
-    void shouldSuccessAllTests() {
+    void should_success_all_tests() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(SuccessTestCase.class))
@@ -54,8 +56,7 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    @DisplayName("Should success tests in HTTP2 conf")
-    void shouldSuccessAllHTTP2Tests() {
+    void should_success_all_http2_tests() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(Http2HeadersTestCase.class))
@@ -68,8 +69,7 @@ class GatewayTestingExtensionTest {
      * This test is useful to verify AbstractGatewayTest automatically updates the endpoints with the HTTPS port if needed
      */
     @Test
-    @DisplayName("Should success tests with secured endpoints configuration")
-    void shouldSuccessTestsWithSecuredBackends() {
+    void should_success_tests_with_secured_backends() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(ClientAuthenticationPEMInlineTestCase.class))
@@ -79,8 +79,7 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    @DisplayName("Should success tests with valid API and fail those with non existing API at method level")
-    void shouldSuccessTestsWithValidAPIAndFailThoseWithNonValidOne() {
+    void should_success_tests_with_valid_api_and_fail_those_with_non_validone() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(ConditionalPolicyTestCase.class))
@@ -90,8 +89,7 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    @DisplayName("Should not start tests if importing non existing API at class level")
-    void shouldNotStartTestIfImportingNonExistingApiAtClassLevel() {
+    void should_not_start_test_if_importing_non_existing_api_at_class_level() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(InvalidApiClassLevelTestCase.class))
@@ -101,8 +99,7 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    @DisplayName("Should not start tests if using non existing gateway configuration folder")
-    void shouldNotStartUsingNonExistingGatewayConfiguration() {
+    void should_not_start_using_non_existing_gateway_configuration() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(InvalidGatewayConfigFolderTestCase.class))
@@ -112,8 +109,7 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    @DisplayName("Should not start tests if trying to deploy an already deployed api at class level")
-    void shouldFailIfTryingToDeployAnAlreadyDeployedApiAtClassLevel() {
+    void should_fail_if_trying_to_deploy_an_already_deployed_api_at_class_level() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(RegisterTwiceSameApiClassLevelTestCase.class))
@@ -123,8 +119,7 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    @DisplayName("Should fail test method if trying to deploy an already deployed api")
-    void shouldFailIfTryingToDeployAnAlreadyDeployedApi() {
+    void should_fail_if_trying_to_deploy_an_already_deployed_api() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(RegisterTwiceSameApiMethodLevelTestCase.class))
@@ -134,8 +129,7 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    @DisplayName("Should not start tests if not extending AbstractGatewayTest")
-    void shouldFailIfNotExtendingAbstractGatewayTest() {
+    void should_fail_if_not_extending_abstract_gateway_test() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(NotExtendingAbstractClassTestCase.class))
@@ -145,8 +139,7 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    @DisplayName("Should success tests with valid organization at class level and method level")
-    void shouldSuccessTestsWithValidOrganizationAtClassLevel() {
+    void should_success_tests_with_valid_organization_at_class_level() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(OrganizationDeploymentTestCase.class))
@@ -156,8 +149,7 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
-    @DisplayName("Should success grpc tests")
-    void shouldSuccessGrpcTest() {
+    void should_success_grpc_test() {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(GrpcTestCase.class))
@@ -173,6 +165,6 @@ class GatewayTestingExtensionTest {
             .selectors(selectClass(GatewayModeTestCase.class))
             .execute()
             .testEvents()
-            .assertStatistics(stats -> stats.succeeded(9).aborted(0).skipped(0).failed(0));
+            .assertStatistics(stats -> stats.started(6).succeeded(6).aborted(0).skipped(0).failed(0));
     }
 }

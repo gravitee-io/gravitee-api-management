@@ -104,7 +104,7 @@ class DefaultPolicyChainFactoryTest {
                     metadata.getName().equals("policy-step2") &&
                     metadata.getConfiguration().equals("config-step2") &&
                     metadata.getCondition().equals("condition-step2") &&
-                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
+                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.V4_EMULATION_ENGINE)
                 )
             );
 
@@ -138,7 +138,7 @@ class DefaultPolicyChainFactoryTest {
                     metadata.getName().equals("policy-step2") &&
                     metadata.getConfiguration().equals("config-step2") &&
                     metadata.getCondition().equals("condition-step2") &&
-                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
+                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.V4_EMULATION_ENGINE)
                 )
             );
 
@@ -177,7 +177,7 @@ class DefaultPolicyChainFactoryTest {
                     metadata.getName().equals("policy-step1") &&
                     metadata.getConfiguration().equals("config-step1") &&
                     metadata.getCondition().equals("condition-step1") &&
-                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
+                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.V4_EMULATION_ENGINE)
                 )
             );
 
@@ -188,7 +188,7 @@ class DefaultPolicyChainFactoryTest {
                     metadata.getName().equals("policy-step2") &&
                     metadata.getConfiguration().equals("config-step2") &&
                     metadata.getCondition().equals("condition-step2") &&
-                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.JUPITER)
+                    metadata.metadata().get(PolicyMetadata.MetadataKeys.EXECUTION_MODE).equals(ExecutionMode.V4_EMULATION_ENGINE)
                 )
             );
 

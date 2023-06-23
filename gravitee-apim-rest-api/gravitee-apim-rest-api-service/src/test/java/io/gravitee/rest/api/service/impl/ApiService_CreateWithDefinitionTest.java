@@ -75,7 +75,7 @@ public class ApiService_CreateWithDefinitionTest {
     private UserService userService;
 
     @Mock
-    private JupiterModeService jupiterModeService;
+    private V4EmulationEngineService v4EmulationEngine;
 
     @Mock
     private GroupService groupService;

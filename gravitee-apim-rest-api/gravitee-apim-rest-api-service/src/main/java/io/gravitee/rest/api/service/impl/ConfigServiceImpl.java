@@ -63,7 +63,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private ReCaptchaService reCaptchaService;
 
     @Autowired
-    private JupiterModeService jupiterModeService;
+    private V4EmulationEngineService v4EmulationEngine;
 
     private static final String SENSITIVE_VALUE = "********";
 
@@ -397,7 +397,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getManagement(),
             consoleConfigEntity.getNewsletter(),
             consoleConfigEntity.getTheme(),
-            consoleConfigEntity.getJupiterMode(),
+            consoleConfigEntity.getV4EmulationEngine(),
             consoleConfigEntity.getAlertEngine(),
         };
     }

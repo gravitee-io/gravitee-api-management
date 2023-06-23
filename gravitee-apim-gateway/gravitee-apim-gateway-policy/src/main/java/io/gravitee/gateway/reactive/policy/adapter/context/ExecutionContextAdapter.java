@@ -190,7 +190,7 @@ public class ExecutionContextAdapter implements io.gravitee.gateway.api.Executio
     }
 
     /**
-     * Restore method can be called to restore the template engine context and avoid clashes with jupiter.
+     * Restore method can be called to restore the template engine context and avoid clashes with v4 engine.
      */
     public void restore() {
         if (adaptedTemplateEngine != null) {

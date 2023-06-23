@@ -56,15 +56,10 @@ public class OrganizationSynchronizer implements RepositorySynchronizer {
         AtomicLong launchTime = new AtomicLong();
         return eventsFetcher
             .fetchLatest(from, to, ORGANIZATION_ID, environments, EVENT_TYPES)
+            .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
             // fetch per page
-            .flatMap(events ->
-                Flowable
-                    .just(events)
-                    .subscribeOn(Schedulers.from(syncFetcherExecutor))
-                    .flatMapIterable(e -> e)
-                    .compose(this::prepareForDeployment)
-            )
+            .flatMap(events -> Flowable.just(events).flatMapIterable(e -> e).compose(this::prepareForDeployment))
             // per deployable
             .compose(upstream -> {
                 OrganizationDeployer organizationDeployer = deployerFactory.createOrganizationDeployer();

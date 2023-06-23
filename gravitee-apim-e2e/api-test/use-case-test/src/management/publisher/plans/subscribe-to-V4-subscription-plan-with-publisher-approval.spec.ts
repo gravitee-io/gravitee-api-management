@@ -36,7 +36,7 @@ import { teardownV4ApisAndApplications } from '@gravitee/utils/management';
 import { verifyWiremockRequest } from '@gravitee/utils/wiremock';
 import faker from '@faker-js/faker';
 import { sleep } from '@gravitee/utils/gateway';
-import { describeIfJupiter } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine } from '@lib/jest-utils';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -47,7 +47,7 @@ const apiSubscriptionResource = new APISubscriptionsApi(forManagementAsApiUser()
 const portalApplicationResource = new ApplicationApi(forPortalAsAppUser());
 const portalSubscriptionResource = new SubscriptionApi(forPortalAsAppUser());
 
-describeIfJupiter('V4 subscription plan subscription and approval workflow', () => {
+describeIfV4EmulationEngine('V4 subscription plan subscription and approval workflow', () => {
   let api: ApiEntityV4;
   let plan: PlanEntityV4;
   let application: Application;

@@ -16,7 +16,9 @@
 package io.gravitee.apim.integration.tests.multiservers;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
+import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.vertx.rxjava3.core.http.HttpClient;
@@ -27,22 +29,10 @@ import org.junit.jupiter.api.Test;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@GatewayTest(v2ExecutionMode = ExecutionMode.V3)
 public class MultiServersApiDeployV3IntegrationTest extends AbstractMultiServersApiDeployIntegrationTest {
 
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.set("api.jupiterMode.enabled", "false");
-    }
-
-    @Override
-    public void configureApi(Api api) {
-        super.configureApi(api);
-        api.setExecutionMode(ExecutionMode.V3);
-    }
-
     @Test
-    @DisplayName("Should receive 200 - api deployed on both http and http_other")
     @DeployApi("/apis/http/api.json")
     @Override
     void should_get_200_when_calling_on_both_first_and_second_servers(HttpClient httpClient) throws InterruptedException {
@@ -50,7 +40,6 @@ public class MultiServersApiDeployV3IntegrationTest extends AbstractMultiServers
     }
 
     @Test
-    @DisplayName("Should receive 200 on second server and 404 on first server")
     @DeployApi("/apis/http/api-single-server.json")
     @Override
     void should_get_200_when_calling_on_second_server_and_404_on_first_server(HttpClient httpClient) throws InterruptedException {

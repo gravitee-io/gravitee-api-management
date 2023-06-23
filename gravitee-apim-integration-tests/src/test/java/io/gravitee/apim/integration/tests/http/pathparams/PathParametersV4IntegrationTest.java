@@ -17,7 +17,6 @@ package io.gravitee.apim.integration.tests.http.pathparams;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -36,7 +35,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author GraviteeSource Team
  */
 @GatewayTest
-public class PathParametersV4IntegrationTest extends PathParametersIntegrationTest {
+public class PathParametersV4IntegrationTest extends PathParametersV3IntegrationTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -58,7 +57,7 @@ public class PathParametersV4IntegrationTest extends PathParametersIntegrationTe
     @Override
     @ParameterizedTest
     @DeployApi("/apis/v4/http/pathparams/api-path-param.json")
-    @MethodSource("io.gravitee.apim.integration.tests.http.pathparams.PathParametersIntegrationTest#provideParameters")
+    @MethodSource("io.gravitee.apim.integration.tests.http.pathparams.PathParametersV3IntegrationTest#provideParameters")
     void should_add_path_param_to_headers_when_no_param(
         String method,
         String path,

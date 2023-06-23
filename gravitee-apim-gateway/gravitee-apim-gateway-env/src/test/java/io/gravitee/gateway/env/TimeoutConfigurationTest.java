@@ -24,6 +24,9 @@ import ch.qos.logback.core.read.ListAppender;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -33,6 +36,7 @@ import org.slf4j.LoggerFactory;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class TimeoutConfigurationTest {
 
     private TimeoutConfiguration cut;
@@ -55,20 +59,17 @@ class TimeoutConfigurationTest {
         cut = new TimeoutConfiguration();
     }
 
-    @ParameterizedTest(name = "Jupiter enabled: {0}")
-    @ValueSource(booleans = { true, false })
-    @DisplayName("Should use http.requestTimeout from configuration when greater than 0")
-    void shouldConfigureTimeoutWhenGreaterThan0(boolean isJupiterEnabled) {
-        assertThat(cut.httpRequestTimeoutConfiguration(30L, 10, isJupiterEnabled))
+    @Test
+    void should_configure_timeout_when_greater_than_0() {
+        assertThat(cut.httpRequestTimeoutConfiguration(30L, 10))
             .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
             .containsExactly(30L, 10L);
     }
 
     @ParameterizedTest(name = "Timeout: {0}")
     @ValueSource(longs = { -10L, 0, 30L })
-    @DisplayName("Should use http.requestTimeout from configuration when set in Jupiter mode and warn if less than 0")
-    void shouldUseConfiguredTimeoutInJupiterMode(long timeout) {
-        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, true);
+    void should_use_configured_timeout(long timeout) {
+        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10);
 
         assertThat(result)
             .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
@@ -89,9 +90,8 @@ class TimeoutConfigurationTest {
 
     @ParameterizedTest(name = "Timeout: {0}")
     @NullSource
-    @DisplayName("Should use default 30_000ms timeout when unset in Jupiter mode and warn")
-    void shouldUseDefaultTimeoutInJupiterModeWhenUnset(Long timeout) {
-        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10, true);
+    void should_use_default_timeout_when_unset(Long timeout) {
+        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 10);
 
         assertThat(result)
             .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
@@ -103,27 +103,5 @@ class TimeoutConfigurationTest {
             .element(0)
             .extracting(ILoggingEvent::getMessage, ILoggingEvent::getLevel)
             .containsExactly("Http request timeout cannot be unset. Setting it to default value: 30_000 ms", Level.WARN);
-    }
-
-    @ParameterizedTest(name = "Timeout: {0}")
-    @ValueSource(longs = { -10L, 0 })
-    @NullSource
-    @DisplayName("Should just warn when configured one is unset, 0 or less in V3 mode")
-    void shouldDoNothingInV3Mode(Long timeout) {
-        final RequestTimeoutConfiguration result = cut.httpRequestTimeoutConfiguration(timeout, 5L, false);
-
-        assertThat(result)
-            .extracting(RequestTimeoutConfiguration::getRequestTimeout, RequestTimeoutConfiguration::getRequestTimeoutGraceDelay)
-            .containsExactly(0L, 5L);
-
-        final List<ILoggingEvent> logList = listAppender.list;
-        assertThat(logList)
-            .hasSize(1)
-            .element(0)
-            .extracting(ILoggingEvent::getMessage, ILoggingEvent::getLevel)
-            .containsExactly(
-                "A proper timeout (greater than 0) should be set in order to avoid unclose connection, suggested value is 30_000 ms",
-                Level.WARN
-            );
     }
 }

@@ -47,7 +47,7 @@ public class AttributesIntegrationTest {
     private static final Pattern UUID_PATTERN = Pattern.compile("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})");
 
     @Nested
-    @GatewayTest(mode = GatewayMode.JUPITER)
+    @GatewayTest
     @DeployApi({ "/apis/http/attributes-to-headers.json" })
     class CheckingAttributes extends AbstractAttributesIntegrationTest {
 
@@ -79,7 +79,7 @@ public class AttributesIntegrationTest {
     }
 
     @Nested
-    @GatewayTest(mode = GatewayMode.JUPITER)
+    @GatewayTest
     @DeployApi({ "/apis/http/attributes-to-headers.json" })
     class CheckingClientIdAttribute extends AbstractAttributesIntegrationTest {
 

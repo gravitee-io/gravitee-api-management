@@ -57,7 +57,7 @@ public class ReporterProcessor implements Processor {
                     ReactableApi<?> reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
                     if (reactableApi != null) {
                         DefinitionVersion definitionVersion = reactableApi.getDefinitionVersion();
-                        if (definitionVersion == DefinitionVersion.V2) { // We are executing a v2 api with jupiter engine
+                        if (definitionVersion == DefinitionVersion.V2) { // We are executing a v2 api with v4 emulation engine
                             io.gravitee.reporter.api.http.Metrics metricsV2 = metrics.toV2();
                             reporterService.report(metricsV2);
                             if (metricsV2.getLog() != null) {

@@ -104,8 +104,6 @@ services:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_api_jupiterMode_enabled=true
-      - gravitee_api_jupiterMode_default=always
     networks:
       - storage
       - frontend
@@ -130,8 +128,6 @@ services:
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
-      - gravitee_api_jupiterMode_enabled=true
-      - gravitee_api_jupiterMode_default=always
     networks:
       - storage
       - frontend

@@ -17,4 +17,4 @@
 /**
  * The execution mode of the API.
  */
-export type ExecutionMode = 'V3' | 'JUPITER';
+export type ExecutionMode = 'V3' | 'V4_EMULATION_ENGINE';

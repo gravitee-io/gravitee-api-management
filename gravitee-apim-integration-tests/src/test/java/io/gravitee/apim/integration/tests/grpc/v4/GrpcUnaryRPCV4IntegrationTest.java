@@ -27,7 +27,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import io.vertx.grpc.VertxServer;
 import io.vertx.junit5.VertxTestContext;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -40,12 +39,6 @@ import org.junit.jupiter.api.Test;
 @DeployApi({ "/apis/v4/grpc/hello-world.json" })
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
-
-    @Override
-    protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
-        super.configureGateway(gatewayConfigurationBuilder);
-        gatewayConfigurationBuilder.jupiterModeEnabled(true).jupiterModeDefault("always");
-    }
 
     @Test
     void should_request_and_get_response(VertxTestContext testContext) throws InterruptedException {

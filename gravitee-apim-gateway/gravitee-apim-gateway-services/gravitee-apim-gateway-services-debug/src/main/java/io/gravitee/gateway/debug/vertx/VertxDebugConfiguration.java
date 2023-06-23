@@ -15,26 +15,15 @@
  */
 package io.gravitee.gateway.debug.vertx;
 
-import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_BY_DEFAULT;
-import static io.gravitee.gateway.env.GatewayConfiguration.JUPITER_MODE_ENABLED_KEY;
-
 import io.gravitee.gateway.reactive.debug.vertx.DebugHttpProtocolVerticle;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
-import io.gravitee.node.api.server.DefaultServerManager;
-import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
-import io.gravitee.node.vertx.server.VertxServer;
-import io.gravitee.node.vertx.server.VertxServerFactory;
-import io.gravitee.node.vertx.server.VertxServerOptions;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
 import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
 import io.vertx.core.Verticle;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.http.HttpServer;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,9 +32,6 @@ import org.springframework.core.env.Environment;
 
 @Configuration
 public class VertxDebugConfiguration {
-
-    @Value("${" + JUPITER_MODE_ENABLED_KEY + ":" + JUPITER_MODE_ENABLED_BY_DEFAULT + "}")
-    private boolean jupiterMode;
 
     @Bean("debugHttpClientConfiguration")
     public VertxDebugHttpClientConfiguration debugHttpClientConfiguration(
@@ -102,10 +88,6 @@ public class VertxDebugConfiguration {
         @Qualifier("debugServer") VertxHttpServer debugServer,
         @Qualifier("debugHttpRequestDispatcher") HttpRequestDispatcher requestDispatcher
     ) {
-        if (jupiterMode) {
-            return new DebugHttpProtocolVerticle(debugServer, requestDispatcher);
-        } else {
-            return new DebugReactorVerticle();
-        }
+        return new DebugHttpProtocolVerticle(debugServer, requestDispatcher);
     }
 }

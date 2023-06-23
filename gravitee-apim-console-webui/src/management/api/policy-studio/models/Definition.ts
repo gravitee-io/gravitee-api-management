@@ -21,6 +21,6 @@ export interface Definition {
   version: string;
   flow_mode: 'DEFAULT' | 'BEST_MATCH';
   flows: Flow[];
-  execution_mode?: 'v3' | 'jupiter';
+  execution_mode?: 'v3' | 'v4-emulation-engine';
   origin?: 'management' | 'kubernetes';
 }

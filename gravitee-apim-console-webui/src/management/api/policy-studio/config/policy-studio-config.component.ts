@@ -50,8 +50,6 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
     return this.apiDefinition == null;
   }
 
-  public displayJupiterToggle = false;
-
   constructor(
     private readonly policyStudioService: PolicyStudioService,
     private readonly policyStudioSettingsService: PolicyStudioConfigService,
@@ -59,7 +57,6 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.displayJupiterToggle = this.constants.org?.settings?.jupiterMode?.enabled ?? false;
     combineLatest([this.policyStudioService.getApiDefinition$(), this.policyStudioSettingsService.getConfigurationSchemaForm()])
       .pipe(
         tap(([definition, flowConfigurationSchema]) => {
@@ -68,8 +65,8 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
           this.isReadonly = definition.origin === 'kubernetes';
 
           this.configForm = new FormGroup({
-            jupiterModeEnabled: new FormControl({
-              value: definition.execution_mode === 'jupiter',
+            emulateV4Engine: new FormControl({
+              value: definition.execution_mode === 'v4-emulation-engine',
               disabled: this.isReadonly,
             }),
             flowConfiguration: new FormControl({
@@ -84,7 +81,7 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
             this.policyStudioService.saveApiDefinition({
               ...this.apiDefinition,
               flow_mode: value.flowConfiguration.flow_mode,
-              execution_mode: value.jupiterModeEnabled ? 'jupiter' : 'v3',
+              execution_mode: value.emulateV4Engine ? 'v4-emulation-engine' : 'v3',
             });
           });
           this.flowConfigurationSchema = flowConfigurationSchema;

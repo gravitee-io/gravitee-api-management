@@ -52,10 +52,10 @@ public class DebugSynchronizer implements RepositorySynchronizer {
             AtomicLong launchTime = new AtomicLong();
             return debugEventFetcher
                 .fetchLatest(from, to, environments)
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
                 .flatMap(events ->
                     Flowable
                         .just(events)
-                        .subscribeOn(Schedulers.from(syncFetcherExecutor))
                         .flatMapIterable(e -> e)
                         .flatMapMaybe(event ->
                             debugMapperMapper

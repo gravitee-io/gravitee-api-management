@@ -17,18 +17,13 @@ package io.gravitee.apim.gateway.tests.sdk.configuration;
 
 import io.gravitee.definition.model.ExecutionMode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum GatewayMode {
-    JUPITER(true, ExecutionMode.JUPITER),
-    V3(false, ExecutionMode.V3),
-    COMPATIBILITY(true, ExecutionMode.V3);
+    V3(ExecutionMode.V3),
+    V4_EMULATION_ENGINE(ExecutionMode.V4_EMULATION_ENGINE);
 
-    private final Boolean jupiterEnabled;
     private final ExecutionMode executionMode;
-
-    GatewayMode(Boolean jupiterEnabled, ExecutionMode executionMode) {
-        this.jupiterEnabled = jupiterEnabled;
-        this.executionMode = executionMode;
-    }
 }

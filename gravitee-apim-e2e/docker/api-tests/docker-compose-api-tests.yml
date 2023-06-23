@@ -28,7 +28,7 @@ services:
       - PORTAL_BASE_URL=http://management_api:8083/portal/environments
       - GATEWAY_BASE_URL=http://gateway:8082
       - WIREMOCK_BASE_URL=http://wiremock:8080
-      - JUPITER_MODE_ENABLED=${JUPITER_MODE_ENABLED:-false}
+      - V4_EMULATION_ENGINE_DEFAULT=${V4_EMULATION_ENGINE_DEFAULT:-yes}
       - WIREMOCK_BASE_URL_FOR_JEST=http://wiremock:8080
     depends_on:
       management_api:

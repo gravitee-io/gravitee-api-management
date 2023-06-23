@@ -57,11 +57,11 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
             AtomicLong launchTime = new AtomicLong();
             return subscriptionFetcher
                 .fetchLatest(from, to)
+                .subscribeOn(Schedulers.from(syncFetcherExecutor))
                 // append per page
                 .flatMap(subscriptions ->
                     Flowable
                         .just(subscriptions)
-                        .subscribeOn(Schedulers.from(syncFetcherExecutor))
                         .flatMapIterable(s -> s)
                         .filter(subscription -> planCache.isDeployed(subscription.getApi(), subscription.getPlan()))
                         .flatMapMaybe(subscription -> Maybe.fromCallable(() -> subscriptionMapper.to(subscription)))

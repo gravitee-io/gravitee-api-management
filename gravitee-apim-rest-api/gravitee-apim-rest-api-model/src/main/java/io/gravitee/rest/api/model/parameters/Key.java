@@ -315,10 +315,7 @@ public enum Key {
     CONSOLE_ANALYTICS_PENDO_ACCOUNT_HRID("console.analytics.pendo.account.hrid", (String) null, Set.of(SYSTEM)),
     CONSOLE_ANALYTICS_PENDO_ACCOUNT_TYPE("console.analytics.pendo.account.type", (String) null, Set.of(SYSTEM)),
 
-    JUPITER_MODE_ENABLED("api.jupiterMode.enabled", "false", Set.of(SYSTEM)),
-
-    // TODO: switch to 'always' to enabled Jupiter execution mode by default when jupiter will go GA.
-    JUPITER_MODE_DEFAULT("api.jupiterMode.default", "never", Set.of(SYSTEM)),
+    V4_EMULATION_ENGINE_DEFAULT("api.v2.emulateV4Engine.default", "yes", Set.of(SYSTEM)),
 
     ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM));
 
