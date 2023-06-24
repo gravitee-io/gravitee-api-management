@@ -81,15 +81,15 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
     );
   }
 
-  onSave() {
-    this.dialogRef.close({
+  onCreate() {
+    const dialogResult = {
       subscriptionToCreate: {
         planId: this.form.getRawValue().selectedPlan.id,
         applicationId: this.form.getRawValue().selectedApplication.id,
-        customApiKey:
-          this.shouldDisplayCustomApiKey() && this.form.getRawValue().customApiKey ? this.form.getRawValue().customApiKey : undefined,
+        ...(this.shouldDisplayCustomApiKey()  && this.form.getRawValue().customApiKey ? { customApiKey: this.form.getRawValue().customApiKey } : undefined),
       },
-    });
+    };
+    this.dialogRef.close(dialogResult);
   }
 
   ngOnDestroy() {

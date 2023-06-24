@@ -29,6 +29,7 @@ export class ApiPortalSubscriptionListHarness extends ComponentHarness {
   public getResetFilterButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Reset filters"]' }));
 
   public async openCreationDialog(): Promise<void> {
-    return this.getCreateSubscriptionButton().then((btn) => btn.click());
+    const matButtonHarness = await this.getCreateSubscriptionButton();
+    return await matButtonHarness.click();
   }
 }
