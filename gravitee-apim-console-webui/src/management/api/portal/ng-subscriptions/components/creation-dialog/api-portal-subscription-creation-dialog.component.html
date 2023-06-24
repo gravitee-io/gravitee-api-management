@@ -69,11 +69,11 @@
   <mat-dialog-actions class="actions">
     <button class="actions__cancelBtn" mat-flat-button [mat-dialog-close]="false">Cancel</button>
     <button
-      class="actions__saveBtn"
+      class="actions__createBtn"
       color="primary"
       mat-stroked-button
       role="dialog"
-      (click)="onSave()"
+      (click)="onCreate()"
       [disabled]="this.form.invalid || this.form.pristine"
     >
       Create

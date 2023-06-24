@@ -20,11 +20,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
-import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UIRouterGlobals } from '@uirouter/core';
@@ -52,6 +48,7 @@ import {
 import { PagedResult } from '../../../../../entities/pagedResult';
 import { Application } from '../../../../../entities/application/application';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
+import { ApiPortalSubscriptionCreationDialogHarness } from '../components/creation-dialog/api-portal-subscription-creation-dialog.harness';
 
 @Component({
   template: ` <api-portal-subscription-list #apiPortalSubscriptionList></api-portal-subscription-list> `,
@@ -114,14 +111,10 @@ describe('ApiPortalSubscriptionListComponent', () => {
       const planSelectInput = await harness.getPlanSelectInput();
       expect(await planSelectInput.isDisabled()).toEqual(false);
       expect(await planSelectInput.isEmpty()).toEqual(true);
-      // const plansOptions = await planSelectInput.getOptions();
-      // expect(plansOptions.length).toEqual(1);
 
       const applicationSelectInput = await harness.getApplicationSelectInput();
       expect(await applicationSelectInput.isDisabled()).toEqual(false);
       expect(await applicationSelectInput.isEmpty()).toEqual(true);
-      // const applicationsOptions = await applicationSelectInput.getOptions();
-      // expect(applicationsOptions.length).toEqual(1);
 
       const statusSelectInput = await harness.getStatusSelectInput();
       expect(await statusSelectInput.isDisabled()).toEqual(false);
@@ -144,14 +137,10 @@ describe('ApiPortalSubscriptionListComponent', () => {
       const planSelectInput = await harness.getPlanSelectInput();
       expect(await planSelectInput.isDisabled()).toEqual(false);
       expect(await planSelectInput.getValueText()).toEqual('Default plan');
-      // const plansOptions = await planSelectInput.getOptions();
-      // expect(plansOptions.length).toEqual(1);
 
       const applicationSelectInput = await harness.getApplicationSelectInput();
       expect(await applicationSelectInput.isDisabled()).toEqual(false);
       expect(await applicationSelectInput.getValueText()).toEqual('My first application');
-      // const applicationsOptions = await applicationSelectInput.getOptions();
-      // expect(applicationsOptions.length).toEqual(1);
 
       const statusSelectInput = await harness.getStatusSelectInput();
       expect(await statusSelectInput.isDisabled()).toEqual(false);
@@ -282,44 +271,31 @@ describe('ApiPortalSubscriptionListComponent', () => {
       const application = fakeApplication();
 
       await initComponent([], anAPI, [planV4]);
-
       const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
 
-      expect(await harness.getCreateSubscriptionButton()).toBeDefined();
+      const createSubBtn = await harness.getCreateSubscriptionButton();
+      expect(await createSubBtn).toBeDefined();
+      expect(await createSubBtn.isDisabled()).toEqual(false);
 
       await harness.openCreationDialog();
 
-      const creationDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#createSubscriptionDialog' }),
+      const creationDialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        ApiPortalSubscriptionCreationDialogHarness,
       );
-      expect(await creationDialog.getTitleText()).toEqual('Create a subscription');
+      expect(await creationDialogHarness.getTitleText()).toEqual('Create a subscription');
 
-      const radioGroup = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatRadioGroupHarness);
-      const radioButtons = await radioGroup.getRadioButtons();
-
-      expect(radioButtons.length).toEqual(1);
-      await radioButtons[0].check();
-
-      const createBtn = await creationDialog.getHarness(MatButtonHarness.with({ text: 'Create' }));
-      expect(await createBtn.isDisabled()).toEqual(true);
-
-      const applicationAutocomplete = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatAutocompleteHarness);
-      await applicationAutocomplete.enterText('application');
+      await creationDialogHarness.choosePlan(planV4.name);
+      await creationDialogHarness.searchApplication('application');
       tick(400);
-
       expectApplicationsSearch('application', [application]);
 
-      const options = await applicationAutocomplete.getOptions();
-      expect(options.length).toEqual(1);
-      await options[0].click();
+      await creationDialogHarness.selectApplication(application.name);
 
-      expect(await createBtn.isDisabled()).toEqual(false);
-      await createBtn.click();
-
-      const subscription = fakeSubscription();
-
-      expectApiSubscriptionsPostRequest(planV4.id, application.id, subscription);
+      await creationDialogHarness.createSubscription();
       tick(400);
+      const subscription = fakeSubscription();
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, subscription);
+
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
 
       flush();
@@ -329,17 +305,22 @@ describe('ApiPortalSubscriptionListComponent', () => {
       await initComponent([]);
 
       const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const createSubBtn = await harness.getCreateSubscriptionButton();
+      expect(await createSubBtn).toBeDefined();
+      expect(await createSubBtn.isDisabled()).toEqual(false);
 
       await harness.openCreationDialog();
 
-      const creationDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#createSubscriptionDialog' }),
+      const creationDialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        ApiPortalSubscriptionCreationDialogHarness,
       );
-      expect(await creationDialog.getTitleText()).toEqual('Create a subscription');
+      expect(await creationDialogHarness.getTitleText()).toEqual('Create a subscription');
 
-      await creationDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' })).then((btn) => btn.click());
+      await creationDialogHarness.cancelSubscription();
 
       expect(fakeUiRouter.go).not.toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
+
+      flush();
     }));
   });
 
@@ -369,6 +350,11 @@ describe('ApiPortalSubscriptionListComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
     tick(400);
+
+    expect(fixture.componentInstance.apiPortalSubscriptionList.isLoadingData).toEqual(false);
+    expect(fixture.componentInstance.apiPortalSubscriptionList.isReadOnly).toEqual(false);
+    expect(fixture.componentInstance.apiPortalSubscriptionList.subscriptionsTableDS).toBeDefined();
+    expect(fixture.componentInstance.apiPortalSubscriptionList.subscriptionsTableDS.length).toEqual(subscriptions.length);
   }
 
   async function computeSubscriptionsTableCells() {
