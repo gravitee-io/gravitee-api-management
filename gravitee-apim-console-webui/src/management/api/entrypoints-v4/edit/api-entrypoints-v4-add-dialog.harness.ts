@@ -17,19 +17,28 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { GioEntrypointsSelectionListHarness } from '../../component/gio-entrypoints-selection-list/gio-entrypoints-selection-list.harness';
+import { GioFormListenersContextPathHarness } from '../../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 
 export class ApiEntrypointsV4AddDialogHarness extends ComponentHarness {
   public static hostSelector = 'api-entrypoints-v4-add-dialog';
 
   private entrypointListLocator = this.locatorFor(GioEntrypointsSelectionListHarness);
+  private contextPathFormLocator = this.locatorFor(GioFormListenersContextPathHarness);
   private saveButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Select my entrypoints' }));
+  private saveWithContextPathButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Validate my entrypoints' }));
   private cancelButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
   public getEntrypointSelectionList() {
     return this.entrypointListLocator().then((l) => l.getSelectionList());
   }
 
+  public getContextPathForm() {
+    return this.contextPathFormLocator();
+  }
   public getSaveButton() {
     return this.saveButtonLocator();
+  }
+  public getSaveWithContextPathButton() {
+    return this.saveWithContextPathButtonLocator();
   }
   public getCancelButton() {
     return this.cancelButtonLocator();

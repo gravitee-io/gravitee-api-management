@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2015 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,15 +15,30 @@
     limitations under the License.
 
 -->
-<div class="header">
-  <div class="header__title">Select your Event-Native API entrypoints</div>
-  <p class="header__subtitle">Choose how your users will consume your API</p>
-</div>
-
-<form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
-  <gio-entrypoints-selection-list formControlName="selectedEntrypointsIds" [entrypoints]="entrypoints"></gio-entrypoints-selection-list>
-  <div class="footer">
-    <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
-    <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my entrypoints</button>
+<ng-container *ngIf="!showContextPathForm; else contextPathForm">
+  <div class="header">
+    <div class="header__title">Select your Event-Native API entrypoints</div>
+    <p class="header__subtitle">Choose how your users will consume your API</p>
   </div>
-</form>
+
+  <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
+    <gio-entrypoints-selection-list formControlName="selectedEntrypointsIds" [entrypoints]="entrypoints"></gio-entrypoints-selection-list>
+    <div class="footer">
+      <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my entrypoints</button>
+    </div>
+  </form>
+</ng-container>
+<ng-template #contextPathForm>
+  <div class="header">
+    <div class="header__title">Enter the context-path</div>
+    <p class="header__subtitle">Your API does not have any context-path yet. You need to choose one.</p>
+  </div>
+  <form *ngIf="contextPathFormGroup" [formGroup]="contextPathFormGroup" (ngSubmit)="saveWithContextPath()">
+    <gio-form-listeners-context-path formControlName="contextPath"></gio-form-listeners-context-path>
+    <div class="footer">
+      <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="contextPathFormGroup.invalid">Validate my entrypoints</button>
+    </div>
+  </form>
+</ng-template>
