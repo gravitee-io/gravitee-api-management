@@ -48,6 +48,11 @@ const featureMoreInformationData = {
     description:
       'Debug Mode is part of Gravitee Enterprise. It provides detailed information about the behaviour of each policy in your flows and trace attributes and data values across execution.',
   },
+  'apim-dcr-registration': {
+    image: 'assets/gio-ee-unlock-dialog/dcr-providers.png',
+    description:
+      "Dynamic Client Registration (DCR) Provider is part of Gravitee Enterprise. DCR enhances your API's security by seamlessly integrating OAuth 2.0 and OpenID Connect.",
+  },
 };
 
 @Injectable({

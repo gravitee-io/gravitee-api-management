@@ -46,6 +46,7 @@ import { ClientRegistrationProviderComponent } from './client-registration-provi
 import { GioFormCardGroupModule } from '../../../shared/components/gio-form-card-group/gio-form-card-group.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioLicenseModule } from '../../../shared/components/gio-license/gio-license.module';
 
 @NgModule({
   imports: [
@@ -75,6 +76,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioFormFocusInvalidModule,
     GioFormTagsInputModule,
     GioPermissionModule,
+    GioLicenseModule,
   ],
   declarations: [ClientRegistrationProvidersComponent, ClientRegistrationProviderComponent],
   exports: [ClientRegistrationProvidersComponent, ClientRegistrationProviderComponent],
