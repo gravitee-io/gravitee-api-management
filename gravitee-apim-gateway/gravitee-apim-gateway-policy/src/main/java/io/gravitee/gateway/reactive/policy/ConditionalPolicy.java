@@ -16,21 +16,12 @@
 package io.gravitee.gateway.reactive.policy;
 
 import io.gravitee.definition.model.ConditionSupplier;
-import io.gravitee.definition.model.MessageConditionSupplier;
 import io.gravitee.gateway.reactive.api.context.GenericExecutionContext;
 import io.gravitee.gateway.reactive.api.context.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.MessageExecutionContext;
-import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
-import io.gravitee.gateway.reactive.core.condition.MessageConditionFilter;
-import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
-import io.gravitee.gateway.reactive.core.context.MutableRequest;
-import io.gravitee.gateway.reactive.core.context.MutableResponse;
-import io.gravitee.gateway.reactive.core.context.OnMessagesInterceptor;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.FlowableTransformer;
-import io.reactivex.rxjava3.core.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,12 +52,20 @@ public class ConditionalPolicy implements Policy, ConditionSupplier {
 
     @Override
     public Completable onRequest(HttpExecutionContext ctx) {
-        return onCondition(ctx, policy.onRequest(ctx));
+        if (!conditionDefined) {
+            return policy.onRequest(ctx);
+        }
+
+        return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> Completable.defer(() -> policy.onRequest(ctx)));
     }
 
     @Override
     public Completable onResponse(HttpExecutionContext ctx) {
-        return onCondition(ctx, policy.onResponse(ctx));
+        if (!conditionDefined) {
+            return policy.onResponse(ctx);
+        }
+
+        return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> policy.onResponse(ctx));
     }
 
     @Override
@@ -82,13 +81,5 @@ public class ConditionalPolicy implements Policy, ConditionSupplier {
     @Override
     public String getCondition() {
         return condition;
-    }
-
-    private Completable onCondition(GenericExecutionContext ctx, Completable toExecute) {
-        if (!conditionDefined) {
-            return toExecute;
-        }
-
-        return conditionFilter.filter(ctx, this).flatMapCompletable(conditionalPolicy -> toExecute);
     }
 }
