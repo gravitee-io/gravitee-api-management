@@ -124,6 +124,10 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
     return this.btnIsVisible('Change end date');
   }
 
+  public async openChangeEndDateDialog(): Promise<void> {
+    return this.getBtnByText('Change end date').then((btn) => btn.click());
+  }
+
   public async closeBtnIsVisible(): Promise<boolean> {
     return this.btnIsVisible('Close');
   }

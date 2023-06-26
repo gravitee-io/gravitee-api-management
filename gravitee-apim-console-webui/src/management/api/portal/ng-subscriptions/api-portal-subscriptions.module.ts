@@ -30,11 +30,14 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MatMomentDateModule } from '@angular/material-moment-adapter';
 
 import { ApiPortalSubscriptionCreationDialogComponent } from './components/creation-dialog/api-portal-subscription-creation-dialog.component';
 import { ApiPortalSubscriptionTransferDialogComponent } from './components/transfer-dialog/api-portal-subscription-transfer-dialog.component';
 import { ApiPortalSubscriptionEditComponent } from './edit/api-portal-subscription-edit.component';
 import { ApiPortalSubscriptionListComponent } from './list/api-portal-subscription-list.component';
+import { ApiPortalSubscriptionChangeEndDateDialogComponent } from './components/change-end-date-dialog/api-portal-subscription-change-end-date-dialog.component';
 
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
@@ -43,6 +46,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
   declarations: [
     ApiPortalSubscriptionEditComponent,
     ApiPortalSubscriptionListComponent,
+    ApiPortalSubscriptionChangeEndDateDialogComponent,
     ApiPortalSubscriptionCreationDialogComponent,
     ApiPortalSubscriptionTransferDialogComponent,
   ],
@@ -55,9 +59,11 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatAutocompleteModule,
     MatButtonModule,
     MatCardModule,
+    MatDatepickerModule,
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatMomentDateModule,
     MatOptionModule,
     MatSelectModule,
     MatSnackBarModule,
@@ -70,6 +76,6 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioPermissionModule,
     GioTableWrapperModule,
   ],
-  providers: [DatePipe],
+  providers: [DatePipe, { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } }],
 })
 export class ApiPortalSubscriptionsModule {}
