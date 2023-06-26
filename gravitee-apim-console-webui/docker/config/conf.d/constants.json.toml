@@ -1,3 +1,0 @@
-[template]
-src = "constants.json.tmpl"
-dest = "/usr/share/nginx/html/constants.json"
