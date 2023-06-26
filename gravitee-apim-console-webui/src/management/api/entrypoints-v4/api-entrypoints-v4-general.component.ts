@@ -49,13 +49,13 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   public api: ApiV4;
   public formGroup: FormGroup;
   public pathsFormControl: FormControl;
+  public entrypointsToRemoveFormControl: FormControl;
   public displayedColumns = ['type', 'actions'];
   public dataSource: EntrypointVM[] = [];
   private allEntrypoints: ConnectorPlugin[];
   public enableVirtualHost = false;
   public apiExistingPaths: PathV4[] = [];
   public domainRestrictions: string[] = [];
-  public entrypointToBeRemoved: string[] = [];
   public entrypointAvailableForAdd: ConnectorVM[] = [];
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -104,6 +104,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     } else {
       this.enableVirtualHost = false;
     }
+    this.entrypointsToRemoveFormControl = this.formBuilder.control([]);
+    this.formGroup.addControl('entrypointsToRemove', this.entrypointsToRemoveFormControl);
 
     const existingEntrypoints = flatten(this.api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
     this.entrypointAvailableForAdd = this.allEntrypoints
@@ -131,7 +133,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   }
 
   onDelete(elementToRemove: EntrypointVM) {
-    this.entrypointToBeRemoved.push(elementToRemove.id);
+    this.entrypointsToRemoveFormControl.setValue([elementToRemove.id, ...this.entrypointsToRemoveFormControl.value]);
+    this.entrypointsToRemoveFormControl.markAsDirty();
     this.dataSource = this.dataSource.filter((e) => e !== elementToRemove);
   }
 
@@ -178,7 +181,9 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
             paths: this.enableVirtualHost
               ? formValue.paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
               : formValue.paths.map(({ path }) => ({ path })),
-            entrypoints: [...currentHttpListener.entrypoints.filter((listener) => !this.entrypointToBeRemoved.includes(listener.type))],
+            entrypoints: [
+              ...currentHttpListener.entrypoints.filter((listener) => !this.entrypointsToRemoveFormControl.value.includes(listener.type)),
+            ],
           };
           const updateApi: UpdateApiV4 = {
             ...(api as ApiV4),
@@ -187,7 +192,10 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
               ...this.api.listeners
                 .filter((listener) => listener.type !== 'HTTP')
                 .map((l) => {
-                  return { ...l, entrypoints: l.entrypoints.filter((listener) => !this.entrypointToBeRemoved.includes(listener.type)) };
+                  return {
+                    ...l,
+                    entrypoints: l.entrypoints.filter((listener) => !this.entrypointsToRemoveFormControl.value.includes(listener.type)),
+                  };
                 }),
             ].filter((listener) => listener.entrypoints.length > 0),
           };
