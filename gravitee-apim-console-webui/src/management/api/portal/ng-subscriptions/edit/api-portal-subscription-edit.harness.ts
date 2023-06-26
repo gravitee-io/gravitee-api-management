@@ -132,6 +132,10 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
     return this.btnIsVisible('Close');
   }
 
+  public async openCloseDialog(): Promise<void> {
+    return this.getBtnByText('Close').then((btn) => btn.click());
+  }
+
   public async validateBtnIsVisible(): Promise<boolean> {
     return this.btnIsVisible('Validate subscription');
   }
