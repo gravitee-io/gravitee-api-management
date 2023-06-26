@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
-import static fixtures.GraviteeLicenseFixtures.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
+import java.util.Set;
 import javax.inject.Inject;
 import org.junit.Test;
 
@@ -33,7 +33,7 @@ import org.junit.Test;
 public class GraviteeLicenseResourceTest extends AbstractResourceTest {
 
     @Inject
-    GraviteeLicenseService licenseService;
+    NodeLicenseService nodeLicenseService;
 
     @Override
     protected String contextPath() {
@@ -42,7 +42,9 @@ public class GraviteeLicenseResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnLicenseWithFeatures() {
-        doReturn(aGraviteeLicenseEntity()).when(licenseService).getLicense();
+        when(nodeLicenseService.getTier()).thenReturn("universe");
+        when(nodeLicenseService.getPacks()).thenReturn(Set.of("observability"));
+        when(nodeLicenseService.getFeatures()).thenReturn(Set.of("apim-reporter-datadog"));
 
         var response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);

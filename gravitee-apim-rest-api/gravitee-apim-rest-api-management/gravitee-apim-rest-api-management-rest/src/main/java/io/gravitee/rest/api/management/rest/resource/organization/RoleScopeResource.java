@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource.organization;
 
-import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.FEATURE_CUSTOM_ROLES;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.GraviteeLicenseFeature;
@@ -79,7 +77,7 @@ public class RoleScopeResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE) })
-    @GraviteeLicenseFeature(FEATURE_CUSTOM_ROLES)
+    @GraviteeLicenseFeature("apim-custom-roles")
     public RoleEntity createRole(@PathParam("scope") RoleScope scope, @Valid @NotNull final NewRoleEntity role) {
         return roleService.create(GraviteeContext.getExecutionContext(), role);
     }

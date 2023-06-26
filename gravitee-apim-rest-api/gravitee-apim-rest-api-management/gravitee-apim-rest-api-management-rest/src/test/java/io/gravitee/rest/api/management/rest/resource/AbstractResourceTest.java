@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -690,8 +691,8 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         }
 
         @Bean
-        public GraviteeLicenseService graviteeLicenseService() {
-            return mock(GraviteeLicenseService.class);
+        public NodeLicenseService nodeLicenseService() {
+            return mock(NodeLicenseService.class);
         }
     }
 

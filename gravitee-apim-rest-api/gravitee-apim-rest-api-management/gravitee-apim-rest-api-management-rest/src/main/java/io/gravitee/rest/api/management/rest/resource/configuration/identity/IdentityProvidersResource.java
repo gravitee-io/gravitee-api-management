@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource.configuration.identity;
 
-import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.configuration.identity.IdentityProviderListItem;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
@@ -132,12 +130,13 @@ public class IdentityProvidersResource extends AbstractResource {
     }
 
     private void checkOpenIdConnectProviderLicense(NewIdentityProviderEntity newIdentityProviderEntity) {
-        if (isFeatureEnabled(FEATURE_OPEN_ID_CONNECT_SSO)) {
+        String featureName = "apim-openid-connect-sso";
+        if (isFeatureEnabled(featureName)) {
             return;
         }
 
         if (IdentityProviderType.OIDC.equals(newIdentityProviderEntity.getType())) {
-            throw new ForbiddenFeatureException(FEATURE_OPEN_ID_CONNECT_SSO);
+            throw new ForbiddenFeatureException(featureName);
         }
     }
 }

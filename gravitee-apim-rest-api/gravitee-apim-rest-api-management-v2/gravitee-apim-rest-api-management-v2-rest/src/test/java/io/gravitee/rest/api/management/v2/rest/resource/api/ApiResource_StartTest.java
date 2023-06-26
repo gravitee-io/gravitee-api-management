@@ -35,7 +35,6 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -119,7 +118,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
     public void should_not_start_api_with_failing_license_check() {
         var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
-        doThrow(new ForbiddenFeatureException(GraviteeLicenseService.FEATURE_ENDPOINT_KAFKA))
+        doThrow(new ForbiddenFeatureException("apim-en-endpoint-kafka"))
             .when(apiLicenseService)
             .checkLicense(any(), any(GenericApiEntity.class));
         final Response response = rootTarget().request().post(Entity.json(""));

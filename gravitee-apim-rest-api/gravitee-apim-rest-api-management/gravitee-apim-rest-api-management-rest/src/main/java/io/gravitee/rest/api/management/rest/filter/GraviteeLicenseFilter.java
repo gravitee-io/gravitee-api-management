@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.filter;
 
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.management.rest.security.GraviteeLicenseFeature;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -36,7 +36,7 @@ public class GraviteeLicenseFilter implements ContainerRequestFilter {
     protected ResourceInfo resourceInfo;
 
     @Inject
-    private GraviteeLicenseService graviteeLicenseService;
+    private NodeLicenseService nodeLicenseService;
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
@@ -45,7 +45,7 @@ public class GraviteeLicenseFilter implements ContainerRequestFilter {
 
     private void checkGraviteeLicenseFeature(GraviteeLicenseFeature requiredFeature) {
         var featureName = requiredFeature.value();
-        if (!graviteeLicenseService.isFeatureEnabled(featureName)) {
+        if (nodeLicenseService.isFeatureMissing(featureName)) {
             throw new ForbiddenFeatureException(featureName);
         }
     }

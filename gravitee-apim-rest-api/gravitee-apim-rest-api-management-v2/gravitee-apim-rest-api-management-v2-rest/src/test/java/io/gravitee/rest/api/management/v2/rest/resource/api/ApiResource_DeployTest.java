@@ -31,7 +31,6 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Response;
@@ -79,9 +78,7 @@ public class ApiResource_DeployTest extends ApiResourceTest {
     public void shouldDeployApiWithFailingLicenseCheck() {
         ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
         deployEntity.setDeploymentLabel("label");
-        doThrow(new ForbiddenFeatureException(GraviteeLicenseService.FEATURE_ENDPOINT_MQTT5))
-            .when(apiLicenseService)
-            .checkLicense(any(), anyString());
+        doThrow(new ForbiddenFeatureException("apim-en-endpoint-mqtt5")).when(apiLicenseService).checkLicense(any(), anyString());
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
 

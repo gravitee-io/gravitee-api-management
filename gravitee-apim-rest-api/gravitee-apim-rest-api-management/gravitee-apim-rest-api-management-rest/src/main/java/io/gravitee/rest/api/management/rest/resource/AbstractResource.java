@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.MembershipMemberType.USER;
 import static io.gravitee.rest.api.model.MembershipReferenceType.API;
 import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -34,7 +35,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
@@ -90,7 +90,7 @@ public abstract class AbstractResource {
     protected PermissionService permissionService;
 
     @Inject
-    protected GraviteeLicenseService graviteeLicenseService;
+    protected NodeLicenseService nodeLicenseService;
 
     protected UserDetails getAuthenticatedUserDetails() {
         return (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -190,7 +190,7 @@ public abstract class AbstractResource {
     }
 
     protected boolean isFeatureEnabled(String featureName) {
-        return graviteeLicenseService.isFeatureEnabled(featureName);
+        return nodeLicenseService.isFeatureEnabled(featureName);
     }
 
     protected void canReadApi(final ExecutionContext executionContext, final String apiId) {

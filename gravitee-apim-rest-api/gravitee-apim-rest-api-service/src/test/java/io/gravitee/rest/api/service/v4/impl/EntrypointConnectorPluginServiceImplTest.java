@@ -222,6 +222,11 @@ public class EntrypointConnectorPluginServiceImplTest {
                 public String type() {
                     return null;
                 }
+
+                @Override
+                public String feature() {
+                    return null;
+                }
             };
         }
 

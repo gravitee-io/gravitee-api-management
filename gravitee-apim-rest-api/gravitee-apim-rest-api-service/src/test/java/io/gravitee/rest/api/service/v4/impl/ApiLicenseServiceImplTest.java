@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -25,12 +24,12 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +48,7 @@ public class ApiLicenseServiceImplTest {
     private static final ExecutionContext executionContext = new ExecutionContext("test", "test");
 
     @Mock
-    private GraviteeLicenseService graviteeLicenseService;
+    private NodeLicenseService nodeLicenseService;
 
     @Mock
     private ApiSearchService apiSearchService;
@@ -64,7 +63,7 @@ public class ApiLicenseServiceImplTest {
         openMocks(this);
         when(apiSearchService.findGenericById(executionContext, API)).thenReturn(apiEntity);
         when(apiEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        apiLicenseService = new ApiLicenseServiceImpl(graviteeLicenseService, apiSearchService);
+        apiLicenseService = new ApiLicenseServiceImpl(nodeLicenseService, apiSearchService);
     }
 
     @Test
@@ -81,98 +80,98 @@ public class ApiLicenseServiceImplTest {
 
     @Test
     public void shouldNotThrowErrorWithWebhookEntrypoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENTRYPOINT_WEBHOOK)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-webhook")).thenReturn(false);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("webhook")));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldThrowErrorWithWebhookEntrypoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENTRYPOINT_WEBHOOK)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-webhook")).thenReturn(true);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("webhook")));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldNotThrowErrorWithWebsocketEntrypoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENTRYPOINT_WEBSOCKET)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-websocket")).thenReturn(false);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("websocket")));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldThrowErrorWithWebsocketEntrypoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENTRYPOINT_WEBSOCKET)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-websocket")).thenReturn(true);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("websocket")));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldNotThrowErrorWithSseEntrypoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENTRYPOINT_SSE)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-sse")).thenReturn(false);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("sse")));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldThrowErrorWithSseEntrypoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENTRYPOINT_SSE)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-sse")).thenReturn(true);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("sse")));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldNotThrowErrorWithHttpGetEntrypoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENTRYPOINT_HTTP_GET)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-http-get")).thenReturn(false);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("http-get")));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldThrowErrorWithHttpGetEntrypoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENTRYPOINT_HTTP_GET)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-http-get")).thenReturn(true);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("http-get")));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldNotThrowErrorWithHttpPostEntrypoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENTRYPOINT_HTTP_POST)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-http-post")).thenReturn(false);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("http-post")));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldThrowErrorWithHttpPostEntrypoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENTRYPOINT_HTTP_POST)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-en-entrypoint-http-post")).thenReturn(true);
         when(apiEntity.getListeners()).thenReturn(listeners(entrypoints("http-post")));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldNotThrowErrorWithKafkaEndpoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENDPOINT_KAFKA)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-en-endpoint-kafka")).thenReturn(false);
         when(apiEntity.getEndpointGroups()).thenReturn(endpointGroups("kafka"));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldThrowErrorWithHKafkaEndpoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENDPOINT_KAFKA)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-en-endpoint-kafka")).thenReturn(true);
         when(apiEntity.getEndpointGroups()).thenReturn(endpointGroups("kafka"));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldNotThrowErrorWithMqttEndpoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENDPOINT_MQTT5)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-en-endpoint-mqtt5")).thenReturn(false);
         when(apiEntity.getEndpointGroups()).thenReturn(endpointGroups("mqtt5"));
         assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
     }
 
     @Test
     public void shouldThrowErrorWithHMqttEndpoint() {
-        when(graviteeLicenseService.isFeatureMissing(FEATURE_ENDPOINT_MQTT5)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-en-endpoint-mqtt5")).thenReturn(true);
         when(apiEntity.getEndpointGroups()).thenReturn(endpointGroups("mqtt5"));
         assertThrows(ForbiddenFeatureException.class, () -> apiLicenseService.checkLicense(executionContext, API));
     }

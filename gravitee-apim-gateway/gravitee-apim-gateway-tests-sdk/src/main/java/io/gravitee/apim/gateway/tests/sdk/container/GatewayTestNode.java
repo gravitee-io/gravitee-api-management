@@ -62,13 +62,13 @@ public class GatewayTestNode extends GatewayNode {
             }
 
             @Override
-            public boolean isFeatureIncluded(String s) {
-                return true;
+            public Map<String, Object> features() {
+                return Map.of();
             }
 
             @Override
-            public Map<String, Object> features() {
-                return Map.of();
+            public boolean isFeatureIncluded(String s) {
+                return true;
             }
         };
     }

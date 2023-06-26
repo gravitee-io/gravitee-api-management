@@ -16,6 +16,7 @@
 package io.gravitee.apim.gateway.tests.sdk.container;
 
 import io.gravitee.apim.gateway.tests.sdk.connector.fakes.MessageStorage;
+import io.gravitee.apim.gateway.tests.sdk.license.PermissiveNodeLicenceService;
 import io.gravitee.apim.gateway.tests.sdk.reporter.FakeReporter;
 import io.gravitee.apim.gateway.tests.sdk.tracer.NoOpTracer;
 import io.gravitee.gateway.api.service.ApiKeyService;
@@ -23,6 +24,7 @@ import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.gravitee.node.plugin.cluster.standalone.StandaloneClusterManager;
@@ -127,6 +129,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public MessageStorage messageStorage() {
             return new MessageStorage();
+        }
+
+        @Bean
+        public NodeLicenseService nodeLicenseService() {
+            return new PermissiveNodeLicenceService();
         }
     }
 }

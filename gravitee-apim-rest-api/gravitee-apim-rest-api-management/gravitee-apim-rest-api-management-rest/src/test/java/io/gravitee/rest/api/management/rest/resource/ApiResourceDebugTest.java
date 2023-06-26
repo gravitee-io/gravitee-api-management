@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.FEATURE_DEBUG_MODE;
 import static jakarta.ws.rs.client.Entity.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,9 +23,9 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.model.DebugApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
@@ -45,7 +44,7 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
     private DebugApiEntity debugApiEntity;
 
     @Inject
-    private GraviteeLicenseService graviteeLicenseService;
+    private NodeLicenseService nodeLicenseService;
 
     @Override
     protected String contextPath() {
@@ -68,7 +67,7 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnUnauthorizedWithoutLicense() {
-        when(graviteeLicenseService.isFeatureEnabled(FEATURE_DEBUG_MODE)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-debug-mode")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
         final Response response = envTarget(API).path("_debug").request().post(json(debugApiEntity));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
@@ -76,7 +75,7 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnOKWithLicense() {
-        when(graviteeLicenseService.isFeatureEnabled(FEATURE_DEBUG_MODE)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-debug-mode")).thenReturn(false);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
         final Response response = envTarget(API).path("_debug").request().post(json(debugApiEntity));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

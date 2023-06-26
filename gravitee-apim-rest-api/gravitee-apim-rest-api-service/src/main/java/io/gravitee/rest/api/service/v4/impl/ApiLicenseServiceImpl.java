@@ -19,13 +19,13 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,31 +38,33 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiLicenseServiceImpl implements ApiLicenseService {
 
-    private final GraviteeLicenseService graviteeLicenseService;
+    private final NodeLicenseService nodeLicenseService;
     private final ApiSearchService apiSearchService;
 
     private static final Map<String, String> ENDPOINT_FEATURES = Map.of(
         "kafka",
-        GraviteeLicenseService.FEATURE_ENDPOINT_KAFKA,
+        "apim-en-endpoint-kafka",
         "mqtt5",
-        GraviteeLicenseService.FEATURE_ENDPOINT_MQTT5
+        "apim-en-endpoint-mqtt5",
+        "rabbitmq",
+        "apim-en-endpoint-rabbitmq"
     );
 
     private static final Map<String, String> ENTRYPOINT_FEATURES = Map.of(
         "http-post",
-        GraviteeLicenseService.FEATURE_ENTRYPOINT_HTTP_POST,
+        "apim-en-entrypoint-http-post",
         "http-get",
-        GraviteeLicenseService.FEATURE_ENTRYPOINT_HTTP_GET,
+        "apim-en-entrypoint-http-get",
         "webhook",
-        GraviteeLicenseService.FEATURE_ENTRYPOINT_WEBHOOK,
+        "apim-en-entrypoint-webhook",
         "websocket",
-        GraviteeLicenseService.FEATURE_ENTRYPOINT_WEBSOCKET,
+        "apim-en-entrypoint-websocket",
         "sse",
-        GraviteeLicenseService.FEATURE_ENTRYPOINT_SSE
+        "apim-en-entrypoint-sse"
     );
 
-    public ApiLicenseServiceImpl(GraviteeLicenseService graviteeLicenseService, ApiSearchService apiSearchService) {
-        this.graviteeLicenseService = graviteeLicenseService;
+    public ApiLicenseServiceImpl(NodeLicenseService nodeLicenseService, ApiSearchService apiSearchService) {
+        this.nodeLicenseService = nodeLicenseService;
         this.apiSearchService = apiSearchService;
     }
 
@@ -93,7 +95,7 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
     private void checkEndpointGroup(EndpointGroup endpointGroup) {
         Optional
             .ofNullable(ENDPOINT_FEATURES.get(endpointGroup.getType()))
-            .filter(graviteeLicenseService::isFeatureMissing)
+            .filter(nodeLicenseService::isFeatureMissing)
             .ifPresent(feature -> {
                 throw new ForbiddenFeatureException(feature);
             });
@@ -118,7 +120,7 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
     private void checkEntrypoint(Entrypoint entrypoint) {
         Optional
             .ofNullable(ENTRYPOINT_FEATURES.get(entrypoint.getType()))
-            .filter(graviteeLicenseService::isFeatureMissing)
+            .filter(nodeLicenseService::isFeatureMissing)
             .ifPresent(feature -> {
                 throw new ForbiddenFeatureException(feature);
             });

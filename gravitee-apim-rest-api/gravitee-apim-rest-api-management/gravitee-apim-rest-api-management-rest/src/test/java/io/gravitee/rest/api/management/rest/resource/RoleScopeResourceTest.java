@@ -15,14 +15,13 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
@@ -37,7 +36,7 @@ public class RoleScopeResourceTest extends AbstractResourceTest {
     private static final String SCOPE = "API";
 
     @Inject
-    GraviteeLicenseService graviteeLicenseService;
+    NodeLicenseService nodeLicenseService;
 
     @Override
     protected String contextPath() {
@@ -46,7 +45,7 @@ public class RoleScopeResourceTest extends AbstractResourceTest {
 
     @Test
     public void createRoleShouldReturnUnauthorizedWithLicense() {
-        when(graviteeLicenseService.isFeatureEnabled(FEATURE_CUSTOM_ROLES)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-custom-roles")).thenReturn(true);
 
         NewRoleEntity role = new NewRoleEntity();
         role.setName("sre");
@@ -59,7 +58,7 @@ public class RoleScopeResourceTest extends AbstractResourceTest {
 
     @Test
     public void createRoleShouldReturnOKWithLicense() {
-        when(graviteeLicenseService.isFeatureEnabled(FEATURE_CUSTOM_ROLES)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-custom-roles")).thenReturn(false);
 
         when(roleService.create(any(), any())).thenReturn(new io.gravitee.rest.api.model.RoleEntity());
 
