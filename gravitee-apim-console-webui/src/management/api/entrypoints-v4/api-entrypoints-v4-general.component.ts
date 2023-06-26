@@ -93,7 +93,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     this.api = api as ApiV4;
     this.formGroup = new FormGroup({});
 
-    const httpListeners = this.api.listeners.filter((listener) => listener.type === 'HTTP');
+    const httpListeners = this.api.listeners.filter((listener) => listener.type === 'HTTP') ?? [];
     if (httpListeners.length > 0) {
       this.apiExistingPaths = httpListeners.flatMap((listener) => {
         return (listener as HttpListener).paths;
@@ -136,17 +136,18 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   }
 
   addNewEntrypoint() {
+    const hasHttpListener = this.api.listeners.find((l) => l.type === 'HTTP') !== undefined;
     // Show dialog to add a new entrypoint
     this.matDialog
       .open<ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData>(ApiEntrypointsV4AddDialogComponent, {
-        data: { entrypoints: this.entrypointAvailableForAdd },
+        data: { entrypoints: this.entrypointAvailableForAdd, hasHttpListener },
       })
       .afterClosed()
       .pipe(
-        switchMap((entrypointsToAdd: string[]) => {
-          if (entrypointsToAdd.length > 0) {
+        switchMap((dialogRes) => {
+          if (dialogRes && !isEmpty(dialogRes.selectedEntrypoints)) {
             // Save new entrypoint with default config
-            return this.addEntrypointsToApi(entrypointsToAdd);
+            return this.addEntrypointsToApi(dialogRes.selectedEntrypoints, dialogRes.paths);
           }
           return EMPTY;
         }),
@@ -167,18 +168,18 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
 
   onSaveChanges() {
     const formValue = this.formGroup.getRawValue();
-    const currentHttpListener = this.api.listeners.find((listener) => listener.type === 'HTTP');
-    const updatedHttpListener: HttpListener = {
-      ...currentHttpListener,
-      paths: this.enableVirtualHost
-        ? formValue.paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
-        : formValue.paths.map(({ path }) => ({ path })),
-      entrypoints: [...currentHttpListener.entrypoints.filter((listener) => !this.entrypointToBeRemoved.includes(listener.type))],
-    };
     this.apiService
       .get(this.apiId)
       .pipe(
         switchMap((api) => {
+          const currentHttpListener = this.api.listeners.find((listener) => listener.type === 'HTTP');
+          const updatedHttpListener: HttpListener = {
+            ...currentHttpListener,
+            paths: this.enableVirtualHost
+              ? formValue.paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
+              : formValue.paths.map(({ path }) => ({ path })),
+            entrypoints: [...currentHttpListener.entrypoints.filter((listener) => !this.entrypointToBeRemoved.includes(listener.type))],
+          };
           const updateApi: UpdateApiV4 = {
             ...(api as ApiV4),
             listeners: [
@@ -187,9 +188,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
                 .filter((listener) => listener.type !== 'HTTP')
                 .map((l) => {
                   return { ...l, entrypoints: l.entrypoints.filter((listener) => !this.entrypointToBeRemoved.includes(listener.type)) };
-                })
-                .filter((listener) => listener.entrypoints.length > 0),
-            ],
+                }),
+            ].filter((listener) => listener.entrypoints.length > 0),
           };
 
           return this.apiService.update(this.apiId, updateApi);
@@ -241,7 +241,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     this.enableVirtualHost = !this.enableVirtualHost;
   }
 
-  private addEntrypointsToApi(entrypointsToAdd: string[]): Observable<Api> {
+  private addEntrypointsToApi(entrypointsToAdd: string[], paths: PathV4[]): Observable<Api> {
     if (isEmpty(entrypointsToAdd)) {
       return of(this.api);
     }
@@ -254,7 +254,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
         ];
         const updatedListeners: Listener[] = allListenerTypes.reduce((listeners: Listener[], listenerType) => {
           const existingListener: Listener = api.listeners.find((l) => l.type === listenerType);
-          const emptyListener: Listener = listenerType === 'HTTP' ? { type: listenerType, paths: [] } : { type: listenerType };
+          const emptyListener: Listener = listenerType === 'HTTP' ? { type: listenerType, paths } : { type: listenerType };
           const listener = existingListener ?? emptyListener;
           const existingEntrypoints: Entrypoint[] = existingListener?.entrypoints ?? [];
           const entrypointsToAdd: Entrypoint[] = entrypointVMToAdd

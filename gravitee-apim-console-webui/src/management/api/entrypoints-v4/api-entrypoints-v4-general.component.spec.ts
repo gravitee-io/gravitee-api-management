@@ -431,6 +431,69 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
   });
 
+  describe('When deleting the only entrypoint for HTTP listener', () => {
+    const ENV = fakeEnvironment();
+    const API = fakeApiV4({
+      listeners: [
+        { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] },
+        { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
+      ],
+    });
+
+    beforeEach(() => {
+      createComponent(ENV, API);
+      expectGetPortalSettings();
+      fixture.detectChanges();
+    });
+
+    it('should remove empty HTTP listener and attached context-path on save', async () => {
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
+
+      const tableRows = await harness.getEntrypointsTableRows();
+
+      // Find row to delete
+      const allEntrypointsType = await Promise.all(
+        tableRows
+          .map(async (row) => {
+            return (await row.getCells({ columnName: 'type' }))[0];
+          })
+          .map(async (cell) => {
+            return await (await cell).getText();
+          }),
+      );
+      const indexToRemove = allEntrypointsType.indexOf('HTTP GET');
+      expect(indexToRemove).toEqual(0);
+
+      // Delete
+      const actionCell = await tableRows[0].getCells({ columnName: 'actions' });
+      const actionButtons = await actionCell[0].getAllHarnesses(MatButtonHarness);
+      const deleteButton = actionButtons[1];
+      await deleteButton.click();
+
+      // Check row is removed and entrypoint marked for deletion
+      const rows = await harness.getEntrypointsTableRows();
+      expect(rows.length).toEqual(1);
+      expect(fixture.componentInstance.entrypointToBeRemoved).toEqual(['http-get']);
+
+      // Check deletion is done on save
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+
+      expect(await saveButton.isDisabled()).toBeFalsy();
+      await saveButton.click();
+
+      // GET
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+  });
+
   describe('When API does not have corresponding listener for entrypoint to add', () => {
     const ENV = fakeEnvironment();
     const API = fakeApiV4({
@@ -495,6 +558,56 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
   });
 
+  describe('When API does not have HTTP listener', () => {
+    const ENV = fakeEnvironment();
+    const API = fakeApiV4({
+      listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }],
+    });
+
+    beforeEach(() => {
+      createComponent(ENV, API);
+      fixture.detectChanges();
+    });
+
+    it('should ask for the context path', async () => {
+      const addListenerButton = await loader.getHarness(MatButtonHarness.with({ text: 'Add an entrypoint' }));
+      expect(await addListenerButton.isDisabled()).toBeFalsy();
+      await addListenerButton.click();
+
+      const rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      const dialog = await rootLoader.getHarness(ApiEntrypointsV4AddDialogHarness);
+      const entrypointList = await dialog.getEntrypointSelectionList();
+      const items = await entrypointList.getItems();
+      // check new entrypoint type
+      await items[0].select();
+
+      // click on save
+      await dialog.getSaveButton().then((btn) => btn.click());
+
+      // dialog should show context path component
+      const contextPathForm = await dialog.getContextPathForm();
+      await contextPathForm.getLastListenerRow().then((row) => row.pathInput.setValue('/new-context-path'));
+      expectApiVerify();
+      fixture.detectChanges();
+
+      const saveBtn = await dialog.getSaveWithContextPathButton();
+      expect(await saveBtn.isDisabled()).toEqual(false);
+      await saveBtn.click();
+
+      expectGetApi(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [
+          { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
+          { type: 'HTTP', paths: [{ path: '/new-context-path' }], entrypoints: [{ type: 'http-get', configuration: {} }] },
+        ],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+  });
   const expectGetCurrentEnvironment = (environment: Environment) => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
   };

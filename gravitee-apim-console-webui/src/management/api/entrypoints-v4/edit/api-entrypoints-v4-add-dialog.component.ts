@@ -21,6 +21,7 @@ import { ConnectorVM } from '../../creation-v4/models/ConnectorVM';
 
 export type ApiEntrypointsV4AddDialogComponentData = {
   entrypoints: ConnectorVM[];
+  hasHttpListener: boolean;
 };
 @Component({
   selector: 'api-entrypoints-v4-add-dialog',
@@ -28,8 +29,11 @@ export type ApiEntrypointsV4AddDialogComponentData = {
   styles: [require('./api-entrypoints-v4-add-dialog.component.scss')],
 })
 export class ApiEntrypointsV4AddDialogComponent implements OnInit {
+  public apiHasHttpListener: boolean;
   public entrypoints: ConnectorVM[];
   public formGroup: FormGroup;
+  public showContextPathForm = false;
+  public contextPathFormGroup: FormGroup;
 
   constructor(
     public dialogRef: MatDialogRef<ApiEntrypointsV4AddDialogComponent>,
@@ -37,6 +41,7 @@ export class ApiEntrypointsV4AddDialogComponent implements OnInit {
     private formBuilder: FormBuilder,
   ) {
     this.entrypoints = data.entrypoints;
+    this.apiHasHttpListener = data.hasHttpListener;
   }
 
   ngOnInit(): void {
@@ -46,9 +51,27 @@ export class ApiEntrypointsV4AddDialogComponent implements OnInit {
   }
 
   save() {
-    this.dialogRef.close(this.formGroup.getRawValue().selectedEntrypointsIds);
+    const selectedEntrypointsIds: string[] = this.formGroup.getRawValue().selectedEntrypointsIds;
+    const isHttpEntrypointSelected = this.entrypoints
+      .filter((e) => selectedEntrypointsIds.includes(e.id))
+      .some((e) => e.supportedListenerType === 'HTTP');
+
+    if (!this.apiHasHttpListener && isHttpEntrypointSelected) {
+      this.contextPathFormGroup = this.formBuilder.group({
+        contextPath: this.formBuilder.control([], [Validators.required]),
+      });
+      this.showContextPathForm = true;
+    } else {
+      this.dialogRef.close({ selectedEntrypoints: this.formGroup.getRawValue().selectedEntrypointsIds });
+    }
   }
 
+  saveWithContextPath() {
+    this.dialogRef.close({
+      selectedEntrypoints: this.formGroup.getRawValue().selectedEntrypointsIds,
+      paths: this.contextPathFormGroup.getRawValue().contextPath,
+    });
+  }
   cancel() {
     this.dialogRef.close([]);
   }
