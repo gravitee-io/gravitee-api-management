@@ -152,7 +152,7 @@ class ConditionalPolicyTest {
 
         cut.onRequest(ctx).test().assertComplete();
 
-        verify(policy).onRequest(ctx);
+        verify(policy, never()).onRequest(ctx);
         verify(spyCompletable, never()).subscribe(any(CompletableObserver.class));
         verifyNoMoreInteractions(policy);
     }
@@ -178,7 +178,7 @@ class ConditionalPolicyTest {
 
         cut.onResponse(ctx).test().assertComplete();
 
-        verify(policy).onResponse(ctx);
+        verify(policy, never()).onResponse(ctx);
         verify(spyCompletable, never()).subscribe(any(CompletableObserver.class));
         verifyNoMoreInteractions(policy);
     }
