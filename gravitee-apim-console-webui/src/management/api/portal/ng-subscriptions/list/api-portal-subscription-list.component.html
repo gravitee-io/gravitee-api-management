@@ -129,7 +129,7 @@
     <ng-container matColumnDef="endAt">
       <th mat-header-cell *matHeaderCellDef id="endAt">End at</th>
       <td mat-cell *matCellDef="let element">
-        {{ element.endAt }}
+        {{ element.endAt | date : 'medium' }}
       </td>
     </ng-container>
 
