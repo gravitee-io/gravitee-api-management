@@ -16,6 +16,7 @@ export default defineConfig({
         managementApi: 'http://nginx',
         gatewayServer: "http://nginx/gateway",
         portalApi: "/portal/environments/DEFAULT",
+        wiremockUrl: 'http://wiremock:8080',
     },
     e2e: {
         projectId: "ui-test",

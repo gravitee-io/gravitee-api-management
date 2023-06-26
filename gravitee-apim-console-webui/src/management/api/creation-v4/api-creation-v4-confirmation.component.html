@@ -22,7 +22,12 @@
         <mat-icon svgIcon="gio:check"></mat-icon>
       </div>
       <h2>{{ api.name }} has been {{ api.lifecycleState === 'PUBLISHED' ? 'deployed' : 'created' }}</h2>
-      <button mat-flat-button color="primary" (click)="navigate('management.apis.detail.portal.general')">
+      <button
+        mat-flat-button
+        color="primary"
+        data-testid="open_api_in_api_management_button"
+        (click)="navigate('management.apis.detail.portal.general')"
+      >
         Open my API in API Management
       </button>
     </div>

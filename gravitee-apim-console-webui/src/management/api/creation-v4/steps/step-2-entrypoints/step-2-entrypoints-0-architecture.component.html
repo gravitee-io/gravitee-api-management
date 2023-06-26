@@ -33,7 +33,7 @@
       >
         <div class="option">
           <!-- Note for migration: Angular Material 15 automatically add radio -->
-          <mat-radio-button [checked]="syncOption?.selected"></mat-radio-button>
+          <mat-radio-button [checked]="syncOption?.selected" data-testid="api_creation_proxy_checkbox"></mat-radio-button>
           <gio-selection-list-option-layout>
             <gio-selection-list-option-layout-title> Proxy upstream Protocol </gio-selection-list-option-layout-title>
 
@@ -86,7 +86,9 @@
 
     <div class="api-creation-v4__step__footer">
       <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">Select my API architecture</button>
+      <button data-testid="select_architecture_button" mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">
+        Select my API architecture
+      </button>
     </div>
   </form>
 </mat-card>

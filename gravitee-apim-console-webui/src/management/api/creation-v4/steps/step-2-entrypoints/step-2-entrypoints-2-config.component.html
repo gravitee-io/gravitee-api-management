@@ -52,7 +52,16 @@
 
     <div class="api-creation-v4__step__footer">
       <button id="previous" mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button id="validate" mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Validate my entrypoints</button>
+      <button
+        id="validate"
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="formGroup.invalid"
+        data-testid="validate_entrypoints_button"
+      >
+        Validate my entrypoints
+      </button>
     </div>
   </form>
 </mat-card>

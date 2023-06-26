@@ -44,6 +44,24 @@ export function closePlan(auth: BasicAuthentication, apiId: string, planId: stri
   });
 }
 
+export function closeV4Plan(auth: BasicAuthentication, apiId: string, planId: string, envId = 'DEFAULT') {
+  return cy.request({
+    method: 'POST',
+    url: `${Cypress.env('managementApi')}/management/v2/environments/${envId}/apis/${apiId}/plans/${planId}/_close`,
+    auth,
+    failOnStatusCode: false,
+  });
+}
+
+export function listV4Plans(auth: BasicAuthentication, apiId: string, envId = 'DEFAULT') {
+  return cy.request({
+    method: 'GET',
+    url: `${Cypress.env('managementApi')}/management/v2/environments/${envId}/apis/${apiId}/plans`,
+    auth,
+    failOnStatusCode: false,
+  });
+}
+
 export function publishPlan(auth: BasicAuthentication, apiId: string, planId: string, failOnStatusCode = false) {
   return cy.request({
     method: 'POST',

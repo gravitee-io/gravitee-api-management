@@ -135,7 +135,14 @@
           matTooltip="Your API definition will be saved, but not deployed to the gateway"
         ></mat-icon>
       </button>
-      <button color="primary" mat-flat-button type="button" [disabled]="!deployable" (click)="createApi(true)">
+      <button
+        data-testid="deploy_api_button"
+        color="primary"
+        mat-flat-button
+        type="button"
+        [disabled]="!deployable"
+        (click)="createApi(true)"
+      >
         Save & Deploy API<mat-icon
           svgIcon="gio:info"
           class="step-5-summary__footer__button-icon"
