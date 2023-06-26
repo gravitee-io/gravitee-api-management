@@ -63,6 +63,15 @@ export function deleteApi(auth: BasicAuthentication, apiId: string, failOnStatus
   });
 }
 
+export function deleteV4Api(auth: BasicAuthentication, apiId: string, failOnStatusCode = false) {
+  return cy.request({
+    method: 'DELETE',
+    url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis/${apiId}`,
+    auth,
+    failOnStatusCode,
+  });
+}
+
 export function deployApi(auth: BasicAuthentication, apiId: string, failOnStatusCode = false) {
   return cy.request({
     method: 'POST',
@@ -85,6 +94,15 @@ export function stopApi(auth: BasicAuthentication, apiId: string, failOnStatusCo
   return cy.request({
     method: 'POST',
     url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${apiId}?action=STOP`,
+    auth,
+    failOnStatusCode,
+  });
+}
+
+export function stopV4Api(auth: BasicAuthentication, apiId: string, failOnStatusCode = false) {
+  return cy.request({
+    method: 'POST',
+    url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis/${apiId}/_stop`,
     auth,
     failOnStatusCode,
   });

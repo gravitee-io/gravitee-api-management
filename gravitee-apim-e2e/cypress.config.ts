@@ -3,6 +3,8 @@ import { defineConfig } from 'cypress';
 export default defineConfig({
   env: {
     managementApi: 'http://localhost:8083',
+    wiremockUrl: 'http://wiremock:8080',
+    gatewayServer: 'http://localhost:8082',
   },
   e2e: {
     baseUrl: 'http://localhost:3000',
