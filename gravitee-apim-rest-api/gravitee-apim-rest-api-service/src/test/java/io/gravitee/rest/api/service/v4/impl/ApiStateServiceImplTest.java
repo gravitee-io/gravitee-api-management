@@ -19,8 +19,10 @@ import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -45,6 +47,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
+import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -60,6 +63,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.apiguardian.api.API;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -226,6 +230,47 @@ public class ApiStateServiceImplTest {
         verify(apiNotificationService, times(1))
             .triggerDeployNotification(eq(GraviteeContext.getExecutionContext()), argThat(argApi -> argApi.getId().equals(API_ID)));
         verify(apiNotificationService, times(1))
+            .triggerStartNotification(eq(GraviteeContext.getExecutionContext()), argThat(argApi -> argApi.getId().equals(API_ID)));
+    }
+
+    @Test
+    public void shouldNotStartApiIfApiCannotBeDeploy() throws TechnicalException {
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(apiValidationService.canDeploy(any(), anyString())).thenThrow(new ApiNotDeployableException("Mock deploy Error Message"));
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+
+        final EventQuery query = new EventQuery();
+        query.setApi(API_ID);
+        query.setTypes(singleton(PUBLISH_API));
+        when(eventService.search(GraviteeContext.getExecutionContext(), query)).thenReturn(emptyList());
+
+        updatedApi.setLifecycleState(LifecycleState.STARTED);
+        when(apiRepository.update(any())).thenReturn(updatedApi);
+
+        Assertions
+            .assertThatException()
+            .isThrownBy(() -> apiStateService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME))
+            .withMessageContaining("Mock deploy Error Message");
+
+        verify(apiRepository, times(1)).update(argThat(api -> api.getLifecycleState().equals(LifecycleState.STARTED)));
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
+        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "1");
+
+        verify(eventService, never())
+            .createApiEvent(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(singleton(GraviteeContext.getCurrentEnvironment())),
+                eq(EventType.PUBLISH_API),
+                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
+                eq(properties)
+            );
+
+        verify(apiNotificationService, never())
+            .triggerDeployNotification(eq(GraviteeContext.getExecutionContext()), argThat(argApi -> argApi.getId().equals(API_ID)));
+        verify(apiNotificationService, never())
             .triggerStartNotification(eq(GraviteeContext.getExecutionContext()), argThat(argApi -> argApi.getId().equals(API_ID)));
     }
 

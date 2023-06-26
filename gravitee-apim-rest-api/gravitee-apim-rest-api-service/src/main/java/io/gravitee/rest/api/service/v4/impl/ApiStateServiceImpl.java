@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
@@ -305,6 +306,9 @@ public class ApiStateServiceImpl implements ApiStateService {
                 // let's do it.
                 return (ApiEntity) this.deploy(executionContext, apiId, userId, new ApiDeploymentEntity());
             }
+        } catch (AbstractManagementException e) {
+            log.info("Unable to deploy last published API {} due to : {}", apiId, e.getMessage());
+            throw e;
         } catch (Exception e) {
             log.error("An error occurs while trying to deploy last published API {}", apiId, e);
             throw new TechnicalException("An error occurs while trying to deploy last published API " + apiId, e);
