@@ -16,7 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
-import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
@@ -28,6 +28,7 @@ import { ClientRegistrationProvider } from '../../../entities/client-registratio
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { PortalSettings, PortalSettingsApplication } from '../../../entities/portal/portalSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
 
 export type ProvidersTableDS = {
   id: string;
@@ -47,6 +48,8 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   displayedColumns = ['name', 'description', 'updatedAt', 'actions'];
   isLoadingData = true;
   disabledMessage = 'Configuration provided by the system';
+  dcrRegistrationLicense = { feature: 'apim-dcr-registration' };
+  hasDcrRegistrationLock$: Observable<boolean>;
   private unsubscribe$ = new Subject();
   private settings: PortalSettings;
 
@@ -58,6 +61,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
     private readonly portalSettingsService: PortalSettingsService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
+    private readonly licenseService: GioLicenseService,
   ) {}
 
   ngOnDestroy(): void {
@@ -105,6 +109,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
         }),
       }),
     });
+    this.hasDcrRegistrationLock$ = this.licenseService.notAllowed(this.dcrRegistrationLicense.feature);
 
     combineLatest([this.portalSettingsService.get(), this.clientRegistrationProvidersService.list()])
       .pipe(
