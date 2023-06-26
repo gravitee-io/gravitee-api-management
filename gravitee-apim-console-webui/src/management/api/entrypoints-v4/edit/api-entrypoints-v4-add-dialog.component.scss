@@ -18,14 +18,8 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 }
 
-.footer {
+.actions {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
-  margin-top: 24px;
-  gap: 16px;
-
-  :first-child {
-    margin-right: auto;
-  }
 }

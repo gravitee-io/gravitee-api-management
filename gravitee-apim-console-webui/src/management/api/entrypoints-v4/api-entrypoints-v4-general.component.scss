@@ -17,25 +17,28 @@
       margin-bottom: 8px;
     }
   }
-  &__table {
-    width: 100%;
+
+  &__type {
     margin-top: 24px;
 
-    &__type {
-      display: flex;
-      align-items: center;
+    &__table {
+      width: 100%;
+      margin-top: 16px;
+      margin-bottom: 8px;
 
-      mat-icon {
-        padding-right: 8px;
+      &__type {
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
-    }
 
-    &__actions {
-      display: flex;
-      justify-content: flex-end;
+      &__actions {
+        display: flex;
+        justify-content: flex-end;
 
-      .mat-icon-button {
-        height: 48px;
+        .mat-icon-button {
+          height: 48px;
+        }
       }
     }
   }

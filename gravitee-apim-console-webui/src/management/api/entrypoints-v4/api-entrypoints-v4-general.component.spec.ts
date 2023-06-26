@@ -309,7 +309,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       // Check row is removed and entrypoint marked for deletion
       const rows = await harness.getEntrypointsTableRows();
       expect(rows.length).toEqual(2);
-      expect(fixture.componentInstance.entrypointToBeRemoved).toEqual(['http-post']);
+      expect(fixture.componentInstance.entrypointsToRemoveFormControl.value).toEqual(['http-post']);
 
       // Check deletion is done on save
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
@@ -359,7 +359,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       // Check row is removed and entrypoint marked for deletion
       const rows = await harness.getEntrypointsTableRows();
       expect(rows.length).toEqual(2);
-      expect(fixture.componentInstance.entrypointToBeRemoved).toEqual(['webhook']);
+      expect(fixture.componentInstance.entrypointsToRemoveFormControl.value).toEqual(['webhook']);
 
       // Check deletion is done on save
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
@@ -473,7 +473,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       // Check row is removed and entrypoint marked for deletion
       const rows = await harness.getEntrypointsTableRows();
       expect(rows.length).toEqual(1);
-      expect(fixture.componentInstance.entrypointToBeRemoved).toEqual(['http-get']);
+      expect(fixture.componentInstance.entrypointsToRemoveFormControl.value).toEqual(['http-get']);
 
       // Check deletion is done on save
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));

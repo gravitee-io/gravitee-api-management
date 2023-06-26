@@ -20,7 +20,7 @@
   <form [formGroup]="formGroup" *ngIf="formGroup" (ngSubmit)="onSaveChanges()">
     <div class="entrypoints__context-path" *ngIf="pathsFormControl">
       <div class="entrypoints__context-path__title">
-        <span class="mat-body-strong">Entrypoints context</span>
+        <span class="mat-body-strong">Entrypoints context-paths</span>
 
         <button id="switchListenerType" mat-button type="button" (click)="switchEntrypointsMode()">
           <ng-container *ngIf="!this.enableVirtualHost"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
@@ -41,44 +41,37 @@
       ></gio-form-listeners-virtual-host>
     </div>
 
-    <table
-      mat-table
-      [dataSource]="dataSource"
-      class="entrypoints__table gio-table-light"
-      aria-label="entrypoints"
-      *ngIf="api?.type === 'MESSAGE'"
-    >
-      <ng-container matColumnDef="type">
-        <th mat-header-cell *matHeaderCellDef>Entrypoint type</th>
-        <td mat-cell *matCellDef="let element">
-          <div class="entrypoints__table__type"><mat-icon [svgIcon]="element.icon"></mat-icon> {{ element.type }}</div>
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let element" class="entrypoints__table__actions">
-          <button type="button" mat-icon-button aria-label="Edit" (click)="onEdit(element)">
-            <mat-icon svgIcon="gio:edit-pencil"> </mat-icon>
-          </button>
-          <button type="button" mat-icon-button aria-label="Edit" (click)="onDelete(element)">
-            <mat-icon svgIcon="gio:trash"></mat-icon>
-          </button>
-        </td>
-      </ng-container>
+    <div class="entrypoints__type">
+      <span class="mat-body-strong">Entrypoints types</span>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns" class="entrypoints__table__header"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
-
-    <div class="entrypoints__footer">
-      <button
-        mat-flat-button
-        color="primary"
-        type="submit"
-        [disabled]="((formGroup.pristine || formGroup.invalid) && entrypointToBeRemoved.length === 0) || dataSource.length === 0"
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        class="entrypoints__type__table gio-table-light"
+        aria-label="entrypoints"
+        *ngIf="api?.type === 'MESSAGE'"
       >
-        Save changes
-      </button>
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef>Entrypoint type</th>
+          <td mat-cell *matCellDef="let element">
+            <div class="entrypoints__type__table__type"><mat-icon [svgIcon]="element.icon"></mat-icon> {{ element.type }}</div>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let element" class="entrypoints__type__table__actions">
+            <button type="button" mat-icon-button aria-label="Edit" (click)="onEdit(element)">
+              <mat-icon svgIcon="gio:edit-pencil"> </mat-icon>
+            </button>
+            <button type="button" mat-icon-button aria-label="Edit" (click)="onDelete(element)">
+              <mat-icon svgIcon="gio:trash"></mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns" class="entrypoints__type__table__header"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
       <button
         mat-stroked-button
         type="button"
@@ -87,6 +80,12 @@
         (click)="addNewEntrypoint()"
       >
         Add an entrypoint
+      </button>
+    </div>
+
+    <div class="entrypoints__footer">
+      <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.pristine || formGroup.invalid || dataSource.length === 0">
+        Save changes
       </button>
     </div>
   </form>
