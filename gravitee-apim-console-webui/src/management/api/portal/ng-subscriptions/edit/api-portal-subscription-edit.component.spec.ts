@@ -158,6 +158,27 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       expect(await harness.rejectBtnIsVisible()).toEqual(true);
     });
 
+    it('should load rejected subscription', async () => {
+      const rejectedSubscription = BASIC_SUBSCRIPTION();
+      rejectedSubscription.status = 'REJECTED';
+      await initComponent(rejectedSubscription);
+      expectApplicationGet();
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+
+      expect(await harness.getStatus()).toEqual('REJECTED');
+
+      expect(await harness.footerIsVisible()).toEqual(false);
+
+      expect(await harness.transferBtnIsVisible()).toEqual(false);
+      expect(await harness.pauseBtnIsVisible()).toEqual(false);
+      expect(await harness.changeEndDateBtnIsVisible()).toEqual(false);
+      expect(await harness.closeBtnIsVisible()).toEqual(false);
+
+      expect(await harness.validateBtnIsVisible()).toEqual(false);
+      expect(await harness.rejectBtnIsVisible()).toEqual(false);
+    });
+
     it('should not load footer in read-only mode', async () => {
       await initComponent(BASIC_SUBSCRIPTION(), ['api-subscription-r']);
       expectApplicationGet(ApiKeyMode.SHARED);

@@ -113,38 +113,36 @@
           </div>
         </div>
       </div>
-      <div class="subscription__footer" *gioPermission="{ anyOf: ['api-subscription-u'] }">
-        <ng-container *ngIf="subscription?.status !== 'PENDING'; else pendingSubscription">
-          <button
-            mat-stroked-button
-            (click)="transferSubscription()"
-            [disabled]="subscription.status !== 'PAUSED' && subscription.status !== 'ACCEPTED'"
-          >
-            <mat-icon svgIcon="gio:data-transfer-both"></mat-icon>
-            Transfer
-          </button>
-          <button mat-stroked-button (click)="pauseSubscription()" *ngIf="subscription.status === 'ACCEPTED'">
-            <mat-icon svgIcon="gio:pause-circle"></mat-icon>
-            Pause
-          </button>
-          <button mat-stroked-button (click)="resumeSubscription()" *ngIf="subscription.status === 'PAUSED'">
-            <mat-icon svgIcon="gio:play-circle"></mat-icon>
-            Resume
-          </button>
-          <button mat-stroked-button (click)="changeEndDate()">
-            <mat-icon svgIcon="gio:calendar"></mat-icon>
-            Change end date
-          </button>
-          <button mat-raised-button color="warn" (click)="closeSubscription()">
-            <mat-icon svgIcon="gio:x-circle"></mat-icon>
-            Close
-          </button>
-        </ng-container>
-        <ng-template #pendingSubscription>
-          <button mat-raised-button color="primary" (click)="validateSubscription()">Validate subscription</button>
-          <button mat-stroked-button (click)="rejectSubscription()">Reject subscription</button>
-        </ng-template>
-      </div>
+      <ng-container *ngIf="subscription?.status === 'PAUSED' || subscription?.status === 'ACCEPTED' || subscription?.status === 'PENDING'">
+        <div class="subscription__footer" *gioPermission="{ anyOf: ['api-subscription-u'] }">
+          <ng-container *ngIf="subscription.status === 'PAUSED' || subscription.status === 'ACCEPTED'; else pendingSubscription">
+            <button mat-stroked-button (click)="transferSubscription()">
+              <mat-icon svgIcon="gio:data-transfer-both"></mat-icon>
+              Transfer
+            </button>
+            <button mat-stroked-button (click)="pauseSubscription()" *ngIf="subscription.status === 'ACCEPTED'">
+              <mat-icon svgIcon="gio:pause-circle"></mat-icon>
+              Pause
+            </button>
+            <button mat-stroked-button (click)="resumeSubscription()" *ngIf="subscription.status === 'PAUSED'">
+              <mat-icon svgIcon="gio:play-circle"></mat-icon>
+              Resume
+            </button>
+            <button mat-stroked-button (click)="changeEndDate()">
+              <mat-icon svgIcon="gio:calendar"></mat-icon>
+              Change end date
+            </button>
+            <button mat-raised-button color="warn" (click)="closeSubscription()">
+              <mat-icon svgIcon="gio:x-circle"></mat-icon>
+              Close
+            </button>
+          </ng-container>
+          <ng-template #pendingSubscription>
+            <button mat-raised-button color="primary" (click)="validateSubscription()">Validate subscription</button>
+            <button mat-stroked-button (click)="rejectSubscription()">Reject subscription</button>
+          </ng-template>
+        </div>
+      </ng-container>
     </ng-container>
     <!--  TODO: Add Shared API Key section -->
   </mat-card>
