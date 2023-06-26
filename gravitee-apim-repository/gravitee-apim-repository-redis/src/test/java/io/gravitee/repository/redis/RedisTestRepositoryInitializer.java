@@ -42,7 +42,7 @@ public class RedisTestRepositoryInitializer implements TestRepositoryInitializer
         // Wait for all RedisApi to be ready
         redisClients.forEach(redisClient -> {
             try {
-                redisClient.redisApi().toCompletionStage().toCompletableFuture().get(500, TimeUnit.MILLISECONDS);
+                redisClient.redisApi().toCompletionStage().toCompletableFuture().get(1500, TimeUnit.MILLISECONDS);
             } catch (Exception e) {
                 LOGGER.error("Error while waiting for RedisApi to be ready", e);
                 Thread.currentThread().interrupt();
