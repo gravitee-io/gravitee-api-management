@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { ApiSubscriptionsResponse, CreateSubscription, Subscription } from '../entities/management-api-v2';
+import { ApiSubscriptionsResponse, CreateSubscription, Subscription, UpdateSubscription } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -53,6 +53,10 @@ export class ApiSubscriptionV2Service {
     return this.http.get<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}?expands=${expands}`);
   }
 
+  update(apiId: string, subscriptionId: string, updateSubscription: UpdateSubscription): Observable<Subscription> {
+    return this.http.put<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}`, updateSubscription);
+  }
+
   transfer(apiId: string, subscriptionId: string, planId: string): Observable<Subscription> {
     return this.http.post<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/_transfer`, {
       planId,
@@ -69,5 +73,9 @@ export class ApiSubscriptionV2Service {
 
   create(apiId: string, createSubscription: CreateSubscription): Observable<Subscription> {
     return this.http.post<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions`, createSubscription);
+  }
+
+  close(subscriptionId: string, apiId: string): Observable<Subscription> {
+    return this.http.post<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/_close`, {});
   }
 }
