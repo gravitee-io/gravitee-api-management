@@ -22,14 +22,14 @@ import { Subject } from 'rxjs';
 import { ApiPlanV2Service } from '../../../../../../services-ngx/api-plan-v2.service';
 import { PlanMode, PlanSecurityType } from '../../../../../../entities/management-api-v2';
 
-export interface SubscriptionTransferData {
+export interface ApiPortalSubscriptionTransferDialogData {
   apiId: string;
   currentPlanId: string;
   securityType: PlanSecurityType;
   mode: PlanMode;
 }
 
-export interface SubscriptionTransferResult {
+export interface ApiPortalSubscriptionTransferDialogResult {
   selectedPlanId: string;
 }
 
@@ -48,11 +48,11 @@ export class ApiPortalSubscriptionTransferDialogComponent implements OnInit {
   showGeneralConditionsMsg: boolean;
   form: FormGroup;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private data: SubscriptionTransferData;
+  private data: ApiPortalSubscriptionTransferDialogData;
 
   constructor(
-    private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionTransferDialogComponent, SubscriptionTransferResult>,
-    @Inject(MAT_DIALOG_DATA) dialogData: SubscriptionTransferData,
+    private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionTransferDialogComponent, ApiPortalSubscriptionTransferDialogResult>,
+    @Inject(MAT_DIALOG_DATA) dialogData: ApiPortalSubscriptionTransferDialogData,
     private readonly apiPlanService: ApiPlanV2Service,
   ) {
     this.data = dialogData;
