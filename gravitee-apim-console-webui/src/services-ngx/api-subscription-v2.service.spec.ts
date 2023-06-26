@@ -99,6 +99,47 @@ describe('ApiSubscriptionV2Service', () => {
     });
   });
 
+  describe('update', () => {
+    const SUBSCRIPTION_ID = 'my-subscription';
+    it('should call API', (done) => {
+      const startDate = new Date();
+      const endDate = new Date(new Date().setFullYear(2050));
+      const metadata = { nice: 'metadata' };
+      const consumerConfiguration = {
+        entrypointId: 'entrypoint-id',
+        entrypointConfiguration: {
+          nice: 'config',
+        },
+      };
+
+      const subscription = fakeSubscription({ id: SUBSCRIPTION_ID, startingAt: startDate, endingAt: endDate });
+
+      apiSubscriptionV2Service
+        .update(API_ID, SUBSCRIPTION_ID, {
+          startingAt: startDate,
+          endingAt: endDate,
+          metadata,
+          consumerConfiguration,
+        })
+        .subscribe((response) => {
+          expect(response).toEqual(subscription);
+          done();
+        });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual({
+        startingAt: startDate,
+        endingAt: endDate,
+        metadata,
+        consumerConfiguration,
+      });
+      req.flush(subscription);
+    });
+  });
+
   describe('transfer', () => {
     const SUBSCRIPTION_ID = 'my-subscription';
     const PLAN_ID = 'my-plan';
@@ -179,6 +220,25 @@ describe('ApiSubscriptionV2Service', () => {
       });
       expect(req.request.body).toEqual(createSubscription);
       req.flush(fakeSubscription());
+    });
+  });
+
+  describe('close', () => {
+    const SUBSCRIPTION_ID = 'my-subscription';
+    it('should call API', (done) => {
+      const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
+      apiSubscriptionV2Service.close(SUBSCRIPTION_ID, API_ID).subscribe((response) => {
+        expect(response).toEqual(subscription);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/_close`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({});
+
+      req.flush(subscription);
     });
   });
 });

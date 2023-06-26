@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './createSubscription';
-export * from './subscription';
-export * from './subscription.fixture';
-export * from './subscriptionConsumerConfiguration';
-export * from './subscriptionConsumerStatus';
-export * from './subscriptionStatus';
-export * from './updateSubscription';
+import { SubscriptionConsumerConfiguration } from './subscriptionConsumerConfiguration';
+
+export interface UpdateSubscription {
+  consumerConfiguration?: SubscriptionConsumerConfiguration;
+  metadata?: { [key: string]: string };
+  startingAt?: Date;
+  endingAt?: Date;
+}
