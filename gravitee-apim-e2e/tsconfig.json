@@ -13,7 +13,8 @@
       "@model/*": ["ui-test/model/*"],
       "@commands/*": ["ui-test/commands/*"],
       "@api-test-resources/*": ["<rootDir>/api-test/resources/$1"],
-      "@lib/jest-utils": ["lib/jest-utils"]
+      "@lib/jest-utils": ["lib/jest-utils"],
+      "@pageobjects/*": ["ui-test/support/PageObjects/*"]
     }
   },
   "include": ["**/*.ts"]
