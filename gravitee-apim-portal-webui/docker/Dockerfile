@@ -14,11 +14,18 @@
 # limitations under the License.
 #
 
-FROM graviteeio/nginx:1.25
+FROM graviteeio/nginx-noconfd:1.25
 LABEL maintainer="contact@graviteesource.com"
 
-COPY ./docker/config /etc/confd
+ENV ALLOWED_FRAME_ANCESTOR_URLS "'self'"
+ENV PORTAL_BASE_HREF "/"
 
 COPY ./dist /usr/share/nginx/html/
+
+COPY docker/config/config.json /usr/share/nginx/html/assets/config.json
+COPY docker/config/default.conf /etc/nginx/conf.d/default.conf
+
+RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/conf.d/
+
 
 CMD ["sh", "/run.sh"]
