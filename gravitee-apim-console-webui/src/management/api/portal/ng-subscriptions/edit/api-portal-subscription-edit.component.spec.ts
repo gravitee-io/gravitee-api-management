@@ -471,6 +471,52 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       const cancelBtn = await changeEndDateDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
       await cancelBtn.click();
     });
+
+    describe('close subscription', () => {
+      beforeEach(async () => {
+        await initComponent();
+        expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      });
+      it('should close subscription', async () => {
+        const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+        expect(await harness.closeBtnIsVisible()).toEqual(true);
+
+        await harness.openCloseDialog();
+
+        const closeDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+          MatDialogHarness.with({ selector: '#confirmCloseSubscriptionDialog' }),
+        );
+        expect(await closeDialog.getTitleText()).toEqual('Close your subscription');
+
+        const closeBtn = await closeDialog.getHarness(MatButtonHarness.with({ text: 'Close' }));
+        expect(await closeBtn.isDisabled()).toEqual(false);
+        await closeBtn.click();
+
+        expectApiSubscriptionClose(SUBSCRIPTION_ID, BASIC_SUBSCRIPTION());
+        const closedSubscription = BASIC_SUBSCRIPTION();
+        closedSubscription.status = 'CLOSED';
+        expectApiSubscriptionGet(closedSubscription);
+        expectApplicationGet();
+
+        expect(await harness.getStatus()).toEqual('CLOSED');
+        expect(await harness.pauseBtnIsVisible()).toEqual(false);
+        expect(await harness.resumeBtnIsVisible()).toEqual(false);
+      });
+      it('should not close subscription on cancel', async () => {
+        const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+        expect(await harness.closeBtnIsVisible()).toEqual(true);
+
+        await harness.openCloseDialog();
+
+        const closeDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+          MatDialogHarness.with({ selector: '#confirmCloseSubscriptionDialog' }),
+        );
+        const cancelBtn = await closeDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+        await cancelBtn.click();
+
+        expect(await harness.getStatus()).toEqual('ACCEPTED');
+      });
+    });
   });
 
   async function initComponent(
@@ -543,6 +589,15 @@ describe('ApiPortalSubscriptionEditComponent', () => {
   function expectApiSubscriptionResume(subscriptionId: string, subscription: Subscription): void {
     const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscriptionId}/_resume`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual({});
+    req.flush(subscription);
+  }
+
+  function expectApiSubscriptionClose(subscriptionId: string, subscription: Subscription): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscriptionId}/_close`,
       method: 'POST',
     });
     expect(req.request.body).toEqual({});

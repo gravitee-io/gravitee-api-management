@@ -116,7 +116,7 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
               endingAt: this.serializeDate(subscription.endingAt),
               processedAt: this.serializeDate(subscription.processedAt),
               closedAt: this.serializeDate(subscription.closedAt),
-              domain: subscription.application.domain ?? '-',
+              domain: !subscription.application.domain || subscription.application.domain === '' ? '-' : subscription.application.domain,
               consumerConfiguration: subscription.consumerConfiguration,
               metadata: subscription.metadata,
             };
@@ -281,7 +281,32 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
   }
 
   closeSubscription() {
-    // Do nothing for now
+    let content = `${this.subscription.application.name} will no longer be able to consume your API.`;
+    if (this.subscription.plan.securityType === 'API_KEY' && !this.hasSharedApiKeyMode) {
+      content += '<br/>All Api-keys associated to this subscription will be closed and unusable.';
+    }
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        data: {
+          title: `Close your subscription`,
+          content,
+          confirmButton: 'Close',
+        },
+        role: 'alertdialog',
+        id: 'confirmCloseSubscriptionDialog',
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((confirm) => (confirm ? this.apiSubscriptionService.close(this.subscription.id, this.apiId) : EMPTY)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`Subscription closed`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
   }
 
   goBackToSubscriptions() {
