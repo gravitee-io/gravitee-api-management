@@ -21,24 +21,34 @@ import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
-import { PlanMode, PlanSecurityType, SubscriptionStatus } from '../../../../../entities/management-api-v2';
+import {
+  PlanMode,
+  PlanSecurityType,
+  SubscriptionConsumerConfiguration,
+  SubscriptionStatus,
+} from '../../../../../entities/management-api-v2';
 import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import {
   ApiPortalSubscriptionTransferDialogComponent,
-  SubscriptionTransferData,
-  SubscriptionTransferResult,
+  ApiPortalSubscriptionTransferDialogData,
+  ApiPortalSubscriptionTransferDialogResult,
 } from '../components/transfer-dialog/api-portal-subscription-transfer-dialog.component';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { ApiKeyMode } from '../../../../../entities/application/application';
+import {
+  ApiPortalSubscriptionChangeEndDateDialogComponent,
+  ApiPortalSubscriptionChangeEndDateDialogData,
+  ApiPortalSubscriptionChangeEndDateDialogResult,
+} from '../components/change-end-date-dialog/api-portal-subscription-change-end-date-dialog.component';
 
 interface SubscriptionDetailVM {
   id: string;
   plan: { id: string; label: string; securityType: PlanSecurityType; mode: PlanMode };
   status: SubscriptionStatus;
   subscribedBy: string;
-  application?: { label: string; description: string };
+  application?: { label: string; name: string; description: string };
   publisherMessage?: string;
   subscriberMessage?: string;
   createdAt?: string;
@@ -49,6 +59,8 @@ interface SubscriptionDetailVM {
   closedAt?: string;
   domain?: string;
   description?: string;
+  consumerConfiguration?: SubscriptionConsumerConfiguration;
+  metadata?: { [key: string]: string };
 }
 
 @Component({
@@ -91,19 +103,22 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
               },
               application: {
                 label: `${subscription.application.name} (${subscription.application.primaryOwner.displayName}) - Type: ${subscription.application.type}`,
+                name: subscription.application.name,
                 description: subscription.application.description,
               },
               status: subscription.status,
               subscribedBy: subscription.subscribedBy.displayName,
               publisherMessage: subscription.publisherMessage ?? '-',
               subscriberMessage: subscription.consumerMessage ?? '-',
-              createdAt: this.formatDate(subscription.createdAt),
-              pausedAt: this.formatDate(subscription.pausedAt),
-              startingAt: this.formatDate(subscription.startingAt),
-              endingAt: this.formatDate(subscription.endingAt),
-              processedAt: this.formatDate(subscription.processedAt),
-              closedAt: this.formatDate(subscription.closedAt),
+              createdAt: this.serializeDate(subscription.createdAt),
+              pausedAt: this.serializeDate(subscription.pausedAt),
+              startingAt: this.serializeDate(subscription.startingAt),
+              endingAt: this.serializeDate(subscription.endingAt),
+              processedAt: this.serializeDate(subscription.processedAt),
+              closedAt: this.serializeDate(subscription.closedAt),
               domain: subscription.application.domain ?? '-',
+              consumerConfiguration: subscription.consumerConfiguration,
+              metadata: subscription.metadata,
             };
 
             if (this.subscription.plan.securityType === 'API_KEY') {
@@ -131,20 +146,21 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
 
   transferSubscription() {
     this.matDialog
-      .open<ApiPortalSubscriptionTransferDialogComponent, SubscriptionTransferData, SubscriptionTransferResult>(
+      .open<
         ApiPortalSubscriptionTransferDialogComponent,
-        {
-          width: '500px',
-          data: {
-            apiId: this.apiId,
-            securityType: this.subscription.plan.securityType,
-            currentPlanId: this.subscription.plan.id,
-            mode: this.subscription.plan.mode,
-          },
-          role: 'alertdialog',
-          id: 'transferSubscriptionDialog',
+        ApiPortalSubscriptionTransferDialogData,
+        ApiPortalSubscriptionTransferDialogResult
+      >(ApiPortalSubscriptionTransferDialogComponent, {
+        width: '500px',
+        data: {
+          apiId: this.apiId,
+          securityType: this.subscription.plan.securityType,
+          currentPlanId: this.subscription.plan.id,
+          mode: this.subscription.plan.mode,
         },
-      )
+        role: 'alertdialog',
+        id: 'transferSubscriptionDialog',
+      })
       .afterClosed()
       .pipe(
         switchMap((result) =>
@@ -226,7 +242,42 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
   }
 
   changeEndDate() {
-    // Do nothing for now
+    this.matDialog
+      .open<
+        ApiPortalSubscriptionChangeEndDateDialogComponent,
+        ApiPortalSubscriptionChangeEndDateDialogData,
+        ApiPortalSubscriptionChangeEndDateDialogResult
+      >(ApiPortalSubscriptionChangeEndDateDialogComponent, {
+        width: '500px',
+        data: {
+          currentEndDate: this.deserializeDate(this.subscription.endingAt),
+          applicationName: this.subscription.application.name,
+          securityType: this.subscription.plan.securityType,
+        },
+        role: 'alertdialog',
+        id: 'changeEndDateDialog',
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((result) =>
+          result
+            ? this.apiSubscriptionService.update(this.apiId, this.subscription.id, {
+                startingAt: this.deserializeDate(this.subscription.startingAt),
+                endingAt: result.endDate,
+                consumerConfiguration: this.subscription.consumerConfiguration,
+                metadata: this.subscription.metadata,
+              })
+            : EMPTY,
+        ),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`End date successfully changed`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
   }
 
   closeSubscription() {
@@ -237,7 +288,11 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
     this.ajsState.go('management.apis.ng.subscriptions');
   }
 
-  private formatDate(date: Date): string {
+  private serializeDate(date: Date): string {
     return date ? this.datePipe.transform(date, 'MMM d, y h:mm:ss.sss a') : '-';
+  }
+
+  private deserializeDate(dateAsString: string): Date {
+    return dateAsString === '-' ? undefined : new Date(dateAsString);
   }
 }

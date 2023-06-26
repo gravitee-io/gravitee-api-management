@@ -1,0 +1,18 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.change-end-date {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__datepicker {
+    display: flex;
+  }
+
+  &__warning {
+    color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+  }
+}

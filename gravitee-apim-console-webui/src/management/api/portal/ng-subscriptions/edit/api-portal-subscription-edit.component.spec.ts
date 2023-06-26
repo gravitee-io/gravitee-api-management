@@ -23,6 +23,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatDatepickerInputHarness } from '@angular/material/datepicker/testing';
 
 import { ApiPortalSubscriptionEditComponent } from './api-portal-subscription-edit.component';
 import { ApiPortalSubscriptionEditHarness } from './api-portal-subscription-edit.harness';
@@ -31,7 +32,15 @@ import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../..
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiPortalSubscriptionsModule } from '../api-portal-subscriptions.module';
 import { User as DeprecatedUser } from '../../../../../entities/user';
-import { fakeBasePlan, fakePlanV4, fakeSubscription, Plan, PlanMode, Subscription } from '../../../../../entities/management-api-v2';
+import {
+  fakeBasePlan,
+  fakePlanV4,
+  fakeSubscription,
+  Plan,
+  PlanMode,
+  Subscription,
+  UpdateSubscription,
+} from '../../../../../entities/management-api-v2';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 import { ApiKeyMode } from '../../../../../entities/application/application';
 
@@ -353,6 +362,117 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     });
   });
 
+  describe('change end date', () => {
+    it('should assign end date with no current end date', async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      expect(await harness.changeEndDateBtnIsVisible()).toEqual(true);
+      await harness.openChangeEndDateDialog();
+
+      const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#changeEndDateDialog' }),
+      );
+      expect(await changeEndDateDialog.getTitleText()).toEqual('Change the subscription end date');
+
+      const datepicker = await changeEndDateDialog.getHarness(MatDatepickerInputHarness);
+      expect(await datepicker.getValue()).toEqual('');
+
+      const changeEndDateBtn = await changeEndDateDialog.getHarness(MatButtonHarness.with({ text: 'Change end date' }));
+
+      expect(await changeEndDateBtn.isDisabled()).toEqual(true);
+      await datepicker.openCalendar();
+      await datepicker.setValue('01/01/2080');
+
+      expect(await changeEndDateBtn.isDisabled()).toEqual(false);
+      await changeEndDateBtn.click();
+
+      const endingAt: Date = new Date('01/01/2080');
+      const newEndDateSubscription = BASIC_SUBSCRIPTION();
+      newEndDateSubscription.endingAt = endingAt;
+
+      expectApiSubscriptionUpdate(
+        SUBSCRIPTION_ID,
+        {
+          startingAt: BASIC_SUBSCRIPTION().startingAt,
+          endingAt,
+          consumerConfiguration: BASIC_SUBSCRIPTION().consumerConfiguration,
+          metadata: BASIC_SUBSCRIPTION().metadata,
+        },
+        newEndDateSubscription,
+      );
+
+      expectApiSubscriptionGet(newEndDateSubscription);
+      expectApplicationGet();
+
+      expect(await harness.getEndingAt()).toEqual('Jan 1, 2080 12:00:00.000 AM');
+    });
+    it('should change existing end date', async () => {
+      const endingAt = new Date('01/01/2080');
+
+      const endingAtSubscription = BASIC_SUBSCRIPTION();
+      endingAtSubscription.endingAt = endingAt;
+
+      await initComponent(endingAtSubscription);
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      expect(await harness.getEndingAt()).toEqual('Jan 1, 2080 12:00:00.000 AM');
+
+      await harness.openChangeEndDateDialog();
+
+      const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#changeEndDateDialog' }),
+      );
+
+      const datepicker = await changeEndDateDialog.getHarness(MatDatepickerInputHarness);
+      expect(await datepicker.getValue()).toEqual(endingAt.toLocaleDateString());
+
+      const changeEndDateBtn = await changeEndDateDialog.getHarness(MatButtonHarness.with({ text: 'Change end date' }));
+
+      expect(await changeEndDateBtn.isDisabled()).toEqual(true);
+      await datepicker.openCalendar();
+      await datepicker.setValue('01/02/2080');
+
+      expect(await changeEndDateBtn.isDisabled()).toEqual(false);
+      await changeEndDateBtn.click();
+
+      const newEndingAt: Date = new Date('01/02/2080');
+      const newEndDateSubscription = BASIC_SUBSCRIPTION();
+      newEndDateSubscription.endingAt = newEndingAt;
+
+      expectApiSubscriptionUpdate(
+        SUBSCRIPTION_ID,
+        {
+          startingAt: BASIC_SUBSCRIPTION().startingAt,
+          endingAt: newEndingAt,
+          consumerConfiguration: BASIC_SUBSCRIPTION().consumerConfiguration,
+          metadata: BASIC_SUBSCRIPTION().metadata,
+        },
+        newEndDateSubscription,
+      );
+
+      expectApiSubscriptionGet(newEndDateSubscription);
+      expectApplicationGet();
+
+      expect(await harness.getEndingAt()).toEqual('Jan 2, 2080 12:00:00.000 AM');
+    });
+    it('should not change end date on cancel', async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness.openChangeEndDateDialog();
+
+      const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#changeEndDateDialog' }),
+      );
+      const cancelBtn = await changeEndDateDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+      await cancelBtn.click();
+    });
+  });
+
   async function initComponent(
     subscription: Subscription = BASIC_SUBSCRIPTION(),
     permissions: string[] = ['api-subscription-r', 'api-subscription-u', 'api-subscription-d'],
@@ -391,6 +511,15 @@ describe('ApiPortalSubscriptionEditComponent', () => {
         method: 'GET',
       })
       .flush({ data: plans });
+  }
+
+  function expectApiSubscriptionUpdate(subscriptionId: string, updateSubscription: UpdateSubscription, subscription: Subscription): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscriptionId}`,
+      method: 'PUT',
+    });
+    expect(JSON.stringify(req.request.body)).toEqual(JSON.stringify(updateSubscription));
+    req.flush(subscription);
   }
 
   function expectApiSubscriptionTransfer(subscriptionId: string, planId: string, subscription: Subscription): void {
