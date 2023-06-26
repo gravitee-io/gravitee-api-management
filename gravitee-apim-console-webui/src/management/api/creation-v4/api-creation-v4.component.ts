@@ -79,10 +79,6 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     },
     {
       groupNumber: 5,
-      label: 'Documentation',
-    },
-    {
-      groupNumber: 6,
       label: 'Summary',
     },
   ]);

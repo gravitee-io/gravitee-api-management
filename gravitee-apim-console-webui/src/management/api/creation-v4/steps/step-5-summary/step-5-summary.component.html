@@ -20,23 +20,23 @@
     <div class="api-creation-v4__step__header__subtitle">Review your API configuration</div>
     <p class="api-creation-v4__step__header__paragraph-light">Verify all the information is correct before saving</p>
   </div>
-  <div class="step-6-summary__body">
+  <div class="step-5-summary__body">
     <!--    Step 1 -->
-    <div id="step-1" class="step-6-summary__step">
+    <div id="step-1" class="step-5-summary__step">
       <div class="mat-h3">API details</div>
-      <div class="step-6-summary__step__body">
-        <div class="step-6-summary__step__info">
-          <div class="step-6-summary__step__info__row">
-            <span class="step-6-summary__step__info__key">API name:</span>
-            <span class="step-6-summary__step__info__value">{{ currentStepPayload.name }}</span>
+      <div class="step-5-summary__step__body">
+        <div class="step-5-summary__step__info">
+          <div class="step-5-summary__step__info__row">
+            <span class="step-5-summary__step__info__key">API name:</span>
+            <span class="step-5-summary__step__info__value">{{ currentStepPayload.name }}</span>
           </div>
-          <div class="step-6-summary__step__info__row">
-            <span class="step-6-summary__step__info__key">Version:</span>
-            <span class="step-6-summary__step__info__value">{{ currentStepPayload.version }}</span>
+          <div class="step-5-summary__step__info__row">
+            <span class="step-5-summary__step__info__key">Version:</span>
+            <span class="step-5-summary__step__info__value">{{ currentStepPayload.version }}</span>
           </div>
-          <div class="step-6-summary__step__info__row" *ngIf="currentStepPayload.description">
-            <span class="step-6-summary__step__info__key">Description:</span>
-            <span class="step-6-summary__step__info__value">
+          <div class="step-5-summary__step__info__row" *ngIf="currentStepPayload.description">
+            <span class="step-5-summary__step__info__key">Description:</span>
+            <span class="step-5-summary__step__info__value">
               {{ currentStepPayload.description }}
             </span>
           </div>
@@ -47,22 +47,22 @@
       </div>
     </div>
     <!--    Step 2 -->
-    <div id="step-2" class="step-6-summary__step">
+    <div id="step-2" class="step-5-summary__step">
       <div class="mat-h3">Entrypoints</div>
-      <div class="step-6-summary__step__body">
-        <div class="step-6-summary__step__info">
-          <div class="step-6-summary__step__info__row">
-            <span class="step-6-summary__step__info__key">Path:</span>
-            <span class="step-6-summary__step__info__value">{{ paths.join(', ') }}</span>
+      <div class="step-5-summary__step__body">
+        <div class="step-5-summary__step__info">
+          <div class="step-5-summary__step__info__row">
+            <span class="step-5-summary__step__info__key">Path:</span>
+            <span class="step-5-summary__step__info__value">{{ paths.join(', ') }}</span>
           </div>
-          <div class="step-6-summary__step__info__row">
-            <span class="step-6-summary__step__info__key">Type:</span>
+          <div class="step-5-summary__step__info__row">
+            <span class="step-5-summary__step__info__key">Type:</span>
             <span class="gio-badge-accent" *ngFor="let listenerType of listenerTypes">{{ listenerType }}</span>
           </div>
-          <div class="step-6-summary__step__info__row">
-            <span class="step-6-summary__step__info__key">Entrypoints:</span>
+          <div class="step-5-summary__step__info__row">
+            <span class="step-5-summary__step__info__key">Entrypoints:</span>
             <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!entrypointsDeployable">Not deployed</span>
-            <div class="step-6-summary__badge-list">
+            <div class="step-5-summary__badge-list">
               <ng-container *ngFor="let entrypoint of currentStepPayload.selectedEntrypoints">
                 <span class="gio-badge-accent"
                   ><mat-icon class="api-creation-v4__icon" [svgIcon]="entrypoint.icon"></mat-icon> {{ entrypoint.name }}</span
@@ -77,18 +77,18 @@
       </div>
     </div>
     <!--    Step 3 -->
-    <div id="step-3" class="step-6-summary__step">
+    <div id="step-3" class="step-5-summary__step">
       <div class="mat-h3">Endpoints</div>
-      <div class="step-6-summary__step__body">
-        <div class="step-6-summary__step__info">
-          <div class="step-6-summary__step__info__row">
-            <span class="step-6-summary__step__info__key">Field</span>
-            <span class="step-6-summary__step__info__value">Value</span>
+      <div class="step-5-summary__step__body">
+        <div class="step-5-summary__step__info">
+          <div class="step-5-summary__step__info__row">
+            <span class="step-5-summary__step__info__key">Field</span>
+            <span class="step-5-summary__step__info__value">Value</span>
           </div>
-          <div class="step-6-summary__step__info__row">
-            <span class="step-6-summary__step__info__key">Endpoints:</span>
+          <div class="step-5-summary__step__info__row">
+            <span class="step-5-summary__step__info__key">Endpoints:</span>
             <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!endpointsDeployable">Not deployed</span>
-            <div class="step-6-summary__badge-list">
+            <div class="step-5-summary__badge-list">
               <ng-container *ngFor="let endpoint of currentStepPayload.selectedEndpoints">
                 <span class="gio-badge-accent"
                   ><mat-icon class="api-creation-v4__icon" [svgIcon]="endpoint.icon"></mat-icon> {{ endpoint.name }}
@@ -103,17 +103,17 @@
       </div>
     </div>
     <!--    Step 4 -->
-    <div id="step-4" class="step-6-summary__step">
+    <div id="step-4" class="step-5-summary__step">
       <div class="mat-h3">Security</div>
-      <div class="step-6-summary__step__body">
-        <div class="step-6-summary__step__info">
-          <div class="step-6-summary__step__info__security__content" *ngIf="currentStepPayload.plans?.length > 0; else elseBlock">
-            <div class="step-6-summary__step__info__security__content__card" *ngFor="let plan of currentStepPayload.plans">
-              <div class="step-6-summary__step__info__security__content__card__title">
+      <div class="step-5-summary__step__body">
+        <div class="step-5-summary__step__info">
+          <div class="step-5-summary__step__info__security__content" *ngIf="currentStepPayload.plans?.length > 0; else elseBlock">
+            <div class="step-5-summary__step__info__security__content__card" *ngFor="let plan of currentStepPayload.plans">
+              <div class="step-5-summary__step__info__security__content__card__title">
                 <span class="mat-body-strong">{{ plan.name }}</span
                 ><span class="gio-badge-neutral">{{ plan.security?.type || plan.mode }}</span>
               </div>
-              <div class="step-6-summary__step__info__security__content__card__content">
+              <div class="step-5-summary__step__info__security__content__card__content">
                 <span>Entrypoints type: http</span>
               </div>
             </div>
@@ -125,39 +125,24 @@
         </div>
       </div>
     </div>
-    <!--    Step 5 -->
-    <div id="step-5" class="step-6-summary__step">
-      <div class="mat-h3 step-6-summary__step__title">Documentation</div>
-      <div class="step-6-summary__step__body">
-        <div class="step-6-summary__step__info">
-          <div class="step-6-summary__step__info__row">
-            <span class="step-6-summary__step__info__key">Files:</span>
-            <span class="step-6-summary__step__info__value">None</span>
-          </div>
-        </div>
-        <div>
-          <button mat-stroked-button (click)="onChangeStepInfo('Documentation')">Change</button>
-        </div>
-      </div>
-    </div>
   </div>
-  <div class="step-6-summary__footer">
-    <div class="step-6-summary__footer__actions">
+  <div class="step-5-summary__footer">
+    <div class="step-5-summary__footer__actions">
       <button mat-stroked-button type="button" (click)="createApi(false)">
         Create my API<mat-icon
           svgIcon="gio:info"
-          class="step-6-summary__footer__button-icon"
+          class="step-5-summary__footer__button-icon"
           matTooltip="Your API can't be consumed"
         ></mat-icon>
       </button>
       <button color="primary" mat-flat-button type="button" [disabled]="!deployable" (click)="createApi(true)">
         Deploy my API<mat-icon
           svgIcon="gio:info"
-          class="step-6-summary__footer__button-icon"
+          class="step-5-summary__footer__button-icon"
           [matTooltip]="deployable ? 'Your API can be consumed' : 'You cannot deploy an API with endpoints or entrypoints not deployed'"
         ></mat-icon>
       </button>
     </div>
-    <span class="step-6-summary__footer__message">Your API will be saved, but not published to the portal</span>
+    <span class="step-5-summary__footer__message">Your API will be saved, but not published to the portal</span>
   </div>
 </mat-card>

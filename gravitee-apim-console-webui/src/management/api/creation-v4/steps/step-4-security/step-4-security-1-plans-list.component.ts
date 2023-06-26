@@ -18,9 +18,9 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { Step5DocumentationComponent } from '../step-5-documentation/step-5-documentation.component';
 import { ConstantsService, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
 import { CreatePlanV4 } from '../../../../../entities/management-api-v2';
+import { Step5SummaryComponent } from '../step-5-summary/step-5-summary.component';
 
 @Component({
   selector: 'step-4-security-1-plans-list',
@@ -64,7 +64,7 @@ export class Step4Security1PlansListComponent implements OnInit {
       plans: this.plans,
     }));
 
-    this.stepService.goToNextStep({ groupNumber: 5, component: Step5DocumentationComponent });
+    this.stepService.goToNextStep({ groupNumber: 5, component: Step5SummaryComponent });
   }
 
   goBack(): void {
