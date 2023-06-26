@@ -25,7 +25,7 @@
     <div class="org-settings-tags__add-button-container" *gioPermission="{ anyOf: ['organization-tag-c'] }">
       <h2>Tags</h2>
       <button
-        [gioLicense]="{ feature: 'apim-sharding-tags' }"
+        [gioLicense]="shardingTagsLicense"
         (click)="onAddTagClicked()"
         mat-raised-button
         color="primary"
@@ -33,6 +33,7 @@
         type="button"
       >
         <mat-icon>add</mat-icon>Add a tag
+        <mat-icon *ngIf="hasShardingTagsLock$ | async" class="mat-icon-right" svgIcon="gio:lock"></mat-icon>
       </button>
     </div>
 

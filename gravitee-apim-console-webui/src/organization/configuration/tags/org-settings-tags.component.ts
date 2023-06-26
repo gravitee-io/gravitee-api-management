@@ -17,7 +17,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { combineLatest, EMPTY, of, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
@@ -34,6 +34,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TagService } from '../../../services-ngx/tag.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
 
 type TagTableDS = {
   id: string;
@@ -73,6 +74,8 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   filteredEntrypointsTableDS: EntrypointTableDS;
   entrypointsTableUnpaginatedLength = 0;
   entrypointsTableDisplayedColumns: string[] = ['entrypoint', 'tags', 'actions'];
+  shardingTagsLicense = { feature: 'apim-sharding-tags' };
+  hasShardingTagsLock$: Observable<boolean>;
 
   private unsubscribe$ = new Subject<boolean>();
 
@@ -83,9 +86,11 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
     private readonly entrypointService: EntrypointService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
+    private readonly gioLicenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
+    this.hasShardingTagsLock$ = this.gioLicenseService.notAllowed(this.shardingTagsLicense.feature);
     combineLatest([
       this.tagService.list(),
       this.groupService.listByOrganization(),
