@@ -16,10 +16,11 @@
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.management.v2.rest.mapper.GraviteeLicenseMapper;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
+import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 
@@ -31,12 +32,19 @@ import jakarta.ws.rs.*;
 public class GraviteeLicenseResource extends AbstractResource {
 
     @Inject
-    private GraviteeLicenseService licenseService;
+    private NodeLicenseService nodeLicenseService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public GraviteeLicense get() {
-        return GraviteeLicenseMapper.INSTANCE.map(licenseService.getLicense());
+        return GraviteeLicenseMapper.INSTANCE.map(
+            GraviteeLicenseEntity
+                .builder()
+                .tier(nodeLicenseService.getTier())
+                .packs(nodeLicenseService.getPacks())
+                .features(nodeLicenseService.getFeatures())
+                .build()
+        );
     }
 }

@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.GraviteeLicenseFeature;
 import io.gravitee.rest.api.management.rest.security.Permission;
@@ -106,7 +104,7 @@ public class TagsResource extends AbstractResource {
             @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.CREATE),
         }
     )
-    @GraviteeLicenseFeature(FEATURE_SHARDING_TAGS)
+    @GraviteeLicenseFeature("apim-sharding-tags")
     public TagEntity createTag(@Valid @NotNull final NewTagEntity tag) {
         return tagService.create(
             GraviteeContext.getExecutionContext(),
@@ -136,7 +134,7 @@ public class TagsResource extends AbstractResource {
             @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.UPDATE),
         }
     )
-    @GraviteeLicenseFeature(FEATURE_SHARDING_TAGS)
+    @GraviteeLicenseFeature("apim-sharding-tags")
     public TagEntity updateTag(@PathParam("tag") String tagId, @Valid @NotNull final UpdateTagEntity tag) {
         return tagService.update(
             GraviteeContext.getExecutionContext(),
@@ -161,7 +159,7 @@ public class TagsResource extends AbstractResource {
             @Permission(value = RolePermission.ORGANIZATION_TAG, acls = RolePermissionAction.DELETE),
         }
     )
-    @GraviteeLicenseFeature(FEATURE_SHARDING_TAGS)
+    @GraviteeLicenseFeature("apim-sharding-tags")
     public void deleteTag(@PathParam("tag") String tag) {
         tagService.delete(
             GraviteeContext.getExecutionContext(),

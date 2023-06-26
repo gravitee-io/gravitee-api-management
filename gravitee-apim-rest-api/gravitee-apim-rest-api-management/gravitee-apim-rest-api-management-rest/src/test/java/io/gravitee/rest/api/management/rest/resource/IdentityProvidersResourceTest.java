@@ -21,9 +21,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.model.configuration.identity.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -42,7 +42,7 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
     private static final String ID = "my-idp-id";
 
     @Inject
-    private GraviteeLicenseService graviteeLicenseService;
+    private NodeLicenseService nodeLicenseService;
 
     @Override
     protected String contextPath() {
@@ -75,7 +75,7 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
     }
 
     public void createOpenIdConnectShouldReturnOKWithLicense() {
-        when(graviteeLicenseService.isFeatureEnabled(GraviteeLicenseService.FEATURE_OPEN_ID_CONNECT_SSO)).thenReturn(true);
+        when(nodeLicenseService.isFeatureEnabled("apim-openid-connect-sso")).thenReturn(true);
         NewIdentityProviderEntity newIdentityProviderEntity = new NewIdentityProviderEntity();
         newIdentityProviderEntity.setName("my-idp-name");
         newIdentityProviderEntity.setType(IdentityProviderType.OIDC);
@@ -88,7 +88,7 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
 
     @Test
     public void createOpenIdConnectShouldReturnUnauthorizedWithoutLicense() {
-        when(graviteeLicenseService.isFeatureEnabled(GraviteeLicenseService.FEATURE_OPEN_ID_CONNECT_SSO)).thenReturn(false);
+        when(nodeLicenseService.isFeatureEnabled("apim-openid-connect-sso")).thenReturn(false);
         NewIdentityProviderEntity newIdentityProviderEntity = new NewIdentityProviderEntity();
         newIdentityProviderEntity.setName("my-idp-name");
         newIdentityProviderEntity.setType(IdentityProviderType.OIDC);

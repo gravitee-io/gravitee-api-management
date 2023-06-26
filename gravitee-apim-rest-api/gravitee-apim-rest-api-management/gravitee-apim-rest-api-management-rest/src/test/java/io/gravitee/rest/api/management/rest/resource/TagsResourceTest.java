@@ -15,19 +15,17 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
 import static jakarta.ws.rs.client.Entity.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.rest.api.model.NewTagEntity;
 import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.UpdateTagEntity;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
-import java.util.List;
 import org.junit.Test;
 
 /**
@@ -37,7 +35,7 @@ import org.junit.Test;
 public class TagsResourceTest extends AbstractResourceTest {
 
     @Inject
-    GraviteeLicenseService gravityLicenseService;
+    NodeLicenseService nodeLicenseService;
 
     @Override
     protected String contextPath() {
@@ -46,7 +44,7 @@ public class TagsResourceTest extends AbstractResourceTest {
 
     @Test
     public void createTagShouldReturnUnauthorizedWithoutLicense() {
-        when(gravityLicenseService.isFeatureEnabled(FEATURE_SHARDING_TAGS)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-sharding-tags")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
         NewTagEntity newTag = new NewTagEntity();
         newTag.setName("tag-name");
@@ -56,7 +54,7 @@ public class TagsResourceTest extends AbstractResourceTest {
 
     @Test
     public void createTagShouldReturnOKWithLicense() {
-        when(gravityLicenseService.isFeatureEnabled(FEATURE_SHARDING_TAGS)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-sharding-tags")).thenReturn(false);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
         NewTagEntity newTag = new NewTagEntity();
         newTag.setName("tag-name");
@@ -71,7 +69,7 @@ public class TagsResourceTest extends AbstractResourceTest {
 
     @Test
     public void updateTagShouldReturnUnauthorizedWithoutLicense() {
-        when(gravityLicenseService.isFeatureEnabled(FEATURE_SHARDING_TAGS)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-sharding-tags")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
         UpdateTagEntity tag = new UpdateTagEntity();
         tag.setName("tag-name");
@@ -81,7 +79,7 @@ public class TagsResourceTest extends AbstractResourceTest {
 
     @Test
     public void deleteTagShouldReturnUnauthorizedWithoutLicense() {
-        when(gravityLicenseService.isFeatureEnabled(FEATURE_SHARDING_TAGS)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-sharding-tags")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
         Response response = orgTarget().path("tag-id").request().delete();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
@@ -89,7 +87,7 @@ public class TagsResourceTest extends AbstractResourceTest {
 
     @Test
     public void deleteTagShouldReturnNoContentWithLicense() {
-        when(gravityLicenseService.isFeatureEnabled(FEATURE_SHARDING_TAGS)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-sharding-tags")).thenReturn(false);
         when(permissionService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
         Response response = orgTarget().path("tag-id").request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());

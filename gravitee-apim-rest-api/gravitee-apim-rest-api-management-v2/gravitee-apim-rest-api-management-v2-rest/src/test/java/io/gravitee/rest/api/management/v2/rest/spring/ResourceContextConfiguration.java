@@ -17,13 +17,13 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import static org.mockito.Mockito.mock;
 
+import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
@@ -161,8 +161,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public GraviteeLicenseService licenseService() {
-        return mock(GraviteeLicenseService.class);
+    public NodeLicenseService nodeLicenseService() {
+        return mock(NodeLicenseService.class);
     }
 
     @Bean

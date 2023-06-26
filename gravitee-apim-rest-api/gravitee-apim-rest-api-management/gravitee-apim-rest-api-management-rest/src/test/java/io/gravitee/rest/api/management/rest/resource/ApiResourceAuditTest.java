@@ -15,13 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.service.v4.GraviteeLicenseService;
+import io.gravitee.node.api.license.NodeLicenseService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import org.junit.Test;
@@ -35,7 +34,7 @@ public class ApiResourceAuditTest extends AbstractResourceTest {
     private static final String API = "my-api";
 
     @Inject
-    private GraviteeLicenseService gravityLicenseService;
+    private NodeLicenseService nodeLicenseService;
 
     @Override
     protected String contextPath() {
@@ -44,7 +43,7 @@ public class ApiResourceAuditTest extends AbstractResourceTest {
 
     @Test
     public void getAuditShouldReturnUnauthorizedWithoutLicense() {
-        when(gravityLicenseService.isFeatureEnabled(FEATURE_AUDIT_TRAIL)).thenReturn(false);
+        when(nodeLicenseService.isFeatureMissing("apim-audit-trail")).thenReturn(true);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
         final Response response = envTarget(API).path("audit").request().get();
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
@@ -52,7 +51,7 @@ public class ApiResourceAuditTest extends AbstractResourceTest {
 
     @Test
     public void getAuditShouldReturnOKdWithLicense() {
-        when(gravityLicenseService.isFeatureEnabled(FEATURE_AUDIT_TRAIL)).thenReturn(true);
+        when(nodeLicenseService.isFeatureMissing("apim-audit-trail")).thenReturn(false);
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
         when(auditService.search(any(), any())).thenReturn(mock(MetadataPage.class));
         final Response response = envTarget(API).path("audit").request().get();

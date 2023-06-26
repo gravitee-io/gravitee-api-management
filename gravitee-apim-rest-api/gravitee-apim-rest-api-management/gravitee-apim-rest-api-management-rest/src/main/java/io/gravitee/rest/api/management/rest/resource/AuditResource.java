@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static io.gravitee.rest.api.service.v4.GraviteeLicenseService.*;
-
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.management.rest.model.wrapper.AuditEntityMetadataPage;
@@ -73,7 +71,7 @@ public class AuditResource extends AbstractResource {
             @Permission(value = RolePermission.ORGANIZATION_AUDIT, acls = RolePermissionAction.READ),
         }
     )
-    @GraviteeLicenseFeature(FEATURE_AUDIT_TRAIL)
+    @GraviteeLicenseFeature("apim-audit-trail")
     public AuditEntityMetadataPage getAudits(@BeanParam AuditParam param) {
         AuditQuery query = new AuditQuery();
         query.setFrom(param.getFrom());
