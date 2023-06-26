@@ -27,10 +27,8 @@ import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsHarness } from './steps/step-1-api-details/step-1-api-details.harness';
 import { Step2Entrypoints1ListHarness } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.harness';
 import { ApiCreationV4Module } from './api-creation-v4.module';
-import { Step6SummaryHarness } from './steps/step-6-summary/step-6-summary.harness';
 import { Step3EndpointListHarness } from './steps/step-3-endpoints/step-3-endpoints-1-list.harness';
 import { Step4Security1PlansHarness } from './steps/step-4-security/step-4-security-1-plans.harness';
-import { Step5DocumentationHarness } from './steps/step-5-documentation/step-5-documentation.harness';
 import { Step2Entrypoints2ConfigComponent } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.component';
 import { Step2Entrypoints2ConfigHarness } from './steps/step-2-entrypoints/step-2-entrypoints-2-config.harness';
 import { Step3Endpoints2ConfigHarness } from './steps/step-3-endpoints/step-3-endpoints-2-config.harness';
@@ -38,6 +36,7 @@ import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-
 import { Step2Entrypoints1ListComponent } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.component';
 import { Step2Entrypoints0ArchitectureHarness } from './steps/step-2-entrypoints/step-2-entrypoints-0-architecture.harness';
 import { ApiCreationStepperMenuHarness } from './components/api-creation-stepper-menu/api-creation-stepper-menu.harness';
+import { Step5SummaryHarness } from './steps/step-5-summary/step-5-summary.harness';
 
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
@@ -134,15 +133,14 @@ describe('ApiCreationV4Component', () => {
       component.stepper.validStep(({ name }) => ({ name: `${name}>B2` }));
 
       component.menuSteps$.subscribe((menuSteps) => {
-        expect(menuSteps.length).toEqual(6);
+        expect(menuSteps.length).toEqual(5);
         expect(menuSteps[0].label).toEqual('API details');
         expect(menuSteps[1].label).toEqual('Entrypoints');
         // Expect to have the last valid step payload
         expect(menuSteps[1].payload).toEqual({ name: 'A1>B1>B2' });
         expect(menuSteps[2].label).toEqual('Endpoints');
         expect(menuSteps[3].label).toEqual('Security');
-        expect(menuSteps[4].label).toEqual('Documentation');
-        expect(menuSteps[5].label).toEqual('Summary');
+        expect(menuSteps[4].label).toEqual('Summary');
         done();
       });
     });
@@ -1212,7 +1210,7 @@ describe('ApiCreationV4Component', () => {
     });
   });
 
-  describe('step6', () => {
+  describe('step5', () => {
     const API_ID = 'my-api';
     const PLAN_ID = 'my-plan';
 
@@ -1225,12 +1223,11 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep3Endpoints1List();
         await fillAndValidateStep3Endpoints2Config();
         await fillAndValidateStep4Security1PlansList();
-        await fillAndValidateStep5Documentation();
         fixture.detectChanges();
       });
 
       it('should display payload info', async () => {
-        const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
 
         const step1Summary = await step6Harness.getStepSummaryTextContent(1);
         expect(step1Summary).toContain('API name:' + 'API name');
@@ -1252,7 +1249,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       it('should go back to step 1 after clicking Change button', async () => {
-        const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickChangeButton(1);
 
         fixture.detectChanges();
@@ -1263,7 +1260,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       it('should go back to step 2 after clicking Change button', async () => {
-        let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        let step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickChangeButton(2);
         expectEntrypointsGetRequest([]);
         fixture.detectChanges();
@@ -1293,17 +1290,16 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep3Endpoints1List();
         await fillAndValidateStep3Endpoints2Config();
         await fillAndValidateStep4Security1PlansList();
-        await fillAndValidateStep5Documentation();
 
         // Reinitialize step6Harness after last step validation
-        step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         const step2Summary = await step6Harness.getStepSummaryTextContent(2);
 
         expect(step2Summary).toContain('EntrypointsPath:/my-api/v4Type:HTTPEntrypoints: new entrypointChange');
       });
 
       it('should go back to step 3 after clicking Change button', async () => {
-        let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        let step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickChangeButton(3);
         fixture.detectChanges();
 
@@ -1326,17 +1322,16 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep3Endpoints2Config([{ id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' }]);
 
         await fillAndValidateStep4Security1PlansList();
-        await fillAndValidateStep5Documentation();
 
         // Reinitialize step6Harness after step2 validation
-        step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         const step2Summary = await step6Harness.getStepSummaryTextContent(3);
 
         expect(step2Summary).toContain('EndpointsFieldValueEndpoints: Mock Change');
       });
 
       it('should go back to step 4 after clicking Change button', async () => {
-        let step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        let step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
 
         let step4Summary = await step6Harness.getStepSummaryTextContent(4);
         expect(step4Summary).toContain('Update name' + 'KEY_LESS');
@@ -1353,10 +1348,9 @@ describe('ApiCreationV4Component', () => {
         expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
 
         await step4Security1PlansHarness.clickValidate();
-        await fillAndValidateStep5Documentation();
 
         // Reinitialize step6Harness after step4 validation
-        step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
 
         step4Summary = await step6Harness.getStepSummaryTextContent(4);
         expect(step4Summary).toContain('No plans are selected.');
@@ -1374,12 +1368,11 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep3Endpoints1List();
         await fillAndValidateStep3Endpoints2Config();
         await fillAndValidateStep4Security1PlansList();
-        await fillAndValidateStep5Documentation();
         fixture.detectChanges();
       });
 
       it('should go to confirmation page after clicking Create my API', async () => {
-        const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickCreateMyApiButton();
 
         expectCallsForApiCreation(API_ID, PLAN_ID);
@@ -1388,7 +1381,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       it('should go to confirmation page after clicking Deploy my API', async () => {
-        const step6Harness = await harnessLoader.getHarness(Step6SummaryHarness);
+        const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickDeployMyApiButton();
 
         expectCallsForApiDeployment(API_ID, PLAN_ID);
@@ -1516,11 +1509,6 @@ describe('ApiCreationV4Component', () => {
     await step4.editDefaultKeylessPlanName('Update name', httpTestingController);
     await step4.addRateLimitToPlan(httpTestingController);
     await step4.clickValidate();
-  }
-
-  async function fillAndValidateStep5Documentation() {
-    const step5 = await harnessLoader.getHarness(Step5DocumentationHarness);
-    await step5.fillAndValidate();
   }
 
   function expectApiGetPortalSettings() {

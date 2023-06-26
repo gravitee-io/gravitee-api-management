@@ -20,11 +20,11 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
-  selector: 'step-6-summary',
-  template: require('./step-6-summary.component.html'),
-  styles: [require('./step-6-summary.component.scss'), require('../api-creation-steps-common.component.scss')],
+  selector: 'step-5-summary',
+  template: require('./step-5-summary.component.html'),
+  styles: [require('./step-5-summary.component.scss'), require('../api-creation-steps-common.component.scss')],
 })
-export class Step6SummaryComponent implements OnInit {
+export class Step5SummaryComponent implements OnInit {
   public currentStepPayload: ApiCreationPayload;
   paths: string[];
   listenerTypes: string[];
