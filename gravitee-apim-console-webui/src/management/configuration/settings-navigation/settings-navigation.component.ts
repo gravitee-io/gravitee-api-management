@@ -65,7 +65,7 @@ export class SettingsNavigationComponent implements OnInit {
             displayName: 'Analytics',
             targetRoute: 'management.settings.analytics.list',
             baseRoute: 'management.settings.analytics',
-            permissions: ['environment-settings-r'],
+            permissions: ['environment-dashboard-r'],
           },
           {
             displayName: 'API Portal Information',
@@ -77,7 +77,7 @@ export class SettingsNavigationComponent implements OnInit {
             displayName: 'API Quality',
             targetRoute: 'management.settings.apiQuality.list',
             baseRoute: 'management.settings.apiQuality',
-            permissions: ['environment-settings-r'],
+            permissions: ['environment-quality_rule-r'],
           },
           {
             displayName: 'Authentication',
@@ -136,7 +136,7 @@ export class SettingsNavigationComponent implements OnInit {
             displayName: 'API Logging',
             targetRoute: 'management.settings.api_logging',
             baseRoute: 'management.settings.api_logging',
-            permissions: ['environment-settings-r'],
+            permissions: ['organization-settings-r'],
           },
           {
             displayName: 'Dictionaries',
@@ -148,13 +148,13 @@ export class SettingsNavigationComponent implements OnInit {
             displayName: 'Sharding Tags',
             targetRoute: 'management.settings.tags',
             baseRoute: 'management.settings.tags',
-            permissions: ['environment-tag-c', 'environment-tag-u', 'environment-tag-d'],
+            permissions: ['environment-tag-r', 'environment-tag-c', 'environment-tag-u', 'environment-tag-d'],
           },
           {
             displayName: 'Tenants',
             targetRoute: 'management.settings.tenants',
             baseRoute: 'management.settings.tenants',
-            permissions: ['environment-tenant-c', 'environment-tenant-u', 'environment-tenant-d'],
+            permissions: ['environment-tenant-r', 'environment-tenant-c', 'environment-tenant-u', 'environment-tenant-d'],
           },
         ],
       },
