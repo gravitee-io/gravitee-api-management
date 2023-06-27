@@ -84,7 +84,7 @@
   </div>
   <div class="api-navigation__content">
     <ng-content select="#banner"></ng-content>
-    <div class="api-navigation__content__view">
+    <div class="api-navigation__content__view" [ngClass]="{breadcrumb: hasBreadcrumb}">
       <gio-breadcrumb *ngIf="hasBreadcrumb" class="api-navigation__breadcrumb">
         <span *gioBreadcrumbItem class="api-navigation__breadcrumb__item">APIs</span>
         <api-navigation-title

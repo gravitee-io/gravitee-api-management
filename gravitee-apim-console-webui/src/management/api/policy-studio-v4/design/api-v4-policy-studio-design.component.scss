@@ -1,6 +1,16 @@
 @use 'src/scss/gio-layout' as gio-layout;
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+
 
 :host {
   @include gio-layout.gio-full-width-content-container;
-  height: 100%;
+  height: calc(100% );
+
+  :host-context(.breadcrumb) {
+    height: calc(100% - 16px /* Remove margin-top*/);
+    margin-top: 16px;
+    border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, darker20);
+  }
 }

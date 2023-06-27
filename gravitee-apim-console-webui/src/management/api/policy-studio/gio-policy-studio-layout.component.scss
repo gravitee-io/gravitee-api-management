@@ -8,6 +8,18 @@
   display: flex;
   flex-direction: column;
 
+  :host-context(.breadcrumb) {
+    height: calc(100% - 16px /* Remove margin-top*/);
+    margin-top: 16px;
+    border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, darker20);
+
+    .gio-policy-studio-layout {
+      &__tab-content {
+        --gv-policy-studio--h: calc(100vh - 105px - 76px - 16px);
+      }
+    }
+  }
+
   .gio-policy-studio-layout {
     &__header {
       position: relative;
