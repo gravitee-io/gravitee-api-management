@@ -142,10 +142,10 @@ export class ApiNavigationComponent implements OnInit {
 
   private appendPortalGroup() {
     const portalGroup: GroupItem = {
-      title: 'Portal',
+      title: 'General',
       items: [
         {
-          displayName: 'General',
+          displayName: 'Info',
           targetRoute: 'management.apis.detail.portal.general',
           baseRoute: 'management.apis.detail.portal.general',
         },
@@ -237,20 +237,15 @@ export class ApiNavigationComponent implements OnInit {
       items: [],
     };
 
-    // General
-    const generalMenuItem: MenuItem = {
-      displayName: 'General',
-      tabs: [],
-    };
     if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
-      generalMenuItem.tabs.push({
+      proxyGroup.items.push({
         displayName: 'Entrypoints',
         targetRoute: 'management.apis.detail.proxy.entrypoints',
         baseRoute: 'management.apis.detail.proxy.entrypoints',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      generalMenuItem.tabs.push(
+      proxyGroup.items.push(
         {
           displayName: 'CORS',
           targetRoute: 'management.apis.detail.proxy.cors',
@@ -264,24 +259,25 @@ export class ApiNavigationComponent implements OnInit {
       );
     }
     if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
-      generalMenuItem.tabs.push({
+      proxyGroup.items.push({
         displayName: 'Response Templates',
         targetRoute: 'management.apis.detail.proxy.responsetemplates.list',
         baseRoute: 'management.apis.detail.proxy.responsetemplates',
       });
     }
-    if (generalMenuItem.tabs.length > 0) {
-      proxyGroup.items.push(generalMenuItem);
+
+    if (proxyGroup.items.length > 0) {
+      this.groupItems.push(proxyGroup);
     }
 
     // Backend services
-    const backendServicesMenuItem: MenuItem = {
-      displayName: 'Backend services',
-      tabs: [],
+    const backendServicesGroup: GroupItem = {
+      title: 'Backend services',
+      items: [],
     };
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      backendServicesMenuItem.tabs.push(
+      backendServicesGroup.items.push(
         {
           displayName: 'Endpoints',
           targetRoute: 'management.apis.detail.proxy.endpoints',
@@ -295,27 +291,24 @@ export class ApiNavigationComponent implements OnInit {
       );
     }
     if (this.permissionService.hasAnyMatching(['api-health-r'])) {
-      backendServicesMenuItem.tabs.push({
+      backendServicesGroup.items.push({
         displayName: 'Health-check',
         targetRoute: 'management.apis.detail.proxy.healthcheck',
         baseRoute: 'management.apis.detail.proxy.healthcheck',
       });
     }
-    if (backendServicesMenuItem.tabs.length > 0) {
-      proxyGroup.items.push(backendServicesMenuItem);
-    }
 
     // Health-check dashboard
     if (this.permissionService.hasAnyMatching(['api-health-r'])) {
-      proxyGroup.items.push({
+      backendServicesGroup.items.push({
         displayName: 'Health-check dashboard',
         baseRoute: 'management.apis.detail.proxy.healthCheckDashboard.visualize',
         targetRoute: 'management.apis.detail.proxy.healthCheckDashboard.visualize',
       });
     }
 
-    if (proxyGroup.items.length > 0) {
-      this.groupItems.push(proxyGroup);
+    if (backendServicesGroup.items.length > 0) {
+      this.groupItems.push(backendServicesGroup);
     }
   }
 
