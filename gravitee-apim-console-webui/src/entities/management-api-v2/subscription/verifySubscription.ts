@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './createSubscription';
-export * from './subscription';
-export * from './subscription.fixture';
-export * from './subscriptionConsumerConfiguration';
-export * from './subscriptionConsumerStatus';
-export * from './subscriptionStatus';
-export * from './updateSubscription';
-export * from './verifySubscription';
+export class VerifySubscription {
+  applicationId?: string;
+  apiKey?: string;
+}
+
+export class VerifySubscriptionResponse {
+  ok?: boolean;
+  reason?: string;
+}

@@ -19,7 +19,8 @@ import { TestBed } from '@angular/core/testing';
 import { ApiSubscriptionV2Service } from './api-subscription-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { ApiSubscriptionsResponse, CreateSubscription, fakeSubscription } from '../entities/management-api-v2';
+import { ApiSubscriptionsResponse, CreateSubscription, fakeSubscription, VerifySubscription } from '../entities/management-api-v2';
+import { fakeApi } from '../entities/api/Api.fixture';
 
 describe('ApiSubscriptionV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -239,6 +240,29 @@ describe('ApiSubscriptionV2Service', () => {
       expect(req.request.body).toEqual({});
 
       req.flush(subscription);
+    });
+  });
+
+  describe('verify', () => {
+    it('should call the endpoint', (done) => {
+      const apiId = 'my-api-id';
+      const verifySubscription: VerifySubscription = {
+        applicationId: 'my-app-id',
+        apiKey: 'my-api-key',
+      };
+      const mockApi = fakeApi();
+
+      apiSubscriptionV2Service.verify(apiId, verifySubscription).subscribe((response) => {
+        expect(response).toMatchObject(mockApi);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/subscriptions/_verify`,
+      });
+      expect(req.request.body).toEqual(verifySubscription);
+      req.flush(mockApi);
     });
   });
 });
