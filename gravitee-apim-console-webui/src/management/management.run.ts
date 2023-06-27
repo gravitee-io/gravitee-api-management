@@ -186,6 +186,12 @@ function runBlock(
           }
           return {};
         });
+      } else {
+        if (toState.data && toState.data.perms && toState.data.perms.only && !UserService.isUserHasPermissions(toState.data.perms.only)) {
+          if (toState.data.perms.unauthorizedFallbackTo) {
+            return stateService.target(toState.data.perms.unauthorizedFallbackTo);
+          }
+        }
       }
     },
     { priority: 10 },
