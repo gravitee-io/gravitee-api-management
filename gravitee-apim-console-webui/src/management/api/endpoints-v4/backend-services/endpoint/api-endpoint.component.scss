@@ -1,8 +1,23 @@
 @use 'sass:map';
 @use '../../../../../scss/gio-layout' as gio-layout;
+@use '../../../../../../node_modules/@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 
 :host {
   @include gio-layout.gio-responsive-content-container;
+}
+
+.back-button {
+  margin-bottom: 24px;
+  a {
+    display: flex;
+    align-items: center;
+
+    mat-icon {
+      height: 16px;
+      width: 16px;
+    }
+  }
 }
 
 .endpoint-card {
@@ -15,6 +30,10 @@
       display: flex;
       flex-direction: row;
       margin-bottom: 16px;
+
+      .mat-h3 {
+        margin: auto 0;
+      }
 
       .gio-badge-primary {
         margin: auto 8px;

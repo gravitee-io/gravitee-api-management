@@ -15,18 +15,23 @@
     limitations under the License.
 
 -->
+<div class="back-button">
+  <a mat-icon-button class="mat-body-strong" [uiSref]="'management.apis.ng.endpoints'"
+    ><mat-icon svgIcon="gio:arrow-left"></mat-icon> Go back to your endpoints</a
+  >
+</div>
+
 <mat-card class="endpoint-card">
   <div class="endpoint-card__header">
     <div class="endpoint-card__header__group-name">
-      <span class="mat-h2">{{ endpointGroup?.name }}</span>
+      <span class="mat-h3">{{ endpointGroup?.name }}</span>
       <span class="gio-badge-primary">
         <mat-icon *ngIf="connectorPlugin" [svgIcon]="connectorPlugin?.icon"></mat-icon>
         {{ connectorPlugin?.name }}
       </span>
     </div>
 
-    <div class="mat-h4">Configure your API endpoints access</div>
-    <p class="body-1">Choose the type of event-brokers/backend that will be exposed through the API</p>
+    <div class="mat-h4">Configure your API endpoint access</div>
   </div>
 
   <form *ngIf="formGroup && endpointSchema; else loadingTpl" [formGroup]="formGroup">
