@@ -4,8 +4,8 @@
 @import 'audit/history/apiHistory';
 @import 'deploy/deploy';
 @import 'design/policies/policy';
-@import 'design/properties/properties';
-@import 'design/resources/resources';
+@import 'proxy/properties/properties';
+@import 'proxy/resources/resources';
 @import 'proxy/health-check-dashboard/healthcheck';
 @import 'portal/subscriptions/subscriptions';
 
