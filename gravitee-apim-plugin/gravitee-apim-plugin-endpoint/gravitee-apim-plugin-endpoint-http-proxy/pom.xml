@@ -29,7 +29,7 @@
 
     <artifactId>gravitee-apim-plugin-endpoint-http-proxy</artifactId>
     <name>Gravitee.io APIM - Plugin - Endpoint HTTP proxy</name>
-    <description>Endpoint that allows exposing Http SyncApi</description>
+    <description>Endpoint that allows exposing HTTP SyncApi.</description>
 
     <dependencyManagement>
         <dependencies>
