@@ -26,8 +26,11 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { UIRouterModule } from '@uirouter/angular';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
+
+import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
   declarations: [ApiEndpointComponent],
@@ -47,6 +50,8 @@ import { ApiEndpointComponent } from './api-endpoint.component';
 
     GioFormJsonSchemaModule,
     GioFormSlideToggleModule,
+    GioGoBackButtonModule,
+    UIRouterModule,
   ],
 })
 export class ApiEndpointModule {}
