@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateParams, StateService } from '@uirouter/core';
+
 import { ApiService } from '../../../services/api.service';
+import ResourceService from '../../../services/resource.service';
+import EnvironmentService from '../../../services/environment.service';
 
 export default apisProxyRouterConfig;
 
@@ -216,6 +220,54 @@ function apisProxyRouterConfig($stateProvider) {
         },
         docs: {
           page: 'management-api-proxy-response-template',
+        },
+      },
+    })
+    .state('management.apis.detail.proxy.resources', {
+      url: '/resources',
+      template: require('./resources/resources.html'),
+      controller: 'ApiResourcesController',
+      controllerAs: 'apiResourcesCtrl',
+      resolve: {
+        resolvedResources: (ResourceService: ResourceService) => ResourceService.list(),
+      },
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flowsNg' },
+      data: {
+        perms: {
+          only: ['api-definition-r'],
+        },
+        docs: {
+          page: 'management-api-resources',
+        },
+      },
+    })
+    .state('management.apis.detail.proxy.properties', {
+      url: '/properties',
+      template: require('./properties/properties.html'),
+      controller: 'ApiPropertiesController',
+      controllerAs: 'apiPropertiesCtrl',
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flowsNg' },
+      resolve: {
+        resolvedApi: function (
+          $stateParams: StateParams,
+          ApiService: ApiService,
+          $state: StateService,
+          Constants: any,
+          EnvironmentService: EnvironmentService,
+        ) {
+          return ApiService.get($stateParams.apiId).catch((err) => {
+            if (err && err.interceptorFuture) {
+              $state.go('management.apis.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id) });
+            }
+          });
+        },
+      },
+      data: {
+        perms: {
+          only: ['api-definition-r'],
+        },
+        docs: {
+          page: 'management-api-properties',
         },
       },
     });

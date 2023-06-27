@@ -111,32 +111,10 @@ export class ApiNavigationComponent implements OnInit {
   }
 
   private appendDesign() {
-    let tabs = undefined;
-    if (this.graviteeVersion === '1.0.0') {
-      tabs = [
-        {
-          displayName: 'Policies',
-          targetRoute: 'management.apis.detail.design.policies',
-          baseRoute: 'management.apis.detail.design.policies',
-        },
-        {
-          displayName: 'Resources',
-          targetRoute: 'management.apis.detail.design.resources',
-          baseRoute: 'management.apis.detail.design.resources',
-        },
-        {
-          displayName: 'Properties',
-          targetRoute: 'management.apis.detail.design.properties',
-          baseRoute: 'management.apis.detail.design.properties',
-        },
-      ];
-    }
-
     this.subMenuItems.push({
       displayName: 'Policy Studio',
       targetRoute: 'management.apis.detail.design.policies',
       baseRoute: 'management.apis.detail.design',
-      tabs,
     });
   }
 
@@ -264,6 +242,20 @@ export class ApiNavigationComponent implements OnInit {
         targetRoute: 'management.apis.detail.proxy.responsetemplates.list',
         baseRoute: 'management.apis.detail.proxy.responsetemplates',
       });
+    }
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      proxyGroup.items.push(
+        {
+          displayName: 'Properties',
+          targetRoute: 'management.apis.detail.proxy.properties',
+          baseRoute: 'management.apis.detail.proxy.properties',
+        },
+        {
+          displayName: 'Resources',
+          targetRoute: 'management.apis.detail.proxy.resources',
+          baseRoute: 'management.apis.detail.proxy.resources',
+        },
+      );
     }
 
     if (proxyGroup.items.length > 0) {
