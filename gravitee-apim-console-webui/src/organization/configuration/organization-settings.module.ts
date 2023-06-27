@@ -54,6 +54,7 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
+import { UIRouter } from '@uirouter/core';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -92,6 +93,7 @@ import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-butto
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
 import { GioLicenseModule } from '../../shared/components/gio-license/gio-license.module';
+import { licenseGuard } from '../../shared/components/gio-license/gio-license-guard';
 
 const states: Ng2StateDeclaration[] = [
   {
@@ -236,6 +238,10 @@ const states: Ng2StateDeclaration[] = [
     data: {
       useAngularMaterial: true,
       menu: null,
+      requireLicense: {
+        license: { feature: 'apim-custom-roles' },
+        redirect: 'organization.roles',
+      },
       docs: {
         page: 'organization-configuration-roles',
       },
@@ -353,6 +359,10 @@ const states: Ng2StateDeclaration[] = [
     component: OrgSettingsAuditComponent,
     data: {
       useAngularMaterial: true,
+      requireLicense: {
+        license: { feature: 'apim-audit-trail' },
+        redirect: 'organization.settings',
+      },
       menu: null,
       docs: {
         page: 'management-audit',
@@ -378,6 +388,11 @@ const states: Ng2StateDeclaration[] = [
     },
   },
 ];
+
+export function configureModule(uiRouter: UIRouter) {
+  const transitionService = uiRouter.transitionService;
+  licenseGuard(transitionService);
+}
 
 @NgModule({
   imports: [
@@ -431,7 +446,7 @@ const states: Ng2StateDeclaration[] = [
     GioMenuModule,
     GioSubmenuModule,
 
-    UIRouterModule.forChild({ states }),
+    UIRouterModule.forChild({ states, config: configureModule }),
   ],
   declarations: [
     OrgNavigationComponent,
