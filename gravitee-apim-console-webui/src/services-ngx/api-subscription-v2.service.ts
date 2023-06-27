@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import {
+  AcceptSubscription,
   ApiSubscriptionsResponse,
   CreateSubscription,
   Subscription,
@@ -88,5 +89,12 @@ export class ApiSubscriptionV2Service {
 
   verify(apiId: string, verifySubscription: VerifySubscription): Observable<VerifySubscriptionResponse> {
     return this.http.post(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/_verify`, verifySubscription);
+  }
+
+  accept(subscriptionId: string, apiId: string, acceptSubscription: AcceptSubscription): Observable<Subscription> {
+    return this.http.post<Subscription>(
+      `${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/_accept`,
+      acceptSubscription,
+    );
   }
 }
