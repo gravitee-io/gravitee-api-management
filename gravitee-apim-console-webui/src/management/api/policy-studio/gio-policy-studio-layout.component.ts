@@ -45,8 +45,6 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   policyStudioMenu: MenuItem[] = [
     { label: 'Design', uiSref: of('.design') },
     { label: 'Configuration', uiSref: of('.config') },
-    { label: 'Properties', uiSref: of('.properties') },
-    { label: 'Resources', uiSref: of('.resources') },
   ];
   activeLink = this.policyStudioMenu[0];
   apiDefinition: ApiDefinition;

@@ -244,18 +244,33 @@ export class ApiNavigationComponent implements OnInit {
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      proxyGroup.items.push(
-        {
-          displayName: 'Properties',
-          targetRoute: 'management.apis.detail.proxy.properties',
-          baseRoute: 'management.apis.detail.proxy.properties',
-        },
-        {
-          displayName: 'Resources',
-          targetRoute: 'management.apis.detail.proxy.resources',
-          baseRoute: 'management.apis.detail.proxy.resources',
-        },
-      );
+      if (this.graviteeVersion === '1.0.0') {
+        proxyGroup.items.push(
+          {
+            displayName: 'Properties',
+            targetRoute: 'management.apis.detail.proxy.properties',
+            baseRoute: 'management.apis.detail.proxy.properties',
+          },
+          {
+            displayName: 'Resources',
+            targetRoute: 'management.apis.detail.proxy.resources',
+            baseRoute: 'management.apis.detail.proxy.resources',
+          },
+        );
+      } else {
+        proxyGroup.items.push(
+          {
+            displayName: 'Properties',
+            targetRoute: 'management.apis.detail.proxy.ng-properties',
+            baseRoute: 'management.apis.detail.proxy.ng-properties',
+          },
+          {
+            displayName: 'Resources',
+            targetRoute: 'management.apis.detail.proxy.ng-resources',
+            baseRoute: 'management.apis.detail.proxy.ng-resources',
+          },
+        );
+      }
     }
 
     if (proxyGroup.items.length > 0) {

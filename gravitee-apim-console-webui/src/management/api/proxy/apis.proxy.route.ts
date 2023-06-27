@@ -15,6 +15,9 @@
  */
 import { StateParams, StateService } from '@uirouter/core';
 
+import { ApiResourcesComponent } from './resources-ng/api-resources.component';
+import { ApiPropertiesComponent } from './properties-ng/api-properties.component';
+
 import { ApiService } from '../../../services/api.service';
 import ResourceService from '../../../services/resource.service';
 import EnvironmentService from '../../../services/environment.service';
@@ -231,7 +234,7 @@ function apisProxyRouterConfig($stateProvider) {
       resolve: {
         resolvedResources: (ResourceService: ResourceService) => ResourceService.list(),
       },
-      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flowsNg' },
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.proxy.ng-resources' },
       data: {
         perms: {
           only: ['api-definition-r'],
@@ -246,7 +249,7 @@ function apisProxyRouterConfig($stateProvider) {
       template: require('./properties/properties.html'),
       controller: 'ApiPropertiesController',
       controllerAs: 'apiPropertiesCtrl',
-      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flowsNg' },
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.proxy.ng-properties' },
       resolve: {
         resolvedApi: function (
           $stateParams: StateParams,
@@ -268,6 +271,28 @@ function apisProxyRouterConfig($stateProvider) {
         },
         docs: {
           page: 'management-api-properties',
+        },
+      },
+    })
+    .state('management.apis.detail.proxy.ng-resources', {
+      url: '/ng-resources',
+      component: ApiResourcesComponent,
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'management-api-policy-studio-resources',
+        },
+      },
+    })
+    .state('management.apis.detail.proxy.ng-properties', {
+      url: '/ng-properties',
+      component: ApiPropertiesComponent,
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'management-api-policy-studio-properties',
         },
       },
     });

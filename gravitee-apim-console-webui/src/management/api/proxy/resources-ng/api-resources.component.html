@@ -15,16 +15,23 @@
     limitations under the License.
 
 -->
-<gv-properties
-  *ngIf="!isLoading"
-  class="policy-studio-properties"
-  [attr.readonly]="isReadonly ? isReadonly : null"
-  [provider]="this.provider"
-  (:gv-properties:change)="this.onChange($event)"
-  (:gv-properties:save-provider)="this.onSaveProvider($event)"
-  (:gv-properties:switch-encrypted)="this.onChange($event)"
-  encryptable
-  [properties]="this.apiDefinition.properties"
-  [providers]="this.providers"
-  [dynamicPropertySchema]="this.dynamicPropertySchema"
-></gv-properties>
+<section ui-view class="properties" [class.save-bar-opened]="isDirty">
+  <gv-resources
+    *ngIf="apiDefinition"
+    class="policy-studio-resources"
+    [attr.readonly]="this.isReadonly"
+    (:gv-resources:change)="this.onChange($event)"
+    [resources]="this.apiDefinition.resources"
+    [types]="this.resourceTypes"
+  ></gv-resources>
+</section>
+
+<gio-save-bar
+  *ngIf="this.isDirty"
+  class="save-bar"
+  [opened]="this.isDirty"
+  [creationMode]="false"
+  (resetClicked)="onReset()"
+  (submitted)="onSubmit()"
+>
+</gio-save-bar>

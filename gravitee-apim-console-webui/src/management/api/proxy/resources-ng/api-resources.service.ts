@@ -20,12 +20,12 @@ import { Observable } from 'rxjs';
 
 import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
 import { Constants } from '../../../../entities/Constants';
-import { ListParams } from '../models/ListParams';
+import { ListParams } from '../../policy-studio/models/ListParams';
 
 @Injectable({
   providedIn: 'root',
 })
-export class PolicyStudioResourcesService {
+export class ApiResourcesService {
   constructor(readonly http: HttpClient, @Inject('Constants') readonly constants: Constants) {}
 
   listResources(params: ListParams): Observable<ResourceListItem[]> {

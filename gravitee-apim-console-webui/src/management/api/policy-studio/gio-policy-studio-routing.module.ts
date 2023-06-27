@@ -26,13 +26,9 @@ import { PolicyStudioDebugComponent } from './debug/policy-studio-debug.componen
 import { PolicyStudioDesignComponent } from './design/policy-studio-design.component';
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
 import { PolicyStudioConfigComponent } from './config/policy-studio-config.component';
-import { PolicyStudioPropertiesComponent } from './properties/policy-studio-properties.component';
-import { PolicyStudioResourcesComponent } from './resources/policy-studio-resources.component';
 import { PolicyStudioDesignModule } from './design/policy-studio-design.module';
 import { PolicyStudioDebugModule } from './debug/policy-studio-debug.module';
 import { PolicyStudioConfigModule } from './config/policy-studio-config.module';
-import { PolicyStudioResourcesModule } from './resources/policy-studio-resources.module';
-import { PolicyStudioPropertiesModule } from './properties/policy-studio-properties.module';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioLicenseModule } from '../../../shared/components/gio-license/gio-license.module';
@@ -53,8 +49,6 @@ import { GioLicenseModule } from '../../../shared/components/gio-license/gio-lic
 
     PolicyStudioDesignModule,
     PolicyStudioConfigModule,
-    PolicyStudioPropertiesModule,
-    PolicyStudioResourcesModule,
     PolicyStudioDebugModule,
     GioLicenseModule,
     GioIconsModule,
@@ -103,30 +97,6 @@ export class GioPolicyStudioRoutingModule {
           menu: null,
           docs: {
             page: 'management-api-policy-studio-config',
-          },
-        },
-      },
-      {
-        name: `${config.stateNamePrefix}.properties`,
-        url: '/properties',
-        component: PolicyStudioPropertiesComponent,
-        data: {
-          useAngularMaterial: true,
-          menu: null,
-          docs: {
-            page: 'management-api-policy-studio-properties',
-          },
-        },
-      },
-      {
-        name: `${config.stateNamePrefix}.resources`,
-        url: '/resources',
-        component: PolicyStudioResourcesComponent,
-        data: {
-          useAngularMaterial: true,
-          menu: null,
-          docs: {
-            page: 'management-api-policy-studio-resources',
           },
         },
       },
