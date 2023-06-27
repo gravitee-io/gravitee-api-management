@@ -91,7 +91,8 @@ function configurationRouterConfig($stateProvider: StateProvider) {
           page: 'management-configuration-analytics',
         },
         perms: {
-          only: ['environment-settings-r'],
+          only: ['environment-dashboard-r'],
+          unauthorizedFallbackTo: 'management.settings.apiPortalHeader',
         },
       },
     })
@@ -139,6 +140,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-api_header-r'],
+          unauthorizedFallbackTo: 'management.settings.apiQuality.list',
         },
       },
     })
@@ -158,7 +160,8 @@ function configurationRouterConfig($stateProvider: StateProvider) {
           page: 'management-configuration-apiquality',
         },
         perms: {
-          only: ['environment-settings-r'],
+          only: ['environment-quality_rule-r'],
+          unauthorizedFallbackTo: 'management.settings.environment.identityproviders',
         },
       },
     })
@@ -215,6 +218,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-identity_provider_activation-r'],
+          unauthorizedFallbackTo: 'management.settings.categories.list',
         },
       },
     })
@@ -235,6 +239,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-category-r'],
+          unauthorizedFallbackTo: 'management.settings.clientregistrationproviders.list',
         },
       },
     })
@@ -302,6 +307,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-client_registration_provider-r'],
+          unauthorizedFallbackTo: 'management.settings.documentation.list',
         },
       },
     })
@@ -373,7 +379,8 @@ function configurationRouterConfig($stateProvider: StateProvider) {
           page: 'management-configuration-portal-pages',
         },
         perms: {
-          only: ['environment-documentation-r'],
+          only: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
+          unauthorizedFallbackTo: 'management.settings.metadata',
         },
       },
       params: {
@@ -569,6 +576,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-metadata-r'],
+          unauthorizedFallbackTo: 'management.settings.portal',
         },
       },
     })
@@ -586,6 +594,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-settings-r'],
+          unauthorizedFallbackTo: 'management.settings.theme',
         },
       },
     })
@@ -600,6 +609,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-theme-r'],
+          unauthorizedFallbackTo: 'management.settings.top-apis',
         },
       },
     })
@@ -616,6 +626,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-top_apis-r'],
+          unauthorizedFallbackTo: 'management.settings.api_logging',
         },
       },
     })
@@ -633,6 +644,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['organization-settings-r'],
+          unauthorizedFallbackTo: 'management.settings.dictionaries.list',
         },
       },
     })
@@ -653,6 +665,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-dictionary-r'],
+          unauthorizedFallbackTo: 'management.settings.tags',
         },
       },
     })
@@ -702,6 +715,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-tag-r'],
+          unauthorizedFallbackTo: 'management.settings.tenants',
         },
       },
     })
@@ -721,6 +735,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-tenant-r'],
+          unauthorizedFallbackTo: 'management.settings.customUserFields',
         },
       },
     })
@@ -740,6 +755,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['organization-custom_user_fields-r'],
+          unauthorizedFallbackTo: 'management.settings.groups.list',
         },
       },
     })
@@ -760,6 +776,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-group-r'],
+          unauthorizedFallbackTo: 'management.home',
         },
       },
     })

@@ -31,6 +31,7 @@ interface MenuItem {
   baseRoute: string;
   displayName: string;
   permissions?: string[];
+  subMenuPermissions?: string[];
 }
 
 @Component({
@@ -100,7 +101,8 @@ export class GioSideNavComponent implements OnInit {
         targetRoute: 'management.settings.analytics.list',
         baseRoute: 'management.settings',
         displayName: 'Settings',
-        permissions: [
+        permissions: ['environment-settings-c', 'environment-settings-r', 'environment-settings-u', 'environment-settings-d'],
+        subMenuPermissions: [
           // hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
           'environment-category-r',
           'environment-metadata-r',
@@ -137,7 +139,14 @@ export class GioSideNavComponent implements OnInit {
   }
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
-    return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
+    return menuItems.filter(
+      (item) =>
+        !item.permissions ||
+        (item.subMenuPermissions &&
+          this.permissionService.hasAnyMatching(item.subMenuPermissions) &&
+          this.permissionService.hasAnyMatching(item.permissions)) ||
+        this.permissionService.hasAnyMatching(item.permissions),
+    );
   }
 
   navigateTo(route: string) {
