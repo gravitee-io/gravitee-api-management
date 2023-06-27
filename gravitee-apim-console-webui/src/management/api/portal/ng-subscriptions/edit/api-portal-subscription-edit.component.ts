@@ -42,13 +42,19 @@ import {
   ApiPortalSubscriptionChangeEndDateDialogData,
   ApiPortalSubscriptionChangeEndDateDialogResult,
 } from '../components/change-end-date-dialog/api-portal-subscription-change-end-date-dialog.component';
+import {
+  ApiPortalSubscriptionValidateDialogComponent,
+  ApiPortalSubscriptionAcceptDialogData,
+  ApiPortalSubscriptionAcceptDialogResult,
+} from '../components/validate-dialog/api-portal-subscription-validate-dialog.component';
+import { Constants } from '../../../../../entities/Constants';
 
 interface SubscriptionDetailVM {
   id: string;
   plan: { id: string; label: string; securityType: PlanSecurityType; mode: PlanMode };
   status: SubscriptionStatus;
   subscribedBy: string;
-  application?: { label: string; name: string; description: string };
+  application?: { id: string; label: string; name: string; description: string };
   publisherMessage?: string;
   subscriberMessage?: string;
   createdAt?: string;
@@ -73,9 +79,11 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
   subscription: SubscriptionDetailVM;
   private apiId: string;
   private hasSharedApiKeyMode: boolean;
+  private canUseCustomApiKey: boolean;
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
+    @Inject('Constants') private readonly constants: Constants,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
     private readonly applicationService: ApplicationService,
     private datePipe: DatePipe,
@@ -85,6 +93,7 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
 
   ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
+    this.canUseCustomApiKey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
 
     this.apiSubscriptionService
       .getById(this.apiId, this.ajsStateParams.subscriptionId, ['plan', 'application', 'subscribedBy'])
@@ -102,6 +111,7 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
                 mode: subscription.plan.security?.type ? 'STANDARD' : 'PUSH',
               },
               application: {
+                id: subscription.application.id,
                 label: `${subscription.application.name} (${subscription.application.primaryOwner.displayName}) - Type: ${subscription.application.type}`,
                 name: subscription.application.name,
                 description: subscription.application.description,
@@ -137,7 +147,41 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
   }
 
   validateSubscription() {
-    // Do nothing for now
+    this.matDialog
+      .open<ApiPortalSubscriptionValidateDialogComponent, ApiPortalSubscriptionAcceptDialogData, ApiPortalSubscriptionAcceptDialogResult>(
+        ApiPortalSubscriptionValidateDialogComponent,
+        {
+          data: {
+            apiId: this.apiId,
+            applicationId: this.subscription.application.id,
+            canUseCustomApiKey: this.canUseCustomApiKey,
+            sharedApiKeyMode: this.hasSharedApiKeyMode,
+          },
+          role: 'alertdialog',
+          id: 'validateSubscriptionDialog',
+        },
+      )
+      .afterClosed()
+      .pipe(
+        switchMap((result) =>
+          result
+            ? this.apiSubscriptionService.accept(this.subscription.id, this.apiId, {
+                ...(result.customApiKey && result.customApiKey !== '' ? { customApiKey: result.customApiKey } : {}),
+                ...(result.message && result.message !== '' ? { reason: result.message } : {}),
+                ...(result.start ? { startingAt: result.start } : {}),
+                ...(result.end ? { endingAt: result.end } : {}),
+              })
+            : EMPTY,
+        ),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`Subscription validated`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
   }
 
   rejectSubscription() {
