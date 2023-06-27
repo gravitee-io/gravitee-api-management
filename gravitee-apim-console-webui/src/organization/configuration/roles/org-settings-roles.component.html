@@ -24,12 +24,13 @@
         <h2 gioTableOfContents>{{ item.scope }}</h2>
         <button
           *gioPermission="{ anyOf: ['organization-role-c'] }"
-          [gioLicense]="{ feature: 'apim-custom-roles' }"
+          [gioLicense]="customRolesLicense"
           (click)="onAddARoleClicked(item.scopeId)"
           mat-raised-button
           color="primary"
         >
           <mat-icon>add</mat-icon>Add a role
+          <mat-icon *ngIf="hasCustomRolesLock$ | async" class="mat-icon-right" svgIcon="gio:lock"></mat-icon>
         </button>
       </div>
       <mat-list class="org-settings-roles__content__list">

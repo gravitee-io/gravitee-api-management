@@ -15,7 +15,7 @@
  */
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { Subject, combineLatest, EMPTY } from 'rxjs';
+import { Subject, combineLatest, EMPTY, Observable } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/angularjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -26,6 +26,7 @@ import { Role, RoleScope } from '../../../entities/role/role';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { Constants } from '../../../entities/Constants';
+import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
 
 interface RoleVM {
   name: string;
@@ -46,6 +47,8 @@ interface RoleVM {
 export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   rolesByScope: Array<{ scope: string; scopeId: string; roles: RoleVM[] }>;
   loading = true;
+  customRolesLicense = { feature: 'apim-custom-roles' };
+  hasCustomRolesLock$: Observable<boolean>;
 
   constructor(
     private readonly roleService: RoleService,
@@ -53,11 +56,13 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly licenseService: GioLicenseService,
   ) {}
 
   private readonly unsubscribe$ = new Subject<boolean>();
 
   ngOnInit(): void {
+    this.hasCustomRolesLock$ = this.licenseService.notAllowed(this.customRolesLicense.feature);
     combineLatest([
       this.roleService.list('ORGANIZATION'),
       this.roleService.list('ENVIRONMENT'),
