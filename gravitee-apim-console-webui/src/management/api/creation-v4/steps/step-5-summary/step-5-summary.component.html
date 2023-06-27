@@ -129,17 +129,19 @@
   <div class="step-5-summary__footer">
     <div class="step-5-summary__footer__actions">
       <button mat-stroked-button type="button" (click)="createApi(false)">
-        Create my API<mat-icon
+        Save API<mat-icon
           svgIcon="gio:info"
           class="step-5-summary__footer__button-icon"
-          matTooltip="Your API can't be consumed"
+          matTooltip="Your API definition will be saved, but not deployed to the gateway"
         ></mat-icon>
       </button>
       <button color="primary" mat-flat-button type="button" [disabled]="!deployable" (click)="createApi(true)">
-        Deploy my API<mat-icon
+        Save & Deploy API<mat-icon
           svgIcon="gio:info"
           class="step-5-summary__footer__button-icon"
-          [matTooltip]="deployable ? 'Your API can be consumed' : 'You cannot deploy an API with endpoints or entrypoints not deployed'"
+          [matTooltip]="
+            deployable ? 'Your API will be deployed to the gateway' : 'You cannot deploy an API with endpoints or entrypoints not deployed'
+          "
         ></mat-icon>
       </button>
     </div>
