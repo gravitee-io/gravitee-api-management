@@ -231,8 +231,8 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'organization.role-new',
-    url: '/role/:roleScope/',
-    component: OrgSettingsRolesComponent,
+    url: '/role/:roleScope',
+    component: OrgSettingsRoleComponent,
     data: {
       useAngularMaterial: true,
       menu: null,
