@@ -147,7 +147,7 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'organization.identity-new',
-    url: '/identities/:id',
+    url: '/identities/new',
     component: OrgSettingsIdentityProviderComponent,
     data: {
       useAngularMaterial: true,
