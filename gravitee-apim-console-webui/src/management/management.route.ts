@@ -160,6 +160,10 @@ function managementRouterConfig($stateProvider) {
       component: 'ngEnvAudit',
       data: {
         useAngularMaterial: true,
+        requireLicense: {
+          license: { feature: 'apim-audit-trail' },
+          redirect: 'management',
+        },
         perms: {
           only: ['environment-audit-r'],
         },
