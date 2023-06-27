@@ -15,13 +15,14 @@
  */
 import { CommonModule } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
+import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
-import { PolicyStudioResourcesComponent } from './policy-studio-resources.component';
+import { ApiPropertiesComponent } from './api-properties.component';
 
 @NgModule({
-  imports: [CommonModule],
-  declarations: [PolicyStudioResourcesComponent],
-  exports: [PolicyStudioResourcesComponent],
+  imports: [CommonModule, GioSaveBarModule],
+  declarations: [ApiPropertiesComponent],
+  exports: [ApiPropertiesComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class PolicyStudioResourcesModule {}
+export class ApiPropertiesModule {}
