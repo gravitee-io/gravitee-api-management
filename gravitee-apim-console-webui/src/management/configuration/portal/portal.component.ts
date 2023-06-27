@@ -20,6 +20,7 @@ import { ApiService } from '../../../services/api.service';
 import CorsService from '../../../services/cors.service';
 import NotificationService from '../../../services/notification.service';
 import PortalSettingsService from '../../../services/portalSettings.service';
+import UserService from '../../../services/user.service';
 
 const PortalSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -32,6 +33,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     PortalSettingsService: PortalSettingsService,
     CorsService: CorsService,
     ApiService: ApiService,
+    UserService: UserService,
     $state: StateService,
     Constants: any,
   ) {
@@ -42,6 +44,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.$onInit = () => {
+      this.isReadonlyPage = UserService.isUserHasPermissions(['environment-settings-r', 'environment-settings-u']);
       this.settings.api.labelsDictionary = this.settings.api.labelsDictionary || [];
       this.settings.cors.allowOrigin = this.settings.cors.allowOrigin || [];
       this.settings.cors.allowHeaders = this.settings.cors.allowHeaders || [];
