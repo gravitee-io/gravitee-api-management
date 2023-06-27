@@ -23,7 +23,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatDatepickerInputHarness } from '@angular/material/datepicker/testing';
+import { MatDatepickerInputHarness, MatDateRangeInputHarness } from '@angular/material/datepicker/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { set } from 'lodash';
 
 import { ApiPortalSubscriptionEditComponent } from './api-portal-subscription-edit.component';
 import { ApiPortalSubscriptionEditHarness } from './api-portal-subscription-edit.harness';
@@ -33,6 +35,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { ApiPortalSubscriptionsModule } from '../api-portal-subscriptions.module';
 import { User as DeprecatedUser } from '../../../../../entities/user';
 import {
+  AcceptSubscription,
   fakeBasePlan,
   fakePlanV4,
   fakeSubscription,
@@ -40,9 +43,11 @@ import {
   PlanMode,
   Subscription,
   UpdateSubscription,
+  VerifySubscription,
 } from '../../../../../entities/management-api-v2';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 import { ApiKeyMode } from '../../../../../entities/application/application';
+import { ApiKeyValidationHarness } from '../components/api-key-validation/api-key-validation.harness';
 
 const SUBSCRIPTION_ID = 'my-nice-subscription';
 const API_ID = 'api_1';
@@ -80,6 +85,7 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       providers: [
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: 'Constants', useValue: CONSTANTS_TESTING },
         {
           provide: InteractivityChecker,
           useValue: {
@@ -492,57 +498,198 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       const cancelBtn = await changeEndDateDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
       await cancelBtn.click();
     });
+  });
 
-    describe('close subscription', () => {
-      beforeEach(async () => {
-        await initComponent();
-        expectApplicationGet(ApiKeyMode.EXCLUSIVE);
-      });
-      it('should close subscription', async () => {
-        const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
-        expect(await harness.closeBtnIsVisible()).toEqual(true);
-
-        await harness.openCloseDialog();
-
-        const closeDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-          MatDialogHarness.with({ selector: '#confirmCloseSubscriptionDialog' }),
-        );
-        expect(await closeDialog.getTitleText()).toEqual('Close your subscription');
-
-        const closeBtn = await closeDialog.getHarness(MatButtonHarness.with({ text: 'Close' }));
-        expect(await closeBtn.isDisabled()).toEqual(false);
-        await closeBtn.click();
-
-        expectApiSubscriptionClose(SUBSCRIPTION_ID, BASIC_SUBSCRIPTION());
-        const closedSubscription = BASIC_SUBSCRIPTION();
-        closedSubscription.status = 'CLOSED';
-        expectApiSubscriptionGet(closedSubscription);
-        expectApplicationGet();
-
-        expect(await harness.getStatus()).toEqual('CLOSED');
-        expect(await harness.pauseBtnIsVisible()).toEqual(false);
-        expect(await harness.resumeBtnIsVisible()).toEqual(false);
-      });
-      it('should not close subscription on cancel', async () => {
-        const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
-        expect(await harness.closeBtnIsVisible()).toEqual(true);
-
-        await harness.openCloseDialog();
-
-        const closeDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-          MatDialogHarness.with({ selector: '#confirmCloseSubscriptionDialog' }),
-        );
-        const cancelBtn = await closeDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
-        await cancelBtn.click();
-
-        expect(await harness.getStatus()).toEqual('ACCEPTED');
-      });
+  describe('close subscription', () => {
+    beforeEach(async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
     });
+    it('should close subscription', async () => {
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      expect(await harness.closeBtnIsVisible()).toEqual(true);
+
+      await harness.openCloseDialog();
+
+      const closeDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#confirmCloseSubscriptionDialog' }),
+      );
+      expect(await closeDialog.getTitleText()).toEqual('Close your subscription');
+
+      const closeBtn = await closeDialog.getHarness(MatButtonHarness.with({ text: 'Close' }));
+      expect(await closeBtn.isDisabled()).toEqual(false);
+      await closeBtn.click();
+
+      expectApiSubscriptionClose(SUBSCRIPTION_ID, BASIC_SUBSCRIPTION());
+      const closedSubscription = BASIC_SUBSCRIPTION();
+      closedSubscription.status = 'CLOSED';
+      expectApiSubscriptionGet(closedSubscription);
+      expectApplicationGet();
+
+      expect(await harness.getStatus()).toEqual('CLOSED');
+      expect(await harness.pauseBtnIsVisible()).toEqual(false);
+      expect(await harness.resumeBtnIsVisible()).toEqual(false);
+    });
+    it('should not close subscription on cancel', async () => {
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      expect(await harness.closeBtnIsVisible()).toEqual(true);
+
+      await harness.openCloseDialog();
+
+      const closeDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#confirmCloseSubscriptionDialog' }),
+      );
+      const cancelBtn = await closeDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+      await cancelBtn.click();
+
+      expect(await harness.getStatus()).toEqual('ACCEPTED');
+    });
+  });
+
+  describe('validate subscription', () => {
+    const pendingSubscription = BASIC_SUBSCRIPTION();
+    pendingSubscription.status = 'PENDING';
+
+    it('should validate without any extra information', async () => {
+      await initComponent(pendingSubscription);
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      expect(await harness.validateBtnIsVisible()).toEqual(true);
+
+      await harness.openValidateDialog();
+
+      const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+      );
+      expect(await validateDialog.getTitleText()).toEqual('Validate your subscription');
+
+      const validateBtn = await validateDialog.getHarness(MatButtonHarness.with({ text: 'Validate' }));
+      expect(await validateBtn.isDisabled()).toEqual(false);
+      await validateBtn.click();
+
+      expectApiSubscriptionValidate(SUBSCRIPTION_ID, {}, BASIC_SUBSCRIPTION());
+
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApplicationGet();
+
+      expect(await harness.getStatus()).toEqual('ACCEPTED');
+      expect(await harness.validateBtnIsVisible()).toEqual(false);
+    });
+    it('should validate with extra information', async () => {
+      await initComponent(pendingSubscription);
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness.openValidateDialog();
+
+      const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+      );
+
+      const datePicker = await validateDialog.getHarness(MatDateRangeInputHarness);
+      expect(await datePicker.getValue()).toEqual('');
+      await datePicker.openCalendar();
+      await datePicker.getStartInput().then((startInput) => startInput.setValue('01/01/2080'));
+      await datePicker.getEndInput().then((endInput) => endInput.setValue('01/02/2080'));
+
+      const message = await validateDialog.getHarness(MatInputHarness.with({ selector: '#subscription-message' }));
+      expect(await message.getValue()).toEqual('');
+      await message.setValue('A great new message');
+
+      const customApiKey = await validateDialog.getHarness(ApiKeyValidationHarness);
+      expect(await customApiKey.getInputValue()).toEqual('');
+      await customApiKey.setInputValue('12345678');
+      expectApiSubscriptionVerify(true, '12345678');
+
+      const validateBtn = await validateDialog.getHarness(MatButtonHarness.with({ text: 'Validate' }));
+      await validateBtn.click();
+
+      expectApiSubscriptionValidate(
+        SUBSCRIPTION_ID,
+        {
+          customApiKey: '12345678',
+          reason: 'A great new message',
+          startingAt: new Date('01/01/2080'),
+          endingAt: new Date('01/02/2080'),
+        },
+        BASIC_SUBSCRIPTION(),
+      );
+
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApplicationGet();
+
+      expect(await harness.getStatus()).toEqual('ACCEPTED');
+      expect(await harness.validateBtnIsVisible()).toEqual(false);
+    });
+    it('should validate with sharedApiKeyMode and cannot use custom key', async () => {
+      await initComponent(pendingSubscription, undefined, false);
+      expectApplicationGet(ApiKeyMode.SHARED);
+
+      await validateInformation(false);
+    });
+    it('should validate without sharedKeyMode and can use custom key', async () => {
+      await initComponent(pendingSubscription);
+      expectApplicationGet(ApiKeyMode.UNSPECIFIED);
+
+      await validateInformation(true);
+    });
+    it('should validate without sharedKeyMode and cannot use custom key', async () => {
+      await initComponent(pendingSubscription, undefined, false);
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+
+      await validateInformation(false);
+    });
+    it('should validate with sharedApiKeyMode and can use custom key', async () => {
+      await initComponent(pendingSubscription);
+      expectApplicationGet(ApiKeyMode.SHARED);
+
+      await validateInformation(false);
+    });
+    it('should not validate on cancel', async () => {
+      await initComponent(pendingSubscription);
+      expectApplicationGet(ApiKeyMode.SHARED);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness.openValidateDialog();
+
+      const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+      );
+      const cancelBtn = await validateDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+      await cancelBtn.click();
+    });
+
+    const validateInformation = async (apiKeyInputIsPresent: boolean) => {
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness.openValidateDialog();
+
+      const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+      );
+
+      await validateDialog
+        .getHarness(ApiKeyValidationHarness)
+        .then((isPresent) => (apiKeyInputIsPresent ? expect(isPresent).toBeTruthy() : fail('ApiKeyValidationComponent should be present')))
+        .catch((err) => (apiKeyInputIsPresent ? fail('ApiKeyValidationComponent should not be present') : expect(err).toBeTruthy()));
+
+      const validateBtn = await validateDialog.getHarness(MatButtonHarness.with({ text: 'Validate' }));
+      await validateBtn.click();
+
+      expectApiSubscriptionValidate(SUBSCRIPTION_ID, {}, BASIC_SUBSCRIPTION());
+
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApplicationGet();
+
+      expect(await harness.getStatus()).toEqual('ACCEPTED');
+      expect(await harness.validateBtnIsVisible()).toEqual(false);
+    };
   });
 
   async function initComponent(
     subscription: Subscription = BASIC_SUBSCRIPTION(),
     permissions: string[] = ['api-subscription-r', 'api-subscription-u', 'api-subscription-d'],
+    canUseCustomApiKey = true,
   ) {
     await TestBed.overrideProvider(UIRouterStateParams, {
       useValue: { apiId: API_ID, subscriptionId: SUBSCRIPTION_ID },
@@ -552,6 +699,16 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       overrideUser.userPermissions = permissions;
       await TestBed.overrideProvider(CurrentUserService, { useValue: { currentUser: overrideUser } });
     }
+
+    await TestBed.overrideProvider('Constants', {
+      useFactory: () => {
+        const constants = CONSTANTS_TESTING;
+        set(constants, 'env.settings.plan.security', {
+          customApiKey: { enabled: canUseCustomApiKey },
+        });
+        return constants;
+      },
+    });
     fixture = TestBed.createComponent(ApiPortalSubscriptionEditComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -623,6 +780,28 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     });
     expect(req.request.body).toEqual({});
     req.flush(subscription);
+  }
+
+  function expectApiSubscriptionValidate(subscriptionId: string, acceptSubscription: AcceptSubscription, subscription: Subscription): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscriptionId}/_accept`,
+      method: 'POST',
+    });
+    expect(JSON.stringify(req.request.body)).toEqual(JSON.stringify(acceptSubscription));
+    req.flush(subscription);
+  }
+
+  function expectApiSubscriptionVerify(isUnique: boolean, key: string): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/_verify`,
+      method: 'POST',
+    });
+    const verifySubscription: VerifySubscription = {
+      applicationId: APP_ID,
+      apiKey: key,
+    };
+    expect(req.request.body).toEqual(verifySubscription);
+    req.flush({ ok: isUnique });
   }
 
   function expectApplicationGet(apiKeyMode: ApiKeyMode = ApiKeyMode.UNSPECIFIED): void {

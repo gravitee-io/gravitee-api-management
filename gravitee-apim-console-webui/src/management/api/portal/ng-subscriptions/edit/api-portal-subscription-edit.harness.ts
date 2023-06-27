@@ -15,7 +15,6 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
 
 export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
   static hostSelector = '#subscription-edit';
@@ -24,7 +23,6 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
   protected getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Go back to your subscriptions"]' }));
   protected getFooter = this.locatorFor('.subscription__footer');
   protected getBtnByText = (text: string) => this.locatorFor(MatButtonHarness.with({ text }))();
-  protected getDialog = (selector: string) => this.locatorFor(MatDialogHarness.with({ selector }))();
 
   public async goBackToSubscriptionsList(): Promise<void> {
     return this.getBackButton().then((btn) => btn.click());
@@ -138,6 +136,10 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
 
   public async validateBtnIsVisible(): Promise<boolean> {
     return this.btnIsVisible('Validate subscription');
+  }
+
+  public async openValidateDialog(): Promise<void> {
+    return this.getBtnByText('Validate subscription').then((btn) => btn.click());
   }
 
   public async rejectBtnIsVisible(): Promise<boolean> {
