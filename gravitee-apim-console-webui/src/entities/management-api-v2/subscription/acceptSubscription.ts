@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './acceptSubscription';
-export * from './createSubscription';
-export * from './subscription';
-export * from './subscription.fixture';
-export * from './subscriptionConsumerConfiguration';
-export * from './subscriptionConsumerStatus';
-export * from './subscriptionStatus';
-export * from './updateSubscription';
-export * from './verifySubscription';
+export interface AcceptSubscription {
+  reason?: string;
+  customApiKey?: string;
+  startingAt?: Date;
+  endingAt?: Date;
+}
