@@ -75,7 +75,7 @@ export class ApiNgNavigationComponent implements OnInit {
 
     this.bannerState = localStorage.getItem('gv-api-navigation-banner');
 
-    this.appendDesign();
+    this.appendPolicyStudio();
     this.appendPortalGroup();
     this.appendEntrypointsGroup();
     this.appendEndpointsGroup();
@@ -88,11 +88,11 @@ export class ApiNgNavigationComponent implements OnInit {
     });
   }
 
-  private appendDesign() {
+  private appendPolicyStudio() {
     this.subMenuItems.push({
-      displayName: 'Design',
-      targetRoute: 'management.apis.ng.design',
-      baseRoute: 'management.apis.ng.design',
+      displayName: 'Policy Studio',
+      targetRoute: 'management.apis.ng.policyStudio',
+      baseRoute: 'management.apis.ng.policyStudio',
       tabs: undefined,
     });
   }
