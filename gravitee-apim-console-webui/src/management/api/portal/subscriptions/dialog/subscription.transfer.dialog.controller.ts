@@ -26,7 +26,7 @@ function DialogSubscriptionTransferController($scope, $mdDialog, plans) {
   };
 
   this.hasGeneralConditions = function (plan) {
-    return !!plan.general_conditions
+    return !!plan.general_conditions;
   };
 
   this.atLeastOnePlanWithGeneralConditions = function () {
