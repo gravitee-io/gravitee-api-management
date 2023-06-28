@@ -64,6 +64,7 @@ services:
       - gravitee_license_key=${GRAVITEE_LICENSE}
       - gravitee_services_sync_enabled=false
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_services_sync_enabled=false
       - gravitee_management_mongodb_uri=mongodb://database:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_ratelimit_mongodb_uri=mongodb://database:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_services_bridge_http_enabled=true
@@ -73,6 +74,7 @@ services:
       - gravitee_services_bridge_http_authentication_users_admin=adminadmin
       - gravitee_services_bridge_http_secured=false
       - gravitee_services_bridge_http_ssl_clientAuth=false
+      - "JAVA_OPTS=${JAVA_OPTS} ${JACOCO_OPTS}"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://admin:adminadmin@localhost:18082/_node" ]
       interval: 2s
@@ -100,13 +102,13 @@ services:
       - gravitee_license_key=${GRAVITEE_LICENSE}
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_services_sync_delay=1000
-      - "JAVA_OPTS=${JAVA_OPTS} ${JACOCO_OPTS}"
       - gravitee_management_type=http
       - gravitee_management_http_url=http://gateway-server:18092
       - gravitee_reporters_elasticsearch_enabled=true
       - gravitee_management_http_authentication_basic_username=admin
       - gravitee_management_http_authentication_basic_password=adminadmin
       - gravitee_management_http_ssl_verifyHostName=false
+      - "JAVA_OPTS=${JAVA_OPTS} ${JACOCO_OPTS}"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://admin:adminadmin@localhost:18082/_node" ]
       interval: 2s
