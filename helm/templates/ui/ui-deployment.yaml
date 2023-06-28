@@ -145,6 +145,7 @@ spec:
           {{- else if and (.Values.ui.deployment.customStartupProbe) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
           startupProbe: {{ toYaml .Values.ui.deployment.customStartupProbe | nindent 12 }}
           {{- end }}
+          resources: {{ toYaml .Values.ui.resources | nindent 12 }}
           volumeMounts:
             - name: config
               mountPath: /usr/share/nginx/html/constants.json

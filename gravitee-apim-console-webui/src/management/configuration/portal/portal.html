@@ -29,7 +29,7 @@
     <div class="gv-form-content" layout="column">
       <md-input-container class="md-block" flex-gt-xs>
         <label>Company name</label>
-        <input ng-model="$ctrl.settings.company.name" ng-disabled="$ctrl.isReadonlySetting('company.name')" />
+        <input ng-model="$ctrl.settings.company.name" ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('company.name')" />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('company.name')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
     </div>
@@ -43,7 +43,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.plan.security.keyless.enabled"
           aria-label="keyless"
-          ng-disabled="$ctrl.isReadonlySetting('plan.security.keyless.enabled')"
+          ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('plan.security.keyless.enabled')"
         >
           Keyless plans
           <md-tooltip ng-if="$ctrl.isReadonlySetting('plan.security.keyless.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -54,7 +54,7 @@
           ng-model="$ctrl.settings.plan.security.apikey.enabled"
           ng-change="$ctrl.toggleApiKeyPlan()"
           aria-label="apikey"
-          ng-disabled="$ctrl.isReadonlySetting('plan.security.apikey.enabled')"
+          ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('plan.security.apikey.enabled')"
         >
           Api-key plans
           <md-tooltip ng-if="$ctrl.isReadonlySetting('plan.security.apikey.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -62,7 +62,7 @@
       </md-input-container>
       <md-input-container class="gv-input-container-dense portal-component__sub-input">
         <md-checkbox
-          ng-disabled="!$ctrl.settings.plan.security.apikey.enabled || $ctrl.isReadonlySetting('plan.security.apikey.allowCustom.enabled')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.plan.security.apikey.enabled || $ctrl.isReadonlySetting('plan.security.apikey.allowCustom.enabled')"
           ng-model="$ctrl.settings.plan.security.customApiKey.enabled"
           aria-label="apikeyCustom"
         >
@@ -74,7 +74,7 @@
       </md-input-container>
       <md-input-container class="gv-input-container-dense portal-component__sub-input">
         <md-checkbox
-          ng-disabled="!$ctrl.settings.plan.security.apikey.enabled || $ctrl.isReadonlySetting('plan.security.apikey.sharedApiKey.enabled')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.plan.security.apikey.enabled || $ctrl.isReadonlySetting('plan.security.apikey.sharedApiKey.enabled')"
           ng-model="$ctrl.settings.plan.security.sharedApiKey.enabled"
           aria-label="sharedApiKey"
         >
@@ -88,7 +88,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.plan.security.oauth2.enabled"
           aria-label="oauth2"
-          ng-disabled="$ctrl.isReadonlySetting('plan.security.oauth2.enabled')"
+          ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('plan.security.oauth2.enabled')"
         >
           Oauth2 plans
           <md-tooltip ng-if="$ctrl.isReadonlySetting('plan.security.oauth2.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -98,7 +98,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.plan.security.jwt.enabled"
           aria-label="jwt"
-          ng-disabled="$ctrl.isReadonlySetting('plan.security.jwt.enabled')"
+          ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('plan.security.jwt.enabled')"
         >
           JWT plans
           <md-tooltip ng-if="$ctrl.isReadonlySetting('plan.security.jwt.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -123,7 +123,7 @@
           ng-model="$ctrl.settings.api.labelsDictionary"
           placeholder="Enter a label"
           md-add-on-blur="true"
-          readonly="$ctrl.isReadonlySetting('api.labelsDictionary')"
+          readonly="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('api.labelsDictionary')"
           ng-click="$ctrl.formSettings.$setDirty()"
         >
         </md-chips>
@@ -135,7 +135,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.dashboards.apiStatus.enabled"
           aria-label="Display API status panel"
-          ng-disabled="$ctrl.isReadonlySetting('console.dashboards.apiStatus.enabled')"
+          ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('console.dashboards.apiStatus.enabled')"
         >
           Display API STATUS panel
           <md-tooltip ng-if="$ctrl.isReadonlySetting('console.dashboards.apiStatus.enabled')"
@@ -146,7 +146,7 @@
 
       <h3>API Primary Owner mode</h3>
       <md-input-container class="md-block">
-        <md-radio-group ng-model="$ctrl.settings.api.primaryOwnerMode">
+        <md-radio-group ng-model="$ctrl.settings.api.primaryOwnerMode" ng-disabled="$ctrl.isReadonlyPage">
           <md-radio-button ng-value="'HYBRID'" aria-label="Hybrid"
             >HYBRID: an API primary owner can be either a user or a group (Default)</md-radio-button
           >
@@ -168,18 +168,25 @@
             >Api-key Header
             <small>(Used by portal to display the CURL command, change the YAML configuration to impact the gateway)</small>
           </label>
-          <input ng-model="$ctrl.settings.portal.apikeyHeader" ng-disabled="$ctrl.isReadonlySetting('portal.apikey.header')" />
+          <input
+            ng-model="$ctrl.settings.portal.apikeyHeader"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.apikey.header')"
+          />
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.apikey.header')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
         <md-input-container class="md-block" flex-gt-xs>
           <label>Portal URL</label>
-          <input type="text" ng-model="$ctrl.settings.portal.url" ng-disabled="$ctrl.isReadonlySetting('portal.url')" />
+          <input
+            type="text"
+            ng-model="$ctrl.settings.portal.url"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.url')"
+          />
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.url')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
 
         <md-switch
           aria-label="Override homepage title"
-          ng-disabled="$ctrl.isReadonlySetting('portal.homepageTitle')"
+          ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.homepageTitle')"
           ng-model="$ctrl.overrideHomepageTitle"
           ng-change="$ctrl.toggleOverrideHomepageTitle()"
         >
@@ -188,7 +195,11 @@
         </md-switch>
         <md-input-container class="md-block" flex-gt-xs ng-if="$ctrl.overrideHomepageTitle">
           <label>Portal homepage title</label>
-          <input type="text" ng-model="$ctrl.settings.portal.homepageTitle" ng-disabled="$ctrl.isReadonlySetting('portal.homepageTitle')" />
+          <input
+            type="text"
+            ng-model="$ctrl.settings.portal.homepageTitle"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.homepageTitle')"
+          />
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.homepageTitle')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
       </div>
@@ -199,7 +210,7 @@
           <md-checkbox
             ng-model="$ctrl.settings.portal.apis.tilesMode.enabled"
             aria-label="Tiles Mode"
-            ng-disabled="$ctrl.isReadonlySetting('portal.apis.tilesMode.enabled')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.apis.tilesMode.enabled')"
           >
             Use Tiles Mode for apis by default (if not overridden by user)
             <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.apis.tilesMode.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -209,7 +220,7 @@
           <md-checkbox
             ng-model="$ctrl.settings.portal.support.enabled"
             aria-label="Support"
-            ng-disabled="$ctrl.isReadonlySetting('portal.support.enabled')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.support.enabled')"
           >
             Activate Support
             <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.support.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -219,7 +230,7 @@
           <md-checkbox
             ng-model="$ctrl.settings.portal.rating.enabled"
             aria-label="Rating"
-            ng-disabled="$ctrl.isReadonlySetting('portal.rating.enabled')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.rating.enabled')"
           >
             Activate Rating
             <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.rating.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -228,7 +239,7 @@
         <md-input-container class="gv-input-container-dense">
           <md-checkbox
             ng-model="$ctrl.settings.portal.rating.comment.mandatory"
-            ng-disabled="$ctrl.isReadonlySetting('portal.rating.comment.mandatory')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.rating.comment.mandatory')"
             aria-label="Rating comment mandatory"
           >
             Force user to fill comment before to save a rating
@@ -241,7 +252,7 @@
           <md-checkbox
             ng-model="$ctrl.settings.portal.userCreation.enabled"
             aria-label="Allow user creation"
-            ng-disabled="$ctrl.isReadonlySetting('portal.userCreation.enabled')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.userCreation.enabled')"
           >
             Allow User Registration
             <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.userCreation.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -250,7 +261,7 @@
         <md-input-container class="gv-input-container-dense portal-component__sub-input">
           <md-checkbox
             ng-model="$ctrl.settings.portal.userCreation.automaticValidation.enabled"
-            ng-disabled="!$ctrl.settings.portal.userCreation.enabled || $ctrl.isReadonlySetting('portal.userCreation.automaticValidation.enabled')"
+            ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.portal.userCreation.enabled || $ctrl.isReadonlySetting('portal.userCreation.automaticValidation.enabled')"
             aria-label="Enable auto validation of creation"
           >
             Enable automatic validation of registration requests.
@@ -263,7 +274,7 @@
           <md-checkbox
             ng-model="$ctrl.settings.portal.analytics.enabled"
             aria-label="Add Google Analytics"
-            ng-disabled="$ctrl.isReadonlySetting('portal.analytics.enabled')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.analytics.enabled')"
           >
             Add Google Analytics
             <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.analytics.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -273,14 +284,14 @@
           <label>Google Analytics TrackingId</label>
           <input
             ng-model="$ctrl.settings.portal.analytics.trackingId"
-            ng-disabled="$ctrl.isReadonlySetting('portal.analytics.trackingId')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.analytics.trackingId')"
           />
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.analytics.trackingId')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
         <md-input-container class="gv-input-container-dense">
           <md-checkbox
             ng-model="$ctrl.settings.portal.uploadMedia.enabled"
-            ng-disabled="$ctrl.isReadonlySetting('portal.uploadMedia.enabled')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.uploadMedia.enabled')"
             aria-label="Allow upload media"
           >
             Allow Upload Images
@@ -293,7 +304,7 @@
             type="number"
             min="0"
             ng-model="$ctrl.settings.portal.uploadMedia.maxSizeInOctet"
-            ng-disabled="$ctrl.isReadonlySetting('portal.uploadMedia.maxSizeInOctet')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.uploadMedia.maxSizeInOctet')"
           />
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.uploadMedia.maxSizeInOctet')"
             >{{$ctrl.providedConfigurationMessage}}</md-tooltip
@@ -309,7 +320,7 @@
               <md-switch
                 ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled"
                 aria-label="swagger"
-                ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled || $ctrl.isReadonlySetting('open.api.doc.type.swagger.enabled')"
+                ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled || $ctrl.isReadonlySetting('open.api.doc.type.swagger.enabled')"
                 ng-change="$ctrl.toggleDocType()"
               >
                 Swagger-UI
@@ -323,7 +334,7 @@
                 <md-radio-button
                   value="Swagger"
                   class="md-primary"
-                  ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.default')"
+                  ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.default')"
                   style="margin-bottom: 0px"
                   >Set as default
                 </md-radio-button>
@@ -336,7 +347,7 @@
               <md-switch
                 ng-model="$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled"
                 aria-label="swagger"
-                ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.redoc.enabled')"
+                ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.openAPIDocViewer.openAPIDocType.swagger.enabled || $ctrl.isReadonlySetting('open.api.doc.type.redoc.enabled')"
                 ng-change="$ctrl.toggleDocType()"
               >
                 Redoc
@@ -350,7 +361,7 @@
                 <md-radio-button
                   value="Redoc"
                   class="md-primary"
-                  ng-disabled="!$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled  || $ctrl.isReadonlySetting('open.api.doc.type.default')"
+                  ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.openAPIDocViewer.openAPIDocType.redoc.enabled  || $ctrl.isReadonlySetting('open.api.doc.type.default')"
                   style="margin-bottom: 0px"
                   >Set as default
                 </md-radio-button>
@@ -369,7 +380,7 @@
             type="number"
             min="0"
             ng-model="$ctrl.settings.scheduler.tasks"
-            ng-disabled="$ctrl.isReadonlySetting('portal.scheduler.tasks')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.scheduler.tasks')"
           />
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.scheduler.tasks')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
@@ -379,7 +390,7 @@
             type="number"
             min="0"
             ng-model="$ctrl.settings.scheduler.notifications"
-            ng-disabled="$ctrl.isReadonlySetting('portal.scheduler.notifications')"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('portal.scheduler.notifications')"
           />
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.scheduler.notifications')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
@@ -389,7 +400,10 @@
       <div class="gv-form-content" layout="column">
         <md-input-container class="md-block" flex-gt-xs>
           <label>Documentation URL</label>
-          <input ng-model="$ctrl.settings.documentation.url" ng-disabled="$ctrl.isReadonlySetting('documentation.url')" />
+          <input
+            ng-model="$ctrl.settings.documentation.url"
+            ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('documentation.url')"
+          />
           <md-tooltip ng-if="$ctrl.isReadonlySetting('documentation.url')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
         </md-input-container>
       </div>
@@ -406,7 +420,7 @@
           placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
           md-on-add="$ctrl.controlAllowOrigin($chip, $index)"
           md-add-on-blur="true"
-          readonly="$ctrl.isReadonlySetting('http.api.portal.cors.allow-origin')"
+          readonly="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('http.api.portal.cors.allow-origin')"
         >
           <md-chip-template>
             <strong>{{$chip}}</strong>
@@ -427,7 +441,7 @@
           md-on-close="clearSearchTerm()"
           data-md-container-class="selectdemoSelectHeader"
           multiple
-          ng-disabled="$ctrl.isReadonlySetting('http.api.portal.cors.allow-methods')"
+          ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('http.api.portal.cors.allow-methods')"
         >
           <md-select-header class="demo-select-header">
             <input
@@ -460,7 +474,7 @@
           md-autocomplete-snap
           md-add-on-blur="true"
           md-require-match="false"
-          readonly="$ctrl.isReadonlySetting('http.api.portal.cors.allow-headers')"
+          readonly="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('http.api.portal.cors.allow-headers')"
         >
           <md-autocomplete
             md-search-text="searchHeaders"
@@ -490,7 +504,7 @@
           md-autocomplete-snap
           md-add-on-blur="true"
           md-require-match="false"
-          readonly="$ctrl.isReadonlySetting('http.api.portal.cors.exposed-headers')"
+          readonly="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('http.api.portal.cors.exposed-headers')"
         >
           <md-autocomplete
             md-search-text="searchHeaders"
@@ -519,7 +533,7 @@
           type="number"
           min="0"
           ng-model="$ctrl.settings.cors.maxAge"
-          ng-disabled="$ctrl.isReadonlySetting('http.api.portal.cors.max-age')"
+          ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('http.api.portal.cors.max-age')"
         />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.portal.cors.max-age')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
@@ -533,7 +547,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.email.enabled"
           aria-label="Email enabled"
-          ng-disabled="$ctrl.isReadonlySetting('email.enabled')"
+          ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('email.enabled')"
         >
           Enable Emailing
           <md-tooltip ng-if="$ctrl.isReadonlySetting('email.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -544,7 +558,7 @@
         <input
           type="text"
           ng-model="$ctrl.settings.email.host"
-          ng-disabled="!$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.host')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.host')"
         />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('email.host')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
@@ -554,7 +568,7 @@
           type="number"
           min="0"
           ng-model="$ctrl.settings.email.port"
-          ng-disabled="!$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.port')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.port')"
         />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('email.port')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
@@ -563,7 +577,7 @@
         <input
           type="text"
           ng-model="$ctrl.settings.email.username"
-          ng-disabled="!$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.username')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.username')"
         />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('email.username')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
@@ -572,7 +586,7 @@
         <input
           type="password"
           ng-model="$ctrl.settings.email.password"
-          ng-disabled="!$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.password')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.password')"
         />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('email.password')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
@@ -581,7 +595,7 @@
         <input
           type="text"
           ng-model="$ctrl.settings.email.protocol"
-          ng-disabled="!$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.protocol')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.protocol')"
         />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('email.protocol')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
@@ -590,7 +604,7 @@
         <input
           type="text"
           ng-model="$ctrl.settings.email.subject"
-          ng-disabled="!$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.subject')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.subject')"
         />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('email.subject')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
@@ -599,7 +613,7 @@
         <input
           type="email"
           ng-model="$ctrl.settings.email.from"
-          ng-disabled="!$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.from')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.from')"
         />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('email.from')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
@@ -609,7 +623,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.email.properties.auth"
           aria-label="Alerting enabled"
-          ng-disabled="!$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.properties.auth')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.properties.auth')"
         >
           Enable Auth
           <md-tooltip ng-if="$ctrl.isReadonlySetting('email.properties.auth')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -619,7 +633,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.email.properties.startTlsEnable"
           aria-label="Alerting enabled"
-          ng-disabled="!$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.properties.starttls.enable')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.properties.starttls.enable')"
         >
           Enable Start TLS
           <md-tooltip ng-if="$ctrl.isReadonlySetting('email.properties.starttls.enable')"
@@ -632,7 +646,7 @@
         <input
           type="text"
           ng-model="$ctrl.settings.email.properties.sslTrust"
-          ng-disabled="!$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.properties.ssl.trust')"
+          ng-disabled="$ctrl.isReadonlyPage || !$ctrl.settings.email.enabled || $ctrl.isReadonlySetting('email.properties.ssl.trust')"
         />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('email.properties.ssl.trust')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
@@ -643,7 +657,7 @@
     <md-button
       type="submit"
       class="md-raised md-primary"
-      ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
+      ng-disabled="$ctrl.isReadonlyPage || $ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
       permission
       permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']"
       >Save
@@ -652,7 +666,7 @@
       type="button"
       class="md-raised"
       ng-click="$ctrl.reset()"
-      ng-disabled="$ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
+      ng-disabled="$ctrl.isReadonlyPage || $ctrl.formSettings.$invalid || $ctrl.formSettings.$pristine"
       permission
       permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']"
       >Reset
