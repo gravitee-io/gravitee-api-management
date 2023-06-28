@@ -33,6 +33,22 @@
 
         <div class="endpoints-group-card__header__actions">
           <button
+            mat-stroked-button
+            aria-label="Reorder element to a higher position"
+            [disabled]="i === 0"
+            (click)="reorderEndpointGroup(i, i - 1)"
+          >
+            <mat-icon svgIcon="gio:arrow-up"></mat-icon>
+          </button>
+          <button
+            mat-stroked-button
+            aria-label="Reorder element to a lower position"
+            [disabled]="i === groupsTableData.length - 1"
+            (click)="reorderEndpointGroup(i + 1, i)"
+          >
+            <mat-icon svgIcon="gio:arrow-down"></mat-icon>
+          </button>
+          <button
             *ngIf="groupsTableData?.length > 1"
             mat-stroked-button
             aria-label="Delete endpoints group"

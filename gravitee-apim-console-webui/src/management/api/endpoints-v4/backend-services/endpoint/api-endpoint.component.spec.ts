@@ -43,9 +43,6 @@ class TestComponent {
 
 describe('ApiEndpointComponent', () => {
   const API_ID = 'apiId';
-  const apiV4 = fakeApiV4({
-    id: API_ID,
-  });
   const fakeAjsState = {
     go: jest.fn(),
   };
@@ -96,11 +93,17 @@ describe('ApiEndpointComponent', () => {
 
   describe('add endpoints in a group', () => {
     it('should load kafka endpoint form dynamically', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+      });
       await initComponent(apiV4);
     });
 
-    it('should edit and save the endpoint with updated name and weight', async () => {
-      await initComponent(apiV4);
+    it('should add a new endpoint', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+      });
+      await initComponent(apiV4, { apiId: API_ID, groupIndex: 0 });
 
       expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
 
@@ -118,9 +121,17 @@ describe('ApiEndpointComponent', () => {
           {
             ...apiV4.endpointGroups[0],
             endpoints: [
+              { ...apiV4.endpointGroups[0].endpoints[0] },
               {
-                ...apiV4.endpointGroups[0].endpoints[0],
+                configuration: {
+                  bootstrapServers: undefined,
+                },
+                inheritConfiguration: false,
                 name: 'endpoint-name',
+                sharedConfigurationOverride: {
+                  test: undefined,
+                },
+                type: 'kafka',
                 weight: 10,
               },
             ],
@@ -132,6 +143,9 @@ describe('ApiEndpointComponent', () => {
     });
 
     it('should edit and save an existing endpoint', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+      });
       await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
 
       fixture.detectChanges();
@@ -150,26 +164,8 @@ describe('ApiEndpointComponent', () => {
         ...apiV4,
         endpointGroups: [
           {
-            name: 'default-group',
-            type: 'kafka',
-            loadBalancer: {
-              type: 'ROUND_ROBIN',
-            },
-            endpoints: [
-              {
-                name: 'default',
-                type: 'kafka',
-                weight: 1,
-                inheritConfiguration: false,
-                configuration: {
-                  bootstrapServers: 'localhost:9092',
-                },
-              },
-              {
-                name: 'endpoint-name updated',
-                type: 'kafka',
-              },
-            ],
+            ...apiV4.endpointGroups[0],
+            endpoints: [{ ...apiV4.endpointGroups[0].endpoints[0], name: 'endpoint-name updated', sharedConfigurationOverride: undefined }],
           },
         ],
       };
@@ -219,6 +215,9 @@ describe('ApiEndpointComponent', () => {
 
   describe('onPreviousClick', () => {
     it('should go back to endpoints groups list page', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+      });
       await initComponent(apiV4);
 
       await componentHarness.clickPreviousButton();
@@ -254,8 +253,9 @@ describe('ApiEndpointComponent', () => {
   }
 
   function expectApiPutRequest(api: ApiV4) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
-    fixture.detectChanges();
+    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
+    expect(req.request.body).toStrictEqual(api);
+    req.flush(api);
   }
 
   function expectEndpointPluginGetRequest(pluginId: string) {
