@@ -57,8 +57,8 @@
             </div>
           </div>
         </mat-tab>
-        <mat-tab label="Configuration">
-          <gio-form-slide-toggle class="endpoint-card__form__toggle" *ngIf="endpointSchema.sharedConfig">
+        <mat-tab label="Configuration" *ngIf="endpointSchema.sharedConfig">
+          <gio-form-slide-toggle class="endpoint-card__form__toggle">
             <gio-form-label>Inherit configuration from the endpoint group</gio-form-label>
             <mat-slide-toggle
               gioFormSlideToggle
