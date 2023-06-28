@@ -48,7 +48,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.gioMenuService.reduce.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
+    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
       this.hasBreadcrumb = reduced;
     });
     this.subMenuItems = this.filterMenuByPermission([

@@ -2,11 +2,9 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-
-
 :host {
   @include gio-layout.gio-full-width-content-container;
-  height: calc(100% );
+  height: calc(100%);
 
   :host-context(.breadcrumb) {
     height: calc(100% - 16px /* Remove margin-top*/);

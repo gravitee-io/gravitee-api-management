@@ -51,6 +51,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   public commonFlows: PSFlow[];
   public plans: PSPlan[];
   public policies: PSPolicy[];
+  public isLoading = true;
 
   public policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
 
@@ -128,6 +129,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           ...policy,
           icon: this.iconService.registerSvg(policy.id, policy.icon),
         }));
+        this.isLoading = false;
       });
   }
 
@@ -151,7 +153,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         tap(() => this.snackBarService.success('Policy Studio configuration saved')),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe(() => this.ngOnInit());
   }
 
   private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
