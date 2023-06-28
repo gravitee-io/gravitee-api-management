@@ -26,6 +26,7 @@
 @import 'components/contextual/contextual-doc.component';
 @import 'management/api/api';
 @import 'user/login/login';
+@import 'components/newsletter-subcription/newsletter-reminder';
 
 // Try to encapsulate all scss with .bootstrap class
 :where(.bootstrap) {
@@ -35,7 +36,6 @@
   @import 'components/identityPicture/identityPicture';
   @import 'components/image/image';
   @import 'components/error/error';
-  @import 'components/newsletter-subcription/newsletter-reminder';
   @import 'components/notifications/notifications';
   @import 'components/quick-time-range/quick-time-range';
   @import 'components/user-autocomplete/user-autocomplete';
