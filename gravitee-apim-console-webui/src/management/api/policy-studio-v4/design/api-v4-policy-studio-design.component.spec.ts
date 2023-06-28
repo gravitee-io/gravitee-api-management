@@ -116,14 +116,51 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           {
             name: 'my flow',
             enabled: true,
+            selectors: [
+              {
+                channel: 'my-channel',
+                channelOperator: 'EQUALS',
+                type: 'CHANNEL',
+              },
+            ],
           },
         ],
       });
 
-      planA = fakePlanV4({ name: 'PlanA' });
+      planA = fakePlanV4({
+        name: 'PlanA',
+        flows: [
+          {
+            name: 'PlanA flow',
+            selectors: [
+              {
+                type: 'CHANNEL',
+                channel: 'my-channel',
+                pathOperator: 'STARTS_WITH',
+                condition: 'The condition',
+                entrypoints: [],
+                operations: [],
+              },
+            ],
+            request: [
+              {
+                name: 'Mock',
+                description: 'Saying hello to the world',
+                enabled: true,
+                policy: 'mock',
+                configuration: { content: 'Hello world', status: '200' },
+              },
+            ],
+            response: [],
+            subscribe: [],
+            publish: [],
+            enabled: true,
+          },
+        ],
+      });
 
-      expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook' }]);
-      expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka' }]);
+      expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook', supportedModes: ['SUBSCRIBE'] }]);
+      expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka', supportedModes: ['PUBLISH', 'SUBSCRIBE'] }]);
       expectGetPolicies();
 
       expectListApiPlans(API_ID, [planA]);
@@ -147,9 +184,10 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           name: planA.name,
           flows: [
             {
-              infos: '/my-path',
+              infos: 'my-channel',
               isSelected: true,
-              name: null,
+              name: 'PlanA flow',
+              hasCondition: true,
             },
           ],
         },
@@ -157,9 +195,10 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           name: 'Common flows',
           flows: [
             {
-              infos: '',
+              infos: 'my-channel',
               isSelected: false,
               name: 'my flow',
+              hasCondition: true,
             },
           ],
         },
@@ -189,7 +228,17 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         method: 'PUT',
       });
       expect(req.request.body.flows).toEqual([
-        { enabled: true, name: 'my flow' },
+        {
+          enabled: true,
+          name: 'my flow',
+          selectors: [
+            {
+              channel: 'my-channel',
+              channelOperator: 'EQUALS',
+              type: 'CHANNEL',
+            },
+          ],
+        },
         {
           enabled: true,
           name: flowToAdd.name,
@@ -212,14 +261,16 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         name: 'Common flows',
         flows: [
           {
-            infos: '',
+            infos: 'my-channel',
             isSelected: false,
             name: 'my flow',
+            hasCondition: true,
           },
           {
             infos: 'my-channel',
             isSelected: true,
             name: 'New common flow',
+            hasCondition: true,
           },
         ],
       });
@@ -271,14 +322,16 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         name: 'PlanA',
         flows: [
           {
-            infos: '/my-path',
+            infos: 'my-channel',
             isSelected: false,
-            name: null,
+            name: 'PlanA flow',
+            hasCondition: true,
           },
           {
             infos: 'my-channel',
             isSelected: true,
             name: 'New plan flow',
+            hasCondition: true,
           },
         ],
       });
@@ -301,6 +354,13 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         {
           enabled: true,
           name: 'my flow',
+          selectors: [
+            {
+              channel: 'my-channel',
+              channelOperator: 'EQUALS',
+              type: 'CHANNEL',
+            },
+          ],
         },
       ]);
       expect(req.request.body.flowExecution).toEqual({
@@ -337,7 +397,17 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         method: 'PUT',
       });
       expect(req.request.body.flows).toEqual([
-        { enabled: true, name: 'my flow' },
+        {
+          enabled: true,
+          name: 'my flow',
+          selectors: [
+            {
+              channel: 'my-channel',
+              channelOperator: 'EQUALS',
+              type: 'CHANNEL',
+            },
+          ],
+        },
         {
           enabled: true,
           name: flowToAdd.name,
@@ -373,6 +443,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
       await policyStudioHarness.selectFlowInMenu('my flow');
 
       const requestPhase = await policyStudioHarness.getSelectedFlowPhase('REQUEST');
+
       await requestPhase.addStep(0, {
         policyName: policyToAdd.name,
         description: 'My policy step description',
@@ -386,6 +457,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           name: policyToAdd.name,
           description: 'My policy step description',
           type: 'step',
+          hasCondition: false,
         },
         {
           name: 'Kafka',
@@ -412,6 +484,13 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
               name: 'Test policy',
               policy: 'test-policy',
               configuration: {},
+            },
+          ],
+          selectors: [
+            {
+              channel: 'my-channel',
+              channelOperator: 'EQUALS',
+              type: 'CHANNEL',
             },
           ],
         },
@@ -443,6 +522,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           name: 'Mock',
           description: 'New step description',
           type: 'step',
+          hasCondition: false,
         },
         {
           name: 'Kafka',
