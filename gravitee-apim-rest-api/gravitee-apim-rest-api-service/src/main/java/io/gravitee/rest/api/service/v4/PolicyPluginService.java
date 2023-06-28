@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.PluginService;
 import java.util.Set;
@@ -35,4 +36,12 @@ public interface PolicyPluginService extends PluginService<PolicyPluginEntity> {
      * @return the validated configuration
      */
     String validatePolicyConfiguration(final PolicyPluginEntity policyPluginEntity, final String configuration);
+
+    /**
+     * Get the schema form for the given policy plugin
+     * @param policyPluginId is the id of the policy
+     * @param schemaDisplayFormat the format of the schema to return
+     * @return the configuration schema form
+     */
+    String getSchema(final String policyPluginId, SchemaDisplayFormat schemaDisplayFormat);
 }

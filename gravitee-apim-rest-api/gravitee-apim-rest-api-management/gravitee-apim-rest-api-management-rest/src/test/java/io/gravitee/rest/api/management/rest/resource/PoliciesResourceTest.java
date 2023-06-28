@@ -17,10 +17,12 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.PolicyEntity;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.HashSet;
@@ -79,7 +81,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyEntity.setId("my-api");
 
         when(policyService.findAll(null)).thenReturn(policyEntities);
-        when(policyService.getSchema(any())).thenReturn("policy schema");
+        when(policyService.getSchema(any(), eq(SchemaDisplayFormat.GV_SCHEMA_FORM))).thenReturn("policy schema");
 
         final Response response = envTarget().queryParam("expand", "schema").request().get();
 

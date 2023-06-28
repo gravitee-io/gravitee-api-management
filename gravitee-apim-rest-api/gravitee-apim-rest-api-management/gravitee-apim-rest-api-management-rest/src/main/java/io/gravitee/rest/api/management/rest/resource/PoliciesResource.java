@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.PolicyListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.swagger.v3.oas.annotations.Operation;
@@ -73,7 +74,12 @@ public class PoliciesResource {
             for (String s : expand) {
                 switch (s) {
                     case "schema":
-                        stream = stream.peek(policyListItem -> policyListItem.setSchema(policyService.getSchema(policyListItem.getId())));
+                        stream =
+                            stream.peek(policyListItem ->
+                                policyListItem.setSchema(
+                                    policyService.getSchema(policyListItem.getId(), SchemaDisplayFormat.GV_SCHEMA_FORM)
+                                )
+                            );
                     case "icon":
                         stream = stream.peek(policyListItem -> policyListItem.setIcon(policyService.getIcon(policyListItem.getId())));
                     default:

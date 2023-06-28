@@ -33,8 +33,10 @@ import io.gravitee.policy.api.annotations.RequireResource;
 import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.model.PolicyDevelopmentEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -106,6 +108,19 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
         if (policy != null) {
             policy.setConfiguration(validatePolicyConfiguration(policy.getName(), policy.getConfiguration()));
         }
+    }
+
+    @Override
+    public String getSchema(String pluginId, SchemaDisplayFormat schemaDisplayFormat) {
+        if (schemaDisplayFormat == SchemaDisplayFormat.GV_SCHEMA_FORM) {
+            try {
+                logger.debug("Find plugin schema for format {} by ID: {}", schemaDisplayFormat, pluginId);
+                return pluginManager.getSchema(pluginId, "display-gv-schema-form", true);
+            } catch (IOException ioex) {
+                logger.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
+            }
+        }
+        return getSchema(pluginId);
     }
 
     private PolicyEntity convert(PolicyPlugin policyPlugin, Boolean withPlugin) {

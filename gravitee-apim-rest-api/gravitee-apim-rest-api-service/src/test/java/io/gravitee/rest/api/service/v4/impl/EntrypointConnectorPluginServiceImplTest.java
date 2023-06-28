@@ -29,6 +29,7 @@ import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -85,6 +86,25 @@ public class EntrypointConnectorPluginServiceImplTest {
             assertThat(e.getMessage())
                 .isEqualTo("An error occurs while trying to get entrypoint subscription schema for plugin " + CONNECTOR_ID);
         }
+    }
+
+    @Test
+    public void shouldGetSubscriptionSchemaForGvSchemaForm() throws IOException {
+        when(pluginManager.getSchema(CONNECTOR_ID, "subscriptions/display-gv-schema-form", true)).thenReturn("subscriptionConfiguration");
+
+        String result = cut.getSubscriptionSchema(CONNECTOR_ID, SchemaDisplayFormat.GV_SCHEMA_FORM);
+
+        assertThat(result).isEqualTo("subscriptionConfiguration");
+    }
+
+    @Test
+    public void shouldGetDefaultSubscriptionSchemaIfNoGvSchemaForm() throws IOException {
+        when(pluginManager.getSchema(CONNECTOR_ID, "subscriptions/display-gv-schema-form", true)).thenThrow(new IOException());
+        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
+
+        String result = cut.getSubscriptionSchema(CONNECTOR_ID, SchemaDisplayFormat.GV_SCHEMA_FORM);
+
+        assertThat(result).isEqualTo("subscriptionConfiguration");
     }
 
     @Test(expected = PluginNotFoundException.class)

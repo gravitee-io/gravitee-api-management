@@ -16,27 +16,18 @@
 package io.gravitee.rest.api.portal.rest.resource.v4.entrypoint;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.model.ConnectorListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.connector.ConnectorExpandPluginEntity;
 import io.gravitee.rest.api.portal.rest.resource.v4.connector.AbstractConnectorsResource;
 import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
-import io.swagger.annotations.ApiParam;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
 import java.util.Collection;
 import java.util.List;
 
@@ -46,41 +37,22 @@ import java.util.List;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "🧪 V4 - Entrypoints")
 public class EntrypointsResource extends AbstractConnectorsResource {
-
-    @Context
-    private ResourceContext resourceContext;
 
     @Inject
     private EntrypointConnectorPluginService entrypointService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(
-        summary = "🧪 List entrypoint plugins",
-        description = "⚠️ This resource is in alpha version. This implies that it is likely to be modified or even removed in future versions. ⚠️. <br><br>User must have the ENVIRONMENT_API[READ] permission to use this service"
-    )
-    @ApiResponse(
-        responseCode = "200",
-        description = "List of entrypoints",
-        content = @Content(
-            mediaType = MediaType.APPLICATION_JSON,
-            array = @ArraySchema(schema = @Schema(implementation = ConnectorListItem.class))
-        )
-    )
-    @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public Collection<ConnectorExpandPluginEntity> getEntrypoints(
-        @QueryParam("expand") @ApiParam(
-            name = "expand",
-            allowableValues = "schema, icon, subscriptionSchema",
-            allowMultiple = true
-        ) List<String> expands
-    ) {
+    public Collection<ConnectorExpandPluginEntity> getEntrypoints(@QueryParam("expand") List<String> expands) {
         final Collection<ConnectorExpandPluginEntity> connectors = super.expand(entrypointService.findAll(), expands);
         if (expands != null && expands.contains("subscriptionSchema")) {
-            connectors.forEach(connector -> connector.setSubscriptionSchema(entrypointService.getSubscriptionSchema(connector.getId())));
+            connectors.forEach(connector ->
+                connector.setSubscriptionSchema(
+                    entrypointService.getSubscriptionSchema(connector.getId(), SchemaDisplayFormat.GV_SCHEMA_FORM)
+                )
+            );
         }
         return connectors;
     }
