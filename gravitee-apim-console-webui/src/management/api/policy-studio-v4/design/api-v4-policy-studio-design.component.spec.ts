@@ -184,7 +184,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           name: planA.name,
           flows: [
             {
-              infos: 'my-channel',
+              infos: 'PUBSUBmy-channel',
               isSelected: true,
               name: 'PlanA flow',
               hasCondition: true,
@@ -195,7 +195,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
           name: 'Common flows',
           flows: [
             {
-              infos: 'my-channel',
+              infos: 'PUBSUBmy-channel',
               isSelected: false,
               name: 'my flow',
               hasCondition: true,
@@ -261,19 +261,21 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         name: 'Common flows',
         flows: [
           {
-            infos: 'my-channel',
+            infos: 'PUBSUBmy-channel',
             isSelected: false,
             name: 'my flow',
             hasCondition: true,
           },
           {
-            infos: 'my-channel',
+            infos: 'PUBSUBmy-channel',
             isSelected: true,
             name: 'New common flow',
             hasCondition: true,
           },
         ],
       });
+
+      expectNewNgOnInit();
     });
 
     it('should add plan flow', async () => {
@@ -322,19 +324,21 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         name: 'PlanA',
         flows: [
           {
-            infos: 'my-channel',
+            infos: 'PUBSUBmy-channel',
             isSelected: false,
             name: 'PlanA flow',
             hasCondition: true,
           },
           {
-            infos: 'my-channel',
+            infos: 'PUBSUBmy-channel',
             isSelected: true,
             name: 'New plan flow',
             hasCondition: true,
           },
         ],
       });
+
+      expectNewNgOnInit();
     });
 
     it('should save flow execution configuration', async () => {
@@ -368,6 +372,8 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         matchRequired: true,
       });
       req.flush(api);
+
+      expectNewNgOnInit();
     });
 
     it('should save add api flow and save flow execution configuration', async () => {
@@ -427,6 +433,8 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         matchRequired: true,
       });
       req.flush(api);
+
+      expectNewNgOnInit();
     });
 
     it('should add step policy into "my flow"', async () => {
@@ -604,5 +612,11 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
         method: 'GET',
       })
       .flush([fakePolicyPlugin(), ...fakePoliciesPlugin()]);
+  }
+
+  function expectNewNgOnInit() {
+    // 5 requests are made on init
+    expect(httpTestingController.match(() => true).length).toEqual(5);
+    // Not flush it to stop test here
   }
 });

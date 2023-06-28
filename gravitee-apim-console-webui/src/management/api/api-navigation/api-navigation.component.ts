@@ -82,7 +82,7 @@ export class ApiNavigationComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.gioMenuService.reduce.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
+    this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
       this.hasBreadcrumb = reduced;
     });
 
