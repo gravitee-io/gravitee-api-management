@@ -59,6 +59,22 @@
     &__shared-config {
       margin-bottom: 16px;
     }
+
+    &__lb {
+      margin-bottom: 16px;
+      border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    &__weight {
+      width: 100%;
+      margin-top: 24px;
+    }
+
+    &__tab-content {
+      padding: 24px 0;
+    }
   }
 
   &__actions {

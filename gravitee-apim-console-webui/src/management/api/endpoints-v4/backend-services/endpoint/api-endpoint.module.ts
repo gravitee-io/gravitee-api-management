@@ -27,6 +27,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { UIRouterModule } from '@uirouter/angular';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 
@@ -52,6 +53,7 @@ import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-b
     GioFormSlideToggleModule,
     GioGoBackButtonModule,
     UIRouterModule,
+    MatTabsModule,
   ],
 })
 export class ApiEndpointModule {}

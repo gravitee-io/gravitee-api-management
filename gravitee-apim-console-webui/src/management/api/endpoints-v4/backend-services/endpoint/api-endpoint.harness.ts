@@ -17,6 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatTabHarness } from '@angular/material/tabs/testing';
 
 export class ApiEndpointHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint';
@@ -25,6 +26,8 @@ export class ApiEndpointHarness extends ComponentHarness {
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: 'Validate my endpoints' }));
   private getPreviousButton = this.locatorFor(MatButtonHarness.with({ text: 'Previous' }));
   private getConfigurationToggle = this.locatorFor(MatSlideToggleHarness);
+  private getWeightButton = this.locatorFor(MatInputHarness.with({ selector: '#weight' }));
+  private getConfigurationTab = this.locatorFor(MatTabHarness.with({ label: 'Configuration' }));
 
   public async fillInputName(name: string) {
     return this.getNameInput().then((input) => input.setValue(name));
@@ -54,7 +57,11 @@ export class ApiEndpointHarness extends ComponentHarness {
     return this.getConfigurationToggle().then((toggle) => toggle.toggle());
   }
 
-  public async topicInputText(text: string) {
-    return this.locatorFor(MatInputHarness.with({ value: text }))();
+  public async fillWeightButton(weight: number) {
+    return this.getWeightButton().then((button) => button.setValue(weight.toString()));
+  }
+
+  public async clickConfigurationTab() {
+    return this.getConfigurationTab().then((tab) => tab.select());
   }
 }
