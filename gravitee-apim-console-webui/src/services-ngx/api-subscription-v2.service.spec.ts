@@ -296,4 +296,24 @@ describe('ApiSubscriptionV2Service', () => {
       req.flush(subscription);
     });
   });
+
+  describe('reject', () => {
+    const SUBSCRIPTION_ID = 'my-subscription';
+    it('should call API', (done) => {
+      const subscription = fakeSubscription({ id: SUBSCRIPTION_ID });
+      const reason = 'a very good reason';
+      apiSubscriptionV2Service.reject(SUBSCRIPTION_ID, API_ID, reason).subscribe((response) => {
+        expect(response).toEqual(subscription);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/_reject`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({ reason: reason });
+
+      req.flush(subscription);
+    });
+  });
 });

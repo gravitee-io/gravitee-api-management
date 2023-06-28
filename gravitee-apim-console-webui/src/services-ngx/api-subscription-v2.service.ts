@@ -97,4 +97,10 @@ export class ApiSubscriptionV2Service {
       acceptSubscription,
     );
   }
+
+  reject(subscriptionId: string, apiId: string, reason: string): Observable<Subscription> {
+    return this.http.post<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/_reject`, {
+      reason,
+    });
+  }
 }
