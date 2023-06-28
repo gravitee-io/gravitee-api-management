@@ -18,11 +18,13 @@ package io.gravitee.rest.api.service.v4.impl;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.policy.ExecutionPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.impl.AbstractPluginService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -95,5 +97,18 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
     @Override
     public String validatePolicyConfiguration(final PolicyPluginEntity policyPluginEntity, final String configuration) {
         return validateConfiguration(policyPluginEntity.getId(), configuration);
+    }
+
+    @Override
+    public String getSchema(String policyPluginId, SchemaDisplayFormat schemaDisplayFormat) {
+        if (schemaDisplayFormat == SchemaDisplayFormat.GV_SCHEMA_FORM) {
+            try {
+                logger.debug("Find plugin schema for format {} by ID: {}", schemaDisplayFormat, policyPluginId);
+                return pluginManager.getSchema(policyPluginId, "display-gv-schema-form", true);
+            } catch (IOException ioex) {
+                logger.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
+            }
+        }
+        return getSchema(policyPluginId);
     }
 }

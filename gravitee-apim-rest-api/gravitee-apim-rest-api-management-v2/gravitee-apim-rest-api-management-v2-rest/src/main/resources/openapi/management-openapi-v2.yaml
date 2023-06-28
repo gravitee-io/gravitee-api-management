@@ -143,6 +143,7 @@ paths:
                     $ref: "#/components/responses/ApisResponse"
                 default:
                     $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -264,7 +265,6 @@ paths:
                     description: API background successfully deleted.
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/deployments:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -947,7 +947,6 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/_export:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1006,7 +1005,6 @@ paths:
                         text/csv: {}
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/_verify:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1095,7 +1093,6 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_close:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1119,7 +1116,6 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_pause:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1143,7 +1139,6 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_resume:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1167,7 +1162,6 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_accept:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1197,7 +1191,6 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_reject:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1227,7 +1220,6 @@ paths:
                                 $ref: "#/components/schemas/Subscription"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/_transfer:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1278,7 +1270,6 @@ paths:
                     $ref: "#/components/responses/SubscriptionApiKeysResponse"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/_renew:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1309,7 +1300,6 @@ paths:
                                 $ref: "#/components/schemas/ApiKey"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1340,7 +1330,6 @@ paths:
                                 $ref: "#/components/schemas/ApiKey"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_revoke:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1366,7 +1355,6 @@ paths:
                                 $ref: "#/components/schemas/ApiKey"
                 default:
                     $ref: "#/components/responses/Error"
-
     /environments/{envId}/apis/{apiId}/subscriptions/{subscriptionId}/api-keys/{apiKeyId}/_reactivate:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1618,6 +1606,17 @@ paths:
         parameters:
             - $ref: "#/components/parameters/entrypointIdParam"
         get:
+            parameters:
+                - name: display
+                  in: query
+                  description: Display the schema in a specific format..
+                  required: false
+                  schema:
+                      type: string
+                      default: gio-form-json-schema
+                      enum:
+                          - gv-schema-form
+                          - gio-form-json-schema
             tags:
                 - Plugins - Entrypoints
             summary: Get an entrypoint subscription schema
@@ -1700,6 +1699,17 @@ paths:
         parameters:
             - $ref: "#/components/parameters/policyIdParam"
         get:
+            parameters:
+                - name: display
+                  in: query
+                  description: Display the schema in a specific format..
+                  required: false
+                  schema:
+                      type: string
+                      default: gio-form-json-schema
+                      enum:
+                          - gv-schema-form
+                          - gio-form-json-schema
             tags:
                 - Plugins - Policies
             summary: Get a policy schema

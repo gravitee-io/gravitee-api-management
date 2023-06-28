@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PolicyPluginMapper;
 import io.gravitee.rest.api.management.v2.rest.model.PolicyPlugin;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import jakarta.inject.Inject;
@@ -26,6 +27,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import java.util.Set;
 
 @Path("/plugins/policies")
@@ -50,10 +52,12 @@ public class PoliciesResource extends AbstractResource {
     @GET
     @Path("/{policyId}/schema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getPolicySchema(@PathParam("policyId") String policyId) {
+    public String getPolicySchema(@PathParam("policyId") String policyId, @QueryParam("display") String display) {
         // Check that the endpoint exists
         policyPluginService.findById(policyId);
-
+        if (display != null) {
+            return policyPluginService.getSchema(policyId, SchemaDisplayFormat.fromLabel(display));
+        }
         return policyPluginService.getSchema(policyId);
     }
 

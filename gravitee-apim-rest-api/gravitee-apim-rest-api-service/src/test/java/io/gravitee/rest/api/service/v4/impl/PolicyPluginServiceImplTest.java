@@ -24,6 +24,7 @@ import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginManifest;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.policy.ExecutionPhase;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.JsonSchemaService;
@@ -128,5 +129,22 @@ public class PolicyPluginServiceImplTest {
         assertEquals(PLUGIN_ID, policyPlugin.getId());
         assertEquals(Set.of(ExecutionPhase.REQUEST), policyPlugin.getProxy());
         assertEquals(Set.of(ExecutionPhase.MESSAGE_REQUEST), policyPlugin.getMessage());
+    }
+
+    @Test
+    public void shouldGetGvSchemaForm() throws IOException {
+        when(pluginManager.getSchema("my-policy", "display-gv-schema-form", true)).thenReturn("gv-schema-form-config");
+
+        String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
+        assertEquals("gv-schema-form-config", schema);
+    }
+
+    @Test
+    public void shouldGetDefaultSchemaForm() throws IOException {
+        when(pluginManager.getSchema("my-policy", "display-gv-schema-form", true)).thenThrow(new IOException());
+        when(pluginManager.getSchema("my-policy", true)).thenReturn("default-configuration");
+
+        String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
+        assertEquals("default-configuration", schema);
     }
 }

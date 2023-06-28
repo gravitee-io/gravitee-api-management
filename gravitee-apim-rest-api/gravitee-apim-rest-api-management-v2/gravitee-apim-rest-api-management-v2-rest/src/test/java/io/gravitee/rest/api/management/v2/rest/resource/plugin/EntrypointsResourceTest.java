@@ -26,6 +26,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.rest.api.management.v2.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
@@ -193,6 +194,28 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         when(entrypointConnectorPluginService.getSubscriptionSchema(FAKE_ENTRYPOINT_ID)).thenReturn("subscriptionSchemaResponse");
 
         final Response response = rootTarget(FAKE_ENTRYPOINT_ID).path("subscription-schema").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final String result = response.readEntity(String.class);
+        Assertions.assertThat(result).isEqualTo("subscriptionSchemaResponse");
+    }
+
+    @Test
+    public void shouldGetEntrypointSubscriptionSchemaWithDisplay() {
+        ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
+        connectorPlugin.setId(FAKE_ENTRYPOINT_ID);
+        connectorPlugin.setName("Fake Entrypoint");
+        connectorPlugin.setVersion("1.0");
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
+        connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
+        when(entrypointConnectorPluginService.findById(FAKE_ENTRYPOINT_ID)).thenReturn(connectorPlugin);
+        when(entrypointConnectorPluginService.getSubscriptionSchema(FAKE_ENTRYPOINT_ID, SchemaDisplayFormat.GV_SCHEMA_FORM))
+            .thenReturn("subscriptionSchemaResponse");
+
+        final Response response = rootTarget(FAKE_ENTRYPOINT_ID)
+            .path("subscription-schema")
+            .queryParam("display", "gv-schema-form")
+            .request()
+            .get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("subscriptionSchemaResponse");

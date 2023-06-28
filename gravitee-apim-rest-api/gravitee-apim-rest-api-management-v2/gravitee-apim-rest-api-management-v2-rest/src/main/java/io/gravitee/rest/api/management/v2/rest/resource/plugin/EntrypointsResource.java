@@ -21,6 +21,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.MoreInformationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.management.v2.rest.model.MoreInformation;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -79,10 +80,12 @@ public class EntrypointsResource extends AbstractResource {
     @GET
     @Path("/{entrypointId}/subscription-schema")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getEntrypointSubscriptionSchema(@PathParam("entrypointId") String entrypointId) {
+    public String getEntrypointSubscriptionSchema(@PathParam("entrypointId") String entrypointId, @QueryParam("display") String display) {
         // Check that the entrypoint exists
         entrypointService.findById(entrypointId);
-
+        if (display != null) {
+            return entrypointService.getSubscriptionSchema(entrypointId, SchemaDisplayFormat.fromLabel(display));
+        }
         return entrypointService.getSubscriptionSchema(entrypointId);
     }
 

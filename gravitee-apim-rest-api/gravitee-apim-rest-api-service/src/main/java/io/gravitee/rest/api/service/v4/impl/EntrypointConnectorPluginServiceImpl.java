@@ -21,6 +21,7 @@ import io.gravitee.gateway.reactive.api.connector.ConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
@@ -49,7 +50,15 @@ public class EntrypointConnectorPluginServiceImpl
     }
 
     @Override
-    public String getSubscriptionSchema(final String connectorId) {
+    public String getSubscriptionSchema(final String connectorId, final SchemaDisplayFormat schemaDisplayFormat) {
+        if (schemaDisplayFormat == SchemaDisplayFormat.GV_SCHEMA_FORM) {
+            try {
+                logger.debug("Find entrypoint subscription schema for format {} by ID: {}", schemaDisplayFormat, connectorId);
+                return pluginManager.getSchema(connectorId, "subscriptions/display-gv-schema-form", true);
+            } catch (IOException ioex) {
+                logger.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
+            }
+        }
         try {
             logger.debug("Find entrypoint subscription schema by ID: {}", connectorId);
             return ((EntrypointConnectorPluginManager) pluginManager).getSubscriptionSchema(connectorId, true);

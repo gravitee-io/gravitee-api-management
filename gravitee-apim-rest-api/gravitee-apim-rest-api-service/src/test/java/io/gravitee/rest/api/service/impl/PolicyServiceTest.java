@@ -30,8 +30,10 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PolicyEntity;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.JsonSchemaService;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
@@ -169,5 +171,22 @@ public class PolicyServiceTest {
     @Test
     public void shouldAcceptNullStep() {
         policyService.validatePolicyConfiguration((Step) null);
+    }
+
+    @Test
+    public void shouldGetGvSchemaForm() throws IOException {
+        when(policyManager.getSchema("my-policy", "display-gv-schema-form", true)).thenReturn("gv-schema-form-config");
+
+        String schema = policyService.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
+        assertEquals("gv-schema-form-config", schema);
+    }
+
+    @Test
+    public void shouldGetDefaultSchemaForm() throws IOException {
+        when(policyManager.getSchema("my-policy", "display-gv-schema-form", true)).thenThrow(new IOException());
+        when(policyManager.getSchema("my-policy", true)).thenReturn("default-configuration");
+
+        String schema = policyService.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
+        assertEquals("default-configuration", schema);
     }
 }

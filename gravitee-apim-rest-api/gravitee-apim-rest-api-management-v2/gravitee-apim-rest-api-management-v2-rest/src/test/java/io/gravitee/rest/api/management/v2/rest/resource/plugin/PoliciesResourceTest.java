@@ -25,6 +25,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ExecutionPhase;
 import io.gravitee.rest.api.management.v2.rest.model.PolicyPlugin;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
@@ -91,6 +92,24 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         when(policyPluginService.getSchema(FAKE_POLICY_ID)).thenReturn("schemaResponse");
 
         final Response response = rootTarget(FAKE_POLICY_ID).path("schema").request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        final String result = response.readEntity(String.class);
+        Assertions.assertThat(result).isEqualTo("schemaResponse");
+    }
+
+    @Test
+    public void shouldGetPolicySchemaWithDisplay() {
+        PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
+        policyPlugin.setId(FAKE_POLICY_ID);
+        policyPlugin.setName("Fake Endpoint");
+        policyPlugin.setVersion("1.0");
+        policyPlugin.setIcon("my-icon");
+        policyPlugin.setCategory("my-category");
+        policyPlugin.setDescription("my-description");
+        when(policyPluginService.findById(FAKE_POLICY_ID)).thenReturn(policyPlugin);
+        when(policyPluginService.getSchema(FAKE_POLICY_ID, SchemaDisplayFormat.GV_SCHEMA_FORM)).thenReturn("schemaResponse");
+
+        final Response response = rootTarget(FAKE_POLICY_ID).path("schema").queryParam("display", "gv-schema-form").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
         Assertions.assertThat(result).isEqualTo("schemaResponse");

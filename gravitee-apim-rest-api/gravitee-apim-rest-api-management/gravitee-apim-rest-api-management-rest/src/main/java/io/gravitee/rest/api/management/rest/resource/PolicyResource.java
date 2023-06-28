@@ -21,6 +21,7 @@ import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.PolicyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -63,7 +64,7 @@ public class PolicyResource {
         // Check that the policy exists
         policyService.findById(policy);
 
-        return policyService.getSchema(policy);
+        return policyService.getSchema(policy, SchemaDisplayFormat.GV_SCHEMA_FORM);
     }
 
     @GET
