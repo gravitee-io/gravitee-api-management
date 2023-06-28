@@ -75,8 +75,8 @@ const states: Ng2StateDeclaration[] = [
     ],
   },
   {
-    name: 'management.apis.ng.design',
-    url: '/design',
+    name: 'management.apis.ng.policyStudio',
+    url: '/policy-studio',
     data: {
       useAngularMaterial: true,
       docs: null,

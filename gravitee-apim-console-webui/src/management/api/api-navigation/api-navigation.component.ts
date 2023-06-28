@@ -133,7 +133,7 @@ export class ApiNavigationComponent implements OnInit {
     }
 
     this.subMenuItems.push({
-      displayName: 'Design',
+      displayName: 'Policy Studio',
       targetRoute: 'management.apis.detail.design.policies',
       baseRoute: 'management.apis.detail.design',
       tabs,
