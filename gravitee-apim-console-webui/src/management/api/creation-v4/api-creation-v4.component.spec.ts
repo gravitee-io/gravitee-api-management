@@ -1082,9 +1082,9 @@ describe('ApiCreationV4Component', () => {
                 {
                   selectors: [
                     {
-                      type: 'HTTP',
-                      path: '/',
-                      pathOperator: 'STARTS_WITH',
+                      type: 'CHANNEL',
+                      channel: '/',
+                      channelOperator: 'STARTS_WITH',
                     },
                   ],
                   enabled: true,
@@ -1135,9 +1135,9 @@ describe('ApiCreationV4Component', () => {
                 {
                   selectors: [
                     {
-                      type: 'HTTP',
-                      path: '/',
-                      pathOperator: 'STARTS_WITH',
+                      type: 'CHANNEL',
+                      channel: '/',
+                      channelOperator: 'STARTS_WITH',
                     },
                   ],
                   enabled: true,
