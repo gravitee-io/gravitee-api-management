@@ -1,0 +1,17 @@
+.reject-subscription {
+  &__content {
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+  }
+  &__reason {
+    display: flex;
+    &__input {
+      flex: 1 1 100%;
+    }
+  }
+}
+
+.actions {
+  justify-content: flex-end;
+}

@@ -40,6 +40,7 @@ import { ApiPortalSubscriptionListComponent } from './list/api-portal-subscripti
 import { ApiPortalSubscriptionChangeEndDateDialogComponent } from './components/change-end-date-dialog/api-portal-subscription-change-end-date-dialog.component';
 import { ApiPortalSubscriptionValidateDialogComponent } from './components/validate-dialog/api-portal-subscription-validate-dialog.component';
 import { ApiKeyValidationComponent } from './components/api-key-validation/api-key-validation.component';
+import { ApiPortalSubscriptionRejectDialogComponent } from './components/reject-dialog/api-portal-subscription-reject-dialog.component';
 
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
@@ -48,10 +49,11 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
   declarations: [
     ApiPortalSubscriptionEditComponent,
     ApiPortalSubscriptionListComponent,
-    ApiPortalSubscriptionValidateDialogComponent,
     ApiPortalSubscriptionChangeEndDateDialogComponent,
     ApiPortalSubscriptionCreationDialogComponent,
     ApiPortalSubscriptionTransferDialogComponent,
+    ApiPortalSubscriptionRejectDialogComponent,
+    ApiPortalSubscriptionValidateDialogComponent,
 
     ApiKeyValidationComponent,
   ],

@@ -48,6 +48,10 @@ import {
   ApiPortalSubscriptionAcceptDialogResult,
 } from '../components/validate-dialog/api-portal-subscription-validate-dialog.component';
 import { Constants } from '../../../../../entities/Constants';
+import {
+  ApiPortalSubscriptionRejectDialogComponent,
+  ApiPortalSubscriptionRejectDialogResult,
+} from '../components/reject-dialog/api-portal-subscription-reject-dialog.component';
 
 interface SubscriptionDetailVM {
   id: string;
@@ -185,7 +189,28 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
   }
 
   rejectSubscription() {
-    // Do nothing for now
+    this.matDialog
+      .open<ApiPortalSubscriptionRejectDialogComponent, unknown, ApiPortalSubscriptionRejectDialogResult>(
+        ApiPortalSubscriptionRejectDialogComponent,
+        {
+          width: GIO_DIALOG_WIDTH.MEDIUM,
+          data: {},
+          role: 'alertdialog',
+          id: 'rejectSubscriptionDialog',
+        },
+      )
+      .afterClosed()
+      .pipe(
+        switchMap((result) => (result ? this.apiSubscriptionService.reject(this.subscription.id, this.apiId, result.reason) : EMPTY)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`Subscription rejected`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
   }
 
   transferSubscription() {

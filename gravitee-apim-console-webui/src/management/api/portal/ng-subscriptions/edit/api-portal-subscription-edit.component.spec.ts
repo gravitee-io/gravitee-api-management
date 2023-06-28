@@ -686,6 +686,72 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     };
   });
 
+  describe('reject subscription', () => {
+    beforeEach(async () => {
+      const pendingSubscription = BASIC_SUBSCRIPTION();
+      pendingSubscription.status = 'PENDING';
+
+      await initComponent(pendingSubscription);
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+    });
+    it('should reject subscription with no reason specified', async () => {
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      expect(await harness.rejectBtnIsVisible()).toEqual(true);
+
+      await harness.openRejectDialog();
+
+      const rejectDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#rejectSubscriptionDialog' }),
+      );
+      expect(await rejectDialog.getTitleText()).toEqual('Reject your subscription');
+
+      const rejectBtn = await rejectDialog.getHarness(MatButtonHarness.with({ text: 'Reject' }));
+      expect(await rejectBtn.isDisabled()).toEqual(false);
+      await rejectBtn.click();
+
+      expectApiSubscriptionReject(SUBSCRIPTION_ID, '', BASIC_SUBSCRIPTION());
+
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApplicationGet();
+
+      expect(await harness.getStatus()).toEqual('ACCEPTED');
+      expect(await harness.validateBtnIsVisible()).toEqual(false);
+    });
+    it('should reject subscription with reason specified', async () => {
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness.openRejectDialog();
+
+      const rejectDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#rejectSubscriptionDialog' }),
+      );
+
+      const formField = await rejectDialog.getHarness(MatInputHarness);
+      await formField.setValue('A really great reason');
+
+      const rejectBtn = await rejectDialog.getHarness(MatButtonHarness.with({ text: 'Reject' }));
+      expect(await rejectBtn.isDisabled()).toEqual(false);
+      await rejectBtn.click();
+
+      expectApiSubscriptionReject(SUBSCRIPTION_ID, 'A really great reason', BASIC_SUBSCRIPTION());
+
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApplicationGet();
+
+      expect(await harness.getStatus()).toEqual('ACCEPTED');
+      expect(await harness.validateBtnIsVisible()).toEqual(false);
+    });
+    it('should not reject subscription on cancel', async () => {
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness.openRejectDialog();
+
+      const rejectDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#rejectSubscriptionDialog' }),
+      );
+      const cancelBtn = await rejectDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+      await cancelBtn.click();
+    });
+  });
+
   async function initComponent(
     subscription: Subscription = BASIC_SUBSCRIPTION(),
     permissions: string[] = ['api-subscription-r', 'api-subscription-u', 'api-subscription-d'],
@@ -802,6 +868,15 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     };
     expect(req.request.body).toEqual(verifySubscription);
     req.flush({ ok: isUnique });
+  }
+
+  function expectApiSubscriptionReject(subscriptionId: string, reason: string, subscription: Subscription): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${subscriptionId}/_reject`,
+      method: 'POST',
+    });
+    expect(req.request.body).toEqual({ reason });
+    req.flush(subscription);
   }
 
   function expectApplicationGet(apiKeyMode: ApiKeyMode = ApiKeyMode.UNSPECIFIED): void {
