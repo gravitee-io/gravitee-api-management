@@ -26,76 +26,59 @@ import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
 import { ApiEndpointsGroupsHarness } from './api-endpoints-groups.harness';
 import { ApiEndpointsGroupsModule } from './api-endpoints-groups.module';
 
-import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
+import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { UIRouterState } from '../../../../../ajs-upgraded-providers';
 
 @Component({
-  template: ` <api-endpoints-groups #apiPortalEndpoints [api]="api"></api-endpoints-groups> `,
+  template: ` <api-endpoints-groups #apiEndpointsGroups [api]="api"></api-endpoints-groups> `,
 })
 class TestComponent {
-  @ViewChild('apiPortalEndpoints') apiPortalEndpoints: ApiEndpointsGroupsComponent;
+  @ViewChild('apiEndpointsGroups') apiEndpointsGroups: ApiEndpointsGroupsComponent;
   api?: ApiV4;
 }
 
 describe('ApiEndpointsGroupsComponent', () => {
   const API_ID = 'apiId';
-  const apiV4 = fakeApiV4({
-    id: API_ID,
-    endpointGroups: [
+  const group1: EndpointGroupV4 = {
+    name: 'default-group',
+    type: 'kafka',
+    loadBalancer: { type: 'WEIGHTED_RANDOM' },
+    endpoints: [
       {
-        name: 'default-group',
+        name: 'an endpoint',
         type: 'kafka',
-        loadBalancer: { type: 'ROUND_ROBIN' },
-        endpoints: [
-          {
-            name: 'a kafka',
-            type: 'kafka',
-            weight: 1,
-            inheritConfiguration: false,
-            configuration: {
-              bootstrapServers: 'localhost:9092',
-            },
-          },
-          {
-            name: 'another kafka',
-            type: 'kafka',
-            weight: 5,
-            inheritConfiguration: false,
-            configuration: {
-              bootstrapServers: 'localhost:9093',
-            },
-          },
-        ],
+        weight: 1,
+        inheritConfiguration: false,
+        configuration: {
+          bootstrapServers: 'localhost:9092',
+        },
       },
       {
-        name: 'Another Mocked Kafka',
-        type: 'mock',
-        loadBalancer: {
-          type: 'ROUND_ROBIN',
+        name: 'another endpoint',
+        type: 'kafka',
+        weight: 5,
+        inheritConfiguration: false,
+        configuration: {
+          bootstrapServers: 'localhost:9093',
         },
-        sharedConfiguration: {},
-        endpoints: [
-          {
-            name: 'a mock',
-            type: 'mock',
-            weight: 1,
-            inheritConfiguration: true,
-            configuration: {
-              headers: [],
-              metadata: [],
-              messageCount: 10,
-              messageInterval: 1000,
-              messageContent: 'mock message',
-            },
-            services: {},
-            secondary: false,
-          },
-        ],
-        services: {},
       },
     ],
-  });
+  };
+  const group2: EndpointGroupV4 = {
+    name: 'mock group',
+    type: 'mock',
+    loadBalancer: { type: 'WEIGHTED_ROUND_ROBIN' },
+    endpoints: [
+      {
+        name: 'a mock',
+        type: 'mock',
+        weight: 1,
+        inheritConfiguration: true,
+        secondary: false,
+      },
+    ],
+  };
   const fakeUiRouter = { go: jest.fn() };
 
   let fixture: ComponentFixture<TestComponent>;
@@ -135,17 +118,25 @@ describe('ApiEndpointsGroupsComponent', () => {
 
   describe('table display tests', () => {
     it('should display the endpoint groups tables', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group1, group2],
+      });
       await initComponent(apiV4);
 
       expect(await componentHarness.getTableRows(0)).toEqual([
-        ['a kafka', '', '1', ''],
-        ['another kafka', '', '5', ''],
+        ['an endpoint', '', '1', ''],
+        ['another endpoint', '', '5', ''],
       ]);
     });
   });
 
   describe('deleteEndpoint', () => {
     it('should delete the endpoint', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group1, group2],
+      });
       await initComponent(apiV4);
 
       await componentHarness.deleteEndpoint(1, rootLoader);
@@ -153,36 +144,7 @@ describe('ApiEndpointsGroupsComponent', () => {
       expectApiGetRequest(apiV4);
       expectApiPutRequest({
         ...apiV4,
-        endpointGroups: [
-          {
-            name: 'default-group',
-            type: 'kafka',
-            endpoints: [
-              {
-                name: 'a kafka',
-                type: 'kafka',
-                weight: 1,
-                inheritConfiguration: false,
-                configuration: {
-                  bootstrapServers: 'localhost:9092',
-                },
-              },
-            ],
-          },
-          {
-            name: 'default-mock',
-            type: 'kafka',
-            endpoints: [
-              {
-                name: 'a kafka',
-                type: 'mock',
-                weight: 1,
-                inheritConfiguration: false,
-                configuration: {},
-              },
-            ],
-          },
-        ],
+        endpointGroups: [{ ...group1, endpoints: [{ ...group1.endpoints[0] }] }, { ...group2 }],
       });
       expectEndpointsGetRequest();
     });
@@ -190,34 +152,25 @@ describe('ApiEndpointsGroupsComponent', () => {
 
   describe('deleteGroup', () => {
     it('should delete the endpoint group', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group1, group2],
+      });
       await initComponent(apiV4);
       await componentHarness.deleteEndpointGroup(0, rootLoader);
 
       expectApiGetRequest(apiV4);
-      expectApiPutRequest({
-        ...apiV4,
-        endpointGroups: [
-          {
-            name: 'default-mock',
-            type: 'kafka',
-            endpoints: [
-              {
-                name: 'a kafka',
-                type: 'mock',
-                weight: 1,
-                inheritConfiguration: false,
-                configuration: {},
-              },
-            ],
-          },
-        ],
-      });
+      expectApiPutRequest({ ...apiV4, endpointGroups: [group2] });
       expectEndpointsGetRequest();
     });
   });
 
   describe('addEndpoint', () => {
     it('should navigate to endpoint creation page', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group1, group2],
+      });
       await initComponent(apiV4);
 
       await componentHarness.clickAddEndpoint(0);
@@ -228,11 +181,45 @@ describe('ApiEndpointsGroupsComponent', () => {
 
   describe('editEndpoint', () => {
     it('should navigate to endpoint edition page', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group1, group2],
+      });
       await initComponent(apiV4);
 
       await componentHarness.clickEditEndpoint(0);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-edit', { groupIndex: 0, endpointIndex: 0 });
+    });
+  });
+
+  describe('reorderEndpointGroup', () => {
+    it('should move down the first group', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group1, group2],
+      });
+      await initComponent(apiV4);
+
+      await componentHarness.moveGroupDown(0);
+
+      expectApiGetRequest(apiV4);
+      expectApiPutRequest({ ...apiV4, endpointGroups: [group2, group1] });
+      expectEndpointsGetRequest();
+    });
+
+    it('should move up the second group', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group1, group2],
+      });
+      await initComponent(apiV4);
+
+      await componentHarness.moveGroupUp(1);
+
+      expectApiGetRequest(apiV4);
+      expectApiPutRequest({ ...apiV4, endpointGroups: [group2, group1] });
+      expectEndpointsGetRequest();
     });
   });
 
@@ -246,7 +233,9 @@ describe('ApiEndpointsGroupsComponent', () => {
   }
 
   function expectApiPutRequest(api: ApiV4) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
+    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
+    expect(req.request.body).toStrictEqual(api);
+    req.flush(api);
     fixture.detectChanges();
   }
 

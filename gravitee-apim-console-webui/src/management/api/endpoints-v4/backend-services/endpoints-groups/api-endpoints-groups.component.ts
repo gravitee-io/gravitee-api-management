@@ -148,4 +148,22 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
   public editEndpoint(groupIndex: number, endpointIndex: number): void {
     this.ajsState.go('management.apis.ng.endpoint-edit', { groupIndex, endpointIndex });
   }
+
+  public reorderEndpointGroup(oldIndex: number, newIndex: number): void {
+    this.apiService
+      .get(this.api.id)
+      .pipe(
+        switchMap((api: ApiV4) => {
+          api.endpointGroups.splice(newIndex, 0, api.endpointGroups.splice(oldIndex, 1)[0]);
+          return this.apiService.update(api.id, { ...api } as UpdateApi);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        tap((api: ApiV4) => this.initData(api)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
 }
