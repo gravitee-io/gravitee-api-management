@@ -146,6 +146,10 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
     return this.btnIsVisible('Reject subscription');
   }
 
+  public async openRejectDialog(): Promise<void> {
+    return this.getBtnByText('Reject subscription').then((btn) => btn.click());
+  }
+
   private async btnIsVisible(text: string): Promise<boolean> {
     return this.isVisible(this.getBtnByText(text));
   }
