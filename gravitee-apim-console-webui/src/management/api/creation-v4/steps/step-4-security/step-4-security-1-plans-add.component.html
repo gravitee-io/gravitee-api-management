@@ -17,7 +17,7 @@
 -->
 
 <form [formGroup]="form" (ngSubmit)="onAddPlan()">
-  <api-plan-form #apiPlanForm formControlName="plan" mode="create" [planMenuItem]="planMenuItem"></api-plan-form>
+  <api-plan-form #apiPlanForm formControlName="plan" mode="create" [apiType]="apiType" [planMenuItem]="planMenuItem"></api-plan-form>
 
   <div class="api-creation-v4__step__footer">
     <button mat-stroked-button type="button" *ngIf="apiPlanForm.hasPreviousStep() === false" (click)="onExitPlanCreation()">

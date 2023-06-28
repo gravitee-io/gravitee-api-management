@@ -17,7 +17,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { CreatePlanV4 } from '../../../../../entities/management-api-v2';
+import { ApiType, CreatePlanV4 } from '../../../../../entities/management-api-v2';
 import { AVAILABLE_PLANS_FOR_MENU, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
@@ -34,6 +34,7 @@ export class Step4Security1PlansComponent implements OnInit {
   public planToEdit: CreatePlanV4 | undefined = undefined;
 
   selectedPlanMenuItem: PlanMenuItemVM;
+  public apiType: ApiType;
 
   constructor(private readonly stepService: ApiCreationStepService) {}
 
@@ -46,6 +47,8 @@ export class Step4Security1PlansComponent implements OnInit {
     } else {
       this.plans = currentStepPayload.plans;
     }
+
+    this.apiType = currentStepPayload.type;
   }
 
   private computeDefaultApiPlans(currentStepPayload: ApiCreationPayload) {
