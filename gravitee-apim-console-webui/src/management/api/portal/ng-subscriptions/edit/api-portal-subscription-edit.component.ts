@@ -19,7 +19,7 @@ import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import {
   PlanMode,
@@ -195,7 +195,7 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
         ApiPortalSubscriptionTransferDialogData,
         ApiPortalSubscriptionTransferDialogResult
       >(ApiPortalSubscriptionTransferDialogComponent, {
-        width: '500px',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           apiId: this.apiId,
           securityType: this.subscription.plan.securityType,
@@ -292,7 +292,7 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
         ApiPortalSubscriptionChangeEndDateDialogData,
         ApiPortalSubscriptionChangeEndDateDialogResult
       >(ApiPortalSubscriptionChangeEndDateDialogComponent, {
-        width: '500px',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           currentEndDate: this.deserializeDate(this.subscription.endingAt),
           applicationName: this.subscription.application.name,

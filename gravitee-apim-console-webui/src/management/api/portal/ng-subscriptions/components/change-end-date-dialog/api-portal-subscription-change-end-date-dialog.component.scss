@@ -16,3 +16,7 @@
     color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
   }
 }
+
+.actions {
+  justify-content: flex-end;
+}
