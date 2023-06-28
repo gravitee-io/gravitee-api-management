@@ -99,42 +99,29 @@ describe('ApiEndpointComponent', () => {
       await initComponent(apiV4);
     });
 
-    it('should edit and save the endpoint', async () => {
+    it('should edit and save the endpoint with updated name and weight', async () => {
       await initComponent(apiV4);
 
       expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
 
       await componentHarness.fillInputName('endpoint-name');
+      await componentHarness.fillWeightButton(10);
       fixture.detectChanges();
 
       expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
-
       await componentHarness.clickSaveButton();
 
       expectApiGetRequest(apiV4);
-
       const updatedApi: ApiV4 = {
         ...apiV4,
         endpointGroups: [
           {
-            name: 'default-group',
-            type: 'kafka',
-            loadBalancer: {
-              type: 'ROUND_ROBIN',
-            },
+            ...apiV4.endpointGroups[0],
             endpoints: [
               {
-                name: 'default',
-                type: 'kafka',
-                weight: 1,
-                inheritConfiguration: false,
-                configuration: {
-                  bootstrapServers: 'localhost:9092',
-                },
-              },
-              {
+                ...apiV4.endpointGroups[0].endpoints[0],
                 name: 'endpoint-name',
-                type: 'kafka',
+                weight: 10,
               },
             ],
           },
@@ -214,8 +201,9 @@ describe('ApiEndpointComponent', () => {
           },
         ],
       });
-
       await initComponent(anApi, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+
+      await componentHarness.clickConfigurationTab();
 
       expect(await componentHarness.isConfigurationButtonToggled()).toBeTruthy();
       fixture.detectChanges();

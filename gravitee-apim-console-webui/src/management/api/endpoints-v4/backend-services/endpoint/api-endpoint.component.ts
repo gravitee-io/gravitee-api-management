@@ -95,6 +95,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     const updatedEndpoint: EndpointV4 = {
       type: this.endpointGroup.type,
       name: this.formGroup.get('name').value,
+      weight: this.formGroup.get('weight').value,
       configuration: this.formGroup.get('configuration').value,
       sharedConfigurationOverride: inheritConfiguration ? {} : this.formGroup.get('sharedConfiguration').value,
       inheritConfiguration,
@@ -144,11 +145,13 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     let inheritConfiguration = false;
     let configuration = null;
     let sharedConfiguration = null;
+    let weight = null;
 
     if (this.ajsStateParams.endpointIndex !== undefined) {
       this.endpointIndex = +this.ajsStateParams.endpointIndex;
       const endpoint = this.endpointGroup.endpoints[this.endpointIndex];
       name = endpoint.name;
+      weight = endpoint.weight;
       inheritConfiguration = endpoint.inheritConfiguration;
       configuration = endpoint.configuration;
       sharedConfiguration = inheritConfiguration ? this.endpointGroup.sharedConfiguration : endpoint.sharedConfigurationOverride;
@@ -156,6 +159,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
     this.formGroup = new FormGroup({
       name: new FormControl(name, Validators.required),
+      weight: new FormControl(weight, Validators.required),
       inheritConfiguration: new FormControl(inheritConfiguration),
       configuration: new FormControl(configuration),
       sharedConfiguration: new FormControl({ value: sharedConfiguration, disabled: inheritConfiguration }),
