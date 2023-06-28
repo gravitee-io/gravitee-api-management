@@ -49,6 +49,7 @@ import {
   Plan,
   UpdatePlan,
   PlanMode,
+  ApiType,
 } from '../../../../entities/management-api-v2';
 import { isApiV2FromMAPIV2 } from '../../../../util';
 import { PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
@@ -117,6 +118,9 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   api?: ApiV2 | ApiV4;
 
   @Input()
+  apiType?: ApiType;
+
+  @Input()
   mode: 'create' | 'edit';
 
   @Input()
@@ -160,6 +164,10 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   }
 
   ngOnInit() {
+    if (!this.api && !this.apiType) {
+      throw new Error('ApiPlanFormComponent must take either an API or apiType');
+    }
+
     if (!this.ngControl?.control) {
       throw new Error('ApiPlanFormComponent must be used with a form control');
     }
@@ -317,9 +325,11 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   }
 
   private getPlanFormValue(): PlanFormValue {
-    return this.isV2Api
-      ? internalFormValueToPlanV2(this.planForm.getRawValue(), this.mode, this.planMenuItem.planFormType)
-      : internalFormValueToPlanV4(this.planForm.getRawValue(), this.mode, this.planMenuItem.planFormType);
+    if (this.isV2Api) {
+      return internalFormValueToPlanV2(this.planForm.getRawValue(), this.mode, this.planMenuItem.planFormType);
+    }
+    const apiType = this.api ? (this.api as ApiV4).type : this.apiType;
+    return internalFormValueToPlanV4(this.planForm.getRawValue(), this.mode, this.planMenuItem.planFormType, apiType);
   }
 }
 
@@ -423,7 +433,12 @@ const internalFormValueToPlanV2 = (value: InternalPlanFormValue, mode: 'create' 
   };
 };
 
-const internalFormValueToPlanV4 = (value: InternalPlanFormValue, mode: 'create' | 'edit', planFormType: PlanFormType): PlanFormValue => {
+const internalFormValueToPlanV4 = (
+  value: InternalPlanFormValue,
+  mode: 'create' | 'edit',
+  planFormType: PlanFormType,
+  apiType: ApiType,
+): PlanFormValue => {
   // Init flows with restriction step. Only used in create mode
   const initFlowsWithRestriction = (restriction: InternalPlanFormValue['restriction']): FlowV4[] => {
     const restrictionPolicies: StepV4[] = [
@@ -461,7 +476,11 @@ const internalFormValueToPlanV4 = (value: InternalPlanFormValue, mode: 'create' 
 
     return [
       {
-        selectors: [{ type: 'HTTP', path: '/', pathOperator: 'STARTS_WITH' }],
+        selectors: [
+          apiType === 'PROXY'
+            ? { type: 'HTTP', path: '/', pathOperator: 'STARTS_WITH' }
+            : { type: 'CHANNEL', channel: '/', channelOperator: 'STARTS_WITH' },
+        ],
         enabled: true,
         request: [...restrictionPolicies],
       },
