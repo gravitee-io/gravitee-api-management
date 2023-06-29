@@ -18,7 +18,6 @@ package io.gravitee.apim.integration.tests.http;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
-import io.gravitee.apim.integration.tests.http.HttpRequestTimeoutIntegrationTest;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -31,7 +30,7 @@ import java.util.Map;
  */
 
 @DeployApi({ "/apis/v4/http/api.json", "/apis/v4/http/api-latency.json" })
-class HttpRequestTimeoutV4IntegrationTest extends HttpRequestTimeoutIntegrationTest {
+class HttpRequestTimeoutV4IntegrationTest extends HttpRequestTimeoutV4EmulationIntegrationTest {
 
     @Override
     public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
