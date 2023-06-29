@@ -270,7 +270,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       const planV4 = fakePlanV4({ generalConditions: undefined });
       const application = fakeApplication();
 
-      await initComponent([], anAPI, [planV4]);
+      await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
       const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
 
       const createSubBtn = await harness.getCreateSubscriptionButton();
@@ -302,7 +302,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     }));
 
     it('should not create subscription on cancel', fakeAsync(async () => {
-      await initComponent([]);
+      await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }));
 
       const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
       const createSubBtn = await harness.getCreateSubscriptionButton();
