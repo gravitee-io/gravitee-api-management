@@ -260,7 +260,7 @@
         <gravitee-endpoint-mqtt5.version>1.2.0-alpha.7</gravitee-endpoint-mqtt5.version>
         <gravitee-endpoint-solace.version>1.0.0-alpha.5</gravitee-endpoint-solace.version>
         <gravitee-resource-schema-registry-confluent.version>1.0.0-alpha.9</gravitee-resource-schema-registry-confluent.version>
-        <gravitee-reactor-message.version>1.0.0-alpha.9</gravitee-reactor-message.version>
+        <gravitee-reactor-message.version>1.0.0-alpha.10</gravitee-reactor-message.version>
     </properties>
 
     <dependencyManagement>
