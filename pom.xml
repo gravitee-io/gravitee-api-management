@@ -137,6 +137,8 @@
         <swagger-jaxrs2.version>2.2.9</swagger-jaxrs2.version>
         <swagger-core.version>2.2.9</swagger-core.version>
         <swagger-parser.version>2.1.13</swagger-parser.version>
+        <!-- !! Transitive dependency !! need to remove when swagger parser will include a version higher than 1.7.12 -->
+        <rhino.version>1.7.14</rhino.version>
         <testcontainers.version>1.18.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
         <wiremock.version>3.0.0-beta-8</wiremock.version>
@@ -690,6 +692,16 @@
                         <artifactId>validation-api</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+
+            <!--
+            !! Transitive dependency !!
+            Imported in DepManagement until swagger parser dependencies will update it
+             -->
+            <dependency>
+                <groupId>org.mozilla</groupId>
+                <artifactId>rhino</artifactId>
+                <version>${rhino.version}</version>
             </dependency>
 
             <dependency>
