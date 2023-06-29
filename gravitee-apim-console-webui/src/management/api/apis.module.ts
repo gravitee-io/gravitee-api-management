@@ -43,6 +43,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
 import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
+import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 
 // New Angular routing
 const states: Ng2StateDeclaration[] = [
@@ -295,6 +296,7 @@ const states: Ng2StateDeclaration[] = [
     ApiProxyModule,
     ApiEntrypointsV4Module,
     ApiEndpointsModule,
+    SpecificJsonSchemaTypeModule,
 
     GioEmptyModule,
 

@@ -19,8 +19,6 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { catchError, takeUntil } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
 
-import { PlanResourceTypeService } from './plan-resource-type/plan-resource-type.service';
-
 import { Constants } from '../../../../../entities/Constants';
 import { PolicyV2Service } from '../../../../../services-ngx/policy-v2.service';
 import { ResourceService } from '../../../../../services-ngx/resource.service';
@@ -28,6 +26,7 @@ import { ResourceListItem } from '../../../../../entities/resource/resourceListI
 import { ApiV2, ApiV4 } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
+import { ResourceTypeService } from '../../../../../shared/components/specific-json-schema-type/resource-type.service';
 
 @Component({
   selector: 'plan-edit-secure-step',
@@ -53,7 +52,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
     private readonly policyService: PolicyV2Service,
     private readonly resourceService: ResourceService,
     private readonly snackBarService: SnackBarService,
-    private readonly planOauth2ResourceTypeService: PlanResourceTypeService,
+    private readonly resourceTypeService: ResourceTypeService,
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
@@ -81,21 +80,9 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
         this.changeDetectorRef.detectChanges();
       });
 
-    // Load resources only if API has resources and when user select OAuth2 security type once
+    // Set resources only if API has resources and when user select OAuth2 security type once
     if (this.api?.resources && this.securityType.planFormType === 'OAUTH2') {
-      this.resourceService
-        .list({ expandSchema: false, expandIcon: true })
-        .pipe(
-          catchError((error) => {
-            this.snackBarService.error(error.error?.message ?? 'An error occurred while loading resources.');
-            return EMPTY;
-          }),
-          takeUntil(this.unsubscribe$),
-        )
-        .subscribe((resourceTypes) => {
-          this.resourceTypes = resourceTypes;
-          this.planOauth2ResourceTypeService.setResources(this.api.resources ?? [], resourceTypes);
-        });
+      this.resourceTypeService.setResources(this.api.resources ?? []);
     }
   }
 
