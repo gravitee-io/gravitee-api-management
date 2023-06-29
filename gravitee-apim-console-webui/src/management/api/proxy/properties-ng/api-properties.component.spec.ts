@@ -25,11 +25,10 @@ import { ApiPropertiesComponent } from './api-properties.component';
 import { ApiPropertiesModule } from './api-properties.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { User } from '../../../../entities/user';
 import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
-import { Api } from '../../../../entities/api';
+import { Api, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';
@@ -78,21 +77,9 @@ describe('ApiPropertiesComponent', () => {
   };
 
   it('should setup properties and save changes', async () => {
-    const api = fakeApi({ id: API_ID });
+    const api = fakeApiV4({ id: API_ID });
     createComponent(api);
-    expect(component.apiDefinition).toStrictEqual({
-      id: api.id,
-      name: api.name,
-      origin: 'management',
-      flows: api.flows,
-      flow_mode: api.flow_mode,
-      resources: api.resources,
-      plans: api.plans,
-      version: api.version,
-      services: api.services,
-      properties: api.properties,
-      execution_mode: api.execution_mode,
-    });
+    expect(component.api.properties).toEqual([]);
 
     component.onChange({
       detail: {
@@ -106,12 +93,23 @@ describe('ApiPropertiesComponent', () => {
       },
     });
 
+    component.onSaveProvider({
+      detail: {
+        provider: {
+          enabled: true,
+          provider: 'HTTP',
+          configuration: {},
+          schedule: '0 */5 * * * *',
+        },
+      },
+    });
+
     const saveBar = await loader.getHarness(GioSaveBarHarness);
     await saveBar.clickSubmit();
     fixture.detectChanges();
 
     expectGetApi(api);
-    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
     expect(req.request.body.properties).toEqual([
       {
         key: 'prop',
@@ -119,12 +117,18 @@ describe('ApiPropertiesComponent', () => {
         dynamic: false,
       },
     ]);
+    expect(req.request.body.services.dynamicProperty).toEqual({
+      enabled: true,
+      provider: 'HTTP',
+      configuration: {},
+      schedule: '0 */5 * * * *',
+    });
   });
 
   it('should disable field when origin is kubernetes', async () => {
-    const api = fakeApi({
+    const api = fakeApiV4({
       id: API_ID,
-      definition_context: { origin: 'kubernetes' },
+      definitionContext: { origin: 'KUBERNETES' },
     });
     createComponent(api);
     expect(component.isReadonly).toEqual(true);
@@ -135,7 +139,7 @@ describe('ApiPropertiesComponent', () => {
   });
 
   const expectGetApi = (api: Api) => {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   };
 });

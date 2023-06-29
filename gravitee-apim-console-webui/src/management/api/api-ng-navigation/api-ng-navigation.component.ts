@@ -76,7 +76,7 @@ export class ApiNgNavigationComponent implements OnInit {
     this.bannerState = localStorage.getItem('gv-api-navigation-banner');
 
     this.appendPolicyStudio();
-    this.appendPortalGroup();
+    this.appendGeneralGroup();
     this.appendEntrypointsGroup();
     this.appendEndpointsGroup();
 
@@ -97,12 +97,12 @@ export class ApiNgNavigationComponent implements OnInit {
     });
   }
 
-  private appendPortalGroup() {
-    const portalGroup: GroupItem = {
-      title: 'Portal',
+  private appendGeneralGroup() {
+    const generalGroup: GroupItem = {
+      title: 'General',
       items: [
         {
-          displayName: 'General',
+          displayName: 'Info',
           targetRoute: 'management.apis.ng.general',
           baseRoute: 'management.apis.ng.general',
         },
@@ -129,10 +129,25 @@ export class ApiNgNavigationComponent implements OnInit {
       });
     }
     if (plansMenuItem.tabs.length > 0) {
-      portalGroup.items.push(plansMenuItem);
+      generalGroup.items.push(plansMenuItem);
     }
 
-    this.groupItems.push(portalGroup);
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      generalGroup.items.push(
+        {
+          displayName: 'Properties',
+          targetRoute: 'management.apis.ng.properties',
+          baseRoute: 'management.apis.ng.properties',
+        },
+        {
+          displayName: 'Resources',
+          targetRoute: 'management.apis.ng.resources',
+          baseRoute: 'management.apis.ng.resources',
+        },
+      );
+    }
+
+    this.groupItems.push(generalGroup);
   }
 
   private appendEntrypointsGroup() {

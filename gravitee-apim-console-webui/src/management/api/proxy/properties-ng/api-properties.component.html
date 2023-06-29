@@ -17,7 +17,7 @@
 -->
 <section ui-view class="properties" [class.save-bar-opened]="isDirty">
   <gv-properties
-    *ngIf="apiDefinition"
+    *ngIf="api"
     class="policy-studio-properties"
     [attr.readonly]="isReadonly ? isReadonly : null"
     [provider]="provider"
@@ -25,7 +25,7 @@
     (:gv-properties:save-provider)="onSaveProvider($event)"
     (:gv-properties:switch-encrypted)="onChange($event)"
     encryptable
-    [properties]="apiDefinition.properties"
+    [properties]="api.properties"
     [providers]="providers"
     [dynamicPropertySchema]="dynamicPropertySchema"
   ></gv-properties>

@@ -15,7 +15,7 @@
  */
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-resources';
 import { StateParams } from '@uirouter/angularjs';
@@ -23,11 +23,10 @@ import { StateParams } from '@uirouter/angularjs';
 import { ApiResourcesService } from './api-resources.service';
 
 import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
-import { ApiService } from '../../../../services-ngx/api.service';
 import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { Api, UpdateApi } from '../../../../entities/api';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiDefinition, toApiDefinition } from '../../policy-studio/models/ApiDefinition';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-resources',
@@ -37,8 +36,8 @@ import { ApiDefinition, toApiDefinition } from '../../policy-studio/models/ApiDe
 export class ApiResourcesComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
-  public apiDefinition: ApiDefinition;
-  public initialApiDefinition: ApiDefinition;
+  public api: ApiV2 | ApiV4;
+  public initialApiDefinition: ApiV2 | ApiV4;
 
   public isReadonly = false;
   public isDirty = false;
@@ -46,7 +45,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
   public resourceTypes: ResourceListItem[];
 
   constructor(
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly apiResourcesService: ApiResourcesService,
     private readonly permissionService: GioPermissionService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
@@ -60,10 +59,14 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
     ])
       .pipe(
         tap(([api, resourceTypes]) => {
-          this.apiDefinition = this.toApiDefinition(api);
-          this.initialApiDefinition = this.apiDefinition;
-          this.isReadonly = this.apiDefinition.origin === 'kubernetes' ? true : null;
-          this.resourceTypes = resourceTypes;
+          if (api.definitionVersion !== 'V1') {
+            this.api = api;
+            this.initialApiDefinition = this.api;
+            this.isReadonly = this.api.definitionContext.origin === 'KUBERNETES' ? true : null;
+            this.resourceTypes = resourceTypes;
+          } else {
+            return EMPTY;
+          }
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -76,18 +79,12 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
   }
 
   onChange($event: any) {
-    this.apiDefinition.resources = $event.detail.resources;
+    this.api.resources = $event.detail.resources;
     this.isDirty = true;
   }
 
-  private toApiDefinition(api: Api): ApiDefinition {
-    const apiDefinition = toApiDefinition(api);
-    const plans = api.plans && this.permissionService.hasAnyMatching(['api-plan-r', 'api-plan-u']) ? api.plans : [];
-    return { ...apiDefinition, plans };
-  }
-
   onReset() {
-    this.apiDefinition = this.initialApiDefinition;
+    this.api = this.initialApiDefinition;
     this.isDirty = false;
   }
 
@@ -96,12 +93,12 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
       .get(this.ajsStateParams.apiId)
       .pipe(
         switchMap((api) => {
-          const updateApi: UpdateApi & { id: string } = { ...api, ...this.apiDefinition };
-          return this.apiService.update(updateApi);
+          const updateApi = { ...api, ...this.api };
+          return this.apiService.update(this.ajsStateParams.apiId, updateApi);
         }),
-        tap((api) => {
+        tap((api: ApiV2 | ApiV4) => {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
-          this.apiDefinition = this.toApiDefinition(api);
+          this.api = api;
           this.isDirty = false;
         }),
         takeUntil(this.unsubscribe$),

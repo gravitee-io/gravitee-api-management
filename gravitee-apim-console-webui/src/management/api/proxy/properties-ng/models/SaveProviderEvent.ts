@@ -15,10 +15,15 @@
  */
 import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
 
-import { DynamicPropertyService } from '../../../../../entities/services';
+interface Provider {
+  enabled?: boolean;
+  provider?: 'HTTP';
+  configuration?: object;
+  schedule?: string;
+}
 
 interface SaveProviderDetail {
-  provider: DynamicPropertyService;
+  provider: Provider;
 }
 
 export type SaveProviderEvent = ComponentCustomEvent<SaveProviderDetail>;
