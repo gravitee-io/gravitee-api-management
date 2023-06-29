@@ -201,6 +201,7 @@ describe('ApiEndpointsGroupsComponent', () => {
       });
       await initComponent(apiV4);
 
+      expect(await componentHarness.getMoveUpButton(0)).toBeNull();
       await componentHarness.moveGroupDown(0);
 
       expectApiGetRequest(apiV4);
@@ -215,6 +216,7 @@ describe('ApiEndpointsGroupsComponent', () => {
       });
       await initComponent(apiV4);
 
+      expect(await componentHarness.getMoveDownButton(1)).toBeNull();
       await componentHarness.moveGroupUp(1);
 
       expectApiGetRequest(apiV4);
