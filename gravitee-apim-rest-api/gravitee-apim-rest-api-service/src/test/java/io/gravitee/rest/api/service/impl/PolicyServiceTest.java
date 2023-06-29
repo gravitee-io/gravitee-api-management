@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +37,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,6 +87,42 @@ public class PolicyServiceTest {
         when(policyDefinition.id()).thenReturn(POLICY_ID);
         when(policyManager.findAll(true)).thenReturn(Collections.singletonList(policyDefinition));
         when(policyDefinition.manifest()).thenReturn(manifest);
+
+        final Set<PolicyEntity> policies = policyService.findAll();
+
+        assertNotNull(policies);
+        assertEquals(POLICY_ID, policies.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFilterMessagePolicies() {
+        when(policyManager.findAll(true)).thenReturn(Collections.singletonList(policyDefinition));
+        when(policyDefinition.manifest()).thenReturn(manifest);
+        when(manifest.properties()).thenReturn(Map.of("message", "MESSAGE_REQUEST,MESSAGE_RESPONSE"));
+
+        final Set<PolicyEntity> policies = policyService.findAll();
+
+        assertThat(policies).isEmpty();
+    }
+
+    @Test
+    public void shouldNotFilterPoliciesWithoutProxyOrMessageProperty() {
+        when(policyDefinition.id()).thenReturn(POLICY_ID);
+        when(policyManager.findAll(true)).thenReturn(Collections.singletonList(policyDefinition));
+        when(policyDefinition.manifest()).thenReturn(manifest);
+
+        final Set<PolicyEntity> policies = policyService.findAll();
+
+        assertNotNull(policies);
+        assertEquals(POLICY_ID, policies.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldNotFilterProxyPolicies() {
+        when(policyDefinition.id()).thenReturn(POLICY_ID);
+        when(policyManager.findAll(true)).thenReturn(Collections.singletonList(policyDefinition));
+        when(policyDefinition.manifest()).thenReturn(manifest);
+        when(manifest.properties()).thenReturn(Map.of("proxy", "REQUEST"));
 
         final Set<PolicyEntity> policies = policyService.findAll();
 
