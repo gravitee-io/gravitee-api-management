@@ -31,8 +31,6 @@ import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.integration.tests.fake.AddHeaderPolicy;
 import io.gravitee.apim.integration.tests.fake.LatencyPolicy;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -52,7 +50,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 @GatewayTest
 @DeployApi({ "/apis/http/api.json", "/apis/http/api-latency.json" })
 @DeployOrganization("/organizations/organization-add-header.json")
-class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
+class HttpRequestTimeoutV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     protected int REQUEST_TIMEOUT = 500;
 
@@ -61,11 +59,6 @@ class HttpRequestTimeoutIntegrationTest extends AbstractGatewayTest {
         super.configureGateway(gatewayConfigurationBuilder);
         gatewayConfigurationBuilder.set("api.jupiterMode.enabled", "true");
         gatewayConfigurationBuilder.set("http.requestTimeout", REQUEST_TIMEOUT);
-    }
-
-    @Override
-    public void configureApi(Api api) {
-        api.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
     }
 
     @Override

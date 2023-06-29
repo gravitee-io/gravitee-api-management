@@ -18,10 +18,7 @@ package io.gravitee.apim.integration.tests.http;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.integration.tests.fake.AddHeaderPolicy;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 
@@ -30,7 +27,7 @@ import io.vertx.rxjava3.core.http.HttpClientResponse;
  * @author GraviteeSource Team
  */
 @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
-class HttpRequestTimeoutV3IntegrationTest extends HttpRequestTimeoutIntegrationTest {
+class HttpRequestTimeoutV3IntegrationTest extends HttpRequestTimeoutV4EmulationIntegrationTest {
 
     // IN V3 mode, if an exception is thrown during api flows, then platform response flow is not executed.
     @Override
