@@ -44,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -77,7 +78,13 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin<?>, Po
             policies = policies.filter(policyPlugin -> !policyPlugin.policy().isAnnotationPresent(RequireResource.class));
         }
 
-        return policies.map(policyDefinition -> convert(policyDefinition, true)).collect(Collectors.toSet());
+        return policies
+            .filter(policyPlugin ->
+                StringUtils.isEmpty(policyPlugin.manifest().properties().get("message")) ||
+                StringUtils.isNotEmpty(policyPlugin.manifest().properties().get("proxy"))
+            )
+            .map(policyDefinition -> convert(policyDefinition, true))
+            .collect(Collectors.toSet());
     }
 
     @Override
