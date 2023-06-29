@@ -17,11 +17,13 @@ package io.gravitee.rest.api.service.cockpit.command;
 
 import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.Command;
+import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.Payload;
 import io.gravitee.cockpit.api.command.Reply;
 import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.bridge.BridgePayload;
 import io.gravitee.cockpit.api.command.bridge.BridgeReply;
+import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +46,15 @@ public class CockpitCommandServiceImpl implements CockpitCommandService {
 
     @Override
     public <T extends Payload> Reply send(Command<T> command) {
-        return cockpitConnector.sendCommand(command).blockingGet();
+        return cockpitConnector
+            .sendCommand(command)
+            .onErrorReturn(error ->
+                new BridgeSimpleReply(
+                    command.getId(),
+                    CommandStatus.ERROR,
+                    error.getMessage() != null ? error.getMessage() : error.toString()
+                )
+            )
+            .blockingGet();
     }
 }
