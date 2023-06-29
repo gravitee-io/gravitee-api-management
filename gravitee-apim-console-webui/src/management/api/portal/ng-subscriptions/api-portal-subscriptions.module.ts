@@ -29,7 +29,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { GioClipboardModule, GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
+import {
+  GioAvatarModule,
+  GioClipboardModule
+  GioIconsModule,
+  GioLoaderModule
+} from "@gravitee/ui-particles-angular";
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MatMomentDateModule } from '@angular/material-moment-adapter';
 
@@ -88,6 +93,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioLoaderModule,
     GioPermissionModule,
     GioTableWrapperModule,
+    GioAvatarModule,
   ],
   providers: [DatePipe, { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } }],
 })

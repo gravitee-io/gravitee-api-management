@@ -20,7 +20,8 @@
 
   <mat-dialog-content class="subscription-creation__content">
     <ng-container *ngIf="plans?.length > 0; else noPlansForCreation">
-      <mat-form-field class="subscription-creation__content__applications" #searchField>
+      <label id="application-label">Select an application</label>
+      <mat-form-field class="subscription-creation__content__applications" #searchField aria-labelledby="application-label">
         <mat-icon matPrefix>search</mat-icon>
         <mat-label>Search an application by name</mat-label>
         <!--Using focus workaround to avoid label overlapping border https://github.com/angular/components/issues/15027#issuecomment-1335147036-->
@@ -33,13 +34,20 @@
         />
 
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayApplication">
-          <mat-option *ngFor="let application of applications$ | async" [value]="application">
-            {{ application.name }}
+          <mat-option *ngFor="let application of applications$ | async" [value]="application" class="subscription-creation__content__applications__option">
+            <div class="subscription-creation__content__applications__option__title">
+              <gio-avatar [src]="application.picture_url" [name]="application.name" size="32" [roundedBorder]="true"></gio-avatar>
+              {{ application.name }}
+              <small>({{application.owner?.displayName}})</small>
+            </div>
           </mat-option>
           <mat-option *ngIf="(applications$ | async)?.length === 0" disabled>No application matching</mat-option>
         </mat-autocomplete>
         <mat-error *ngIf="form.get('selectedApplication').hasError('selectionRequired')"
           >Please select an application from the list</mat-error
+        >
+        <mat-error *ngIf="form.get('selectedApplication').hasError('clientIdRequired')"
+          >JWT and OAUth2 plans require an application with a clientId</mat-error
         >
       </mat-form-field>
 
@@ -62,7 +70,7 @@
       </mat-form-field>
     </ng-container>
     <ng-template #noPlansForCreation>
-      <div>No plans available to subscribe</div>
+      <div>You don't have any available plan. To subscribe, you need to have at least one published plan whose type is not Keyless.</div>
     </ng-template>
   </mat-dialog-content>
 

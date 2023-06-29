@@ -39,28 +39,28 @@
 
 <mat-card class="subscriptions__filters" [formGroup]="filtersForm">
   <div class="subscriptions__filters__inputs">
-    <mat-form-field class="subscriptions__filters__field">
+    <mat-form-field class="subscriptions__filters__inputs__field">
       <mat-label>Plan</mat-label>
       <mat-select formControlName="planIds" [multiple]="true">
         <mat-option *ngFor="let plan of plans" [value]="plan.id">{{ plan.name }}</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field class="subscriptions__filters__field">
+    <mat-form-field class="subscriptions__filters__inputs__field">
       <mat-label>Application</mat-label>
       <mat-select formControlName="applicationIds" [multiple]="true">
         <mat-option *ngFor="let application of applications$ | async" [value]="application.id">{{ application.name }}</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field class="subscriptions__filters__field">
+    <mat-form-field class="subscriptions__filters__inputs__field">
       <mat-label>Status</mat-label>
       <mat-select formControlName="statuses" [multiple]="true">
         <mat-option *ngFor="let status of statuses" [value]="status.id">{{ status.name }}</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field class="subscriptions__filters__field">
+    <mat-form-field class="subscriptions__filters__inputs__field">
       <mat-label>API key</mat-label>
       <input matInput formControlName="apikey" />
     </mat-form-field>

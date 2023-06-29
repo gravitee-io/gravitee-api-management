@@ -12,6 +12,17 @@
       align-items: flex-start;
       gap: 8px;
     }
+
+    &__applications__option {
+      border: solid 1px lightgrey;
+
+      &__title {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        align-items: center;
+      }
+    }
   }
 }
 

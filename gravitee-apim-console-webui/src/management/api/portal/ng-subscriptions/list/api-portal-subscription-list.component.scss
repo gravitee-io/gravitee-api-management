@@ -35,21 +35,16 @@ $foreground: map.get(gio.$mat-theme, foreground);
 
   &__filters {
     display: flex;
+    flex-direction: column;
     margin-bottom: 8px;
 
-    &__field {
-      padding-bottom: 0px;
-      margin-right: 8px;
-    }
-
-    &__buttons {
-      flex: 1;
+    &__inputs {
       display: flex;
-      justify-content: flex-end;
-      align-items: center;
-
-      & button {
-        margin-left: 8px;
+      flex-direction: row;
+      gap: 8px;
+      &__field {
+        flex: 1;
+          padding-bottom: 0px;
       }
     }
   }

@@ -45,9 +45,22 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   public applications$: Observable<Application[]> = new Observable<Application[]>();
   public showGeneralConditionsMsg: boolean;
   public canUseCustomApikey: boolean;
+
+  applicationSelectionRequiredValidator: ValidatorFn = (control): ValidationErrors | null => {
+    const value = control?.value;
+    if (!value || typeof value === 'string' || !('id' in value) || !('name' in value)) {
+      return { selectionRequired: true };
+    }
+    if (this.form.get('selectedPlan').value?.security?.type === 'JWT' || this.form.get('selectedPlan').value?.security?.type === 'OAUTH2') {
+      return value.settings?.app?.client_id ? null : { clientIdRequired: true }
+    }
+
+    return null;
+  };
+
   public form: FormGroup = new FormGroup({
     selectedPlan: new FormControl(undefined, [Validators.required]),
-    selectedApplication: new FormControl(undefined, [applicationSelectionRequiredValidator]),
+    selectedApplication: new FormControl(undefined, [this.applicationSelectionRequiredValidator]),
   });
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -106,10 +119,3 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   }
 }
 
-const applicationSelectionRequiredValidator: ValidatorFn = (control): ValidationErrors | null => {
-  const value = control?.value;
-  if (value && typeof value !== 'string' && 'id' in value && 'name' in value) {
-    return null;
-  }
-  return { selectionRequired: true };
-};
