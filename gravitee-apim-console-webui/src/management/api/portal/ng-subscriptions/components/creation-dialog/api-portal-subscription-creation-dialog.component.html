@@ -34,11 +34,15 @@
         />
 
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayApplication">
-          <mat-option *ngFor="let application of applications$ | async" [value]="application" class="subscription-creation__content__applications__option">
+          <mat-option
+            *ngFor="let application of applications$ | async"
+            [value]="application"
+            class="subscription-creation__content__applications__option"
+          >
             <div class="subscription-creation__content__applications__option__title">
               <gio-avatar [src]="application.picture_url" [name]="application.name" size="32" [roundedBorder]="true"></gio-avatar>
               {{ application.name }}
-              <small>({{application.owner?.displayName}})</small>
+              <small>({{ application.owner?.displayName }})</small>
             </div>
           </mat-option>
           <mat-option *ngIf="(applications$ | async)?.length === 0" disabled>No application matching</mat-option>
@@ -47,7 +51,7 @@
           >Please select an application from the list</mat-error
         >
         <mat-error *ngIf="form.get('selectedApplication').hasError('clientIdRequired')"
-          >JWT and OAUth2 plans require an application with a clientId</mat-error
+          >JWT and OAuth2 plans require an application with a clientId</mat-error
         >
       </mat-form-field>
 
@@ -58,7 +62,7 @@
         arial-label="Select an plan"
         class="subscription-creation__content__plans"
       >
-        <mat-radio-button *ngFor="let plan of plans" [value]="plan" [disabled]="!!plan.generalConditions || plan.mode === 'PUSH'">
+        <mat-radio-button *ngFor="let plan of plans" [value]="plan" [disabled]="!!plan.generalConditions">
           {{ plan.name }}
         </mat-radio-button>
       </mat-radio-group>
@@ -68,6 +72,29 @@
         <input matInput type="text" formControlName="customApiKey" />
         <mat-hint>You can provide a custom API key if you already have one. Leave it blank to get a generated apikey</mat-hint>
       </mat-form-field>
+
+      <ng-container *ngIf="form.get('selectedEntrypoint')">
+        <mat-form-field>
+          <mat-label>Select the entrypoint to subscribe</mat-label>
+          <mat-select formControlName="selectedEntrypoint" placeholder="Select an entrypoint">
+            <mat-option *ngFor="let entrypoint of availableSubscriptionEntrypoints" [value]="entrypoint.type">
+              <mat-icon [svgIcon]="entrypoint.icon"></mat-icon> {{ entrypoint.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="subscription-creation__content__channel">
+          <mat-label>Channel</mat-label>
+          <input matInput type="text" formControlName="channel" />
+          <mat-hint>You can provide a channel for the subscription</mat-hint>
+        </mat-form-field>
+
+        <gio-form-json-schema
+          *ngIf="form.get('entrypointConfiguration') && selectedSchema"
+          [jsonSchema]="selectedSchema"
+          formControlName="entrypointConfiguration"
+        ></gio-form-json-schema>
+      </ng-container>
     </ng-container>
     <ng-template #noPlansForCreation>
       <div>You don't have any available plan. To subscribe, you need to have at least one published plan whose type is not Keyless.</div>

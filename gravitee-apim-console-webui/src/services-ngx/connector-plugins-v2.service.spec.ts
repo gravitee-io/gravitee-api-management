@@ -15,6 +15,7 @@
  */
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 
 import { ConnectorPluginsV2Service } from './connector-plugins-v2.service';
 
@@ -106,6 +107,32 @@ describe('Installation Plugins Service', () => {
             method: 'GET',
           })
           .flush(fakeConnectors);
+      });
+    });
+
+    describe('getSubscriptionSchema', () => {
+      it('should call the API', (done) => {
+        const expectedSchema: GioJsonSchema = {
+          $schema: 'http://json-schema.org/draft-07/schema#',
+          type: 'object',
+          properties: {
+            foo: {
+              type: 'string',
+            },
+          },
+        };
+
+        installationPluginsService.getEntrypointPluginSubscriptionSchema('entrypoint-id').subscribe((schema) => {
+          expect(schema).toMatchObject(expectedSchema);
+          done();
+        });
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints/entrypoint-id/subscription-schema`,
+            method: 'GET',
+          })
+          .flush(expectedSchema);
       });
     });
   });

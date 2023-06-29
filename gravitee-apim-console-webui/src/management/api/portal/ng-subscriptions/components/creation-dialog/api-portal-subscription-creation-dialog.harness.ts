@@ -18,28 +18,49 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
 import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 
 export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness {
   static hostSelector = 'api-portal-subscription-creation-dialog';
 
   protected getApplicationAutocomplete = this.locatorFor(MatAutocompleteHarness);
   protected getInputApplicationSearch = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="selectedApplication"]' }));
+  public getSelectedApplicationFormField = this.locatorFor(
+    MatFormFieldHarness.with({ selector: '.subscription-creation__content__applications' }),
+  );
   protected getPlansRadioGroup = this.locatorFor(MatRadioGroupHarness.with({ selector: '[formControlName="selectedPlan"]' }));
   protected getCustomApikeyInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="customApiKey"]' }));
+  protected getSelectEntrypointSelect = this.locatorForOptional(
+    MatSelectHarness.with({ selector: '[formControlName="selectedEntrypoint"]' }),
+  );
+  protected getChannelInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="channel"]' }));
+  protected entrypointConfigurationForm = this.locatorForOptional('gio-form-json-schema');
 
   protected getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '.actions__cancelBtn' }));
-  protected getCreateButton = this.locatorFor(MatButtonHarness.with({ selector: '.actions__createBtn' }));
+  public getCreateButton = this.locatorFor(MatButtonHarness.with({ selector: '.actions__createBtn' }));
 
+  // Applications
   public async searchApplication(applicationNameToSearch: string) {
-    const matAutocompleteHarness = await this.getInputApplicationSearch();
-    return await matAutocompleteHarness.setValue(applicationNameToSearch);
+    const matInputHarness = await this.getInputApplicationSearch();
+    return await matInputHarness.setValue(applicationNameToSearch);
   }
 
   public async selectApplication(applicationName: string) {
     const matAutocompleteHarness = await this.getApplicationAutocomplete();
-    return await matAutocompleteHarness.selectOption({ text: applicationName });
+    const regex = new RegExp(`.*${applicationName}.*`);
+    await matAutocompleteHarness.selectOption({ text: regex });
   }
 
+  public async getApplicationErrors() {
+    const selectedApplicationFormField = await this.getSelectedApplicationFormField();
+    if (await selectedApplicationFormField.hasErrors()) {
+      return await selectedApplicationFormField.getTextErrors();
+    }
+    return [];
+  }
+
+  // Plans
   public async getRadioButtons() {
     return (await this.getPlansRadioGroup()).getRadioButtons();
   }
@@ -49,6 +70,7 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
     return await matRadioGroupHarness.checkRadioButton({ label: planName });
   }
 
+  // Custom API Key
   public async isCustomApiKeyInputDisplayed() {
     const matInputHarness = await this.getCustomApikeyInput();
     return matInputHarness !== null;
@@ -57,6 +79,31 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
   public async addCustomKey(customApikey: string) {
     const matInputHarness = await this.getCustomApikeyInput();
     return await matInputHarness.setValue(customApikey);
+  }
+
+  // PUSH Plan
+  public async isEntrypointSelectDisplayed() {
+    const matSelectHarness = await this.getSelectEntrypointSelect();
+    return matSelectHarness !== null;
+  }
+
+  public async selectEntrypoint(entrypointId: string) {
+    const matSelectHarness = await this.getSelectEntrypointSelect();
+    return await matSelectHarness.clickOptions({ text: entrypointId });
+  }
+
+  public async isChannelInputDisplayed() {
+    const matInputHarness = await this.getChannelInput();
+    return matInputHarness !== null;
+  }
+
+  public async addChannel(channel: string) {
+    const matInputHarness = await this.getChannelInput();
+    return await matInputHarness.setValue(channel);
+  }
+
+  public async isEntrypointConfigurationFormDisplayed() {
+    return (await this.entrypointConfigurationForm()) !== null;
   }
 
   public async cancelSubscription() {

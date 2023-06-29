@@ -18,16 +18,20 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Observable, of, Subject } from 'rxjs';
 import { FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, map, share, switchMap, takeUntil } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, share, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { has } from 'lodash';
 
-import { CreateSubscription, Plan } from '../../../../../../entities/management-api-v2';
-import { UIRouterStateParams } from '../../../../../../ajs-upgraded-providers';
+import { CreateSubscription, Entrypoint, Plan } from '../../../../../../entities/management-api-v2';
 import { ApplicationService } from '../../../../../../services-ngx/application.service';
 import { Application } from '../../../../../../entities/application/application';
 import { PagedResult } from '../../../../../../entities/pagedResult';
 import { Constants } from '../../../../../../entities/Constants';
+import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
+import { IconService } from '../../../../../../services-ngx/icon.service';
 
 export type ApiPortalSubscriptionCreationDialogData = {
+  availableSubscriptionEntrypoints?: Entrypoint[];
   plans: Plan[];
 };
 
@@ -42,25 +46,15 @@ export type ApiPortalSubscriptionCreationDialogResult = {
 })
 export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnDestroy {
   public plans: Plan[];
+  public availableSubscriptionEntrypoints: { type: string; name?: string; icon?: string }[];
   public applications$: Observable<Application[]> = new Observable<Application[]>();
+  public selectedSchema: GioJsonSchema;
   public showGeneralConditionsMsg: boolean;
   public canUseCustomApikey: boolean;
 
-  applicationSelectionRequiredValidator: ValidatorFn = (control): ValidationErrors | null => {
-    const value = control?.value;
-    if (!value || typeof value === 'string' || !('id' in value) || !('name' in value)) {
-      return { selectionRequired: true };
-    }
-    if (this.form.get('selectedPlan').value?.security?.type === 'JWT' || this.form.get('selectedPlan').value?.security?.type === 'OAUTH2') {
-      return value.settings?.app?.client_id ? null : { clientIdRequired: true }
-    }
-
-    return null;
-  };
-
   public form: FormGroup = new FormGroup({
     selectedPlan: new FormControl(undefined, [Validators.required]),
-    selectedApplication: new FormControl(undefined, [this.applicationSelectionRequiredValidator]),
+    selectedApplication: new FormControl(undefined, [applicationSelectionRequiredValidator]),
   });
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -68,19 +62,35 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   constructor(
     private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionCreationDialogComponent, ApiPortalSubscriptionCreationDialogResult>,
     @Inject(MAT_DIALOG_DATA) dialogData: ApiPortalSubscriptionCreationDialogData,
-    @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject('Constants') private readonly constants: Constants,
     private readonly applicationService: ApplicationService,
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
+    private readonly iconService: IconService,
   ) {
     this.plans = dialogData.plans.filter((plan) => plan.security?.type !== 'KEY_LESS');
+    this.availableSubscriptionEntrypoints = dialogData.availableSubscriptionEntrypoints.map((entrypoint) => ({ type: entrypoint.type }));
     this.canUseCustomApikey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
-    if (this.canUseCustomApikey) {
-      this.form.addControl('customApiKey', new FormControl('', []));
-    }
   }
 
   ngOnInit(): void {
     this.showGeneralConditionsMsg = this.plans.some((plan) => plan.generalConditions);
+
+    if (this.availableSubscriptionEntrypoints.length > 0) {
+      this.connectorPluginsV2Service
+        .listEntrypointPlugins()
+        .pipe(
+          tap((entrypointPlugins) =>
+            this.availableSubscriptionEntrypoints.forEach((entrypoint) => {
+              const connectorPlugin = entrypointPlugins.find((e) => e.id === entrypoint.type);
+              if (connectorPlugin) {
+                entrypoint.name = connectorPlugin.name;
+                entrypoint.icon = this.iconService.registerSvg(connectorPlugin.id, connectorPlugin.icon);
+              }
+            }),
+          ),
+        )
+        .subscribe();
+    }
 
     this.applications$ = this.form.get('selectedApplication').valueChanges.pipe(
       distinctUntilChanged(),
@@ -92,6 +102,57 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       share(),
       takeUntil(this.unsubscribe$),
     );
+
+    // If we select a PUSH Plan
+    this.form
+      .get('selectedPlan')
+      .valueChanges.pipe(
+        distinctUntilChanged(),
+        filter((plan) => plan.mode === 'PUSH'),
+        tap(() => {
+          this.form.removeControl('customApiKey');
+          this.form.addControl('selectedEntrypoint', new FormControl({}, Validators.required));
+          this.form.addControl('channel', new FormControl(undefined, []));
+        }),
+        switchMap(() => this.form.get('selectedEntrypoint').valueChanges),
+        switchMap((entrypointId) => this.connectorPluginsV2Service.getEntrypointPluginSubscriptionSchema(entrypointId)),
+        tap((subscriptionSchema) => {
+          this.selectedSchema = subscriptionSchema;
+          this.form.addControl('entrypointConfiguration', new FormControl({}, Validators.required));
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+
+    // If we select an API Key Plan
+    this.form
+      .get('selectedPlan')
+      .valueChanges.pipe(
+        distinctUntilChanged(),
+        filter((plan) => plan.security?.type === 'API_KEY' && this.canUseCustomApikey),
+        tap(() => {
+          this.form.addControl('customApiKey', new FormControl('', []));
+          this.form.removeControl('selectedEntrypoint');
+          this.form.removeControl('channel');
+          this.form.removeControl('entrypointConfiguration');
+        }),
+      )
+      .subscribe();
+
+    // If we select an OAuth2 or JWT Plan
+    this.form
+      .get('selectedPlan')
+      .valueChanges.pipe(
+        distinctUntilChanged(),
+        filter((plan) => plan.security?.type === 'OAUTH2' || plan.security?.type === 'JWT'),
+        tap(() => {
+          this.form.removeControl('customApiKey');
+          this.form.removeControl('selectedEntrypoint');
+          this.form.removeControl('channel');
+          this.form.removeControl('entrypointConfiguration');
+        }),
+      )
+      .subscribe();
   }
 
   onCreate() {
@@ -99,7 +160,20 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       subscriptionToCreate: {
         planId: this.form.getRawValue().selectedPlan.id,
         applicationId: this.form.getRawValue().selectedApplication.id,
-        ...(this.shouldDisplayCustomApiKey()  && this.form.getRawValue().customApiKey ? { customApiKey: this.form.getRawValue().customApiKey } : undefined),
+        ...(this.shouldDisplayCustomApiKey() && this.form.getRawValue().customApiKey
+          ? { customApiKey: this.form.getRawValue().customApiKey }
+          : undefined),
+        ...(this.form.getRawValue().selectedPlan.mode === 'PUSH'
+          ? {
+              consumerConfiguration: {
+                channel: this.form.getRawValue().channel ? this.form.getRawValue().channel : undefined,
+                entrypointId: this.form.getRawValue().selectedEntrypoint,
+                entrypointConfiguration: this.form.getRawValue().entrypointConfiguration
+                  ? this.form.getRawValue().entrypointConfiguration
+                  : undefined,
+              },
+            }
+          : undefined),
       },
     };
     this.dialogRef.close(dialogResult);
@@ -119,3 +193,17 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   }
 }
 
+const applicationSelectionRequiredValidator: ValidatorFn = (control): ValidationErrors | null => {
+  const value = control?.value;
+  if (!value || typeof value === 'string' || !('id' in value) || !('name' in value)) {
+    return { selectionRequired: true };
+  }
+  if (
+    control.parent?.get('selectedPlan').value?.security?.type === 'JWT' ||
+    control.parent?.get('selectedPlan').value?.security?.type === 'OAUTH2'
+  ) {
+    return has(value, 'settings.app.client_id') ? null : { clientIdRequired: true };
+  }
+
+  return null;
+};

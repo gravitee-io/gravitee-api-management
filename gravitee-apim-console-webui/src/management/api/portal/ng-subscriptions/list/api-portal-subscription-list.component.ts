@@ -27,7 +27,7 @@ import { GioTableWrapperFilters } from '../../../../../shared/components/gio-tab
 import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { Api, Plan } from '../../../../../entities/management-api-v2';
+import { Api, ApiV4, Plan } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 import {
@@ -245,6 +245,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
         role: 'alertdialog',
         id: 'createSubscriptionDialog',
         data: {
+          availableSubscriptionEntrypoints: this.getApiSubscriptionEntrypoints(this.api),
           plans: this.plans.filter((plan) => plan.status),
         },
       })
@@ -303,5 +304,13 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
         apikey: undefined,
       },
     });
+  }
+
+  private getApiSubscriptionEntrypoints(api: Api) {
+    if (api.definitionVersion !== 'V4') {
+      return [];
+    }
+
+    return (api as ApiV4).listeners.filter((listener) => listener.type === 'SUBSCRIPTION').flatMap((listener) => listener.entrypoints);
   }
 }

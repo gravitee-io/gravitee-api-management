@@ -68,6 +68,10 @@ export class ConnectorPluginsV2Service {
     return this.http.get<GioJsonSchema>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}/schema`);
   }
 
+  getEntrypointPluginSubscriptionSchema(entrypointId: string): Observable<GioJsonSchema> {
+    return this.http.get<GioJsonSchema>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}/subscription-schema`);
+  }
+
   getEntrypointPluginMoreInformation(entrypointId: string): Observable<MoreInformation> {
     return this.http.get<MoreInformation>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}/more-information`);
   }
