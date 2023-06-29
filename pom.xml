@@ -60,7 +60,7 @@
         <gravitee-connector-api.version>1.1.4</gravitee-connector-api.version>
         <gravitee-expression-language.version>2.2.1</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>3.0.0-alpha.7</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>3.0.0-alpha.8</gravitee-gateway-api.version>
         <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
         <gravitee-node.version>3.1.0-alpha.10</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
@@ -258,9 +258,9 @@
         <gravitee-entrypoint-sse.version>3.1.0-alpha.3</gravitee-entrypoint-sse.version>
         <gravitee-entrypoint-webhook.version>1.1.0-alpha.4</gravitee-entrypoint-webhook.version>
         <gravitee-entrypoint-websocket.version>1.0.0-alpha.3</gravitee-entrypoint-websocket.version>
-        <gravitee-endpoint-kafka.version>1.3.0-alpha.8</gravitee-endpoint-kafka.version>
+        <gravitee-endpoint-kafka.version>1.3.0-alpha.9</gravitee-endpoint-kafka.version>
         <gravitee-endpoint-mqtt5.version>1.2.0-alpha.9</gravitee-endpoint-mqtt5.version>
-        <gravitee-endpoint-solace.version>1.0.0-alpha.5</gravitee-endpoint-solace.version>
+        <gravitee-endpoint-solace.version>1.0.0-alpha.8</gravitee-endpoint-solace.version>
         <gravitee-resource-schema-registry-confluent.version>1.0.0-alpha.9</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>1.0.0-alpha.10</gravitee-reactor-message.version>
     </properties>
