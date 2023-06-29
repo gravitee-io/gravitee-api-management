@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.cockpit.api.CockpitConnector;
+import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.bridge.BridgePayload;
 import io.gravitee.cockpit.api.command.bridge.BridgeReply;
@@ -63,5 +64,25 @@ public class CockpitCommandServiceTest {
         BridgeReply bridgeReply = cockpitCommandService.send(command);
 
         assertThat(bridgeReply).isEqualTo(reply);
+    }
+
+    @Test
+    public void shouldReturnAnErrorBridgeReplyWhenWebSocketIsThrowing() {
+        BridgePayload payload = new BridgePayload();
+        payload.setContent("a content");
+
+        BridgeCommand command = new BridgeCommand();
+        command.setId(UUID.toString(UUID.random()));
+        command.setInstallationId(UUID.toString(UUID.random()));
+        command.setOrganizationId(UUID.toString(UUID.random()));
+        command.setOperation("an_operation");
+        command.setTarget(new BridgeTarget());
+        command.setPayload(payload);
+
+        when(cockpitConnector.sendCommand(command)).thenReturn(Single.error(new RuntimeException()));
+
+        BridgeReply bridgeReply = cockpitCommandService.send(command);
+        assertThat(bridgeReply.getCommandId()).isEqualTo(command.getId());
+        assertThat(bridgeReply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
     }
 }
