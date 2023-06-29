@@ -166,7 +166,6 @@ describe('ApiPlanFormComponent', () => {
 
         // 2- Secure Step
         planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('oauth2', {});
-        planForm.httpRequest(httpTestingController).expectResourceGetRequest();
 
         // 3- Restriction Step
         // Skip

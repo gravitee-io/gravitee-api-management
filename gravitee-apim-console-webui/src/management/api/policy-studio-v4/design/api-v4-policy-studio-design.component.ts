@@ -35,6 +35,7 @@ import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-pl
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
+import { ResourceTypeService } from '../../../../shared/components/specific-json-schema-type/resource-type.service';
 
 @Component({
   selector: 'api-v4-policy-studio-design',
@@ -64,6 +65,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly apiPlanV2Service: ApiPlanV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly policyV2Service: PolicyV2Service,
+    private readonly resourceTypeService: ResourceTypeService,
   ) {}
 
   ngOnInit(): void {
@@ -129,6 +131,10 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           ...policy,
           icon: this.iconService.registerSvg(policy.id, policy.icon),
         }));
+
+        // Set resources for specific json schema resource type component
+        this.resourceTypeService.setResources(api.resources ?? []);
+
         this.isLoading = false;
       });
   }
