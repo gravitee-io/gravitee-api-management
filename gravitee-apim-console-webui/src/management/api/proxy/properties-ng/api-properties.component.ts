@@ -15,7 +15,7 @@
  */
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-properties';
 import { StateParams } from '@uirouter/angularjs';
@@ -24,11 +24,10 @@ import { ApiPropertiesService } from './api-properties.service';
 import { ChangePropertiesEvent } from './models/ChangePropertiesEvent';
 import { SaveProviderEvent } from './models/SaveProviderEvent';
 
-import { ApiDefinition, toApiDefinition } from '../../policy-studio/models/ApiDefinition';
-import { ApiService } from '../../../../services-ngx/api.service';
 import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { Api } from '../../../../entities/api';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiV2, ApiV4, UpdateApiV2, UpdateApiV4 } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-properties',
@@ -40,10 +39,9 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
   public provider: any;
 
-  public api: Api;
+  public api: ApiV2 | ApiV4;
 
-  public initialApiDefinition: ApiDefinition;
-  public apiDefinition: ApiDefinition;
+  public initialApi: ApiV2 | ApiV4;
 
   public isReadonly = false;
   public isDirty: boolean;
@@ -53,7 +51,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   public dynamicPropertySchema: any;
 
   constructor(
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly apiPropertiesService: ApiPropertiesService,
     private readonly permissionService: GioPermissionService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
@@ -68,13 +66,16 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     ])
       .pipe(
         tap(([api, providers, dynamicPropertySchema]) => {
-          this.api = api;
-          this.apiDefinition = this.toApiDefinition(api);
-          this.initialApiDefinition = this.apiDefinition;
-          this.provider = this.apiDefinition.services['dynamic-property'];
-          this.providers = providers;
-          this.dynamicPropertySchema = dynamicPropertySchema;
-          this.isReadonly = this.apiDefinition.origin === 'kubernetes';
+          if (api.definitionVersion !== 'V1') {
+            this.api = api;
+            this.initialApi = this.api;
+            this.provider = this.api.services?.dynamicProperty;
+            this.providers = providers;
+            this.dynamicPropertySchema = dynamicPropertySchema;
+            this.isReadonly = this.api.definitionContext.origin === 'KUBERNETES';
+          } else {
+            throw new Error('Unexpected API type. This page is compatible only for API > V1');
+          }
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -88,8 +89,8 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
   onChange($event: ChangePropertiesEvent) {
     this.isDirty = true;
-    this.apiDefinition = {
-      ...this.apiDefinition,
+    this.api = {
+      ...this.api,
       properties: $event.detail.properties,
     };
   }
@@ -97,17 +98,17 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   onSaveProvider($event: SaveProviderEvent) {
     this.isDirty = true;
     const { provider } = $event.detail;
-    this.apiDefinition = {
-      ...this.apiDefinition,
+    this.api = {
+      ...this.api,
       services: {
-        ...this.apiDefinition.services,
-        'dynamic-property': provider,
+        ...this.api.services,
+        dynamicProperty: provider,
       },
     };
   }
 
   onReset() {
-    this.apiDefinition = this.initialApiDefinition;
+    this.api = this.initialApi;
     this.isDirty = false;
   }
 
@@ -115,20 +116,21 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        switchMap((api) => this.apiService.update({ ...api, ...this.apiDefinition })),
-        tap((api) => {
+        switchMap((api) => {
+          if (api.definitionVersion !== 'V1') {
+            const updateApi: UpdateApiV2 | UpdateApiV4 = { ...api, ...this.api };
+            return this.apiService.update(this.ajsStateParams.apiId, updateApi);
+          } else {
+            return EMPTY;
+          }
+        }),
+        tap((api: ApiV2 | ApiV4) => {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
-          this.apiDefinition = this.toApiDefinition(api);
+          this.api = api;
           this.isDirty = false;
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
-  }
-
-  private toApiDefinition(api: Api): ApiDefinition {
-    const apiDefinition = toApiDefinition(api);
-    const plans = api.plans && this.permissionService.hasAnyMatching(['api-plan-r', 'api-plan-u']) ? api.plans : [];
-    return { ...apiDefinition, plans };
   }
 }

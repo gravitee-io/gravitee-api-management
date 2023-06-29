@@ -38,6 +38,8 @@ import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoin
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
 import { ApiEndpointComponent } from './endpoints-v4/backend-services/endpoint/api-endpoint.component';
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
+import { ApiPropertiesComponent } from './proxy/properties-ng/api-properties.component';
+import { ApiResourcesComponent } from './proxy/resources-ng/api-resources.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
@@ -280,6 +282,36 @@ const states: Ng2StateDeclaration[] = [
       // },
       docs: {
         page: 'management-api-proxy-endpoints',
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.properties',
+    url: '/properties',
+    component: ApiPropertiesComponent,
+    data: {
+      useAngularMaterial: true,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-definition-r'],
+      // },
+      docs: {
+        page: 'management-api-policy-studio-properties',
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.resources',
+    url: '/resources',
+    component: ApiResourcesComponent,
+    data: {
+      useAngularMaterial: true,
+      // TODO: Implement permissions
+      // perms: {
+      //   only: ['api-definition-r'],
+      // },
+      docs: {
+        page: 'management-api-policy-studio-resources',
       },
     },
   },

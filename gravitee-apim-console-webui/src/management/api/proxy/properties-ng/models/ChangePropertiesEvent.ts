@@ -15,10 +15,15 @@
  */
 import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
 
-import { ApiProperty } from '../../../../../entities/api';
+interface Property {
+  key: string;
+  value: string;
+  encrypted?: boolean;
+  dynamic?: boolean;
+}
 
 interface PropertiesDetail {
-  properties: ApiProperty[];
+  properties: Property[];
 }
 
 export type ChangePropertiesEvent = ComponentCustomEvent<PropertiesDetail>;

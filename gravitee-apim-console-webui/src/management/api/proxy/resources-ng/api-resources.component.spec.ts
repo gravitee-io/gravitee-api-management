@@ -25,12 +25,11 @@ import { ApiResourcesComponent } from './api-resources.component';
 import { ApiResourcesModule } from './api-resources.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { User } from '../../../../entities/user';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
-import { Api } from '../../../../entities/api';
+import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('PolicyStudioResourcesComponent', () => {
   let fixture: ComponentFixture<ApiResourcesComponent>;
@@ -78,40 +77,28 @@ describe('PolicyStudioResourcesComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`).flush(resources);
   });
 
-  const createComponent = (api: Api) => {
+  const createComponent = (api: ApiV4) => {
     expectGetApi(api);
     fixture.detectChanges();
   };
 
   it('should setup properties and save changes', async () => {
-    const api = fakeApi({ id: API_ID });
+    const api = fakeApiV4({ id: API_ID });
     createComponent(api);
 
-    expect(component.apiDefinition).toStrictEqual({
-      id: api.id,
-      name: api.name,
-      origin: 'management',
-      flows: api.flows,
-      flow_mode: api.flow_mode,
-      resources: api.resources,
-      plans: api.plans,
-      version: api.version,
-      services: api.services,
-      properties: api.properties,
-      execution_mode: api.execution_mode,
-    });
+    expect(component.api.resources).toEqual(api.resources);
 
     component.onChange({
       detail: {
         resources: [
           {
-            name: 'my-cache',
+            name: 'my-update-cache',
             type: 'cache',
             enabled: true,
             configuration: {
-              timeToIdleSeconds: 0,
-              timeToLiveSeconds: 0,
-              maxEntriesLocalHeap: 1000,
+              timeToIdleSeconds: 20,
+              timeToLiveSeconds: 40,
+              maxEntriesLocalHeap: 60,
             },
           },
         ],
@@ -124,17 +111,17 @@ describe('PolicyStudioResourcesComponent', () => {
 
     expectGetApi(api);
 
-    const updateRequest = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'PUT' });
+    const updateRequest = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
 
     const expectedResources = [
       {
-        name: 'my-cache',
+        name: 'my-update-cache',
         type: 'cache',
         enabled: true,
         configuration: {
-          timeToIdleSeconds: 0,
-          timeToLiveSeconds: 0,
-          maxEntriesLocalHeap: 1000,
+          timeToIdleSeconds: 20,
+          timeToLiveSeconds: 40,
+          maxEntriesLocalHeap: 60,
         },
       },
     ];
@@ -144,9 +131,9 @@ describe('PolicyStudioResourcesComponent', () => {
   });
 
   it('should disable field when origin is kubernetes', async () => {
-    const api = fakeApi({
+    const api = fakeApiV4({
       id: API_ID,
-      definition_context: { origin: 'kubernetes' },
+      definitionContext: { origin: 'KUBERNETES' },
     });
     createComponent(api);
     expect(component.isReadonly).toEqual(true);
@@ -156,8 +143,8 @@ describe('PolicyStudioResourcesComponent', () => {
     httpTestingController.verify();
   });
 
-  const expectGetApi = (api: Api) => {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  const expectGetApi = (api: ApiV4) => {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   };
 });

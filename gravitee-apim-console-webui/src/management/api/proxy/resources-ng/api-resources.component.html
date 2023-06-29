@@ -15,14 +15,14 @@
     limitations under the License.
 
 -->
-<section ui-view class="properties" [class.save-bar-opened]="isDirty">
+<section ui-view class="resources" [class.save-bar-opened]="isDirty">
   <gv-resources
-    *ngIf="apiDefinition"
+    *ngIf="api"
     class="policy-studio-resources"
     [attr.readonly]="this.isReadonly"
     (:gv-resources:change)="this.onChange($event)"
-    [resources]="this.apiDefinition.resources"
-    [types]="this.resourceTypes"
+    [resources]="api.resources ?? []"
+    [types]="resourceTypes"
   ></gv-resources>
 </section>
 
