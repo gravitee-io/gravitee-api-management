@@ -24,7 +24,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTreeModule } from '@angular/material/tree';
-import { GioIconsModule, GioFormHeadersModule } from '@gravitee/ui-particles-angular';
+import { GioIconsModule, GioFormHeadersModule, GioClipboardModule } from '@gravitee/ui-particles-angular';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
@@ -42,7 +42,6 @@ import { PolicyStudioDebugTimelineOverviewComponent } from './components/policy-
 import { PolicyStudioDebugTimelineHoverComponent } from './components/policy-studio-debug-timeline-hover/policy-studio-debug-timeline-hover.directive';
 
 import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.module';
-import { GioClipboardModule } from '../../../../shared/components/gio-clipboard/gio-clipboard.module';
 
 @NgModule({
   imports: [

@@ -17,10 +17,9 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { GioClipboardModule } from '@gravitee/ui-particles-angular';
 
 import { GioDiffComponent } from './gio-diff.component';
-
-import { GioClipboardModule } from '../gio-clipboard/gio-clipboard.module';
 
 @NgModule({
   imports: [CommonModule, FormsModule, MatButtonToggleModule, GioClipboardModule],

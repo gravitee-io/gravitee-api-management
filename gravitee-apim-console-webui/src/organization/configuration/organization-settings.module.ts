@@ -50,6 +50,7 @@ import {
   GioFormJsonSchemaModule,
   GioMenuModule,
   GioSubmenuModule,
+  GioClipboardModule,
 } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
@@ -88,7 +89,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
 import { GioFormCardGroupModule } from '../../shared/components/gio-form-card-group/gio-form-card-group.module';
 import { GioFormColorInputModule } from '../../shared/components/gio-form-color-input/gio-form-color-input.module';
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
-import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
 import { GioLicenseModule } from '../../shared/components/gio-license/gio-license.module';

@@ -18,7 +18,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { MatIconModule } from '@angular/material/icon';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioClipboardModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTreeModule } from '@angular/material/tree';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -30,7 +30,6 @@ import { PolicyStudioDebugInspectorTextComponent } from './policy-studio-debug-i
 
 import { fakeErrorRequestDebugStep, fakeRequestDebugStep } from '../../models/DebugStep.fixture';
 import { GioDiffModule } from '../../../../../../shared/components/gio-diff/gio-diff.module';
-import { GioClipboardModule } from '../../../../../../shared/components/gio-clipboard/gio-clipboard.module';
 
 export default {
   title: 'APIM / Policy Studio / Debug / Components / Inspector ',
@@ -63,7 +62,7 @@ export default {
     template: `
       <div style="height:100vh">
         <policy-studio-debug-inspector [inputDebugStep]="inputDebugStep" [outputDebugStep]="outputDebugStep">
-        </policy-studio-debug-inspector>    
+        </policy-studio-debug-inspector>
       </div>
     `,
   }),

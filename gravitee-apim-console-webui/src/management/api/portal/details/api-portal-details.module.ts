@@ -29,6 +29,7 @@ import {
   GioSaveBarModule,
   GioFormSlideToggleModule,
   GioFormFocusInvalidModule,
+  GioClipboardModule,
 } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -48,7 +49,6 @@ import { ApiPortalDetailsDuplicateDialogComponent } from './api-portal-details-d
 import { ApiPortalDetailsExportDialogComponent } from './api-portal-details-export-dialog/api-portal-details-export-dialog.component';
 import { ApiPortalDetailsPromoteDialogComponent } from './api-portal-details-promote-dialog/api-portal-details-promote-dialog.component';
 
-import { GioClipboardModule } from '../../../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioCircularPercentageModule } from '../../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioApiImportDialogModule } from '../../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';

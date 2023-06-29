@@ -19,12 +19,11 @@ import { NgModule } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioClipboardModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { InstanceDetailsMonitoringComponent } from './instance-details-monitoring.component';
 
 import { GioCircularPercentageModule } from '../../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
-import { GioClipboardModule } from '../../../../shared/components/gio-clipboard/gio-clipboard.module';
 
 @NgModule({
   declarations: [InstanceDetailsMonitoringComponent],
