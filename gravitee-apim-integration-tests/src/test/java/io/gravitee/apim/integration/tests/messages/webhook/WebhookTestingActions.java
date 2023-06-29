@@ -69,12 +69,14 @@ public class WebhookTestingActions {
      * @param requestCounts is the number of requests expected on the callback
      * @param callback is the callback url
      */
-    public void waitForRequestsOnCallback(int requestCounts, String callback) {
-        interval(50, MILLISECONDS)
+    public void waitForRequestsOnCallbackBlocking(int requestCounts, String callback) {
+        waitForRequestsOnCallback(requestCounts, callback).test().awaitDone(10, SECONDS).assertComplete();
+    }
+
+    public Completable waitForRequestsOnCallback(int requestCounts, String callback) {
+        return interval(50, MILLISECONDS)
             .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callback)).build()).getCount() < requestCounts)
-            .test()
-            .awaitDone(10, SECONDS)
-            .assertComplete();
+            .ignoreElements();
     }
 
     /**
@@ -83,7 +85,7 @@ public class WebhookTestingActions {
      * @param callback is the callback url
      * @param dispatchSubscription is the Disposable returned by the dispatchSubscription call. When we received all the expected messages, we dispose it.
      */
-    public void waitForRequestsOnCallback(int requestCounts, String callback, Disposable dispatchSubscription) {
+    public void waitForRequestsOnCallbackBlocking(int requestCounts, String callback, Disposable dispatchSubscription) {
         interval(50, MILLISECONDS)
             .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callback)).build()).getCount() < requestCounts)
             .doOnComplete(dispatchSubscription::dispose)
@@ -93,7 +95,7 @@ public class WebhookTestingActions {
     }
 
     /**
-     * Concatenation of {@link this#dispatchSubscription(Subscription)} and {@link this#waitForRequestsOnCallback(int, String, Disposable)}
+     * Concatenation of {@link this#dispatchSubscription(Subscription)} and {@link this#waitForRequestsOnCallbackBlocking(int, String, Disposable)}
      * It will dispatch the subscription, wait for the good number of requests on the defined callback and dispose the dispatchSubscription.
      * @param subscription the subscription to dispatch
      * @param requestCounts is the number of requests expected on the callback
@@ -101,7 +103,7 @@ public class WebhookTestingActions {
      */
     public void dispatchSubscriptionAndWaitForRequestsOnCallback(Subscription subscription, int requestCounts, String callback) {
         final Disposable dispatch = dispatchSubscription(subscription).subscribe();
-        waitForRequestsOnCallback(requestCounts, callback, dispatch);
+        waitForRequestsOnCallbackBlocking(requestCounts, callback, dispatch);
     }
 
     /**
@@ -169,6 +171,7 @@ public class WebhookTestingActions {
         subscription.setApi(apiId);
         subscription.setId(UUID.randomUUID().toString());
         subscription.setStatus("ACCEPTED");
+        subscription.setType(Subscription.Type.PUSH);
         SubscriptionConfiguration subscriptionConfiguration = new SubscriptionConfiguration(
             "subscribe",
             "webhook",

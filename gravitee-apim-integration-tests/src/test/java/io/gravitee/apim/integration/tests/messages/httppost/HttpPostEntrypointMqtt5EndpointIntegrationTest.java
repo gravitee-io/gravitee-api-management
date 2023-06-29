@@ -30,7 +30,10 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.assignattributes.AssignAttributesPolicy;
 import io.gravitee.policy.assignattributes.configuration.AssignAttributesPolicyConfiguration;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.subjects.ReplaySubject;
+import io.reactivex.rxjava3.subjects.Subject;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -57,6 +60,8 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
 
     @Override
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
+        super.configurePolicies(policies);
+
         policies.put(
             "interrupt-message-request-phase",
             PolicyBuilder.build("interrupt-message-request-phase", InterruptMessageRequestPhasePolicy.class)
@@ -69,14 +74,21 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
 
     @Test
     @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mqtt5-endpoint.json" })
-    void should_be_able_to_publish_to_mqtt5_endpoint_with_httppost_entrypoint(HttpClient client) {
+    void should_be_able_to_publish_to_mqtt5_endpoint_with_http_post_entrypoint(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
-        subscribeToMqtt5Flowable(mqtt5RxClient, TEST_TOPIC)
-            .zipWith(postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value")).isEmpty().toFlowable(), (c, o) -> c)
+        final Subject<Void> readyObs = ReplaySubject.create();
+        final TestSubscriber<Mqtt5Publish> testSubscriber = subscribeToMqtt5(TEST_TOPIC, readyObs).take(1).test();
+
+        readyObs
+            .ignoreElements()
+            .andThen(postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value")))
             .test()
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(30, TimeUnit.SECONDS);
+
+        testSubscriber
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValue(message -> {
                 assertThat(message.getTopic()).hasToString(TEST_TOPIC);
                 assertThat(message.getResponseTopic()).isEmpty();
@@ -93,27 +105,28 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
             });
 
         // Verify there is no message since retain is false
-        RxJavaBridge
-            .toV3Flowable(mqtt5RxClient.subscribePublishesWith().topicFilter(TEST_TOPIC).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe())
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertNoValues()
-            .assertNotComplete();
+        subscribeToMqtt5(TEST_TOPIC).take(1, TimeUnit.SECONDS).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();
     }
 
     @Test
     @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mqtt5-endpoint-retained.json" })
-    void should_be_able_to_publish_retained_message_to_mqtt5_endpoint_with_httppost_entrypoint(HttpClient client) {
+    void should_be_able_to_publish_retained_message_to_mqtt5_endpoint_with_http_post_entrypoint(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value-retained");
 
-        final TestSubscriber<Mqtt5Publish> mqttTestSubscriber = subscribeToMqtt5(mqtt5RxClient, TEST_TOPIC_RETAINED);
+        final Subject<Void> readyObs = ReplaySubject.create();
+        final TestSubscriber<Mqtt5Publish> testSubscriber = subscribeToMqtt5(TEST_TOPIC_RETAINED, readyObs).take(1).test();
 
-        // Post a message
-        blockingPostMessage(client, "/http-post-endpoint-mqtt5-endpoint-retained", requestBody, Map.of("X-Test-Header", "header-value"));
+        readyObs
+            .ignoreElements()
+            .andThen(
+                postMessage(client, "/http-post-endpoint-mqtt5-endpoint-retained", requestBody, Map.of("X-Test-Header", "header-value"))
+            )
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS);
 
         // Check if message is present in Mqtt
-        mqttTestSubscriber
+        testSubscriber
             .awaitDone(30, TimeUnit.SECONDS)
             .assertValueAt(
                 0,
@@ -134,13 +147,10 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
             .assertComplete();
 
         // Verify the message is still present because it is retained
-        RxJavaBridge
-            .toV3Flowable(
-                mqtt5RxClient.subscribePublishesWith().topicFilter(TEST_TOPIC_RETAINED).qos(Mqtt5Publish.DEFAULT_QOS).applySubscribe()
-            )
+        subscribeToMqtt5(TEST_TOPIC_RETAINED)
             .take(1)
             .test()
-            .awaitDone(5, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValueAt(
                 0,
                 message -> {
@@ -162,21 +172,30 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
 
     @Test
     @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-mqtt5-endpoint-attribute.json" })
-    void should_be_able_to_publish_message_to_mqtt5_endpoint_with_httppost_entrypoint_topic_overridden_by_attribute(HttpClient client) {
+    void should_be_able_to_publish_message_to_mqtt5_endpoint_with_http_post_entrypoint_topic_overridden_by_attribute(HttpClient client) {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
         JsonObject requestBodyAttribute = new JsonObject();
         requestBody.put("field", "value-attribute");
 
-        final TestSubscriber<Mqtt5Publish> mqttTestSubscriberAttribute = subscribeToMqtt5(mqtt5RxClient, TEST_TOPIC_ATTRIBUTE);
-        final TestSubscriber<Mqtt5Publish> mqttTestSubscriber = subscribeToMqtt5(mqtt5RxClient, TEST_TOPIC);
+        final Subject<Void> readyObs1 = ReplaySubject.create();
+        final Subject<Void> readyObs2 = ReplaySubject.create();
+        final TestSubscriber<Mqtt5Publish> mqttTestSubscriberAttribute = subscribeToMqtt5(TEST_TOPIC_ATTRIBUTE, readyObs1).take(1).test();
+        final TestSubscriber<Mqtt5Publish> mqttTestSubscriber = subscribeToMqtt5(TEST_TOPIC, readyObs2).take(1).test();
 
-        // Post a message with the header allowing to override topic
-        blockingPostMessage(client, "/topic-from-attribute", requestBodyAttribute, Map.of("X-New-Topic", TEST_TOPIC_ATTRIBUTE));
-
-        // Post a message that will be published to topic configured for endpoint
-        blockingPostMessage(client, "/topic-from-attribute", requestBody, Map.of());
+        Completable
+            .mergeArray(readyObs1.ignoreElements(), readyObs2.ignoreElements())
+            .andThen(
+                Completable.mergeArray(
+                    // Post a message with the header allowing to override topic
+                    postMessage(client, "/topic-from-attribute", requestBodyAttribute, Map.of("X-New-Topic", TEST_TOPIC_ATTRIBUTE)),
+                    // Post a message that will be published to topic configured for endpoint
+                    postMessage(client, "/topic-from-attribute", requestBody, Map.of())
+                )
+            )
+            .test()
+            .awaitDone(30, TimeUnit.SECONDS);
 
         // Check if message is present in Mqtt test-topic-attribute
         mqttTestSubscriberAttribute
@@ -200,7 +219,7 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
             .assertComplete();
 
         mqttTestSubscriber
-            .awaitDone(30, TimeUnit.SECONDS)
+            .awaitDone(10, TimeUnit.SECONDS)
             .assertValueAt(
                 0,
                 message -> {
@@ -225,45 +244,41 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
-        final TestSubscriber<Mqtt5Publish> mqttTestSubscriber = subscribeToMqtt5(mqtt5RxClient, TEST_TOPIC_FAILURE);
+        final Subject<Void> readyObs = ReplaySubject.create();
+        final TestSubscriber<Mqtt5Publish> testSubscriber = subscribeToMqtt5(TEST_TOPIC_FAILURE, readyObs).take(1).test();
 
-        client
-            .rxRequest(HttpMethod.POST, "/http-post-entrypoint-mqtt5-endpoint-failure")
-            .flatMap(request -> request.rxSend(requestBody.toString()))
-            .flatMap(response -> {
-                assertThat(response.statusCode()).isEqualTo(412);
-                return response.body();
-            })
+        readyObs
+            .ignoreElements()
+            .andThen(
+                client
+                    .rxRequest(HttpMethod.POST, "/http-post-entrypoint-mqtt5-endpoint-failure")
+                    .flatMap(request -> request.rxSend(requestBody.toString()))
+                    .flatMap(response -> {
+                        assertThat(response.statusCode()).isEqualTo(412);
+                        return response.body();
+                    })
+            )
             .test()
-            .awaitDone(5, TimeUnit.SECONDS)
+            .awaitDone(30, TimeUnit.SECONDS)
             .assertComplete()
             .assertValue(buffer -> {
                 assertThat(buffer).hasToString("An error occurred");
                 return true;
             });
 
-        mqttTestSubscriber.awaitDone(2, TimeUnit.SECONDS).assertNoValues().assertNotComplete();
+        testSubscriber.awaitDone(10, TimeUnit.SECONDS).assertNoValues().assertNotComplete();
     }
 
-    private void blockingPostMessage(HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
-        postMessage(client, requestURI, requestBody, headers)
-            .test()
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertNoValues()
-            .assertComplete()
-            .assertNoErrors();
-    }
-
-    private Flowable<Buffer> postMessage(HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
+    private Completable postMessage(HttpClient client, String requestURI, JsonObject requestBody, Map<String, String> headers) {
         return client
             .rxRequest(HttpMethod.POST, requestURI)
             .flatMap(request -> {
                 headers.forEach(request::putHeader);
                 return request.rxSend(requestBody.toString());
             })
-            .flatMapPublisher(response -> {
+            .flatMapCompletable(response -> {
                 assertThat(response.statusCode()).isEqualTo(202);
-                return response.toFlowable();
+                return response.rxBody().ignoreElement();
             });
     }
 }

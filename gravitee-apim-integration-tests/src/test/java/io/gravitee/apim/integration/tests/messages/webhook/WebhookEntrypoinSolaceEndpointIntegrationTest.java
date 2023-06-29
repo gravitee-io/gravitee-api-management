@@ -84,7 +84,7 @@ class WebhookEntrypoinSolaceEndpointIntegrationTest extends AbstractSolaceEndpoi
             .blockingAwait();
 
         // Wait for the webhook to have received 3 requests (message1, message2 and message3)
-        webhookActions.waitForRequestsOnCallback(3, callbackPath, disposableSubscription);
+        webhookActions.waitForRequestsOnCallbackBlocking(3, callbackPath, disposableSubscription);
 
         // verify requests received by wiremock
         wiremock.verify(1, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("message1")));
@@ -123,7 +123,7 @@ class WebhookEntrypoinSolaceEndpointIntegrationTest extends AbstractSolaceEndpoi
             .blockingAwait();
 
         // Wait for the webhook to have received 4 requests (message, message1, message2 and message3)
-        webhookActions.waitForRequestsOnCallback(3, callbackPath, disposableSubscription);
+        webhookActions.waitForRequestsOnCallbackBlocking(3, callbackPath, disposableSubscription);
 
         // verify requests received by wiremock
         wiremock.verify(

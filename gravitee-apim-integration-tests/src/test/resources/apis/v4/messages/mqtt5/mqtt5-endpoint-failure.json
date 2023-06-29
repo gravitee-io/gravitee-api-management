@@ -1,19 +1,32 @@
 {
-  "id": "my-api",
+  "id": "mqtt5-endpoint-auto",
   "name": "my-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
   "type": "message",
-  "description": "api v4 using Websocket entrypoint",
+  "description": "api v4 using HTTP Get entrypoint",
   "listeners": [
     {
       "type": "http",
       "paths": [
         {
-          "path": "/test"
+          "path": "/test-failure"
         }
       ],
       "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount": 2,
+            "messagesLimitDurationMs": 10000,
+            "headersInPayload": true,
+            "metadataInPayload": true
+          }
+        },
+        {
+          "type": "sse",
+          "configuration": {}
+        },
         {
           "type": "websocket",
           "configuration": {
@@ -21,8 +34,7 @@
               "enabled": true
             },
             "subscriber": {
-              "enabled": true,
-              "noLocal": false
+              "enabled": true
             }
           }
         }
@@ -40,19 +52,13 @@
           "weight": 1,
           "inheritConfiguration": false,
           "configuration": {
-            "serverHost": "localhost",
-            "serverPort": "mqtt5-port"
+            "serverHost": "wrong",
+            "serverPort": "1234"
           },
           "sharedConfigurationOverride": {
             "consumer": {
               "enabled": true,
-              "topic": "test-topic",
-              "noLocal": false
-            },
-            "producer": {
-              "enabled": true,
-              "topic": "test-topic",
-              "retain" : true
+              "topic": "test-topic"
             }
           }
         }

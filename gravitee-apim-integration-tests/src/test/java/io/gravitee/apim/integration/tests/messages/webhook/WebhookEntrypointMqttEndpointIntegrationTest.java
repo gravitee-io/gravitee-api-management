@@ -15,27 +15,33 @@
  */
 package io.gravitee.apim.integration.tests.messages.webhook;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.graviteesource.entrypoint.webhook.WebhookEntrypointConnectorFactory;
 import com.graviteesource.entrypoint.webhook.configuration.HttpHeader;
+import com.hivemq.client.mqtt.datatypes.MqttQos;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.integration.tests.fake.MessageFlowReadyPolicy;
 import io.gravitee.apim.integration.tests.messages.AbstractMqtt5EndpointIntegrationTest;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
-import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.observers.TestObserver;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -59,98 +65,141 @@ class WebhookEntrypointMqttEndpointIntegrationTest extends AbstractMqtt5Endpoint
         webhookActions = new WebhookTestingActions(wiremock, getBean(SubscriptionDispatcher.class));
     }
 
-    @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mqtt5-endpoint.json" })
-    void should_receive_all_messages_without_header() throws JsonProcessingException {
+    @ParameterizedTest
+    @MethodSource("allQosParameters")
+    @DeployApi(
+        {
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json",
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+        }
+    )
+    void should_receive_messages_single(Qos qos, MqttQos publishQos) throws JsonProcessingException {
+        final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
+        final List<Completable> readyObs = new ArrayList<>();
 
-        Subscription subscription = webhookActions.configureSubscriptionAndCallback("webhook-entrypoint-mqtt5-endpoint", callbackPath);
+        final Subscription subscription = createSubscription(qos, callbackPath, readyObs);
 
-        // Publish a first message that is retained before subscribing
-        blockingPublishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message", true);
-        final Disposable disposableSubscription = webhookActions.dispatchSubscription(subscription).subscribe();
-        // Wait for the first request to be done on the webhook. It means the subscription is fully dispatched and we started to consume messages.
-        webhookActions.waitForRequestsOnCallback(1, callbackPath);
+        final TestObserver<Void> obs = Completable
+            .mergeArray(
+                webhookActions.dispatchSubscription(subscription),
+                publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
+            )
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test();
 
-        // Publish several messages
-        publishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message1", false)
-            .flatMap(mapper -> publishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message2", false))
-            .flatMap(mapper -> publishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message3", false))
-            .ignoreElements()
-            .blockingAwait();
+        obs.awaitDone(30, TimeUnit.SECONDS).assertComplete();
 
-        // Wait for the webhook to have received 4 requests (message, message1, message2 and message3)
-        webhookActions.waitForRequestsOnCallback(4, callbackPath, disposableSubscription);
-
-        // verify requests received by wiremock
-        wiremock.verify(1, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("message")));
-        wiremock.verify(1, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("message1")));
-        wiremock.verify(1, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("message2")));
-        wiremock.verify(1, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("message3")));
-
-        // close the subscription to avoid maintaining it between test methods
-        webhookActions.closeSubscription(subscription);
+        // Verify requests received by wiremock
+        verifyMessages(messageCount, callbackPath);
     }
 
-    @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mqtt5-endpoint.json" })
-    void should_receive_all_messages_with_additional_headers() throws JsonProcessingException {
-        final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
+    @ParameterizedTest
+    @MethodSource("allQosParameters")
+    @DeployApi(
+        {
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json",
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+        }
+    )
+    void should_receive_all_messages_with_additional_headers(Qos qos, MqttQos publishQos) throws JsonProcessingException {
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/with-header";
+        final List<Completable> readyObs = new ArrayList<>();
 
-        Subscription subscription = webhookActions.configureSubscriptionAndCallback(
-            "webhook-entrypoint-mqtt5-endpoint",
+        final List<HttpHeader> headers = List.of(
+            new HttpHeader("Header1", "my-header-1-value"),
+            new HttpHeader("Header2", "my-header-2-value")
+        );
+
+        final Subscription subscription = createSubscription(qos, callbackPath, headers, readyObs);
+
+        final TestObserver<Void> obs = Completable
+            .mergeArray(
+                webhookActions.dispatchSubscription(subscription),
+                publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
+            )
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test();
+
+        obs.awaitDone(30, TimeUnit.SECONDS).assertComplete();
+
+        // Verify requests received by wiremock
+        verifyMessagesWithHeaders(messageCount, callbackPath, headers);
+    }
+
+    @ParameterizedTest
+    @MethodSource("allQosParameters")
+    @DeployApi(
+        {
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-auto.json",
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-none.json",
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
+            "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+        }
+    )
+    void should_receive_messages_parallel(Qos qos, MqttQos publishQos) throws JsonProcessingException {
+        final int messageCount = 40;
+        final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
+        final List<Completable> readyObs = new ArrayList<>();
+
+        // Simulate the same subscription running on 2 different instances.
+        final Subscription subscriptionInstance1 = createSubscription(qos, callbackPath, readyObs);
+        final Subscription subscriptionInstance2 = createSubscription(qos, callbackPath, readyObs);
+        subscriptionInstance2.setId(subscriptionInstance1.getId());
+
+        final TestObserver<Void> obs = Completable
+            .mergeArray(
+                webhookActions.dispatchSubscription(subscriptionInstance1),
+                webhookActions.dispatchSubscription(subscriptionInstance2),
+                publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel(), publishQos)
+            )
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test();
+
+        obs.awaitDone(30, TimeUnit.SECONDS).assertComplete();
+
+        // Verify requests received by wiremock has no duplicates.
+        verifyMessages(messageCount, callbackPath);
+    }
+
+    private void verifyMessages(int messageCount, String callbackPath) {
+        for (int i = 0; i < messageCount; i++) {
+            wiremock.verify(1, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("message-" + i)));
+        }
+    }
+
+    private void verifyMessagesWithHeaders(int messageCount, String callbackPath, List<HttpHeader> headers) {
+        for (int i = 0; i < messageCount; i++) {
+            final RequestPatternBuilder requestPatternBuilder = postRequestedFor(urlPathEqualTo(callbackPath))
+                .withRequestBody(equalTo("message-" + i));
+
+            for (HttpHeader header : headers) {
+                requestPatternBuilder.withHeader(header.getName(), equalTo(header.getValue()));
+            }
+
+            wiremock.verify(1, requestPatternBuilder);
+        }
+    }
+
+    private Subscription createSubscription(Qos qos, String callbackPath, List<Completable> readyObs) throws JsonProcessingException {
+        return this.createSubscription(qos, callbackPath, null, readyObs);
+    }
+
+    private Subscription createSubscription(Qos qos, String callbackPath, List<HttpHeader> headers, List<Completable> readyObs)
+        throws JsonProcessingException {
+        final Subscription subscription = webhookActions.configureSubscriptionAndCallback(
+            "mqtt5-endpoint-qos-" + qos.getLabel(),
             callbackPath,
             null,
-            List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value"))
+            headers
         );
+        readyObs.add(MessageFlowReadyPolicy.readyObs(subscription));
 
-        // Publish a first message that is retained before subscribing
-        blockingPublishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message", true);
-        final Disposable disposableSubscription = webhookActions.dispatchSubscription(subscription).subscribe();
-        // Wait for the first request to be done on the webhook. It means the subscription is fully dispatched and we started to consume messages.
-        webhookActions.waitForRequestsOnCallback(1, callbackPath);
-
-        // Publish several messages
-        publishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message1", false)
-            .flatMap(mapper -> publishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message2", false))
-            .flatMap(mapper -> publishToMqtt5(mqtt5RxClient, TEST_TOPIC, "message3", false))
-            .ignoreElements()
-            .blockingAwait();
-
-        // Wait for the webhook to have received 4 requests (message, message1, message2 and message3)
-        webhookActions.waitForRequestsOnCallback(4, callbackPath, disposableSubscription);
-
-        // verify requests received by wiremock
-        wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
-        );
-        wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message1"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
-        );
-        wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message2"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
-        );
-        wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message3"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
-        );
-
-        // close the subscription to avoid maintaining it between test methods
-        webhookActions.closeSubscription(subscription);
+        return subscription;
     }
 }

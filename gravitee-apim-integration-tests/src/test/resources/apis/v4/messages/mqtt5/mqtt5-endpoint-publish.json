@@ -1,5 +1,5 @@
 {
-  "id": "http-get-endpoint-mqtt5-endpoint-at-most-once",
+  "id": "mqtt5-endpoint-qos-auto",
   "name": "my-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
@@ -10,18 +10,17 @@
       "type": "http",
       "paths": [
         {
-          "path": "/test-at-most-once"
+          "path": "/test-publish"
         }
       ],
       "entrypoints": [
         {
-          "type": "http-get",
-          "qos": "at-most-once",
+          "type": "websocket",
+          "qos": "auto",
           "configuration": {
-            "messagesLimitCount": 1,
-            "messagesLimitDurationMs": 10000,
-            "headersInPayload": true,
-            "metadataInPayload": true
+            "publisher": {
+              "enabled": true
+            }
           }
         }
       ]
@@ -43,15 +42,18 @@
           },
           "sharedConfigurationOverride": {
             "consumer": {
+              "enabled": false
+            },
+            "producer": {
               "enabled": true,
-              "topic": "randtestom-topic"
-            }
+              "topic": "test-topic-publish"
+            },
+            "sessionExpiryInterval": 3600
           }
         }
       ]
     }
   ],
-  "flows": [],
   "analytics": {
     "enabled": false
   }

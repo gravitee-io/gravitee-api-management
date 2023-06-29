@@ -26,7 +26,11 @@
         </encoder>
     </appender>
 
-    <logger name="io.gravitee" level="ERROR" additivity="false">
+    <logger name="io.gravitee" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="com.graviteesource" level="INFO" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 

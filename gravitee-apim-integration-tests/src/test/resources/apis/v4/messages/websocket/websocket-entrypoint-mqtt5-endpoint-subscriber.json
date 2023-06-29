@@ -45,14 +45,25 @@
           "sharedConfigurationOverride": {
             "consumer": {
               "enabled": true,
-              "topic": "test-topic"
+              "topic": "test-topic-auto"
             }
           }
         }
       ]
     }
   ],
-  "flows": [],
+  "flows": [
+    {
+      "name": "Flow ready",
+      "enabled": true,
+      "subscribe": [{
+        "name": "Message Flow Ready",
+        "description": "Detect the message flow is ready",
+        "enabled": true,
+        "policy": "message-flow-ready"
+      }]
+    }
+  ],
   "analytics": {
     "enabled": false
   }

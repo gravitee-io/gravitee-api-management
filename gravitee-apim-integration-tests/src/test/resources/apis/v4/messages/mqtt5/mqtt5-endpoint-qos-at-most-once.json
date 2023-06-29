@@ -1,5 +1,5 @@
 {
-  "id": "http-get-endpoint-mqtt5-endpoint-at-least-once",
+  "id": "mqtt5-endpoint-qos-at-most-once",
   "name": "my-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
@@ -7,22 +7,35 @@
   "description": "api v4 using HTTP Get entrypoint",
   "listeners": [
     {
+      "type": "subscription",
+      "entrypoints": [
+        {
+          "type": "webhook"
+        }
+      ]
+    },
+    {
       "type": "http",
       "paths": [
         {
-          "path": "/test-at-least-once"
+          "path": "/test-qos-at-most-once"
         }
       ],
       "entrypoints": [
         {
           "type": "http-get",
-          "qos": "at-least-once",
+          "qos": "at-most-once",
           "configuration": {
             "messagesLimitCount": 1,
             "messagesLimitDurationMs": 10000,
             "headersInPayload": true,
             "metadataInPayload": true
           }
+        },
+        {
+          "type": "sse",
+          "qos": "at-most-once",
+          "configuration": {}
         }
       ]
     }
@@ -44,14 +57,31 @@
           "sharedConfigurationOverride": {
             "consumer": {
               "enabled": true,
-              "topic": "test-topic"
+              "topic": "test-topic-qos-at-most-once"
+            },
+            "producer": {
+              "enabled": true,
+              "topic": "test-topic-qos-at-most-once"
             }
           }
         }
       ]
     }
   ],
-  "flows": [],
+  "flows": [
+    {
+      "name": "Flow ready",
+      "enabled": true,
+      "subscribe": [
+        {
+          "name": "Message Flow Ready",
+          "description": "Detect the message flow is ready",
+          "enabled": true,
+          "policy": "message-flow-ready"
+        }
+      ]
+    }
+  ],
   "analytics": {
     "enabled": false
   }
