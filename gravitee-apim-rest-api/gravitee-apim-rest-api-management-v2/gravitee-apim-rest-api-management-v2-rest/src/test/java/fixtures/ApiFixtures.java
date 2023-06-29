@@ -171,7 +171,7 @@ public class ApiFixtures {
         .tags(List.of("my-tag1", "my-tag2"))
         .resources(List.of(ResourceFixtures.aResource()))
         .responseTemplates(Map.of("key", new HashMap<>()))
-        .services(new ServicesV2())
+        .services(new ApiServicesV2())
         .groups(List.of("my-group1", "my-group2"))
         .categories(List.of("my-category1", "my-category2"))
         .lifecycleState(ApiLifecycleState.CREATED)

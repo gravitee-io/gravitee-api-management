@@ -21,11 +21,13 @@ import io.gravitee.definition.model.Service;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Collections;
 import java.util.Map;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuperBuilder
 public class EndpointDiscoveryService extends Service {
 
     public static final String SERVICE_KEY = "discovery";

@@ -1173,7 +1173,7 @@ paths:
             summary: Accept an API subscription
             description: |-
                 Accept an API subscription with an optional starting / ending dates and reason.
-                
+
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: acceptApiSubscription
             requestBody:
@@ -1202,7 +1202,7 @@ paths:
             summary: Reject an API subscription
             description: |-
                 Reject an API subscription with an optional reason.
-                
+
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: rejectApiSubscription
             requestBody:
@@ -1232,7 +1232,7 @@ paths:
             description: |-
                 Transfer an API subscription to another plan.<br>
                 The targeted plan must be published and must have the same security type. Transfer cannot be performed if general conditions apply to the targeted plan.
-                
+
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: transferApiSubscription
             requestBody:
@@ -1262,7 +1262,7 @@ paths:
             summary: Get subscription's api keys
             description: |-
                 Get the subscription api keys.
-                
+
                 User must have the API_SUBSCRIPTION[READ] permission.
             operationId: getApiSubscriptionApiKeys
             responses:
@@ -1282,7 +1282,7 @@ paths:
             description: |-
                 Renew the subscription api key by setting an expiration date on the existing active api keys and creating a new api key.<br>
                 The newly created api key is returned in response.
-                
+
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: renewApiSubscriptionApiKeys
             requestBody:
@@ -1343,7 +1343,7 @@ paths:
             description: |-
                 Revoke the subscription api key by setting the revocation date to the current date and flagging it as revoked.<br>
                 A notification will be sent to the subscriber according to his portal notification options.
-                
+
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: revokeApiSubscriptionApiKey
             responses:
@@ -1367,7 +1367,7 @@ paths:
             summary: Reactivate subscription api key
             description: |-
                 Reactivate the revoked or expired subscription api key.
-                
+
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: reactivateApiSubscriptionApiKey
             responses:
@@ -1918,7 +1918,7 @@ components:
                               items:
                                   $ref: "#/components/schemas/Rule"
                       services:
-                          $ref: "#/components/schemas/ServicesV2"
+                          $ref: "#/components/schemas/ApiServicesV2"
                       pathMappings:
                           type: array
                           description: The list of path mappings associated with this API.
@@ -1954,7 +1954,7 @@ components:
                           items:
                               $ref: "#/components/schemas/FlowV2"
                       services:
-                          $ref: "#/components/schemas/ServicesV2"
+                          $ref: "#/components/schemas/ApiServicesV2"
                       pathMappings:
                           type: array
                           description: The list of path mappings associated with this API.
@@ -2241,7 +2241,7 @@ components:
                           items:
                               $ref: "#/components/schemas/FlowV2"
                       services:
-                          $ref: "#/components/schemas/ServicesV2"
+                          $ref: "#/components/schemas/ApiServicesV2"
                       pathMappings:
                           type: array
                           description: The list of path mappings associated with this API.
@@ -3059,7 +3059,7 @@ components:
                           items:
                               $ref: "#/components/schemas/FlowV4"
                       mode:
-                        $ref: "#/components/schemas/PlanMode"
+                          $ref: "#/components/schemas/PlanMode"
         Plan:
             oneOf:
                 - $ref: "#/components/schemas/PlanV2"
@@ -3317,80 +3317,80 @@ components:
             allOf:
                 - $ref: "#/components/schemas/BaseSubscription"
                 - properties:
-                    api:
-                        $ref: "#/components/schemas/BaseApi"
-                    plan:
-                        $ref: "#/components/schemas/BasePlan"
-                    application:
-                        $ref: "#/components/schemas/BaseApplication"
-                    consumerMessage:
-                        type: string
-                        description: Message given by the api consumer when subscribing to the api.
-                    publisherMessage:
-                        type: string
-                        description: Message given by the api publisher when accepting or rejecting the subscription.
-                    metadata:
-                        type: object
-                        description: A list of metadata associated to this subscription.
-                        additionalProperties:
-                            type: string
-                    daysToExpirationOnLastNotification:
-                        type: integer
-                        format: int32
-                        description: Number of days before the expiration of this subscription when the last pre-expiration notification was sent.
-                    consumerConfiguration:
-                        $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
-                    failureCause:
-                        type: string
-                        description: Details about the last failure encountered on this subscription.
-                    status:
-                        $ref: "#/components/schemas/SubscriptionStatus"
-                    consumerStatus:
-                        $ref: "#/components/schemas/SubscriptionConsumerStatus"
-                    processedBy:
-                        $ref: "#/components/schemas/BaseUser"
-                    subscribedBy:
-                        $ref: "#/components/schemas/BaseUser"
-                    processedAt:
-                        type: string
-                        format: date-time
-                        description: The datetime when the subscription was processed.
-                        example: 2023-05-18T12:40:46.184Z
-                    startingAt:
-                        type: string
-                        format: date-time
-                        description: The datetime when the subscription starts. No starting date means the subscription starts immediately.
-                        example: 2023-05-20T12:30:42.101Z
-                    endingAt:
-                        type: string
-                        format: date-time
-                        description: The datetime when the subscription ends. No ending date means the subscription never ends.
-                        example: 2023-05-25T12:40:46.184Z
-                    createdAt:
-                        type: string
-                        format: date-time
-                        description: The datetime when the subscription was created.
-                        example: 2023-05-18T12:40:46.184Z
-                    updatedAt:
-                        type: string
-                        format: date-time
-                        description: The last datetime when the subscription was updated.
-                        example: 2023-05-25T12:40:46.184Z
-                    closedAt:
-                        type: string
-                        format: date-time
-                        description: The datetime when the subscription was closed.
-                        example: 2023-05-31T13:40:46.184Z
-                    pausedAt:
-                        type: string
-                        format: date-time
-                        description: The datetime when the subscription was paused by the api publisher.
-                        example: 2023-05-25T12:40:46.184Z
-                    consumerPausedAt:
-                        type: string
-                        format: date-time
-                        description: The datetime when the subscription was paused by the api consumer.
-                        example: 2023-05-25T12:40:46.184Z
+                      api:
+                          $ref: "#/components/schemas/BaseApi"
+                      plan:
+                          $ref: "#/components/schemas/BasePlan"
+                      application:
+                          $ref: "#/components/schemas/BaseApplication"
+                      consumerMessage:
+                          type: string
+                          description: Message given by the api consumer when subscribing to the api.
+                      publisherMessage:
+                          type: string
+                          description: Message given by the api publisher when accepting or rejecting the subscription.
+                      metadata:
+                          type: object
+                          description: A list of metadata associated to this subscription.
+                          additionalProperties:
+                              type: string
+                      daysToExpirationOnLastNotification:
+                          type: integer
+                          format: int32
+                          description: Number of days before the expiration of this subscription when the last pre-expiration notification was sent.
+                      consumerConfiguration:
+                          $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
+                      failureCause:
+                          type: string
+                          description: Details about the last failure encountered on this subscription.
+                      status:
+                          $ref: "#/components/schemas/SubscriptionStatus"
+                      consumerStatus:
+                          $ref: "#/components/schemas/SubscriptionConsumerStatus"
+                      processedBy:
+                          $ref: "#/components/schemas/BaseUser"
+                      subscribedBy:
+                          $ref: "#/components/schemas/BaseUser"
+                      processedAt:
+                          type: string
+                          format: date-time
+                          description: The datetime when the subscription was processed.
+                          example: 2023-05-18T12:40:46.184Z
+                      startingAt:
+                          type: string
+                          format: date-time
+                          description: The datetime when the subscription starts. No starting date means the subscription starts immediately.
+                          example: 2023-05-20T12:30:42.101Z
+                      endingAt:
+                          type: string
+                          format: date-time
+                          description: The datetime when the subscription ends. No ending date means the subscription never ends.
+                          example: 2023-05-25T12:40:46.184Z
+                      createdAt:
+                          type: string
+                          format: date-time
+                          description: The datetime when the subscription was created.
+                          example: 2023-05-18T12:40:46.184Z
+                      updatedAt:
+                          type: string
+                          format: date-time
+                          description: The last datetime when the subscription was updated.
+                          example: 2023-05-25T12:40:46.184Z
+                      closedAt:
+                          type: string
+                          format: date-time
+                          description: The datetime when the subscription was closed.
+                          example: 2023-05-31T13:40:46.184Z
+                      pausedAt:
+                          type: string
+                          format: date-time
+                          description: The datetime when the subscription was paused by the api publisher.
+                          example: 2023-05-25T12:40:46.184Z
+                      consumerPausedAt:
+                          type: string
+                          format: date-time
+                          description: The datetime when the subscription was paused by the api consumer.
+                          example: 2023-05-25T12:40:46.184Z
 
         SubscriptionStatus:
             type: string
@@ -3554,7 +3554,7 @@ components:
                     description: The api key value to use to call the protected api.
                     example: my-api-key
                 application:
-                    $ref: '#/components/schemas/BaseApplication'
+                    $ref: "#/components/schemas/BaseApplication"
                 subscriptions:
                     type: array
                     items:
@@ -3942,16 +3942,6 @@ components:
                         - private
                     items:
                         type: string
-        BaseServiceV2:
-            type: object
-            properties:
-                name:
-                    type: string
-                    description: The name of the service
-                enabled:
-                    type: boolean
-                    description: Is the service enabled or not.
-                    default: true
         Consumer:
             type: object
             properties:
@@ -3975,24 +3965,30 @@ components:
                 - HTTP
         DynamicPropertyService:
             type: object
-            allOf:
-                - $ref: "#/components/schemas/BaseServiceV2"
-                - properties:
-                      schedule:
-                          type: string
-                          description: The schedule of the service
-                      provider:
-                          $ref: "#/components/schemas/DynamicPropertyProvider"
-                      configuration:
-                          oneOf:
-                              - $ref: "#/components/schemas/HttpDynamicPropertyProviderConfiguration"
-                          discriminator:
-                              propertyName: provider
-                              mapping:
-                                  HTTP: HttpDynamicPropertyProviderConfiguration
+            properties:
+                schedule:
+                    type: string
+                    description: The schedule of the service
+                provider:
+                    $ref: "#/components/schemas/DynamicPropertyProvider"
+                configuration:
+                    oneOf:
+                        - $ref: "#/components/schemas/HttpDynamicPropertyProviderConfiguration"
+                    discriminator:
+                        propertyName: provider
+                        mapping:
+                            HTTP: HttpDynamicPropertyProviderConfiguration
+                enabled:
+                    type: boolean
+                    description: Is the service enabled or not.
+                    default: true
         EndpointV2:
             oneOf:
                 - $ref: "#/components/schemas/HttpEndpointV2"
+            discriminator:
+                propertyName: type
+                mapping:
+                    http: HttpEndpointV2
         BaseEndpointV2:
             type: object
             properties:
@@ -4061,15 +4057,17 @@ components:
                           $ref: "#/components/schemas/EndpointHealthCheckService"
         EndpointDiscoveryService:
             type: object
-            allOf:
-                - $ref: "#/components/schemas/BaseServiceV2"
-                - properties:
-                      provider:
-                          type: string
-                          description: The provider of the service
-                      configuration:
-                          type: object
-                          description: The configuration of the service
+            properties:
+                  provider:
+                      type: string
+                      description: The provider of the service
+                  configuration:
+                      type: object
+                      description: The configuration of the service
+                  enabled:
+                      type: boolean
+                      description: Is the service enabled or not.
+                      default: true
         EndpointGroupV2:
             type: object
             properties:
@@ -4086,7 +4084,7 @@ components:
                 loadBalancer:
                     $ref: "#/components/schemas/LoadBalancer"
                 services:
-                    $ref: "#/components/schemas/ServicesV2"
+                    $ref: "#/components/schemas/EndpointGroupServicesV2"
                 httpProxy:
                     $ref: "#/components/schemas/HttpProxy"
                 httpClientOptions:
@@ -4236,16 +4234,18 @@ components:
                         example: "{#response.status == 200}"
         HealthCheckService:
             type: object
-            allOf:
-                - $ref: "#/components/schemas/BaseServiceV2"
-                - properties:
-                      schedule:
-                          type: string
-                          description: The schedule of the service
-                      steps:
-                          type: array
-                          items:
-                              $ref: "#/components/schemas/HealthCheckStep"
+            properties:
+                  schedule:
+                      type: string
+                      description: The schedule of the service
+                  steps:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/HealthCheckStep"
+                  enabled:
+                      type: boolean
+                      description: Is the service enabled or not.
+                      default: true
         HealthCheckStep:
             type: object
             properties:
@@ -4333,7 +4333,7 @@ components:
                     description: The url of the dynamic property provider
                     example: http://my-provider.com
                 specification:
-                    type: string
+                    type: object
                     description: The specification of the dynamic property provider
                     example: my-specification
                 useSystemProxy:
@@ -4588,17 +4588,18 @@ components:
                     type: array
                     items:
                         type: string
-        ServicesV2:
+        ApiServicesV2:
+            type: object
+            properties:
+                dynamicProperty:
+                    $ref: "#/components/schemas/DynamicPropertyService"
+                healthCheck:
+                    $ref: "#/components/schemas/HealthCheckService"
+        EndpointGroupServicesV2:
             type: object
             properties:
                 discovery:
                     $ref: "#/components/schemas/EndpointDiscoveryService"
-                healthCheck:
-                    oneOf:
-                        - $ref: "#/components/schemas/HealthCheckService"
-                        - $ref: "#/components/schemas/EndpointHealthCheckService"
-                dynamicProperty:
-                    $ref: "#/components/schemas/DynamicPropertyService"
         StepV2:
             allOf:
                 - $ref: "#/components/schemas/BaseStep"
@@ -5179,7 +5180,6 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
-
 
         MembersResponse:
             description: Page of API members

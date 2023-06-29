@@ -18,11 +18,13 @@ package io.gravitee.definition.model.services.dynamicproperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.services.schedule.ScheduledService;
 import java.util.Objects;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@SuperBuilder
 public class DynamicPropertyService extends ScheduledService {
 
     public static final String SERVICE_KEY = "dynamic-property";

@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
         ResourceMapper.class,
         ResponseTemplateMapper.class,
         RuleMapper.class,
+        ServiceMapper.class,
     }
 )
 public interface ApiMapper {
