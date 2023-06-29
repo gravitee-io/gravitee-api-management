@@ -97,13 +97,6 @@ Create initContainers for downloading plugins ext plugin-ext
     - name: graviteeio-apim-{{ $key }}-ext
       mountPath: /tmp/plugins-ext
 {{- end }}
-{{- if .pluginsToRemove }}
-- name: delete-plugins
-  {{- toYaml .initContainers | nindent 2 }}
-  command: ['sh', '-c', "cd /opt/{{ .appName }}/plugins {{- range $key := .pluginsToRemove -}}
-    {{ printf " && rm -f %s-*.zip" $key }}
-  {{- end -}}"]
-{{- end }}
 {{- end -}}
 
 {{/*

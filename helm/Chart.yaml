@@ -25,4 +25,5 @@ annotations:
     - Remove old and unused `cache.type` from gateway config map
     - Fix resources missing in ui-deployment.yaml
     - Change readinessProbe for the gateway to sync-process
-    - Update Elasticsearch version: 4.0.0-alpha.2
+    - Update Elasticsearch version
+    - Allow plugin override via {api|gatewaye}.additionalPlugins property

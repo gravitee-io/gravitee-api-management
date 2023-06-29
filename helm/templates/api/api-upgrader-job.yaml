@@ -88,7 +88,7 @@ spec:
       {{- if .Values.api.additionalPlugins -}}
         {{- $plugins = concat $plugins .Values.api.additionalPlugins -}}
       {{- end -}}
-      {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-management-api" "pluginsToRemove" .Values.api.removePlugins "initContainers" $initContainers -}}
+      {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-management-api" "initContainers" $initContainers -}}
       {{- if or .Values.api.extraInitContainers $plugins .Values.jdbc.driver }}
       initContainers:
         {{- if and .Values.jdbc.driver (eq .Values.management.type "jdbc") }}

@@ -184,7 +184,7 @@ See [MongoDB replicaset](https://artifacthub.io/packages/helm/bitnami/mongodb) f
 | `es.tls.keystore.certs`      | Elasticsearch TLS certs (only pems)               | `null`                                                                 |
 | `es.tls.keystore.keys`       | Elasticsearch TLS keys (only pems)                | `null`                                                                 |
 | `es.index`                   | Elasticsearch index                               | `gravitee`                                                             |
-| `es.endpoints`               | Elasticsearch endpoint array                      | `[http://elastic-elasticsearch-client.default.svc.cluster.local:9200]` |
+| `es.endpoints`               | Elasticsearch endpoint array                      | `[http://graviteeio-apim-elasticsearch.default.svc.cluster.local:9200]` |
 | `es.pipeline.plugins.ingest` | Elasticsearch pipeline ingest plugins             | `geoip, user_agent`                                                    |
 
 ### Elasticsearch cluster
@@ -508,5 +508,5 @@ helm plugin install https://github.com/quintush/helm-unittest
 Inside `helm/` directory, run:
 
 ```shell
-helm unittest -3 -f 'tests/**/*.yaml' .
+helm unittest -f 'tests/**/*_test.yaml' .
 ```
