@@ -108,8 +108,7 @@ http:
 #  path:
 #    - ${gravitee.home}/plugins
 #    - ${gravitee.home}/my-custom-plugins
-# If a external is already installed (but with a different version), management node does not start anymore
-#  failOnDuplicate: true
+# note that for a given plugin a more recent zip file will take precedence regardless its manifest version
 
 # Management repository is used to store global configuration such as APIs, applications, apikeys, ...
 # This is the default configuration using MongoDB (single server)

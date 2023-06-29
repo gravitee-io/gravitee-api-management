@@ -64,9 +64,7 @@
 #  path:
 #    - ${gravitee.home}/plugins
 #    - ${gravitee.home}/my-custom-plugins
-
-# If a plugin is already installed (but with a different version), management node does not start anymore
-#  failOnDuplicate: true
+# note that for a given plugin a more recent zip file will take precedence regardless its manifest version
 
 # Management repository is used to store global configuration such as APIs, applications, apikeys, ...
 # If you use a JDBC repository, we recommend disabling liquibase scripts execution by the Gateway. Let the Management API do it.

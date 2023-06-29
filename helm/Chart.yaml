@@ -26,3 +26,7 @@ annotations:
     - Fix resources missing in ui-deployment.yaml
     - Change readinessProbe for the gateway to sync-process
     - Update Elasticsearch version
+<<<<<<< HEAD
+=======
+    - Allow plugin override via {api|gatewaye}.additionalPlugins property
+>>>>>>> b19e409943 (feat: allow plugin override, get rid of removePlugins in Helm chart)
