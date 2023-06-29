@@ -73,7 +73,9 @@ public final class Services implements Serializable {
     }
 
     public void setDiscoveryService(EndpointDiscoveryService discoveryService) {
-        put(EndpointDiscoveryService.class, discoveryService);
+        if (discoveryService != null) {
+            put(EndpointDiscoveryService.class, discoveryService);
+        }
     }
 
     @JsonProperty("health-check")
@@ -82,7 +84,9 @@ public final class Services implements Serializable {
     }
 
     public void setHealthCheckService(HealthCheckService healthCheckService) {
-        put(HealthCheckService.class, healthCheckService);
+        if (healthCheckService != null) {
+            put(HealthCheckService.class, healthCheckService);
+        }
     }
 
     @JsonProperty("dynamic-property")
@@ -91,6 +95,8 @@ public final class Services implements Serializable {
     }
 
     public void setDynamicPropertyService(DynamicPropertyService dynamicPropertyService) {
-        put(DynamicPropertyService.class, dynamicPropertyService);
+        if (dynamicPropertyService != null) {
+            put(DynamicPropertyService.class, dynamicPropertyService);
+        }
     }
 }

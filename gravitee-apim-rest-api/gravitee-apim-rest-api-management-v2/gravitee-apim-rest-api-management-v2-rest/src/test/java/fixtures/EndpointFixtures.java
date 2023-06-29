@@ -18,6 +18,7 @@ package fixtures;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupServices;
+import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupServicesV2;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV2;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointHealthCheckService;
@@ -27,7 +28,6 @@ import io.gravitee.rest.api.management.v2.rest.model.EndpointV2;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
 import io.gravitee.rest.api.management.v2.rest.model.HttpEndpointV2;
 import io.gravitee.rest.api.management.v2.rest.model.LoadBalancer;
-import io.gravitee.rest.api.management.v2.rest.model.ServicesV2;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -80,11 +80,9 @@ public class EndpointFixtures {
         .httpProxy(null)
         .httpClientOptions(null)
         .httpClientSslOptions(null);
-    private static final ServicesV2.ServicesV2Builder BASE_SERVICES_V2 = ServicesV2
+    private static final EndpointGroupServicesV2.EndpointGroupServicesV2Builder BASE_SERVICES_V2 = EndpointGroupServicesV2
         .builder()
-        .discovery(null)
-        .healthCheck(null)
-        .dynamicProperty(null);
+        .discovery(null);
 
     private static final EndpointGroupV2.EndpointGroupV2Builder BASE_ENDPOINTGROUP_V2 = EndpointGroupV2
         .builder()

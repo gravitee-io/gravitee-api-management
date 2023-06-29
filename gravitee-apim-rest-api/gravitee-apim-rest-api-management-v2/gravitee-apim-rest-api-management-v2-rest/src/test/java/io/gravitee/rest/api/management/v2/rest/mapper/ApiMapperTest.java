@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import fixtures.ApiFixtures;
-import fixtures.CorsFixtures;
 import io.gravitee.definition.model.DefinitionVersion;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;

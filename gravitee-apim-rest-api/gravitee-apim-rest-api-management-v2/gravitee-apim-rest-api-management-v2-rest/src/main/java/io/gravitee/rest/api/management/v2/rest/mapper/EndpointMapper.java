@@ -20,12 +20,11 @@ import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV2;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointV4;
 import io.gravitee.rest.api.management.v2.rest.model.HttpEndpointV2;
-import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { ConfigurationSerializationMapper.class, KeyStoreMapper.class, TrustStoreMapper.class })
+@Mapper(uses = { ConfigurationSerializationMapper.class, KeyStoreMapper.class, ServiceMapper.class, TrustStoreMapper.class })
 public interface EndpointMapper {
     EndpointMapper INSTANCE = Mappers.getMapper(EndpointMapper.class);
 
