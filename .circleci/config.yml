@@ -1141,8 +1141,8 @@ jobs:
                       kubectl rollout restart deployment/${K8S_NAMESPACE}-portal -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/${K8S_NAMESPACE}-ui -n ${K8S_NAMESPACE}
                       kubectl rollout restart deployment/${K8S_NAMESPACE}-gateway -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/${K8S_NAMESPACE}-apim-bridge-gateway -n ${K8S_NAMESPACE}
-                      kubectl rollout restart deployment/${K8S_NAMESPACE}-apim-ingress-gateway -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAMESPACE}-bridge-client-gateway -n ${K8S_NAMESPACE}
+                      kubectl rollout restart deployment/${K8S_NAMESPACE}-ingress-gateway -n ${K8S_NAMESPACE}
             - keeper/env-export:
                   secret-url: keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token
                   var-name: CIRCLE_TOKEN
