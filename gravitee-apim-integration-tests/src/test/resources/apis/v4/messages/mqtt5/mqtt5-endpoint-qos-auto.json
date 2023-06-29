@@ -1,0 +1,101 @@
+{
+  "id": "mqtt5-endpoint-qos-auto",
+  "name": "my-api",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using HTTP Get entrypoint",
+  "listeners": [
+    {
+      "type": "subscription",
+      "entrypoints": [
+        {
+          "type": "webhook"
+        }
+      ]
+    },
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-qos-auto"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "qos": "auto",
+          "configuration": {
+            "messagesLimitCount": 10,
+            "messagesLimitDurationMs": 10000,
+            "headersInPayload": false,
+            "metadataInPayload": false
+          }
+        },
+        {
+          "type": "sse",
+          "qos": "auto",
+          "configuration": {}
+        },
+        {
+          "type": "websocket",
+          "qos": "auto",
+          "configuration": {
+            "publisher": {
+              "enabled": true
+            },
+            "subscriber": {
+              "enabled": true
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "mqtt5",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mqtt5",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "serverHost": "localhost",
+            "serverPort": "mqtt5-port"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topic": "test-topic-qos-auto"
+            },
+            "producer": {
+              "enabled": true,
+              "topic": "test-topic-qos-auto"
+            },
+            "sessionExpiryInterval": 3600
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Flow ready",
+      "enabled": true,
+      "subscribe": [
+        {
+          "name": "Message Flow Ready",
+          "description": "Detect the message flow is ready",
+          "enabled": true,
+          "policy": "message-flow-ready"
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}

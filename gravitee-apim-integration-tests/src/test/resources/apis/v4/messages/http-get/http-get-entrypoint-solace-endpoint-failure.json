@@ -1,5 +1,5 @@
 {
-  "id": "http-get-endpoint-mqtt5-endpoint-auto",
+  "id": "http-get-entrypoint-mqtt5-endpoint-auto",
   "name": "my-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",

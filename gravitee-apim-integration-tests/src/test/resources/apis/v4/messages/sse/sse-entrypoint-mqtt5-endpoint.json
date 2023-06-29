@@ -1,10 +1,10 @@
 {
-  "id": "http-get-endpoint-mqtt5-endpoint",
+  "id": "sse-entrypoint-mqtt5-endpoint",
   "name": "my-api",
   "apiVersion": "1.0",
   "definitionVersion": "4.0.0",
   "type": "message",
-  "description": "api v4 using HTTP Get entrypoint",
+  "description": "api v4 using SSE entrypoint",
   "listeners": [
     {
       "type": "http",
@@ -15,13 +15,8 @@
       ],
       "entrypoints": [
         {
-          "type": "http-get",
-          "configuration": {
-            "messagesLimitCount": 1,
-            "messagesLimitDurationMs": 10000,
-            "headersInPayload": true,
-            "metadataInPayload": true
-          }
+          "type": "sse",
+          "configuration": {}
         }
       ]
     }
@@ -50,7 +45,18 @@
       ]
     }
   ],
-  "flows": [],
+  "flows": [
+    {
+      "name": "Flow ready",
+      "enabled": true,
+      "subscribe": [{
+        "name": "Message Flow Ready",
+        "description": "Detect the message flow is ready",
+        "enabled": true,
+        "policy": "message-flow-ready"
+      }]
+    }
+  ],
   "analytics": {
     "enabled": false
   }
