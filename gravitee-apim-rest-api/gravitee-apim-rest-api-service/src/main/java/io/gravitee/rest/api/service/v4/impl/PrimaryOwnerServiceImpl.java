@@ -85,7 +85,8 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
             throw new PrimaryOwnerNotFoundException(apiId);
         }
         if (MembershipMemberType.GROUP == primaryOwnerMemberEntity.getMemberType()) {
-            return new PrimaryOwnerEntity(groupService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()));
+            final String poMail = computePrimaryOwnerMailFromGroup(executionContext, primaryOwnerMemberEntity.getMemberId());
+            return new PrimaryOwnerEntity(groupService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()), poMail);
         }
         return new PrimaryOwnerEntity(userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()));
     }
@@ -154,13 +155,14 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
                 break;
             case GROUP:
                 if (currentPrimaryOwner == null) {
-                    return getFirstPoGroupUserBelongsTo(userId);
+                    return getFirstPoGroupUserBelongsTo(executionContext, userId);
                 }
                 if (ApiPrimaryOwnerMode.GROUP.name().equals(currentPrimaryOwner.getType())) {
                     try {
-                        return new PrimaryOwnerEntity(groupService.findById(executionContext, currentPrimaryOwner.getId()));
+                        final String poMail = computePrimaryOwnerMailFromGroup(executionContext, currentPrimaryOwner.getId());
+                        return new PrimaryOwnerEntity(groupService.findById(executionContext, currentPrimaryOwner.getId()), poMail);
                     } catch (GroupNotFoundException unfe) {
-                        return getFirstPoGroupUserBelongsTo(userId);
+                        return getFirstPoGroupUserBelongsTo(executionContext, userId);
                     }
                 }
                 if (ApiPrimaryOwnerMode.USER.name().equals(currentPrimaryOwner.getType())) {
@@ -173,11 +175,13 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
                             .filter(group -> group.getApiPrimaryOwner() != null && !group.getApiPrimaryOwner().isEmpty())
                             .collect(toSet());
                         if (poGroupsOfPoUser.isEmpty()) {
-                            return getFirstPoGroupUserBelongsTo(userId);
+                            return getFirstPoGroupUserBelongsTo(executionContext, userId);
                         }
-                        return new PrimaryOwnerEntity(poGroupsOfPoUser.iterator().next());
+                        final GroupEntity groupEntity = poGroupsOfPoUser.iterator().next();
+                        final String poMail = computePrimaryOwnerMailFromGroup(executionContext, groupEntity.getId());
+                        return new PrimaryOwnerEntity(groupEntity, poMail);
                     } catch (UserNotFoundException unfe) {
-                        return getFirstPoGroupUserBelongsTo(userId);
+                        return getFirstPoGroupUserBelongsTo(executionContext, userId);
                     }
                 }
                 break;
@@ -188,10 +192,11 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
                 }
                 if (ApiPrimaryOwnerMode.GROUP.name().equals(currentPrimaryOwner.getType())) {
                     try {
-                        return new PrimaryOwnerEntity(groupService.findById(executionContext, currentPrimaryOwner.getId()));
+                        final String poMail = computePrimaryOwnerMailFromGroup(executionContext, currentPrimaryOwner.getId());
+                        return new PrimaryOwnerEntity(groupService.findById(executionContext, currentPrimaryOwner.getId()), poMail);
                     } catch (GroupNotFoundException unfe) {
                         try {
-                            return getFirstPoGroupUserBelongsTo(userId);
+                            return getFirstPoGroupUserBelongsTo(executionContext, userId);
                         } catch (NoPrimaryOwnerGroupForUserException ex) {
                             return new PrimaryOwnerEntity(userService.findById(executionContext, userId));
                         }
@@ -211,7 +216,7 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
     }
 
     @NotNull
-    private PrimaryOwnerEntity getFirstPoGroupUserBelongsTo(final String userId) {
+    private PrimaryOwnerEntity getFirstPoGroupUserBelongsTo(final ExecutionContext executionContext, final String userId) {
         final Set<GroupEntity> poGroupsOfCurrentUser = groupService
             .findByUser(userId)
             .stream()
@@ -220,7 +225,9 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
         if (poGroupsOfCurrentUser.isEmpty()) {
             throw new NoPrimaryOwnerGroupForUserException(userId);
         }
-        return new PrimaryOwnerEntity(poGroupsOfCurrentUser.iterator().next());
+        final GroupEntity group = poGroupsOfCurrentUser.iterator().next();
+        final String poMail = computePrimaryOwnerMailFromGroup(executionContext, group.getId());
+        return new PrimaryOwnerEntity(group, poMail);
     }
 
     @Override
@@ -260,7 +267,10 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
         if (!groupIds.isEmpty()) {
             groupService
                 .findByIds(groupIds)
-                .forEach(groupEntity -> primaryOwnerIdToPrimaryOwnerEntity.put(groupEntity.getId(), new PrimaryOwnerEntity(groupEntity)));
+                .forEach(groupEntity -> {
+                    final String poMail = computePrimaryOwnerMailFromGroup(executionContext, groupEntity.getId());
+                    primaryOwnerIdToPrimaryOwnerEntity.put(groupEntity.getId(), new PrimaryOwnerEntity(groupEntity, poMail));
+                });
         }
         return memberships
             .stream()
@@ -268,5 +278,16 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
             .collect(
                 Collectors.toMap(MemberEntity::getReferenceId, memberEntity -> primaryOwnerIdToPrimaryOwnerEntity.get(memberEntity.getId()))
             );
+    }
+
+    @NotNull
+    private String computePrimaryOwnerMailFromGroup(ExecutionContext executionContext, String groupId) {
+        final Set<MemberEntity> members = membershipService.getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId);
+        return members
+            .stream()
+            .filter(member -> member.getRoles().stream().anyMatch(RoleEntity::isApiPrimaryOwner))
+            .findFirst()
+            .map(MemberEntity::getEmail)
+            .orElse("");
     }
 }
