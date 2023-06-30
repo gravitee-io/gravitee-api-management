@@ -29,7 +29,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { GioClipboardModule, GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MatMomentDateModule } from '@angular/material-moment-adapter';
 
@@ -41,6 +41,7 @@ import { ApiPortalSubscriptionChangeEndDateDialogComponent } from './components/
 import { ApiPortalSubscriptionValidateDialogComponent } from './components/validate-dialog/api-portal-subscription-validate-dialog.component';
 import { ApiKeyValidationComponent } from './components/api-key-validation/api-key-validation.component';
 import { ApiPortalSubscriptionRejectDialogComponent } from './components/reject-dialog/api-portal-subscription-reject-dialog.component';
+import { ApiPortalSubscriptionRenewDialogComponent } from './components/renew-dialog/api-portal-subscription-renew-dialog.component';
 
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
@@ -53,6 +54,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     ApiPortalSubscriptionCreationDialogComponent,
     ApiPortalSubscriptionTransferDialogComponent,
     ApiPortalSubscriptionRejectDialogComponent,
+    ApiPortalSubscriptionRenewDialogComponent,
     ApiPortalSubscriptionValidateDialogComponent,
 
     ApiKeyValidationComponent,
@@ -78,6 +80,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatTableModule,
     MatTooltipModule,
 
+    GioClipboardModule,
     GioIconsModule,
     GioLoaderModule,
     GioPermissionModule,
