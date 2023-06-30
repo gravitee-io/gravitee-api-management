@@ -58,7 +58,7 @@
                         "_count": "desc"
                     },
                     {
-                        "_term": "asc"
+                        "_key": "asc"
                     }
                 ],
                 "size": 100
