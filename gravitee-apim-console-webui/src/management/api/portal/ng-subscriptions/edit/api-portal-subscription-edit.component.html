@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div id="subscription-edit">
+<div id="subscription-edit" class="subscription">
   <div class="subscription__nav">
     <button mat-icon-button aria-label="Go back to your subscriptions" (click)="goBackToSubscriptions()">
       <mat-icon svgIcon="gio:nav-arrow-left"></mat-icon> Go back to your subscriptions
@@ -144,6 +144,62 @@
         </div>
       </ng-container>
     </ng-container>
-    <!--  TODO: Add Shared API Key section -->
+  </mat-card>
+  <!--  TODO: Control permissions -->
+  <mat-card
+    *ngIf="
+      apiKeys?.length > 0 &&
+      (subscription?.status === 'PENDING' || (subscription?.status !== 'REJECTED' && subscription?.plan.securityType === 'API_KEY'))
+    "
+  >
+    <h3>{{ hasSharedApiKeyMode ? 'Shared API Keys' : 'API Keys' }}</h3>
+    <div *ngIf="apiKeys?.length > 0">
+      <div *ngIf="hasSharedApiKeyMode" class="subscription__api-keys__subtitle">
+        This subscription uses a shared API key. You can renew or revoke the shared API key at the application level.
+      </div>
+      <div class="subscription__api-keys__table-wrapper">
+        <gio-table-wrapper
+          [disableSearchInput]="true"
+          [length]="apiKeys.length"
+          [filters]="filters"
+          (filtersChange)="onFiltersChanged($event)"
+          [paginationPageSizeOptions]="[5, 10, 25, 50]"
+        >
+          <table mat-table [dataSource]="apiKeys" class="card__table" attr.aria-label="API Keys Table">
+            <ng-container matColumnDef="key">
+              <th mat-header-cell *matHeaderCellDef>Key</th>
+              <td mat-cell *matCellDef="let apiKey" class="subscription__api-keys__id">
+                <div>{{ apiKey.key }}</div>
+                <gio-clipboard-copy-icon matSuffix [contentToCopy]="apiKey.key"></gio-clipboard-copy-icon>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef>Created at</th>
+              <td mat-cell *matCellDef="let apiKey">
+                {{ apiKey.createdAt }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="endDate">
+              <th mat-header-cell *matHeaderCellDef>Revoked/Expired at</th>
+              <td mat-cell *matCellDef="let apiKey">
+                {{ apiKey.endDate }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let apiKey"></td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </gio-table-wrapper>
+      </div>
+      <div class="subscription__api-keys__footer" *ngIf="!hasSharedApiKeyMode && subscription.status === 'ACCEPTED'">
+        <button mat-stroked-button (click)="renewApiKey()">
+          <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+          Renew
+        </button>
+      </div>
+    </div>
   </mat-card>
 </div>

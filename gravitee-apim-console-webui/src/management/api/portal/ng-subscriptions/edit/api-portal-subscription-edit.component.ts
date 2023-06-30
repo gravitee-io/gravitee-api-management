@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { EMPTY, Subject } from 'rxjs';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
@@ -52,6 +52,13 @@ import {
   ApiPortalSubscriptionRejectDialogComponent,
   ApiPortalSubscriptionRejectDialogResult,
 } from '../components/reject-dialog/api-portal-subscription-reject-dialog.component';
+import {
+  ApiPortalSubscriptionRenewDialogComponent,
+  ApiPortalSubscriptionRenewDialogData,
+  ApiPortalSubscriptionRenewDialogResult,
+} from '../components/renew-dialog/api-portal-subscription-renew-dialog.component';
+import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { SubscriptionApiKeysResponse } from '../../../../../entities/management-api-v2/api-key';
 
 interface SubscriptionDetailVM {
   id: string;
@@ -73,6 +80,14 @@ interface SubscriptionDetailVM {
   metadata?: { [key: string]: string };
 }
 
+interface ApiKeyVM {
+  id: string;
+  key: string;
+  createdAt: string;
+  endDate: string;
+  isValid: boolean;
+}
+
 @Component({
   selector: 'api-portal-subscription-detail',
   template: require('./api-portal-subscription-edit.component.html'),
@@ -81,9 +96,14 @@ interface SubscriptionDetailVM {
 export class ApiPortalSubscriptionEditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   subscription: SubscriptionDetailVM;
+  apiKeys: ApiKeyVM[];
+  apiKeysTotalCount: number;
+  filters: GioTableWrapperFilters;
+  displayedColumns: string[];
+  hasSharedApiKeyMode: boolean;
   private apiId: string;
-  private hasSharedApiKeyMode: boolean;
   private canUseCustomApiKey: boolean;
+
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -98,6 +118,10 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
   ngOnInit(): void {
     this.apiId = this.ajsStateParams.apiId;
     this.canUseCustomApiKey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
+    this.displayedColumns = ['key', 'createdAt', 'endDate', 'actions'];
+    this.apiKeys = [];
+    this.apiKeysTotalCount = 0;
+    this.hasSharedApiKeyMode = false;
 
     this.apiSubscriptionService
       .getById(this.apiId, this.ajsStateParams.subscriptionId, ['plan', 'application', 'subscribedBy'])
@@ -135,15 +159,18 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
               metadata: subscription.metadata,
             };
 
-            if (this.subscription.plan.securityType === 'API_KEY') {
-              return this.applicationService.getById(subscription.application.id);
+            if (this.subscription.plan.securityType === 'API_KEY' && this.subscription.status !== 'REJECTED') {
+              return combineLatest([this.applicationService.getById(subscription.application.id), this.getApiKeysList(1, 10)]);
             }
           }
-          this.hasSharedApiKeyMode = false;
           return EMPTY;
         }),
-        tap((application) => {
-          this.hasSharedApiKeyMode = this.subscription.plan.securityType === 'API_KEY' && application.api_key_mode === ApiKeyMode.SHARED;
+        catchError((err) => {
+          this.snackBarService.error(err.message); // If user is forbidden access to application getById
+          return EMPTY;
+        }),
+        tap(([application, _]) => {
+          this.hasSharedApiKeyMode = application.api_key_mode === ApiKeyMode.SHARED;
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -155,6 +182,7 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
       .open<ApiPortalSubscriptionValidateDialogComponent, ApiPortalSubscriptionAcceptDialogData, ApiPortalSubscriptionAcceptDialogResult>(
         ApiPortalSubscriptionValidateDialogComponent,
         {
+          width: GIO_DIALOG_WIDTH.MEDIUM,
           data: {
             apiId: this.apiId,
             applicationId: this.subscription.application.id,
@@ -378,6 +406,44 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
       );
   }
 
+  renewApiKey() {
+    this.matDialog
+      .open<ApiPortalSubscriptionRenewDialogComponent, ApiPortalSubscriptionRenewDialogData, ApiPortalSubscriptionRenewDialogResult>(
+        ApiPortalSubscriptionRenewDialogComponent,
+        {
+          width: GIO_DIALOG_WIDTH.MEDIUM,
+          data: {
+            apiId: this.apiId,
+            applicationId: this.subscription.application.id,
+            canUseCustomApiKey: this.canUseCustomApiKey,
+          },
+          role: 'alertdialog',
+          id: 'renewApiKeysDialog',
+        },
+      )
+      .afterClosed()
+      .pipe(
+        switchMap((result) =>
+          result ? this.apiSubscriptionService.renewApiKey(this.apiId, this.subscription.id, result.customApiKey) : EMPTY,
+        ),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`API Key renewed`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
+  }
+
+  onFiltersChanged($event: GioTableWrapperFilters) {
+    // Only refresh data if not all data is shown or requested page size is less than total count
+    if (this.apiKeys.length < this.apiKeysTotalCount || $event.pagination.size <= this.apiKeysTotalCount) {
+      this.getApiKeysList($event.pagination.index, $event.pagination.size).subscribe();
+    }
+  }
+
   goBackToSubscriptions() {
     this.ajsState.go('management.apis.ng.subscriptions');
   }
@@ -388,5 +454,21 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
 
   private deserializeDate(dateAsString: string): Date {
     return dateAsString === '-' ? undefined : new Date(dateAsString);
+  }
+
+  private getApiKeysList(page: number, perPage: number): Observable<SubscriptionApiKeysResponse> {
+    return this.apiSubscriptionService.listApiKeys(this.apiId, this.subscription.id, page, perPage).pipe(
+      tap((response) => {
+        this.apiKeysTotalCount = response.pagination?.totalCount;
+        this.apiKeys = response.data.map((apiKey) => ({
+          id: apiKey.id,
+          key: apiKey.key,
+          createdAt: this.serializeDate(apiKey.createdAt),
+          endDate: this.serializeDate(apiKey.revoked ? apiKey.revokedAt : apiKey.expireAt),
+          isValid: !apiKey.revoked && !apiKey.expired,
+        }));
+      }),
+      takeUntil(this.unsubscribe$),
+    );
   }
 }

@@ -8,6 +8,10 @@
 }
 
 .subscription {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
   &__nav {
     padding-bottom: 36px;
   }
@@ -24,6 +28,22 @@
     display: flex;
     padding-top: 56px;
     gap: 8px;
+  }
+  &__api-keys {
+    &__subtitle {
+      padding-bottom: 24px;
+    }
+    &__id {
+      display: flex;
+      height: inherit;
+      align-items: center;
+      gap: 8px;
+    }
+    &__footer {
+      display: flex;
+      padding-top: 56px;
+      gap: 8px;
+    }
   }
 }
 

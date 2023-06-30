@@ -1,0 +1,17 @@
+.renew {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    &__custom-api-key {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+}
+
+.actions {
+  justify-content: flex-end;
+}

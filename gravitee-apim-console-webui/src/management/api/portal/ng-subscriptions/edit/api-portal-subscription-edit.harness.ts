@@ -15,6 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
   static hostSelector = '#subscription-edit';
@@ -23,7 +24,7 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
   protected getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Go back to your subscriptions"]' }));
   protected getFooter = this.locatorFor('.subscription__footer');
   protected getBtnByText = (text: string) => this.locatorFor(MatButtonHarness.with({ text }))();
-
+  protected getTable = this.locatorFor(MatTableHarness);
   public async goBackToSubscriptionsList(): Promise<void> {
     return this.getBackButton().then((btn) => btn.click());
   }
@@ -148,6 +149,21 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
 
   public async openRejectDialog(): Promise<void> {
     return this.getBtnByText('Reject subscription').then((btn) => btn.click());
+  }
+
+  public async renewApiKeyBtnIsVisible(): Promise<boolean> {
+    return this.btnIsVisible('Renew');
+  }
+
+  public async openRenewApiKeyDialog(): Promise<void> {
+    return this.getBtnByText('Renew').then((btn) => btn.click());
+  }
+
+  public async getApiKeyByRowIndex(index: number): Promise<string> {
+    return this.getTable()
+      .then((table) => table.getRows())
+      .then((rows) => rows[index].getCellTextByIndex({ columnName: 'key' }))
+      .then((txt) => txt[0]);
   }
 
   private async btnIsVisible(text: string): Promise<boolean> {
