@@ -56,9 +56,9 @@ public class PrimaryOwnerEntity {
         this.type = "USER";
     }
 
-    public PrimaryOwnerEntity(GroupEntity group) {
+    public PrimaryOwnerEntity(GroupEntity group, String mail) {
         this.id = group.getId();
-        this.email = null;
+        this.email = mail;
         this.displayName = group.getName();
         this.type = "GROUP";
     }

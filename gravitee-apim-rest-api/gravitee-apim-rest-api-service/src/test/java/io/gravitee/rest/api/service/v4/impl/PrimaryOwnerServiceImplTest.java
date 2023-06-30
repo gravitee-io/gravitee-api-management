@@ -130,6 +130,43 @@ public class PrimaryOwnerServiceImplTest {
     }
 
     @Test
+    public void getPrimaryOwner_should_return_group_primary_owner_with_email_of_po_user() {
+        final MembershipEntity groupMembership = primaryOwnerGroupMembership();
+        groupMembership.setMemberId("member-id");
+        when(membershipService.getPrimaryOwner(EXECUTION_CONTEXT.getOrganizationId(), MembershipReferenceType.API, "api"))
+            .thenReturn(groupMembership);
+
+        MemberEntity member = new MemberEntity();
+        member.setId("some-member");
+        member.setEmail("some-member@mail.com");
+        member.setRoles(List.of());
+
+        MemberEntity memberOther = new MemberEntity();
+        memberOther.setId("other-member");
+        memberOther.setEmail("other-member@mail.com");
+        memberOther.setRoles(List.of());
+
+        MemberEntity poMember = new MemberEntity();
+        poMember.setId("po-member");
+        poMember.setEmail("po-member@mail.com");
+        final RoleEntity role = new RoleEntity();
+        role.setScope(RoleScope.API);
+        role.setName(SystemRole.PRIMARY_OWNER.name());
+        poMember.setRoles(List.of(role));
+
+        when(membershipService.getMembersByReference(EXECUTION_CONTEXT, MembershipReferenceType.GROUP, groupMembership.getMemberId()))
+            .thenReturn(Set.of(member, memberOther, poMember));
+
+        final GroupEntity poGroup = primaryOwnerGroup();
+        when(groupService.findById(EXECUTION_CONTEXT, groupMembership.getMemberId())).thenReturn(poGroup);
+
+        final PrimaryOwnerEntity result = primaryOwnerService.getPrimaryOwner(EXECUTION_CONTEXT, "api");
+        assertThat(result.getId()).isEqualTo(poGroup.getId());
+        assertThat(result.getType()).isEqualTo("GROUP");
+        assertThat(result.getEmail()).isEqualTo("po-member@mail.com");
+    }
+
+    @Test
     public void shouldReturnPrimaryOwnerEmailFromUser() {
         final String apiId = "some-api";
 
