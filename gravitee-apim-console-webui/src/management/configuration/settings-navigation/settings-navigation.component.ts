@@ -144,12 +144,6 @@ export class SettingsNavigationComponent implements OnInit {
             baseRoute: 'management.settings.dictionaries',
             permissions: ['environment-dictionary-r'],
           },
-          {
-            displayName: 'Tenants',
-            targetRoute: 'management.settings.tenants',
-            baseRoute: 'management.settings.tenants',
-            permissions: ['environment-tenant-r', 'environment-tenant-c', 'environment-tenant-u', 'environment-tenant-d'],
-          },
         ],
       },
       {

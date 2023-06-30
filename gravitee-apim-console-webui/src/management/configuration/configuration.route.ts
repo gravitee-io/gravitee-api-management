@@ -689,26 +689,6 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
       },
     })
-    .state('management.settings.tenants', {
-      url: '/tenants',
-      component: 'moved',
-      resolve: {
-        destinationName: () => 'Organization > Tenants',
-        permissions: () => ['organization-tenant-r'],
-        goTo: () => 'organization.tenants',
-        destinationIcon: () => 'settings_applications',
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-tenants',
-        },
-        perms: {
-          only: ['environment-tenant-r'],
-          unauthorizedFallbackTo: 'management.settings.customUserFields',
-        },
-      },
-    })
     // User management
     .state('management.settings.customUserFields', {
       url: '/custom-user-fields',
