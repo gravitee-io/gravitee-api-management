@@ -104,6 +104,9 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
         if (roundedTo != null) {
             data.put("roundedTo", roundedTo);
         }
+        if (info.getVersion().canUseDateHistogramFixedInterval()) {
+            data.put("useFixedInterval", true);
+        }
 
         final String request = this.freeMarkerComponent.generateFromTemplate(templateName, data);
 

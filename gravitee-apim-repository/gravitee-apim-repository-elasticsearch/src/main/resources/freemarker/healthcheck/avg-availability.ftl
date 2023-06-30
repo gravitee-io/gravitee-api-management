@@ -22,7 +22,7 @@
             "_count" : "desc"
           },
           {
-            "_term" : "asc"
+            "_key" : "asc"
           }
         ]
       },
@@ -64,7 +64,7 @@
                     "_count" : "desc"
                   },
                   {
-                    "_term" : "asc"
+                    "_key" : "asc"
                   }
                 ]
               }
