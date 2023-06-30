@@ -64,6 +64,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApiService_GetGroupsWithMembersTest {
 
     private static final String ENVIRONMENT = "DEFAULT";
+    private static final String PO_MAIL = "primary-owner@email.com";
 
     @InjectMocks
     private final ApiServiceImpl apiService = new ApiServiceImpl();
@@ -125,7 +126,7 @@ public class ApiService_GetGroupsWithMembersTest {
         group.setId(groupId);
         when(groupService.findById(eq(GraviteeContext.getExecutionContext()), eq(groupId))).thenReturn(group);
 
-        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(group));
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(group, PO_MAIL));
 
         RoleEntity groupMemberApiRole = new RoleEntity();
         groupMemberApiRole.setName(SystemRole.PRIMARY_OWNER.name());
@@ -239,7 +240,7 @@ public class ApiService_GetGroupsWithMembersTest {
 
         GroupEntity apiPrimaryOwner = new GroupEntity();
         apiPrimaryOwner.setId(apiPrimaryOwnerGroupId);
-        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner));
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner, PO_MAIL));
 
         Api api = new Api();
         api.setId(apiId);
@@ -300,7 +301,7 @@ public class ApiService_GetGroupsWithMembersTest {
 
         GroupEntity apiPrimaryOwner = new GroupEntity();
         apiPrimaryOwner.setId(apiPrimaryOwnerGroupId);
-        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner));
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner, PO_MAIL));
 
         Api api = new Api();
         api.setId(apiId);
@@ -366,7 +367,7 @@ public class ApiService_GetGroupsWithMembersTest {
 
         GroupEntity apiPrimaryOwner = new GroupEntity();
         apiPrimaryOwner.setId(apiPrimaryOwnerGroupId);
-        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner));
+        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(new PrimaryOwnerEntity(apiPrimaryOwner, PO_MAIL));
 
         GroupEntity group1 = new GroupEntity();
         group1.setId(groupId1);
