@@ -27,6 +27,7 @@ import {
   VerifySubscription,
 } from '../entities/management-api-v2';
 import { fakeApi } from '../entities/api/Api.fixture';
+import { fakeApiKey } from '../entities/management-api-v2/api-key';
 
 describe('ApiSubscriptionV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -314,6 +315,47 @@ describe('ApiSubscriptionV2Service', () => {
       expect(req.request.body).toEqual({ reason: reason });
 
       req.flush(subscription);
+    });
+  });
+
+  describe('list api keys', () => {
+    const API_KEY_ID = 'my-api-key';
+    const SUBSCRIPTION_ID = 'my-subscription-id';
+    it('should call API', (done) => {
+      const apiKey = fakeApiKey({ id: API_KEY_ID });
+      const apiKeyResponse = { data: [apiKey] };
+      apiSubscriptionV2Service.listApiKeys(API_ID, SUBSCRIPTION_ID).subscribe((response) => {
+        expect(response).toEqual(apiKeyResponse);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/api-keys?page=1&perPage=10`,
+          method: 'GET',
+        })
+        .flush(apiKeyResponse);
+    });
+  });
+
+  describe('renew api key', () => {
+    const API_KEY_ID = 'my-api-key';
+    const SUBSCRIPTION_ID = 'my-subscription-id';
+    it('should call API', (done) => {
+      const apiKey = fakeApiKey({ id: API_KEY_ID });
+      const customApiKey = 'my-custom-api-key';
+      apiSubscriptionV2Service.renewApiKey(API_ID, SUBSCRIPTION_ID, customApiKey).subscribe((response) => {
+        expect(response).toEqual(apiKey);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/api-keys/_renew`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({ customApiKey: customApiKey });
+
+      req.flush(apiKey);
     });
   });
 });

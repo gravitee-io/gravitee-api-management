@@ -13,13 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './acceptSubscription';
-export * from './baseSubscription';
-export * from './createSubscription';
-export * from './subscription';
-export * from './subscription.fixture';
-export * from './subscriptionConsumerConfiguration';
-export * from './subscriptionConsumerStatus';
-export * from './subscriptionStatus';
-export * from './updateSubscription';
-export * from './verifySubscription';
+export * from './apiKey';
+export * from './apiKey.fixture';
+export * from './subscriptionApiKeysResponse';
