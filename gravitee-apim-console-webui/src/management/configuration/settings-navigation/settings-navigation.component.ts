@@ -145,12 +145,6 @@ export class SettingsNavigationComponent implements OnInit {
             permissions: ['environment-dictionary-r'],
           },
           {
-            displayName: 'Sharding Tags',
-            targetRoute: 'management.settings.tags',
-            baseRoute: 'management.settings.tags',
-            permissions: ['environment-tag-r', 'environment-tag-c', 'environment-tag-u', 'environment-tag-d'],
-          },
-          {
             displayName: 'Tenants',
             targetRoute: 'management.settings.tenants',
             baseRoute: 'management.settings.tenants',

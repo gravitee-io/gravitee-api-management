@@ -655,7 +655,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-dictionary-r'],
-          unauthorizedFallbackTo: 'management.settings.tags',
+          unauthorizedFallbackTo: 'organization.tags',
         },
       },
     })
@@ -686,26 +686,6 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-dictionary-c', 'environment-dictionary-r', 'environment-dictionary-u', 'environment-dictionary-d'],
-        },
-      },
-    })
-    .state('management.settings.tags', {
-      url: '/tags',
-      component: 'moved',
-      resolve: {
-        destinationName: () => 'Organization > Tags',
-        permissions: () => ['organization-tag-r'],
-        goTo: () => 'organization.tags',
-        destinationIcon: () => 'settings_applications',
-      },
-      data: {
-        menu: null,
-        docs: {
-          page: 'management-configuration-sharding-tags',
-        },
-        perms: {
-          only: ['environment-tag-r'],
-          unauthorizedFallbackTo: 'management.settings.tenants',
         },
       },
     })
