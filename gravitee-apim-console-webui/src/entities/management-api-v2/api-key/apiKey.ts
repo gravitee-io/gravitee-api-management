@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './acceptSubscription';
-export * from './baseSubscription';
-export * from './createSubscription';
-export * from './subscription';
-export * from './subscription.fixture';
-export * from './subscriptionConsumerConfiguration';
-export * from './subscriptionConsumerStatus';
-export * from './subscriptionStatus';
-export * from './updateSubscription';
-export * from './verifySubscription';
+import { BaseApplication } from '../application';
+import { BaseSubscription } from '../subscription';
+
+export interface ApiKey {
+  id?: string;
+  key?: string;
+  application?: BaseApplication;
+  subscriptions?: BaseSubscription[];
+  revoked?: boolean;
+  paused?: boolean;
+  expired?: boolean;
+  daysToExpirationOnLastNotification?: number;
+  expireAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  revokedAt?: Date;
+}

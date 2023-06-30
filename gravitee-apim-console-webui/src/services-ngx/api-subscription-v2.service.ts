@@ -27,6 +27,7 @@ import {
   VerifySubscription,
   VerifySubscriptionResponse,
 } from '../entities/management-api-v2';
+import { ApiKey, SubscriptionApiKeysResponse } from '../entities/management-api-v2/api-key';
 
 @Injectable({
   providedIn: 'root',
@@ -101,6 +102,22 @@ export class ApiSubscriptionV2Service {
   reject(subscriptionId: string, apiId: string, reason: string): Observable<Subscription> {
     return this.http.post<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/_reject`, {
       reason,
+    });
+  }
+
+  /**
+   * API KEY
+   */
+  listApiKeys(apiId: string, subscriptionId: string, page = 1, perPage = 10): Observable<SubscriptionApiKeysResponse> {
+    return this.http.get<SubscriptionApiKeysResponse>(
+      `${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/api-keys`,
+      { params: { page, perPage } },
+    );
+  }
+
+  renewApiKey(apiId: string, subscriptionId: string, customApiKey: string): Observable<ApiKey> {
+    return this.http.post<ApiKey>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/api-keys/_renew`, {
+      customApiKey,
     });
   }
 }

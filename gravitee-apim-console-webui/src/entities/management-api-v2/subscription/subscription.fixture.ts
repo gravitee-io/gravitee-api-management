@@ -16,10 +16,11 @@
 import { isFunction } from 'lodash';
 
 import { Subscription } from './subscription';
+import { BaseSubscription } from './baseSubscription';
 
 export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: Subscription) => Subscription)): Subscription {
   const base: Subscription = {
-    id: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
+    ...fakeBaseSubscription(),
     api: {
       id: 'bee23b1e-34b1-4551-a23b-1e34b165516a',
       name: 'My API',
@@ -71,6 +72,23 @@ export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: S
     closedAt: undefined,
     pausedAt: undefined,
     consumerPausedAt: undefined,
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeBaseSubscription(
+  modifier?: Partial<BaseSubscription> | ((baseApi: BaseSubscription) => BaseSubscription),
+): BaseSubscription {
+  const base = {
+    id: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
   };
 
   if (isFunction(modifier)) {
