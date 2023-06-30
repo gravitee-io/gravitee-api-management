@@ -50,6 +50,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class GroupValidationServiceImplTest {
 
+    public static final String PO_MAIL = "primary-owner@mail.fr";
+
     @Mock
     private GroupService groupService;
 
@@ -113,7 +115,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             null,
             groups,
-            new PrimaryOwnerEntity(currentPrimaryOwner)
+            new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL)
         );
 
         // Then
@@ -328,7 +330,7 @@ public class GroupValidationServiceImplTest {
             executionContext,
             apiId,
             groups,
-            new PrimaryOwnerEntity(currentPrimaryOwner)
+            new PrimaryOwnerEntity(currentPrimaryOwner, PO_MAIL)
         );
 
         // Then
