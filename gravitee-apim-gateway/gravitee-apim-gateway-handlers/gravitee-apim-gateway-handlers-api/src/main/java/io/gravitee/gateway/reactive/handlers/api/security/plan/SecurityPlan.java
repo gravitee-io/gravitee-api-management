@@ -80,16 +80,11 @@ public class SecurityPlan {
     public Single<Boolean> canExecute(HttpExecutionContext ctx) {
         return policy
             .extractSecurityToken(ctx)
-            .doOnSuccess(securityToken -> ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN, securityToken))
-            .flatMap(securityToken ->
-                matchSelectionRule(ctx)
-                    .flatMap(matches -> {
-                        if (!matches) {
-                            return FALSE;
-                        }
-                        return validateSubscription(ctx, securityToken);
-                    })
-            )
+            .flatMap(securityToken -> {
+                final var canExec = isApplicableWithValidSubscription(ctx, securityToken);
+                ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN, securityToken);
+                return canExec;
+            })
             .defaultIfEmpty(false);
     }
 
@@ -132,41 +127,42 @@ public class SecurityPlan {
         return selectionRule;
     }
 
-    private Maybe<Boolean> matchSelectionRule(GenericExecutionContext ctx) {
+    private Maybe<Boolean> isApplicableWithValidSubscription(GenericExecutionContext ctx, SecurityToken securityToken) {
         if (selectionRule == null || selectionRule.isEmpty()) {
-            return TRUE;
+            return Maybe.just(validateSubscription(ctx, securityToken));
         }
 
-        return ctx.getTemplateEngine().eval(selectionRule, Boolean.class);
+        return ctx
+            .getTemplateEngine()
+            .eval(selectionRule, Boolean.class)
+            .map(matches -> matches && validateSubscription(ctx, securityToken));
     }
 
-    private Maybe<Boolean> validateSubscription(GenericExecutionContext ctx, SecurityToken securityToken) {
+    private boolean validateSubscription(GenericExecutionContext ctx, SecurityToken securityToken) {
         if (!policy.requireSubscription()) {
-            return TRUE;
+            return true;
         }
 
-        return Maybe.defer(() -> {
-            try {
-                SubscriptionService subscriptionService = ctx.getComponent(SubscriptionService.class);
-                String api = ctx.getAttribute(ATTR_API);
+        try {
+            SubscriptionService subscriptionService = ctx.getComponent(SubscriptionService.class);
+            String api = ctx.getAttribute(ATTR_API);
 
-                Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(api, securityToken, planId);
+            Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(api, securityToken, planId);
 
-                if (subscriptionOpt.isPresent()) {
-                    Subscription subscription = subscriptionOpt.get();
+            if (subscriptionOpt.isPresent()) {
+                Subscription subscription = subscriptionOpt.get();
 
-                    if (planId.equals(subscription.getPlan()) && subscription.isTimeValid(ctx.request().timestamp())) {
-                        ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
-                        ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
-                        ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
-                        return TRUE;
-                    }
+                if (planId.equals(subscription.getPlan()) && subscription.isTimeValid(ctx.request().timestamp())) {
+                    ctx.setAttribute(ATTR_APPLICATION, subscription.getApplication());
+                    ctx.setAttribute(ATTR_SUBSCRIPTION_ID, subscription.getId());
+                    ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
+                    return true;
                 }
-                return FALSE;
-            } catch (Exception t) {
-                log.warn("An error occurred during subscription validation", t);
-                return FALSE;
             }
-        });
+            return false;
+        } catch (Exception t) {
+            log.warn("An error occurred during subscription validation", t);
+            return false;
+        }
     }
 }

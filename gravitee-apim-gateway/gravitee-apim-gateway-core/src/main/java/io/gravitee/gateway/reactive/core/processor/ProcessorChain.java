@@ -59,13 +59,11 @@ public class ProcessorChain implements Hookable<ProcessorHook> {
     }
 
     public Completable execute(final MutableExecutionContext ctx, final ExecutionPhase phase) {
-        return processors
-            .doOnSubscribe(subscription -> log.debug("Executing processor chain {}", id))
-            .concatMapCompletable(processor -> executeNext(ctx, processor, phase));
+        return processors.concatMapCompletable(processor -> executeNext(ctx, processor, phase));
     }
 
     private Completable executeNext(final MutableExecutionContext ctx, final Processor processor, final ExecutionPhase phase) {
-        log.debug("Executing processor {}", processor.getId());
+        log.debug("Executing processor {} in processor chain {}", processor.getId(), id);
         return HookHelper.hook(() -> processor.execute(ctx), processor.getId(), processorHooks, ctx, phase);
     }
 
