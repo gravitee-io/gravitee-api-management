@@ -92,13 +92,11 @@ public class PolicyChain implements Hookable<Hook> {
      * The {@link Completable} may complete in error in case of any error occurred while executing the policies.
      */
     public Completable execute(ExecutionContext ctx) {
-        return policies
-            .doOnSubscribe(subscription -> log.debug("Executing chain {}", id))
-            .concatMapCompletable(policy -> executePolicy(ctx, policy));
+        return policies.concatMapCompletable(policy -> executePolicy(ctx, policy));
     }
 
     private Completable executePolicy(final ExecutionContext ctx, final Policy policy) {
-        log.debug("Executing policy {} on phase {}", policy.id(), phase);
+        log.debug("Executing policy {} on phase {} in policy chain {}", policy.id(), phase, id);
 
         switch (phase) {
             case REQUEST:
