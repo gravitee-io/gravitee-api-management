@@ -6,7 +6,7 @@ First, install `unittest` helm plugin
 helm plugin install https://github.com/quintush/helm-unittest
 ```
 
-Inside `apim3` directory, run :
+Inside `helm` directory, run :
 
 ```shell
 helm unittest -3 -f 'tests/**/*.yaml' .
