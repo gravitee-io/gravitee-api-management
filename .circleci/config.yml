@@ -1007,7 +1007,7 @@ jobs:
                       sed -i "s#\"version\": \".*\"#\"version\": \"${MVN_PRJ_VERSION}\"#" gravitee-apim-portal-webui/build.json
 
                       # Helm chart
-                      sed "s/version.*/version: ${GRAVITEEIO_VERSION}/" -i helm/Chart.yaml
+                      sed "0,/version.*/s/version.*/version: ${MVN_PRJ_VERSION}/" -i helm/Chart.yaml
 
                       git add --update
                       git commit -m "${MVN_PRJ_VERSION}"
