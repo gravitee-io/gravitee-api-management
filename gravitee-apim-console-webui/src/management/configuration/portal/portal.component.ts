@@ -44,7 +44,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.$onInit = () => {
-      this.isReadonlyPage = UserService.isUserHasPermissions(['environment-settings-r', 'environment-settings-u']);
+      this.isReadonlyPage = !UserService.isUserHasPermissions(['environment-settings-u']);
       this.settings.api.labelsDictionary = this.settings.api.labelsDictionary || [];
       this.settings.cors.allowOrigin = this.settings.cors.allowOrigin || [];
       this.settings.cors.allowHeaders = this.settings.cors.allowHeaders || [];
