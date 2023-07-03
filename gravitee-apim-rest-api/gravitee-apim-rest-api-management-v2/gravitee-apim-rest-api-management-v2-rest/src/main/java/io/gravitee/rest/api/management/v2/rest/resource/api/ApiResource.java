@@ -563,8 +563,9 @@ public class ApiResource extends AbstractResource {
     }
 
     private Response apiResponse(GenericApiEntity apiEntity) {
+        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
         return Response
-            .ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo))
+            .ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo, isSynchronized))
             .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
             .lastModified(apiEntity.getUpdatedAt())
             .build();

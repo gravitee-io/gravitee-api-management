@@ -24,7 +24,9 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
+import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -139,7 +141,11 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         var data = page.getData();
         assertNotNull(data);
         assertEquals(1, data.size());
-        assertEquals("api-id", data.get(0).getApiV4().getId());
+        ApiV4 api1 = data.get(0).getApiV4();
+        assertEquals("api-id", api1.getId());
+
+        // Check no expands fields are set
+        assertNull(api1.getDeploymentState());
 
         var apiQueryBuilder = apiQueryBuilderCaptor.getValue();
         var apiQuery = apiQueryBuilder.build();
@@ -400,5 +406,43 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         assertNotNull(apiQuery.getSort());
         assertEquals("paths", apiQuery.getSort().getField());
         assertEquals(true, apiQuery.getSort().isAscOrder());
+    }
+
+    @Test
+    public void should_search_with_all_expands_params() {
+        var apiSearchQuery = new ApiSearchQuery();
+        apiSearchQuery.setQuery("api-name");
+
+        var apiEntity = new ApiEntity();
+        apiEntity.setId("api-id");
+        apiEntity.setState(Lifecycle.State.INITIALIZED);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+
+        ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor = ArgumentCaptor.forClass(QueryBuilder.class);
+
+        when(
+            apiSearchServiceV4.search(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                apiQueryBuilderCaptor.capture(),
+                eq(new PageableImpl(1, 10))
+            )
+        )
+            .thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
+
+        final Response response = rootTarget().queryParam("expands", "deploymentState").request().post(Entity.json(apiSearchQuery));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        var page = response.readEntity(ApisResponse.class);
+        var data = page.getData();
+        assertNotNull(data);
+        assertEquals(1, data.size());
+
+        ApiV4 api1 = data.get(0).getApiV4();
+        assertEquals("api-id", api1.getId());
+        // Check expands fields
+        assertEquals(GenericApi.DeploymentStateEnum.DEPLOYED, api1.getDeploymentState());
     }
 }

@@ -47,6 +47,7 @@ paths:
             parameters:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/apiExpandsParam"
             tags:
                 - APIs
             summary: List APIs
@@ -123,6 +124,7 @@ paths:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
                 - $ref: "#/components/parameters/apiSortByParam"
+                - $ref: "#/components/parameters/apiExpandsParam"
             tags:
                 - APIs
             summary: Search APIs
@@ -1832,7 +1834,7 @@ components:
                               type: string
                       state:
                           type: string
-                          description: The status of the API regarding the gateway.
+                          description: The state of the API regarding the gateway(s).
                           example: STARTED
                           enum:
                               - CLOSED
@@ -1840,6 +1842,13 @@ components:
                               - STARTED
                               - STOPPED
                               - STOPPING
+                      deploymentState:
+                            type: string
+                            description: The deployment state of the API regarding the gateway(s).
+                            example: DEPLOYED
+                            enum:
+                                - NEED_REDEPLOY
+                                - DEPLOYED
                       visibility:
                           $ref: "#/components/schemas/Visibility"
                       labels:
@@ -5140,6 +5149,19 @@ components:
             schema:
                 type: integer
                 default: 10
+        ###############################
+        # Other Query Parameters      #
+        ###############################
+        apiExpandsParam:
+          name: expands
+          in: query
+          description: Expansion of data to return in APIs.
+          schema:
+              type: array
+              items:
+                  type: string
+                  enum:
+                      - deploymentState
     responses:
         EnvironmentsResponse:
             description: Page of environments

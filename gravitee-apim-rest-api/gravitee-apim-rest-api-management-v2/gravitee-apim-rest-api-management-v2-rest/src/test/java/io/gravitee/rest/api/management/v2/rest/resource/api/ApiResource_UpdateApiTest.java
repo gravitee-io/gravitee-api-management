@@ -92,12 +92,14 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
         when(apiServiceV4.update(eq(GraviteeContext.getExecutionContext()), eq(API), any(UpdateApiEntity.class), eq(false), eq(USER_NAME)))
             .thenReturn(apiEntity);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(true);
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV4));
         assertEquals(OK_200, response.getStatus());
 
         final ApiV4 apiV4 = response.readEntity(ApiV4.class);
         assertEquals(API, apiV4.getId());
+        assertEquals(GenericApi.DeploymentStateEnum.DEPLOYED, apiV4.getDeploymentState());
 
         verify(apiServiceV4)
             .update(
@@ -143,12 +145,14 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
             )
         )
             .thenReturn(apiEntity);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(false);
 
         final Response response = rootTarget(API).request().put(Entity.json(updateApiV2));
         assertEquals(OK_200, response.getStatus());
 
         final ApiV2 apiV2 = response.readEntity(ApiV2.class);
         assertEquals(API, apiV2.getId());
+        assertEquals(GenericApi.DeploymentStateEnum.NEED_REDEPLOY, apiV2.getDeploymentState());
 
         verify(apiService)
             .update(

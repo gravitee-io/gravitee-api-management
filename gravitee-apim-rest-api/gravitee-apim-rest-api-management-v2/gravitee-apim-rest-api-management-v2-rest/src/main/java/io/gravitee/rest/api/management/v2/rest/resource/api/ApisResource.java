@@ -38,6 +38,7 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import io.gravitee.rest.api.service.v4.ApiStateService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -47,6 +48,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -54,6 +56,8 @@ import java.util.Objects;
  */
 @Path("/environments/{envId}/apis")
 public class ApisResource extends AbstractResource {
+
+    private static final String EXPAND_DEPLOYMENT_STATE = "deploymentState";
 
     @Context
     private ResourceContext resourceContext;
@@ -64,6 +68,9 @@ public class ApisResource extends AbstractResource {
     @Inject
     private ApiImportExportService apiImportExportService;
 
+    @Inject
+    private ApiStateService apiStateService;
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -72,13 +79,18 @@ public class ApisResource extends AbstractResource {
         // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
         NewApiEntity newApiEntity = ApiMapper.INSTANCE.map(api);
         ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
-        return Response.created(this.getLocationHeader(newApi.getId())).entity(ApiMapper.INSTANCE.mapToV4(newApi, uriInfo)).build();
+
+        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), newApi);
+        return Response
+            .created(this.getLocationHeader(newApi.getId()))
+            .entity(ApiMapper.INSTANCE.map(newApi, uriInfo, isSynchronized))
+            .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
-    public ApisResponse getApis(@BeanParam @Valid PaginationParam paginationParam) {
+    public ApisResponse getApis(@BeanParam @Valid PaginationParam paginationParam, @QueryParam("expands") Set<String> expands) {
         Page<GenericApiEntity> apis = apiServiceV4.findAll(
             GraviteeContext.getExecutionContext(),
             getAuthenticatedUser(),
@@ -87,7 +99,18 @@ public class ApisResource extends AbstractResource {
         );
 
         return new ApisResponse()
-            .data(ApiMapper.INSTANCE.map(apis.getContent(), uriInfo))
+            .data(
+                ApiMapper.INSTANCE.map(
+                    apis.getContent(),
+                    uriInfo,
+                    api -> {
+                        if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
+                            return null;
+                        }
+                        return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
+                    }
+                )
+            )
             .pagination(
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )
@@ -106,9 +129,11 @@ public class ApisResource extends AbstractResource {
             getAuthenticatedUser()
         );
 
+        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), fromExportedApi);
+
         return Response
             .created(this.getLocationHeader(fromExportedApi.getId()))
-            .entity(ApiMapper.INSTANCE.map(fromExportedApi, uriInfo))
+            .entity(ApiMapper.INSTANCE.map(fromExportedApi, uriInfo, isSynchronized))
             .build();
     }
 
@@ -120,7 +145,8 @@ public class ApisResource extends AbstractResource {
     public ApisResponse searchApis(
         @BeanParam @Valid PaginationParam paginationParam,
         @BeanParam ApiSortByParam apiSortByParam,
-        final @Valid @NotNull ApiSearchQuery apiSearchQuery
+        final @Valid @NotNull ApiSearchQuery apiSearchQuery,
+        @QueryParam("expands") Set<String> expands
     ) {
         apiSortByParam.validate();
 
@@ -154,7 +180,18 @@ public class ApisResource extends AbstractResource {
         );
 
         return new ApisResponse()
-            .data(ApiMapper.INSTANCE.map(apis.getContent(), uriInfo))
+            .data(
+                ApiMapper.INSTANCE.map(
+                    apis.getContent(),
+                    uriInfo,
+                    api -> {
+                        if (expands == null || expands.isEmpty() || !expands.contains(EXPAND_DEPLOYMENT_STATE)) {
+                            return null;
+                        }
+                        return apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), api);
+                    }
+                )
+            )
             .pagination(
                 computePaginationInfo(Math.toIntExact(apis.getTotalElements()), Math.toIntExact(apis.getPageElements()), paginationParam)
             )
