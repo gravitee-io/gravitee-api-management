@@ -98,8 +98,18 @@ public class EntrypointConnectorPluginServiceImplTest {
     }
 
     @Test
-    public void shouldGetDefaultSubscriptionSchemaIfNoGvSchemaForm() throws IOException {
+    public void shouldGetDefaultSubscriptionSchemaWhenIOException() throws IOException {
         when(pluginManager.getSchema(CONNECTOR_ID, "subscriptions/display-gv-schema-form", true)).thenThrow(new IOException());
+        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
+
+        String result = cut.getSubscriptionSchema(CONNECTOR_ID, SchemaDisplayFormat.GV_SCHEMA_FORM);
+
+        assertThat(result).isEqualTo("subscriptionConfiguration");
+    }
+
+    @Test
+    public void shouldGetDefaultSubscriptionSchemaWhenNull() throws IOException {
+        when(pluginManager.getSchema(CONNECTOR_ID, "subscriptions/display-gv-schema-form", true)).thenReturn(null);
         when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
 
         String result = cut.getSubscriptionSchema(CONNECTOR_ID, SchemaDisplayFormat.GV_SCHEMA_FORM);

@@ -54,9 +54,15 @@ public class EntrypointConnectorPluginServiceImpl
         if (schemaDisplayFormat == SchemaDisplayFormat.GV_SCHEMA_FORM) {
             try {
                 logger.debug("Find entrypoint subscription schema for format {} by ID: {}", schemaDisplayFormat, connectorId);
-                return pluginManager.getSchema(connectorId, "subscriptions/display-gv-schema-form", true);
-            } catch (IOException ioex) {
+                String schema = pluginManager.getSchema(connectorId, "subscriptions/display-gv-schema-form", true);
+                if (schema != null) {
+                    return schema;
+                }
                 logger.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
+            } catch (IOException ioex) {
+                logger.debug(
+                    "Error while getting specific specific schema-form for this display format. Fall back on default schema-form."
+                );
             }
         }
         try {
