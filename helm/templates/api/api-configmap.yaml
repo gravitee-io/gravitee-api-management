@@ -495,7 +495,7 @@ data:
     {{- end }}
     # APIs specific configuration
     {{- if .Values.api.api }}
-      api: {{- toYaml .Values.api.api | nindent 6 -}}
+    api: {{- toYaml .Values.api.api | nindent 6 -}}
     {{- end}}
     {{- end }}
     {{- if .Values.api.logging.debug }}
