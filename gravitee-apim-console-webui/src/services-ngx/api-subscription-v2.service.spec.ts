@@ -358,4 +358,65 @@ describe('ApiSubscriptionV2Service', () => {
       req.flush(apiKey);
     });
   });
+
+  describe('revoke api key', () => {
+    const API_KEY_ID = 'my-api-key';
+    const SUBSCRIPTION_ID = 'my-subscription-id';
+    it('should call API', (done) => {
+      const apiKey = fakeApiKey({ id: API_KEY_ID });
+      apiSubscriptionV2Service.revokeApiKey(API_ID, SUBSCRIPTION_ID, API_KEY_ID).subscribe((response) => {
+        expect(response).toEqual(apiKey);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/api-keys/${API_KEY_ID}/_revoke`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({});
+
+      req.flush(apiKey);
+    });
+  });
+
+  describe('expire api key', () => {
+    const API_KEY_ID = 'my-api-key';
+    const SUBSCRIPTION_ID = 'my-subscription-id';
+    it('should call API', (done) => {
+      const apiKey = fakeApiKey({ id: API_KEY_ID });
+      const expireAt = new Date();
+      apiSubscriptionV2Service.expireApiKey(API_ID, SUBSCRIPTION_ID, API_KEY_ID, expireAt).subscribe((response) => {
+        expect(response).toEqual(apiKey);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/api-keys/${API_KEY_ID}`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual({ expireAt });
+
+      req.flush(apiKey);
+    });
+  });
+
+  describe('reactivate api key', () => {
+    const API_KEY_ID = 'my-api-key';
+    const SUBSCRIPTION_ID = 'my-subscription-id';
+    it('should call API', (done) => {
+      const apiKey = fakeApiKey({ id: API_KEY_ID });
+      apiSubscriptionV2Service.reactivateApiKey(API_ID, SUBSCRIPTION_ID, API_KEY_ID).subscribe((response) => {
+        expect(response).toEqual(apiKey);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/api-keys/${API_KEY_ID}/_reactivate`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({});
+
+      req.flush(apiKey);
+    });
+  });
 });

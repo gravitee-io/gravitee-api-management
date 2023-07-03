@@ -120,4 +120,24 @@ export class ApiSubscriptionV2Service {
       customApiKey,
     });
   }
+
+  revokeApiKey(apiId: string, subscriptionId: string, apiKeyId: string): Observable<ApiKey> {
+    return this.http.post<ApiKey>(
+      `${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/api-keys/${apiKeyId}/_revoke`,
+      {},
+    );
+  }
+
+  expireApiKey(apiId: string, subscriptionId: string, apiKeyId: string, expireAt: Date): Observable<ApiKey> {
+    return this.http.put<ApiKey>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/api-keys/${apiKeyId}`, {
+      expireAt,
+    });
+  }
+
+  reactivateApiKey(apiId: string, subscriptionId: string, apiKeyId: string): Observable<ApiKey> {
+    return this.http.post<ApiKey>(
+      `${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}/api-keys/${apiKeyId}/_reactivate`,
+      {},
+    );
+  }
 }
