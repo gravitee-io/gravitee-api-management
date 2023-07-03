@@ -27,6 +27,7 @@
 @import 'management/api/api';
 @import 'user/login/login';
 @import 'components/newsletter-subcription/newsletter-reminder';
+@import 'management/submenu';
 
 // Try to encapsulate all scss with .bootstrap class
 :where(.bootstrap) {
@@ -55,7 +56,6 @@
   @import 'management/forms';
   @import 'management/instances/instances';
   @import 'management/stepper';
-  @import 'management/submenu';
   @import 'management/dashboard-ajs/analytics-dashboard/analytics-dashboard';
   @import 'management/dashboard-ajs/apis-status-dashboard/apis-status-dashboard';
   @import 'management/dashboard-ajs/home-dashboard/home-dashboard';
