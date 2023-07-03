@@ -145,7 +145,6 @@
       </ng-container>
     </ng-container>
   </mat-card>
-  <!--  TODO: Control permissions -->
   <mat-card
     *ngIf="
       apiKeys?.length > 0 &&
@@ -226,12 +225,14 @@
           </table>
         </gio-table-wrapper>
       </div>
-      <div class="subscription__api-keys__footer" *ngIf="!hasSharedApiKeyMode && subscription.status === 'ACCEPTED'">
-        <button mat-stroked-button (click)="renewApiKey()">
-          <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
-          Renew
-        </button>
-      </div>
+      <ng-container *ngIf="!hasSharedApiKeyMode && subscription.status === 'ACCEPTED'">
+        <div class="subscription__api-keys__footer" *gioPermission="{ anyOf: ['api-subscription-u'] }">
+          <button mat-stroked-button (click)="renewApiKey()">
+            <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+            Renew
+          </button>
+        </div>
+      </ng-container>
     </div>
   </mat-card>
 </div>
