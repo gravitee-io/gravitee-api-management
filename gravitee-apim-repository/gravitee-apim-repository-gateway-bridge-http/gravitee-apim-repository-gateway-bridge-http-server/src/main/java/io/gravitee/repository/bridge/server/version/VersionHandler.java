@@ -15,8 +15,9 @@
  */
 package io.gravitee.repository.bridge.server.version;
 
+import static io.gravitee.repository.bridge.server.utils.VersionUtils.nodeVersion;
+
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.util.Version;
 import io.gravitee.repository.bridge.server.utils.VersionUtils;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
@@ -29,8 +30,6 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class VersionHandler implements Handler<RoutingContext> {
 
-    private static final VersionUtils.Version NODE_VERSION = VersionUtils.parse(Version.RUNTIME_VERSION.MAJOR_VERSION);
-
     private static final String USER_AGENT_PREFIX = "gio-client-bridge/";
 
     @Override
@@ -38,12 +37,17 @@ public class VersionHandler implements Handler<RoutingContext> {
         String userAgentHeader = ctx.request().getHeader(HttpHeaders.USER_AGENT);
 
         if (userAgentHeader != null && userAgentHeader.startsWith(USER_AGENT_PREFIX)) {
-            String sVersion = userAgentHeader.substring(USER_AGENT_PREFIX.length());
-            VersionUtils.Version clientVersion = VersionUtils.parse(sVersion);
+            String versionAsString = userAgentHeader.substring(USER_AGENT_PREFIX.length());
+            VersionUtils.Version clientVersion = VersionUtils.parse(versionAsString);
+            int serverMajorVersion = nodeVersion().major();
 
             // If the version is not valid or if it doesn't match the server, reject the call
-            if (clientVersion == null || NODE_VERSION.major() != clientVersion.major()) {
-                ctx.fail(new IllegalStateException("Version of the bridge client is invalid"));
+            if (
+                clientVersion == null ||
+                ((clientVersion.major() == 1 || serverMajorVersion == 1) && serverMajorVersion != clientVersion.major())
+            ) {
+                ctx.response().setStatusCode(400);
+                ctx.end("Version of the bridge client is incompatible with bridge server");
             } else {
                 ctx.next();
             }
