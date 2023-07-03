@@ -75,7 +75,7 @@ public class CheckSubscriptionPolicyTest {
         PolicyChain policyChain = mock(PolicyChain.class);
 
         // Search subscription now includes all criteria so the result is empty in case of bad clientId or planId.
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.empty());
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.empty());
 
         policy.execute(policyChain, executionContext);
 
@@ -102,7 +102,7 @@ public class CheckSubscriptionPolicyTest {
 
         Subscription subscription = new Subscription();
 
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -124,10 +124,10 @@ public class CheckSubscriptionPolicyTest {
 
         final Subscription subscription = new Subscription();
         subscription.setId("subscription-id");
-        subscription.setPlan("plan-id");
+        subscription.setPlan(PLAN_ID);
         subscription.setApplication("application-id");
 
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
