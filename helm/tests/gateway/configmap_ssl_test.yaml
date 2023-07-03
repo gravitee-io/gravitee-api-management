@@ -28,3 +28,49 @@ tests:
                      *      kubernetes: /default/secrets/api-custom-cert-opaque/keystore\n
                      *    clientAuth: false\n
                      *    sni: true\n"
+
+  - it: Keystore not watched
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ssl:
+          enabled: true
+          keystore:
+            watch: false
+          sni: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " *  secured: true\n
+                     *  ssl:\n
+                     *    keystore:\n
+                     *      watch: false\n
+                     *    clientAuth: false\n
+                     *    sni: true\n"
+
+  - it: Keystore watched
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ssl:
+          enabled: true
+          keystore:
+            watch: true
+          sni: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " *  secured: true\n
+                     *  ssl:\n
+                     *    keystore:\n
+                     *      watch: true\n
+                     *    clientAuth: false\n
+                     *    sni: true\n"
