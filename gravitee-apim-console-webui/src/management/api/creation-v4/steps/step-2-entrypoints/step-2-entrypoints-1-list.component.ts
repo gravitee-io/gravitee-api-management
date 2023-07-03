@@ -64,7 +64,13 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       .listAsyncEntrypointPlugins()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((entrypointPlugins) => {
-        this.entrypoints = entrypointPlugins.map((entrypoint) => fromConnector(this.iconService, entrypoint));
+        this.entrypoints = entrypointPlugins
+          .map((entrypoint) => fromConnector(this.iconService, entrypoint))
+          .sort((entrypoint1, entrypoint2) => {
+            const name1 = entrypoint1.name.toUpperCase();
+            const name2 = entrypoint2.name.toUpperCase();
+            return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
+          });
         this.changeDetectorRef.detectChanges();
       });
   }
