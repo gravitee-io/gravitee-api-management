@@ -7,8 +7,9 @@ tests:
     asserts:
       - notMatchRegex:
           path: data.[gravitee.yml]
-          pattern: " *api:\n
-                     *  properties:\n"
+          pattern: |
+            api:
+              properties:
   - it: Set the API properties
     template: gateway/gateway-configmap.yaml
     set:
@@ -20,7 +21,8 @@ tests:
     asserts:
       - matchRegex:
           path: data.[gravitee.yml]
-          pattern: " *api:\n
-                     *  properties:\n
-                     *    encryption:\n
-                     *      secret: aSecret"
+          pattern: |
+            api:
+              properties:
+                encryption:
+                  secret: aSecret
