@@ -1054,6 +1054,57 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     });
   });
 
+  describe('reactivate API Key', () => {
+    const API_KEY_ID = 'my-api-key-id';
+    it('should not appear if api key is valid', async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.SHARED);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expired: false, revoked: false })]);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness
+        .getReactivateApiKeyBtn(0)
+        .then((_) => fail('Reactivate button should not be visible'))
+        .catch((err) => expect(err).toBeTruthy());
+    });
+    it('should reactivate API Key', async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: API_KEY_ID, expired: true, revoked: false })]);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      const reactivateBtn = await harness.getReactivateApiKeyBtn(0);
+      expect(await reactivateBtn.isDisabled()).toEqual(false);
+      await reactivateBtn.click();
+
+      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await confirmDialog.confirm();
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/api-keys/${API_KEY_ID}/_reactivate`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({});
+      req.flush(fakeApiKey({ id: API_KEY_ID }));
+
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: API_KEY_ID })]);
+    });
+    it('should not not reactivate API Key on cancel', async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: API_KEY_ID, expired: false, revoked: true })]);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      const reactivateBtn = await harness.getReactivateApiKeyBtn(0);
+      await reactivateBtn.click();
+
+      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await confirmDialog.cancel();
+    });
+  });
+
   async function initComponent(
     subscription: Subscription = BASIC_SUBSCRIPTION(),
     permissions: string[] = ['api-subscription-r', 'api-subscription-u', 'api-subscription-d'],

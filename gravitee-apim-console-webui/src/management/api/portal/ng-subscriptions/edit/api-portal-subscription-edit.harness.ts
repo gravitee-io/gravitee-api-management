@@ -191,6 +191,13 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
       .then((cells) => cells[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to expire an API Key"]' })));
   }
 
+  public async getReactivateApiKeyBtn(index: number): Promise<MatButtonHarness> {
+    return this.getTable()
+      .then((table) => table.getRows())
+      .then((rows) => rows[index].getCells({ columnName: 'actions' }))
+      .then((cells) => cells[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to reactivate an API Key"]' })));
+  }
+
   private async btnIsVisible(text: string): Promise<boolean> {
     return this.isVisible(this.getBtnByText(text));
   }

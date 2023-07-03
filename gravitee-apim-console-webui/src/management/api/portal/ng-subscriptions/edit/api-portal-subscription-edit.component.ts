@@ -497,8 +497,31 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
       );
   }
 
-  reactivateApiKey(_: ApiKeyVM) {
-    // Do nothing
+  reactivateApiKey(apiKey: ApiKeyVM) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        data: {
+          title: `Reactivate your API Key`,
+          content: `Reactivate your revoked or expired API Key`,
+          confirmButton: 'Reactivate',
+        },
+        role: 'alertdialog',
+        id: 'reactivateApiKeyDialog',
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((confirm) =>
+          confirm ? this.apiSubscriptionService.reactivateApiKey(this.apiId, this.subscription.id, apiKey.id) : EMPTY,
+        ),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`API Key reactivated`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
   }
 
   onFiltersChanged($event: GioTableWrapperFilters) {
