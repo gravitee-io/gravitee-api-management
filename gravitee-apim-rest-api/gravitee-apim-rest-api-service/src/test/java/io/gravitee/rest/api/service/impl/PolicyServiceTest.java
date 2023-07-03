@@ -220,8 +220,17 @@ public class PolicyServiceTest {
     }
 
     @Test
-    public void shouldGetDefaultSchemaForm() throws IOException {
+    public void shouldGetDefaultSchemaFormWhenIOException() throws IOException {
         when(policyManager.getSchema("my-policy", "display-gv-schema-form", true)).thenThrow(new IOException());
+        when(policyManager.getSchema("my-policy", true)).thenReturn("default-configuration");
+
+        String schema = policyService.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
+        assertEquals("default-configuration", schema);
+    }
+
+    @Test
+    public void shouldGetDefaultSchemaFormWhenNull() throws IOException {
+        when(policyManager.getSchema("my-policy", "display-gv-schema-form", true)).thenReturn(null);
         when(policyManager.getSchema("my-policy", true)).thenReturn("default-configuration");
 
         String schema = policyService.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);

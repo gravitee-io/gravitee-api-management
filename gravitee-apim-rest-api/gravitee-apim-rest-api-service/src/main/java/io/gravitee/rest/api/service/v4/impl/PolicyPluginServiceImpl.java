@@ -104,9 +104,15 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         if (schemaDisplayFormat == SchemaDisplayFormat.GV_SCHEMA_FORM) {
             try {
                 logger.debug("Find plugin schema for format {} by ID: {}", schemaDisplayFormat, policyPluginId);
-                return pluginManager.getSchema(policyPluginId, "display-gv-schema-form", true);
-            } catch (IOException ioex) {
+                String schema = pluginManager.getSchema(policyPluginId, "display-gv-schema-form", true);
+                if (schema != null) {
+                    return schema;
+                }
                 logger.debug("No specific schema-form exists for this display format. Fall back on default schema-form.");
+            } catch (IOException ioex) {
+                logger.debug(
+                    "Error while getting specific specific schema-form for this display format. Fall back on default schema-form."
+                );
             }
         }
         return getSchema(policyPluginId);

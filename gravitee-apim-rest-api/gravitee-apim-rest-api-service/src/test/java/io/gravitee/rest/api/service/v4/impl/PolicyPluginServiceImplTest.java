@@ -140,8 +140,17 @@ public class PolicyPluginServiceImplTest {
     }
 
     @Test
-    public void shouldGetDefaultSchemaForm() throws IOException {
+    public void shouldGetDefaultSchemaFormWhenIOException() throws IOException {
         when(pluginManager.getSchema("my-policy", "display-gv-schema-form", true)).thenThrow(new IOException());
+        when(pluginManager.getSchema("my-policy", true)).thenReturn("default-configuration");
+
+        String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
+        assertEquals("default-configuration", schema);
+    }
+
+    @Test
+    public void shouldGetDefaultSchemaFormWhenNull() throws IOException {
+        when(pluginManager.getSchema("my-policy", "display-gv-schema-form", true)).thenReturn(null);
         when(pluginManager.getSchema("my-policy", true)).thenReturn("default-configuration");
 
         String schema = cut.getSchema("my-policy", SchemaDisplayFormat.GV_SCHEMA_FORM);
