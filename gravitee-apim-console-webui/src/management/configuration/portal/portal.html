@@ -109,7 +109,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.plan.security.push.enabled"
           aria-label="push"
-          ng-disabled="$ctrl.isReadonlySetting('plan.security.push.enabled')"
+          ng-disabled="$ctrl.isReadonlyPage || $ctrl.isReadonlySetting('plan.security.push.enabled')"
         >
           Push plans ( only available for API V4 )
           <md-tooltip ng-if="$ctrl.isReadonlySetting('plan.security.push.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
