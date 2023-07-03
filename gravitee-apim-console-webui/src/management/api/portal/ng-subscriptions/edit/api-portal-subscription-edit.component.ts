@@ -59,6 +59,11 @@ import {
 } from '../components/renew-dialog/api-portal-subscription-renew-dialog.component';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SubscriptionApiKeysResponse } from '../../../../../entities/management-api-v2/api-key';
+import {
+  ApiPortalSubscriptionExpireApiKeyDialogData,
+  ApiPortalSubscriptionExpireApiKeyDialogResult,
+  ApiPortalSubscriptionExpireApiKeyDialogComponent,
+} from '../components/expire-api-key-dialog/api-portal-subscription-expire-api-key-dialog.component';
 
 interface SubscriptionDetailVM {
   id: string;
@@ -462,8 +467,34 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
       );
   }
 
-  expireApiKey(_: ApiKeyVM) {
-    // Do nothing
+  expireApiKey(apiKey: ApiKeyVM) {
+    this.matDialog
+      .open<
+        ApiPortalSubscriptionExpireApiKeyDialogComponent,
+        ApiPortalSubscriptionExpireApiKeyDialogData,
+        ApiPortalSubscriptionExpireApiKeyDialogResult
+      >(ApiPortalSubscriptionExpireApiKeyDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: {
+          expirationDate: this.deserializeDate(apiKey.endDate),
+        },
+        role: 'alertdialog',
+        id: 'expireApiKeyDialog',
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((result) =>
+          result ? this.apiSubscriptionService.expireApiKey(this.apiId, this.subscription.id, apiKey.id, result.expirationDate) : EMPTY,
+        ),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`API Key expiration validated`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
   }
 
   reactivateApiKey(_: ApiKeyVM) {

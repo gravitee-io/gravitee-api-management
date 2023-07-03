@@ -964,6 +964,96 @@ describe('ApiPortalSubscriptionEditComponent', () => {
     });
   });
 
+  describe('change API Key expiration date', () => {
+    it('should assign expiration date with no current expiration date', async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: undefined })]);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      const expireBtn = await harness.getExpireApiKeyBtn(0);
+      expect(await expireBtn.isDisabled()).toEqual(false);
+      await expireBtn.click();
+
+      const expireApiKeyDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#expireApiKeyDialog' }),
+      );
+      expect(await expireApiKeyDialog.getTitleText()).toEqual(`Change your API Key's expiration date`);
+
+      const datepicker = await expireApiKeyDialog.getHarness(MatDatepickerInputHarness);
+      expect(await datepicker.getValue()).toEqual('');
+
+      const expireApiKeyBtn = await expireApiKeyDialog.getHarness(MatButtonHarness.with({ text: 'Change expiration date' }));
+
+      expect(await expireApiKeyBtn.isDisabled()).toEqual(true);
+      await datepicker.openCalendar();
+      await datepicker.setValue('01/01/2080');
+
+      expect(await expireApiKeyBtn.isDisabled()).toEqual(false);
+      await expireApiKeyBtn.click();
+
+      const endingAt: Date = new Date('01/01/2080');
+      expectApiKeyUpdate(SUBSCRIPTION_ID, endingAt, fakeApiKey({ expireAt: endingAt }));
+
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: endingAt })]);
+
+      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('Jan 1, 2080 12:00:00.000 AM');
+    });
+    it('should change existing expiration date', async () => {
+      const endingAt = new Date('01/01/2080');
+
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: endingAt })]);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      const expireBtn = await harness.getExpireApiKeyBtn(0);
+      await expireBtn.click();
+
+      const expireApiKeyDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#expireApiKeyDialog' }),
+      );
+
+      const datepicker = await expireApiKeyDialog.getHarness(MatDatepickerInputHarness);
+      expect(await datepicker.getValue()).toEqual(endingAt.toLocaleDateString());
+
+      const expireApiKeyBtn = await expireApiKeyDialog.getHarness(MatButtonHarness.with({ text: 'Change expiration date' }));
+
+      expect(await expireApiKeyBtn.isDisabled()).toEqual(true);
+      await datepicker.openCalendar();
+      await datepicker.setValue('01/02/2080');
+
+      expect(await expireApiKeyBtn.isDisabled()).toEqual(false);
+      await expireApiKeyBtn.click();
+
+      const newEndingAt: Date = new Date('01/02/2080');
+
+      expectApiKeyUpdate(SUBSCRIPTION_ID, newEndingAt, fakeApiKey({ expireAt: newEndingAt }));
+
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApplicationGet();
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: newEndingAt })]);
+
+      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('Jan 2, 2080 12:00:00.000 AM');
+    });
+    it('should not change expiration date on cancel', async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet();
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness.getExpireApiKeyBtn(0).then((btn) => btn.click());
+
+      const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        MatDialogHarness.with({ selector: '#expireApiKeyDialog' }),
+      );
+      const cancelBtn = await changeEndDateDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
+      await cancelBtn.click();
+    });
+  });
+
   async function initComponent(
     subscription: Subscription = BASIC_SUBSCRIPTION(),
     permissions: string[] = ['api-subscription-r', 'api-subscription-u', 'api-subscription-d'],
@@ -1112,6 +1202,15 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       method: 'POST',
     });
     expect(req.request.body).toEqual({ customApiKey });
+    req.flush(apiKey);
+  }
+
+  function expectApiKeyUpdate(subscriptionId: string, expireAt: Date, apiKey: ApiKey): void {
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/api-keys/${apiKey.id}`,
+      method: 'PUT',
+    });
+    expect(JSON.stringify(req.request.body)).toEqual(JSON.stringify({ expireAt }));
     req.flush(apiKey);
   }
 

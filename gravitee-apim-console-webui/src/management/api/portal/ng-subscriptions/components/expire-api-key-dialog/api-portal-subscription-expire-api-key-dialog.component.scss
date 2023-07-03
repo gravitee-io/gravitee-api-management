@@ -1,0 +1,15 @@
+.expire-api-key {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__datepicker {
+    display: flex;
+  }
+}
+
+.actions {
+  justify-content: flex-end;
+}

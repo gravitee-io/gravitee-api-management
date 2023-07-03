@@ -42,6 +42,7 @@ import { ApiPortalSubscriptionValidateDialogComponent } from './components/valid
 import { ApiKeyValidationComponent } from './components/api-key-validation/api-key-validation.component';
 import { ApiPortalSubscriptionRejectDialogComponent } from './components/reject-dialog/api-portal-subscription-reject-dialog.component';
 import { ApiPortalSubscriptionRenewDialogComponent } from './components/renew-dialog/api-portal-subscription-renew-dialog.component';
+import { ApiPortalSubscriptionExpireApiKeyDialogComponent } from './components/expire-api-key-dialog/api-portal-subscription-expire-api-key-dialog.component';
 
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
@@ -56,6 +57,8 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     ApiPortalSubscriptionRejectDialogComponent,
     ApiPortalSubscriptionRenewDialogComponent,
     ApiPortalSubscriptionValidateDialogComponent,
+
+    ApiPortalSubscriptionExpireApiKeyDialogComponent,
 
     ApiKeyValidationComponent,
   ],
