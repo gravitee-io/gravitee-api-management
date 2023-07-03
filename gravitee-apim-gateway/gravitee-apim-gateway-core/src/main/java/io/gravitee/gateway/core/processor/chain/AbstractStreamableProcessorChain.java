@@ -20,8 +20,11 @@ import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.api.stream.WriteStream;
+import io.gravitee.gateway.core.endpoint.lifecycle.impl.EndpointGroupLifecycleManager;
 import io.gravitee.gateway.core.processor.RuntimeProcessorFailure;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,6 +33,8 @@ import io.gravitee.gateway.core.processor.StreamableProcessor;
 public abstract class AbstractStreamableProcessorChain<T, S, P extends StreamableProcessor<T, S>>
     extends AbstractProcessorChain<T, P>
     implements StreamableProcessorChain<T, S, P> {
+
+    private final Logger logger = LoggerFactory.getLogger(AbstractStreamableProcessorChain.class);
 
     private P streamableProcessorChain;
     private Handler<ProcessorFailure> streamErrorHandler;
@@ -61,6 +66,7 @@ public abstract class AbstractStreamableProcessorChain<T, S, P extends Streamabl
                     .streamErrorHandler(failure -> streamErrorHandler.handle(failure))
                     .handle(data);
             } catch (Exception ex) {
+                logger.error("Unexpected error while handling the streamable processor chain", ex);
                 errorHandler.handle(new RuntimeProcessorFailure(ex.getMessage()));
             }
         } else {
