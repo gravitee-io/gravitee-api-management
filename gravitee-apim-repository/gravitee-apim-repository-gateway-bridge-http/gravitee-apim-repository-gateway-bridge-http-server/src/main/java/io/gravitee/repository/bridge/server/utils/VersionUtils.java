@@ -17,18 +17,29 @@ package io.gravitee.repository.bridge.server.utils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class VersionUtils {
 
-    private VersionUtils() {
-        throw new IllegalStateException("Utility class");
-    }
-
     private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)(-.*)?");
+    private static VersionUtils.Version nodeVersion;
+
+    public static Version nodeVersion() {
+        if (nodeVersion == null) {
+            nodeVersion = VersionUtils.parse(io.gravitee.common.util.Version.RUNTIME_VERSION.MAJOR_VERSION);
+        }
+
+        return nodeVersion;
+    }
 
     public static Version parse(String input) {
         Matcher matcher = VERSION_PATTERN.matcher(input);
@@ -40,30 +51,13 @@ public class VersionUtils {
         return null;
     }
 
+    @RequiredArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
     public static class Version {
 
         private final int major;
-
         private final int minor;
-
         private final int patch;
-
-        public Version(int major, int minor, int patch) {
-            this.major = major;
-            this.minor = minor;
-            this.patch = patch;
-        }
-
-        public int major() {
-            return major;
-        }
-
-        public int minor() {
-            return minor;
-        }
-
-        public int patch() {
-            return patch;
-        }
     }
 }
