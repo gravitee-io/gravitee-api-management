@@ -37,7 +37,7 @@
           "configuration": {
             "messageInterval": 1,
             "messageContent": "message",
-            "messageCount": 1000
+            "messageCount": 5
           }
         }
       ]

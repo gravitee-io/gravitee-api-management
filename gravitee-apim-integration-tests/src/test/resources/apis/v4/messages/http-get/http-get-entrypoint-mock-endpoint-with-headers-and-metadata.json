@@ -17,8 +17,10 @@
         {
           "type": "http-get",
           "configuration": {
-            "messagesLimitCount":  12,
-            "messagesLimitDurationMs": 500
+            "messagesLimitCount": 12,
+            "messagesLimitDurationMs": 500,
+            "headersInPayload": true,
+            "metadataInPayload": true
           }
         }
       ]
@@ -37,7 +39,19 @@
           "configuration": {
             "messageInterval": 1,
             "messageContent": "message",
-            "messageCount": 1000
+            "messageCount": 1000,
+            "headers": [
+              {
+                "name": "header1",
+                "value": "headerValue1"
+              }
+            ],
+            "metadata": [
+              {
+                "name": "metadata1",
+                "value": "metadataValue1"
+              }
+            ]
           }
         }
       ]
@@ -45,6 +59,6 @@
   ],
   "flows": [],
   "analytics": {
-     "enabled" : true
+    "enabled": true
   }
 }
