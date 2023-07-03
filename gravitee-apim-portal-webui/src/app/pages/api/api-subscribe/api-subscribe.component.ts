@@ -41,6 +41,7 @@ import {
   EntrypointsService,
   Page,
   Plan,
+  PlanMode,
   Subscription,
   SubscriptionService,
   SubscriptionsResponse,
@@ -427,12 +428,12 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   hasStepper() {
-    return this.hasPlans() && this.plans.filter(plan => plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS).length > 0;
+    return this.hasPlans() && this.plans.filter(plan => plan.security?.toUpperCase() !== Plan.SecurityEnum.KEYLESS).length > 0;
   }
 
   isApiKey() {
     const currentPlan = this.getCurrentPlan();
-    if (currentPlan && currentPlan.security.toUpperCase() === Plan.SecurityEnum.APIKEY) {
+    if (currentPlan?.security?.toUpperCase() === Plan.SecurityEnum.APIKEY) {
       return true;
     }
     return false;
@@ -440,7 +441,7 @@ export class ApiSubscribeComponent implements OnInit {
 
   isKeyLess() {
     const currentPlan = this.getCurrentPlan();
-    if (currentPlan && currentPlan.security.toUpperCase() === Plan.SecurityEnum.KEYLESS) {
+    if (currentPlan?.security?.toUpperCase() === Plan.SecurityEnum.KEYLESS) {
       return true;
     }
     return false;
@@ -448,7 +449,7 @@ export class ApiSubscribeComponent implements OnInit {
 
   isOAuth2() {
     const currentPlan = this.getCurrentPlan();
-    if (currentPlan && currentPlan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2) {
+    if (currentPlan?.security?.toUpperCase() === Plan.SecurityEnum.OAUTH2) {
       return true;
     }
     return false;
@@ -456,7 +457,7 @@ export class ApiSubscribeComponent implements OnInit {
 
   isJWT() {
     const currentPlan = this.getCurrentPlan();
-    if (currentPlan && currentPlan.security.toUpperCase() === Plan.SecurityEnum.JWT) {
+    if (currentPlan?.security?.toUpperCase() === Plan.SecurityEnum.JWT) {
       return true;
     }
     return false;
@@ -464,7 +465,7 @@ export class ApiSubscribeComponent implements OnInit {
 
   isSubscription() {
     const currentPlan = this.getCurrentPlan();
-    if (currentPlan && currentPlan.security.toUpperCase() === Plan.SecurityEnum.SUBSCRIPTION) {
+    if (currentPlan?.mode.toUpperCase() === PlanMode.PUSH) {
       return true;
     }
     return false;
@@ -473,7 +474,7 @@ export class ApiSubscribeComponent implements OnInit {
   getCommentLabel() {
     const currentPlan = this.getCurrentPlan();
     let label = this._commentLabel;
-    if (currentPlan && currentPlan.comment_question) {
+    if (currentPlan?.comment_question) {
       label = currentPlan.comment_question;
     }
     return label;
@@ -481,7 +482,7 @@ export class ApiSubscribeComponent implements OnInit {
 
   hasRequiredComment() {
     const currentPlan = this.getCurrentPlan();
-    return currentPlan && currentPlan.comment_required === true;
+    return currentPlan?.comment_required === true;
   }
 
   hasConnectedApps() {
@@ -534,12 +535,12 @@ export class ApiSubscribeComponent implements OnInit {
             })
             .toPromise();
           const currentPlan = this.getCurrentPlan();
-          if (currentPlan.security.toUpperCase() === Plan.SecurityEnum.APIKEY) {
+          if (currentPlan.security?.toUpperCase() === Plan.SecurityEnum.APIKEY) {
             const apikeyHeader = this.configurationService.get('portal.apikeyHeader');
             this.apiSample = formatCurlCommandLine(this.api.entrypoints[0], { name: apikeyHeader, value: subscription.keys[0].key });
           } else if (
-            currentPlan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 ||
-            currentPlan.security.toUpperCase() === Plan.SecurityEnum.JWT
+            currentPlan.security?.toUpperCase() === Plan.SecurityEnum.OAUTH2 ||
+            currentPlan.security?.toUpperCase() === Plan.SecurityEnum.JWT
           ) {
             this.apiSample = formatCurlCommandLine(this.api.entrypoints[0], { name: 'Authorization', value: 'Bearer xxxx-xxxx-xxxx-xxxx' });
           } else {
@@ -678,14 +679,14 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   private canSubscribe(appSubscriptions: Subscription[], plan: Plan) {
-    if (appSubscriptions && appSubscriptions.length > 0 && plan.security.toUpperCase() !== Plan.SecurityEnum.SUBSCRIPTION) {
+    if (appSubscriptions && appSubscriptions.length > 0 && plan.mode?.toUpperCase() !== PlanMode.PUSH) {
       return appSubscriptions.find(subscription => subscription.plan === plan.id) == null;
     }
     return true;
   }
 
   private isSecure(application: Application, plan: Plan) {
-    if (plan && (plan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 || plan.security.toUpperCase() === Plan.SecurityEnum.JWT)) {
+    if (plan && (plan.security?.toUpperCase() === Plan.SecurityEnum.OAUTH2 || plan.security?.toUpperCase() === Plan.SecurityEnum.JWT)) {
       return application.hasClientId;
     }
     return true;
