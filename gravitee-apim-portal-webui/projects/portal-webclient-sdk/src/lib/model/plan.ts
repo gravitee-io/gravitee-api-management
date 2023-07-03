@@ -8,6 +8,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { PlanMode } from './planMode';
 
 
 export interface Plan { 
@@ -51,15 +52,15 @@ export interface Plan {
      * The  page reference with general conditions of use for the API.
      */
     general_conditions?: string;
+    mode: PlanMode;
 }
 export namespace Plan {
-    export type SecurityEnum = 'API_KEY' | 'KEY_LESS' | 'JWT' | 'OAUTH2' | 'SUBSCRIPTION';
+    export type SecurityEnum = 'API_KEY' | 'KEY_LESS' | 'JWT' | 'OAUTH2';
     export const SecurityEnum = {
         APIKEY: 'API_KEY' as SecurityEnum,
         KEYLESS: 'KEY_LESS' as SecurityEnum,
         JWT: 'JWT' as SecurityEnum,
-        OAUTH2: 'OAUTH2' as SecurityEnum,
-        SUBSCRIPTION: 'SUBSCRIPTION' as SecurityEnum
+        OAUTH2: 'OAUTH2' as SecurityEnum
     };
     export type ValidationEnum = 'AUTO' | 'MANUAL';
     export const ValidationEnum = {
