@@ -437,6 +437,39 @@ export class ApiPortalSubscriptionEditComponent implements OnInit {
       );
   }
 
+  revokeApiKey(apiKey: ApiKeyVM) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        data: {
+          title: `Revoke your API Key`,
+          content: `Revoke your subscription's API Key`,
+          confirmButton: 'Revoke',
+        },
+        role: 'alertdialog',
+        id: 'revokeApiKeyDialog',
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((confirm) => (confirm ? this.apiSubscriptionService.revokeApiKey(this.apiId, this.subscription.id, apiKey.id) : EMPTY)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(
+        (_) => {
+          this.snackBarService.success(`API Key revoked`);
+          this.ngOnInit();
+        },
+        (err) => this.snackBarService.error(err.message),
+      );
+  }
+
+  expireApiKey(_: ApiKeyVM) {
+    // Do nothing
+  }
+
+  reactivateApiKey(_: ApiKeyVM) {
+    // Do nothing
+  }
+
   onFiltersChanged($event: GioTableWrapperFilters) {
     // Only refresh data if not all data is shown or requested page size is less than total count
     if (this.apiKeys.length < this.apiKeysTotalCount || $event.pagination.size <= this.apiKeysTotalCount) {

@@ -187,7 +187,39 @@
             </ng-container>
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let apiKey"></td>
+              <td mat-cell *matCellDef="let apiKey">
+                <ng-container *ngIf="!hasSharedApiKeyMode && (subscription.status === 'ACCEPTED' || subscription.status === 'PENDING')">
+                  <div *gioPermission="{ anyOf: ['api-subscription-u'] }" class="subscription__api-keys__actions">
+                    <button
+                      *ngIf="apiKey.isValid && subscription.status === 'ACCEPTED'"
+                      (click)="revokeApiKey(apiKey)"
+                      mat-icon-button
+                      aria-label="Button to revoke an API Key"
+                      matTooltip="Revoke"
+                    >
+                      <mat-icon svgIcon="gio:x-circle"></mat-icon>
+                    </button>
+                    <button
+                      *ngIf="apiKey.isValid && subscription.status === 'ACCEPTED'"
+                      (click)="expireApiKey(apiKey)"
+                      mat-icon-button
+                      aria-label="Button to expire an API Key"
+                      matTooltip="Expire"
+                    >
+                      <mat-icon svgIcon="gio:clock-outline"></mat-icon>
+                    </button>
+                    <button
+                      *ngIf="!apiKey.isValid"
+                      (click)="reactivateApiKey(apiKey)"
+                      mat-icon-button
+                      aria-label="Button to reactivate an API Key"
+                      matTooltip="Reactivate"
+                    >
+                      <mat-icon svgIcon="gio:rotate-cw"></mat-icon>
+                    </button>
+                  </div>
+                </ng-container>
+              </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
