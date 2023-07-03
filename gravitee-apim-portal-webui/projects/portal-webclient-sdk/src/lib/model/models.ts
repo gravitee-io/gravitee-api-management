@@ -83,6 +83,7 @@ export * from './pagesResponse';
 export * from './payloadInput';
 export * from './permissionsResponse';
 export * from './plan';
+export * from './planMode';
 export * from './plansResponse';
 export * from './portalNotification';
 export * from './portalNotificationsResponse';
