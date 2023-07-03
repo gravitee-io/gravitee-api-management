@@ -17,11 +17,11 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Plan.SecurityEnum;
 import io.gravitee.rest.api.portal.rest.model.Plan.ValidationEnum;
+import io.gravitee.rest.api.portal.rest.model.PlanMode;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,6 +51,7 @@ public class PlanMapper {
         }
         planItem.setValidation(ValidationEnum.fromValue(plan.getPlanValidation().name()));
         planItem.setGeneralConditions(plan.getGeneralConditions());
+        planItem.setMode(PlanMode.valueOf(plan.getPlanMode().name()));
         return planItem;
     }
 }

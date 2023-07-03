@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.portal.rest.model.Plan;
 import io.gravitee.rest.api.portal.rest.model.Plan.SecurityEnum;
 import io.gravitee.rest.api.portal.rest.model.Plan.ValidationEnum;
+import io.gravitee.rest.api.portal.rest.model.PlanMode;
 import java.time.Instant;
 import java.util.*;
 import org.junit.Before;
@@ -120,6 +121,7 @@ public class PlanMapperTest {
         assertEquals(1, responsePlan.getOrder().intValue());
         assertEquals(SecurityEnum.API_KEY, responsePlan.getSecurity());
         assertEquals(ValidationEnum.AUTO, responsePlan.getValidation());
+        assertEquals(PlanMode.STANDARD, responsePlan.getMode());
     }
 
     @Test
