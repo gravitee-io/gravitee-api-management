@@ -171,6 +171,12 @@ data:
         {{- else }}
         uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
         {{- end }}
+        {{- if .Values.mongo.keystore }}
+        keystore:{{- toYaml .Values.mongo.keystore | nindent 10 }}
+        {{- end }}
+        {{- if .Values.mongo.truststore }}
+        truststore:{{- toYaml .Values.mongo.truststore | nindent 10 }}
+        {{- end }}
       {{- else if (eq .Values.ratelimit.type "jdbc") }}
       jdbc:
         url: {{ .Values.jdbc.url }}
