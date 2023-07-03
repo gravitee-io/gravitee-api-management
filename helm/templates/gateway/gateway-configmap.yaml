@@ -422,7 +422,7 @@ data:
 
     # APIs specific configuration
     {{- if .Values.gateway.api }}
-      api: {{- toYaml .Values.gateway.api | nindent 6 -}}
+    api: {{- toYaml .Values.gateway.api | nindent 6 -}}
     {{- end}}
 
     gracefulShutdown:
