@@ -35,9 +35,9 @@
           "weight": 1,
           "inheritConfiguration": false,
           "configuration": {
-            "messageInterval": 1,
+            "messageInterval": 1000,
             "messageContent": "message",
-            "messageCount": 1000
+            "messageCount": 10
           }
         }
       ]

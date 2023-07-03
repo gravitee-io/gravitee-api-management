@@ -43,7 +43,23 @@
       ]
     }
   ],
-  "flows": [],
+  "flows": [
+    {
+      "name": "Latency",
+      "enabled": true,
+      "request": [
+        {
+          "name": "Latency",
+          "description": "",
+          "enabled": true,
+          "policy": "latency",
+          "configuration": {
+            "delay": 800
+          }
+        }
+      ]
+    }
+  ],
   "analytics": {
      "enabled" : true
   }
