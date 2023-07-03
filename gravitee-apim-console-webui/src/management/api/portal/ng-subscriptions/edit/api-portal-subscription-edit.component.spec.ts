@@ -26,6 +26,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDatepickerInputHarness, MatDateRangeInputHarness } from '@angular/material/datepicker/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { set } from 'lodash';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiPortalSubscriptionEditComponent } from './api-portal-subscription-edit.component';
 import { ApiPortalSubscriptionEditHarness } from './api-portal-subscription-edit.harness';
@@ -885,6 +886,81 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       await cancelBtn.click();
 
       expect(await harness.getApiKeyByRowIndex(0)).toContain('my-api-key');
+    });
+  });
+
+  describe('revoke API Key', () => {
+    const API_KEY_ID = 'my-api-key-id';
+    it('should not appear if shared API Keys is enabled', async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.SHARED);
+      expectApiKeyListGet(SUBSCRIPTION_ID);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness
+        .getRevokeApiKeyBtn(0)
+        .then((_) => fail('Revoke button should not be visible'))
+        .catch((err) => expect(err).toBeTruthy());
+    });
+    it('should not appear if subscription status is pending', async () => {
+      const pendingSubscription = BASIC_SUBSCRIPTION();
+      pendingSubscription.status = 'PENDING';
+      await initComponent(pendingSubscription);
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness
+        .getRevokeApiKeyBtn(0)
+        .then((_) => fail('Revoke button should not be visible'))
+        .catch((err) => expect(err).toBeTruthy());
+    });
+    it('should not appear if user lacks permissions', async () => {
+      await initComponent(undefined, ['api-subscription-r', 'api-subscription-c', 'api-subscription-d']);
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      await harness
+        .getRevokeApiKeyBtn(0)
+        .then((_) => fail('Revoke button should not be visible'))
+        .catch((err) => expect(err).toBeTruthy());
+    });
+    it('should revoke API Key', async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: API_KEY_ID })]);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      const revokeBtn = await harness.getRevokeApiKeyBtn(0);
+      expect(await revokeBtn.isDisabled()).toEqual(false);
+      await revokeBtn.click();
+
+      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await confirmDialog.confirm();
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/${SUBSCRIPTION_ID}/api-keys/${API_KEY_ID}/_revoke`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({});
+      req.flush(fakeApiKey({ id: API_KEY_ID }));
+
+      expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: API_KEY_ID })]);
+    });
+    it('should not not revoke API Key on cancel', async () => {
+      await initComponent();
+      expectApplicationGet(ApiKeyMode.EXCLUSIVE);
+      expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: API_KEY_ID })]);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionEditHarness);
+      const revokeBtn = await harness.getRevokeApiKeyBtn(0);
+      await revokeBtn.click();
+
+      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await confirmDialog.cancel();
     });
   });
 

@@ -39,6 +39,10 @@
       align-items: center;
       gap: 8px;
     }
+    &__actions {
+      display: flex;
+      justify-content: flex-end;
+    }
     &__footer {
       display: flex;
       padding-top: 56px;
