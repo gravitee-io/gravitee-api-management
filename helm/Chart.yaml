@@ -21,3 +21,4 @@ annotations:
   artifacthub.io/changes: |
     - Add attribute `gateway.ssl.keystore.watch` to disable watch of Gateway keystore
     - Fix indentation in `api` section of the Management API and Gateway configmaps
+    - Add truststore and keystore attributes to the MongoDB Rate Limit section of the Gateway configmap 
