@@ -151,6 +151,10 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
     return this.getBtnByText('Reject subscription').then((btn) => btn.click());
   }
 
+  /**
+   * API KEYS
+   */
+
   public async renewApiKeyBtnIsVisible(): Promise<boolean> {
     return this.btnIsVisible('Renew');
   }
@@ -166,11 +170,25 @@ export class ApiPortalSubscriptionEditHarness extends ComponentHarness {
       .then((txt) => txt[0]);
   }
 
+  public async getApiKeyEndDateByRowIndex(index: number): Promise<string> {
+    return this.getTable()
+      .then((table) => table.getRows())
+      .then((rows) => rows[index].getCellTextByIndex({ columnName: 'endDate' }))
+      .then((txt) => txt[0]);
+  }
+
   public async getRevokeApiKeyBtn(index: number): Promise<MatButtonHarness> {
     return this.getTable()
       .then((table) => table.getRows())
       .then((rows) => rows[index].getCells({ columnName: 'actions' }))
       .then((cells) => cells[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to revoke an API Key"]' })));
+  }
+
+  public async getExpireApiKeyBtn(index: number): Promise<MatButtonHarness> {
+    return this.getTable()
+      .then((table) => table.getRows())
+      .then((rows) => rows[index].getCells({ columnName: 'actions' }))
+      .then((cells) => cells[0].getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to expire an API Key"]' })));
   }
 
   private async btnIsVisible(text: string): Promise<boolean> {

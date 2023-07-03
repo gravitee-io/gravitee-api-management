@@ -1,0 +1,47 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+            http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form [formGroup]="form" *ngIf="form">
+  <h2 mat-dialog-title class="title">Change your API Key's expiration date</h2>
+
+  <mat-dialog-content class="expire-api-key__dialog-content">
+    <div class="expire-api-key__content">
+      <mat-form-field appearance="outline">
+        <mat-label>Choose a date</mat-label>
+        <div class="expire-api-key__datepicker">
+          <input matInput [min]="minDate" [matDatepicker]="picker" formControlName="expirationDate" />
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </div>
+        <mat-hint>MM/DD/YYYY</mat-hint>
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions class="actions">
+    <button mat-flat-button [mat-dialog-close]="undefined">Cancel</button>
+    <button
+      color="primary"
+      type="submit"
+      mat-raised-button
+      aria-label="Change expiration date of API Key"
+      (click)="onClose()"
+      [disabled]="form.invalid || form.pristine"
+    >
+      Change expiration date
+    </button>
+  </mat-dialog-actions>
+</form>
