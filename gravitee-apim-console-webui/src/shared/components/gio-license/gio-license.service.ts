@@ -53,6 +53,11 @@ const featureMoreInformationData = {
     description:
       "Dynamic Client Registration (DCR) Provider is part of Gravitee Enterprise. DCR enhances your API's security by seamlessly integrating OAuth 2.0 and OpenID Connect.",
   },
+  'apim-policy': {
+    image: 'assets/gio-ee-unlock-dialog/policies.png',
+    description:
+      'This policy is part of Gravitee Enterprise. Enterprise policies allows you to easily define and customise rules according to your evolving business needs.',
+  },
 };
 
 @Injectable({

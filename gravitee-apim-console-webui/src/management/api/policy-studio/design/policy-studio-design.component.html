@@ -35,6 +35,7 @@
   [documentation]="policyDocumentation"
   (:gv-design:change)="onChange($event)"
   (:gv-design:fetch-documentation)="fetchPolicyDocumentation($any($event).detail)"
+  (:gv-design:display-policy-cta)="displayPolicyCta($any($event).detail)"
   (:gv-design:select-flows)="onFlowSelectionChanged($any($event).detail)"
   (:gv-expression-language:ready)="fetchSpelGrammar($any($event).detail)"
 ></gv-design>

@@ -18,8 +18,10 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Location } from '@angular/common';
-
 import '@gravitee/ui-components/wc/gv-design';
+import { action } from '@storybook/addon-actions';
+import { MatDialog } from '@angular/material/dialog';
+
 import { PolicyStudioDesignService } from './policy-studio-design.service';
 import { ChangeDesignEvent } from './models/ChangeDesignEvent';
 
@@ -32,6 +34,11 @@ import { FlowSchema } from '../../../../entities/flow/flowSchema';
 import { Grammar } from '../../../../entities/spel/grammar';
 import { ApiDefinition } from '../models/ApiDefinition';
 import { PolicyStudioService } from '../policy-studio.service';
+import {
+  GioEeUnlockDialogComponent,
+  GioEeUnlockDialogData,
+} from '../../../../components/gio-ee-unlock-dialog/gio-ee-unlock-dialog.component';
+import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
 
 export interface UrlParams {
   path: string;
@@ -63,6 +70,8 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly policyStudioService: PolicyStudioService,
     private readonly policyStudioDesignService: PolicyStudioDesignService,
     private readonly permissionService: GioPermissionService,
+    private readonly matDialog: MatDialog,
+    private readonly licenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
@@ -106,6 +115,25 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
   public onFlowSelectionChanged({ flows }: { flows: string[] }): void {
     this.updateUrl({ ...this.parseUrl(), flowsIds: flows });
+  }
+
+  public displayPolicyCta() {
+    const featureMoreInformation = this.licenseService.getFeatureMoreInformation('apim-policy');
+    this.matDialog
+      .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
+        data: {
+          featureMoreInformation,
+        },
+        role: 'alertdialog',
+        id: 'gioLicenseDialog',
+      })
+      .afterClosed()
+      .pipe(
+        tap((confirmed) => {
+          action('confirmed?')(confirmed);
+        }),
+      )
+      .subscribe();
   }
 
   public fetchPolicyDocumentation({ policy }: { policy: { id: string; icon: string } }): void {
