@@ -342,6 +342,8 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         Assertions.assertEquals(2, apis.size());
         ApiV4 api = apis.get(0).getApiV4();
         Assertions.assertEquals("api-1", api.getId());
+        // Check no expands fields are set
+        Assertions.assertNull(api.getDeploymentState());
 
         // Check pagination
         Pagination pagination = apisResponse.getPagination();
@@ -358,5 +360,53 @@ public class ApisResource_GetApisTest extends AbstractResourceTest {
         assertNull(links.getPrevious());
         assertTrue(links.getNext().endsWith("/apis/?page=2&perPage=2"));
         assertTrue(links.getLast().endsWith("/apis/?page=21&perPage=2"));
+    }
+
+    @Test
+    public void should_list_api_with_all_expands_params() {
+        ApiEntity returnedApi1 = new ApiEntity();
+        returnedApi1.setId("api-1");
+        returnedApi1.setState(Lifecycle.State.STOPPED);
+        returnedApi1.setDefinitionVersion(DefinitionVersion.V4);
+
+        io.gravitee.rest.api.model.api.ApiEntity returnedApi2 = new io.gravitee.rest.api.model.api.ApiEntity();
+        returnedApi2.setId("api-2");
+        returnedApi2.setState(Lifecycle.State.STOPPED);
+        returnedApi2.setGraviteeDefinitionVersion("2.0.0");
+
+        var apiList = new ArrayList<GenericApiEntity>();
+        apiList.add(returnedApi1);
+        apiList.add(returnedApi2);
+
+        when(apiServiceV4.findAll(eq(GraviteeContext.getExecutionContext()), eq("UnitTests"), eq(true), eq(new PageableImpl(1, 2))))
+            .thenReturn(new Page<>(apiList, 1, 2, 42));
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi1))).thenReturn(true);
+
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi2))).thenReturn(false);
+
+        final Response response = rootTarget()
+            .queryParam(PaginationParam.PAGE_QUERY_PARAM_NAME, 1)
+            .queryParam(PaginationParam.PER_PAGE_QUERY_PARAM_NAME, 2)
+            .queryParam("expands", "deploymentState")
+            .request()
+            .get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        // Check Response content
+        final ApisResponse apisResponse = response.readEntity(ApisResponse.class);
+        assertNotNull(apisResponse.getData());
+        assertNotNull(apisResponse.getPagination());
+        assertNotNull(apisResponse.getLinks());
+
+        // Check apis
+        List<Api> apis = apisResponse.getData();
+        Assertions.assertEquals(2, apis.size());
+        ApiV4 api1 = apis.get(0).getApiV4();
+        Assertions.assertEquals("api-1", api1.getId());
+        Assertions.assertEquals(GenericApi.DeploymentStateEnum.DEPLOYED, api1.getDeploymentState());
+
+        ApiV2 api2 = apis.get(1).getApiV2();
+        Assertions.assertEquals("api-2", api2.getId());
+        Assertions.assertEquals(GenericApi.DeploymentStateEnum.NEED_REDEPLOY, api2.getDeploymentState());
     }
 }

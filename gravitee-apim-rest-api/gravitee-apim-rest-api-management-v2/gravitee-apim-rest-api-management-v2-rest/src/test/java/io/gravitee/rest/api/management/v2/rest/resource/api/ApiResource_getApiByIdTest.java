@@ -52,6 +52,7 @@ import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
+import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -78,6 +79,8 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
     public void should_get_api_V4() throws JsonProcessingException {
         doReturn(this.fakeApiEntityV4()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
 
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(false);
+
         final Response response = rootTarget(API).request().get();
 
         assertEquals(OK_200, response.getStatus());
@@ -86,6 +89,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
         assertNotNull(responseApi);
         assertEquals(API, responseApi.getName());
+        assertEquals(GenericApi.DeploymentStateEnum.NEED_REDEPLOY, responseApi.getDeploymentState());
         assertNotNull(responseApi.getLinks());
         assertNotNull(responseApi.getLinks().getPictureUrl());
         assertTrue(responseApi.getLinks().getPictureUrl().contains("environments/my-env/apis/my-api/picture"));

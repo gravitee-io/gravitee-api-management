@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
@@ -273,6 +274,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
         returnedApi.setName("My beautiful api");
         returnedApi.setApiVersion("v1");
         returnedApi.setDescription("my description");
+        returnedApi.setDefinitionVersion(DefinitionVersion.V4);
         returnedApi.setType(io.gravitee.definition.model.v4.ApiType.PROXY);
 
         var listener = new io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener();
@@ -294,6 +296,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
 
         when(apiServiceV4.create(eq(GraviteeContext.getExecutionContext()), Mockito.any(NewApiEntity.class), Mockito.eq(USER_NAME)))
             .thenReturn(returnedApi);
+        when(apiStateServiceV4.isSynchronized(eq(GraviteeContext.getExecutionContext()), eq(returnedApi))).thenReturn(true);
 
         final Response response = rootTarget().request().post(Entity.json(Json.encode(api)));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
@@ -301,6 +304,7 @@ public class ApisResource_CreateApiTest extends AbstractResourceTest {
 
         var body = response.readEntity(ApiV4.class);
         assertNotNull(body);
+        assertEquals(GenericApi.DeploymentStateEnum.DEPLOYED, body.getDeploymentState());
     }
 
     @Test

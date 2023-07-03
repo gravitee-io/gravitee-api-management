@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.*;
+import java.util.function.Function;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
@@ -48,31 +49,37 @@ public interface ApiMapper {
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
     // Api
-    default Api map(GenericApiEntity apiEntity, UriInfo uriInfo) {
+    default Api map(GenericApiEntity apiEntity, UriInfo uriInfo, Boolean isSynchronized) {
+        GenericApi.DeploymentStateEnum state = null;
+
+        if (isSynchronized != null) {
+            state = isSynchronized ? GenericApi.DeploymentStateEnum.DEPLOYED : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
+        }
+
         if (apiEntity == null) {
             return null;
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
-            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4((ApiEntity) apiEntity, uriInfo));
+            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4((ApiEntity) apiEntity, uriInfo, state));
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V2) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(
-                this.mapToV2((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo)
+                this.mapToV2((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo, state)
             );
         }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V1) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(
-                this.mapToV1((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo)
+                this.mapToV1((io.gravitee.rest.api.model.api.ApiEntity) apiEntity, uriInfo, state)
             );
         }
         return null;
     }
 
-    default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo) {
+    default List<Api> map(List<GenericApiEntity> apiEntities, UriInfo uriInfo, Function<GenericApiEntity, Boolean> isSynchronized) {
         var result = new ArrayList<Api>();
         apiEntities.forEach(api -> {
             try {
-                result.add(this.map(api, uriInfo));
+                result.add(this.map(api, uriInfo, isSynchronized.apply(api)));
             } catch (Exception e) {
                 // Ignore APIs throwing conversion issues in the list
                 // As v4 was out there in alpha version, we still want to build the list event if some APIs cannot be converted
@@ -84,13 +91,17 @@ public interface ApiMapper {
 
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
-    ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo);
+    ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
-    ApiV2 mapToV2(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
+    ApiV2 mapToV2(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
-    io.gravitee.rest.api.management.v2.rest.model.ApiV1 mapToV1(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo);
+    io.gravitee.rest.api.management.v2.rest.model.ApiV1 mapToV1(
+        io.gravitee.rest.api.model.api.ApiEntity apiEntity,
+        UriInfo uriInfo,
+        GenericApi.DeploymentStateEnum deploymentState
+    );
 
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "links", ignore = true)
