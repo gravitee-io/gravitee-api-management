@@ -52,6 +52,9 @@ data:
           {{- if .Values.gateway.ssl.keystore.kubernetes }}
           kubernetes: {{ .Values.gateway.ssl.keystore.kubernetes }}
           {{- end }}
+          {{- if hasKey .Values.gateway.ssl.keystore "watch" }}
+          watch: {{ .Values.gateway.ssl.keystore.watch }}
+          {{- end }}
         clientAuth: {{ .Values.gateway.ssl.clientAuth }}
         {{- if .Values.gateway.ssl.truststore }}
         truststore:
