@@ -8,7 +8,7 @@ tests:
     asserts:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.path
-          value: /_node/health?probes=api-sync
+          value: /_node/health?probes=sync-process
       - isEmpty:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket
 

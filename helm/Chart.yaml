@@ -24,3 +24,4 @@ annotations:
     - Add support for managed Service Account for each product
     - Remove old and unused `cache.type` from gateway config map
     - Fix resources missing in ui-deployment.yaml
+    - Change readinessProbe for the gateway to sync-process

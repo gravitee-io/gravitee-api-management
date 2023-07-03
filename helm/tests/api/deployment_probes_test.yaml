@@ -39,13 +39,13 @@ tests:
             enabled: false
           customReadinessProbe:
             httpGet:
-              path: /_node/health?probes=api-sync
+              path: /_node/health?probes=sync-process
               scheme: HTTP
               port: 18082
     asserts:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.path
-          value: /_node/health?probes=api-sync
+          value: /_node/health?probes=sync-process
       - isEmpty:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket
 
@@ -58,13 +58,13 @@ tests:
             enabled: false
           customLivenessProbe:
             httpGet:
-              path: /_node/health?probes=api-sync
+              path: /_node/health?probes=sync-process
               scheme: HTTP
               port: 18082
     asserts:
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.httpGet.path
-          value: /_node/health?probes=api-sync
+          value: /_node/health?probes=sync-process
       - isEmpty:
           path: spec.template.spec.containers[0].livenessProbe.tcpSocket
 
@@ -77,13 +77,13 @@ tests:
             enabled: false
           customStartupProbe:
             httpGet:
-              path: /_node/health?probes=api-sync
+              path: /_node/health?probes=sync-process
               scheme: HTTP
               port: 18082
     asserts:
       - equal:
           path: spec.template.spec.containers[0].startupProbe.httpGet.path
-          value: /_node/health?probes=api-sync
+          value: /_node/health?probes=sync-process
       - isEmpty:
           path: spec.template.spec.containers[0].startupProbe.tcpSocket
 
