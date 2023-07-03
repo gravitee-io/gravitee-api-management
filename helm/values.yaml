@@ -794,7 +794,7 @@ gateway:
       successThreshold: 1
       failureThreshold: 2
       httpGet:
-        path: /_node/health?probes=api-sync
+        path: /_node/health?probes=sync-process
         scheme: HTTP
         port: 18082
         httpHeaders:

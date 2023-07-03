@@ -194,7 +194,7 @@ tests:
                     httpHeaders:
                       - name: Authorization
                         value: Basic YWRtaW46YWRtaW5hZG1pbg==
-                    path: /_node/health?probes=api-sync
+                    path: /_node/health?probes=sync-process
                     port: 18082
                     scheme: HTTP
                   periodSeconds: 10
@@ -342,7 +342,7 @@ tests:
                     httpHeaders:
                       - name: Authorization
                         value: Basic YWRtaW46YWRtaW5hZG1pbg==
-                    path: /_node/health?probes=api-sync
+                    path: /_node/health?probes=sync-process
                     port: 18082
                     scheme: HTTP
                   periodSeconds: 10
@@ -444,7 +444,7 @@ tests:
                     httpHeaders:
                       - name: Authorization
                         value: Basic YWRtaW46YWRtaW5hZG1pbg==
-                    path: /_node/health?probes=api-sync
+                    path: /_node/health?probes=sync-process
                     port: 18082
                     scheme: HTTP
                   periodSeconds: 10
