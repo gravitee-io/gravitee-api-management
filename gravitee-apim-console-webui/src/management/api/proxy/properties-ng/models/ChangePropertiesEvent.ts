@@ -15,9 +15,10 @@
  */
 import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
 
-interface Property {
+export interface Property {
   key: string;
   value: string;
+  encryptable?: boolean;
   encrypted?: boolean;
   dynamic?: boolean;
 }

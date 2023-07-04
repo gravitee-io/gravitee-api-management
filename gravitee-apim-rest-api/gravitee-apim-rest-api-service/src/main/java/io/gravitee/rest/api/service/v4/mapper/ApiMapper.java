@@ -290,17 +290,12 @@ public class ApiMapper {
                     updateApiEntity
                         .getProperties()
                         .stream()
-                        .map(propertyEntity -> new Property(propertyEntity.getKey(), propertyEntity.getValue()))
+                        .map(propertyEntity ->
+                            new Property(propertyEntity.getKey(), propertyEntity.getValue(), propertyEntity.isEncrypted())
+                        )
                         .collect(Collectors.toList())
                 );
             }
-            apiDefinition.setProperties(
-                updateApiEntity
-                    .getProperties()
-                    .stream()
-                    .map(propertyEntity -> new Property(propertyEntity.getKey(), propertyEntity.getValue()))
-                    .collect(Collectors.toList())
-            );
             apiDefinition.setResources(updateApiEntity.getResources());
             apiDefinition.setFlowExecution(updateApiEntity.getFlowExecution());
             apiDefinition.setFlows(updateApiEntity.getFlows());
