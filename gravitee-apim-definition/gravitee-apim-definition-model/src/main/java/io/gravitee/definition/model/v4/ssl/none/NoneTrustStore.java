@@ -28,7 +28,7 @@ public class NoneTrustStore extends TrustStore {
 
     private static final long serialVersionUID = -6013813999148592319L;
 
-    public NoneTrustStore(TrustStoreType type) {
-        super(type);
+    public NoneTrustStore() {
+        super(TrustStoreType.NONE);
     }
 }
