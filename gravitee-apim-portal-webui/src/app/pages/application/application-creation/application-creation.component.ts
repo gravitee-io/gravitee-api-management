@@ -73,6 +73,9 @@ export class ApplicationCreationComponent implements OnInit {
     request: string;
     general_conditions_accepted?: boolean;
     general_conditions_content_revision?: string;
+    channel?: string;
+    entrypoint?: string;
+    entrypointConfiguration?: object;
   }[];
   apiKeyMode: ApiKeyModeEnum = ApiKeyModeEnum.UNSPECIFIED;
   apiKeyModeTitle: string;
@@ -190,7 +193,7 @@ export class ApplicationCreationComponent implements OnInit {
   hasValidClientId(plan) {
     if (
       this.isSimpleApp &&
-      (plan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 || plan.security.toUpperCase() === Plan.SecurityEnum.JWT)
+      (plan.security?.toUpperCase() === Plan.SecurityEnum.OAUTH2 || plan.security?.toUpperCase() === Plan.SecurityEnum.JWT)
     ) {
       const { settings } = this.applicationForm.getRawValue();
       if (settings.app) {
@@ -373,6 +376,11 @@ export class ApplicationCreationComponent implements OnInit {
             application: application.id,
             plan: subscription.plan.id,
             request: subscription.request,
+            configuration: {
+              channel: subscription.channel,
+              entrypointId: subscription.entrypoint,
+              entrypointConfiguration: subscription.entrypointConfiguration,
+            },
           };
 
           if (subscription.general_conditions_accepted) {

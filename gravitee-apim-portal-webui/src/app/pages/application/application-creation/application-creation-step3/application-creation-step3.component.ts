@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { TranslateService } from '@ngx-translate/core';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, map, takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
-import { Api, ApiService, ApisResponse, Page, Plan } from '../../../../../../projects/portal-webclient-sdk/src/lib';
+import {
+  Api,
+  ApiService,
+  ApisResponse,
+  Entrypoint,
+  EntrypointsService,
+  Page,
+  Plan,
+} from '../../../../../../projects/portal-webclient-sdk/src/lib';
 import { SearchRequestParams } from '../../../../utils/search-query-param.enum';
 
 @Component({
@@ -28,35 +37,37 @@ import { SearchRequestParams } from '../../../../utils/search-query-param.enum';
   templateUrl: './application-creation-step3.component.html',
   styleUrls: ['../application-creation.component.css'],
 })
-export class ApplicationCreationStep3Component implements OnInit {
+export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   @Output() updated = new EventEmitter<any[]>();
   @Input() subscribeList: any[];
   @Output() changeStep = new EventEmitter<{ step: number; fragment: string }>();
   // eslint-disable-next-line @typescript-eslint/ban-types
   @Input() hasValidClientId: Function;
-
   @ViewChild('searchApiAutocomplete') searchApiAutocomplete;
+
   planForm: FormGroup;
   apiList: { data: any; id: string; value: string }[];
   plans: Array<Plan>;
   selectedApi: Api;
   disabledPlans: number;
-
   generalConditions: Map<string, Page> = new Map();
-
   currentGeneralConditions: Page;
   _generalConditionsAccepted = false;
-
   subscriptionListOptions: any;
+  entrypointOptions: { label: string; value: string }[];
+  selectedEntrypointSchema: Record<string, unknown>;
 
   private updateStepsTimer: any;
+  private unsubscribe$ = new Subject();
+  private availableEntrypoints: Map<string, Entrypoint>;
 
   constructor(
-    private formBuilder: FormBuilder,
-    private apiService: ApiService,
-    private activatedRoute: ActivatedRoute,
-    private translateService: TranslateService,
-    private ref: ChangeDetectorRef,
+    private readonly formBuilder: FormBuilder,
+    private readonly apiService: ApiService,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly translateService: TranslateService,
+    private readonly ref: ChangeDetectorRef,
+    private readonly entrypointsService: EntrypointsService,
   ) {
     this.apiList = [];
     this.subscribeList = [];
@@ -73,6 +84,9 @@ export class ApplicationCreationStep3Component implements OnInit {
       apiId: new FormControl(null, [Validators.required]),
       planId: new FormControl(null, [Validators.required]),
       general_conditions_accepted: new FormControl(null),
+      channel: new FormControl(null),
+      entrypoint: new FormControl(null),
+      entrypointConfiguration: new FormControl(null),
     });
 
     this.planForm.valueChanges.pipe(distinctUntilChanged((prev, curr) => prev.planId === curr.planId)).subscribe(() => {
@@ -161,6 +175,13 @@ export class ApplicationCreationStep3Component implements OnInit {
           ],
         };
       });
+
+    this.loadEntrypoints();
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
   }
 
   onSearchApi({ detail }) {
@@ -260,6 +281,9 @@ export class ApplicationCreationStep3Component implements OnInit {
         plan: this.selectedPlan,
         requiredComment: this.requireComment(),
         request: '',
+        channel: this.planForm.value.channel,
+        entrypoint: this.planForm.value.entrypoint,
+        entrypointConfiguration: this.planForm.value.entrypointConfiguration,
       };
 
       if (this.hasGeneralConditions) {
@@ -280,5 +304,45 @@ export class ApplicationCreationStep3Component implements OnInit {
     this.subscribeList = this.subscribeList.filter(s => !(s.plan.id === plan.id));
     this.updated.emit(this.subscribeList);
     this.ref.detectChanges();
+  }
+
+  loadEntrypoints() {
+    this.entrypointsService
+      .getEntrypoints({ expand: ['icon', 'subscriptionSchema'] })
+      .pipe(
+        map(entrypointResponse => {
+          this.availableEntrypoints = new Map(
+            entrypointResponse
+              .filter(entrypoint => {
+                return entrypoint.supportedListenerType === Entrypoint.SupportedListenerTypeEnum.Subscription;
+              })
+              .map(entrypoint => [entrypoint.id, entrypoint]),
+          );
+
+          this.entrypointOptions = Array.from(this.availableEntrypoints.values()).map(entrypoint => {
+            return { label: entrypoint.name, value: entrypoint.id };
+          });
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+
+    this.planForm
+      .get('entrypoint')
+      .valueChanges.pipe(
+        tap(selectedEntrypoint => {
+          this.selectedEntrypointSchema = JSON.parse(this.availableEntrypoints.get(selectedEntrypoint)?.subscriptionSchema ?? '{}');
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  onSubscriptionConfigurationError($event) {
+    // Set error at the end of js task. Otherwise it will be reset on value change
+    setTimeout(() => {
+      this.planForm.get('entrypointConfiguration').setErrors($event.detail ? { error: true } : null);
+      // this.updateSteps();
+    }, 0);
   }
 }

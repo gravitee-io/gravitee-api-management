@@ -542,6 +542,12 @@
         "placeholder": "Nommez votre application"
       }
     },
+    "planSubscription": {
+      "title" : "Configurer votre souscription",
+      "channel": "Sélectionner le channel de souscription",
+      "entrypointId": "Sélectionner l'entrypoint",
+      "entrypointConfiguration": "Configurer l'entrypoint"
+    },
     "security": {
       "description": "Pour des raisons de sécurité, veuillez définir uniquement les types dont vous avez besoin.",
       "label": "Types de droits autorisés pour le client."

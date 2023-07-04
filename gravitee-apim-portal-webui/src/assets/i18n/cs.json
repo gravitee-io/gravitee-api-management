@@ -120,6 +120,12 @@
       "notCompleted": "Předplatné API <b>{apiName}</b> není dokončeno, vraťte se k předchozím krokům a zadejte chybějící informace.",
       "subscription": "Potvrďte požadavek",
       "title": "Validace"
+    },
+    "planSubscription": {
+      "title" : "Nakonfigurujte si předplatné",
+      "channel": "Vyberte kanál odběru",
+      "entrypointId": "Vyberte vstupní bod",
+      "entrypointConfiguration": "Nakonfigurujte vstupní bod"
     }
   },
   "application": {
@@ -535,6 +541,12 @@
         "label": "Název aplikace",
         "placeholder": "Pojmenujte svou aplikaci"
       }
+    },
+    "planSubscription": {
+      "title" : "Nakonfigurujte si předplatné",
+      "channel": "Vyberte kanál odběru",
+      "entrypointId": "Vyberte vstupní bod",
+      "entrypointConfiguration": "Nakonfigurujte vstupní bod"
     },
     "security": {
       "description": "Z bezpečnostních důvodů definujte pouze typy, které potřebujete.",
