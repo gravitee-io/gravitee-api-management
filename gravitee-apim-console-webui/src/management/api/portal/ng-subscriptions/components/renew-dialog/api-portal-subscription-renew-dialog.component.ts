@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, ChangeDetectorRef, Component, Inject, ViewChild } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { Component, Inject, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-
-import { ApiKeyValidationComponent } from '../api-key-validation/api-key-validation.component';
 
 export interface ApiPortalSubscriptionRenewDialogData {
   canUseCustomApiKey: boolean;
@@ -33,28 +31,24 @@ export interface ApiPortalSubscriptionRenewDialogResult {
   template: require('./api-portal-subscription-renew-dialog.component.html'),
   styles: [require('./api-portal-subscription-renew-dialog.component.scss')],
 })
-export class ApiPortalSubscriptionRenewDialogComponent implements AfterViewInit {
+export class ApiPortalSubscriptionRenewDialogComponent implements OnInit {
   data: ApiPortalSubscriptionRenewDialogData;
   form: FormGroup = new FormGroup({});
-  @ViewChild('ApiKeyInput') apiKeyValidationComponent: ApiKeyValidationComponent;
 
   constructor(
     private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionRenewDialogComponent, ApiPortalSubscriptionRenewDialogResult>,
     @Inject(MAT_DIALOG_DATA) dialogData: ApiPortalSubscriptionRenewDialogData,
-    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     this.data = dialogData;
   }
 
-  ngAfterViewInit() {
-    if (this.data.canUseCustomApiKey) {
-      this.form.addControl('apiKey', this.apiKeyValidationComponent.apiKey);
-      this.apiKeyValidationComponent.apiKey.setParent(this.form);
-    }
-    this.changeDetectorRef.detectChanges();
+  ngOnInit() {
+    this.form = new FormGroup({
+      apiKey: new FormControl(''),
+    });
   }
 
   onClose() {
-    this.dialogRef.close({ customApiKey: this.form.getRawValue().apiKey?.input });
+    this.dialogRef.close({ customApiKey: this.form.getRawValue().apiKey });
   }
 }

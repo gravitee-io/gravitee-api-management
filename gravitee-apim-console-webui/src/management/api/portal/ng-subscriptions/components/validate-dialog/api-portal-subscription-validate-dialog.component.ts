@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup } from '@angular/forms';
-
-import { ApiKeyValidationComponent } from '../api-key-validation/api-key-validation.component';
 
 export interface ApiPortalSubscriptionAcceptDialogData {
   apiId: string;
@@ -36,16 +34,14 @@ export interface ApiPortalSubscriptionAcceptDialogResult {
   template: require('./api-portal-subscription-validate-dialog.component.html'),
   styles: [require('./api-portal-subscription-validate-dialog.component.scss')],
 })
-export class ApiPortalSubscriptionValidateDialogComponent implements OnInit, AfterViewInit {
+export class ApiPortalSubscriptionValidateDialogComponent implements OnInit {
   data: ApiPortalSubscriptionAcceptDialogData;
   form: FormGroup = new FormGroup({});
   minDate: Date;
-  @ViewChild('ApiKeyInput') apiKeyValidationComponent: ApiKeyValidationComponent;
 
   constructor(
     private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionValidateDialogComponent, ApiPortalSubscriptionAcceptDialogResult>,
     @Inject(MAT_DIALOG_DATA) dialogData: ApiPortalSubscriptionAcceptDialogData,
-    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     this.data = dialogData;
   }
@@ -59,15 +55,8 @@ export class ApiPortalSubscriptionValidateDialogComponent implements OnInit, Aft
         end: new FormControl(undefined),
       }),
       message: new FormControl(''),
+      apiKey: new FormControl(''),
     });
-  }
-
-  ngAfterViewInit() {
-    if (this.data.canUseCustomApiKey && !this.data.sharedApiKeyMode) {
-      this.form.addControl('apiKey', this.apiKeyValidationComponent.apiKey);
-      this.apiKeyValidationComponent.apiKey.setParent(this.form);
-    }
-    this.changeDetectorRef.detectChanges();
   }
 
   onClose() {
@@ -75,7 +64,7 @@ export class ApiPortalSubscriptionValidateDialogComponent implements OnInit, Aft
       start: this.form.getRawValue().range.start,
       end: this.form.getRawValue().range.end,
       message: this.form.getRawValue().message,
-      customApiKey: this.form.getRawValue().apiKey?.input,
+      customApiKey: this.form.getRawValue().apiKey,
     });
   }
 }

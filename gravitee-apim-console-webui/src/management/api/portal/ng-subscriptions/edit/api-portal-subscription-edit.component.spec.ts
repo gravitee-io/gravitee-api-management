@@ -834,7 +834,7 @@ describe('ApiPortalSubscriptionEditComponent', () => {
       expect(await renewBtn.isDisabled()).toEqual(false);
 
       await renewBtn.click();
-      expectApiKeyRenew(SUBSCRIPTION_ID, undefined, fakeApiKey({ id: 'renewed-api-key' }));
+      expectApiKeyRenew(SUBSCRIPTION_ID, '', fakeApiKey({ id: 'renewed-api-key' }));
 
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApplicationGet(ApiKeyMode.EXCLUSIVE);
