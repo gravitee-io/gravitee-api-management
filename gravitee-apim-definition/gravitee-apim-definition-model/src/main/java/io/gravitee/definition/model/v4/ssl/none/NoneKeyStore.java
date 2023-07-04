@@ -28,7 +28,7 @@ public class NoneKeyStore extends KeyStore {
 
     private static final long serialVersionUID = -2540354913966457704L;
 
-    public NoneKeyStore(KeyStoreType type) {
-        super(type);
+    public NoneKeyStore() {
+        super(KeyStoreType.NONE);
     }
 }

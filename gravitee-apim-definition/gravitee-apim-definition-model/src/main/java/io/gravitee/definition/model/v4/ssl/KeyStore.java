@@ -15,7 +15,6 @@
  */
 package io.gravitee.definition.model.v4.ssl;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.v4.ssl.jks.JKSKeyStore;
@@ -30,13 +29,13 @@ import lombok.experimental.SuperBuilder;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", defaultImpl = NoneKeyStore.class)
 @JsonSubTypes(
     {
         @JsonSubTypes.Type(names = { "JKS", "jks" }, value = JKSKeyStore.class),
         @JsonSubTypes.Type(names = { "PEM", "pem" }, value = PEMKeyStore.class),
         @JsonSubTypes.Type(names = { "PKCS12", "pkcs12" }, value = PKCS12KeyStore.class),
-        @JsonSubTypes.Type(value = NoneKeyStore.class),
+        @JsonSubTypes.Type(names = { "NONE", "none" }, value = NoneKeyStore.class),
     }
 )
 @Getter
