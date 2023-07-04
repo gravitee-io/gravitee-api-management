@@ -236,7 +236,7 @@ export class ApplicationCreationStep3Component implements OnInit {
   private async loadPlans(api) {
     if (api) {
       const plans = await this.apiService.getApiPlansByApiId({ apiId: api.id, size: -1 }).toPromise();
-      this.plans = plans.data.filter(plan => plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS);
+      this.plans = plans.data.filter(plan => plan.security?.toUpperCase() !== Plan.SecurityEnum.KEYLESS);
       if (this.selectedPlan == null && this.plans.length > 0) {
         this.planForm.get('planId').setValue(this.plans[0].id);
       }
