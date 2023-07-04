@@ -26,7 +26,7 @@
         mat-flat-button
         color="primary"
         data-testid="open_api_in_api_management_button"
-        (click)="navigate('management.apis.detail.portal.general')"
+        (click)="navigate('management.apis.ng.general')"
       >
         Open my API in API Management
       </button>
@@ -38,14 +38,7 @@
           <h4>Policy configuration</h4>
           <div class="action__text__subtitle">Shape traffic reaching the gateway by configuring your policies with our flow editor</div>
         </div>
-        <button mat-stroked-button (click)="navigate('management.apis.detail.design.flowsNg.design')">Create policies</button>
-      </div>
-      <div class="action">
-        <div class="action__text">
-          <h4>Debug mode</h4>
-          <div class="action__text__subtitle">Debug your API flows during the Design phase and avoid common design errors</div>
-        </div>
-        <button mat-stroked-button (click)="navigate('management.apis.detail.design.flowsNg.debug')">Debug flows</button>
+        <button mat-stroked-button (click)="navigate('management.apis.ng.policyStudio')">Create policies</button>
       </div>
       <div class="action">
         <div class="action__text">
@@ -54,7 +47,7 @@
             Publish your API to the Developer Portal. From there, consumers can discover, learn about and use your API
           </div>
         </div>
-        <button mat-stroked-button (click)="navigate('management.apis.detail.portal.general')">Manage API visibility</button>
+        <button mat-stroked-button (click)="navigate('management.apis.ng.general')">Manage API visibility</button>
       </div>
       <div class="action">
         <div class="action__text">

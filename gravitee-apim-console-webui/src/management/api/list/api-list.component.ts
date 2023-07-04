@@ -56,6 +56,7 @@ export type ApisTableDS = {
   origin: OriginEnum;
   readonly: boolean;
   definitionVersion: { label: string; icon?: string };
+  targetRoute: string;
 }[];
 
 @Component({
@@ -134,7 +135,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
   }
 
   onEditActionClicked(api: ApisTableDS[number]) {
-    this.ajsState.go('management.apis.detail.portal.general', { apiId: api.id });
+    this.ajsState.go(api.targetRoute, { apiId: api.id });
   }
 
   onAddApiClick() {
@@ -184,6 +185,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
               contextPath: this.getContextPath(apiv4),
               isNotSynced$: undefined,
               qualityScore$: null,
+              targetRoute: 'management.apis.ng.general',
             };
           } else {
             const apiv2 = api as ApiV2;
@@ -194,6 +196,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
                 : null,
+              targetRoute: 'management.apis.detail.portal.general',
             };
           }
         })

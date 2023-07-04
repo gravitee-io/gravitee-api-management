@@ -55,15 +55,13 @@ function apisRouterConfig($stateProvider: StateProvider) {
           Constants: any,
           EnvironmentService: EnvironmentService,
         ) {
-          const deferred = $q.defer();
           return ngApiV2Service
             .get($stateParams.apiId)
             .toPromise()
             .then((api) => {
-              // If api is V4 redirect to new Angular routing
+              // Should not land here for API V4
               if (isApiV4(api)) {
-                $state.go('management.apis.ng.general', { apiId: $stateParams.apiId });
-                return deferred.reject();
+                throw new Error(`Illegal state: V4 API should never trigger navigation to this route ${$state.current}`);
               }
               return ApiService.get($stateParams.apiId).catch((err) => {
                 if (err && err.interceptorFuture) {
