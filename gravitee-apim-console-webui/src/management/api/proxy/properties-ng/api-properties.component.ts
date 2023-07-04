@@ -21,7 +21,7 @@ import '@gravitee/ui-components/wc/gv-properties';
 import { StateParams } from '@uirouter/angularjs';
 
 import { ApiPropertiesService } from './api-properties.service';
-import { ChangePropertiesEvent } from './models/ChangePropertiesEvent';
+import { ChangePropertiesEvent, Property } from './models/ChangePropertiesEvent';
 import { SaveProviderEvent } from './models/SaveProviderEvent';
 
 import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
@@ -49,6 +49,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   public providers: any;
 
   public dynamicPropertySchema: any;
+  public properties: Property[];
 
   constructor(
     private readonly apiService: ApiV2Service,
@@ -67,9 +68,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
       .pipe(
         tap(([api, providers, dynamicPropertySchema]) => {
           if (api.definitionVersion !== 'V1') {
-            this.api = api;
-            this.initialApi = this.api;
-            this.provider = this.api.services?.dynamicProperty;
+            this.initApiData(api);
             this.providers = providers;
             this.dynamicPropertySchema = dynamicPropertySchema;
             this.isReadonly = this.api.definitionContext.origin === 'KUBERNETES';
@@ -89,26 +88,16 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
   onChange($event: ChangePropertiesEvent) {
     this.isDirty = true;
-    this.api = {
-      ...this.api,
-      properties: $event.detail.properties,
-    };
+    this.properties = $event.detail.properties;
   }
 
   onSaveProvider($event: SaveProviderEvent) {
     this.isDirty = true;
-    const { provider } = $event.detail;
-    this.api = {
-      ...this.api,
-      services: {
-        ...this.api.services,
-        dynamicProperty: provider,
-      },
-    };
+    this.provider = $event.detail.provider;
   }
 
   onReset() {
-    this.api = this.initialApi;
+    this.initApiData(this.initialApi);
     this.isDirty = false;
   }
 
@@ -118,7 +107,14 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap((api) => {
           if (api.definitionVersion !== 'V1') {
-            const updateApi: UpdateApiV2 | UpdateApiV4 = { ...api, ...this.api };
+            const updateApi: UpdateApiV2 | UpdateApiV4 = {
+              ...api,
+              properties: this.properties,
+              services: {
+                ...this.api.services,
+                dynamicProperty: this.provider,
+              },
+            };
             return this.apiService.update(this.ajsStateParams.apiId, updateApi);
           } else {
             return EMPTY;
@@ -126,11 +122,18 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
         }),
         tap((api: ApiV2 | ApiV4) => {
           this.ajsRootScope.$broadcast('apiChangeSuccess', { api });
-          this.api = api;
+          this.initApiData(api);
           this.isDirty = false;
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private initApiData(api: ApiV2 | ApiV4) {
+    this.api = api;
+    this.properties = this.api.properties;
+    this.initialApi = this.api;
+    this.provider = this.api.services?.dynamicProperty;
   }
 }

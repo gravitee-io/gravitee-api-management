@@ -18,5 +18,6 @@ export interface Property {
   key: string;
   value: string;
   encrypted?: boolean;
+  encryptable?: boolean;
   dynamic?: boolean;
 }

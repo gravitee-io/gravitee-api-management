@@ -88,6 +88,8 @@ describe('ApiPropertiesComponent', () => {
             key: 'prop',
             value: 'val',
             dynamic: false,
+            encryptable: true,
+            encrypted: false,
           },
         ],
       },
@@ -115,6 +117,8 @@ describe('ApiPropertiesComponent', () => {
         key: 'prop',
         value: 'val',
         dynamic: false,
+        encrypted: false,
+        encryptable: true,
       },
     ]);
     expect(req.request.body.services.dynamicProperty).toEqual({
@@ -123,6 +127,44 @@ describe('ApiPropertiesComponent', () => {
       configuration: {},
       schedule: '0 */5 * * * *',
     });
+  });
+
+  it('should cancel changes when clicking on reset', async () => {
+    const api = fakeApiV4({ id: API_ID });
+    createComponent(api);
+    expect(component.api.properties).toEqual([]);
+
+    component.onChange({
+      detail: {
+        properties: [
+          {
+            key: 'prop',
+            value: 'val',
+            dynamic: false,
+            encryptable: true,
+            encrypted: false,
+          },
+        ],
+      },
+    });
+
+    component.onSaveProvider({
+      detail: {
+        provider: {
+          enabled: true,
+          provider: 'HTTP',
+          configuration: {},
+          schedule: '0 */5 * * * *',
+        },
+      },
+    });
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickReset();
+    fixture.detectChanges();
+
+    expect(component.provider).toEqual(api.services?.dynamicProperty);
+    expect(component.properties).toEqual(api.properties);
   });
 
   it('should disable field when origin is kubernetes', async () => {
