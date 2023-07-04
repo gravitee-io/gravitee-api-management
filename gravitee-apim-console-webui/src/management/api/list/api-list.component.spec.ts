@@ -33,8 +33,7 @@ import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../..
 import { User as DeprecatedUser } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
-import { fakePagedResult } from '../../../entities/management-api-v2/pagedResult';
-import { fakeApiV2, fakeApiV4, ApiLifecycleState, Api, StateEnum, OriginEnum } from '../../../entities/management-api-v2';
+import { fakePagedResult, fakeApiV2, fakeApiV4, ApiLifecycleState, Api, StateEnum, OriginEnum } from '../../../entities/management-api-v2';
 
 describe('ApisListComponent', () => {
   const fakeUiRouter = { go: jest.fn() };
@@ -287,11 +286,12 @@ describe('ApisListComponent', () => {
           origin: 'management' as OriginEnum,
           readonly: false,
           definitionVersion: { label: 'v2', icon: '' },
+          targetRoute: 'route',
         };
 
         apiListComponent.onEditActionClicked(api);
 
-        expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.portal.general', { apiId: api.id });
+        expect(routerSpy).toHaveBeenCalledWith('route', { apiId: api.id });
       });
     });
 
