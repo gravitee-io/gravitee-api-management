@@ -89,6 +89,11 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
 
+        // If no definition version or name, the api is being deleted. No need for more info in doc.
+        if (api.getDefinitionVersion() == null && api.getName() == null) {
+            return doc;
+        }
+
         if (api.getDefinitionVersion() != null) {
             doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
         }

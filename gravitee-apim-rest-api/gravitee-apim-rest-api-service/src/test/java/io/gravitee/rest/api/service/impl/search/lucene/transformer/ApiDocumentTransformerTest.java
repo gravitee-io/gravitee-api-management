@@ -69,6 +69,17 @@ public class ApiDocumentTransformerTest {
         assertThat(doc.get("id")).isEqualTo(api.getId());
     }
 
+    @Test
+    public void shouldTransformWithoutError_V4ApiOnDeleteMode() {
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId("api-uuid");
+        api.setDefinitionVersion(null);
+        api.setName(null);
+
+        Document doc = cut.transform(api);
+        assertThat(doc.get("id")).isEqualTo(api.getId());
+    }
+
     @NotNull
     private ApiEntity getApiEntity() {
         ApiEntity toTransform = new ApiEntity();
