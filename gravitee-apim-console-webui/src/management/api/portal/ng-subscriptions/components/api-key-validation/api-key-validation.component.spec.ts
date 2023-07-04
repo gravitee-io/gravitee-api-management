@@ -21,6 +21,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { ApiKeyValidationHarness } from './api-key-validation.harness';
 
@@ -33,12 +34,12 @@ const APP_ID = 'my-app-id';
 
 @Component({
   selector: 'test-component',
-  template: `<api-key-validation [apiId]="apiId" [applicationId]="applicationId" [required]="required"></api-key-validation>`,
+  template: `<api-key-validation [formControl]="apiKey" [apiId]="apiId" [applicationId]="applicationId"></api-key-validation>`,
 })
 class TestComponent {
   apiId: string = API_ID;
   applicationId: string = APP_ID;
-  required: boolean;
+  apiKey: FormControl = new FormControl('');
 }
 describe('ApiKeyValidationComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
@@ -47,7 +48,7 @@ describe('ApiKeyValidationComponent', () => {
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiPortalSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [ApiPortalSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ReactiveFormsModule],
       declarations: [TestComponent],
       providers: [
         {
@@ -59,6 +60,13 @@ describe('ApiKeyValidationComponent', () => {
         },
       ],
     }).compileComponents();
+
+    fixture = TestBed.createComponent(TestComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    fixture.detectChanges();
   };
 
   beforeEach(async () => {
@@ -70,47 +78,34 @@ describe('ApiKeyValidationComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should be invalid required but empty', async () => {
-    await initComponent(true);
-
-    const harness = await loader.getHarness(ApiKeyValidationHarness);
-    expect(await harness.getInputValue()).toEqual('');
-    expect(await harness.isRequired()).toEqual(true);
-    expect(await harness.isValid()).toEqual(false);
-  });
   it('should be invalid if less than 8 characters', async () => {
-    await initComponent(true);
-
     const harness = await loader.getHarness(ApiKeyValidationHarness);
     await harness.setInputValue('1234567');
 
-    expect(await harness.isRequired()).toEqual(true);
     expect(await harness.isValid()).toEqual(false);
+    expect(fixture.componentInstance.apiKey.touched).toEqual(true);
   });
   it('should be invalid if more than 64 characters', async () => {
-    await initComponent(true);
-
     const harness = await loader.getHarness(ApiKeyValidationHarness);
     await harness.setInputValue(
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
     );
 
-    expect(await harness.isRequired()).toEqual(true);
     expect(await harness.isValid()).toEqual(false);
+    expect(fixture.componentInstance.apiKey.touched).toEqual(true);
   });
   it('should be invalid if contains special characters', async () => {
-    await initComponent(false);
-
     const harness = await loader.getHarness(ApiKeyValidationHarness);
     await harness.setInputValue('12?34567');
 
     expect(await harness.isRequired()).toEqual(false);
     expect(await harness.isValid()).toEqual(false);
+    expect(fixture.componentInstance.apiKey.touched).toEqual(true);
   });
   it('should be invalid if API Key not unique', async () => {
-    await initComponent(false);
-
     const harness = await loader.getHarness(ApiKeyValidationHarness);
+    expect(fixture.componentInstance.apiKey.touched).toEqual(false);
+
     await harness.setInputValue('123456789');
 
     const httpMatches = httpTestingController.match({
@@ -128,18 +123,16 @@ describe('ApiKeyValidationComponent', () => {
 
     expect(await harness.isRequired()).toEqual(false);
     expect(await harness.isValid()).toEqual(false);
+    expect(fixture.componentInstance.apiKey.touched).toEqual(true);
   });
   it('should be valid if optional but empty', async () => {
-    await initComponent(false);
-
     const harness = await loader.getHarness(ApiKeyValidationHarness);
     expect(await harness.getInputValue()).toEqual('');
     expect(await harness.isRequired()).toEqual(false);
     expect(await harness.isValid()).toEqual(true);
+    expect(fixture.componentInstance.apiKey.touched).toEqual(false);
   });
   it('should be valid with a valid input', async () => {
-    await initComponent(true);
-
     const harness = await loader.getHarness(ApiKeyValidationHarness);
     await harness.setInputValue('12345678');
 
@@ -154,17 +147,7 @@ describe('ApiKeyValidationComponent', () => {
     expect(req.request.body).toEqual(verifySubscription);
     req.flush({ ok: true });
 
-    expect(await harness.isRequired()).toEqual(true);
     expect(await harness.isValid()).toEqual(true);
+    expect(fixture.componentInstance.apiKey.touched).toEqual(true);
   });
-
-  async function initComponent(required: boolean) {
-    fixture = TestBed.createComponent(TestComponent);
-    httpTestingController = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
-    fixture.componentInstance.required = required;
-
-    loader = TestbedHarnessEnvironment.loader(fixture);
-    fixture.detectChanges();
-  }
 });

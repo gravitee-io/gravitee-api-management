@@ -39,7 +39,7 @@
       </div>
       <div class="validate-subscription__content__row" *ngIf="data.canUseCustomApiKey && !data.sharedApiKeyMode">
         <div class="mat-body-1">This plan allows custom API keys. You can provide it here.</div>
-        <api-key-validation #ApiKeyInput [apiId]="data.apiId" [applicationId]="data.applicationId" [required]="false"></api-key-validation>
+        <api-key-validation formControlName="apiKey" [applicationId]="data.applicationId" [apiId]="data.apiId"></api-key-validation>
       </div>
     </div>
   </mat-dialog-content>
