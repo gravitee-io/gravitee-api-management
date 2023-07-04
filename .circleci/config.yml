@@ -2086,6 +2086,8 @@ workflows:
                   docker-image-name: apim-portal-ui
                   requires:
                       - Setup
+            - job-test-apim-charts:
+                  name: Helm Chart - Lint & Test
             - job-deploy-on-azure-cluster:
                   context: cicd-orchestrator
                   requires:
