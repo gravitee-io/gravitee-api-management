@@ -47,6 +47,39 @@
         <div *ngIf="selectedApi && plans && plans.length > 0" class="application-creation__subscription-form__plans">
           <gv-plans [plans]="plans" formControlName="planId" name="planId" size="2" ngDefaultControl></gv-plans>
 
+          <div *ngIf="selectedPlan?.mode === 'PUSH'">
+            <h3>{{ 'applicationCreation.planSubscription.title' | translate }}</h3>
+            <div class="form-control">
+              <gv-input
+                class="form__control"
+                formControlName="channel"
+                label="{{ 'applicationCreation.planSubscription.channel' | translate }}"
+                name="channel"
+                ngDefaultControl
+              ></gv-input>
+            </div>
+            <div class="form-control">
+              <gv-select
+                class="form__control"
+                formControlName="entrypoint"
+                label="{{ 'applicationCreation.planSubscription.entrypointId' | translate }}"
+                [options]="entrypointOptions"
+                name="entrypoint"
+                ngDefaultControl
+              ></gv-select>
+            </div>
+            <div class="form-control">
+              <gv-schema-form-group
+                [schema]="selectedEntrypointSchema"
+                (:gv-schema-form-group:error)="onSubscriptionConfigurationError($event)"
+                formControlName="entrypointConfiguration"
+                name="entrypointConfiguration"
+                validate="true"
+                ngDefaultControl
+              ></gv-schema-form-group>
+            </div>
+          </div>
+
           <div class="actions">
             <gv-button *ngIf="requireClientId" link (:gv-button:click)="goToStep2()">
               {{ 'applicationCreation.subscription.disabledPlans' | translate : { count: disabledPlans } }}

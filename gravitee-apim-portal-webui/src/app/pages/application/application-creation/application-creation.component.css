@@ -43,8 +43,7 @@
 .step-content {
   padding: 1rem 2rem;
   min-height: 490px;
-  max-height: 490px;
-  height: 490px;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }

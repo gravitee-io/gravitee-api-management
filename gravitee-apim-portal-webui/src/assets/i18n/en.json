@@ -542,6 +542,12 @@
         "placeholder": "Name your application"
       }
     },
+    "planSubscription": {
+      "title" : "Configure your subscription",
+      "channel": "Select the subscription channel",
+      "entrypointId": "Select an entrypoint",
+      "entrypointConfiguration": "Configure the entrypoint"
+    },
     "security": {
       "description": "For security reasons, please define only the types you need.",
       "label": "Types of rights authorized for the client."
