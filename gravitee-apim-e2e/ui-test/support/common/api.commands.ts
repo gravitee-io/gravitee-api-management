@@ -24,12 +24,11 @@ import {
   stopV4Api,
   deleteV4Api,
 } from '@commands/management/api-management-commands';
-import { closePlan, closeV4Plan, createPlan, listV4Plans, publishPlan } from '@commands/management/api-plan-management-commands';
+import { closePlan, createPlan, publishPlan } from '@commands/management/api-plan-management-commands';
 import { ApiImportFakers } from '@fakers/api-imports';
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { ApiImport, ImportSwaggerDescriptorEntity, ImportSwaggerDescriptorEntityType } from '@model/api-imports';
 import faker from '@faker-js/faker';
-import { ApiEntityV4 } from '../../../lib/management-webclient-sdk/src/lib/models';
 
 declare global {
   namespace Cypress {
@@ -55,16 +54,9 @@ Cypress.Commands.add('teardownApi', (api) => {
 Cypress.Commands.add('teardownV4Api', (apiId) => {
   cy.log(`----- Removing V4 API (${apiId}) -----`);
   cy.log(`Close all plans attached to that API`);
-  listV4Plans(ADMIN_USER, apiId).then((response) => {
-    // if (response.status !== 200) return response;
-    const plans: ApiEntityV4[] = response.body.data;
-    if (plans.length > 0) {
-      plans.forEach((plan) => closeV4Plan(ADMIN_USER, apiId, plan.id).ok());
-    }
-  });
   cy.log(`Stop API`);
   stopV4Api(ADMIN_USER, apiId);
-  deleteV4Api(ADMIN_USER, apiId).noContent();
+  deleteV4Api(ADMIN_USER, apiId, true).noContent();
 });
 
 Cypress.Commands.add('createAndStartApiFromSwagger', (swaggerImport: string, attributes?) => {
