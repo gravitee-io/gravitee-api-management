@@ -16,7 +16,7 @@
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
-import { takeUntil, map, switchMap, tap, catchError } from 'rxjs/operators';
+import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import {
   ConnectorInfo,
   Flow as PSFlow,
@@ -36,6 +36,8 @@ import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
 import { ResourceTypeService } from '../../../../shared/components/specific-json-schema-type/resource-type.service';
+import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
+import { UTMMedium } from '../../../../shared/components/gio-license/gio-license-utm';
 
 @Component({
   selector: 'api-v4-policy-studio-design',
@@ -54,9 +56,12 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   public policies: PSPolicy[];
   public isLoading = true;
 
+  public trialURL: string;
+
   public policySchemaFetcher: PolicySchemaFetcher = (policy) => this.policyV2Service.getSchema(policy.id);
 
   public policyDocumentationFetcher: PolicyDocumentationFetcher = (policy) => this.policyV2Service.getDocumentation(policy.id);
+
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
@@ -66,6 +71,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly policyV2Service: PolicyV2Service,
     private readonly resourceTypeService: ResourceTypeService,
+    private readonly gioLicenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
@@ -137,6 +143,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
         this.isLoading = false;
       });
+    this.trialURL = this.gioLicenseService.getTrialURL(UTMMedium.POLICY_STUDIO_V4);
   }
 
   ngOnDestroy() {

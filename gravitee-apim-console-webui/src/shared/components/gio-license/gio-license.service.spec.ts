@@ -19,6 +19,8 @@ import { switchMap, tap } from 'rxjs/operators';
 import { MatDialogModule } from '@angular/material/dialog';
 
 import { GioLicenseService } from './gio-license.service';
+import { Feature } from './gio-license-features';
+import { UTMMedium } from './gio-license-utm';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../testing';
 import { AjsRootScope } from '../../../ajs-upgraded-providers';
@@ -84,10 +86,15 @@ describe('GioLicenseService', () => {
   });
 
   it('should get feature more information', () => {
-    expect(gioLicenseService.getFeatureMoreInformation('apim-custom-roles')).not.toBeNull();
+    expect(gioLicenseService.getFeatureMoreInformation(Feature.APIM_CUSTOM_ROLES)).not.toBeNull();
   });
 
   it('should throw error when get more information with wrong feature', () => {
-    expect(() => gioLicenseService.getFeatureMoreInformation('bad')).toThrow();
+    expect(() => gioLicenseService.getFeatureMoreInformation('bad' as Feature)).toThrow();
+  });
+
+  it('should return trial URL from UTM medium', () => {
+    const expected = `${CONSTANTS_TESTING.trialBaseURL}?utm_source=oss_apim&utm_medium=feature_debugmode_v2&utm_campaign=oss_apim_to_ee_apim`;
+    expect(gioLicenseService.getTrialURL(UTMMedium.DEBUG_MODE)).toEqual(expected);
   });
 });

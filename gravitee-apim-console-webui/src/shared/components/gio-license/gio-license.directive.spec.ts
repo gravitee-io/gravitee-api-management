@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, Input } from '@angular/core';
 
 import { GioLicenseOptions } from './gio-license.directive';
 import { GioLicenseModule } from './gio-license.module';
+import { Feature } from './gio-license-features';
 
 import { GioHttpTestingModule } from '../../testing';
 import { GioLicenseTestingModule } from '../../testing/gio-license.testing.module';
@@ -46,7 +47,7 @@ describe('GioLicenseDirective', () => {
 
   describe('Override click & open dialog', () => {
     it('should override click if license not allowed', () => {
-      prepareTestLicenseComponent({ feature: 'apim-custom-roles' }, false);
+      prepareTestLicenseComponent({ feature: Feature.APIM_CUSTOM_ROLES }, false);
       const onClickSpy = jest.spyOn(component, 'onClick');
       fixture.detectChanges();
 
@@ -59,7 +60,7 @@ describe('GioLicenseDirective', () => {
 
   describe('Not override click & not open dialog', () => {
     it('should not override click if license is allowed', () => {
-      prepareTestLicenseComponent({ feature: 'apim-custom-roles' }, true);
+      prepareTestLicenseComponent({ feature: Feature.APIM_CUSTOM_ROLES }, true);
       const onClickSpy = jest.spyOn(component, 'onClick');
       fixture.detectChanges();
 

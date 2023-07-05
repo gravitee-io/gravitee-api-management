@@ -62,7 +62,7 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    const debugLicense = { feature: 'apim-debug-mode' };
+    const debugLicense = { feature: 'apim-debug-mode', utmMedium: 'feature_debugmode_v2' };
     const notAllowed$ = this.gioLicenseService.notAllowed(debugLicense.feature);
     this.policyStudioMenu.push({
       label: 'Debug',

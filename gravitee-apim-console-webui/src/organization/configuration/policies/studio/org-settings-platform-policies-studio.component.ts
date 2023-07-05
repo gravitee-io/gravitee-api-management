@@ -36,6 +36,7 @@ import {
   GioEeUnlockDialogComponent,
   GioEeUnlockDialogData,
 } from '../../../../components/gio-ee-unlock-dialog/gio-ee-unlock-dialog.component';
+import { Feature } from '../../../../shared/components/gio-license/gio-license-features';
 
 @Component({
   selector: 'org-settings-platform-policies-studio',
@@ -124,7 +125,7 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
   }
 
   displayPolicyCTA() {
-    const featureMoreInformation = this.licenseService.getFeatureMoreInformation('apim-policy');
+    const featureMoreInformation = this.licenseService.getFeatureMoreInformation(Feature.APIM_POLICY_V2);
     this.matDialog
       .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
         data: {

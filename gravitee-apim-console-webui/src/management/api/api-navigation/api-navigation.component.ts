@@ -27,6 +27,8 @@ import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
 import { GioLicenseOptions } from '../../../shared/components/gio-license/gio-license.directive';
 import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
+import { Feature } from '../../../shared/components/gio-license/gio-license-features';
+import { UTMMedium } from '../../../shared/components/gio-license/gio-license-utm';
 
 export interface MenuItem {
   targetRoute?: string;
@@ -359,7 +361,7 @@ export class ApiNavigationComponent implements OnInit {
   }
 
   private appendAuditGroup() {
-    const license = { feature: 'apim-audit-trail' };
+    const license = { feature: Feature.APIM_AUDIT_TRAIL, utmMedium: UTMMedium.AUDIT_TRAIL_API };
     const iconRight$ = this.gioLicenseService.notAllowed(license.feature).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
 
     const auditGroup: GroupItem = {

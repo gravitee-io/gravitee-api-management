@@ -74,7 +74,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   filteredEntrypointsTableDS: EntrypointTableDS;
   entrypointsTableUnpaginatedLength = 0;
   entrypointsTableDisplayedColumns: string[] = ['entrypoint', 'tags', 'actions'];
-  shardingTagsLicense = { feature: 'apim-sharding-tags' };
+  shardingTagsLicense = { feature: 'apim-sharding-tags', utmMedium: 'feature_sharding_tags' };
   hasShardingTagsLock$: Observable<boolean>;
 
   private unsubscribe$ = new Subject<boolean>();
