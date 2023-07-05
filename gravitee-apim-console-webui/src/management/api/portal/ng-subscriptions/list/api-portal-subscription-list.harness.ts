@@ -17,14 +17,20 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
 
 export class ApiPortalSubscriptionListHarness extends ComponentHarness {
   static hostSelector = 'api-portal-subscription-list';
 
   public getPlanSelectInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="planIds"]' }));
-  public getApplicationSelectInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="applicationIds"]' }));
+  public getApplicationSelectInput = this.locatorFor(GioFormTagsInputHarness);
   public getStatusSelectInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="statuses"]' }));
   public getApiKeyInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="apikey"]' }));
   public getCreateSubscriptionButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Create a subscription"]' }));
   public getResetFilterButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Reset filters"]' }));
+
+  public async getApplications(): Promise<string[]> {
+    const matSelectHarness = await this.getApplicationSelectInput();
+    return matSelectHarness.getTags();
+  }
 }

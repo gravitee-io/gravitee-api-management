@@ -31,7 +31,7 @@ export interface Application {
   status?: string;
   type?: string;
   picture_url?: string;
-  owner?: unknown;
+  owner?: any;
   settings?: unknown;
   disable_membership_notifications?: boolean;
   api_key_mode?: ApiKeyMode;
