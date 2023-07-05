@@ -16,7 +16,10 @@
 
 import { NgModule } from '@angular/core';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
-import { Transition } from '@uirouter/angularjs';
+import { Transition, TransitionService } from '@uirouter/angularjs';
+import * as angular from 'angular';
+import { switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 import { ApiListModule } from './list/api-list.module';
@@ -47,6 +50,36 @@ import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.c
 import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 
+const graviteeManagementModule = angular.module('gravitee-management');
+apiPermissionHook.$inject = ['$transitions', 'ngGioPermissionService'];
+function apiPermissionHook($transitions: TransitionService, gioPermissionService: GioPermissionService) {
+  $transitions.onBefore(
+    {
+      to: 'management.apis.ng.**',
+    },
+    (transition: Transition) => {
+      const stateService = transition.router.stateService;
+
+      return gioPermissionService
+        .loadApiPermissions(transition.params().apiId)
+        .pipe(
+          switchMap(() => {
+            const permissions = transition.$to().data?.apiPermissions?.only;
+            if (!permissions) {
+              return of(true);
+            }
+            if (gioPermissionService.hasAnyMatching(permissions)) {
+              return of(true);
+            }
+            return of(stateService.target('login'));
+          }),
+        )
+        .toPromise();
+    },
+    { priority: 11 },
+  );
+}
+graviteeManagementModule.run(apiPermissionHook);
 // New Angular routing
 const states: Ng2StateDeclaration[] = [
   {
@@ -67,13 +100,6 @@ const states: Ng2StateDeclaration[] = [
         token: 'currentApiIsSync',
         // TODO: Implement api sync check
         resolveFn: () => false,
-      },
-      // Load current API permissions for current user into permissionService
-      {
-        token: 'guard',
-        deps: [GioPermissionService, Transition],
-        resolveFn: (permissionService: GioPermissionService, transition: Transition) =>
-          permissionService.loadApiPermissions(transition.params().apiId).toPromise(),
       },
     ],
   },
@@ -101,10 +127,9 @@ const states: Ng2StateDeclaration[] = [
     data: {
       useAngularMaterial: true,
       docs: null,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-plan-r'],
-      // },
+      apiPermissions: {
+        only: ['api-plan-r'],
+      },
     },
     params: {
       status: {
@@ -127,6 +152,9 @@ const states: Ng2StateDeclaration[] = [
     data: {
       useAngularMaterial: true,
       docs: null,
+      apiPermissions: {
+        only: ['api-plan-c'],
+      },
     },
     params: {
       selectedPlanMenuItem: {
@@ -141,10 +169,9 @@ const states: Ng2StateDeclaration[] = [
     data: {
       useAngularMaterial: true,
       docs: null,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-plan-u'],
-      // },
+      apiPermissions: {
+        only: ['api-plan-u'],
+      },
     },
   },
   {
@@ -154,10 +181,9 @@ const states: Ng2StateDeclaration[] = [
     data: {
       useAngularMaterial: true,
       docs: null,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-plan-r'],
-      // },
+      apiPermissions: {
+        only: ['api-subscription-r'],
+      },
     },
     params: {
       status: {
@@ -195,10 +221,9 @@ const states: Ng2StateDeclaration[] = [
     data: {
       useAngularMaterial: true,
       docs: null,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-plan-r'],
-      // },
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
     },
   },
   {
@@ -208,10 +233,9 @@ const states: Ng2StateDeclaration[] = [
     data: {
       useAngularMaterial: true,
       docs: null,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-plan-r'],
-      // },
+      apiPermissions: {
+        only: ['api-definition-u'],
+      },
     },
   },
   {
@@ -221,10 +245,9 @@ const states: Ng2StateDeclaration[] = [
     data: {
       useAngularMaterial: true,
       docs: null,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-plan-r'],
-      // },
+      apiPermissions: {
+        only: ['api-subscription-r'],
+      },
     },
   },
   {
@@ -234,10 +257,9 @@ const states: Ng2StateDeclaration[] = [
     data: {
       useAngularMaterial: true,
       docs: null,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-plan-r'],
-      // },
+      apiPermissions: {
+        only: ['api-subscription-u'],
+      },
     },
   },
   {
@@ -246,10 +268,9 @@ const states: Ng2StateDeclaration[] = [
     component: ApiBackendServicesComponent,
     data: {
       useAngularMaterial: true,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-plan-r'],
-      // },
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
       docs: {
         page: 'management-api-proxy-endpoints',
       },
@@ -261,10 +282,9 @@ const states: Ng2StateDeclaration[] = [
     component: ApiEndpointComponent,
     data: {
       useAngularMaterial: true,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-plan-r'],
-      // },
+      apiPermissions: {
+        only: ['api-definition-u'],
+      },
       docs: {
         page: 'management-api-proxy-endpoints',
       },
@@ -276,10 +296,9 @@ const states: Ng2StateDeclaration[] = [
     component: ApiEndpointComponent,
     data: {
       useAngularMaterial: true,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-plan-r'],
-      // },
+      apiPermissions: {
+        only: ['api-definition-u'],
+      },
       docs: {
         page: 'management-api-proxy-endpoints',
       },
@@ -291,10 +310,9 @@ const states: Ng2StateDeclaration[] = [
     component: ApiPropertiesComponent,
     data: {
       useAngularMaterial: true,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-definition-r'],
-      // },
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
       docs: {
         page: 'management-api-policy-studio-properties',
       },
@@ -306,10 +324,9 @@ const states: Ng2StateDeclaration[] = [
     component: ApiResourcesComponent,
     data: {
       useAngularMaterial: true,
-      // TODO: Implement permissions
-      // perms: {
-      //   only: ['api-definition-r'],
-      // },
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
       docs: {
         page: 'management-api-policy-studio-resources',
       },

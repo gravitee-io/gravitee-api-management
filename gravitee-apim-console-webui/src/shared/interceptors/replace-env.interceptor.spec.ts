@@ -49,6 +49,17 @@ describe('ReplaceEnvInterceptor', () => {
     httpTestingController.expectOne(`https://test.com/${CONSTANTS_TESTING.org.currentEnv.id}/config`).flush(null);
   });
 
+  it('should replace with DEFAULT if current env is not set', (done) => {
+    const testUrl = 'https://test.com/{:envId}/config';
+    CONSTANTS_TESTING.org.currentEnv = undefined;
+
+    httpClient.get<unknown>(testUrl).subscribe(() => {
+      done();
+    });
+
+    httpTestingController.expectOne(`https://test.com/DEFAULT/config`).flush(null);
+  });
+
   it('should not replace {:envId} in url', (done) => {
     const testUrl = 'https://test.com/config';
 

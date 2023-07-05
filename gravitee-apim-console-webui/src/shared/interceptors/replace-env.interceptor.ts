@@ -28,7 +28,7 @@ export class ReplaceEnvInterceptor implements HttpInterceptor {
       return next.handle(req);
     }
     req = req.clone({
-      url: req.url.replace('{:envId}', this.constants.org.currentEnv.id),
+      url: req.url.replace('{:envId}', this.constants.org.currentEnv ? this.constants.org.currentEnv.id : 'DEFAULT'),
     });
 
     return next.handle(req);
