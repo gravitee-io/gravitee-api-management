@@ -764,7 +764,7 @@
                     <scope>runtime</scope>
                 </dependency>
                 <dependency>
-                    <groupId>io.gravitee.policy</groupId>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-wssecurity-authentication</artifactId>
                     <version>${gravitee-policy-wssecurity-authentication.version}</version>
                     <type>zip</type>
