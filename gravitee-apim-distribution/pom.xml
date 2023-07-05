@@ -757,7 +757,7 @@
                     <scope>runtime</scope>
                 </dependency>
                 <dependency>
-                    <groupId>io.gravitee.policy</groupId>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-geoip-filtering</artifactId>
                     <version>${gravitee-policy-geoip-filtering.version}</version>
                     <type>zip</type>
