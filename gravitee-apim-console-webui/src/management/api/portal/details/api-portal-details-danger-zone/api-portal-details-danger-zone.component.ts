@@ -32,6 +32,8 @@ import { Api, UpdateApi } from '../../../../../entities/management-api-v2';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
+import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
 
 @Component({
   selector: 'api-portal-details-danger-zone',
@@ -40,6 +42,7 @@ import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 })
 export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private hasLicense: boolean;
 
   @Input()
   public api: Api;
@@ -70,7 +73,13 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
     @Inject('Constants') private readonly constants: Constants,
+    private readonly licenseService: GioLicenseService,
+    private readonly licenseDialog: GioLicenseDialog,
   ) {}
+
+  ngOnInit(): void {
+    this.licenseService.hasLicense().then((hasLicense) => (this.hasLicense = hasLicense));
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {

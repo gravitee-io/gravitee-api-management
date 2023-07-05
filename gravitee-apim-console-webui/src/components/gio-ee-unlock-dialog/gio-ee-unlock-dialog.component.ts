@@ -17,6 +17,7 @@ import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 import { FeatureMoreInformation } from '../../entities/feature/FeatureMoreInformation';
+import { GioLicenseService } from '../../shared/components/gio-license/gio-license.service';
 
 export type GioEeUnlockDialogData = {
   featureMoreInformation: FeatureMoreInformation;
@@ -30,11 +31,17 @@ export type GioEeUnlockDialogData = {
 export class GioEeUnlockDialogComponent {
   public featureMoreInformation: FeatureMoreInformation;
 
-  constructor(private readonly dialogRef: MatDialogRef<GioEeUnlockDialogData>, @Inject(MAT_DIALOG_DATA) dialogData: GioEeUnlockDialogData) {
+  constructor(
+    private readonly dialogRef: MatDialogRef<GioEeUnlockDialogData>,
+    @Inject(MAT_DIALOG_DATA) dialogData: GioEeUnlockDialogData,
+    public readonly licenseService: GioLicenseService,
+  ) {
     this.featureMoreInformation = dialogData?.featureMoreInformation;
   }
 
   onClose() {
     this.dialogRef.close();
   }
+
+  protected readonly GioLicenseService = GioLicenseService;
 }

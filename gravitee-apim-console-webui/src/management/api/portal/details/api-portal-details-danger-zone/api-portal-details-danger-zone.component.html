@@ -35,6 +35,18 @@
         <button mat-button color="warn" [disabled]="isReadOnly" (click)="changeLifecycle('START')">Start the API</button>
       </div>
 
+      <div *ngIf="!hasLicense">
+        <gio-banner type="error" icon="gio:universe">
+          This action is only available for users with an enterprise license
+          <span gioBannerBody
+            >Request a license to upgrade your account and unlock publications of your API on the enterprise gateway.</span
+          >
+          <div gioBannerAction>
+            <button mat-raised-button color="basic" (click)="licenseDialog.displayUpgradeCta($event)">Request upgrade</button>
+          </div>
+        </gio-banner>
+      </div>
+
       <div *ngIf="dangerActions.canChangeApiLifecycle" class="danger-card__actions__action">
         <ng-container *ngIf="dangerActions.canPublish">
           <span> Publish the API. It will be available on portal (depending on visibility/rights). </span>

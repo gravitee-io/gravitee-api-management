@@ -16,4 +16,6 @@
 export type FeatureMoreInformation = {
   description?: string;
   image?: string;
+  title?: string;
+  utmTag?: string;
 };

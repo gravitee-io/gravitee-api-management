@@ -115,6 +115,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#reviewApiDialog' }));
     const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Ask for review' }));
     await confirmDialogSwitchButton.click();
+    expectLicenseGetRequest();
 
     httpTestingController
       .expectOne({
@@ -139,6 +140,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#lifecycleDialog' }));
     const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Start' }));
     await confirmDialogSwitchButton.click();
+    expectLicenseGetRequest();
 
     httpTestingController
       .expectOne({
@@ -163,6 +165,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#lifecycleDialog' }));
     const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Stop' }));
     await confirmDialogSwitchButton.click();
+    expectLicenseGetRequest();
 
     httpTestingController
       .expectOne({
@@ -187,6 +190,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#apiLifecycleDialog' }));
     const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
     await confirmDialogSwitchButton.click();
+    expectLicenseGetRequest();
 
     expectApiGetRequest(api);
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
@@ -209,6 +213,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#apiLifecycleDialog' }));
     const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Make Public' }));
     await confirmDialogSwitchButton.click();
+    expectLicenseGetRequest();
 
     expectApiGetRequest(api);
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
@@ -229,6 +234,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
 
     const button = await loader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
     await button.click();
+    expectLicenseGetRequest();
 
     const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
     await confirmDialog.confirm();
@@ -242,5 +248,9 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
+  }
+
+  function expectLicenseGetRequest() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush({ features: [] });
   }
 });

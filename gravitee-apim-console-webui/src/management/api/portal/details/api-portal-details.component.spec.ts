@@ -155,6 +155,7 @@ describe('ApiPortalDetailsComponent', () => {
 
       // Expect fetch api and update
       expectApiGetRequest(api);
+      expectLicenseGetRequest();
 
       // Wait image to be covert to base64
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -236,6 +237,7 @@ describe('ApiPortalDetailsComponent', () => {
 
       const emulateV4EngineInput = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="emulateV4Engine"]' }));
       expect(await emulateV4EngineInput.isDisabled()).toEqual(true);
+      expectLicenseGetRequest();
 
       await Promise.all(
         [/Import/, /Duplicate/, /Promote/].map(async (btnText) => {
@@ -273,6 +275,7 @@ describe('ApiPortalDetailsComponent', () => {
 
       const confirmButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Export' }));
       await confirmButton.click();
+      expectLicenseGetRequest();
 
       await expectExportGetRequest(API_ID);
     });
@@ -295,6 +298,7 @@ describe('ApiPortalDetailsComponent', () => {
       const contextPathInput = await confirmDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="contextPath"]' }));
       await contextPathInput.setValue('/duplicate');
       await expectVerifyContextPathGetRequest();
+      expectLicenseGetRequest();
 
       const versionInput = await confirmDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
       await versionInput.setValue('1.0.0');
@@ -368,6 +372,7 @@ describe('ApiPortalDetailsComponent', () => {
 
       // Expect fetch api and update
       expectApiGetRequest(api);
+      expectLicenseGetRequest();
 
       // Wait image to be covert to base64
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -445,6 +450,7 @@ describe('ApiPortalDetailsComponent', () => {
 
       const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
       expect(await categoriesInput.isDisabled()).toEqual(true);
+      expectLicenseGetRequest();
 
       await Promise.all(
         [/Import/, /Duplicate/, /Promote/].map(async (btnText) => {
@@ -475,6 +481,7 @@ describe('ApiPortalDetailsComponent', () => {
       await button.click();
 
       await waitImageCheck();
+      expectLicenseGetRequest();
 
       await expectExportV4GetRequest(API_ID);
     });
@@ -490,6 +497,7 @@ describe('ApiPortalDetailsComponent', () => {
       await waitImageCheck();
 
       const button = await loader.getHarness(MatButtonHarness.with({ text: /Duplicate/ }));
+      expectLicenseGetRequest();
       expect(await button.isDisabled()).toBeTruthy();
     });
   });
@@ -527,6 +535,10 @@ describe('ApiPortalDetailsComponent', () => {
       .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_export/definition`, method: 'GET' })
       .flush(new Blob(['a'], { type: 'text/json' }));
     fixture.detectChanges();
+  }
+
+  function expectLicenseGetRequest() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush({ features: [] });
   }
 });
 

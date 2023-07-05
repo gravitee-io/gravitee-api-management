@@ -81,6 +81,18 @@
             </gio-selection-list-option-layout-body>
           </gio-selection-list-option-layout>
         </div>
+        <div *ngIf="!hasLicense">
+          <gio-banner type="error" icon="gio:universe" class="license__banner">
+            This configuration requires an enterprise license
+            <span gioBannerBody
+              >Request a license to unlock enterprise functionality, such as support for event brokers, asynchronous APIS, and Webhook
+              subscriptions.</span
+            >
+            <div gioBannerAction>
+              <button mat-raised-button color="basic" (click)="licenseDialog.displayUpgradeCta($event)">Request upgrade</button>
+            </div>
+          </gio-banner>
+        </div>
       </mat-list-option>
     </mat-selection-list>
 
