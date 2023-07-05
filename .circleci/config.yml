@@ -1147,8 +1147,8 @@ jobs:
                       kubectl rollout restart deployment/${K8S_NAMESPACE}-ingress-gateway -n ${K8S_NAMESPACE}
                       # TODO: Handle CE environments
                       if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                        kubectl rollout restart deployment apim-apim-master-ce-apim-ce-api
-                        kubectl rollout restart deployment apim-apim-master-ce-apim-ce-ui
+                        kubectl rollout restart deployment apim-apim-master-ce-apim-ce-api -n apim-apim-master-ce
+                        kubectl rollout restart deployment apim-apim-master-ce-apim-ce-ui -n apim-apim-master-ce
                       fi
             - keeper/env-export:
                   secret-url: keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token
