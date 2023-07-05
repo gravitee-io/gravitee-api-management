@@ -15,21 +15,21 @@
  */
 package io.gravitee.apim.integration.tests.plan.jwt;
 
+import static io.gravitee.definition.model.ExecutionMode.V3;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
-import org.mockito.stubbing.OngoingStubbing;
-
 import java.util.Optional;
-
-import static io.gravitee.definition.model.ExecutionMode.V3;
-import static org.mockito.Mockito.when;
+import org.mockito.stubbing.OngoingStubbing;
 
 /**
  * @author GraviteeSource Team
  */
 @GatewayTest(v2ExecutionMode = V3)
 public class PlanJwtV3IntegrationTest extends PlanJwtV4EmulationIntegrationTest {
+
     /**
      * This overrides subscription search :
      * - in jupiter its searched with getByApiAndSecurityToken

@@ -13,14 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.plan.apikey;
+package io.gravitee.apim.integration.tests.plan.multiple;
 
 import static io.gravitee.definition.model.ExecutionMode.V3;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import org.junit.jupiter.api.Nested;
 
 /**
  * @author GraviteeSource Team
  */
-@GatewayTest(v2ExecutionMode = V3)
-public class PlanApiKeyV3IntegrationTest extends PlanApiKeyV4EmulationIntegrationTest {}
+public class PlanKeylessApiKeyV3IntegrationTest extends PlanKeylessApiKeyV4EmulationIntegrationTest {
+
+    @GatewayTest(v2ExecutionMode = V3)
+    @Nested
+    public class SelectApiKeyTest extends AbstractSelectApiKeyTest {}
+
+    @Nested
+    @GatewayTest(v2ExecutionMode = V3)
+    public class SelectKeylessTest extends AbstractSelectKeylessTest {}
+}
