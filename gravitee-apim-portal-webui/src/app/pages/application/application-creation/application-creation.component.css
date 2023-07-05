@@ -318,3 +318,8 @@ gv-switch {
   align-items: center;
   font-size: var(--gv-theme-font-size-m);
 }
+
+.form-control__chanel,
+.form-control__entrypoint {
+  width: 100%;
+}

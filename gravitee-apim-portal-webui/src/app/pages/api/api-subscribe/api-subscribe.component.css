@@ -187,3 +187,8 @@ aside {
   opacity: 0.7;
   transition: opacity 0.15s ease-in;
 }
+
+.form-control__chanel,
+.form-control__entrypoint {
+  width: 100%;
+}

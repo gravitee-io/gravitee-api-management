@@ -44,18 +44,18 @@
 
           <div *ngIf="isSubscription()">
             <h3>{{ 'apiSubscribe.planSubscription.title' | translate }}</h3>
-            <div class="form-control">
+            <div class="form-control form-control__chanel">
               <gv-input
-                class="form__control"
+                class="form__control form-control__chanel"
                 formControlName="channel"
                 label="{{ 'apiSubscribe.planSubscription.channel' | translate }}"
                 name="channel"
                 ngDefaultControl
               ></gv-input>
             </div>
-            <div class="form-control">
+            <div class="form-control form-control__entrypoint">
               <gv-select
-                class="form__control"
+                class="form__control form-control__entrypoint"
                 formControlName="entrypoint"
                 label="{{ 'apiSubscribe.planSubscription.entrypointId' | translate }}"
                 [options]="entrypointOptions"

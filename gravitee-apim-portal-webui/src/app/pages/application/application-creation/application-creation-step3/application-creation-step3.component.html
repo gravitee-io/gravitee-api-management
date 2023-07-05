@@ -49,18 +49,18 @@
 
           <div *ngIf="selectedPlan?.mode === 'PUSH'">
             <h3>{{ 'applicationCreation.planSubscription.title' | translate }}</h3>
-            <div class="form-control">
+            <div class="form-control form-control__chanel">
               <gv-input
-                class="form__control"
+                class="form__control form-control__chanel"
                 formControlName="channel"
                 label="{{ 'applicationCreation.planSubscription.channel' | translate }}"
                 name="channel"
                 ngDefaultControl
               ></gv-input>
             </div>
-            <div class="form-control">
+            <div class="form-control form-control__entrypoint">
               <gv-select
-                class="form__control"
+                class="form__control form-control__entrypoint"
                 formControlName="entrypoint"
                 label="{{ 'applicationCreation.planSubscription.entrypointId' | translate }}"
                 [options]="entrypointOptions"
