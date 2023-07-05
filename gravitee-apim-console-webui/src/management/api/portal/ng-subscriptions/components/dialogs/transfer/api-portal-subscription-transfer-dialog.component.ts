@@ -19,8 +19,8 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { map, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
-import { ApiPlanV2Service } from '../../../../../../services-ngx/api-plan-v2.service';
-import { PlanMode, PlanSecurityType } from '../../../../../../entities/management-api-v2';
+import { ApiPlanV2Service } from '../../../../../../../services-ngx/api-plan-v2.service';
+import { PlanMode, PlanSecurityType } from '../../../../../../../entities/management-api-v2';
 
 export interface ApiPortalSubscriptionTransferDialogData {
   apiId: string;

@@ -39,16 +39,16 @@ import {
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MatMomentDateModule } from '@angular/material-moment-adapter';
 
-import { ApiPortalSubscriptionCreationDialogComponent } from './components/creation-dialog/api-portal-subscription-creation-dialog.component';
-import { ApiPortalSubscriptionTransferDialogComponent } from './components/transfer-dialog/api-portal-subscription-transfer-dialog.component';
+import { ApiPortalSubscriptionCreationDialogComponent } from './components/dialogs/creation/api-portal-subscription-creation-dialog.component';
+import { ApiPortalSubscriptionTransferDialogComponent } from './components/dialogs/transfer/api-portal-subscription-transfer-dialog.component';
 import { ApiPortalSubscriptionEditComponent } from './edit/api-portal-subscription-edit.component';
 import { ApiPortalSubscriptionListComponent } from './list/api-portal-subscription-list.component';
-import { ApiPortalSubscriptionChangeEndDateDialogComponent } from './components/change-end-date-dialog/api-portal-subscription-change-end-date-dialog.component';
-import { ApiPortalSubscriptionValidateDialogComponent } from './components/validate-dialog/api-portal-subscription-validate-dialog.component';
+import { ApiPortalSubscriptionChangeEndDateDialogComponent } from './components/dialogs/change-end-date/api-portal-subscription-change-end-date-dialog.component';
+import { ApiPortalSubscriptionValidateDialogComponent } from './components/dialogs/validate/api-portal-subscription-validate-dialog.component';
 import { ApiKeyValidationComponent } from './components/api-key-validation/api-key-validation.component';
-import { ApiPortalSubscriptionRejectDialogComponent } from './components/reject-dialog/api-portal-subscription-reject-dialog.component';
-import { ApiPortalSubscriptionRenewDialogComponent } from './components/renew-dialog/api-portal-subscription-renew-dialog.component';
-import { ApiPortalSubscriptionExpireApiKeyDialogComponent } from './components/expire-api-key-dialog/api-portal-subscription-expire-api-key-dialog.component';
+import { ApiPortalSubscriptionRejectDialogComponent } from './components/dialogs/reject/api-portal-subscription-reject-dialog.component';
+import { ApiPortalSubscriptionRenewDialogComponent } from './components/dialogs/renew/api-portal-subscription-renew-dialog.component';
+import { ApiPortalSubscriptionExpireApiKeyDialogComponent } from './components/dialogs/expire-api-key/api-portal-subscription-expire-api-key-dialog.component';
 
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';

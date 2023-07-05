@@ -34,8 +34,8 @@ import {
   ApiPortalSubscriptionCreationDialogResult,
 } from './api-portal-subscription-creation-dialog.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
-import { ApiPortalSubscriptionsModule } from '../../api-portal-subscriptions.module';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../../shared/testing';
+import { ApiPortalSubscriptionsModule } from '../../../api-portal-subscriptions.module';
 import {
   ConnectorPlugin,
   CreateSubscription,
@@ -44,10 +44,10 @@ import {
   fakeApiV4,
   fakePlanV4,
   Plan,
-} from '../../../../../../entities/management-api-v2';
-import { Application } from '../../../../../../entities/application/application';
-import { PagedResult } from '../../../../../../entities/pagedResult';
-import { fakeApplication } from '../../../../../../entities/application/Application.fixture';
+} from '../../../../../../../entities/management-api-v2';
+import { Application } from '../../../../../../../entities/application/application';
+import { PagedResult } from '../../../../../../../entities/pagedResult';
+import { fakeApplication } from '../../../../../../../entities/application/Application.fixture';
 
 @Component({
   selector: 'gio-dialog-test',

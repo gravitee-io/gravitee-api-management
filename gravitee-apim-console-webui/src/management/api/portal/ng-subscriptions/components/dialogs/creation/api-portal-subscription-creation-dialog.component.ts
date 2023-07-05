@@ -22,13 +22,13 @@ import { debounceTime, distinctUntilChanged, filter, map, share, switchMap, take
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { has } from 'lodash';
 
-import { CreateSubscription, Entrypoint, Plan } from '../../../../../../entities/management-api-v2';
-import { ApplicationService } from '../../../../../../services-ngx/application.service';
-import { Application } from '../../../../../../entities/application/application';
-import { PagedResult } from '../../../../../../entities/pagedResult';
-import { Constants } from '../../../../../../entities/Constants';
-import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
-import { IconService } from '../../../../../../services-ngx/icon.service';
+import { CreateSubscription, Entrypoint, Plan } from '../../../../../../../entities/management-api-v2';
+import { ApplicationService } from '../../../../../../../services-ngx/application.service';
+import { Application } from '../../../../../../../entities/application/application';
+import { PagedResult } from '../../../../../../../entities/pagedResult';
+import { Constants } from '../../../../../../../entities/Constants';
+import { ConnectorPluginsV2Service } from '../../../../../../../services-ngx/connector-plugins-v2.service';
+import { IconService } from '../../../../../../../services-ngx/icon.service';
 
 export type ApiPortalSubscriptionCreationDialogData = {
   availableSubscriptionEntrypoints?: Entrypoint[];

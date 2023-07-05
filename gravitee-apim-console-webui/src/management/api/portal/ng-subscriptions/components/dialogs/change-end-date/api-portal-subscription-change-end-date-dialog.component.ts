@@ -17,7 +17,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { PlanSecurityType } from '../../../../../../entities/management-api-v2';
+import { PlanSecurityType } from '../../../../../../../entities/management-api-v2';
 
 export interface ApiPortalSubscriptionChangeEndDateDialogData {
   applicationName: string;

@@ -15,19 +15,19 @@
     limitations under the License.
 
 -->
-<h2 matDialogTitle>Renew your API Key</h2>
-<form [formGroup]="form">
-  <mat-dialog-content class="renew__content">
-    <div class="mat-body-1">Your previous API Key will be no longer valid in 2 hours!</div>
-    <div *ngIf="data.canUseCustomApiKey" class="renew__content__custom-api-key">
-      <div class="mat-body-1">You can provide a custom API key here</div>
-      <api-key-validation formControlName="apiKey" [applicationId]="data.applicationId" [apiId]="data.apiId"></api-key-validation>
+<h2 matDialogTitle>Reject your subscription</h2>
+
+<form [formGroup]="form" (ngSubmit)="onClose()">
+  <mat-dialog-content class="reject-subscription__content">
+    <div class="mat-body-1">Explain the reason for the rejection</div>
+    <div class="reject-subscription__reason">
+      <mat-form-field appearance="outline" class="reject-subscription__reason__input">
+        <input matInput formControlName="reason" />
+      </mat-form-field>
     </div>
   </mat-dialog-content>
   <mat-dialog-actions class="actions">
-    <button mat-flat-button [mat-dialog-close]="undefined">Cancel</button>
-    <button color="primary" type="submit" mat-raised-button aria-label="Renew API Key" (click)="onClose()" [disabled]="form.invalid">
-      Renew
-    </button>
+    <button mat-flat-button type="button" [mat-dialog-close]="undefined">Cancel</button>
+    <button color="primary" type="submit" mat-raised-button aria-label="Reject the subscription" [disabled]="form.invalid">Reject</button>
   </mat-dialog-actions>
 </form>
