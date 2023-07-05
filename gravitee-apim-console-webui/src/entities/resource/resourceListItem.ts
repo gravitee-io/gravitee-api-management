@@ -20,4 +20,5 @@ export interface ResourceListItem {
   version: string;
   schema: string;
   icon: string;
+  feature?: string;
 }

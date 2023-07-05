@@ -19,6 +19,8 @@ import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-resources';
 import { StateParams } from '@uirouter/angularjs';
+import { action } from '@storybook/addon-actions';
+import { MatDialog } from '@angular/material/dialog';
 
 import { ApiResourcesService } from './api-resources.service';
 
@@ -27,6 +29,11 @@ import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-prov
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
+import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
+import {
+  GioEeUnlockDialogComponent,
+  GioEeUnlockDialogData,
+} from '../../../../components/gio-ee-unlock-dialog/gio-ee-unlock-dialog.component';
 
 @Component({
   selector: 'api-resources',
@@ -48,6 +55,8 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly apiResourcesService: ApiResourcesService,
     private readonly permissionService: GioPermissionService,
+    private readonly gioLicenseService: GioLicenseService,
+    private readonly matDialog: MatDialog,
     @Inject(UIRouterStateParams) private readonly ajsStateParams: StateParams,
     @Inject(AjsRootScope) readonly ajsRootScope,
   ) {}
@@ -81,6 +90,29 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
   onChange($event: any) {
     this.api.resources = $event.detail.resources;
     this.isDirty = true;
+  }
+
+  onDisplayResourceCTA({ detail: event }: CustomEvent) {
+    const resourceId = event.detail.id;
+    const featureName = this.resourceTypes.find((resourceType) => resourceType.id === resourceId).feature;
+    const featureMoreInformation = this.gioLicenseService.getFeatureMoreInformation(featureName);
+    this.matDialog
+      .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
+        data: {
+          featureMoreInformation,
+        },
+        role: 'alertdialog',
+        id: 'dialog',
+      })
+      .afterClosed()
+      .pipe(
+        tap((confirmed) => {
+          action('confirmed?')(confirmed);
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+
+      .subscribe();
   }
 
   onReset() {
