@@ -249,7 +249,7 @@
         <!-- <gravitee-service-geoip.version>1.1.0</gravitee-service-geoip.version>-->
 
         <!-- Enterprise plugins -->
-        <gravitee-policy-assign-metrics.version>3.0.0</gravitee-policy-assign-metrics.version>
+        <gravitee-policy-assign-metrics.version>3.0.0-alpha.1</gravitee-policy-assign-metrics.version>
         <gravitee-policy-transform-avro-json.version>1.2.0-alpha.3</gravitee-policy-transform-avro-json.version>
         <gravitee-policy-data-logging-masking.version>3.0.0</gravitee-policy-data-logging-masking.version>
         <gravitee-policy-interrupt.version>1.1.0</gravitee-policy-interrupt.version>
