@@ -299,7 +299,7 @@ elasticsearch:
   fullnameOverride: "graviteeio-apim-elasticsearch"
   image:
     repository: "bitnami/elasticsearch"
-    tag: "7.17.10"
+    tag: "8.8.2"
   master:
     replicas: 2
     persistence:

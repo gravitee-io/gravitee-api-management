@@ -25,3 +25,4 @@ annotations:
     - Remove old and unused `cache.type` from gateway config map
     - Fix resources missing in ui-deployment.yaml
     - Change readinessProbe for the gateway to sync-process
+    - Update Elasticsearch version
