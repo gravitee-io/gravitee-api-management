@@ -445,7 +445,7 @@ public class ApiService_UpdateTest {
         final Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new Endpoint("endpointName", null);
+        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         updateApiEntity.setProxy(proxy);
@@ -551,7 +551,7 @@ public class ApiService_UpdateTest {
         final Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new Endpoint("endpointName", null);
+        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         updateApiEntity.setProxy(proxy);
@@ -625,7 +625,7 @@ public class ApiService_UpdateTest {
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new Endpoint("EndpointName", null);
+        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         updateApiEntity.setProxy(proxy);
@@ -649,7 +649,7 @@ public class ApiService_UpdateTest {
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new Endpoint("endpointName", null);
+        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         updateApiEntity.setProxy(proxy);
@@ -771,7 +771,7 @@ public class ApiService_UpdateTest {
         updateApiEntity.setTags(singleton("private"));
         final Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new Endpoint("default", null);
+        Endpoint endpoint = Endpoint.builder().name("default").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         updateApiEntity.setProxy(proxy);
@@ -790,7 +790,7 @@ public class ApiService_UpdateTest {
         updateApiEntity.setTags(singleton("private"));
         final Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new Endpoint("default", null);
+        Endpoint endpoint = Endpoint.builder().name("default").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         updateApiEntity.setProxy(proxy);
@@ -814,7 +814,7 @@ public class ApiService_UpdateTest {
 
         final Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new Endpoint("default", null);
+        Endpoint endpoint = Endpoint.builder().name("default").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));

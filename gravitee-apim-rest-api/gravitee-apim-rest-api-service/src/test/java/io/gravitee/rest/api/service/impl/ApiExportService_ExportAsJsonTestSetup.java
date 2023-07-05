@@ -172,7 +172,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         proxy.setLogging(logging);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
-        Endpoint endpoint = new Endpoint("default", "http://test");
+        Endpoint endpoint = Endpoint.builder().name("default").target("http://test").build();
         endpointGroup.setEndpoints(Collections.singleton(endpoint));
         LoadBalancer loadBalancer = new LoadBalancer();
         loadBalancer.setType(LoadBalancerType.ROUND_ROBIN);
