@@ -16,15 +16,16 @@
 package io.gravitee.rest.api.model.platform.plugin;
 
 import java.util.Objects;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@SuperBuilder
 public class PlatformPluginEntity {
 
     /**

@@ -656,6 +656,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         public NodeLicenseService nodeLicenseService() {
             return mock(NodeLicenseService.class);
         }
+
+        @Bean
+        public ResourceService resourceService() {
+            return mock(ResourceService.class);
+        }
     }
 
     @Priority(50)
