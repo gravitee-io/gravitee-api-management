@@ -16,6 +16,7 @@
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { switchMap, tap } from 'rxjs/operators';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { GioLicenseService } from './gio-license.service';
 
@@ -30,7 +31,7 @@ describe('GioLicenseService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioHttpTestingModule, MatDialogModule],
       providers: [{ provide: AjsRootScope, useValue: fakeRootScope }],
     });
 

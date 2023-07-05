@@ -21,6 +21,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { omit } from 'lodash';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
 import { toApiDefinition } from './models/ApiDefinition';
@@ -47,7 +48,15 @@ describe('GioPolicyStudioLayoutComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [GioPolicyStudioLayoutComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatSnackBarModule, MatTabsModule, GioSaveBarModule, GioUiRouterTestingModule],
+      imports: [
+        NoopAnimationsModule,
+        GioHttpTestingModule,
+        MatSnackBarModule,
+        MatTabsModule,
+        GioSaveBarModule,
+        GioUiRouterTestingModule,
+        MatDialogModule,
+      ],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: api.id } },
         {

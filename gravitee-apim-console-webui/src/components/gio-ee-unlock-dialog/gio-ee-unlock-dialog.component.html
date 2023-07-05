@@ -23,13 +23,27 @@
 </div>
 
 <mat-dialog-content class="gio-ee-unlock-dialog__content">
-  <img class="gio-ee-unlock-dialog__content__image" [src]="featureMoreInformation.image" [alt]="'Unlock Gravitee Enterprise'" />
-  <h2 class="gio-ee-unlock-dialog__content__title">Unlock Gravitee Enterprise</h2>
+  <img
+    class="gio-ee-unlock-dialog__content__image"
+    [src]="featureMoreInformation.image"
+    [alt]="featureMoreInformation.title || 'Unlock Gravitee Enterprise'"
+  />
+  <h2
+    class="gio-ee-unlock-dialog__content__title"
+    [innerHTML]="featureMoreInformation.title || 'Unlock Gravitee Enterprise' | safe : 'html'"
+  ></h2>
   <div class="gio-ee-unlock-dialog__content__description" [innerHTML]="featureMoreInformation.description | safe : 'html'"></div>
   <div class="gio-ee-unlock-dialog__content__action">
-    <button class="gio-ee-unlock-dialog__content__action__button" mat-button mat-stroked-button color="accent">
-      Request an enterprise license
-    </button>
+    <a
+      class="gio-ee-unlock-dialog__content__action__button"
+      mat-button
+      mat-stroked-button
+      color="accent"
+      target="_blank"
+      [href]="licenseService.ctaLinkPrefix + featureMoreInformation.utmTag"
+    >
+      Request an enterprise license <mat-icon svgIcon="gio:external-link"></mat-icon>
+    </a>
     <div class="gio-ee-unlock-dialog__content__action__info">14 days trial</div>
   </div>
 </mat-dialog-content>

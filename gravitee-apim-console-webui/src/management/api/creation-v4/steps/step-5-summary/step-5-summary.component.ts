@@ -18,6 +18,8 @@ import { Component, OnInit } from '@angular/core';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
+import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
+import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
 
 @Component({
   selector: 'step-5-summary',
@@ -31,8 +33,13 @@ export class Step5SummaryComponent implements OnInit {
   entrypointsDeployable: boolean;
   endpointsDeployable: boolean;
   deployable: boolean;
+  private hasLicense: boolean;
 
-  constructor(private readonly stepService: ApiCreationStepService) {}
+  constructor(
+    private readonly stepService: ApiCreationStepService,
+    private readonly licenseService: GioLicenseService,
+    private readonly licenseDialog: GioLicenseDialog,
+  ) {}
 
   ngOnInit(): void {
     this.currentStepPayload = this.stepService.payload;
@@ -48,6 +55,8 @@ export class Step5SummaryComponent implements OnInit {
     this.deployable =
       this.currentStepPayload.selectedEndpoints.every(({ deployed }) => deployed) &&
       this.currentStepPayload.selectedEntrypoints.every(({ deployed }) => deployed);
+
+    this.licenseService.hasLicense().then((hasLicense) => (this.hasLicense = hasLicense));
   }
 
   createApi(deploy: boolean) {

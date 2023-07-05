@@ -37,3 +37,7 @@ $typography: map.get(gio.$mat-theme, typography);
     margin: 0;
   }
 }
+
+.license__banner {
+  padding: 20px 0 0 40px;
+}
