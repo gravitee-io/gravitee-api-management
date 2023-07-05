@@ -45,6 +45,7 @@ export function setupAngularJsTesting() {
     angular.mock.module('gravitee-management');
     // `downgradeInjectable` Does not seem to work with the current test configuration. Waiting for the angular migration to have a less hybrid config than now.
     angular.module('gravitee-management').factory('ngGioPendoService', [() => ({})]);
+    angular.module('gravitee-management').factory('ngGioPermissionService', [() => ({})]);
     angular.module('gravitee-management').factory('ngIfMatchEtagInterceptor', [
       () => ({
         getLastEtag(key) {

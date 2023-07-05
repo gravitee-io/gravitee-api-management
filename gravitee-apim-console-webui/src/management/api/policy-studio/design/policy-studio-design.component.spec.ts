@@ -21,10 +21,10 @@ import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 
 import { PolicyStudioDesignComponent } from './policy-studio-design.component';
+import { PolicyStudioDesignModule } from './policy-studio-design.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
-import { ManagementModule } from '../../../management.module';
 import { fakeApi } from '../../../../entities/api/Api.fixture';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
 import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
@@ -61,7 +61,7 @@ describe('PolicyStudioDesignComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ManagementModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioDesignModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: api.id } },
         {

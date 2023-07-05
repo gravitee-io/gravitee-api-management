@@ -512,6 +512,7 @@ import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { ApiBackendServicesComponent } from './api/endpoints-v4/backend-services/api-backend-services.component';
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
 import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
+import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -785,6 +786,8 @@ graviteeManagementModule.service('FlowService', FlowService);
 graviteeManagementModule.service('SpelService', SpelService);
 graviteeManagementModule.service('ConnectorService', ConnectorService);
 graviteeManagementModule.factory('ngApiV2Service', downgradeInjectable(ApiV2Service));
+graviteeManagementModule.factory('ngGioPermissionService', downgradeInjectable(GioPermissionService));
+
 graviteeManagementModule.controller('DialogGenerateTokenController', DialogGenerateTokenController);
 
 graviteeManagementModule.directive('filecontent', () => FileContentDirective);

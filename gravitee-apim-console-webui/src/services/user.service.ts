@@ -138,10 +138,16 @@ class UserService {
         promises.push(this.ApplicationService.getPermissions(applicationId[1]));
       }
 
-      const apiRegex = /apis\/([\w|-]+)/;
-      const apiId = apiRegex.exec(this.$location.path());
-      if (this.Constants.org.currentEnv && !this.isLogout && apiId && apiId[1] !== 'new') {
-        promises.push(this.ApiService.getPermissions(apiId[1]));
+      // API
+      const apiV4Regex = /apis\/ng\/([\w|-]+)/;
+      // Ignore permission check for API V4 (handled in apis.module.ts)
+      if (!apiV4Regex.test(this.$location.path())) {
+        // For API !== V4 : fetch API permission
+        const apiRegex = /apis\/([\w|-]+)/;
+        const apiId = apiRegex.exec(this.$location.path());
+        if (this.Constants.org.currentEnv && !this.isLogout && apiId && apiId[1] !== 'new') {
+          promises.push(this.ApiService.getPermissions(apiId[1]));
+        }
       }
 
       const environmentRegex = /environments\/([\w|-]+)/;
