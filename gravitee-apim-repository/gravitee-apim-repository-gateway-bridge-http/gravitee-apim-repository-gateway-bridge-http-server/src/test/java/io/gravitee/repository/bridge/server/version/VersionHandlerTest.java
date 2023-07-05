@@ -23,6 +23,7 @@ import static org.mockito.Mockito.spy;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.repository.bridge.server.utils.VersionUtils;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -57,17 +58,26 @@ class VersionHandlerTest {
     @BeforeEach
     public void beforeEach(Vertx vertx, VertxTestContext testContext) throws Exception {
         cut = spy(new VersionHandler());
-        int randomPort = getRandomPort();
-        client = WebClient.create(vertx, new WebClientOptions().setDefaultHost("localhost").setDefaultPort(randomPort));
 
         vertx.deployVerticle(
             new AbstractVerticle() {
                 @Override
-                public void start() {
+                public void start(Promise<Void> promise) {
                     Router router = Router.router(vertx);
                     router.route().handler(cut);
                     router.get("/_test_version").handler(RoutingContext::end);
-                    vertx.createHttpServer().requestHandler(router).listen(randomPort);
+                    try {
+                        int randomPort = getRandomPort();
+                        client = WebClient.create(vertx, new WebClientOptions().setDefaultHost("localhost").setDefaultPort(randomPort));
+                        vertx
+                            .createHttpServer()
+                            .requestHandler(router)
+                            .listen(randomPort)
+                            .onSuccess(event -> promise.complete())
+                            .onFailure(promise::fail);
+                    } catch (Exception e) {
+                        promise.fail(e);
+                    }
                 }
             },
             testContext.succeedingThenComplete()
