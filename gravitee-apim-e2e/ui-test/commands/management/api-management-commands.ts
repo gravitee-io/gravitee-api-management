@@ -63,10 +63,10 @@ export function deleteApi(auth: BasicAuthentication, apiId: string, failOnStatus
   });
 }
 
-export function deleteV4Api(auth: BasicAuthentication, apiId: string, failOnStatusCode = false) {
+export function deleteV4Api(auth: BasicAuthentication, apiId: string, closePlans: boolean, failOnStatusCode = false) {
   return cy.request({
     method: 'DELETE',
-    url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis/${apiId}`,
+    url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis/${apiId}?closePlans:${closePlans}`,
     auth,
     failOnStatusCode,
   });
