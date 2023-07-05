@@ -8,6 +8,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Add attribute `gateway.ssl.keystore.watch` to disable watch of Gateway keystore
 - Fix indentation in `api` section of the Management API and Gateway configmaps
 - Add truststore and keystore attributes to the MongoDB Rate Limit section of the Gateway configmap
+- Update ElasticSearch default version to 8.8.2
 
 ### 3.19.18
 
