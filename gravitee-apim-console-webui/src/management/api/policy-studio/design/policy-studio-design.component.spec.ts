@@ -17,6 +17,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { Subject } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 
 import { PolicyStudioDesignComponent } from './policy-studio-design.component';
 
@@ -30,6 +32,7 @@ import { User } from '../../../../entities/user';
 import { fakeFlowSchema } from '../../../../entities/flow/flowSchema.fixture';
 import { PolicyStudioService } from '../policy-studio.service';
 import { ApiDefinition, toApiDefinition } from '../models/ApiDefinition';
+import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
 
 describe('PolicyStudioDesignComponent', () => {
   let fixture: ComponentFixture<PolicyStudioDesignComponent>;
@@ -46,6 +49,16 @@ describe('PolicyStudioDesignComponent', () => {
   const api = fakeApi();
   const resources = [fakeResourceListItem()];
 
+  const dialog = {
+    open: jest.fn().mockReturnValue({
+      afterClosed: jest.fn().mockReturnValue(new Subject()),
+    }),
+  };
+
+  const licenseService = {
+    getFeatureMoreInformation: jest.fn(),
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ManagementModule],
@@ -56,6 +69,14 @@ describe('PolicyStudioDesignComponent', () => {
           useValue: { currentUser },
         },
         { provide: AjsRootScope, useValue: null },
+        {
+          provide: MatDialog,
+          useValue: dialog,
+        },
+        {
+          provide: GioLicenseService,
+          useValue: licenseService,
+        },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -100,5 +121,23 @@ describe('PolicyStudioDesignComponent', () => {
 
   afterEach(() => {
     httpTestingController.verify();
+  });
+
+  it('should open dialog calling on display-policy-cta event', async () => {
+    licenseService.getFeatureMoreInformation.mockReturnValue({
+      description: 'policy feature description',
+    });
+
+    component.displayPolicyCta();
+
+    expect(dialog.open).toHaveBeenCalledWith(expect.any(Function), {
+      data: {
+        featureMoreInformation: {
+          description: 'policy feature description',
+        },
+      },
+      id: 'gioLicenseDialog',
+      role: 'alertdialog',
+    });
   });
 });
