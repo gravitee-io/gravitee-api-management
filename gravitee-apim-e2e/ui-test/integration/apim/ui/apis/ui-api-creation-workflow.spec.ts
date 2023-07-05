@@ -92,9 +92,8 @@ describe('API creation workflow', () => {
     });
 
     it('should successfully connect to created API', function () {
-      cy.request(`${Cypress.env('gatewayServer')}/${apiPath}`).then((response) => {
-        expect(response.status).to.eq(200);
-        expect(response.body.message).to.eq('Hello, World!');
+      cy.callGateway(`${apiPath}`).then((response) => {
+        expect(response.body.message).to.eq('Hello, World!'); // from wiremock
       });
     });
 
