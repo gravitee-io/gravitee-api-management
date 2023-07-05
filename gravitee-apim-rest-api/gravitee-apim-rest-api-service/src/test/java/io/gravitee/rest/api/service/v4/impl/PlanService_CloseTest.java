@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
@@ -24,9 +25,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -35,6 +40,7 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.util.Collections;
 import java.util.Optional;
@@ -54,7 +60,6 @@ public class PlanService_CloseTest {
 
     private static final String PLAN_ID = "my-plan";
     private static final String SUBSCRIPTION_ID = "my-subscription";
-    private static final String USER = "user";
     private static final String API_ID = "my-api";
 
     @InjectMocks
@@ -81,6 +86,12 @@ public class PlanService_CloseTest {
     @Mock
     private FlowService flowService;
 
+    @Mock
+    private ApiRepository apiRepository;
+
+    @Mock
+    private GenericPlanMapper genericPlanMapper;
+
     @Test(expected = PlanNotFoundException.class)
     public void shouldNotCloseBecauseNotFound() throws TechnicalException {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
@@ -104,7 +115,7 @@ public class PlanService_CloseTest {
     }
 
     @Test
-    public void shouldClosePlanAndAcceptedSubscription() throws TechnicalException {
+    public void shouldClosePlanV4AndAcceptedSubscription() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
@@ -116,7 +127,19 @@ public class PlanService_CloseTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
+        var api = new Api();
+        api.setId(API_ID);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        var planEntity = new PlanEntity();
+        planEntity.setId(PLAN_ID);
+        planEntity.setApiId(API_ID);
+        when(genericPlanMapper.toGenericPlan(eq(api), eq(plan))).thenReturn(planEntity);
+
+        GenericPlanEntity genericPlanEntity = planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
+
+        assertThat(genericPlanEntity.getId()).isEqualTo(PLAN_ID);
+        assertThat(genericPlanEntity.getApiId()).isEqualTo(API_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
@@ -125,7 +148,7 @@ public class PlanService_CloseTest {
     }
 
     @Test
-    public void shouldClosePlanAndPendingSubscription() throws TechnicalException {
+    public void shouldClosePlanV2AndPendingSubscription() throws TechnicalException {
         when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
@@ -137,7 +160,19 @@ public class PlanService_CloseTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
+        var api = new Api();
+        api.setId(API_ID);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        var planEntity = new io.gravitee.rest.api.model.PlanEntity();
+        planEntity.setId(PLAN_ID);
+        planEntity.setApi(API_ID);
+        when(genericPlanMapper.toGenericPlan(eq(api), eq(plan))).thenReturn(planEntity);
+
+        GenericPlanEntity genericPlanEntity = planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
+
+        assertThat(genericPlanEntity.getId()).isEqualTo(PLAN_ID);
+        assertThat(genericPlanEntity.getApiId()).isEqualTo(API_ID);
 
         verify(plan, times(1)).setStatus(Plan.Status.CLOSED);
         verify(planRepository, times(1)).update(plan);
@@ -156,6 +191,10 @@ public class PlanService_CloseTest {
             .thenReturn(Collections.singleton(subscription));
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
+
+        var api = new Api();
+        api.setId(API_ID);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
@@ -176,6 +215,10 @@ public class PlanService_CloseTest {
             .thenReturn(Collections.singleton(subscription));
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
+
+        var api = new Api();
+        api.setId(API_ID);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 

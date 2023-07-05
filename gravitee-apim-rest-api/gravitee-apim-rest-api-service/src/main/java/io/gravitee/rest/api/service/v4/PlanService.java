@@ -17,10 +17,7 @@ package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
-import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanQuery;
-import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +36,7 @@ public interface PlanService {
 
     PlanEntity update(final ExecutionContext executionContext, final UpdatePlanEntity plan);
 
-    PlanEntity close(final ExecutionContext executionContext, final String plan);
+    GenericPlanEntity close(final ExecutionContext executionContext, final String plan);
 
     void delete(final ExecutionContext executionContext, final String plan);
 

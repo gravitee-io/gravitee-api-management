@@ -37,11 +37,7 @@ import io.gravitee.rest.api.model.PlanSecurityEntity;
 import io.gravitee.rest.api.model.PlansConfigurationEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanMode;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
+import io.gravitee.rest.api.model.v4.plan.*;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -65,6 +61,7 @@ import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.PathParametersValidationService;
@@ -136,6 +133,9 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Autowired
     private PlanMapper planMapper;
+
+    @Autowired
+    private GenericPlanMapper genericPlanMapper;
 
     @Autowired
     private FlowService flowService;
@@ -401,8 +401,15 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         }
     }
 
+    /**
+     * Close a plan regardless of version
+     *
+     * @param executionContext
+     * @param planId
+     * @return
+     */
     @Override
-    public PlanEntity close(final ExecutionContext executionContext, String planId) {
+    public GenericPlanEntity close(final ExecutionContext executionContext, String planId) {
         try {
             logger.debug("Close plan {}", planId);
 
@@ -451,7 +458,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             //reorder plan
             reorderedAndSavePlansAfterRemove(plan);
 
-            return mapToEntity(plan);
+            String apiId = plan.getApi();
+            Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+
+            return genericPlanMapper.toGenericPlan(api, plan);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to close plan: {}", planId, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to close plan: %s", planId), ex);

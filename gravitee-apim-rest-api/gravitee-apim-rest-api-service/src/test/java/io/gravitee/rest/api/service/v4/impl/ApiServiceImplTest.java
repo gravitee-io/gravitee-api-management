@@ -584,7 +584,7 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.PUBLISHED);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
@@ -600,7 +600,7 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -610,7 +610,7 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void shouldDeleteWithStatingPlan() throws TechnicalException {
+    public void shouldDeleteWithStatingPlanV4() throws TechnicalException {
         Api api = new Api();
         api.setId(API_ID);
         api.setLifecycleState(LifecycleState.STOPPED);
@@ -619,7 +619,29 @@ public class ApiServiceImplTest {
         PlanEntity planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setStatus(PlanStatus.STAGING);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
+        verify(apiQualityRuleRepository, times(1)).deleteByApi(API_ID);
+        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        verify(mediaService, times(1)).deleteAllByApi(API_ID);
+        verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
+    }
+
+    @Test
+    public void shouldDeleteWithStatingPlanV2() throws TechnicalException {
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setLifecycleState(LifecycleState.STOPPED);
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        io.gravitee.rest.api.model.PlanEntity planEntity = new io.gravitee.rest.api.model.PlanEntity();
+        planEntity.setId(PLAN_ID);
+        planEntity.setStatus(io.gravitee.rest.api.model.PlanStatus.STAGING);
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(singleton(planEntity));
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
@@ -663,7 +685,7 @@ public class ApiServiceImplTest {
         final PlanEntity closedPlan = new PlanEntity();
         closedPlan.setId(PLAN_ID);
         closedPlan.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
+        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
         when(planService.close(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(closedPlan);
 
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, true);
