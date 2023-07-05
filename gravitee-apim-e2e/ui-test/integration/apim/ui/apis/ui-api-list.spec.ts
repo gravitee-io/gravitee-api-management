@@ -23,7 +23,7 @@ import { ApiV4 } from '../../../../../lib/management-v2-webclient-sdk/src/lib';
 
 const envId = 'DEFAULT';
 
-describe('API List feature', () => {
+describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
   describe('Verifying page elements', () => {
     beforeEach(() => {
       cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
