@@ -49,7 +49,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   // Used for the edit mode
   initialIdentityProviderValue: IdentityProvider | null = null;
 
-  openidConnectSsoLicense = { feature: 'apim-openid-connect-sso' };
+  openidConnectSsoLicense = { feature: 'apim-openid-connect-sso', utmMedium: 'plugin_openidconnect' };
   hasOpenidConnectSsoLock$: Observable<boolean>;
 
   @ViewChild('providerConfiguration', { static: false })

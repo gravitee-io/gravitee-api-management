@@ -46,6 +46,7 @@ export const CONSTANTS_TESTING: Constants = {
     v2BaseURL: 'https://url.test:3000/management/v2/environments/DEFAULT',
   },
   v2BaseURL: 'https://url.test:3000/management/v2',
+  trialBaseURL: 'https://gravitee.io/self-hosted-trial',
 };
 
 @NgModule({

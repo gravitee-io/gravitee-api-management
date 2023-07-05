@@ -39,6 +39,8 @@ import {
   GioEeUnlockDialogData,
 } from '../../../../components/gio-ee-unlock-dialog/gio-ee-unlock-dialog.component';
 import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
+import { Feature } from '../../../../shared/components/gio-license/gio-license-features';
+import { UTMMedium } from '../../../../shared/components/gio-license/gio-license-utm';
 
 export interface UrlParams {
   path: string;
@@ -118,11 +120,14 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
   }
 
   public displayPolicyCta() {
-    const featureMoreInformation = this.licenseService.getFeatureMoreInformation('apim-policy');
+    const featureMoreInformation = this.licenseService.getFeatureMoreInformation(Feature.APIM_POLICY_V2);
+    const trialURL = this.licenseService.getTrialURL(UTMMedium.POLICY_STUDIO_V2);
+
     this.matDialog
       .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
         data: {
           featureMoreInformation,
+          trialURL,
         },
         role: 'alertdialog',
         id: 'gioLicenseDialog',

@@ -26,6 +26,7 @@ import { GioLicenseService } from '../components/gio-license/gio-license.service
       useValue: {
         notAllowed: () => of(true),
         getFeatureMoreInformation: () => ({}),
+        getTrialURL: () => '',
       },
     },
   ],
@@ -40,6 +41,7 @@ export class GioLicenseTestingModule {
           useValue: {
             notAllowed: () => of(!license),
             getFeatureMoreInformation: () => ({}),
+            getTrialURL: () => '',
           },
         },
       ],

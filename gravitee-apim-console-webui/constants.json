@@ -1,3 +1,4 @@
 {
-  "baseURL": "/management/organizations/DEFAULT/environments/DEFAULT"
+  "baseURL": "/management/organizations/DEFAULT/environments/DEFAULT",
+  "trialBaseURL": "https://gravitee.io/self-hosted-trial"
 }

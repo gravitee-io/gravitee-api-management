@@ -21,6 +21,7 @@ import { GioLicenseService } from '../../shared/components/gio-license/gio-licen
 
 export type GioEeUnlockDialogData = {
   featureMoreInformation: FeatureMoreInformation;
+  trialURL?: string;
 };
 
 @Component({
@@ -30,6 +31,7 @@ export type GioEeUnlockDialogData = {
 })
 export class GioEeUnlockDialogComponent {
   public featureMoreInformation: FeatureMoreInformation;
+  public trialURL: string;
 
   constructor(
     private readonly dialogRef: MatDialogRef<GioEeUnlockDialogData>,
@@ -37,6 +39,7 @@ export class GioEeUnlockDialogComponent {
     public readonly licenseService: GioLicenseService,
   ) {
     this.featureMoreInformation = dialogData?.featureMoreInformation;
+    this.trialURL = dialogData?.trialURL;
   }
 
   onClose() {

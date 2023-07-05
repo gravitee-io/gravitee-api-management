@@ -48,7 +48,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   displayedColumns = ['name', 'description', 'updatedAt', 'actions'];
   isLoadingData = true;
   disabledMessage = 'Configuration provided by the system';
-  dcrRegistrationLicense = { feature: 'apim-dcr-registration' };
+  dcrRegistrationLicense = { feature: 'apim-dcr-registration', utmMedium: 'feature_dcr' };
   hasDcrRegistrationLock$: Observable<boolean>;
   private unsubscribe$ = new Subject();
   private settings: PortalSettings;

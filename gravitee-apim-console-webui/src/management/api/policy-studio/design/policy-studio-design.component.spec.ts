@@ -32,7 +32,6 @@ import { User } from '../../../../entities/user';
 import { fakeFlowSchema } from '../../../../entities/flow/flowSchema.fixture';
 import { PolicyStudioService } from '../policy-studio.service';
 import { ApiDefinition, toApiDefinition } from '../models/ApiDefinition';
-import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
 
 describe('PolicyStudioDesignComponent', () => {
   let fixture: ComponentFixture<PolicyStudioDesignComponent>;
@@ -55,10 +54,6 @@ describe('PolicyStudioDesignComponent', () => {
     }),
   };
 
-  const licenseService = {
-    getFeatureMoreInformation: jest.fn(),
-  };
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioDesignModule],
@@ -72,10 +67,6 @@ describe('PolicyStudioDesignComponent', () => {
         {
           provide: MatDialog,
           useValue: dialog,
-        },
-        {
-          provide: GioLicenseService,
-          useValue: licenseService,
         },
       ],
     })
@@ -124,17 +115,16 @@ describe('PolicyStudioDesignComponent', () => {
   });
 
   it('should open dialog calling on display-policy-cta event', async () => {
-    licenseService.getFeatureMoreInformation.mockReturnValue({
-      description: 'policy feature description',
-    });
-
     component.displayPolicyCta();
 
     expect(dialog.open).toHaveBeenCalledWith(expect.any(Function), {
       data: {
         featureMoreInformation: {
-          description: 'policy feature description',
+          description:
+            'This policy is part of Gravitee Enterprise. Enterprise policies allows you to easily define and customise rules according to your evolving business needs.',
+          image: 'assets/gio-ee-unlock-dialog/policies.png',
         },
+        trialURL: `${CONSTANTS_TESTING.trialBaseURL}?utm_source=oss_apim&utm_medium=v2_policy_studio_policy&utm_campaign=oss_apim_to_ee_apim`,
       },
       id: 'gioLicenseDialog',
       role: 'alertdialog',

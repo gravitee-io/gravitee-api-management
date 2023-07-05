@@ -27,6 +27,7 @@ import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { Constants } from '../../../entities/Constants';
 import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
+import { Feature } from '../../../shared/components/gio-license/gio-license-features';
 
 interface RoleVM {
   name: string;
@@ -47,7 +48,7 @@ interface RoleVM {
 export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   rolesByScope: Array<{ scope: string; scopeId: string; roles: RoleVM[] }>;
   loading = true;
-  customRolesLicense = { feature: 'apim-custom-roles' };
+  customRolesLicense = { feature: Feature.APIM_CUSTOM_ROLES, utmMedium: 'feature_custom_roles' };
   hasCustomRolesLock$: Observable<boolean>;
 
   constructor(

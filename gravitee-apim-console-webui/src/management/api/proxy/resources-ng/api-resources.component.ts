@@ -34,6 +34,8 @@ import {
   GioEeUnlockDialogComponent,
   GioEeUnlockDialogData,
 } from '../../../../components/gio-ee-unlock-dialog/gio-ee-unlock-dialog.component';
+import { stringFeature } from '../../../../shared/components/gio-license/gio-license-features';
+import { UTMMedium } from '../../../../shared/components/gio-license/gio-license-utm';
 
 @Component({
   selector: 'api-resources',
@@ -92,14 +94,18 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
     this.isDirty = true;
   }
 
-  onDisplayResourceCTA({ detail: event }: CustomEvent) {
+  onDisplayResourceCTA({ detail: event }) {
     const resourceId = event.detail.id;
     const featureName = this.resourceTypes.find((resourceType) => resourceType.id === resourceId).feature;
-    const featureMoreInformation = this.gioLicenseService.getFeatureMoreInformation(featureName);
+    const feature = stringFeature(featureName);
+    const featureMoreInformation = this.gioLicenseService.getFeatureMoreInformation(feature);
+    const trialURL = this.gioLicenseService.getTrialURL(UTMMedium.CONFLUENT_SCHEMA_REGISTRY);
+
     this.matDialog
       .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
         data: {
           featureMoreInformation,
+          trialURL,
         },
         role: 'alertdialog',
         id: 'dialog',

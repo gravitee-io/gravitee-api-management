@@ -32,7 +32,6 @@ import { fakeResourceListItem } from '../../../../entities/resource/resourceList
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
-import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
 
 describe('PolicyStudioResourcesComponent', () => {
   let fixture: ComponentFixture<ApiResourcesComponent>;
@@ -53,10 +52,6 @@ describe('PolicyStudioResourcesComponent', () => {
     }),
   };
 
-  const licenseService = {
-    getFeatureMoreInformation: jest.fn(),
-  };
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiResourcesModule, GioUiRouterTestingModule, MatDialogModule],
@@ -72,10 +67,7 @@ describe('PolicyStudioResourcesComponent', () => {
           provide: CurrentUserService,
           useValue: { currentUser },
         },
-        {
-          provide: GioLicenseService,
-          useValue: licenseService,
-        },
+
         {
           provide: MatDialog,
           useValue: dialog,
@@ -158,17 +150,13 @@ describe('PolicyStudioResourcesComponent', () => {
       {
         name: 'resource',
         description: 'resource description',
-        schema: '',
+        schema: '{}',
         version: '0',
         icon: 'resource-icon',
         id: 'resource-id',
-        feature: 'resource-feature',
+        feature: 'apim-en-schema-registry-provider',
       },
     ];
-
-    licenseService.getFeatureMoreInformation.mockReturnValue({
-      description: 'feature description',
-    });
 
     component.onDisplayResourceCTA(
       new CustomEvent('display-resource-cta', {
@@ -183,8 +171,11 @@ describe('PolicyStudioResourcesComponent', () => {
     expect(dialog.open).toHaveBeenCalledWith(expect.any(Function), {
       data: {
         featureMoreInformation: {
-          description: 'feature description',
+          description:
+            'Confluent Schema Registry is part of Gravitee Enterprise. Integration with a Schema Registry enables your APIs to validate schemas used in API calls, and serialize and deserialize data.',
+          image: 'assets/gio-ee-unlock-dialog/confluent-schema-registry.svg',
         },
+        trialURL: `${CONSTANTS_TESTING.trialBaseURL}?utm_source=oss_apim&utm_medium=resource_confluent_schema_registry&utm_campaign=oss_apim_to_ee_apim`,
       },
       id: 'dialog',
       role: 'alertdialog',

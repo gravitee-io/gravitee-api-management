@@ -24,6 +24,8 @@ import { Constants } from '../../../entities/Constants';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioLicenseOptions } from '../../../shared/components/gio-license/gio-license.directive';
 import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
+import { Feature } from '../../../shared/components/gio-license/gio-license-features';
+import { UTMMedium } from '../../../shared/components/gio-license/gio-license-utm';
 
 interface MenuItem {
   targetRoute: string;
@@ -161,7 +163,7 @@ export class OrgNavigationComponent implements OnInit {
   }
 
   private appendAuditItems() {
-    const license = { feature: 'apim-audit-trail' };
+    const license = { feature: Feature.APIM_AUDIT_TRAIL, utmMedium: UTMMedium.AUDIT_TRAIL_ORG };
     const iconRight$ = this.gioLicenseService.notAllowed(license.feature).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
     const items = this.filterMenuByPermission([
       {

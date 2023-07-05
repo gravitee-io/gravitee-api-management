@@ -28,6 +28,8 @@ import UserService from '../../services/user.service';
 import PortalConfigService from '../../services/portalConfig.service';
 import { GioLicenseService } from '../../shared/components/gio-license/gio-license.service';
 import { GioLicenseOptions } from '../../shared/components/gio-license/gio-license.directive';
+import { UTMMedium } from '../../shared/components/gio-license/gio-license-utm';
+import { Feature } from '../../shared/components/gio-license/gio-license-features';
 
 interface MenuItem {
   icon: string;
@@ -72,7 +74,7 @@ export class GioSideNavComponent implements OnInit {
   }
 
   private buildMainMenuItems(): MenuItem[] {
-    const auditLicense = { feature: 'apim-audit-trail' };
+    const auditLicense = { feature: Feature.APIM_AUDIT_TRAIL, utmMedium: UTMMedium.AUDIT_TRAIL_ENV };
     const auditIconRight$ = this.gioLicenseService
       .notAllowed(auditLicense.feature)
       .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
