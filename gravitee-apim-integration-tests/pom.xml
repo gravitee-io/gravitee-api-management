@@ -604,7 +604,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.policy</groupId>
+            <groupId>com.graviteesource.policy</groupId>
             <artifactId>gravitee-policy-geoip-filtering</artifactId>
             <version>${gravitee-policy-geoip-filtering.version}</version>
             <scope>test</scope>
