@@ -104,13 +104,6 @@ spec:
       {{- if .Values.gateway.additionalPlugins -}}
         {{- $plugins = concat $plugins .Values.gateway.additionalPlugins -}}
       {{- end -}}
-    
-      {{- if eq .Values.ratelimit.type "redis"  -}}
-        {{- $redisPlugin := include "redis.plugin" . -}}
-        {{- if $redisPlugin -}}
-          {{- $plugins = append $plugins $redisPlugin -}}
-        {{- end -}}  
-      {{- end -}}
 
       {{- $pluginParams := dict "plugins" $plugins "appName" "graviteeio-gateway" "pluginsToRemove" .Values.gateway.removePlugins "initContainers" $initContainers -}}
       {{- if or .Values.gateway.extraInitContainers $plugins .Values.jdbc.driver }}

@@ -106,17 +106,6 @@ Create initContainers for downloading plugins ext plugin-ext
 {{- end }}
 {{- end -}}
 
-{{- define "redis.plugin" -}}
-{{- $version := (.Values.redis.repositoryVersion | default .Values.gateway.image.tag | default .Chart.AppVersion ) -}}
-{{- if and .Values.redis.download (not (contains "latest" $version)) (ne "nightly" $version) ($version | semverCompare "<3.21.0") -}}
-  {{- if $version | semverCompare "<=3.5.18" -}}
-    {{- printf "https://download.gravitee.io/graviteeio-apim/plugins/repositories/gravitee-repository-redis/gravitee-repository-redis-%s.zip" $version -}}
-  {{- else -}}
-    {{- printf "https://download.gravitee.io/graviteeio-apim/plugins/repositories/gravitee-apim-repository-redis/gravitee-apim-repository-redis-%s.zip" $version -}}
-  {{- end -}}
-{{- end -}}
-{{- end -}}
-
 {{/*
 Create volumeMounts for plugins
 */}}
