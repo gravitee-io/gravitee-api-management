@@ -54,9 +54,13 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldReturnPolicies() {
+    public void shouldReturnSortedPolicies() {
         PolicyPluginEntity policyPlugin = getPolicyPluginEntity();
-        when(policyPluginService.findAll()).thenReturn(Set.of(policyPlugin));
+        PolicyPluginEntity anotherPolicyPlugin = getPolicyPluginEntity();
+        anotherPolicyPlugin.setId("another-policy");
+        anotherPolicyPlugin.setName("another policy plugin");
+
+        when(policyPluginService.findAll()).thenReturn(Set.of(policyPlugin, anotherPolicyPlugin));
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -65,7 +69,19 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         final Set<PolicyPlugin> policyPlugins = response.readEntity(new GenericType<>() {});
 
         // Check data
-        PolicyPlugin policyPlugin1 = new PolicyPlugin()
+        PolicyPlugin expectedPlugin1 = new PolicyPlugin()
+            .id("another-policy")
+            .name("another policy plugin")
+            .version("1.0")
+            .icon("my-icon")
+            .category("my-category")
+            .description("my-description")
+            .deployed(true)
+            .addProxyItem(ExecutionPhase.REQUEST)
+            .addProxyItem(ExecutionPhase.RESPONSE)
+            .addMessageItem(ExecutionPhase.MESSAGE_REQUEST);
+
+        PolicyPlugin expectedPlugin2 = new PolicyPlugin()
             .id("id")
             .name("name")
             .version("1.0")
@@ -76,7 +92,8 @@ public class PoliciesResourceTest extends AbstractResourceTest {
             .addProxyItem(ExecutionPhase.REQUEST)
             .addProxyItem(ExecutionPhase.RESPONSE)
             .addMessageItem(ExecutionPhase.MESSAGE_REQUEST);
-        assertEquals(Set.of(policyPlugin1), policyPlugins);
+
+        assertEquals(Set.of(expectedPlugin1, expectedPlugin2), policyPlugins);
     }
 
     @Test
