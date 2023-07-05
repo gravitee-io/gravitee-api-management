@@ -113,6 +113,7 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
         entity.setDescription(plugin.manifest().description());
         entity.setName(plugin.manifest().name());
         entity.setVersion(plugin.manifest().version());
+        entity.setFeature(plugin.manifest().feature());
         entity.setDeployed(plugin.deployed());
 
         return entity;

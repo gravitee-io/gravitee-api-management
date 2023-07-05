@@ -15,11 +15,12 @@
  */
 package io.gravitee.rest.api.model;
 
-import java.util.Objects;
+import lombok.Data;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
+@Data
 public class ResourceListItem {
 
     /**
@@ -46,74 +47,10 @@ public class ResourceListItem {
 
     private String icon;
 
-    public String getDescription() {
-        return description;
-    }
+    private Boolean deployed;
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    public String getIcon() {
-        return icon;
-    }
-
-    public void setIcon(String icon) {
-        this.icon = icon;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("ResourceListItem{");
-        sb.append("id='").append(id).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", version='").append(version).append('\'');
-        sb.append('}');
-        return sb.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ResourceListItem that = (ResourceListItem) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+    /**
+     * The license feature to unlock the resource, if enterprise
+     */
+    private String feature;
 }

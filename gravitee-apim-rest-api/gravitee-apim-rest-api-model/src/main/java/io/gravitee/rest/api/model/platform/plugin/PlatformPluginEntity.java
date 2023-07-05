@@ -62,6 +62,11 @@ public class PlatformPluginEntity {
      */
     private boolean deployed;
 
+    /**
+     * The license feature to unlock the plugin, if enterprise
+     */
+    private String feature;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
