@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -28,6 +29,7 @@ import lombok.experimental.SuperBuilder;
  * @author GraviteeSource Team
  */
 @AllArgsConstructor
+@NoArgsConstructor
 @SuperBuilder
 public class Property implements Serializable {
 
@@ -44,8 +46,6 @@ public class Property implements Serializable {
     @JsonProperty(value = "encrypted")
     @Builder.Default
     private boolean encrypted = false;
-
-    public Property() {}
 
     public Property(String key, String value) {
         this.key = key;
