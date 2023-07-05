@@ -15,6 +15,26 @@
  */
 package io.gravitee.apim.integration.tests.plan.oauth2;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_CLIENT_ID;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_SUCCESS_TOKEN;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_UNAUTHORIZED_TOKEN;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_UNAUTHORIZED_TOKEN_WITHOUT_CLIENT_ID;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_UNAUTHORIZED_WITH_INVALID_PAYLOAD;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_OAUTH2_ID;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.createSubscription;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.getApiPath;
+import static io.gravitee.apim.integration.tests.plan.oauth2.MockOAuth2Resource.RESOURCE_ID;
+import static io.vertx.core.http.HttpMethod.GET;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
@@ -33,31 +53,16 @@ import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.policy.oauth2.Oauth2Policy;
 import io.gravitee.policy.oauth2.configuration.OAuth2PolicyConfiguration;
 import io.vertx.rxjava3.core.http.HttpClient;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.stubbing.OngoingStubbing;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_ID;
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.createSubscription;
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.getApiPath;
-import static io.gravitee.apim.integration.tests.plan.oauth2.MockOAuth2Resource.RESOURCE_ID;
-import static io.vertx.core.http.HttpMethod.GET;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 /**
  * @author GraviteeSource Team
@@ -65,12 +70,6 @@ import static org.mockito.Mockito.when;
 @GatewayTest
 @DeployApi("/apis/plan/v2-api.json")
 public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
-
-    public static String CLIENT_ID = "my-client-id";
-    public static String SUCCESS_TOKEN = "success-token";
-    public static String UNAUTHORIZED_TOKEN_WITHOUT_CLIENT_ID = "unauthorized-token-without-client-id";
-    public static String UNAUTHORIZED_WITH_INVALID_PAYLOAD = "unauthorized-token-with-invalid-payload";
-    public static String UNAUTHORIZED_TOKEN = "unauthorized-token";
 
     @Override
     public void configureResources(Map<String, ResourcePlugin> resources) {
@@ -83,25 +82,7 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
      */
     @Override
     public void configureApi(Api api) {
-
-        Resource resource = new Resource(RESOURCE_ID, RESOURCE_ID, new ObjectMapper().createObjectNode());
-        api.getResources().add(resource);
-
-        Plan plan = new Plan();
-        plan.setId(PLAN_ID);
-        plan.setApi(api.getId());
-        plan.setSecurity("OAUTH2");
-        plan.setStatus("PUBLISHED");
-
-        OAuth2PolicyConfiguration configuration = new OAuth2PolicyConfiguration();
-        configuration.setOauthResource(RESOURCE_ID);
-        try {
-            plan.setSecurityDefinition(new ObjectMapper().writeValueAsString(configuration));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to set OAuth2 policy configuration", e);
-        }
-
-        api.setPlans(Collections.singletonList(plan));
+        configurePlans(api, Set.of("OAUTH2"));
     }
 
     @Override
@@ -110,54 +91,58 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
     }
 
     protected Stream<Arguments> provideApis() {
-        return Stream.of(
-                Arguments.of("v2-api", true)
-        );
+        return Stream.of(Arguments.of("v2-api", true));
     }
 
     protected Stream<Arguments> provideWrongSecurityHeaders() {
-        return provideApis().flatMap(arguments -> {
-            String apiId = (String) arguments.get()[0];
-            return Stream.of(
+        return provideApis()
+            .flatMap(arguments -> {
+                String apiId = (String) arguments.get()[0];
+                return Stream.of(
                     Arguments.of(apiId, null, null),
                     Arguments.of(apiId, "X-Gravitee-Api-Key", "an-api-key"),
+                    Arguments.of(apiId, "Authorization", ""),
+                    Arguments.of(apiId, "Authorization", "Bearer"),
+                    Arguments.of(apiId, "Authorization", "Bearer "),
                     Arguments.of(apiId, "Authorization", "Bearer a-jwt-token"),
-                    Arguments.of(apiId, "Authorization", "Bearer " + UNAUTHORIZED_TOKEN_WITHOUT_CLIENT_ID),
-                    Arguments.of(apiId, "Authorization", "Bearer " + UNAUTHORIZED_WITH_INVALID_PAYLOAD),
-                    Arguments.of(apiId, "Authorization", "Bearer " + UNAUTHORIZED_TOKEN)
-            );
-        });
+                    Arguments.of(apiId, "Authorization", "Bearer " + OAUTH2_UNAUTHORIZED_TOKEN_WITHOUT_CLIENT_ID),
+                    Arguments.of(apiId, "Authorization", "Bearer " + OAUTH2_UNAUTHORIZED_WITH_INVALID_PAYLOAD),
+                    Arguments.of(apiId, "Authorization", "Bearer " + OAUTH2_UNAUTHORIZED_TOKEN)
+                );
+            });
     }
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_return_200_success_with_valid_oauth2_token_and_subscription_on_the_api(final String apiId, final boolean requireWiremock, final HttpClient client) throws Exception {
-        whenSearchingSubscription(apiId, CLIENT_ID, PLAN_ID).thenReturn(Optional.of(createSubscription(apiId, false)));
+    void should_return_200_success_with_valid_oauth2_token_and_subscription_on_the_api(
+        final String apiId,
+        final boolean requireWiremock,
+        final HttpClient client
+    ) throws Exception {
+        whenSearchingSubscription(apiId, OAUTH2_CLIENT_ID, PLAN_OAUTH2_ID)
+            .thenReturn(Optional.of(createSubscription(apiId, PLAN_OAUTH2_ID, false)));
 
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
         }
 
-        client.rxRequest(GET, getApiPath(apiId))
-                .flatMap(request -> {
-                    request.putHeader("Authorization", "Bearer " + SUCCESS_TOKEN);
-                    return request.rxSend();
-                })
-                .flatMap(
-                        response -> {
-                            assertThat(response.statusCode()).isEqualTo(200);
-                            return response.rxBody();
-                        }
-                )
-                .test()
-                .awaitDone(60, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(
-                        body -> {
-                            assertThat(body.toString()).contains("endpoint response");
-                            return true;
-                        }
-                );
+        client
+            .rxRequest(GET, getApiPath(apiId))
+            .flatMap(request -> {
+                request.putHeader("Authorization", "Bearer " + OAUTH2_SUCCESS_TOKEN);
+                return request.rxSend();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.rxBody();
+            })
+            .test()
+            .awaitDone(60, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValue(body -> {
+                assertThat(body.toString()).contains("endpoint response");
+                return true;
+            });
 
         if (requireWiremock) {
             wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
@@ -166,75 +151,83 @@ public class PlanOAuth2V4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @ParameterizedTest
     @MethodSource("provideWrongSecurityHeaders")
-    void should_return_401_unauthorized_with_wrong_security(final String apiId, final String headerName, final String headerValue, final HttpClient client) {
+    void should_return_401_unauthorized_with_wrong_security(
+        final String apiId,
+        final String headerName,
+        final String headerValue,
+        final HttpClient client
+    ) {
         wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
 
         client
-                .rxRequest(GET, getApiPath(apiId))
-                .flatMap(request -> {
-                    if (headerName != null && headerValue != null) {
-                        request.putHeader(headerName, headerValue);
-                    }
-                    return request.rxSend();
-                })
-                .flatMap(
-                        response -> {
-                            assertThat(response.statusCode()).isEqualTo(401);
-                            return response.rxBody();
-                        }
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(
-                        body -> {
-                            assertThat(body).hasToString("Unauthorized");
-                            return true;
-                        }
-                );
+            .rxRequest(GET, getApiPath(apiId))
+            .flatMap(request -> {
+                if (headerName != null && headerValue != null) {
+                    request.putHeader(headerName, headerValue);
+                }
+                return request.rxSend();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(401);
+                return response.rxBody();
+            })
+            .test()
+            .awaitDone(10, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValue(body -> {
+                assertThat(body).hasToString("Unauthorized");
+                return true;
+            });
 
         wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
     }
 
     @ParameterizedTest
     @MethodSource("provideApis")
-    void should_return_401_unauthorized_with_valid_oauth2_token_but_no_subscription_on_the_api(final String apiId, final boolean requireWiremock, final HttpClient client) throws Exception {
+    void should_return_401_unauthorized_with_valid_oauth2_token_but_no_subscription_on_the_api(
+        final String apiId,
+        final boolean requireWiremock,
+        final HttpClient client
+    ) throws Exception {
         if (requireWiremock) {
             wiremock.stubFor(get("/endpoint").willReturn(ok("data")));
         }
 
-        whenSearchingSubscription(apiId,CLIENT_ID,PLAN_ID).thenReturn(Optional.empty());
+        whenSearchingSubscription(apiId, OAUTH2_CLIENT_ID, PLAN_OAUTH2_ID).thenReturn(Optional.empty());
 
         client
-                .rxRequest(GET, getApiPath(apiId))
-                .flatMap(request -> {
-                    request.putHeader("Authorization", "Bearer " + SUCCESS_TOKEN);
-                    return request.rxSend();
-                })
-                .flatMap(
-                        response -> {
-                            assertThat(response.statusCode()).isEqualTo(401);
-                            return response.rxBody();
-                        }
-                )
-                .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertComplete()
-                .assertValue(
-                        body -> {
-                            assertThat(body).hasToString("Unauthorized");
-                            return true;
-                        }
-                );
+            .rxRequest(GET, getApiPath(apiId))
+            .flatMap(request -> {
+                request.putHeader("Authorization", "Bearer " + OAUTH2_SUCCESS_TOKEN);
+                return request.rxSend();
+            })
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(401);
+                return response.rxBody();
+            })
+            .test()
+            .awaitDone(10, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValue(body -> {
+                assertThat(body).hasToString("Unauthorized");
+                return true;
+            });
         if (requireWiremock) {
             wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
         }
     }
 
-
     protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(String api, String clientId, String plan) {
-        return when(getBean(SubscriptionService.class).getByApiAndSecurityToken(eq(api), argThat(securityToken ->
-                securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name()) && securityToken.getTokenValue().equals(clientId)
-        ), eq(plan)));
+        return when(
+            getBean(SubscriptionService.class)
+                .getByApiAndSecurityToken(
+                    eq(api),
+                    argThat(securityToken ->
+                        securityToken.getTokenType().equals(SecurityToken.TokenType.CLIENT_ID.name()) &&
+                        securityToken.getTokenValue().equals(clientId)
+                    ),
+                    eq(plan)
+                )
+        );
     }
 }

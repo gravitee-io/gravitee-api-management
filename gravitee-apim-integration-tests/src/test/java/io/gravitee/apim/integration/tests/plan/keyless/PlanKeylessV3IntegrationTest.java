@@ -15,17 +15,15 @@
  */
 package io.gravitee.apim.integration.tests.plan.keyless;
 
-import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static io.gravitee.definition.model.ExecutionMode.V3;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+
 /**
  * @author GraviteeSource Team
  */
 @GatewayTest(v2ExecutionMode = V3)
-public class PlanKeylessV3IntegrationTest extends PlanKeylessV4EmulationIntegrationTest {
-
-}
+public class PlanKeylessV3IntegrationTest extends PlanKeylessV4EmulationIntegrationTest {}
