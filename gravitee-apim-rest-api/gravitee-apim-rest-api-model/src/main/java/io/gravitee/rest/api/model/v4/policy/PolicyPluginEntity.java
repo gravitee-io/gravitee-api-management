@@ -15,23 +15,12 @@
  */
 package io.gravitee.rest.api.model.v4.policy;
 
-import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.ConnectorFeature;
-import io.gravitee.definition.model.v4.ConnectorMode;
-import io.gravitee.definition.model.v4.listener.ListenerType;
-import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
-@NoArgsConstructor
-@Getter
-@Setter
+@Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "PolicyPluginEntityV4")
