@@ -52,6 +52,7 @@ export class ApplicationMetadataComponent implements OnInit {
 
   hasCreatePermission = false;
   hasUpdatePermission = false;
+  hasDeletePermission = false;
   application: Application;
   formats: Array<ReferenceMetadataFormatType>;
   metadata: Array<ReferenceMetadata>;
@@ -96,8 +97,11 @@ export class ApplicationMetadataComponent implements OnInit {
         this._renderName(this.tableTranslations[1]),
         this._renderFormat(this.tableTranslations[2]),
         this._renderValue(this.tableTranslations[3]),
-        this._renderAction(this.tableTranslations[4], this.tableTranslations[5]),
       ];
+      // Display action only if create or delete permission
+      if (this.hasCreatePermission || this.hasDeletePermission) {
+        data.push(this._renderAction(this.tableTranslations[4], this.tableTranslations[5]));
+      }
     } else {
       data = [
         { field: 'key', label: this.tableTranslations[0] },
@@ -118,6 +122,14 @@ export class ApplicationMetadataComponent implements OnInit {
 
   _isNewLine(line) {
     return this.hasCreatePermission && line._new === true && line.key != null;
+  }
+
+  _isUpdateLine(line) {
+    return this.hasUpdatePermission && line.key;
+  }
+
+  _isEditableLine(line) {
+    return this._isNewLine(line) || this._isAddFormLine(line) || this._isUpdateLine(line);
   }
 
   _renderAction(removeLabel: string, addLabel: string) {
@@ -167,9 +179,10 @@ export class ApplicationMetadataComponent implements OnInit {
     return {
       field: 'format',
       label: formatLabel,
-      type: 'gv-select',
+      type: item => (this._isEditableLine(item) ? 'gv-select' : 'div'),
       format: (v: string) => v.toUpperCase(),
       attributes: {
+        innerText: item => (this._isEditableLine(item) ? undefined : item.format),
         options: this.formats,
         'ongv-select:select': item => {
           item.value = null;
@@ -267,6 +280,9 @@ export class ApplicationMetadataComponent implements OnInit {
       field: 'value',
       label: valueLabel,
       type: item => {
+        if (!this._isEditableLine(item)) {
+          return 'div';
+        }
         switch (item.format.toUpperCase()) {
           case 'BOOLEAN':
             return 'gv-checkbox';
@@ -277,6 +293,7 @@ export class ApplicationMetadataComponent implements OnInit {
         }
       },
       attributes: {
+        innerText: item => (this._isEditableLine(item) ? undefined : item.value),
         value: item => {
           if (item.format.toUpperCase() === 'DATE' && item.value != null) {
             return Date.parse(item.value);
@@ -317,6 +334,7 @@ export class ApplicationMetadataComponent implements OnInit {
       if (metadataPermissions && metadataPermissions.length > 0) {
         this.hasCreatePermission = metadataPermissions.includes('C');
         this.hasUpdatePermission = metadataPermissions.includes('U');
+        this.hasDeletePermission = metadataPermissions.includes('D');
       }
     }
   }
