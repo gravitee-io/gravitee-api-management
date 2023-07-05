@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.integration.tests.plan.keyless;
 
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_KEYLESS_ID;
+
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -34,33 +36,31 @@ import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
-import org.junit.jupiter.params.provider.Arguments;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.junit.jupiter.params.provider.Arguments;
 
 /**
  * @author GraviteeSource Team
  */
-@DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
+@DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
 public class PlanKeylessV4IntegrationTest extends PlanKeylessV4EmulationIntegrationTest {
 
     @Override
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
         if (isV4Api(definitionClass)) {
-            final Api definition = (Api) api.getDefinition();
-            Plan keylessPlan = Plan.builder()
-                    .id("plan-id")
-                    .name("plan-name")
-                    .security(PlanSecurity.builder()
-                            .type("key-less")
-                            .build())
-                    .status(PlanStatus.PUBLISHED)
-                    .mode(PlanMode.STANDARD)
-                    .build();
-            definition.setPlans(Collections.singletonList(keylessPlan));
+            final Api apiDefinition = (Api) api.getDefinition();
+            Plan keylessPlan = Plan
+                .builder()
+                .id(PLAN_KEYLESS_ID)
+                .name("plan-name")
+                .security(PlanSecurity.builder().type("key-less").build())
+                .status(PlanStatus.PUBLISHED)
+                .mode(PlanMode.STANDARD)
+                .build();
+            apiDefinition.setPlans(Collections.singletonList(keylessPlan));
         }
     }
 
@@ -83,10 +83,6 @@ public class PlanKeylessV4IntegrationTest extends PlanKeylessV4EmulationIntegrat
 
     @Override
     protected Stream<Arguments> provideApis() {
-        return Stream.of(
-                Arguments.of("v4-proxy-api", true),
-                Arguments.of("v4-message-api", false)
-        );
+        return Stream.of(Arguments.of("v4-proxy-api", true), Arguments.of("v4-message-api", false));
     }
-
 }

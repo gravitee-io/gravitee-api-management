@@ -15,6 +15,12 @@
  */
 package io.gravitee.apim.integration.tests.plan.jwt;
 
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.JWT_SECRET;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_JWT_ID;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
+import static io.gravitee.policy.jwt.alg.Signature.HMAC_HS256;
+import static io.gravitee.policy.v3.jwt.resolver.KeyResolver.GIVEN_KEY;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
@@ -37,47 +43,23 @@ import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.policy.jwt.configuration.JWTPolicyConfiguration;
-import org.junit.jupiter.params.provider.Arguments;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_ID;
-import static io.gravitee.policy.jwt.alg.Signature.HMAC_HS256;
-import static io.gravitee.policy.v3.jwt.resolver.KeyResolver.GIVEN_KEY;
+import org.junit.jupiter.params.provider.Arguments;
 
 /**
  * @author GraviteeSource Team
  */
-@DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
+@DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
 public class PlanJwtV4IntegrationTest extends PlanJwtV4EmulationIntegrationTest {
 
     @Override
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
         if (isV4Api(definitionClass)) {
-            final Api definition = (Api) api.getDefinition();
-            try {
-                JWTPolicyConfiguration configuration = new JWTPolicyConfiguration();
-                configuration.setSignature(HMAC_HS256);
-                configuration.setResolverParameter(JWT_SECRET);
-                configuration.setPublicKeyResolver(GIVEN_KEY);
-
-                Plan plan = Plan.builder()
-                        .id(PLAN_ID)
-                        .name("plan-name")
-                        .security(PlanSecurity.builder()
-                                .type("jwt")
-                                .configuration(new ObjectMapper().writeValueAsString(configuration))
-                                .build())
-                        .status(PlanStatus.PUBLISHED)
-                        .mode(PlanMode.STANDARD)
-                        .build();
-                definition.setPlans(Collections.singletonList(plan));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("Failed to set JWT policy configuration", e);
-            }
+            final Api apiDefinition = (Api) api.getDefinition();
+            configurePlans(apiDefinition, Set.of("jwt"));
         }
     }
 
@@ -100,9 +82,6 @@ public class PlanJwtV4IntegrationTest extends PlanJwtV4EmulationIntegrationTest 
 
     @Override
     protected Stream<Arguments> provideApis() {
-        return Stream.of(
-                Arguments.of("v4-proxy-api", true),
-                Arguments.of("v4-message-api", false)
-        );
+        return Stream.of(Arguments.of("v4-proxy-api", true), Arguments.of("v4-message-api", false));
     }
 }

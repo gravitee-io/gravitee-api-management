@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.integration.tests.plan.oauth2;
+package io.gravitee.apim.integration.tests.plan.multiple;
 
 import static io.gravitee.definition.model.ExecutionMode.V3;
 import static org.mockito.Mockito.when;
@@ -22,21 +22,30 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import java.util.Optional;
+import org.junit.jupiter.api.Nested;
 import org.mockito.stubbing.OngoingStubbing;
 
 /**
  * @author GraviteeSource Team
  */
-@GatewayTest(v2ExecutionMode = V3)
-public class PlanOAuth2V3IntegrationTest extends PlanOAuth2V4EmulationIntegrationTest {
+public class PlanKeylessJwtV3IntegrationTest {
 
-    /**
-     * This overrides subscription search :
-     * - in jupiter its searched with getByApiAndSecurityToken
-     * - in V3 its searches with api/clientId/plan
-     */
-    @Override
-    protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(String api, String clientId, String plan) {
-        return when(getBean(SubscriptionService.class).getByApiAndClientIdAndPlan(api, clientId, plan));
+    @Nested
+    @GatewayTest(v2ExecutionMode = V3)
+    public class SelectKeylessTest extends PlanKeylessJwtV4EmulationIntegrationTest.AbstractSelectKeylessTest {}
+
+    @Nested
+    @GatewayTest(v2ExecutionMode = V3)
+    public class SelectJwtTest extends PlanKeylessJwtV4EmulationIntegrationTest.AbstractSelectJwtTest {
+
+        /**
+         * This overrides subscription search :
+         * - in jupiter its searched with getByApiAndSecurityToken
+         * - in V3 its searches with api/clientId/plan
+         */
+        @Override
+        protected OngoingStubbing<Optional<Subscription>> whenSearchingSubscription(String api, String clientId, String plan) {
+            return when(getBean(SubscriptionService.class).getByApiAndClientIdAndPlan(api, clientId, plan));
+        }
     }
 }

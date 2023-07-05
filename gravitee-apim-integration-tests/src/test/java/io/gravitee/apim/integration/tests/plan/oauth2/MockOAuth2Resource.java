@@ -16,17 +16,17 @@
 
 package io.gravitee.apim.integration.tests.plan.oauth2;
 
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_CLIENT_ID;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_SUCCESS_TOKEN;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_UNAUTHORIZED_TOKEN;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_UNAUTHORIZED_TOKEN_WITHOUT_CLIENT_ID;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.OAUTH2_UNAUTHORIZED_WITH_INVALID_PAYLOAD;
+
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.resource.api.ResourceConfiguration;
 import io.gravitee.resource.oauth2.api.OAuth2Resource;
 import io.gravitee.resource.oauth2.api.OAuth2Response;
 import io.gravitee.resource.oauth2.api.openid.UserInfoResponse;
-
-import static io.gravitee.apim.integration.tests.plan.oauth2.PlanOAuth2V4EmulationIntegrationTest.CLIENT_ID;
-import static io.gravitee.apim.integration.tests.plan.oauth2.PlanOAuth2V4EmulationIntegrationTest.SUCCESS_TOKEN;
-import static io.gravitee.apim.integration.tests.plan.oauth2.PlanOAuth2V4EmulationIntegrationTest.UNAUTHORIZED_TOKEN;
-import static io.gravitee.apim.integration.tests.plan.oauth2.PlanOAuth2V4EmulationIntegrationTest.UNAUTHORIZED_TOKEN_WITHOUT_CLIENT_ID;
-import static io.gravitee.apim.integration.tests.plan.oauth2.PlanOAuth2V4EmulationIntegrationTest.UNAUTHORIZED_WITH_INVALID_PAYLOAD;
 
 /**
  * @author GraviteeSource Team
@@ -39,13 +39,13 @@ public class MockOAuth2Resource extends OAuth2Resource<MockOAuth2Resource.MockOA
     public void introspect(String accessToken, Handler<OAuth2Response> responseHandler) {
         OAuth2Response response = null;
 
-        if (SUCCESS_TOKEN.equals(accessToken)) {
-            response = new OAuth2Response(true, "{ \"client_id\": \"" + CLIENT_ID + "\"}");
-        } else if (UNAUTHORIZED_TOKEN_WITHOUT_CLIENT_ID.equals(accessToken)) {
+        if (OAUTH2_SUCCESS_TOKEN.equals(accessToken)) {
+            response = new OAuth2Response(true, "{ \"client_id\": \"" + OAUTH2_CLIENT_ID + "\"}");
+        } else if (OAUTH2_UNAUTHORIZED_TOKEN_WITHOUT_CLIENT_ID.equals(accessToken)) {
             response = new OAuth2Response(true, "{}");
-        } else if (UNAUTHORIZED_WITH_INVALID_PAYLOAD.equals(accessToken)) {
+        } else if (OAUTH2_UNAUTHORIZED_WITH_INVALID_PAYLOAD.equals(accessToken)) {
             response = new OAuth2Response(true, "{this _is _invalid json");
-        } else if (UNAUTHORIZED_TOKEN.equals(accessToken)) {
+        } else if (OAUTH2_UNAUTHORIZED_TOKEN.equals(accessToken)) {
             response = new OAuth2Response(false, null);
         } else {
             response = new OAuth2Response(false, null);
@@ -55,9 +55,7 @@ public class MockOAuth2Resource extends OAuth2Resource<MockOAuth2Resource.MockOA
     }
 
     @Override
-    public void userInfo(String accessToken, Handler<UserInfoResponse> responseHandler) {
-    }
+    public void userInfo(String accessToken, Handler<UserInfoResponse> responseHandler) {}
 
-    public class MockOAuth2ResourceConfiguration implements ResourceConfiguration {
-    }
+    public class MockOAuth2ResourceConfiguration implements ResourceConfiguration {}
 }
