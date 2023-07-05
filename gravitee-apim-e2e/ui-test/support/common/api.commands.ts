@@ -36,10 +36,36 @@ declare global {
       teardownApi(api: ApiImport): void;
       teardownV4Api(apiId: string): void;
       createAndStartApiFromSwagger(swaggerImport: string, attributes?: Partial<ImportSwaggerDescriptorEntity>): any;
+      callGateway(contextPath: string, maxRetries?: number, retryDelay?: number): any;
     }
   }
 }
 export {};
+
+Cypress.Commands.add('callGateway', (contextPath, maxRetries = 5, retryDelay = 1500) => {
+  let retries = 0;
+
+  const sendRequest = () => {
+    retries++;
+    const url = `${Cypress.env('gatewayServer')}/${contextPath}`;
+    cy.log(`Calling gateway: ${url} - Attempt ${retries} of ${maxRetries}`);
+
+    return cy.request({ url, failOnStatusCode: false }).then((response) => {
+      if (response.status === 200) {
+        return response;
+      } else if (retries >= maxRetries) {
+        throw new Error('Maximum retries reached, request failed');
+      } else {
+        // Retry after delay
+        return new Cypress.Promise((resolve) => {
+          setTimeout(resolve, retryDelay);
+        }).then(sendRequest);
+      }
+    });
+  };
+
+  return sendRequest();
+});
 
 Cypress.Commands.add('teardownApi', (api) => {
   cy.log(`----- Removing API "${api.name}" -----`);
