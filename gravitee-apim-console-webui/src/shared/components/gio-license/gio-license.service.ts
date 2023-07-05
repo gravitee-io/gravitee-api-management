@@ -59,7 +59,7 @@ const featureMoreInformationData = {
       'This policy is part of Gravitee Enterprise. Enterprise policies allows you to easily define and customise rules according to your evolving business needs.',
   },
   'apim-en-schema-registry-provider': {
-    image: 'assets/gio-ee-unlock-dialog/confluent-schema-registry.png',
+    image: 'assets/gio-ee-unlock-dialog/confluent-schema-registry.svg',
     description:
       'Confluent Schema Registry is part of Gravitee Enterprise. Integration with a Schema Registry enables your APIs to validate schemas used in API calls, and serialize and deserialize data.',
   },
