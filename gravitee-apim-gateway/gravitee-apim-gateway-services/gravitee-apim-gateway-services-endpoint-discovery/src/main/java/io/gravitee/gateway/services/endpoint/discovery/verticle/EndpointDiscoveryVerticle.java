@@ -175,7 +175,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
         final String serviceName = "sd#" + service.id().replaceAll(":", "#");
         String target = scheme + "://" + service.host() + (service.port() > 0 ? ":" + service.port() : "") + basePath;
 
-        io.gravitee.definition.model.Endpoint endpoint = new Endpoint(serviceName, target);
+        io.gravitee.definition.model.Endpoint endpoint = Endpoint.builder().name(serviceName).target(target).build();
 
         endpoint.setConfiguration(getEndpointConfiguration(group, endpoint, scheme));
 

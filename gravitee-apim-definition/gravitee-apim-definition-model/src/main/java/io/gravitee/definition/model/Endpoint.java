@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,6 +33,7 @@ import lombok.Builder;
  */
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class Endpoint implements Serializable {
 
     private static final String DEFAULT_TYPE = "http";
@@ -47,6 +49,7 @@ public class Endpoint implements Serializable {
     private String target;
 
     @JsonProperty("weight")
+    @Builder.Default
     private int weight = DEFAULT_WEIGHT;
 
     @JsonProperty("backup")
@@ -60,7 +63,8 @@ public class Endpoint implements Serializable {
     private List<String> tenants; // TODO was not serialized
 
     @JsonProperty("type")
-    private final String type;
+    @Builder.Default
+    private String type = DEFAULT_TYPE;
 
     @JsonProperty("inherit")
     private Boolean inherit;
@@ -71,18 +75,12 @@ public class Endpoint implements Serializable {
     @JsonIgnore
     private transient String configuration;
 
-    public Endpoint() {
-        this(null, null, null);
-    }
-
-    public Endpoint(String name, String target) {
-        this(null, name, target);
-    }
-
     public Endpoint(String type, String name, String target) {
         this.type = type != null ? type : DEFAULT_TYPE;
         this.name = name;
         this.target = target;
+        this.status = Status.UP;
+        this.weight = DEFAULT_WEIGHT;
     }
 
     public String getName() {

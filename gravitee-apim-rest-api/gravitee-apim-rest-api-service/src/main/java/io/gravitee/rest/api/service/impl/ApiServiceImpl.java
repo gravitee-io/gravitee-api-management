@@ -380,13 +380,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         if (endpoints == null) {
-            group.setEndpoints(singleton(new Endpoint("default", null)));
+            group.setEndpoints(singleton(Endpoint.builder().name("default").build()));
         } else if (endpoints.length == 1) {
-            group.setEndpoints(singleton(new Endpoint("default", endpoints[0])));
+            group.setEndpoints(singleton(Endpoint.builder().name("default").target(endpoints[0]).build()));
         } else {
             group.setEndpoints(new HashSet<>());
             for (int i = 0; i < endpoints.length; i++) {
-                group.getEndpoints().add(new Endpoint("server" + (i + 1), endpoints[i]));
+                group.getEndpoints().add(Endpoint.builder().name("server" + (i + 1)).target(endpoints[i]).build());
             }
         }
         proxy.setGroups(singleton(group));

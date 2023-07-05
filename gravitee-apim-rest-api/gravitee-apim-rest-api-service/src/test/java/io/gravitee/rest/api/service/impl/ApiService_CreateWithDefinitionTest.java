@@ -123,7 +123,7 @@ public class ApiService_CreateWithDefinitionTest {
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new Endpoint("endpointName", null);
+        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
@@ -163,7 +163,7 @@ public class ApiService_CreateWithDefinitionTest {
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new Endpoint("endpointName", null);
+        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
@@ -196,7 +196,7 @@ public class ApiService_CreateWithDefinitionTest {
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new Endpoint("endpointName", null);
+        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));

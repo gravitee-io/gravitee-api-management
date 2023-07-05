@@ -181,7 +181,7 @@ public class ApiExportService_gRPC_ExportAsJsonTestSetup {
         proxy.setLogging(logging);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
-        Endpoint endpoint = new Endpoint("default", "http://test");
+        Endpoint endpoint = Endpoint.builder().name("default").target("http://test").build();
         Endpoint endPointGrpc = new Endpoint("grpc", "EndPoint GRPC", "grpc://localhost:8888");
         HttpClientOptions httpClientOptions = new HttpClientOptions();
         httpClientOptions.setVersion(ProtocolVersion.HTTP_2);

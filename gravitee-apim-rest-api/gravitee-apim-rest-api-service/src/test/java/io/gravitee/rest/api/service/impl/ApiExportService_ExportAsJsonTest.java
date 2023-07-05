@@ -178,7 +178,7 @@ public class ApiExportService_ExportAsJsonTest extends ApiExportService_ExportAs
         proxy.setStripContextPath(false);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
-        Endpoint endpoint = new Endpoint("default", "http://test");
+        Endpoint endpoint = Endpoint.builder().name("default").target("http://test").build();
         endpointGroup.setEndpoints(Collections.singleton(endpoint));
         LoadBalancer loadBalancer = new LoadBalancer();
         loadBalancer.setType(LoadBalancerType.ROUND_ROBIN);
@@ -186,7 +186,7 @@ public class ApiExportService_ExportAsJsonTest extends ApiExportService_ExportAs
 
         EndpointGroup endpointGroup2 = new EndpointGroup();
         endpointGroup2.setName("backup-group");
-        Endpoint endpoint2 = new Endpoint("backup", "http://test2");
+        Endpoint endpoint2 = Endpoint.builder().name("backup").target("http://test2").build();
         endpointGroup2.setEndpoints(Collections.singleton(endpoint2));
         proxy.setGroups(new HashSet<>(Arrays.asList(endpointGroup, endpointGroup2)));
 
