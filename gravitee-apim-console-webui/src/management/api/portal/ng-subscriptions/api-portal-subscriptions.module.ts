@@ -33,6 +33,7 @@ import {
   GioAvatarModule,
   GioClipboardModule,
   GioFormJsonSchemaModule,
+  GioFormTagsInputModule,
   GioIconsModule,
   GioLoaderModule,
 } from '@gravitee/ui-particles-angular';
@@ -89,13 +90,14 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatTableModule,
     MatTooltipModule,
 
+    GioAvatarModule,
     GioClipboardModule,
+    GioFormJsonSchemaModule,
+    GioFormTagsInputModule,
     GioIconsModule,
     GioLoaderModule,
     GioPermissionModule,
     GioTableWrapperModule,
-    GioFormJsonSchemaModule,
-    GioAvatarModule,
   ],
   providers: [DatePipe, { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } }],
 })

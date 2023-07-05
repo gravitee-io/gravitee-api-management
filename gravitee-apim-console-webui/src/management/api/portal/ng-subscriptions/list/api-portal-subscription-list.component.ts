@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
 import { StateService, UIRouterGlobals } from '@uirouter/core';
 import { isEqual } from 'lodash';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { AutocompleteOptions } from '@gravitee/ui-particles-angular';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SubscriptionStatus } from '../../../../../entities/subscription/subscription';
@@ -35,6 +36,7 @@ import {
   ApiPortalSubscriptionCreationDialogData,
   ApiPortalSubscriptionCreationDialogResult,
 } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.component';
+import { ApplicationService } from '../../../../../services-ngx/application.service';
 
 type SubscriptionsTableDS = {
   id: string;
@@ -65,7 +67,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
   });
 
   public plans: Plan[] = [];
-  public applications$ = new Observable<{ id: string; name: string }[]>();
+  public applications$ = new Observable<AutocompleteOptions>();
   public statuses: { id: SubscriptionStatus; name: string }[] = [
     { id: 'ACCEPTED', name: 'Accepted' },
     { id: 'CLOSED', name: 'Closed' },
@@ -112,6 +114,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly apiPlanService: ApiPlanV2Service,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
+    private readonly applicationService: ApplicationService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
@@ -151,11 +154,6 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
         }),
         switchMap(() => this.apiPlanService.list(this.ajsStateParams.apiId, null, null, null, 1, 9999)),
         tap((plansResponse) => (this.plans = plansResponse.data)),
-        switchMap(() => this.apiService.getSubscribers(this.ajsStateParams.apiId, undefined, 1, 9999)),
-        tap(
-          (subscribers) =>
-            (this.applications$ = of(subscribers?.data?.map((subscriber) => ({ id: subscriber.id, name: subscriber.name })))),
-        ),
         catchError((error) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -214,7 +212,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
         this.nbTotalSubscriptions = apiSubscriptionsResponse.pagination.totalCount;
         this.subscriptionsTableDS = (apiSubscriptionsResponse.data ?? []).map((subscription) => ({
           id: subscription.id,
-          application: subscription.application?.name,
+          application: `${subscription.application?.name} (${subscription.application?.primaryOwner?.displayName})`,
           createdAt: subscription.createdAt,
           endAt: subscription.endingAt,
           plan: subscription.plan?.name,
@@ -313,4 +311,24 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
 
     return (api as ApiV4).listeners.filter((listener) => listener.type === 'SUBSCRIPTION').flatMap((listener) => listener.entrypoints);
   }
+
+  public searchApplications: (searchTerm: string) => Observable<AutocompleteOptions> = (searchTerm: string) => {
+    return this.apiService.getSubscribers(this.ajsStateParams.apiId, searchTerm, 1, 20).pipe(
+      map((subscribers) =>
+        subscribers?.data?.map((subscriber) => ({
+          value: subscriber.id,
+          label: `${subscriber.name} (${subscriber.primaryOwner?.displayName})`,
+        })),
+      ),
+    );
+  };
+
+  public displayApplication: (value: string) => Observable<string> = (value: string) => {
+    return this.applicationService.getById(value).pipe(
+      map((application) => `${application.name} (${application.owner?.displayName})`),
+      catchError(() => {
+        return of(value);
+      }),
+    );
+  };
 }

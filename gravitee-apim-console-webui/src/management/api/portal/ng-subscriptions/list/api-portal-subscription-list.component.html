@@ -48,9 +48,13 @@
 
     <mat-form-field class="subscriptions__filters__inputs__field">
       <mat-label>Application</mat-label>
-      <mat-select formControlName="applicationIds" [multiple]="true">
-        <mat-option *ngFor="let application of applications$ | async" [value]="application.id">{{ application.name }}</mat-option>
-      </mat-select>
+      <gio-form-tags-input
+        [placeholder]="'Search for an application'"
+        formControlName="applicationIds"
+        [autocompleteOptions]="searchApplications"
+        [displayValueWith]="displayApplication"
+        [useAutocompleteOptionValueOnly]="true"
+      ></gio-form-tags-input>
     </mat-form-field>
 
     <mat-form-field class="subscriptions__filters__inputs__field">

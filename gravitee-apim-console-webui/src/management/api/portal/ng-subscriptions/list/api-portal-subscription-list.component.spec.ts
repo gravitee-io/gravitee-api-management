@@ -65,7 +65,8 @@ describe('ApiPortalSubscriptionListComponent', () => {
   const APPLICATION_ID = 'application_1';
   const anAPI = fakeApiV4({ id: API_ID });
   const aPlan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
-  const aBaseApplication = fakeBaseApplication({ id: APPLICATION_ID });
+  const aBaseApplication = fakeBaseApplication();
+  const anApplication = fakeApplication({ id: APPLICATION_ID, owner: { displayName: 'Gravitee.io' } });
   const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['api-subscription-c', 'api-subscription-r'];
@@ -124,9 +125,8 @@ describe('ApiPortalSubscriptionListComponent', () => {
       expect(await planSelectInput.isDisabled()).toEqual(false);
       expect(await planSelectInput.isEmpty()).toEqual(true);
 
-      const applicationSelectInput = await harness.getApplicationSelectInput();
-      expect(await applicationSelectInput.isDisabled()).toEqual(false);
-      expect(await applicationSelectInput.isEmpty()).toEqual(true);
+      const selectedApplications = await harness.getApplications();
+      expect(await selectedApplications?.length).toEqual(0);
 
       const statusSelectInput = await harness.getStatusSelectInput();
       expect(await statusSelectInput.isDisabled()).toEqual(false);
@@ -138,7 +138,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     }));
 
     it('should init filters from params', fakeAsync(async () => {
-      await initComponent([], anAPI, [aPlan], [aBaseApplication], {
+      await initComponent([], anAPI, [aPlan], [aBaseApplication], [anApplication], {
         plan: PLAN_ID,
         application: APPLICATION_ID,
         status: 'CLOSED,REJECTED',
@@ -150,9 +150,9 @@ describe('ApiPortalSubscriptionListComponent', () => {
       expect(await planSelectInput.isDisabled()).toEqual(false);
       expect(await planSelectInput.getValueText()).toEqual('Default plan');
 
-      const applicationSelectInput = await harness.getApplicationSelectInput();
-      expect(await applicationSelectInput.isDisabled()).toEqual(false);
-      expect(await applicationSelectInput.getValueText()).toEqual('My first application');
+      const selectedApplications = await harness.getApplications();
+      expect(await selectedApplications?.length).toEqual(1);
+      expect(selectedApplications[0]).toEqual('Default application (Gravitee.io)');
 
       const statusSelectInput = await harness.getStatusSelectInput();
       expect(await statusSelectInput.isDisabled()).toEqual(false);
@@ -164,7 +164,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     }));
 
     it('should reset filters from params', fakeAsync(async () => {
-      await initComponent([], anAPI, [aPlan], [aBaseApplication], {
+      await initComponent([], anAPI, [aPlan], [aBaseApplication], [], {
         plan: null,
         application: null,
         status: 'CLOSED,REJECTED',
@@ -181,9 +181,8 @@ describe('ApiPortalSubscriptionListComponent', () => {
       expect(await planSelectInput.isDisabled()).toEqual(false);
       expect(await planSelectInput.isEmpty()).toEqual(true);
 
-      const applicationSelectInput = await harness.getApplicationSelectInput();
-      expect(await applicationSelectInput.isDisabled()).toEqual(false);
-      expect(await applicationSelectInput.isEmpty()).toEqual(true);
+      const selectedApplications = await harness.getApplications();
+      expect(await selectedApplications?.length).toEqual(0);
 
       const statusSelectInput = await harness.getStatusSelectInput();
       expect(await statusSelectInput.isDisabled()).toEqual(false);
@@ -235,7 +234,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       expect(rowCells).toEqual([
         [
           'My Plan',
-          'My Application',
+          'My Application (Primary Owner)',
           'Jan 1, 2020, 12:00:00 AM',
           'Jan 1, 2020, 12:00:00 AM',
           'Jan 1, 2020, 12:00:00 AM',
@@ -258,7 +257,16 @@ describe('ApiPortalSubscriptionListComponent', () => {
 
       const { rowCells } = await computeSubscriptionsTableCells();
       expect(rowCells).toEqual([
-        ['My Plan', 'My Application', 'Jan 1, 2020, 12:00:00 AM', 'Jan 1, 2020, 12:00:00 AM', 'Jan 1, 2020, 12:00:00 AM', '', 'Closed', ''],
+        [
+          'My Plan',
+          'My Application (Primary Owner)',
+          'Jan 1, 2020, 12:00:00 AM',
+          'Jan 1, 2020, 12:00:00 AM',
+          'Jan 1, 2020, 12:00:00 AM',
+          '',
+          'Closed',
+          '',
+        ],
       ]);
     }));
 
@@ -388,7 +396,8 @@ describe('ApiPortalSubscriptionListComponent', () => {
     subscriptions: Subscription[],
     api: Api = anAPI,
     plans: Plan[] = [aPlan],
-    applications: BaseApplication[] = [aBaseApplication],
+    subscribers: BaseApplication[] = [aBaseApplication],
+    applications?: Application[],
     params?: { plan?: string; application?: string; status?: string; apikey?: string },
   ) {
     await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id, ...(params ? params : {}) } }).compileComponents();
@@ -399,7 +408,15 @@ describe('ApiPortalSubscriptionListComponent', () => {
     tick(800); // wait for debounce
     expectApiGetRequest(api);
     expectApiPlansGetRequest(plans);
-    expectApiSubscribersGetRequest(applications);
+    expectApiSubscribersGetRequest(subscribers);
+    if (params?.application) {
+      params?.application.split(',').forEach((appId) =>
+        expectGetApplication(
+          appId,
+          applications.find((app) => app.id === appId),
+        ),
+      );
+    }
     expectApiSubscriptionsGetRequest(
       subscriptions,
       params?.status?.split(','),
@@ -475,7 +492,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     };
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscribers?page=1&perPage=9999`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscribers?page=1&perPage=20`,
         method: 'GET',
       })
       .flush(response);
@@ -548,5 +565,15 @@ describe('ApiPortalSubscriptionListComponent', () => {
       })
       .flush(response);
     fixture.detectChanges();
+  }
+
+  function expectGetApplication(applicationId: string, application: Application) {
+    const testRequest = httpTestingController
+      .match(`${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}`)
+      .find((request) => !request.cancelled);
+    if (testRequest) {
+      testRequest.flush(application);
+      fixture.detectChanges();
+    }
   }
 });
