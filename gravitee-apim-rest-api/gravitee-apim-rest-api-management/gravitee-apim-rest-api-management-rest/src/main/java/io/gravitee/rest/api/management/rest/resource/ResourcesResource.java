@@ -101,6 +101,8 @@ public class ResourcesResource {
         item.setName(resource.getName());
         item.setDescription(resource.getDescription());
         item.setVersion(resource.getVersion());
+        item.setDeployed(resource.isDeployed());
+        item.setFeature(resource.getFeature());
 
         return item;
     }
