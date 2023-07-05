@@ -64,6 +64,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -555,6 +556,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
+    /**
+     * Delete an Api regardless of version
+     *
+     * @param executionContext
+     * @param apiId
+     * @param closePlans
+     */
     @Override
     public void delete(ExecutionContext executionContext, String apiId, boolean closePlans) {
         try {
@@ -565,20 +573,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 throw new ApiRunningStateException(apiId);
             }
 
-            Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
+            Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, apiId);
             if (closePlans) {
                 plans =
                     plans
                         .stream()
-                        .filter(plan -> plan.getStatus() != PlanStatus.CLOSED)
+                        .filter(plan -> plan.getPlanStatus() != PlanStatus.CLOSED)
                         .map(plan -> planService.close(executionContext, plan.getId()))
                         .collect(Collectors.toSet());
             }
 
             Set<String> plansNotClosed = plans
                 .stream()
-                .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED)
-                .map(PlanEntity::getName)
+                .filter(plan -> plan.getPlanStatus() == PlanStatus.PUBLISHED)
+                .map(GenericPlanEntity::getName)
                 .collect(toSet());
 
             if (!plansNotClosed.isEmpty()) {

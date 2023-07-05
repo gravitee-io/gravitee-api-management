@@ -225,11 +225,7 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        if (planEntity instanceof PlanEntity) {
-            return Response.ok(planMapper.map(planServiceV4.close(executionContext, planId))).build();
-        }
-
-        return Response.ok(planMapper.map(planServiceV2.close(executionContext, planId))).build();
+        return Response.ok(planMapper.mapGenericPlan(planServiceV4.close(executionContext, planId))).build();
     }
 
     @POST

@@ -57,7 +57,6 @@ public class ApiPlansResource_CloseTest extends ApiPlansResourceTest {
         assertEquals("Plan [" + PLAN + "] cannot be found.", error.getMessage());
 
         verify(planServiceV4, never()).close(any(), any());
-        verify(planServiceV2, never()).close(any(), any());
     }
 
     @Test
@@ -74,7 +73,6 @@ public class ApiPlansResource_CloseTest extends ApiPlansResourceTest {
         assertEquals("Plan [" + PLAN + "] cannot be found.", error.getMessage());
 
         verify(planServiceV4, never()).close(any(), any());
-        verify(planServiceV2, never()).close(any(), any());
     }
 
     @Test
@@ -97,7 +95,6 @@ public class ApiPlansResource_CloseTest extends ApiPlansResourceTest {
         assertEquals("You do not have sufficient rights to access this resource", error.getMessage());
 
         verify(planServiceV4, never()).close(any(), any());
-        verify(planServiceV2, never()).close(any(), any());
     }
 
     @Test
@@ -121,7 +118,7 @@ public class ApiPlansResource_CloseTest extends ApiPlansResourceTest {
         final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2().toBuilder().id(PLAN).api(API).build();
 
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
-        when(planServiceV2.close(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+        when(planServiceV4.close(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
 
         final Response response = rootTarget().request().post(Entity.json(null));
         assertEquals(OK_200, response.getStatus());
@@ -129,6 +126,6 @@ public class ApiPlansResource_CloseTest extends ApiPlansResourceTest {
         var plan = response.readEntity(PlanV2.class);
         assertEquals(planEntity.getId(), plan.getId());
 
-        verify(planServiceV2, times(1)).close(GraviteeContext.getExecutionContext(), PLAN);
+        verify(planServiceV4, times(1)).close(GraviteeContext.getExecutionContext(), PLAN);
     }
 }
