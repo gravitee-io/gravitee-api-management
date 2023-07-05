@@ -33,7 +33,7 @@ import {
   ApiPortalSubscriptionTransferDialogComponent,
   ApiPortalSubscriptionTransferDialogData,
   ApiPortalSubscriptionTransferDialogResult,
-} from '../components/transfer-dialog/api-portal-subscription-transfer-dialog.component';
+} from '../components/dialogs/transfer/api-portal-subscription-transfer-dialog.component';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { ApiKeyMode } from '../../../../../entities/application/application';
@@ -41,29 +41,29 @@ import {
   ApiPortalSubscriptionChangeEndDateDialogComponent,
   ApiPortalSubscriptionChangeEndDateDialogData,
   ApiPortalSubscriptionChangeEndDateDialogResult,
-} from '../components/change-end-date-dialog/api-portal-subscription-change-end-date-dialog.component';
+} from '../components/dialogs/change-end-date/api-portal-subscription-change-end-date-dialog.component';
 import {
   ApiPortalSubscriptionValidateDialogComponent,
   ApiPortalSubscriptionAcceptDialogData,
   ApiPortalSubscriptionAcceptDialogResult,
-} from '../components/validate-dialog/api-portal-subscription-validate-dialog.component';
+} from '../components/dialogs/validate/api-portal-subscription-validate-dialog.component';
 import { Constants } from '../../../../../entities/Constants';
 import {
   ApiPortalSubscriptionRejectDialogComponent,
   ApiPortalSubscriptionRejectDialogResult,
-} from '../components/reject-dialog/api-portal-subscription-reject-dialog.component';
+} from '../components/dialogs/reject/api-portal-subscription-reject-dialog.component';
 import {
   ApiPortalSubscriptionRenewDialogComponent,
   ApiPortalSubscriptionRenewDialogData,
   ApiPortalSubscriptionRenewDialogResult,
-} from '../components/renew-dialog/api-portal-subscription-renew-dialog.component';
+} from '../components/dialogs/renew/api-portal-subscription-renew-dialog.component';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SubscriptionApiKeysResponse } from '../../../../../entities/management-api-v2/api-key';
 import {
   ApiPortalSubscriptionExpireApiKeyDialogData,
   ApiPortalSubscriptionExpireApiKeyDialogResult,
   ApiPortalSubscriptionExpireApiKeyDialogComponent,
-} from '../components/expire-api-key-dialog/api-portal-subscription-expire-api-key-dialog.component';
+} from '../components/dialogs/expire-api-key/api-portal-subscription-expire-api-key-dialog.component';
 
 interface SubscriptionDetailVM {
   id: string;

@@ -34,7 +34,7 @@ import {
   ApiPortalSubscriptionCreationDialogComponent,
   ApiPortalSubscriptionCreationDialogData,
   ApiPortalSubscriptionCreationDialogResult,
-} from '../components/creation-dialog/api-portal-subscription-creation-dialog.component';
+} from '../components/dialogs/creation/api-portal-subscription-creation-dialog.component';
 
 type SubscriptionsTableDS = {
   id: string;

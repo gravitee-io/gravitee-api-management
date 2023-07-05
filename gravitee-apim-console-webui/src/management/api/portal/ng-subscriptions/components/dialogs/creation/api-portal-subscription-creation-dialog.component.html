@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form [formGroup]="form" *ngIf="form">
+<form [formGroup]="form" *ngIf="form" (ngSubmit)="onCreate()">
   <h2 mat-dialog-title class="title">Create a subscription</h2>
 
   <mat-dialog-content class="subscription-creation__content">
@@ -102,13 +102,13 @@
   </mat-dialog-content>
 
   <mat-dialog-actions class="actions">
-    <button class="actions__cancelBtn" mat-flat-button [mat-dialog-close]="false">Cancel</button>
+    <button type="button" class="actions__cancelBtn" mat-flat-button [mat-dialog-close]="false">Cancel</button>
     <button
+      type="submit"
       class="actions__createBtn"
       color="primary"
       mat-stroked-button
       role="dialog"
-      (click)="onCreate()"
       [disabled]="this.form.invalid || this.form.pristine"
     >
       Create

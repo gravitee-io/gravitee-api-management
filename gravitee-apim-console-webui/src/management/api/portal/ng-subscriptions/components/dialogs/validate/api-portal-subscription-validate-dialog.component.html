@@ -16,7 +16,7 @@
 
 -->
 <h2 matDialogTitle>Validate your subscription</h2>
-<form [formGroup]="form">
+<form [formGroup]="form" (ngSubmit)="onClose()">
   <mat-dialog-content>
     <div class="validate-subscription__content">
       <div class="validate-subscription__content__row">
@@ -44,16 +44,7 @@
     </div>
   </mat-dialog-content>
   <mat-dialog-actions class="actions">
-    <button mat-flat-button [mat-dialog-close]="undefined">Cancel</button>
-    <button
-      color="primary"
-      type="submit"
-      mat-raised-button
-      aria-label="Transfer subscription"
-      (click)="onClose()"
-      [disabled]="form.invalid"
-    >
-      Validate
-    </button>
+    <button mat-flat-button type="button" [mat-dialog-close]="undefined">Cancel</button>
+    <button color="primary" type="submit" mat-raised-button aria-label="Validate subscription" [disabled]="form.invalid">Validate</button>
   </mat-dialog-actions>
 </form>

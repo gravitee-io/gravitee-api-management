@@ -48,7 +48,7 @@ import {
 import { PagedResult } from '../../../../../entities/pagedResult';
 import { Application } from '../../../../../entities/application/application';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
-import { ApiPortalSubscriptionCreationDialogHarness } from '../components/creation-dialog/api-portal-subscription-creation-dialog.harness';
+import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.harness';
 
 @Component({
   template: ` <api-portal-subscription-list #apiPortalSubscriptionList></api-portal-subscription-list> `,
