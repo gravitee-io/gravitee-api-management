@@ -20,6 +20,8 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
 
 import { ApiResourcesComponent } from './api-resources.component';
 import { ApiResourcesModule } from './api-resources.module';
@@ -30,6 +32,7 @@ import { fakeResourceListItem } from '../../../../entities/resource/resourceList
 import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { AjsRootScope, CurrentUserService, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
 
 describe('PolicyStudioResourcesComponent', () => {
   let fixture: ComponentFixture<ApiResourcesComponent>;
@@ -44,9 +47,19 @@ describe('PolicyStudioResourcesComponent', () => {
 
   const resources = [fakeResourceListItem()];
 
+  const dialog = {
+    open: jest.fn().mockReturnValue({
+      afterClosed: jest.fn().mockReturnValue(new Subject()),
+    }),
+  };
+
+  const licenseService = {
+    getFeatureMoreInformation: jest.fn(),
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiResourcesModule, GioUiRouterTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiResourcesModule, GioUiRouterTestingModule, MatDialogModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         {
@@ -58,6 +71,14 @@ describe('PolicyStudioResourcesComponent', () => {
         {
           provide: CurrentUserService,
           useValue: { currentUser },
+        },
+        {
+          provide: GioLicenseService,
+          useValue: licenseService,
+        },
+        {
+          provide: MatDialog,
+          useValue: dialog,
         },
       ],
     })
@@ -128,6 +149,46 @@ describe('PolicyStudioResourcesComponent', () => {
     expect(updateRequest.request.body.resources).toEqual(expectedResources);
 
     updateRequest.flush(api);
+  });
+
+  it('should open dialog calling on display-resource-cta event', async () => {
+    createComponent(fakeApiV4({ id: API_ID }));
+
+    component.resourceTypes = [
+      {
+        name: 'resource',
+        description: 'resource description',
+        schema: '',
+        version: '0',
+        icon: 'resource-icon',
+        id: 'resource-id',
+        feature: 'resource-feature',
+      },
+    ];
+
+    licenseService.getFeatureMoreInformation.mockReturnValue({
+      description: 'feature description',
+    });
+
+    component.onDisplayResourceCTA(
+      new CustomEvent('display-resource-cta', {
+        detail: {
+          detail: {
+            id: 'resource-id',
+          },
+        },
+      }),
+    );
+
+    expect(dialog.open).toHaveBeenCalledWith(expect.any(Function), {
+      data: {
+        featureMoreInformation: {
+          description: 'feature description',
+        },
+      },
+      id: 'dialog',
+      role: 'alertdialog',
+    });
   });
 
   it('should disable field when origin is kubernetes', async () => {

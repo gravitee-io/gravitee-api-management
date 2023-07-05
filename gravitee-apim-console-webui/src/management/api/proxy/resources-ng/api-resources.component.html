@@ -21,6 +21,7 @@
     class="policy-studio-resources"
     [attr.readonly]="this.isReadonly"
     (:gv-resources:change)="this.onChange($event)"
+    (:gv-resources:display-resource-cta)="this.onDisplayResourceCTA($event)"
     [resources]="api.resources ?? []"
     [types]="resourceTypes"
   ></gv-resources>
