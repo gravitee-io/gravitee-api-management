@@ -713,6 +713,13 @@
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-rabbitmq</artifactId>
+                    <version>${gravitee-endpoint-rabbitmq.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
                 <!-- Policies -->
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
