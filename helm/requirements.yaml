@@ -1,9 +1,9 @@
 dependencies:
   - name: elasticsearch
-    version: ^17.9.29
-    repository: https://raw.githubusercontent.com/bitnami/charts/eb5f9a9513d987b519f0ecd732e7031241c50328/bitnami
+    version: ^19.10.3
+    repository: https://charts.bitnami.com/bitnami
     condition: elasticsearch.enabled
   - name: mongodb
-    version: ^12.1.7
+    version: ^13.15.4
     repository: https://charts.bitnami.com/bitnami
     condition: mongodb.enabled
