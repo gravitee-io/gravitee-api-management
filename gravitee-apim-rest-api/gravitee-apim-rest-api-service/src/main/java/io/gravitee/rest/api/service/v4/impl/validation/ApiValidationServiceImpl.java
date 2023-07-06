@@ -36,7 +36,7 @@ import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
@@ -66,7 +66,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final FlowValidationService flowValidationService;
     private final ResourcesValidationService resourcesValidationService;
     private final AnalyticsValidationService analyticsValidationService;
-    private final PlanService planService;
+    private final PlanSearchService planSearchService;
     private final PlanValidationService planValidationService;
     private final PathParametersValidationService pathParametersValidationService;
 
@@ -78,7 +78,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final FlowValidationService flowValidationService,
         final ResourcesValidationService resourcesValidationService,
         final AnalyticsValidationService loggingValidationService,
-        final PlanService planService,
+        final PlanSearchService planSearchService,
         final PlanValidationService planValidationService,
         final PathParametersValidationService pathParametersValidationService
     ) {
@@ -89,7 +89,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.flowValidationService = flowValidationService;
         this.resourcesValidationService = resourcesValidationService;
         this.analyticsValidationService = loggingValidationService;
-        this.planService = planService;
+        this.planSearchService = planSearchService;
         this.planValidationService = planValidationService;
         this.pathParametersValidationService = pathParametersValidationService;
     }
@@ -238,7 +238,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
 
     @Override
     public boolean canDeploy(ExecutionContext executionContext, String apiId) {
-        return planService
+        return planSearchService
             .findByApi(executionContext, apiId)
             .stream()
             .anyMatch(planEntity ->

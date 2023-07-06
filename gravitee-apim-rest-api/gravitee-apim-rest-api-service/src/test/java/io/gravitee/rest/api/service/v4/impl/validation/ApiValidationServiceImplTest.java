@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -48,7 +47,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
-import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
@@ -98,7 +97,7 @@ public class ApiValidationServiceImplTest {
     private AnalyticsValidationService loggingValidationService;
 
     @Mock
-    private PlanService planService;
+    private PlanSearchService planSearchService;
 
     @Mock
     private PlanValidationService planValidationService;
@@ -119,7 +118,7 @@ public class ApiValidationServiceImplTest {
                 flowValidationService,
                 resourcesValidationService,
                 loggingValidationService,
-                planService,
+                planSearchService,
                 planValidationService,
                 pathParametersValidationService
             );
@@ -314,7 +313,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planService.findByApi(executionContext, apiId)).thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.PUBLISHED)));
+        when(planSearchService.findByApi(executionContext, apiId)).thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.PUBLISHED)));
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -323,7 +322,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planService.findByApi(executionContext, apiId)).thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.DEPRECATED)));
+        when(planSearchService.findByApi(executionContext, apiId)).thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.DEPRECATED)));
         assertTrue(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -332,7 +331,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planService.findByApi(executionContext, apiId)).thenReturn(Set.of());
+        when(planSearchService.findByApi(executionContext, apiId)).thenReturn(Set.of());
         assertFalse(apiValidationService.canDeploy(executionContext, apiId));
     }
 
@@ -341,7 +340,7 @@ public class ApiValidationServiceImplTest {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final String apiId = "api-id";
 
-        when(planService.findByApi(executionContext, apiId))
+        when(planSearchService.findByApi(executionContext, apiId))
             .thenReturn(Set.of(new PlanEntity().withStatus(PlanStatus.STAGING), new PlanEntity().withStatus(PlanStatus.CLOSED)));
         assertFalse(apiValidationService.canDeploy(executionContext, apiId));
     }

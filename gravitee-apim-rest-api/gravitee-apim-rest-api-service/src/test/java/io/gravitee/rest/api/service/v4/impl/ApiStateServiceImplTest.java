@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -208,7 +209,16 @@ public class ApiStateServiceImplTest {
     }
 
     @Test
+    public void shouldThrowExceptionWhenNoPlanPublished() throws TechnicalException {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(false);
+
+        assertThrows(ApiNotDeployableException.class, () -> apiStateService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME));
+    }
+
+    @Test
     public void shouldStartApiForTheFirstTime() throws TechnicalException {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
@@ -246,48 +256,9 @@ public class ApiStateServiceImplTest {
     }
 
     @Test
-    public void shouldNotStartApiIfApiCannotBeDeploy() throws TechnicalException {
-        api.setApiLifecycleState(ApiLifecycleState.CREATED);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(apiValidationService.canDeploy(any(), anyString())).thenThrow(new ApiNotDeployableException("Mock deploy Error Message"));
-        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
-
-        final EventQuery query = new EventQuery();
-        query.setApi(API_ID);
-        query.setTypes(singleton(PUBLISH_API));
-        when(eventService.search(GraviteeContext.getExecutionContext(), query)).thenReturn(emptyList());
-
-        updatedApi.setLifecycleState(LifecycleState.STARTED);
-        when(apiRepository.update(any())).thenReturn(updatedApi);
-
-        Assertions
-            .assertThatException()
-            .isThrownBy(() -> apiStateService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME))
-            .withMessageContaining("Mock deploy Error Message");
-
-        verify(apiRepository, times(1)).update(argThat(api -> api.getLifecycleState().equals(LifecycleState.STARTED)));
-
-        Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.USER.getValue(), USER_NAME);
-        properties.put(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "1");
-
-        verify(eventService, never())
-            .createApiEvent(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(singleton(GraviteeContext.getCurrentEnvironment())),
-                eq(EventType.PUBLISH_API),
-                argThat((ArgumentMatcher<Api>) argApi -> argApi.getId().equals(API_ID)),
-                eq(properties)
-            );
-
-        verify(apiNotificationService, never())
-            .triggerDeployNotification(eq(GraviteeContext.getExecutionContext()), argThat(argApi -> argApi.getId().equals(API_ID)));
-        verify(apiNotificationService, never())
-            .triggerStartNotification(eq(GraviteeContext.getExecutionContext()), argThat(argApi -> argApi.getId().equals(API_ID)));
-    }
-
-    @Test
     public void shouldReStartApi() throws TechnicalException {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
@@ -324,6 +295,8 @@ public class ApiStateServiceImplTest {
 
     @Test
     public void shouldStartApiWithKubernetesOrigin() throws TechnicalException {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         api.setOrigin(Api.ORIGIN_KUBERNETES);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
