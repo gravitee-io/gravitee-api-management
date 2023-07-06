@@ -69,7 +69,7 @@ export class ApiKeyValidationComponent implements OnInit, ControlValueAccessor, 
   ngOnInit() {
     this.apiKeyFormControl?.valueChanges
       .pipe(
-        tap((apiKey) => apiKey.length > 0 && this._onChange(apiKey)),
+        tap((apiKey) => this._onChange(apiKey)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
