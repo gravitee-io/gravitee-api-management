@@ -1176,7 +1176,7 @@ jobs:
 
                       # Helm chart
                       sed "s/version.*/version: ${GRAVITEEIO_VERSION_WITH_QUALIFIER}/" -i helm/Chart.yaml
-                    
+
                       git add --update
                       git commit -m "${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
                       git tag ${GRAVITEEIO_VERSION_WITH_QUALIFIER}
@@ -2087,14 +2087,10 @@ workflows:
                       - Commit and prepare next version
 
             # Release Helm chart
-            - job-lint-test-charts:
-                  name: APIM - Lint & Test
-                  requires:
-                      - Package bundle
             - job-release_helm:
                   context: cicd-orchestrator
                   requires:
-                      - APIM - Lint & Test
+                      - Package bundle
 
             # Publish Docker images
             - job-publish-prod-docker-images:
