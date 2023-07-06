@@ -294,7 +294,13 @@
 			<artifactId>commons-email</artifactId>
 			<scope>test</scope>
 		</dependency>
-    </dependencies>
+		<dependency>
+			<groupId>net.jqwik</groupId>
+			<artifactId>jqwik</artifactId>
+			<version>1.7.4</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
