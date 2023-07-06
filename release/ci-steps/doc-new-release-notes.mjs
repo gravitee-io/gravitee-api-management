@@ -108,6 +108,7 @@ ${getChangelogFor(consoleIssues)}
 }
 
 const portalIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Portal'));
+issues = issues.filter((issue) => !portalIssues.includes(issue));
 if (portalIssues.length > 0) {
   changelogPatchTemplate += `=== Portal
 
@@ -116,7 +117,16 @@ ${getChangelogFor(portalIssues)}
 `;
 }
 
-const otherIssues = issues.filter((issue) => !portalIssues.includes(issue));
+const helmChartIssues = issues.filter((issue) => issue.fields.components.some((cmp) => cmp.name === 'Helm chart'));
+if (helmChartIssues.length > 0) {
+  changelogPatchTemplate += `=== Helm Chart
+    
+${getChangelogFor(helmChartIssues)}
+
+`;
+}
+
+const otherIssues = issues.filter((issue) => !helmChartIssues.includes(issue));
 if (otherIssues.length > 0) {
   changelogPatchTemplate += `=== Other
 
