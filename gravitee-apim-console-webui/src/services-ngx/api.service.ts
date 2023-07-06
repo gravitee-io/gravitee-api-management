@@ -130,6 +130,14 @@ export class ApiService {
     return this.http.post<void>(`${this.constants.env.baseURL}/apis/${apiId}/reviews?action=ASK`, { message });
   }
 
+  acceptReview(apiId: string, message?: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.baseURL}/apis/${apiId}/reviews?action=ACCEPT`, { message });
+  }
+
+  rejectReview(apiId: string, message?: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.baseURL}/apis/${apiId}/reviews?action=REJECT`, { message });
+  }
+
   start(apiId: string): Observable<void> {
     return this.http.post<void>(`${this.constants.env.baseURL}/apis/` + apiId + '?action=START', {});
   }
