@@ -87,9 +87,8 @@ export interface NewApiEntityV4 {
 }
 
 export const enum NewApiEntityV4DefinitionVersionEnum {
-  _1_0_0 = '1.0.0',
-  _2_0_0 = '2.0.0',
-  _4_0_0 = '4.0.0',
+  _V2 = 'V2',
+  _V4 = 'V4',
 }
 
 export const enum NewApiEntityV4FlowModeEnum {

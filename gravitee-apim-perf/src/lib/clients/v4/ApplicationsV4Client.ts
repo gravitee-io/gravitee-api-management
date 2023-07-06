@@ -15,7 +15,6 @@
  */
 import http, { RefinedParams } from 'k6/http';
 import { k6Options } from '@env/environment';
-import { LifecycleAction } from '@models/v3/ApiEntity';
 import { HttpHelper } from '@helpers/http.helper';
 import { OUT_OF_SCENARIO } from '@clients/GatewayClient';
 import { randomString } from '@helpers/random.helper';

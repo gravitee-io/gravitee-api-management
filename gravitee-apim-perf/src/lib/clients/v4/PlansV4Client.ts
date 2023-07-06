@@ -20,7 +20,7 @@ import { OUT_OF_SCENARIO } from '@clients/GatewayClient';
 import { NewPlanEntityV4 } from '@models/v4/NewPlanEntityV4';
 
 const baseUrl = k6Options.apim.managementBaseUrl;
-const plansUrl = `${baseUrl}/organizations/${k6Options.apim.organization}/environments/${k6Options.apim.environment}/v4/apis/:apiId/plans`;
+const plansUrl = `${baseUrl}/v2/environments/${k6Options.apim.environment}/apis/:apiId/plans`;
 
 export class PlansV4Client {
   static createPlan(api: string, plan: NewPlanEntityV4, params: RefinedParams<any>) {
@@ -28,6 +28,17 @@ export class PlansV4Client {
       tags: { name: OUT_OF_SCENARIO },
       ...params,
     });
+  }
+
+  static publishPlan(api: string, plan: string, params: RefinedParams<any>) {
+    return http.post(
+      `${HttpHelper.replacePathParams(plansUrl, [':apiId'], [api])}/${plan}/_publish`,
+      {},
+      {
+        tags: { name: OUT_OF_SCENARIO },
+        ...params,
+      },
+    );
   }
 
   static deletePlan(api: string, plan: string, params: RefinedParams<any>) {

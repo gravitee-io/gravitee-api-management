@@ -22,7 +22,7 @@ import { NewApiEntityV4 } from '@models/v4/NewApiEntityV4';
 import { NewSubscriptionEntitV4 } from '@lib/models/v4/NewSubscriptionEntityV4';
 
 const baseUrl = k6Options.apim.managementBaseUrl;
-const apisUrl = `${baseUrl}/organizations/${k6Options.apim.organization}/environments/${k6Options.apim.environment}/v4/apis`;
+const apisUrl = `${baseUrl}/v2/environments/${k6Options.apim.environment}/apis`;
 
 export class ApisV4Client {
   static createApi(api: NewApiEntityV4, params: RefinedParams<any>) {
@@ -34,7 +34,7 @@ export class ApisV4Client {
 
   static changeLifecycle(api: string, lifecycleAction: LifecycleAction, params: RefinedParams<any>) {
     return http.post(
-      HttpHelper.replacePathParams(`${apisUrl}/:apiId?action=${lifecycleAction}`, [':apiId'], [api]),
+      HttpHelper.replacePathParams(`${apisUrl}/:apiId/_${lifecycleAction.toLowerCase()}`, [':apiId'], [api]),
       {},
       {
         tags: { name: OUT_OF_SCENARIO },
@@ -43,8 +43,8 @@ export class ApisV4Client {
     );
   }
 
-  static createSubscription(api: string, app: string, plan: string, subscription: NewSubscriptionEntitV4, params: RefinedParams<any>) {
-    return http.post(apisUrl + `/${api}/subscriptions?application=${app}&plan=${plan}`, JSON.stringify(subscription), {
+  static createSubscription(api: string, subscription: NewSubscriptionEntitV4, params: RefinedParams<any>) {
+    return http.post(apisUrl + `/${api}/subscriptions`, JSON.stringify(subscription), {
       tags: { name: OUT_OF_SCENARIO },
       ...params,
     });
@@ -59,7 +59,7 @@ export class ApisV4Client {
 
   static deleteApi(api: string, params: RefinedParams<any>) {
     return http.del(
-      HttpHelper.replacePathParams(`${apisUrl}/:apiId`, [':apiId'], [api]),
+      HttpHelper.replacePathParams(`${apisUrl}/:apiId?closePlans=true`, [':apiId'], [api]),
       {},
       {
         tags: { name: OUT_OF_SCENARIO },

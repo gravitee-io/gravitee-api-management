@@ -25,9 +25,8 @@ import { ApisV4Fixture } from '@fixtures/v4/apis.v4.fixture';
 import { ApisV4Client } from '@clients/v4/ApisV4Client';
 import { PlansV4Client } from '@clients/v4/PlansV4Client';
 import { PlansV4Fixture } from '@fixtures/v4/plans.v4.fixture';
-import { NewPlanEntityV4StatusEnum, PlanSecurityTypeV4 } from '@models/v4/NewPlanEntityV4';
 import { ApiEntityV4 } from '@models/v4/ApiEntityV4';
-import { PlanEntityV4 } from '@models/v4/PlanEntityV4';
+import { PlanEntityV4, PlanModeV4 } from '@models/v4/PlanEntityV4';
 import { NewApiEntityV4TypeEnum } from '@models/v4/NewApiEntityV4';
 import { ApplicationsV4Client } from '@clients/v4/ApplicationsV4Client';
 import { SubscriptionEntityV4 } from '@models/v4/SubscriptionEntityV4';
@@ -81,7 +80,7 @@ export function setup(): GatewayTestData {
   const api = ApisV4Fixture.newApi({
     listeners: [
       ApisV4Fixture.newHttpListener({
-        type: 'subscription',
+        type: 'SUBSCRIPTION',
         entrypoints: [
           {
             type: 'webhook',
@@ -122,7 +121,7 @@ export function setup(): GatewayTestData {
         name: 'Routing Flow',
         selectors: [
           {
-            type: 'channel',
+            type: 'CHANNEL',
             operation: ['SUBSCRIBE'],
             channel: '/',
             'channel-operator': 'STARTS_WITH',
@@ -161,10 +160,7 @@ export function setup(): GatewayTestData {
   const planCreationResponse = PlansV4Client.createPlan(
     createdApi.id,
     PlansV4Fixture.newPlan({
-      security: {
-        type: PlanSecurityTypeV4.SUBSCRIPTION,
-      },
-      status: NewPlanEntityV4StatusEnum.PUBLISHED,
+      mode: PlanModeV4.PUSH,
     }),
     {
       headers: {
@@ -175,6 +171,13 @@ export function setup(): GatewayTestData {
   );
   failIf(planCreationResponse.status !== 201, 'Could not create plan');
   const createdPlan = HttpHelper.parseBody<PlanEntityV4>(planCreationResponse);
+
+  const publishPlanResponse = PlansV4Client.publishPlan(createdApi.id, createdPlan.id, {
+    headers: {
+      ...authorizationHeaderFor(ADMIN_USER),
+    },
+  });
+  failIf(publishPlanResponse.status !== 200, 'Could not publish plan');
 
   const changeLifecycleResponse = ApisV4Client.changeLifecycle(createdApi.id, LifecycleAction.START, {
     headers: {
@@ -198,10 +201,10 @@ export function setup(): GatewayTestData {
 
     const subscriptionCreationResponse = ApisV4Client.createSubscription(
       createdApi.id,
-      createdApp.id,
-      createdPlan.id,
       {
-        configuration: {
+        applicationId: createdApp.id,
+        planId: createdPlan.id,
+        consumerConfiguration: {
           entrypointId: 'webhook',
           entrypointConfiguration: {
             callbackUrl: `${k6Options.apim.webhook.callbackBaseUrl}/subscription_${i}`,
@@ -282,13 +285,6 @@ export function teardown(data: GatewayTestData) {
   }
 
   ApisV4Client.changeLifecycle(data.api.id, LifecycleAction.STOP, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...authorizationHeaderFor(ADMIN_USER),
-    },
-  });
-
-  PlansV4Client.deletePlan(data.api.id, data.plan.id, {
     headers: {
       'Content-Type': 'application/json',
       ...authorizationHeaderFor(ADMIN_USER),

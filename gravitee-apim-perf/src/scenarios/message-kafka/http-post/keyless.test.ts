@@ -27,7 +27,6 @@ import { ApisV4Fixture } from '@fixtures/v4/apis.v4.fixture';
 import { ApisV4Client } from '@clients/v4/ApisV4Client';
 import { PlansV4Client } from '@clients/v4/PlansV4Client';
 import { PlansV4Fixture } from '@fixtures/v4/plans.v4.fixture';
-import { NewPlanEntityV4StatusEnum } from '@models/v4/NewPlanEntityV4';
 import { ApiEntityV4 } from '@models/v4/ApiEntityV4';
 import { PlanEntityV4 } from '@models/v4/PlanEntityV4';
 import { NewApiEntityV4TypeEnum } from '@models/v4/NewApiEntityV4';
@@ -127,18 +126,21 @@ export function setup(): GatewayTestData {
   failIf(apiCreationResponse.status !== 201, 'Could not create API');
   const createdApi = HttpHelper.parseBody<ApiEntityV4>(apiCreationResponse);
 
-  const planCreationResponse = PlansV4Client.createPlan(
-    createdApi.id,
-    PlansV4Fixture.newPlan({ status: NewPlanEntityV4StatusEnum.PUBLISHED }),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        ...authorizationHeaderFor(ADMIN_USER),
-      },
+  const planCreationResponse = PlansV4Client.createPlan(createdApi.id, PlansV4Fixture.newPlan(), {
+    headers: {
+      'Content-Type': 'application/json',
+      ...authorizationHeaderFor(ADMIN_USER),
     },
-  );
+  });
   failIf(planCreationResponse.status !== 201, 'Could not create plan');
   const createdPlan = HttpHelper.parseBody<PlanEntityV4>(planCreationResponse);
+
+  const publishPlanResponse = PlansV4Client.publishPlan(createdApi.id, createdPlan.id, {
+    headers: {
+      ...authorizationHeaderFor(ADMIN_USER),
+    },
+  });
+  failIf(publishPlanResponse.status !== 200, 'Could not publish plan');
 
   const changeLifecycleResponse = ApisV4Client.changeLifecycle(createdApi.id, LifecycleAction.START, {
     headers: {
@@ -167,12 +169,6 @@ export default (data: GatewayTestData) => {
 
 export function teardown(data: GatewayTestData) {
   ApisV4Client.changeLifecycle(data.api.id, LifecycleAction.STOP, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...authorizationHeaderFor(ADMIN_USER),
-    },
-  });
-  PlansV4Client.deletePlan(data.api.id, data.plan.id, {
     headers: {
       'Content-Type': 'application/json',
       ...authorizationHeaderFor(ADMIN_USER),

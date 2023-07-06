@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { FlowV4 } from '@models/v4/FlowV4';
-import { PlanSecurityV4, PlanTypeV4, PlanValidationTypeV4 } from '@models/v4/PlanEntityV4';
+import { PlanEntityV4DefinitionVersionEnum, PlanModeV4, PlanSecurityV4, PlanTypeV4, PlanValidationTypeV4 } from '@models/v4/PlanEntityV4';
 
 export interface NewPlanEntityV4 {
   /**
@@ -23,6 +23,11 @@ export interface NewPlanEntityV4 {
    * @memberof NewPlanEntityV4
    */
   apiId?: string;
+  /**
+   * Plan's gravitee definition version
+   * @type {string}
+   */
+  definitionVersion: PlanEntityV4DefinitionVersionEnum;
   /**
    *
    * @type {Array<string>}
@@ -95,6 +100,11 @@ export interface NewPlanEntityV4 {
    * @memberof NewPlanEntityV4
    */
   security?: PlanSecurityV4;
+
+  /**
+   * @type {PlanModeV4}
+   */
+  mode?: PlanModeV4;
   /**
    *
    * @type {string}
@@ -135,9 +145,8 @@ export const enum NewPlanEntityV4StatusEnum {
 }
 
 export const enum PlanSecurityTypeV4 {
-  KEY_LESS = 'key-less',
-  API_KEY = 'api-key',
-  OAUTH2 = 'oauth2',
-  JWT = 'jwt',
-  SUBSCRIPTION = 'subscription',
+  KEY_LESS = 'KEY_LESS',
+  API_KEY = 'API_KEY',
+  OAUTH2 = 'OAUTH2',
+  JWT = 'JWT',
 }

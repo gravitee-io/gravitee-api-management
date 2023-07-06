@@ -30,7 +30,7 @@ export class ApisV4Fixture {
 
     return {
       apiVersion,
-      definitionVersion: NewApiEntityV4DefinitionVersionEnum._4_0_0,
+      definitionVersion: NewApiEntityV4DefinitionVersionEnum._V4,
       description,
       name,
       endpointGroups: [],
@@ -47,7 +47,7 @@ export class ApisV4Fixture {
   static newHttpListener(attributes?: Partial<HttpListenerV4>): ListenerV4 {
     return {
       // @ts-ignore
-      type: 'http',
+      type: 'HTTP',
       paths: [],
       pathMappings: [],
       entrypoints: [],

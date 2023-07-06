@@ -15,18 +15,20 @@
  */
 import { randomString } from '@helpers/random.helper';
 import { NewPlanEntityV4, NewPlanEntityV4StatusEnum, PlanSecurityTypeV4 } from '@models/v4/NewPlanEntityV4';
-import { PlanTypeV4, PlanValidationTypeV4 } from '@models/v4/PlanEntityV4';
+import { PlanEntityV4DefinitionVersionEnum, PlanModeV4, PlanTypeV4, PlanValidationTypeV4 } from '@models/v4/PlanEntityV4';
 
 export class PlansV4Fixture {
   static newPlan(attributes?: Partial<NewPlanEntityV4>): NewPlanEntityV4 {
     const name = randomString();
     const description = randomString();
-
+    const needSecurityPlan = !attributes || (attributes['mode'] && attributes['mode'] == 'STANDARD');
     return {
       name,
       description,
+      definitionVersion: PlanEntityV4DefinitionVersionEnum._V4,
       validation: PlanValidationTypeV4.AUTO,
-      security: { type: PlanSecurityTypeV4.KEY_LESS },
+      security: needSecurityPlan ? { type: PlanSecurityTypeV4.KEY_LESS } : null,
+      mode: PlanModeV4.STANDARD,
       type: PlanTypeV4.API,
       status: NewPlanEntityV4StatusEnum.STAGING,
       order: 1,
