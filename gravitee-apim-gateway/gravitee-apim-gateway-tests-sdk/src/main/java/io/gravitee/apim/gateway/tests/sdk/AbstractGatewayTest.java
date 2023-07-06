@@ -28,6 +28,7 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.plugin.PluginRegister;
 import io.gravitee.apim.gateway.tests.sdk.runner.ApiConfigurer;
+import io.gravitee.apim.gateway.tests.sdk.runner.ApiDeployer;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
@@ -72,7 +73,7 @@ import org.springframework.util.StringUtils;
 @Slf4j
 @ExtendWith(VertxExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigurer, ApplicationContextAware {
+public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigurer, ApiDeployer, ApplicationContextAware {
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
     private int wiremockHttpsPort;
@@ -92,6 +93,8 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
      * The wiremock used by the deployed apis as a backend.
      */
     protected WireMockServer wiremock;
+    private Consumer<ReactableApi<?>> apiDeployer;
+    private Consumer<String> apiUndeployer;
 
     /**
      * Override this method to modify the configuration of the wiremock server which acts as a backend for the deployed apis.
@@ -225,6 +228,32 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiConfigur
 
     @Override
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {}
+
+    @Override
+    public void setDeployCallback(Consumer<ReactableApi<?>> apiDeployer) {
+        this.apiDeployer = apiDeployer;
+    }
+
+    @Override
+    public void setUndeployCallback(Consumer<String> apiUndeployer) {
+        this.apiUndeployer = apiUndeployer;
+    }
+
+    @Override
+    public void deploy(ReactableApi<?> reactableApi) {
+        apiDeployer.accept(reactableApi);
+    }
+
+    @Override
+    public void undeploy(String apiId) {
+        apiUndeployer.accept(apiId);
+    }
+
+    @Override
+    public void redeploy(ReactableApi<?> reactableApi) {
+        undeploy(reactableApi.getId());
+        deploy(reactableApi);
+    }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

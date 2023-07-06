@@ -56,6 +56,36 @@ class GatewayTestingExtensionTest {
     }
 
     @Test
+    void should_redeploy_tests() {
+        EngineTestKit
+            .engine("junit-jupiter")
+            .selectors(selectClass(ManuallyRedeployTestCase.class))
+            .execute()
+            .testEvents()
+            .assertStatistics(stats -> stats.started(4).succeeded(4));
+    }
+
+    @Test
+    void should_undeploy_tests() {
+        EngineTestKit
+            .engine("junit-jupiter")
+            .selectors(selectClass(ManuallyUndeployTestCase.class))
+            .execute()
+            .testEvents()
+            .assertStatistics(stats -> stats.started(1).succeeded(1));
+    }
+
+    @Test
+    void should_deploy_class_level_tests() {
+        EngineTestKit
+            .engine("junit-jupiter")
+            .selectors(selectClass(ManuallyDeployTestCase.class))
+            .execute()
+            .testEvents()
+            .assertStatistics(stats -> stats.started(2).failed(2));
+    }
+
+    @Test
     void should_success_all_http2_tests() {
         EngineTestKit
             .engine("junit-jupiter")

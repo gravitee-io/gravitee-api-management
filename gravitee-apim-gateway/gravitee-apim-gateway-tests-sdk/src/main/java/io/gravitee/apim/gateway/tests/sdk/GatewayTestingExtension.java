@@ -18,14 +18,10 @@ package io.gravitee.apim.gateway.tests.sdk;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.parameters.GatewayTestParameterResolver;
 import io.gravitee.apim.gateway.tests.sdk.runner.GatewayRunner;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.junit5.ScopedObject;
-import io.vertx.junit5.VertxExtension;
-import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.http.HttpClient;
 import java.io.IOException;
-import java.util.Objects;
+import java.util.Set;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -56,6 +52,12 @@ public class GatewayTestingExtension
     private GatewayRunner gatewayRunner;
     private AbstractGatewayTest gatewayTest;
     private Exception exception;
+
+    private Set<GatewayTestParameterResolver> parameterResolvers = Set.of(
+        new HttpClientParameterResolver(),
+        new ApiParameterResolver(),
+        new AllApisParameterResolver()
+    );
 
     /**
      * Starts the gateway and deploy apis declared at class level.
@@ -188,7 +190,7 @@ public class GatewayTestingExtension
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
         throws ParameterResolutionException {
-        return parameterContext.getParameter().getType() == HttpClient.class;
+        return parameterResolvers.stream().anyMatch(resolver -> resolver.supports(parameterContext));
     }
 
     /**
@@ -207,17 +209,13 @@ public class GatewayTestingExtension
             .getTarget()
             .map(AbstractGatewayTest.class::cast)
             .orElseThrow(() -> new PreconditionViolationException("You need to inject this in a child of AbstractGatewayTest"));
-        Vertx vertx = getStoredVertx(extensionContext);
 
-        final HttpClientOptions httpClientOptions = new HttpClientOptions().setDefaultPort(test.gatewayPort()).setDefaultHost("localhost");
-        test.configureHttpClient(httpClientOptions);
-        return vertx.createHttpClient(httpClientOptions);
-    }
+        for (GatewayTestParameterResolver parameterResolver : parameterResolvers) {
+            if (parameterResolver.supports(parameterContext)) {
+                return parameterResolver.resolve(extensionContext, parameterContext, test);
+            }
+        }
 
-    private Vertx getStoredVertx(ExtensionContext extensionContext) {
-        ExtensionContext.Store store = extensionContext.getStore(ExtensionContext.Namespace.GLOBAL);
-        ScopedObject scopedObject = store.get(VertxExtension.VERTX_INSTANCE_KEY, ScopedObject.class);
-        Objects.requireNonNull(scopedObject, "A Vertx instance must exist, try adding the Vertx parameter as the first method argument");
-        return (Vertx) scopedObject.get();
+        throw new PreconditionViolationException("Parameter not injectable");
     }
 }
