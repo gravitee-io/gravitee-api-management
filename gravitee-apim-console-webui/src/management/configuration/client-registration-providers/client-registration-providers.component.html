@@ -19,7 +19,7 @@
   <h1>Client Registration</h1>
 </div>
 
-<form [formGroup]="applicationForm" autocomplete="off">
+<form [formGroup]="applicationForm" autocomplete="off" *ngIf="!isLoadingData">
   <mat-card class="client-registration-providers__card">
     <mat-card-content>
       <h3>Configuration</h3>
@@ -112,7 +112,7 @@
         >
           <gio-form-label>Backend-to-Backend</gio-form-label>
           <mat-slide-toggle
-            data-testid="typesBackendEnabled"
+            data-testid="typesBackendToBackendEnabled"
             gioFormSlideToggle
             formControlName="enabled"
             aria-label="Backend-to-Backend"

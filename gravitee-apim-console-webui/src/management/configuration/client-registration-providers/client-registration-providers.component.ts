@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -69,46 +69,6 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
   ngOnInit(): void {
-    this.applicationForm = new FormGroup({
-      registration: new FormGroup({
-        enabled: new FormControl({
-          value: false,
-          disabled: true,
-        }),
-      }),
-      types: new FormGroup({
-        simple: new FormGroup({
-          enabled: new FormControl({
-            value: false,
-            disabled: true,
-          }),
-        }),
-        browser: new FormGroup({
-          enabled: new FormControl({
-            value: false,
-            disabled: true,
-          }),
-        }),
-        web: new FormGroup({
-          enabled: new FormControl({
-            value: false,
-            disabled: true,
-          }),
-        }),
-        native: new FormGroup({
-          enabled: new FormControl({
-            value: false,
-            disabled: true,
-          }),
-        }),
-        backend_to_backend: new FormGroup({
-          enabled: new FormControl({
-            value: false,
-            disabled: true,
-          }),
-        }),
-      }),
-    });
     this.hasDcrRegistrationLock$ = this.licenseService.notAllowed(this.dcrRegistrationLicense.feature);
 
     combineLatest([this.portalSettingsService.get(), this.clientRegistrationProvidersService.list()])
@@ -169,36 +129,47 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
       .subscribe(() => this.ngOnInit());
   }
 
-  initToggleFormControl(formControl: AbstractControl, value: boolean, readonly: boolean) {
-    if (readonly) {
-      formControl.disable({ onlySelf: false, emitEvent: false });
-    } else {
-      formControl.enable({ onlySelf: false, emitEvent: false });
-    }
-    formControl.setValue(value, { onlySelf: false, emitEvent: false });
-  }
-
-  initToggleFormControlBis(application: PortalSettingsApplication, path: string) {
-    const formControl = this.applicationForm.get(path);
-    const isReadonly = this.isReadonly(`application.${path}`);
-
-    if (isReadonly) {
-      formControl.disable({ onlySelf: false, emitEvent: false });
-    } else {
-      formControl.enable({ onlySelf: false, emitEvent: false });
-    }
-    formControl.setValue(application ? application[path] : false, { onlySelf: false, emitEvent: false });
-  }
-
   initApplicationForm(application: PortalSettingsApplication) {
-    [
-      'registration.enabled',
-      'types.simple.enabled',
-      'types.browser.enabled',
-      'types.web.enabled',
-      'types.native.enabled',
-      'types.backend_to_backend.enabled',
-    ].forEach((path) => this.initToggleFormControlBis(application, path));
+    this.applicationForm = new FormGroup({
+      registration: new FormGroup({
+        enabled: new FormControl({
+          value: application.registration.enabled,
+          disabled: this.isReadonly(`application.registration.enabled`),
+        }),
+      }),
+      types: new FormGroup({
+        simple: new FormGroup({
+          enabled: new FormControl({
+            value: application.types.simple.enabled,
+            disabled: this.isReadonly(`application.types.simple.enabled`),
+          }),
+        }),
+        browser: new FormGroup({
+          enabled: new FormControl({
+            value: application.types.browser.enabled,
+            disabled: this.isReadonly(`application.types.browser.enabled`),
+          }),
+        }),
+        web: new FormGroup({
+          enabled: new FormControl({
+            value: application.types.web.enabled,
+            disabled: this.isReadonly(`application.types.web.enabled`),
+          }),
+        }),
+        native: new FormGroup({
+          enabled: new FormControl({
+            value: application.types.native.enabled,
+            disabled: this.isReadonly(`application.types.native.enabled`),
+          }),
+        }),
+        backend_to_backend: new FormGroup({
+          enabled: new FormControl({
+            value: application.types.backend_to_backend.enabled,
+            disabled: this.isReadonly(`application.types.backend_to_backend.enabled`),
+          }),
+        }),
+      }),
+    });
 
     this.applicationForm.valueChanges
       .pipe(

@@ -59,15 +59,15 @@
         <mat-hint>Define the way the initial access token must be provided.</mat-hint>
       </mat-form-field>
 
-      <ng-container *ngIf="this.providerForm.get('initial_access_token_type').value === 'CLIENT_CREDENTIALS'">
+      <ng-container *ngIf="isClientCredentials()">
         <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
           <mat-label>Client ID</mat-label>
-          <input type="text" matInput formControlName="client_id" />
+          <input type="text" matInput formControlName="client_id" [required]="isClientCredentials()" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
           <mat-label>Client Secret</mat-label>
-          <input type="text" matInput formControlName="client_secret" />
+          <input type="text" matInput formControlName="client_secret" [required]="isClientCredentials()" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
@@ -81,10 +81,10 @@
         </mat-form-field>
       </ng-container>
 
-      <ng-container *ngIf="this.providerForm.get('initial_access_token_type').value === 'INITIAL_ACCESS_TOKEN'">
+      <ng-container *ngIf="isInitialAccessToken()">
         <mat-form-field appearance="outline" class="client-registration-provider__card__content__form-field">
           <mat-label>Initial Access Token</mat-label>
-          <input type="text" matInput formControlName="initial_access_token" />
+          <input type="text" matInput formControlName="initial_access_token" [required]="isInitialAccessToken()" />
         </mat-form-field>
       </ng-container>
 

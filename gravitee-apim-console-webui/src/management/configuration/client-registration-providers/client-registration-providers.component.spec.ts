@@ -21,7 +21,6 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
-import { snakeCase } from 'lodash';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { ClientRegistrationProvidersComponent } from './client-registration-providers.component';
@@ -32,6 +31,7 @@ import { fakeClientRegistrationProvider } from '../../../entities/client-registr
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { GioLicenseTestingModule } from '../../../shared/testing/gio-license.testing.module';
+import { PortalSettings } from '../../../entities/portal/portalSettings';
 
 describe('ClientRegistrationProviders', () => {
   const fakeAjsState = {
@@ -40,7 +40,10 @@ describe('ClientRegistrationProviders', () => {
   const providers = [fakeClientRegistrationProvider(), fakeClientRegistrationProvider()];
   let httpTestingController: HttpTestingController;
 
-  const settings = {
+  const settings: PortalSettings = {
+    metadata: {
+      readonly: ['application.types.simple.enabled', 'application.types.web.enabled', 'application.types.backend_to_backend.enabled'],
+    },
     application: {
       registration: {
         enabled: true,
@@ -50,7 +53,16 @@ describe('ClientRegistrationProviders', () => {
           enabled: false,
         },
         browser: {
+          enabled: false,
+        },
+        web: {
           enabled: true,
+        },
+        native: {
+          enabled: true,
+        },
+        backend_to_backend: {
+          enabled: false,
         },
       },
     },
@@ -83,14 +95,13 @@ describe('ClientRegistrationProviders', () => {
           },
         },
       ],
-    });
+    }).compileComponents();
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ClientRegistrationProvidersComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
-    fixture.componentInstance.isReadonly = jest.fn().mockReturnValue(false);
     fixture.detectChanges();
     httpTestingController
       .expectOne({
@@ -112,36 +123,51 @@ describe('ClientRegistrationProviders', () => {
     httpTestingController.verify();
   });
 
-  it('should init without readonly fields', async () => {
+  it('should init with some readonly fields', async () => {
     expect(loader).toBeTruthy();
     const tableHarness = await loader.getHarness(MatTableHarness);
     const rows = await tableHarness.getRows();
     expect(rows.length).toEqual(2);
 
-    await checkToggle(
-      ['registrationEnabled', 'typesSimpleEnabled', 'typesBrowserEnabled', 'typesWebEnabled', 'typesNativeEnabled', 'typesBackendEnabled'],
-      false,
-    );
+    await checkToggle([
+      {
+        dataTestId: 'registrationEnabled',
+        value: settings.application.registration.enabled,
+        isDisabled: settings.metadata.readonly.includes('application.registration.enabled'),
+      },
+      {
+        dataTestId: 'typesSimpleEnabled',
+        value: settings.application.types.simple.enabled,
+        isDisabled: settings.metadata.readonly.includes('application.types.simple.enabled'),
+      },
+      {
+        dataTestId: 'typesBrowserEnabled',
+        value: settings.application.types.browser.enabled,
+        isDisabled: settings.metadata.readonly.includes('application.types.browser.enabled'),
+      },
+      {
+        dataTestId: 'typesWebEnabled',
+        value: settings.application.types.web.enabled,
+        isDisabled: settings.metadata.readonly.includes('application.types.web.enabled'),
+      },
+      {
+        dataTestId: 'typesNativeEnabled',
+        value: settings.application.types.native.enabled,
+        isDisabled: settings.metadata.readonly.includes('application.types.native.enabled'),
+      },
+      {
+        dataTestId: 'typesBackendToBackendEnabled',
+        value: settings.application.types.backend_to_backend.enabled,
+        isDisabled: settings.metadata.readonly.includes('application.types.backend_to_backend.enabled'),
+      },
+    ]);
   });
 
-  it('should init with readonly fields', async () => {
-    fixture.componentInstance.isReadonly = jest.fn().mockReturnValue(true);
-    expect(loader).toBeTruthy();
-    const tableHarness = await loader.getHarness(MatTableHarness);
-    const rows = await tableHarness.getRows();
-    expect(rows.length).toEqual(2);
-
-    await checkToggle(
-      ['registrationEnabled', 'typesSimpleEnabled', 'typesBrowserEnabled', 'typesWebEnabled', 'typesNativeEnabled', 'typesBackendEnabled'],
-      false,
-    );
-  });
-
-  async function checkToggle(ids: string[], areDisabled: boolean) {
-    for (const id of ids) {
-      const toggleHarness = await loader.getHarness(MatSlideToggleHarness.with({ selector: `[data-testid="${id}"]` }));
-      expect(await toggleHarness.isDisabled()).toEqual(areDisabled);
-      expect(await toggleHarness.isChecked()).toEqual(settings.application[snakeCase(id).replace(/ /g, '.')] ?? false);
+  async function checkToggle(toggles: { dataTestId: string; value: boolean; isDisabled: boolean }[]) {
+    for (const toggle of toggles) {
+      const toggleHarness = await loader.getHarness(MatSlideToggleHarness.with({ selector: `[data-testid="${toggle.dataTestId}"]` }));
+      expect(await toggleHarness.isDisabled()).toEqual(toggle.isDisabled);
+      expect(await toggleHarness.isChecked()).toEqual(toggle.value);
     }
   }
 });
