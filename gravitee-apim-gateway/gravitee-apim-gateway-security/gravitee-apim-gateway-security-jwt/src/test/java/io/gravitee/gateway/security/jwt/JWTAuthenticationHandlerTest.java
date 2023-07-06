@@ -138,16 +138,16 @@ public class JWTAuthenticationHandlerTest {
     }
 
     @Test
-    public void shouldNotHandleRequest_noBearerValue() {
+    public void shouldHandleRequest_noBearerValue() {
         HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
         headers.add(HttpHeaderNames.AUTHORIZATION, "Bearer ");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        assertFalse(handle);
-        assertNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
-        assertNull(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
+        assertTrue(handle);
+        assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
+        assertTrue(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test

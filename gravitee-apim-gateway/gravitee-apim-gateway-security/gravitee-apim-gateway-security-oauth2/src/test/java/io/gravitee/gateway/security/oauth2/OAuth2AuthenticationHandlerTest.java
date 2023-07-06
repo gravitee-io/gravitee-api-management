@@ -124,14 +124,14 @@ public class OAuth2AuthenticationHandlerTest {
     }
 
     @Test
-    public void shouldNotHandleRequest_noBearerValue() {
+    public void shouldHandleRequest_noBearerValue() {
         HttpHeaders headers = HttpHeaders.create();
         when(request.headers()).thenReturn(headers);
 
         headers.add(HttpHeaderNames.AUTHORIZATION, OAuth2AuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " ");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertFalse(handle);
+        Assert.assertTrue(handle);
     }
 
     @Test

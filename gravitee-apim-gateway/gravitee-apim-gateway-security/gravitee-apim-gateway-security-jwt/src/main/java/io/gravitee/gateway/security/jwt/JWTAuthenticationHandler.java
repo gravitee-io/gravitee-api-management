@@ -22,6 +22,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.*;
 import io.gravitee.gateway.security.jwt.policy.CheckSubscriptionPolicy;
+import io.gravitee.policy.jwt.utils.TokenExtractor;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,9 +48,9 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
 
     @Override
     public boolean canHandle(AuthenticationContext context) {
-        final String token = readToken(context.request());
+        final String token = TokenExtractor.extract(context.request());
 
-        if (token == null || token.isEmpty()) {
+        if (token == null) {
             return false;
         }
 
@@ -61,10 +62,6 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
         }
 
         return true;
-    }
-
-    private String readToken(Request request) {
-        return TokenExtractor.extract(request);
     }
 
     @Override

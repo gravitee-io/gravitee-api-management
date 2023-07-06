@@ -106,16 +106,29 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
     }
 
     private String readApiKey(Request request) {
+        String apiKey = null;
         logger.debug("Looking for an API Key from request header: {}", apiKeyHeader);
-        // 1_ First, search in HTTP headers
-        String apiKey = request.headers().getFirst(apiKeyHeader);
 
-        if (apiKey == null || apiKey.isEmpty()) {
-            logger.debug("Looking for an API Key from request query parameter: {}", apiKeyQueryParameter);
-            // 2_ If not found, search in query parameters
-            apiKey = request.parameters().getFirst(apiKeyQueryParameter);
+        // 1_ First, search in HTTP headers
+        if (request.headers().contains(apiKeyHeader)) {
+            apiKey = request.headers().get(apiKeyHeader);
+            if (apiKey == null) {
+                // Header is present but empty so init apiKey with empty string
+                apiKey = "";
+            }
         }
 
+        // 2_ If not found, search in query parameters
+        if (apiKey == null) {
+            logger.debug("Looking for an API Key from request query parameter: {}", apiKeyQueryParameter);
+            if (request.parameters().containsKey(apiKeyQueryParameter)) {
+                apiKey = request.parameters().getFirst(apiKeyQueryParameter);
+                if (apiKey == null) {
+                    // Header is present but empty so init apiKey with empty string
+                    apiKey = "";
+                }
+            }
+        }
         return apiKey;
     }
 
