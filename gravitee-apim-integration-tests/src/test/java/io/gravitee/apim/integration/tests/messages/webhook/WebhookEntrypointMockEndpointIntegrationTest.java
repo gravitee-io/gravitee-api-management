@@ -16,33 +16,46 @@
 package io.gravitee.apim.integration.tests.messages.webhook;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static io.reactivex.rxjava3.core.Observable.interval;
+import static com.graviteesource.entrypoint.webhook.auth.OAuth2AuthenticationProvider.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.graviteesource.entrypoint.webhook.WebhookEntrypointConnectorFactory;
 import com.graviteesource.entrypoint.webhook.configuration.HttpHeader;
-import com.graviteesource.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;
+import com.graviteesource.entrypoint.webhook.exception.UnauthorizedException;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.connector.fakes.MessageStorage;
+import io.gravitee.apim.gateway.tests.sdk.connector.fakes.PersistentMockEndpointConnectorFactory;
+import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
+import io.gravitee.apim.integration.tests.fake.MessageFlowReadyPolicy;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.api.service.SubscriptionConfiguration;
+import io.gravitee.gateway.reactive.api.exception.MessageProcessingException;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
+import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.policy.PolicyPlugin;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.plugins.RxJavaPlugins;
+import io.reactivex.rxjava3.schedulers.TestScheduler;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,10 +65,10 @@ import org.junit.jupiter.api.Test;
 @GatewayTest
 class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
-    private static final String API_ID = "my-api";
+    private static final String API_ID = "webhook-entrypoint-mock-endpoint";
     private static final String WEBHOOK_URL_PATH = "/webhook";
-
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private WebhookTestingActions webhookActions;
+    private MessageStorage messageStorage;
 
     @Override
     public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
@@ -67,87 +80,414 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         entrypoints.putIfAbsent("webhook", EntrypointBuilder.build("webhook", WebhookEntrypointConnectorFactory.class));
     }
 
+    @Override
+    public void configurePolicies(Map<String, PolicyPlugin> policies) {
+        policies.put("message-flow-ready", PolicyBuilder.build("message-flow-ready", MessageFlowReadyPolicy.class));
+    }
+
+    @Override
+    public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+        super.configureEndpoints(endpoints);
+        endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", PersistentMockEndpointConnectorFactory.class));
+    }
+
+    @BeforeEach
+    void setUp() {
+        webhookActions = new WebhookTestingActions(wiremock, getBean(SubscriptionDispatcher.class));
+        messageStorage = getBean(MessageStorage.class);
+    }
+
+    @AfterEach
+    void tearDown() {
+        messageStorage.reset();
+    }
+
     @Test
-    @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL")
-    @DeployApi({ "/apis/v4/messages/webhook/api.json" })
-    void shouldSendMessagesFromMockEndpointToWebhookEntrypoint() throws JsonProcessingException {
-        WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
-        final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
-        configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), callbackPath));
-        wiremock.stubFor(post(callbackPath).willReturn(ok()));
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages() throws JsonProcessingException {
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
-        Subscription subscription = buildTestSubscription(configuration);
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
 
-        dispatchSubscription(subscription)
-            .andThen(
-                interval(50, MILLISECONDS)
-                    .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callbackPath)).build()).getCount() < 7)
-            )
+        webhookActions
+            .dispatchSubscription(subscription)
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
             .test()
             .awaitDone(10, SECONDS)
             .assertComplete();
 
-        // verify requests received by wiremock
-        wiremock.verify(7, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("Mock data")));
-
-        // close the subscription to avoid maintaining it between test methods
-        subscription.setStatus("CLOSED");
-        dispatchSubscription(subscription).blockingAwait();
+        webhookActions.verifyMessages(messageCount, callbackPath, "message");
     }
 
     @Test
-    @DisplayName("Should send messages from mock endpoint to webhook entrypoint callback URL, with additional headers")
-    @DeployApi({ "/apis/v4/messages/webhook/api.json" })
-    void shouldSendMessagesFromMockEndpointToWebhookEntrypointWithHeaders() throws JsonProcessingException {
-        WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_with_headers() throws JsonProcessingException {
+        final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/with-headers";
-        configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), callbackPath));
-        configuration.setHeaders(List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value")));
-        wiremock.stubFor(post(callbackPath).willReturn(ok()));
+        final List<HttpHeader> headers = List.of(
+            new HttpHeader("Header1", "my-header-1-value"),
+            new HttpHeader("Header2", "my-header-2-value")
+        );
 
-        Subscription subscription = buildTestSubscription(configuration);
-        subscription.setApi(API_ID);
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath, headers, new ArrayList<>());
 
-        dispatchSubscription(subscription)
-            .andThen(
-                // wait for callback wiremock to receive 7 requests (timeouts after 1 sec)
-                interval(50, MILLISECONDS)
-                    .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callbackPath)).build()).getCount() < 7)
-            )
+        webhookActions
+            .dispatchSubscription(subscription)
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
             .test()
             .awaitDone(10, SECONDS)
             .assertComplete();
 
-        // verify requests received by wiremock
+        webhookActions.verifyMessagesWithHeaders(messageCount, callbackPath, "message", headers);
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint-5xx.json" })
+    void should_retry_on_5xx_and_interrupt_when_max_retries_is_reached() throws JsonProcessingException {
+        try {
+            final int messageCount = 6;
+            final String callbackPath = WEBHOOK_URL_PATH + "/test";
+            final ArrayList<Completable> readyObs = new ArrayList<>();
+            final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath, readyObs);
+
+            TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+
+            wiremock.resetAll();
+            wiremock.stubFor(post(callbackPath).willReturn(serverError()));
+
+            final TestObserver<Void> obs = webhookActions
+                .dispatchSubscription(subscription)
+                .mergeWith(Completable.merge(readyObs).andThen(Completable.fromRunnable(testScheduler::triggerActions)))
+                .takeUntil(
+                    webhookActions.waitForRequestsOnCallback(
+                        messageCount,
+                        callbackPath,
+                        () -> {
+                            testScheduler.advanceTimeBy(3000, MILLISECONDS);
+                            testScheduler.triggerActions();
+                        }
+                    )
+                )
+                .test();
+
+            obs.awaitDone(10, SECONDS).assertError(InterruptionFailureException.class);
+
+            // Mock endpoint produces only 1 message. 1 attempt + 5 retries. We should expect no more than 6 calls
+            webhookActions.verifyMessages(messageCount, callbackPath, "message");
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint-5xx.json" })
+    void should_retry_in_case_of_5xx_and_continue_normally() throws JsonProcessingException {
+        try {
+            // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+            final int messageCount = 3;
+            final String callbackPath = WEBHOOK_URL_PATH + "/test";
+            final ArrayList<Completable> readyObs = new ArrayList<>();
+            final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath, readyObs);
+
+            TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+
+            wiremock.resetAll();
+            // Two 500 error then a 200 ok.
+            wiremock.stubFor(
+                post(callbackPath)
+                    .inScenario("Retry Scenario")
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willReturn(serverError())
+                    .willSetStateTo("Second attempt")
+            );
+            wiremock.stubFor(
+                post(callbackPath)
+                    .inScenario("Retry Scenario")
+                    .whenScenarioStateIs("Second attempt")
+                    .willReturn(serverError())
+                    .willSetStateTo("Third attempt")
+            );
+            wiremock.stubFor(post(callbackPath).inScenario("Retry Scenario").whenScenarioStateIs("Third attempt").willReturn(ok()));
+
+            webhookActions
+                .dispatchSubscription(subscription)
+                .mergeWith(Completable.merge(readyObs).andThen(Completable.fromRunnable(testScheduler::triggerActions)))
+                .takeUntil(
+                    webhookActions.waitForRequestsOnCallback(
+                        messageCount,
+                        callbackPath,
+                        () -> {
+                            testScheduler.advanceTimeBy(3000, MILLISECONDS);
+                            testScheduler.triggerActions();
+                        }
+                    )
+                )
+                .test()
+                .awaitDone(10, SECONDS)
+                .assertNoErrors()
+                .assertComplete();
+
+            // Mock endpoint produces only 1 message. 1 attempt (500) + 1 retry (500) then a 200. We should expect no more than 3 calls
+            webhookActions.verifyMessages(messageCount, callbackPath, "message");
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint-4xx.json" })
+    void should_stop_on_4xx() throws JsonProcessingException {
+        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+        final int messageCount = 3;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+
+        wiremock.resetAll();
+        // Two 200 ok then a 400 bad request.
+        wiremock.stubFor(
+            post(callbackPath)
+                .inScenario("4xx Scenario")
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willReturn(ok())
+                .willSetStateTo("Second call")
+        );
+        wiremock.stubFor(
+            post(callbackPath).inScenario("4xx Scenario").whenScenarioStateIs("Second call").willReturn(ok()).willSetStateTo("Third call")
+        );
+        wiremock.stubFor(
+            post(callbackPath).inScenario("4xx Scenario").whenScenarioStateIs("Third call").willReturn(badRequest()).willSetStateTo("End")
+        );
+
+        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(MessageProcessingException.class);
+
+        webhookActions.verifyMessages(messageCount, callbackPath, "message");
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_basic_auth() throws JsonProcessingException {
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyBasicAuth(subscription, "foo", "bar");
+
+        webhookActions
+            .dispatchSubscription(subscription)
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test()
+            .awaitDone(10, SECONDS)
+            .assertComplete();
+
+        webhookActions.verifyMessagesWithHeaders(
+            messageCount,
+            callbackPath,
+            "message",
+            List.of(new HttpHeader("Authorization", "Basic Zm9vOmJhcg=="))
+        );
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_basic_auth_failure() throws JsonProcessingException {
+        final String callbackPath = WEBHOOK_URL_PATH + "/auth-failure";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyBasicAuth(subscription, "foo", "bar");
+
+        // Override the mock response to return an 401 error.
+        wiremock.resetAll();
+        wiremock.stubFor(post(callbackPath).withBasicAuth("foo", "bar").willReturn(unauthorized()));
+
+        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(UnauthorizedException.class);
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_token_auth() throws JsonProcessingException {
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyTokenAuth(subscription, "token");
+
+        webhookActions
+            .dispatchSubscription(subscription)
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test()
+            .awaitDone(10, SECONDS)
+            .assertComplete();
+
+        webhookActions.verifyMessagesWithHeaders(
+            messageCount,
+            callbackPath,
+            "message",
+            List.of(new HttpHeader("Authorization", "Bearer token"))
+        );
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_token_auth_failure() throws JsonProcessingException {
+        final String callbackPath = WEBHOOK_URL_PATH + "/auth-failure";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyTokenAuth(subscription, "token");
+
+        // Override the mock response to return an 401 error.
+        wiremock.resetAll();
+        wiremock.stubFor(post(callbackPath).withHeader("Authorization", equalToIgnoreCase("Bearer token")).willReturn(unauthorized()));
+
+        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(UnauthorizedException.class);
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_oauth2_auth() throws JsonProcessingException {
+        final int messageCount = 10;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyOauth2Auth(subscription, "my-client-id", "my-client-secret");
+
+        webhookActions
+            .dispatchSubscription(subscription)
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test()
+            .awaitDone(10, SECONDS)
+            .assertComplete();
+
+        // Make sure the oauth server has been called.
+        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/oauth2endpoint")));
+
+        // And the messages received.
+        webhookActions.verifyMessagesWithHeaders(
+            messageCount,
+            callbackPath,
+            "message",
+            List.of(new HttpHeader("Authorization", "Bearer token-from-oauth2-server"))
+        );
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_oauth2_auth_failure() throws JsonProcessingException {
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyOauth2Auth(subscription, "my-client-id", "my-client-secret");
+
+        // Override the mock response to return an 401 error.
+        wiremock.resetAll();
+        wiremock.stubFor(post("/oauth2endpoint").willReturn(unauthorized()));
+
+        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertError(MessageProcessingException.class);
+
+        // Make sure the oauth server has been called.
+        wiremock.verify(moreThanOrExactly(1), postRequestedFor(urlPathEqualTo("/oauth2endpoint")));
+
+        // Make sure webhook has not been called because no oauth token has been generated.
+        wiremock.verify(0, postRequestedFor(urlPathEqualTo(callbackPath)));
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint-oauth2-renew.json" })
+    void should_receive_messages_oauth2_auth_when_token_expired_and_is_renewed() throws JsonProcessingException {
+        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+        webhookActions.applyOauth2Auth(subscription, "my-client-id", "my-client-secret");
+
+        // Override the mock response to override oauth2 response.
+        wiremock.resetAll();
+
+        wiremock.stubFor(post(callbackPath).willReturn(ok()));
+
+        // First token expires immediately.
+        wiremock.stubFor(
+            post("/oauth2endpoint")
+                .inScenario("Oauth Scenario")
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willReturn(
+                    ok(
+                        "{\"" +
+                        TOKEN_TYPE_KEY +
+                        "\":\"Bearer\",\"" +
+                        ACCESS_TOKEN_KEY +
+                        "\":\"token-from-oauth2-server-first\", \"" +
+                        EXPIRES_IN_KEY +
+                        "\": 0}"
+                    )
+                )
+                .willSetStateTo("Second call")
+        );
+
+        // Second token never expires.
+        wiremock.stubFor(
+            post("/oauth2endpoint")
+                .inScenario("Oauth Scenario")
+                .whenScenarioStateIs("Second call")
+                .willReturn(ok("{\"" + TOKEN_TYPE_KEY + "\":\"Bearer\",\"" + ACCESS_TOKEN_KEY + "\":\"token-from-oauth2-server-second\"}"))
+        );
+
+        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertComplete();
+
+        // Make sure the oauth server has been called twice (first token expiring immediately, second never expires).
+        wiremock.verify(2, postRequestedFor(urlPathEqualTo("/oauth2endpoint")));
+
+        // Make sure webhook has been call once with the first token which then expires.
         wiremock.verify(
-            7,
+            1,
             postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("Mock data"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
+                .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-oauth2-server-first"))
         );
 
-        // close the subscription to avoid maintaining it between test methods
-        subscription.setStatus("CLOSED");
-        dispatchSubscription(subscription).blockingAwait();
-    }
-
-    private Completable dispatchSubscription(Subscription subscription) {
-        return getBean(SubscriptionDispatcher.class).dispatch(subscription);
-    }
-
-    private Subscription buildTestSubscription(WebhookEntrypointConnectorSubscriptionConfiguration configuration)
-        throws JsonProcessingException {
-        Subscription subscription = new Subscription();
-        subscription.setApi(API_ID);
-        subscription.setId(UUID.randomUUID().toString());
-        subscription.setStatus("ACCEPTED");
-        SubscriptionConfiguration subscriptionConfiguration = new SubscriptionConfiguration(
-            "subscribe",
-            "webhook",
-            MAPPER.writeValueAsString(configuration)
+        // Then other calls with the new second token.
+        wiremock.verify(
+            2,
+            postRequestedFor(urlPathEqualTo(callbackPath))
+                .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-oauth2-server-second"))
         );
-        subscription.setConfiguration(subscriptionConfiguration);
-        return subscription;
+    }
+
+    @Test
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint-dlq.json" })
+    void should_put_into_dlq_on_4xx() throws JsonProcessingException {
+        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+        final int messageCount = 3;
+        final String callbackPath = WEBHOOK_URL_PATH + "/test";
+
+        final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
+
+        wiremock.resetAll();
+        // Two 400 ok then a 200 bad request.
+        wiremock.stubFor(
+            post(callbackPath)
+                .inScenario("4xx Scenario")
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willReturn(badRequest())
+                .willSetStateTo("Second call")
+        );
+        wiremock.stubFor(
+            post(callbackPath)
+                .inScenario("4xx Scenario")
+                .whenScenarioStateIs("Second call")
+                .willReturn(badRequest())
+                .willSetStateTo("Third call")
+        );
+        wiremock.stubFor(
+            post(callbackPath).inScenario("4xx Scenario").whenScenarioStateIs("Third call").willReturn(ok()).willSetStateTo("End")
+        );
+
+        webhookActions.dispatchSubscription(subscription).test().awaitDone(10, SECONDS).assertComplete();
+
+        webhookActions.verifyMessages(messageCount, callbackPath, "message");
+
+        messageStorage.subject().test().assertValueCount(2);
     }
 }

@@ -19,6 +19,7 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.context.*;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.policy.Policy;
+import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -27,6 +28,7 @@ import io.reactivex.rxjava3.subjects.ReplaySubject;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -42,13 +44,11 @@ public class MessageFlowReadyPolicy implements Policy {
     }
 
     public Completable onMessageRequest(MessageExecutionContext ctx) {
-        return prepareReadyObs(ctx)
-            .andThen(ctx.request().onMessages(upstream -> upstream.doOnSubscribe(s -> readyObsMap.get(getReadyObsId(ctx)).onComplete())));
+        return prepareReadyObs(ctx).andThen(ctx.request().onMessages(upstream -> upstream.doOnSubscribe(s -> completeReadyObs(ctx))));
     }
 
     public Completable onMessageResponse(MessageExecutionContext ctx) {
-        return prepareReadyObs(ctx)
-            .andThen(ctx.response().onMessages(upstream -> upstream.doOnSubscribe(s -> readyObsMap.get(getReadyObsId(ctx)).onComplete())));
+        return prepareReadyObs(ctx).andThen(ctx.response().onMessages(upstream -> upstream.doOnSubscribe(s -> completeReadyObs(ctx))));
     }
 
     /**
@@ -64,13 +64,18 @@ public class MessageFlowReadyPolicy implements Policy {
                 while (true) {
                     final ReplaySubject<Void> obs = readyObsMap.get(id);
                     if (obs != null) {
-                        return obs.ignoreElements();
+                        // Even if we capture the message flow subscription, it could take time to effectively be connected to the backend. Apply a small delay to avoid side effects.
+                        return obs.ignoreElements().delaySubscription(100, TimeUnit.MILLISECONDS, Schedulers.newThread());
                     } else {
                         Thread.sleep(5);
                     }
                 }
             })
             .subscribeOn(Schedulers.newThread());
+    }
+
+    private void completeReadyObs(MessageExecutionContext ctx) {
+        readyObsMap.get(getReadyObsId(ctx)).onComplete();
     }
 
     @NonNull

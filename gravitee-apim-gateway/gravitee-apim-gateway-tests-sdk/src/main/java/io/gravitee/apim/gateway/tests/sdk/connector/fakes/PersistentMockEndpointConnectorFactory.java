@@ -57,7 +57,8 @@ public class PersistentMockEndpointConnectorFactory implements EndpointAsyncConn
     ) {
         try {
             return new PersistentMockEndpointConnector(
-                pluginConfigurationHelper.readConfiguration(MockEndpointConnectorConfiguration.class, configuration)
+                pluginConfigurationHelper.readConfiguration(MockEndpointConnectorConfiguration.class, configuration),
+                deploymentContext.getComponent(MessageStorage.class)
             );
         } catch (PluginConfigurationException e) {
             return null;

@@ -15,10 +15,7 @@
  */
 package io.gravitee.apim.integration.tests.messages.webhook;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.reactivex.rxjava3.core.Observable.interval;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -26,17 +23,22 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.graviteesource.entrypoint.webhook.configuration.HttpHeader;
 import com.graviteesource.entrypoint.webhook.configuration.SecurityType;
 import com.graviteesource.entrypoint.webhook.configuration.WebhookEntrypointConnectorSubscriptionConfiguration;
 import com.graviteesource.entrypoint.webhook.configuration.WebhookSubscriptionAuthConfiguration;
+import io.gravitee.apim.integration.tests.fake.MessageFlowReadyPolicy;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionConfiguration;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Useful methods to use for webhook related tests
@@ -53,6 +55,22 @@ public class WebhookTestingActions {
     public WebhookTestingActions(WireMockServer wireMock, SubscriptionDispatcher subscriptionDispatcher) {
         this.wiremock = wireMock;
         this.subscriptionDispatcher = subscriptionDispatcher;
+    }
+
+    public Subscription createSubscription(String apiId, String callbackPath) throws JsonProcessingException {
+        return this.createSubscription(apiId, callbackPath, new ArrayList<>());
+    }
+
+    public Subscription createSubscription(String apiId, String callbackPath, List<Completable> readyObs) throws JsonProcessingException {
+        return this.createSubscription(apiId, callbackPath, null, readyObs);
+    }
+
+    public Subscription createSubscription(String apiId, String callbackPath, List<HttpHeader> headers, List<Completable> readyObs)
+        throws JsonProcessingException {
+        final Subscription subscription = this.configureSubscriptionAndCallback(apiId, callbackPath, null, headers);
+        readyObs.add(MessageFlowReadyPolicy.readyObs(subscription));
+
+        return subscription;
     }
 
     /**
@@ -74,8 +92,23 @@ public class WebhookTestingActions {
     }
 
     public Completable waitForRequestsOnCallback(int requestCounts, String callback) {
-        return interval(50, MILLISECONDS)
+        return interval(50, MILLISECONDS, Schedulers.newThread())
             .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callback)).build()).getCount() < requestCounts)
+            .ignoreElements();
+    }
+
+    public Completable waitForRequestsOnCallback(int requestCounts, String callback, Runnable action) {
+        AtomicInteger previousCount = new AtomicInteger(0);
+        return interval(50, MILLISECONDS, Schedulers.newThread())
+            .takeWhile(i -> {
+                final int currentCount = wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callback)).build()).getCount();
+
+                for (int c = previousCount.get(); c < currentCount; c++) {
+                    action.run();
+                }
+                previousCount.set(currentCount);
+                return currentCount < requestCounts;
+            })
             .ignoreElements();
     }
 
@@ -86,7 +119,7 @@ public class WebhookTestingActions {
      * @param dispatchSubscription is the Disposable returned by the dispatchSubscription call. When we received all the expected messages, we dispose it.
      */
     public void waitForRequestsOnCallbackBlocking(int requestCounts, String callback, Disposable dispatchSubscription) {
-        interval(50, MILLISECONDS)
+        interval(50, MILLISECONDS, Schedulers.newThread())
             .takeWhile(i -> wiremock.countRequestsMatching(anyRequestedFor(urlPathEqualTo(callback)).build()).getCount() < requestCounts)
             .doOnComplete(dispatchSubscription::dispose)
             .test()
@@ -144,25 +177,98 @@ public class WebhookTestingActions {
     ) throws JsonProcessingException {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), callbackPath));
-        final WebhookSubscriptionAuthConfiguration auth = prepareWebhookAuth(authConfiguration);
-        configuration.setAuth(auth);
         configuration.setHeaders(headers);
-        wiremock.stubFor(
-            post(callbackPath).withBasicAuth(auth.getBasic().getUsername(), auth.getBasic().getPassword()).willReturn(ok("callback body"))
-        );
+        wiremock.stubFor(post(callbackPath).willReturn(ok("callback body")));
 
         return buildTestSubscription(apiId, configuration);
     }
 
-    private WebhookSubscriptionAuthConfiguration prepareWebhookAuth(WebhookSubscriptionAuthConfiguration authConfiguration) {
-        return authConfiguration == null
-            ? new WebhookSubscriptionAuthConfiguration( // TODO: currently we have to default to basic auth, but would be better with no auth
-                SecurityType.BASIC,
-                WebhookSubscriptionAuthConfiguration.Basic.builder().username("toto").password("password").build(),
-                null,
-                null
-            )
-            : authConfiguration;
+    void applyBasicAuth(Subscription subscription, String username, String password) throws JsonProcessingException {
+        final SubscriptionConfiguration subscriptionConfiguration = subscription.getConfiguration();
+
+        final WebhookEntrypointConnectorSubscriptionConfiguration conf = MAPPER.readValue(
+            subscriptionConfiguration.getEntrypointConfiguration(),
+            WebhookEntrypointConnectorSubscriptionConfiguration.class
+        );
+        conf.setAuth(
+            WebhookSubscriptionAuthConfiguration
+                .builder()
+                .type(SecurityType.BASIC)
+                .basic(WebhookSubscriptionAuthConfiguration.Basic.builder().username(username).password(password).build())
+                .build()
+        );
+
+        subscriptionConfiguration.setEntrypointConfiguration(MAPPER.writeValueAsString(conf));
+
+        wiremock.resetAll();
+        wiremock.stubFor(
+            post(conf.getCallbackUrl().replace("http://localhost:" + wiremock.port(), ""))
+                .withBasicAuth(username, password)
+                .willReturn(ok())
+        );
+    }
+
+    void applyTokenAuth(Subscription subscription, String token) throws JsonProcessingException {
+        final SubscriptionConfiguration subscriptionConfiguration = subscription.getConfiguration();
+
+        final WebhookEntrypointConnectorSubscriptionConfiguration conf = MAPPER.readValue(
+            subscriptionConfiguration.getEntrypointConfiguration(),
+            WebhookEntrypointConnectorSubscriptionConfiguration.class
+        );
+        conf.setAuth(
+            WebhookSubscriptionAuthConfiguration
+                .builder()
+                .type(SecurityType.TOKEN)
+                .token(WebhookSubscriptionAuthConfiguration.Token.builder().value(token).build())
+                .build()
+        );
+
+        subscriptionConfiguration.setEntrypointConfiguration(MAPPER.writeValueAsString(conf));
+
+        wiremock.resetAll();
+        wiremock.stubFor(
+            post(conf.getCallbackUrl().replace("http://localhost:" + wiremock.port(), ""))
+                .withHeader("Authorization", equalToIgnoreCase("Bearer " + token))
+                .willReturn(ok())
+        );
+    }
+
+    void applyOauth2Auth(Subscription subscription, String clientId, String clientSecret) throws JsonProcessingException {
+        final SubscriptionConfiguration subscriptionConfiguration = subscription.getConfiguration();
+
+        final WebhookEntrypointConnectorSubscriptionConfiguration conf = MAPPER.readValue(
+            subscriptionConfiguration.getEntrypointConfiguration(),
+            WebhookEntrypointConnectorSubscriptionConfiguration.class
+        );
+        conf.setAuth(
+            WebhookSubscriptionAuthConfiguration
+                .builder()
+                .type(SecurityType.OAUTH2)
+                .oauth2(
+                    WebhookSubscriptionAuthConfiguration.Oauth2
+                        .builder()
+                        .clientId(clientId)
+                        .clientSecret(clientSecret)
+                        .endpoint("http://localhost:" + wiremock.port() + "/oauth2endpoint")
+                        .build()
+                )
+                .build()
+        );
+
+        subscriptionConfiguration.setEntrypointConfiguration(MAPPER.writeValueAsString(conf));
+
+        wiremock.resetAll();
+        wiremock.stubFor(
+            post(conf.getCallbackUrl().replace("http://localhost:" + wiremock.port(), ""))
+                .withHeader("Authorization", equalToIgnoreCase("Bearer token-from-oauth2-server"))
+                .willReturn(ok())
+        );
+
+        wiremock.stubFor(
+            post("/oauth2endpoint")
+                .withRequestBody(equalTo("grant_type=client_credentials&client_id=" + clientId + "&client_secret=" + clientSecret))
+                .willReturn(ok("{\"token_type\":\"Bearer\",\"access_token\":\"token-from-oauth2-server\"}"))
+        );
     }
 
     private Subscription buildTestSubscription(String apiId, WebhookEntrypointConnectorSubscriptionConfiguration configuration)
@@ -178,6 +284,41 @@ public class WebhookTestingActions {
             MAPPER.writeValueAsString(configuration)
         );
         subscription.setConfiguration(subscriptionConfiguration);
+        subscription.setPlan(UUID.randomUUID().toString());
         return subscription;
+    }
+
+    public void verifyMessages(int messageCount, String callbackPath) {
+        for (int i = 0; i < messageCount; i++) {
+            wiremock.verify(1, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("message-" + i)));
+        }
+    }
+
+    public void verifyMessages(int messageCount, String callbackPath, String message) {
+        wiremock.verify(messageCount, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo(message)));
+    }
+
+    public void verifyMessagesWithHeaders(int messageCount, String callbackPath, String message, List<HttpHeader> headers) {
+        final RequestPatternBuilder requestPatternBuilder = postRequestedFor(urlPathEqualTo(callbackPath))
+            .withRequestBody(equalTo(message));
+
+        for (HttpHeader header : headers) {
+            requestPatternBuilder.withHeader(header.getName(), equalTo(header.getValue()));
+        }
+
+        wiremock.verify(messageCount, requestPatternBuilder);
+    }
+
+    public void verifyMessagesWithHeaders(int messageCount, String callbackPath, List<HttpHeader> headers) {
+        for (int i = 0; i < messageCount; i++) {
+            final RequestPatternBuilder requestPatternBuilder = postRequestedFor(urlPathEqualTo(callbackPath))
+                .withRequestBody(equalTo("message-" + i));
+
+            for (HttpHeader header : headers) {
+                requestPatternBuilder.withHeader(header.getName(), equalTo(header.getValue()));
+            }
+
+            wiremock.verify(1, requestPatternBuilder);
+        }
     }
 }

@@ -170,6 +170,7 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
 
         createWSRequest("/test-publish", UUID.random().toString(), httpClient)
             .flatMapCompletable(webSocket -> webSocket.writeFinalTextFrame("message"))
+            .delaySubscription(100, TimeUnit.MILLISECONDS) // No way to know if mqtt5 subscription is ok, let's apply a small delay.
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
             .assertComplete()

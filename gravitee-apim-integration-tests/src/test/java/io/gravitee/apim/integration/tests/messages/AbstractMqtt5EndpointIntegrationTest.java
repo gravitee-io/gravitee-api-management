@@ -227,8 +227,7 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
 
     @NonNull
     protected Completable publishMessagesWhenReady(List<Completable> readyObs, String topic, MqttQos publishQos) {
-        return Completable.defer(() -> Completable.merge(readyObs).andThen((publishToMqtt5(topic, "message", publishQos).ignoreElements()))
-        );
+        return Completable.defer(() -> Completable.merge(readyObs).andThen(publishToMqtt5(topic, "message", publishQos).ignoreElements()));
     }
 
     protected String extractTransactionId(HttpClientResponse response) {

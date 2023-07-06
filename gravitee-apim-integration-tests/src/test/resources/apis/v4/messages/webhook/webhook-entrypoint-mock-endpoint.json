@@ -1,0 +1,42 @@
+{
+  "id": "webhook-entrypoint-mock-endpoint",
+  "name": "my-api",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "API v4 using webhook entrypoint",
+  "listeners": [
+    {
+      "type": "subscription",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "webhook"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "mock",
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1,
+            "messageContent": "message",
+            "messageCount": 10
+          }
+        }
+      ]
+    }
+  ],
+  "flows": []
+}
