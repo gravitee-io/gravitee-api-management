@@ -1,0 +1,20 @@
+{
+  "id": "v2-api-selection-rule",
+  "name": "v2-api-selection-rule",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/v2-api-selection-rule",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/endpoint",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ]
+  },
+  "flows": [],
+  "resources": []
+}

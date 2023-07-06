@@ -38,9 +38,9 @@ import io.gravitee.policy.oauth2.configuration.OAuth2PolicyConfiguration;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -93,11 +93,19 @@ public class PlanHelper {
     }
 
     public static String generateJWT(long secondsToAdd) throws Exception {
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+        return generateJWT(secondsToAdd, Map.of());
+    }
+
+    public static String generateJWT(long secondsToAdd, Map<String, String> customClaims) throws Exception {
+        JWTClaimsSet.Builder jwtClaimsSetBuilder = new JWTClaimsSet.Builder()
             .claim("client_id", JWT_CLIENT_ID)
-            .expirationTime(Date.from(Instant.now().plusSeconds(secondsToAdd)))
-            .build();
-        SignedJWT signedJWT = new SignedJWT(new JWSHeader(HMAC_HS256.getAlg()), jwtClaimsSet);
+            .expirationTime(Date.from(Instant.now().plusSeconds(secondsToAdd)));
+
+        if (customClaims != null) {
+            customClaims.forEach(jwtClaimsSetBuilder::claim);
+        }
+
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader(HMAC_HS256.getAlg()), jwtClaimsSetBuilder.build());
         signedJWT.sign(new MACSigner(JWT_SECRET));
         return signedJWT.serialize();
     }

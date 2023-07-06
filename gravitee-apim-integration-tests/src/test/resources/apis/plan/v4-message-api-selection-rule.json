@@ -1,0 +1,49 @@
+{
+  "id": "v4-message-api-selection-rule",
+  "name": "v4-message-api-selection-rule",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/v4-message-api-selection-rule"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "configuration": {
+            "messagesLimitCount":  1,
+            "messagesLimitDurationMs": 500
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default",
+      "type": "mock",
+      "endpoints": [
+        {
+          "name": "default-endpoint",
+          "type": "mock",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "messageInterval": 1,
+            "messageContent": "endpoint response",
+            "messageCount": 1
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled" : false
+  }
+}
