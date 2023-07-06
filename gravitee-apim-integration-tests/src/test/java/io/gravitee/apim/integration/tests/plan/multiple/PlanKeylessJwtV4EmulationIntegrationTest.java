@@ -15,31 +15,52 @@
  */
 package io.gravitee.apim.integration.tests.plan.multiple;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.getApiPath;
+import static io.vertx.core.http.HttpMethod.GET;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
+import io.gravitee.apim.integration.tests.plan.PlanHelper;
 import io.gravitee.apim.integration.tests.plan.jwt.PlanJwtV4EmulationIntegrationTest;
 import io.gravitee.apim.integration.tests.plan.keyless.PlanKeylessV4EmulationIntegrationTest;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.jwt.JWTPolicy;
 import io.gravitee.policy.jwt.configuration.JWTPolicyConfiguration;
 import io.gravitee.policy.keyless.KeylessPolicy;
+import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author GraviteeSource Team
  */
 public class PlanKeylessJwtV4EmulationIntegrationTest {
 
+    protected static String CUSTOM_AUDIENCE = "custom-audience";
+
     public static void configureApi(Api api) {
         configurePlans(api, Set.of("KEY_LESS", "JWT"));
+        if (api.getId().endsWith("-selection-rule")) {
+            Plan jwtPlan = api.getPlans().stream().filter(plan -> plan.getSecurity().equals("JWT")).findFirst().get();
+            jwtPlan.setSelectionRule("#context.attributes['jwt'].claims['aud'][0] != '" + CUSTOM_AUDIENCE + "'");
+        }
     }
 
     public static void configurePolicies(final Map<String, PolicyPlugin> policies) {
@@ -101,10 +122,41 @@ public class PlanKeylessJwtV4EmulationIntegrationTest {
                     );
                 });
         }
-    }
 
-    @Nested
-    @GatewayTest
-    @DeployApi("/apis/plan/v2-api.json")
-    public class SelectKeylessTest extends AbstractSelectKeylessTest {}
+        protected Stream<Arguments> provideSelectionRuleApis() {
+            return provideApis()
+                .map(arguments -> {
+                    String apiId = (String) arguments.get()[0];
+                    return Arguments.of(apiId + "-selection-rule");
+                });
+        }
+
+        @ParameterizedTest
+        @MethodSource("provideSelectionRuleApis")
+        @DeployApi("/apis/plan/v2-api-selection-rule.json")
+        void should_return_200_success_when_selection_rules_on_jwt_doesnt_match(String apiId, HttpClient client) throws Exception {
+            wiremock.stubFor(get("/endpoint").willReturn(ok("endpoint response")));
+            String jwtToken = PlanHelper.generateJWT(5000, Map.of("aud", CUSTOM_AUDIENCE));
+
+            client
+                .rxRequest(GET, getApiPath(apiId))
+                .flatMap(request -> {
+                    request.putHeader("Authorization", "Bearer " + jwtToken);
+                    return request.rxSend();
+                })
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains("endpoint response");
+                    return true;
+                });
+
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+    }
 }

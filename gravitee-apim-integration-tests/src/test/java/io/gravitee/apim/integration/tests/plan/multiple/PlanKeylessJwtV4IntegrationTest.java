@@ -32,6 +32,7 @@ import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
+import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -43,9 +44,20 @@ import org.junit.jupiter.params.provider.Arguments;
  */
 public class PlanKeylessJwtV4IntegrationTest {
 
+    protected static String CUSTOM_AUDIENCE = "custom-audience";
+
     public static void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
         final Api apiDefinition = (Api) api.getDefinition();
         configurePlans(apiDefinition, Set.of("key-less", "jwt"));
+        if (api.getId().endsWith("-selection-rule")) {
+            io.gravitee.definition.model.v4.plan.Plan jwtPlan = apiDefinition
+                .getPlans()
+                .stream()
+                .filter(plan -> plan.getSecurity().getType().equals("jwt"))
+                .findFirst()
+                .get();
+            jwtPlan.setSelectionRule("#context.attributes['jwt'].claims['aud'][0] != '" + CUSTOM_AUDIENCE + "'");
+        }
     }
 
     public static void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -123,6 +135,11 @@ public class PlanKeylessJwtV4IntegrationTest {
         @Override
         protected Stream<Arguments> provideApis() {
             return PlanKeylessJwtV4IntegrationTest.provideApis();
+        }
+
+        @DeployApi(value = { "/apis/plan/v4-proxy-api-selection-rule.json", "/apis/plan/v4-message-api-selection-rule.json" })
+        void should_return_200_success_when_selection_rules_on_jwt_doesnt_match(String apiId, HttpClient client) throws Exception {
+            super.should_return_200_success_when_selection_rules_on_jwt_doesnt_match(apiId, client);
         }
     }
 }
