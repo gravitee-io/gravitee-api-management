@@ -29,6 +29,7 @@ import { IconService } from '../../../../../services-ngx/icon.service';
 import { ApiType, ConnectorPlugin } from '../../../../../entities/management-api-v2';
 import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
+import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -44,6 +45,8 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   private initialValue: { type: ApiType[] };
   private hasLicense: boolean;
 
+  public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT;
+
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly stepService: ApiCreationStepService,
@@ -52,7 +55,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     private readonly matDialog: MatDialog,
     private readonly iconService: IconService,
     private readonly licenseService: GioLicenseService,
-    private readonly licenseDialog: GioLicenseDialog,
+    public readonly licenseDialog: GioLicenseDialog,
   ) {}
 
   ngOnInit(): void {

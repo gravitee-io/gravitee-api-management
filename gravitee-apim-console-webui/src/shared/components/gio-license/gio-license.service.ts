@@ -33,9 +33,6 @@ export class GioLicenseService {
 
   private loadLicense$: Observable<License> = this.http.get<License>(`${this.constants.v2BaseURL}/license`).pipe(shareReplay(1));
 
-  public readonly ctaLinkPrefix: string =
-    'https://www.gravitee.io/contact-us-alerts?utm_source=oss_apim&utm_campaign=oss_apim_to_ee_apim&utm_medium=';
-
   getLicense() {
     return this.loadLicense$;
   }

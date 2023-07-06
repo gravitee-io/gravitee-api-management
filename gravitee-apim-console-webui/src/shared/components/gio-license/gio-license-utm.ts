@@ -27,6 +27,11 @@ export enum UTMMedium {
   CONFLUENT_SCHEMA_REGISTRY = 'resource_confluent_schema_registry',
   POLICY_STUDIO_V2 = 'v2_policy_studio_policy',
   POLICY_STUDIO_V4 = 'v4_policy_studio_policy',
+  GENERAL_DANGER_ZONE = 'general_danger_zone',
+  API_CREATION_TRY_MESSAGE = 'api_creation_try_message',
+  API_CREATION_MESSAGE_ENTRYPOINT = 'api_creation_message_entrypoint',
+  API_CREATION_MESSAGE_ENTRYPOINT_CONFIG = 'api_creation_message_entrypoint_config',
+  API_CREATION_MESSAGE_SUMMARY = 'api_creation_message_summary',
 }
 
 export type UTMSource = 'oss_apim';
@@ -54,4 +59,13 @@ export const UTM_DATA: Record<UTMMedium, UTM> = {
   [UTMMedium.CONFLUENT_SCHEMA_REGISTRY]: new UTM('oss_apim', UTMMedium.CONFLUENT_SCHEMA_REGISTRY, 'oss_apim_to_ee_apim'),
   [UTMMedium.POLICY_STUDIO_V2]: new UTM('oss_apim', UTMMedium.POLICY_STUDIO_V2, 'oss_apim_to_ee_apim'),
   [UTMMedium.POLICY_STUDIO_V4]: new UTM('oss_apim', UTMMedium.POLICY_STUDIO_V4, 'oss_apim_to_ee_apim'),
+  [UTMMedium.GENERAL_DANGER_ZONE]: new UTM('oss_apim', UTMMedium.GENERAL_DANGER_ZONE, 'oss_apim_to_ee_apim'),
+  [UTMMedium.API_CREATION_TRY_MESSAGE]: new UTM('oss_apim', UTMMedium.API_CREATION_TRY_MESSAGE, 'oss_apim_to_ee_apim'),
+  [UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT]: new UTM('oss_apim', UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT, 'oss_apim_to_ee_apim'),
+  [UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG]: new UTM(
+    'oss_apim',
+    UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG,
+    'oss_apim_to_ee_apim',
+  ),
+  [UTMMedium.API_CREATION_MESSAGE_SUMMARY]: new UTM('oss_apim', UTMMedium.API_CREATION_MESSAGE_SUMMARY, 'oss_apim_to_ee_apim'),
 };
