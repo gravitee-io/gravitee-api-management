@@ -2200,6 +2200,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     removeIdsFromFlows(api);
                     removeIdsFromFlows(deployedApi);
 
+                    // CrossId not required for comparison
+                    api.setCrossId(null);
+                    deployedApi.setCrossId(null);
+
                     sync = apiSynchronizationProcessor.processCheckSynchronization(deployedApi, api);
 
                     // 2_ If API definition is synchronized, check if there is any modification for API's plans
