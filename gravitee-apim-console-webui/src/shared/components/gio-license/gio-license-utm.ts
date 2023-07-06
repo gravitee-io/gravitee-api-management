@@ -44,28 +44,28 @@ export class UTM {
   public buildURL(base: string): string {
     return base + `?utm_source=${this.source}&utm_medium=${this.medium}&utm_campaign=${this.campaign}`;
   }
+
+  public static ossEnterpriseV4(medium: UTMMedium): UTM {
+    return new UTM('oss_apim', medium, 'oss_apim_to_ee_apim');
+  }
 }
 
 export const UTM_DATA: Record<UTMMedium, UTM> = {
-  [UTMMedium.DEBUG_MODE]: new UTM('oss_apim', UTMMedium.DEBUG_MODE, 'oss_apim_to_ee_apim'),
-  [UTMMedium.DEBUG_MODE_V4]: new UTM('oss_apim', UTMMedium.DEBUG_MODE_V4, 'oss_apim_to_ee_apim'),
-  [UTMMedium.AUDIT_TRAIL_ORG]: new UTM('oss_apim', UTMMedium.AUDIT_TRAIL_ORG, 'oss_apim_to_ee_apim'),
-  [UTMMedium.AUDIT_TRAIL_ENV]: new UTM('oss_apim', UTMMedium.AUDIT_TRAIL_ENV, 'oss_apim_to_ee_apim'),
-  [UTMMedium.AUDIT_TRAIL_API]: new UTM('oss_apim', UTMMedium.AUDIT_TRAIL_API, 'oss_apim_to_ee_apim'),
-  [UTMMedium.OPENID_CONNECT]: new UTM('oss_apim', UTMMedium.OPENID_CONNECT, 'oss_apim_to_ee_apim'),
-  [UTMMedium.DCR_REGISTRATION]: new UTM('oss_apim', UTMMedium.DCR_REGISTRATION, 'oss_apim_to_ee_apim'),
-  [UTMMedium.SHARDING_TAGS]: new UTM('oss_apim', UTMMedium.SHARDING_TAGS, 'oss_apim_to_ee_apim'),
-  [UTMMedium.CUSTOM_ROLES]: new UTM('oss_apim', UTMMedium.CUSTOM_ROLES, 'oss_apim_to_ee_apim'),
-  [UTMMedium.CONFLUENT_SCHEMA_REGISTRY]: new UTM('oss_apim', UTMMedium.CONFLUENT_SCHEMA_REGISTRY, 'oss_apim_to_ee_apim'),
-  [UTMMedium.POLICY_STUDIO_V2]: new UTM('oss_apim', UTMMedium.POLICY_STUDIO_V2, 'oss_apim_to_ee_apim'),
-  [UTMMedium.POLICY_STUDIO_V4]: new UTM('oss_apim', UTMMedium.POLICY_STUDIO_V4, 'oss_apim_to_ee_apim'),
-  [UTMMedium.GENERAL_DANGER_ZONE]: new UTM('oss_apim', UTMMedium.GENERAL_DANGER_ZONE, 'oss_apim_to_ee_apim'),
-  [UTMMedium.API_CREATION_TRY_MESSAGE]: new UTM('oss_apim', UTMMedium.API_CREATION_TRY_MESSAGE, 'oss_apim_to_ee_apim'),
-  [UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT]: new UTM('oss_apim', UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT, 'oss_apim_to_ee_apim'),
-  [UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG]: new UTM(
-    'oss_apim',
-    UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG,
-    'oss_apim_to_ee_apim',
-  ),
-  [UTMMedium.API_CREATION_MESSAGE_SUMMARY]: new UTM('oss_apim', UTMMedium.API_CREATION_MESSAGE_SUMMARY, 'oss_apim_to_ee_apim'),
+  [UTMMedium.DEBUG_MODE]: UTM.ossEnterpriseV4(UTMMedium.DEBUG_MODE),
+  [UTMMedium.DEBUG_MODE_V4]: UTM.ossEnterpriseV4(UTMMedium.DEBUG_MODE_V4),
+  [UTMMedium.AUDIT_TRAIL_ORG]: UTM.ossEnterpriseV4(UTMMedium.AUDIT_TRAIL_ORG),
+  [UTMMedium.AUDIT_TRAIL_ENV]: UTM.ossEnterpriseV4(UTMMedium.AUDIT_TRAIL_ENV),
+  [UTMMedium.AUDIT_TRAIL_API]: UTM.ossEnterpriseV4(UTMMedium.AUDIT_TRAIL_API),
+  [UTMMedium.OPENID_CONNECT]: UTM.ossEnterpriseV4(UTMMedium.OPENID_CONNECT),
+  [UTMMedium.DCR_REGISTRATION]: UTM.ossEnterpriseV4(UTMMedium.DCR_REGISTRATION),
+  [UTMMedium.SHARDING_TAGS]: UTM.ossEnterpriseV4(UTMMedium.SHARDING_TAGS),
+  [UTMMedium.CUSTOM_ROLES]: UTM.ossEnterpriseV4(UTMMedium.CUSTOM_ROLES),
+  [UTMMedium.CONFLUENT_SCHEMA_REGISTRY]: UTM.ossEnterpriseV4(UTMMedium.CONFLUENT_SCHEMA_REGISTRY),
+  [UTMMedium.POLICY_STUDIO_V2]: UTM.ossEnterpriseV4(UTMMedium.POLICY_STUDIO_V2),
+  [UTMMedium.POLICY_STUDIO_V4]: UTM.ossEnterpriseV4(UTMMedium.POLICY_STUDIO_V4),
+  [UTMMedium.GENERAL_DANGER_ZONE]: UTM.ossEnterpriseV4(UTMMedium.GENERAL_DANGER_ZONE),
+  [UTMMedium.API_CREATION_TRY_MESSAGE]: UTM.ossEnterpriseV4(UTMMedium.API_CREATION_TRY_MESSAGE),
+  [UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT]: UTM.ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT),
+  [UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG]: UTM.ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG),
+  [UTMMedium.API_CREATION_MESSAGE_SUMMARY]: UTM.ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_SUMMARY),
 };
