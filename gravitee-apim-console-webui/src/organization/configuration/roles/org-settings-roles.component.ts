@@ -63,7 +63,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   private readonly unsubscribe$ = new Subject<boolean>();
 
   ngOnInit(): void {
-    this.hasCustomRolesLock$ = this.licenseService.notAllowed(this.customRolesLicense.feature);
+    this.hasCustomRolesLock$ = this.licenseService.isMissingFeature$(this.customRolesLicense.feature);
     combineLatest([
       this.roleService.list('ORGANIZATION'),
       this.roleService.list('ENVIRONMENT'),

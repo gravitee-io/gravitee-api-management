@@ -24,6 +24,11 @@ import { mapValues, omitBy } from 'lodash';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step4Security1PlansComponent } from '../step-4-security/step-4-security-1-plans.component';
+import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
+import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
+import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
+import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
+import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
   selector: 'step-3-endpoints-2-config',
@@ -37,13 +42,27 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   public selectedEndpoints: { id: string; name: string }[];
   public endpointSchemas: Record<string, { config: GioJsonSchema; sharedConfig: GioJsonSchema }>;
 
+  public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG;
+
+  private apiType: ApiCreationPayload['type'];
+
+  public get shouldUpgrade$() {
+    if (this.apiType === 'PROXY') {
+      return false;
+    }
+    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
+  }
+
   constructor(
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly stepService: ApiCreationStepService,
+    private readonly licenseService: GioLicenseService,
+    public readonly licenseDialog: GioLicenseDialog,
   ) {}
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
+    this.apiType = currentStepPayload.type;
 
     forkJoin(
       currentStepPayload.selectedEndpoints.reduce((map: Record<string, Observable<[GioJsonSchema, GioJsonSchema]>>, { id }) => {

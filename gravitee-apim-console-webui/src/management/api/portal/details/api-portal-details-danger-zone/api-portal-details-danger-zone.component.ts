@@ -28,13 +28,14 @@ import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operato
 
 import { UIRouterState } from '../../../../../ajs-upgraded-providers';
 import { Constants } from '../../../../../entities/Constants';
-import { Api, UpdateApi } from '../../../../../entities/management-api-v2';
+import { Api, ApiV4, UpdateApi } from '../../../../../entities/management-api-v2';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
+import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
 
 @Component({
   selector: 'api-portal-details-danger-zone',
@@ -43,7 +44,6 @@ import { UTMMedium } from '../../../../../shared/components/gio-license/gio-lice
 })
 export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private hasLicense: boolean;
 
   public utmMedium = UTMMedium.GENERAL_DANGER_ZONE;
 
@@ -68,6 +68,21 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
   };
   public isReadOnly = false;
 
+  public get shouldUpgrade$() {
+    const api = this.api as ApiV4;
+    if (api.type === 'PROXY') {
+      return false;
+    }
+    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
+  }
+
+  public get canStart$() {
+    if (this.isReadOnly) {
+      return false;
+    }
+    return this.shouldUpgrade$;
+  }
+
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
     // TODO: we should remove this service as soon as everything is migrated to management API v2
@@ -79,10 +94,6 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
     private readonly licenseService: GioLicenseService,
     public readonly licenseDialog: GioLicenseDialog,
   ) {}
-
-  ngOnInit(): void {
-    this.licenseService.hasLicense().then((hasLicense) => (this.hasLicense = hasLicense));
-  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {

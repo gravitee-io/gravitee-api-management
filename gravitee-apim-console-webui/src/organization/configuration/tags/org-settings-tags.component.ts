@@ -90,7 +90,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.hasShardingTagsLock$ = this.gioLicenseService.notAllowed(this.shardingTagsLicense.feature);
+    this.hasShardingTagsLock$ = this.gioLicenseService.isMissingFeature$(this.shardingTagsLicense.feature);
     combineLatest([
       this.tagService.list(),
       this.groupService.listByOrganization(),

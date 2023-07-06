@@ -19,7 +19,7 @@ import { switchMap, tap } from 'rxjs/operators';
 import { MatDialogModule } from '@angular/material/dialog';
 
 import { GioLicenseService } from './gio-license.service';
-import { Feature } from './gio-license-features';
+import { Feature, Pack } from './gio-license-features';
 import { UTMMedium } from './gio-license-utm';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../testing';
@@ -52,7 +52,7 @@ describe('GioLicenseService', () => {
   };
 
   it('should call the API', (done) => {
-    gioLicenseService.getLicense().subscribe((response) => {
+    gioLicenseService.getLicense$().subscribe((response) => {
       expect(response).toMatchObject(mockLicense);
       done();
     });
@@ -67,9 +67,9 @@ describe('GioLicenseService', () => {
 
   it('should get license', (done) => {
     gioLicenseService
-      .getLicense()
+      .getLicense$()
       .pipe(
-        switchMap(() => gioLicenseService.getLicense()),
+        switchMap(() => gioLicenseService.getLicense$()),
         tap((license) => {
           expect(license).toMatchObject(mockLicense);
           done();
@@ -94,7 +94,36 @@ describe('GioLicenseService', () => {
   });
 
   it('should return trial URL from UTM medium', () => {
-    const expected = `${CONSTANTS_TESTING.trialBaseURL}?utm_source=oss_apim&utm_medium=feature_debugmode_v2&utm_campaign=oss_apim_to_ee_apim`;
+    const expected =
+      'https://gravitee.io/self-hosted-trial?utm_source=oss_apim&utm_medium=feature_debugmode_v2&utm_campaign=oss_apim_to_ee_apim';
     expect(gioLicenseService.getTrialURL(UTMMedium.DEBUG_MODE)).toEqual(expected);
+  });
+
+  it('should miss event-native pack', (done) => {
+    gioLicenseService.isMissingPack$(Pack.EVENT_NATIVE).subscribe((isMissing) => {
+      expect(isMissing).toBeTruthy();
+      done();
+    });
+
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.v2BaseURL}/license`,
+      })
+      .flush(mockLicense);
+  });
+
+  it('should not miss event-native pack', (done) => {
+    gioLicenseService.isMissingPack$(Pack.EVENT_NATIVE).subscribe((isMissing) => {
+      expect(isMissing).toBeFalsy();
+      done();
+    });
+
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.v2BaseURL}/license`,
+      })
+      .flush({ ...mockLicense, packs: [Pack.EVENT_NATIVE] });
   });
 });

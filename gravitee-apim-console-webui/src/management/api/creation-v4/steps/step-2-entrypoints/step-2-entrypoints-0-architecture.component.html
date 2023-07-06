@@ -81,7 +81,7 @@
             </gio-selection-list-option-layout-body>
           </gio-selection-list-option-layout>
         </div>
-        <div *ngIf="!hasLicense">
+        <div *ngIf="shouldUpgrade$ | async">
           <gio-banner type="error" icon="gio:universe" class="license__banner">
             This configuration requires an enterprise license
             <span gioBannerBody
@@ -89,7 +89,7 @@
               subscriptions.</span
             >
             <div gioBannerAction>
-              <button mat-raised-button (click)="licenseDialog.displayUpgradeCta(utmMedium)">Request upgrade</button>
+              <button mat-raised-button (click)="licenseDialog.displayUpgradeCta(utmMedium, $event)">Request upgrade</button>
             </div>
           </gio-banner>
         </div>

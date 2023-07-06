@@ -51,6 +51,7 @@ import {
   getEntrypointConnectorSchema,
   fakeConnectorPlugin,
 } from '../../../entities/management-api-v2';
+import { License } from '../../../entities/license/License';
 
 describe('ApiCreationV4Component', () => {
   const httpProxyEntrypoint: Partial<ConnectorPlugin>[] = [{ id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' }];
@@ -158,9 +159,9 @@ describe('ApiCreationV4Component', () => {
       expect(component.currentStep.group.label).toEqual('API details');
       await step1Harness.fillAndValidate('test API', '1', 'description');
       expectEntrypointsGetRequest([]);
-      expectLicenseGetRequest();
 
       fixture.detectChanges();
+      expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       component.stepper.compileStepPayload(component.currentStep);
       expect(component.currentStep.payload).toEqual({ name: 'test API', version: '1', description: 'description' });
@@ -175,9 +176,9 @@ describe('ApiCreationV4Component', () => {
       await step1Harness.setVersion('1.0');
       await step1Harness.clickValidate();
       expectEntrypointsGetRequest([]);
-      expectLicenseGetRequest();
 
       fixture.detectChanges();
+      expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       component.stepper.compileStepPayload(component.currentStep);
       expect(component.currentStep.payload).toEqual({ name: 'API', version: '1.0', description: '' });
@@ -232,10 +233,11 @@ describe('ApiCreationV4Component', () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
       expectEntrypointsGetRequest([]);
-      expectLicenseGetRequest();
 
       await step2Harness.clickPrevious();
       expect(component.currentStep.group.label).toEqual('API details');
+
+      expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       const step1Harness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(step1Harness).toBeDefined();
@@ -249,7 +251,6 @@ describe('ApiCreationV4Component', () => {
         await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
         const step20ArchitectureHarness = await harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
         expectEntrypointsGetRequest([{ id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' }]);
-        expectLicenseGetRequest();
 
         await step20ArchitectureHarness.fillAndValidate('PROXY');
         // For sync api type, http-proxy endpoint is automatically added
@@ -265,6 +266,7 @@ describe('ApiCreationV4Component', () => {
         exceptEnvironmentGetRequest(fakeEnvironment());
         expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
         expectApiGetPortalSettings();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         expect(await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness)).toBeDefined();
       });
@@ -281,7 +283,7 @@ describe('ApiCreationV4Component', () => {
           { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook' },
           { id: 'http', supportedApiType: 'PROXY', name: 'HTTP' },
         ]);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         const list = await step2Harness.getEntrypoints();
         expect(await list.getListValues()).toEqual(['sse', 'webhook']);
@@ -296,7 +298,7 @@ describe('ApiCreationV4Component', () => {
           { id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' },
           { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook' },
         ]);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
 
@@ -319,7 +321,7 @@ describe('ApiCreationV4Component', () => {
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
         expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'SUBSCRIPTION' }]);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -336,7 +338,7 @@ describe('ApiCreationV4Component', () => {
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
         expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -358,7 +360,7 @@ describe('ApiCreationV4Component', () => {
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
         expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -383,7 +385,7 @@ describe('ApiCreationV4Component', () => {
           { id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'HTTP' },
           { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook', supportedListenerType: 'SUBSCRIPTION' },
         ]);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
 
@@ -451,7 +453,7 @@ describe('ApiCreationV4Component', () => {
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
         expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -478,7 +480,7 @@ describe('ApiCreationV4Component', () => {
         const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
         expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -531,7 +533,7 @@ describe('ApiCreationV4Component', () => {
           { id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' },
           { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook' },
         ]);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step2Harness.getEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
 
@@ -609,7 +611,7 @@ describe('ApiCreationV4Component', () => {
         const paths: string[] = ['/api/my-api-3'];
         await fillAndValidateStep2Entrypoints2Config(entrypointsConfig, paths);
         expectEndpointsGetRequest([]);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         // Go back to Step 2.0
         const stepper = await harnessLoader.getHarness(ApiCreationStepperMenuHarness);
@@ -668,7 +670,7 @@ describe('ApiCreationV4Component', () => {
         expectSchemaGetRequest(httpProxyEntrypoint);
         expectApiGetPortalSettings();
         expectVerifyContextPathGetRequest();
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness).then((harness) => harness.clickPrevious());
 
         // Init Step 2 architecture
@@ -742,7 +744,7 @@ describe('ApiCreationV4Component', () => {
         expectSchemaGetRequest(httpProxyEntrypoint);
         expectApiGetPortalSettings();
         expectVerifyContextPathGetRequest();
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness).then((harness) => harness.clickPrevious());
 
         // Init Step 2 architecture
@@ -790,7 +792,7 @@ describe('ApiCreationV4Component', () => {
       ]);
       expectApiGetPortalSettings();
       expectVerifyContextPathGetRequest();
-      expectLicenseGetRequest();
+      expectLicenseGetRequest({ tier: '', features: [], packs: [] });
       expect(component.currentStep.payload.paths).toEqual([
         {
           path: '/api/my-api-3',
@@ -829,7 +831,7 @@ describe('ApiCreationV4Component', () => {
         { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
         { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
       ]);
-      expectLicenseGetRequest();
+      expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       const list = await step3Harness.getEndpoints();
       expect(await list.getListValues()).toEqual(['kafka', 'mock']);
@@ -848,7 +850,7 @@ describe('ApiCreationV4Component', () => {
         { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
         { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
       ]);
-      expectLicenseGetRequest();
+      expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       fixture.detectChanges();
 
@@ -885,7 +887,7 @@ describe('ApiCreationV4Component', () => {
         { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
         { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
       ]);
-      expectLicenseGetRequest();
+      expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       fixture.detectChanges();
 
@@ -943,7 +945,7 @@ describe('ApiCreationV4Component', () => {
       expect(step3Endpoints2ConfigHarness).toBeTruthy();
       expectSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }], 'endpoints');
       expectEndpointsSharedConfigurationSchemaGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
-      expectLicenseGetRequest();
+      expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       await step3Endpoints2ConfigHarness.clickValidate();
 
@@ -984,7 +986,7 @@ describe('ApiCreationV4Component', () => {
           expect(pushPlan.name).toEqual('Default PUSH plan');
           expect(pushPlan.mode).toEqual('PUSH');
           expect(pushPlan.security).toEqual('');
-          expectLicenseGetRequest();
+          expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
           await step4Security1PlansHarness.clickValidate();
           expect(component.currentStep.payload.plans).toEqual([
@@ -1021,7 +1023,7 @@ describe('ApiCreationV4Component', () => {
           await step4Security1PlansHarness.clickRemovePlanButton();
 
           expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
-          expectLicenseGetRequest();
+          expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
           await step4Security1PlansHarness.clickValidate();
           expect(component.currentStep.payload.plans).toEqual([]);
@@ -1051,7 +1053,7 @@ describe('ApiCreationV4Component', () => {
         const keylessPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(0);
         expect(keylessPlan.name).toEqual('Default Keyless (UNSECURED)');
         expect(keylessPlan.security).toEqual('KEY_LESS');
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step4Security1PlansHarness.clickValidate();
         expect(component.currentStep.payload.plans).toEqual([
@@ -1081,7 +1083,7 @@ describe('ApiCreationV4Component', () => {
           const planLine2 = await step4Security1PlansHarness.getColumnTextByRowIndex(1);
           expect(planLine2.name).toEqual('Secure by ApiKey');
           expect(planLine2.security).toEqual('API_KEY');
-          expectLicenseGetRequest();
+          expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
           await step4Security1PlansHarness.clickValidate();
 
@@ -1136,7 +1138,7 @@ describe('ApiCreationV4Component', () => {
 
           await step4Security1PlansHarness.editDefaultKeylessPlanName('Update name', httpTestingController);
           await step4Security1PlansHarness.addRateLimitToPlan(httpTestingController);
-          expectLicenseGetRequest();
+          expectLicenseGetRequest({ tier: '', features: [], packs: [] });
           await step4Security1PlansHarness.clickValidate();
 
           expect(component.currentStep.payload.plans).toEqual([
@@ -1189,7 +1191,7 @@ describe('ApiCreationV4Component', () => {
         await step4Security1PlansHarness.clickRemovePlanButton();
 
         expect(await step4Security1PlansHarness.countNumberOfRows()).toEqual(0);
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step4Security1PlansHarness.clickPrevious();
         await fillAndValidateStep3Endpoints2Config();
@@ -1222,7 +1224,7 @@ describe('ApiCreationV4Component', () => {
         expect(pushPlan.name).toEqual('Default PUSH plan');
         expect(pushPlan.mode).toEqual('PUSH');
         expect(pushPlan.security).toEqual('');
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
         await step4Security1PlansHarness.clickValidate();
         expect(component.currentStep.payload.plans).toEqual([
@@ -1255,7 +1257,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       it('should display payload info', async () => {
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
 
         const step1Summary = await step6Harness.getStepSummaryTextContent(1);
@@ -1278,7 +1280,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       it('should go back to step 1 after clicking Change button', async () => {
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickChangeButton(1);
 
@@ -1290,7 +1292,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       it('should go back to step 2 after clicking Change button', async () => {
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         let step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickChangeButton(2);
         expectEntrypointsGetRequest([]);
@@ -1330,7 +1332,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       it('should go back to step 3 after clicking Change button', async () => {
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         let step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickChangeButton(3);
         fixture.detectChanges();
@@ -1363,7 +1365,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       it('should go back to step 4 after clicking Change button', async () => {
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         let step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
 
         let step4Summary = await step6Harness.getStepSummaryTextContent(4);
@@ -1404,18 +1406,8 @@ describe('ApiCreationV4Component', () => {
         fixture.detectChanges();
       });
 
-      it('should go to confirmation page after clicking Create my API', async () => {
-        expectLicenseGetRequest();
-        const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
-        await step6Harness.clickCreateMyApiButton();
-
-        expectCallsForApiCreation(API_ID, PLAN_ID);
-
-        expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
-      });
-
       it('should go to confirmation page after clicking Deploy my API', async () => {
-        expectLicenseGetRequest();
+        expectLicenseGetRequest({ tier: '', features: [], packs: ['event-native'] });
         const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickDeployMyApiButton();
 
@@ -1606,7 +1598,7 @@ describe('ApiCreationV4Component', () => {
     startApiRequest.flush(fakeApiV4({ id: apiId }));
   }
 
-  function expectLicenseGetRequest() {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush({ features: [] });
+  function expectLicenseGetRequest(license: License) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush(license);
   }
 });

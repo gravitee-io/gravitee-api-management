@@ -30,7 +30,6 @@ export interface Constants {
   };
   baseURL: string;
   v2BaseURL?: string;
-  trialBaseURL?: string;
 }
 
 interface EnvSettings {

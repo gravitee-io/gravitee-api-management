@@ -38,6 +38,19 @@
       </mat-card-content>
     </mat-card>
 
+    <div *ngIf="shouldUpgrade$ | async">
+      <gio-banner type="error" icon="gio:universe" class="license__banner">
+        This configuration requires an enterprise license
+        <span gioBannerBody
+          >Request a license to unlock enterprise functionality, such as support for event brokers, asynchronous APIS, and Webhook
+          subscriptions.</span
+        >
+        <div gioBannerAction>
+          <button mat-raised-button (click)="licenseDialog.displayUpgradeCta(utmMedium, $event)">Request upgrade</button>
+        </div>
+      </gio-banner>
+    </div>
+
     <div class="api-creation-v4__step__footer">
       <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
       <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my entrypoints</button>

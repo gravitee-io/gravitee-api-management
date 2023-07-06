@@ -28,8 +28,9 @@ import { GioEeUnlockDialogComponent, GioEeUnlockDialogData } from '../../../comp
 export class GioLicenseDialog {
   constructor(private readonly licenseService: GioLicenseService, private readonly matDialog: MatDialog) {}
 
-  displayUpgradeCta(utmMedium: UTMMedium) {
+  displayUpgradeCta(utmMedium: UTMMedium, event?: Event) {
     event?.stopPropagation();
+    event?.preventDefault();
     const featureMoreInformation = this.licenseService.getFeatureMoreInformation(stringFeature('apim-ee-upgrade'));
     const trialURL = this.licenseService.getTrialURL(utmMedium);
     this.matDialog

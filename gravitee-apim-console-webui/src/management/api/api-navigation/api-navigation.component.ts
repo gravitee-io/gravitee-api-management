@@ -362,7 +362,9 @@ export class ApiNavigationComponent implements OnInit {
 
   private appendAuditGroup() {
     const license = { feature: Feature.APIM_AUDIT_TRAIL, utmMedium: UTMMedium.AUDIT_TRAIL_API };
-    const iconRight$ = this.gioLicenseService.notAllowed(license.feature).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const iconRight$ = this.gioLicenseService
+      .isMissingFeature$(license.feature)
+      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
 
     const auditGroup: GroupItem = {
       title: 'Audit',
