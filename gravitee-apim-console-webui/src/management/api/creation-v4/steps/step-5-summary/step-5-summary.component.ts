@@ -20,6 +20,7 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
+import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
 
 @Component({
   selector: 'step-5-summary',
@@ -34,6 +35,8 @@ export class Step5SummaryComponent implements OnInit {
   endpointsDeployable: boolean;
   deployable: boolean;
   private hasLicense: boolean;
+
+  public utmMedium = UTMMedium.API_CREATION_MESSAGE_SUMMARY;
 
   constructor(
     private readonly stepService: ApiCreationStepService,
