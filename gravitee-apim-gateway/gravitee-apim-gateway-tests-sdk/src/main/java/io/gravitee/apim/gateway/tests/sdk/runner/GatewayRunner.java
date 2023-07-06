@@ -109,6 +109,7 @@ public class GatewayRunner {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(GatewayRunner.class);
     public static final String ALREADY_DEPLOYED_MESSAGE = "An API has already been deployed with id {%s}";
+    public static final String CANNOT_UNDEPPLOY_CLASS_API_MESSAGE = "An API deployed at class level cannot be undeployed (id {%s})";
 
     private final GatewayConfigurationBuilder gatewayConfigurationBuilder;
     private final AbstractGatewayTest testInstance;
@@ -164,6 +165,8 @@ public class GatewayRunner {
             final ApplicationContext applicationContext = gatewayContainer.applicationContext();
 
             testInstance.setApplicationContext(applicationContext);
+            testInstance.setDeployCallback(this::deployFromTest);
+            testInstance.setUndeployCallback(this::undeployFromTest);
 
             registerReactors(gatewayContainer);
 
@@ -311,6 +314,37 @@ public class GatewayRunner {
             throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE, reactableApi.getId()));
         }
         deploy(reactableApi, deployedForTest);
+    }
+
+    /**
+     * Deploys an API from a test. Throws if trying to deploy an api deployed at class level
+     * @param reactableApi is the api to deploy
+     * @throws Exception
+     */
+    private void deployFromTest(ReactableApi<?> reactableApi) {
+        if (deployedForTestClass.containsKey(reactableApi.getId())) {
+            throw new PreconditionViolationException(String.format(ALREADY_DEPLOYED_MESSAGE + " at class level", reactableApi.getId()));
+        }
+        if (deployedForTest.containsKey(reactableApi.getId())) {
+            undeploy(reactableApi);
+            deployedForTest.remove(reactableApi.getId());
+        }
+        deploy(reactableApi, deployedForTest);
+    }
+
+    /**
+     * Undeploys an API from a test. Throws if the api is deployed at class level
+     * @param api
+     */
+    private void undeployFromTest(String api) {
+        if (deployedForTestClass.containsKey(api)) {
+            throw new PreconditionViolationException(String.format(CANNOT_UNDEPPLOY_CLASS_API_MESSAGE, api));
+        }
+        if (deployedForTest.containsKey(api)) {
+            ApiManager apiManager = gatewayContainer.applicationContext().getBean(ApiManager.class);
+            apiManager.unregister(api);
+            deployedForTest.remove(api);
+        }
     }
 
     /**

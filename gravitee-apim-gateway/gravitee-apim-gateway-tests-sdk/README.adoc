@@ -72,7 +72,7 @@ class MockPolicyIntegrationTest extends AbstractPolicyTest<MockPolicy, MockPolic
 ** Annotated at class level, it will deploy the APIs once for the gateway instance, it means all the method annotated with `@Test` will use the same deployed APIs.
 ** Annotated at method level, it will deploy the APIs only for the lifetime of the test method. After its execution, the APIs will be undeployed
 * `AbstractPolicyTest<MockPolicy, MockPolicyConfiguration>`: extends from this abstract class allows to automatically configure the policy you are working on. We will see more details about this abstract class, but it helps you configure a lot of stuff to test your policy.
-* `WebClient client`: You can see it as a parameter of your test method. This https://vertx.io/docs/apidocs/io/vertx/reactivex/ext/web/client/WebClient.html[Vertx Reactive Webclient] is injected by the SDK and automatically configured to reach the test gateway.
+* `HttpClient client`: You can see it as a parameter of your test method. This https://vertx.io/docs/4.2.7/apidocs/io/vertx/rxjava3/core/http/class-use/HttpClient.html[Vertx RxJava3 HttpClient] is injected by the SDK and automatically configured to reach the test gateway.
 * `wiremock`: is an object inherited from `AbstractPolicyTest` allowing you to mock your endpoints behavior. It is configured automatically to be used by your deployed apis.
 
 == Installation Guide
@@ -307,6 +307,20 @@ public void configureApi(Api api) {
 You can also use the field `deployedApis` to access and modify the deployed APIs *at method level*.
 
 WARNING: With this method, you can modify easily some properties of the API (for example, the state of the endpoints). You have to keep in mind that some properties will not be modifiable, for example, the configuration of the policies.
+
+==== Deploying and undeploying an API from a test
+
+`AbstractGatewayTest` provides those methods to manually control the deployment cycle of an API.
+ * deploy(ReactableApi api)
+ * undeploy(String api)
+ * redeploy(ReactableApi api): will undeploy then deploy
+
+⚠️ You cannot deploy or undeploy an api with the same id as an api declared at class level
+
+To modify an already deployed api, you can inject them as parameter of your test:
+ * to inject an API with its id: `@InjectApi(apiId = "my-api") ReactableApi<?> reactableApi`
+ * to inject all APIs : `Map<String, ReactableApi<?>> reactableApis)`
+
 
 ==== Plugin registration
 
