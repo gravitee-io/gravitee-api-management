@@ -22,13 +22,19 @@ export interface NewSubscriptionEntitV4 {
    * @type {string}
    * @memberof NewSubscriptionEntity
    */
-  application?: string;
+  applicationId?: string;
   /**
    *
    * @type {string}
    * @memberof NewSubscriptionEntity
    */
-  configuration?: SubscriptionConfigurationEntityV4;
+  planId?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof NewSubscriptionEntity
+   */
+  consumerConfiguration?: SubscriptionConfigurationEntityV4;
   /**
    *
    * @type {string}

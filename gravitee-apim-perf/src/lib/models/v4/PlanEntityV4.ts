@@ -23,6 +23,12 @@ export interface PlanEntityV4 {
    */
   apiId?: string;
   /**
+   * Plan's gravitee definition version
+   * @type {string}
+   * @memberof PlanEntityV4
+   */
+  definitionVersion: PlanEntityV4DefinitionVersionEnum;
+  /**
    *
    * @type {Array<string>}
    * @memberof PlanEntityV4
@@ -205,4 +211,14 @@ export const enum PlanEntityV4StatusEnum {
 export const enum PlanTypeV4 {
   API = 'API',
   CATALOG = 'CATALOG',
+}
+
+export const enum PlanEntityV4DefinitionVersionEnum {
+  _V2 = 'V2',
+  _V4 = 'V4',
+}
+
+export const enum PlanModeV4 {
+  STANDARD = 'STANDARD',
+  PUSH = 'PUSH',
 }

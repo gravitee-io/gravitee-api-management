@@ -17,9 +17,9 @@ import { EntrypointV4 } from '@models/v4/EntrypointV4';
 import { Cors, Logging } from '@models/v3/Proxy';
 
 export type ListenerV4 =
-  | ({ type: 'http' } & HttpListenerV4)
-  | ({ type: 'subscription' } & SubscriptionListenerV4)
-  | ({ type: 'tcp' } & TcpListenerV4);
+  | ({ type: 'HTTP' } & HttpListenerV4)
+  | ({ type: 'SUBSCRIPTION' } & SubscriptionListenerV4)
+  | ({ type: 'TCP' } & TcpListenerV4);
 
 export interface HttpListenerV4 {
   /**
