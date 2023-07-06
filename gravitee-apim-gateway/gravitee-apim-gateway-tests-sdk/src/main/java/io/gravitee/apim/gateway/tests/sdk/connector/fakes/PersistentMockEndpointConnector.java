@@ -27,13 +27,15 @@ import io.reactivex.rxjava3.core.Maybe;
  */
 public class PersistentMockEndpointConnector extends MockEndpointConnector {
 
-    public PersistentMockEndpointConnector(MockEndpointConnectorConfiguration configuration) {
+    private final MessageStorage messageStorage;
+
+    public PersistentMockEndpointConnector(MockEndpointConnectorConfiguration configuration, MessageStorage messageStorage) {
         super(configuration);
+        this.messageStorage = messageStorage;
     }
 
     @Override
     public Completable publish(ExecutionContext ctx) {
-        final MessageStorage messageStorage = ctx.getComponent(MessageStorage.class);
         return Completable
             .defer(() ->
                 ctx
