@@ -24,6 +24,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UIRouterGlobals } from '@uirouter/core';
+import { set } from 'lodash';
 
 import { ApiPortalSubscriptionListComponent } from './api-portal-subscription-list.component';
 import { ApiPortalSubscriptionListHarness } from './api-portal-subscription-list.harness';
@@ -44,6 +45,7 @@ import {
   fakeSubscription,
   Plan,
   Subscription,
+  VerifySubscription,
 } from '../../../../../entities/management-api-v2';
 import { PagedResult } from '../../../../../entities/pagedResult';
 import { Application } from '../../../../../entities/application/application';
@@ -89,6 +91,16 @@ describe('ApiPortalSubscriptionListComponent', () => {
         {
           provide: UIRouterGlobals,
           useValue: ajsGlobals,
+        },
+        {
+          provide: 'Constants',
+          useFactory: () => {
+            const constants = CONSTANTS_TESTING;
+            set(constants, 'env.settings.plan.security', {
+              customApiKey: { enabled: true },
+            });
+            return constants;
+          },
         },
       ],
     }).compileComponents();
@@ -266,7 +278,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
   });
 
   describe('create subscription', () => {
-    it('should create subscription to a api key plan', fakeAsync(async () => {
+    it('should create subscription to a api key plan without customApiKey', fakeAsync(async () => {
       const planV4 = fakePlanV4({ generalConditions: undefined });
       const application = fakeApplication();
 
@@ -277,7 +289,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       expect(await createSubBtn).toBeDefined();
       expect(await createSubBtn.isDisabled()).toEqual(false);
 
-      await harness.openCreationDialog();
+      await createSubBtn.click();
 
       const creationDialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
         ApiPortalSubscriptionCreationDialogHarness,
@@ -294,7 +306,55 @@ describe('ApiPortalSubscriptionListComponent', () => {
       await creationDialogHarness.createSubscription();
       tick(400);
       const subscription = fakeSubscription();
-      expectApiSubscriptionsPostRequest(planV4.id, application.id, subscription);
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, undefined, subscription);
+
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
+
+      flush();
+    }));
+
+    it('should create subscription to a api key plan with customApiKey', fakeAsync(async () => {
+      const planV4 = fakePlanV4({ apiId: API_ID, generalConditions: undefined });
+      const application = fakeApplication({ id: 'my-app' });
+
+      await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+
+      const createSubBtn = await harness.getCreateSubscriptionButton();
+      expect(await createSubBtn).toBeDefined();
+      expect(await createSubBtn.isDisabled()).toEqual(false);
+
+      await createSubBtn.click();
+
+      const creationDialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        ApiPortalSubscriptionCreationDialogHarness,
+      );
+      expect(await creationDialogHarness.getTitleText()).toEqual('Create a subscription');
+
+      await creationDialogHarness.choosePlan(planV4.name);
+      await creationDialogHarness.searchApplication('application');
+      tick(400);
+      expectApplicationsSearch('application', [application]);
+
+      await creationDialogHarness.selectApplication(application.name);
+
+      expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeTruthy();
+      await creationDialogHarness.addCustomKey('12345678');
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/_verify`,
+        method: 'POST',
+      });
+      const verifySubscription: VerifySubscription = {
+        applicationId: 'my-app',
+        apiKey: '12345678',
+      };
+      expect(req.request.body).toEqual(verifySubscription);
+      req.flush({ ok: true });
+
+      await creationDialogHarness.createSubscription();
+      tick(400);
+      const subscription = fakeSubscription();
+      expectApiSubscriptionsPostRequest(planV4.id, application.id, '12345678', subscription);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.subscription.edit', { subscriptionId: expect.any(String) });
 
@@ -309,7 +369,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       expect(await createSubBtn).toBeDefined();
       expect(await createSubBtn.isDisabled()).toEqual(false);
 
-      await harness.openCreationDialog();
+      await createSubBtn.click();
 
       const creationDialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
         ApiPortalSubscriptionCreationDialogHarness,
@@ -449,7 +509,12 @@ describe('ApiPortalSubscriptionListComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiSubscriptionsPostRequest(planId: string, applicationId: string, subscription: Subscription) {
+  function expectApiSubscriptionsPostRequest(
+    planId: string,
+    applicationId: string,
+    customApiKey: string = undefined,
+    subscription: Subscription,
+  ) {
     const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions`,
       method: 'POST',
@@ -457,7 +522,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     expect(req.request.body).toEqual({
       planId,
       applicationId,
-      customApiKey: undefined,
+      customApiKey,
     });
     req.flush(subscription);
     fixture.detectChanges();

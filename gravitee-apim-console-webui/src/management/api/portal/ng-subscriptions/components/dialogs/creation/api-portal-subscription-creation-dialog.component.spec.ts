@@ -44,6 +44,7 @@ import {
   fakeApiV4,
   fakePlanV4,
   Plan,
+  VerifySubscription,
 } from '../../../../../../../entities/management-api-v2';
 import { Application } from '../../../../../../../entities/application/application';
 import { PagedResult } from '../../../../../../../entities/pagedResult';
@@ -127,7 +128,12 @@ describe('Subscription creation dialog', () => {
       });
 
       it('should have input with API Key Plan', async () => {
-        const planV4 = fakePlanV4({ mode: 'STANDARD', security: { type: 'API_KEY' }, generalConditions: undefined });
+        const applicationWithClientId = fakeApplication({
+          id: 'my-app',
+          name: 'withClientId',
+          settings: { app: { client_id: 'clientId' } },
+        });
+        const planV4 = fakePlanV4({ apiId: 'my-api', mode: 'STANDARD', security: { type: 'API_KEY' }, generalConditions: undefined });
         component.plans = [planV4];
         component.availableSubscriptionEntrypoints = [];
         await componentTestingOpenDialog();
@@ -137,9 +143,29 @@ describe('Subscription creation dialog', () => {
 
         await harness.choosePlan(planV4.name);
 
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+
+        await harness.searchApplication('withClientId');
+        expectApplicationsSearch('withClientId', [applicationWithClientId]);
+        await harness.selectApplication(applicationWithClientId.name);
+
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeTruthy();
+
+        await harness.addCustomKey('12345678');
+        const req = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/my-api/subscriptions/_verify`,
+          method: 'POST',
+        });
+        const verifySubscription: VerifySubscription = {
+          applicationId: 'my-app',
+          apiKey: '12345678',
+        };
+        expect(req.request.body).toEqual(verifySubscription);
+        req.flush({ ok: true });
       });
       it('should have input when selecting non API Key plan and then select an API Key Plan', async () => {
+        const applicationWithClientId = fakeApplication({ name: 'withClientId', settings: { app: { client_id: 'clientId' } } });
+
         const apiKeyPlanV4 = fakePlanV4({
           name: 'API Key plan',
           mode: 'STANDARD',
@@ -152,6 +178,11 @@ describe('Subscription creation dialog', () => {
         await componentTestingOpenDialog();
 
         const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+
+        await harness.searchApplication('withClientId');
+        expectApplicationsSearch('withClientId', [applicationWithClientId]);
+        await harness.selectApplication(applicationWithClientId.name);
+
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
 
         await harness.choosePlan(jwtPlanV4.name);

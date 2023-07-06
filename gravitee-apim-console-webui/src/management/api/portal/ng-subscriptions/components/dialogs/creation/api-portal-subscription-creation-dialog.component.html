@@ -67,11 +67,24 @@
         </mat-radio-button>
       </mat-radio-group>
 
-      <mat-form-field class="subscription-creation__content__custom-apikey" *ngIf="shouldDisplayCustomApiKey()">
-        <mat-label>Custom API-Key</mat-label>
-        <input matInput type="text" formControlName="customApiKey" />
-        <mat-hint>You can provide a custom API key if you already have one. Leave it blank to get a generated apikey</mat-hint>
-      </mat-form-field>
+      <ng-container
+        *ngIf="
+          canUseCustomApikey &&
+          form.get('selectedPlan').value?.security.type === 'API_KEY' &&
+          form.get('selectedPlan').value?.apiId &&
+          form.get('selectedApplication').value?.id
+        "
+      >
+        <div class="mat-body-1">
+          You can provide a custom API Key if you already have one. <br />
+          Leave it blank to get a generated API Key.
+        </div>
+        <api-key-validation
+          formControlName="customApiKey"
+          [applicationId]="form.get('selectedApplication').value.id"
+          [apiId]="form.get('selectedPlan').value.apiId"
+        ></api-key-validation>
+      </ng-container>
 
       <ng-container *ngIf="form.get('selectedEntrypoint')">
         <mat-form-field>
@@ -107,7 +120,7 @@
       type="submit"
       class="actions__createBtn"
       color="primary"
-      mat-stroked-button
+      mat-raised-button
       role="dialog"
       [disabled]="this.form.invalid || this.form.pristine"
     >

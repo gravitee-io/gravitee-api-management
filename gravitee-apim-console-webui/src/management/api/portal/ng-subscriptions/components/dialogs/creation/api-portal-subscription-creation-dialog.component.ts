@@ -99,6 +99,9 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         term.length > 0 ? this.applicationService.list('ACTIVE', term, 'name', 1, 20) : of(new PagedResult<Application>()),
       ),
       map((applicationsPage) => applicationsPage.data),
+      tap((_) => {
+        this.form.get('customApiKey')?.reset();
+      }),
       share(),
       takeUntil(this.unsubscribe$),
     );
@@ -160,9 +163,11 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       subscriptionToCreate: {
         planId: this.form.getRawValue().selectedPlan.id,
         applicationId: this.form.getRawValue().selectedApplication.id,
-        ...(this.shouldDisplayCustomApiKey() && this.form.getRawValue().customApiKey
-          ? { customApiKey: this.form.getRawValue().customApiKey }
-          : undefined),
+        ...(this.form.getRawValue().customApiKey && this.form.getRawValue().customApiKey !== ''
+          ? {
+              customApiKey: this.form.getRawValue().customApiKey,
+            }
+          : {}),
         ...(this.form.getRawValue().selectedPlan.mode === 'PUSH'
           ? {
               consumerConfiguration: {
@@ -186,10 +191,6 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
 
   displayApplication(application: Application): string {
     return application?.name;
-  }
-
-  shouldDisplayCustomApiKey(): boolean {
-    return this.canUseCustomApikey && this.form.get('selectedPlan').value?.security?.type === 'API_KEY';
   }
 }
 
