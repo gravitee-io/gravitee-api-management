@@ -21,25 +21,24 @@ import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.policy.jwt.utils.TokenExtractor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class TokenExtractorTest {
 
     @Mock
     private Request request;
-
-    @Before
-    public void init() {
-        MockitoAnnotations.initMocks(this);
-    }
 
     @Test
     public void shouldNotExtract_noAuthorizationHeader() {
@@ -66,14 +65,14 @@ public class TokenExtractorTest {
     }
 
     @Test
-    public void shouldNotExtract_bearerAuthorizationHeader_noValue() {
+    public void shouldExtract_bearerAuthorizationHeader_noValue() {
         HttpHeaders headers = HttpHeaders.create();
         headers.add(HttpHeaderNames.AUTHORIZATION, TokenExtractor.BEARER);
         when(request.headers()).thenReturn(headers);
 
         String token = TokenExtractor.extract(request);
 
-        Assert.assertNull(token);
+        Assert.assertEquals("", token);
     }
 
     @Test
