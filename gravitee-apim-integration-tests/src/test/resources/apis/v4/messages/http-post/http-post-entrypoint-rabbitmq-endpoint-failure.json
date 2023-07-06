@@ -1,0 +1,93 @@
+{
+    "id": "http-post-entrypoint-rabbitmq-endpoint-failure",
+    "name": "http-post-entrypoint-rabbitmq-endpoint-failure",
+    "apiVersion": "1.0",
+    "definitionVersion": "4.0.0",
+    "type": "message",
+    "description": "http-post-entrypoint-rabbitmq-endpoint-failure",
+    "listeners": [
+        {
+            "type": "http",
+            "paths": [
+                {
+                    "path": "/test-failure"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-post",
+                    "configuration": {
+                        "requestHeadersToMessage": true
+                    }
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "default-group",
+            "type": "rabbitmq",
+            "endpoints": [
+                {
+                    "name": "default",
+                    "type": "rabbitmq",
+                    "weight": 1,
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "serverHost": "rabbitmq-host",
+                        "serverPort": 5672
+                    },
+                    "sharedConfigurationOverride": {
+                        "security": {
+                            "auth": {
+                                "username": "admin",
+                                "password": "admin"
+                            }
+                        },
+                        "producer": {
+                            "enabled": true,
+                            "routingKey": "a.routing.key",
+                            "exchange": {
+                                "name": "my-exchange",
+                                "type": "topic",
+                                "durable": false,
+                                "autoDelete": true
+                            }
+                        },
+                        "consumer": {
+                            "enabled": false
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "flows": [
+        {
+            "name": "flow-1",
+            "enabled": true,
+            "selectors": [
+                {
+                    "type": "http",
+                    "path": "/",
+                    "pathOperator": "STARTS_WITH"
+                }
+            ],
+            "request": [],
+            "response": [],
+            "subscribe": [],
+            "publish": [
+                {
+                    "name": "failure",
+                    "description": "failure",
+                    "enabled": true,
+                    "policy": "interrupt-message-request-phase",
+                    "configuration": {}
+                }
+            ]
+        }
+    ],
+    "analytics": {
+        "enabled": false
+    }
+}

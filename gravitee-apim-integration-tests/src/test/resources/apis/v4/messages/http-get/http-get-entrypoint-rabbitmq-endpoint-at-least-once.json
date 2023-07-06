@@ -1,0 +1,73 @@
+{
+  "id": "http-get-entrypoint-rabbitmq-endpoint-at-least-once",
+  "name": "http-get-entrypoint-rabbitmq-endpoint-at-least-once",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "http-get-entrypoint-rabbitmq-endpoint-at-least-once",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-at-least-once"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "qos": "at-least-once",
+          "configuration": {
+            "messagesLimitCount": 1,
+            "messagesLimitDurationMs": 10000,
+            "headersInPayload": true,
+            "metadataInPayload": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "rabbitmq",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "rabbitmq",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "serverHost": "rabbitmq-host",
+            "serverPort": 5672
+          },
+          "sharedConfigurationOverride": {
+            "security": {
+              "auth": {
+                "username": "admin",
+                "password": "admin"
+              }
+            },
+            "producer": {
+              "enabled": false
+            },
+            "consumer": {
+              "enabled": true,
+              "routingKey": "a.routing.key",
+              "exchange": {
+                "name": "my-exchange",
+                "type": "topic",
+                "durable": false,
+                "autoDelete": true
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}

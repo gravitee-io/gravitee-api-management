@@ -1,0 +1,69 @@
+{
+  "id": "http-post-entrypoint-rabbitmq-endpoint",
+  "name": "http-post-entrypoint-rabbitmq-endpoint",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "http-post-entrypoint-rabbitmq-endpoint",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-post",
+          "configuration": {
+            "requestHeadersToMessage": true
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "rabbitmq",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "rabbitmq",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "serverHost": "rabbitmq-host",
+            "serverPort": 5672
+          },
+          "sharedConfigurationOverride": {
+            "security": {
+              "auth": {
+                "username": "admin",
+                "password": "admin"
+              }
+            },
+            "producer": {
+              "enabled": true,
+              "routingKey": "a.routing.key",
+              "exchange": {
+                "name": "my-exchange",
+                "type": "topic",
+                "durable": false,
+                "autoDelete": true
+              }
+            },
+            "consumer": {
+              "enabled": false
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}
