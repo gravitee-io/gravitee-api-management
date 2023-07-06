@@ -184,7 +184,7 @@
         <gravitee-policy-metrics-reporter.version>2.0.0</gravitee-policy-metrics-reporter.version>
         <gravitee-policy-message-filtering.version>1.1.1</gravitee-policy-message-filtering.version>
         <gravitee-policy-mock.version>1.13.0</gravitee-policy-mock.version>
-        <gravitee-policy-oauth2.version>2.3.0</gravitee-policy-oauth2.version>
+        <gravitee-policy-oauth2.version>2.3.2</gravitee-policy-oauth2.version>
         <gravitee-policy-openid-connect-userinfo.version>1.6.0</gravitee-policy-openid-connect-userinfo.version>
         <gravitee-policy-override-http-method.version>2.1.0</gravitee-policy-override-http-method.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
