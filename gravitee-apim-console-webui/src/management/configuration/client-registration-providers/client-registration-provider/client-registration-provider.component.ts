@@ -137,12 +137,12 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
       description: new FormControl(clientRegistrationProvider?.description),
       discovery_endpoint: new FormControl(clientRegistrationProvider?.discovery_endpoint, [Validators.required]),
       initial_access_token_type: new FormControl(clientRegistrationProvider?.initial_access_token_type, [Validators.required]),
-      client_id: new FormControl(clientRegistrationProvider?.client_id, [Validators.required]),
-      client_secret: new FormControl(clientRegistrationProvider?.client_secret, [Validators.required]),
+      client_id: new FormControl(clientRegistrationProvider?.client_id),
+      client_secret: new FormControl(clientRegistrationProvider?.client_secret),
       renew_client_secret_method: new FormControl(clientRegistrationProvider?.renew_client_secret_method),
       scopes: new FormControl(clientRegistrationProvider?.scopes),
       software_id: new FormControl(clientRegistrationProvider?.software_id),
-      initial_access_token: new FormControl(clientRegistrationProvider?.initial_access_token, [Validators.required]),
+      initial_access_token: new FormControl(clientRegistrationProvider?.initial_access_token),
       renew_client_secret_support: new FormControl(clientRegistrationProvider?.renew_client_secret_support),
       renew_client_secret_endpoint: new FormControl(clientRegistrationProvider?.renew_client_secret_endpoint),
     });
@@ -155,5 +155,13 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
   onReset() {
     this.providerForm = undefined;
     this.ngOnInit();
+  }
+
+  isClientCredentials(): boolean {
+    return this.providerForm?.get('initial_access_token_type')?.value === 'CLIENT_CREDENTIALS';
+  }
+
+  isInitialAccessToken(): boolean {
+    return this.providerForm?.get('initial_access_token_type')?.value === 'INITIAL_ACCESS_TOKEN';
   }
 }

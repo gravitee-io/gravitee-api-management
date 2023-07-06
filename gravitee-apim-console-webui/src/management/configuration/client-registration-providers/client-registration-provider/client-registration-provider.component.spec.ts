@@ -62,7 +62,7 @@ describe('ClientRegistrationProvider', () => {
           },
         },
       ],
-    });
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ClientRegistrationProviderComponent);
     httpTestingController = TestBed.inject(HttpTestingController);

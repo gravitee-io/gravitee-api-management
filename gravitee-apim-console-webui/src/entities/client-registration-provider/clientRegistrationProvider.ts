@@ -19,7 +19,7 @@ export class ClientRegistrationProvider {
   public name: string;
   public description: string;
   public discovery_endpoint: string;
-  public initial_access_token_type: string;
+  public initial_access_token_type: 'INITIAL_ACCESS_TOKEN' | 'CLIENT_CREDENTIALS';
   public client_id: string;
   public client_secret: string;
   public scopes: string[];
