@@ -25,6 +25,7 @@ export function fakeBasePlan(modifier?: Partial<BasePlan> | ((base: BasePlan) =>
     id: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
     name: 'Default plan',
     description: 'Default plan',
+    apiId: '117e79a3-6023-4b72-be79-a36023ab72f9',
     characteristics: [],
     status: 'PUBLISHED',
     validation: 'AUTO',
