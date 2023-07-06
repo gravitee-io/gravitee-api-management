@@ -1,0 +1,74 @@
+{
+  "id": "websocket-entrypoint-rabbitmq-endpoint-publisher",
+  "name": "websocket-entrypoint-rabbitmq-endpoint-publisher",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "websocket-entrypoint-rabbitmq-endpoint-publisher",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "websocket",
+          "configuration": {
+            "publisher": {
+              "enabled": true
+            },
+            "subscriber": {
+              "enabled": false
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "rabbitmq",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "rabbitmq",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "serverHost": "rabbitmq-host",
+            "serverPort": 5672
+          },
+          "sharedConfigurationOverride": {
+            "security": {
+              "auth": {
+                "username": "admin",
+                "password": "admin"
+              }
+            },
+            "producer": {
+              "enabled": true,
+              "routingKey": "a.routing.key",
+              "exchange": {
+                "name": "my-exchange",
+                "type": "topic",
+                "durable": false,
+                "autoDelete": true
+              }
+            },
+            "consumer": {
+              "enabled": false
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": {
+    "enabled": false
+  }
+}
