@@ -158,6 +158,26 @@ describe('ApiV2Service', () => {
     });
   });
 
+  describe('deploy', () => {
+    it('should call the API', (done) => {
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.deploy(fakeApi.id, 'Deployment label').subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}/deployments`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({
+        deploymentLabel: 'Deployment label',
+      });
+      req.flush(fakeApi);
+    });
+  });
+
   describe('export', () => {
     it('should call the API', (done) => {
       const fakeApi = fakeApiV4();

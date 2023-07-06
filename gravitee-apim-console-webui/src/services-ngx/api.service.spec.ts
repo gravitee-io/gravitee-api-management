@@ -219,6 +219,36 @@ describe('ApiService', () => {
     });
   });
 
+  describe('acceptReview', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+
+      apiService.acceptReview(apiId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/reviews?action=ACCEPT`);
+      expect(req.request.method).toEqual('POST');
+
+      req.flush({});
+    });
+  });
+
+  describe('rejectReview', () => {
+    it('should call the API', (done) => {
+      const apiId = 'api#1';
+
+      apiService.rejectReview(apiId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/reviews?action=REJECT`);
+      expect(req.request.method).toEqual('POST');
+
+      req.flush({});
+    });
+  });
+
   describe('start', () => {
     it('should call the API', (done) => {
       const apiId = 'api#1';

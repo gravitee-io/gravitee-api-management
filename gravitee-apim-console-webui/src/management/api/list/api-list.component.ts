@@ -31,7 +31,7 @@ import {
   ApisResponse,
   ApiV2,
   ApiV4,
-  StateEnum,
+  ApiState,
   OriginEnum,
   HttpListener,
   PagedResult,
@@ -47,7 +47,7 @@ export type ApisTableDS = {
   owner: string;
   ownerEmail: string;
   picture: string;
-  state: StateEnum;
+  state: ApiState;
   lifecycleState: ApiLifecycleState;
   workflowBadge?: { text: string; class: string };
   isNotSynced$?: Observable<boolean>;

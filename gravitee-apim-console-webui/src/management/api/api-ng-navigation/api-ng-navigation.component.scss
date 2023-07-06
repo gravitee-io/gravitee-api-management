@@ -65,6 +65,10 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       &__ui {
         height: 100%;
       }
+
+      &__banners {
+        padding: 0 32px;
+      }
     }
 
     &__tabs {

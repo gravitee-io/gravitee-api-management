@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnInit } from '@angular/core';
+import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
@@ -49,7 +49,7 @@ interface GroupItem {
   template: require('./api-navigation.component.html'),
   styles: [require('./api-navigation.component.scss')],
 })
-export class ApiNavigationComponent implements OnInit {
+export class ApiNavigationComponent implements OnInit, OnDestroy {
   @Input()
   public apiName: string;
   @Input()
@@ -112,6 +112,10 @@ export class ApiNavigationComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
   private appendDesign() {
     this.subMenuItems.push({
       displayName: 'Policy Studio',
