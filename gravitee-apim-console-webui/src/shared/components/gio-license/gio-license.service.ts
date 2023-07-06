@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 
-import { Feature, FeatureInfoData } from './gio-license-features';
+import { Feature, FeatureInfoData, Pack } from './gio-license-features';
 import { UTM_DATA, UTMMedium } from './gio-license-utm';
 
 import { License } from '../../../entities/license/License';
@@ -33,27 +33,27 @@ export class GioLicenseService {
 
   private loadLicense$: Observable<License> = this.http.get<License>(`${this.constants.v2BaseURL}/license`).pipe(shareReplay(1));
 
-  getLicense() {
+  getLicense$(): Observable<License> {
     return this.loadLicense$;
   }
 
-  hasLicense() {
-    return this.loadLicense$.toPromise().then((license) => !!license.features.length);
+  isMissingPack$(pack: Pack): Observable<boolean> {
+    return this.getLicense$().pipe(map((license) => license === null || !license.packs.includes(pack)));
   }
 
-  notAllowed(feature: string) {
-    return this.getLicense().pipe(map((license) => license == null || license.features.find((feat) => feat === feature) == null));
+  isMissingFeature$(feature: string): Observable<boolean> {
+    return this.getLicense$().pipe(map((license) => license == null || license.features.find((feat) => feat === feature) == null));
   }
 
   getFeatureMoreInformation(feature: Feature): FeatureMoreInformation {
     const featureMoreInformation = FeatureInfoData[feature];
     if (!featureMoreInformation) {
-      throw new Error(`No feature information found for '${feature}'`);
+      throw new Error(`Unknown Feature value ${feature}. Expected one of ${Object.keys(FeatureInfoData)}`);
     }
-    return featureMoreInformation;
+    return FeatureInfoData[feature];
   }
 
   getTrialURL(medium: UTMMedium): string {
-    return UTM_DATA[medium].buildURL(this.constants.trialBaseURL);
+    return UTM_DATA[medium].buildURL('https://gravitee.io/self-hosted-trial');
   }
 }

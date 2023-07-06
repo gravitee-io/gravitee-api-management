@@ -69,7 +69,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
   ngOnInit(): void {
-    this.hasDcrRegistrationLock$ = this.licenseService.notAllowed(this.dcrRegistrationLicense.feature);
+    this.hasDcrRegistrationLock$ = this.licenseService.isMissingFeature$(this.dcrRegistrationLicense.feature);
 
     combineLatest([this.portalSettingsService.get(), this.clientRegistrationProvidersService.list()])
       .pipe(

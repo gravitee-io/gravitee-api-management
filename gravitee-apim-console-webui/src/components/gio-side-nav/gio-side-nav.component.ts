@@ -76,7 +76,7 @@ export class GioSideNavComponent implements OnInit {
   private buildMainMenuItems(): MenuItem[] {
     const auditLicense = { feature: Feature.APIM_AUDIT_TRAIL, utmMedium: UTMMedium.AUDIT_TRAIL_ENV };
     const auditIconRight$ = this.gioLicenseService
-      .notAllowed(auditLicense.feature)
+      .isMissingFeature$(auditLicense.feature)
       .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
     const mainMenuItems: MenuItem[] = [
       { icon: 'gio:home', targetRoute: 'management.dashboard.home', baseRoute: 'management.dashboard', displayName: 'Dashboard' },

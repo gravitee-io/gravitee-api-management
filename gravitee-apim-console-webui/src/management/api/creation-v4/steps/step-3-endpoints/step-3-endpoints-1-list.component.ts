@@ -32,6 +32,10 @@ import {
   GioConnectorDialogData,
 } from '../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
 import { IconService } from '../../../../../services-ngx/icon.service';
+import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
+import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
+import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
+import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
 
 @Component({
   selector: 'step-3-endpoints-1-list',
@@ -45,6 +49,13 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
   public endpoints: ConnectorVM[];
 
+  public hasLicense;
+  public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG;
+
+  public get shouldUpgrade$() {
+    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
+  }
+
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
@@ -53,6 +64,8 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     private readonly stepService: ApiCreationStepService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly iconService: IconService,
+    private readonly licenseService: GioLicenseService,
+    public readonly licenseDialog: GioLicenseDialog,
   ) {}
 
   ngOnInit(): void {

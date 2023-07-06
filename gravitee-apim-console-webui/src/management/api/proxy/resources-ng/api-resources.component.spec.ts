@@ -175,7 +175,8 @@ describe('PolicyStudioResourcesComponent', () => {
             'Confluent Schema Registry is part of Gravitee Enterprise. Integration with a Schema Registry enables your APIs to validate schemas used in API calls, and serialize and deserialize data.',
           image: 'assets/gio-ee-unlock-dialog/confluent-schema-registry.svg',
         },
-        trialURL: `${CONSTANTS_TESTING.trialBaseURL}?utm_source=oss_apim&utm_medium=resource_confluent_schema_registry&utm_campaign=oss_apim_to_ee_apim`,
+        trialURL:
+          'https://gravitee.io/self-hosted-trial?utm_source=oss_apim&utm_medium=resource_confluent_schema_registry&utm_campaign=oss_apim_to_ee_apim',
       },
       id: 'dialog',
       role: 'alertdialog',

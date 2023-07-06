@@ -48,7 +48,7 @@ export class GioLicenseDirective implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.licenseService
-      .notAllowed(this.gioLicense?.feature)
+      .isMissingFeature$(this.gioLicense?.feature)
       .pipe(
         tap(() => {
           this.elRef.nativeElement.removeEventListener('click', this.onClick, true);

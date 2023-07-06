@@ -251,6 +251,6 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
   }
 
   function expectLicenseGetRequest() {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush({ features: [] });
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush({ features: [], packs: [] });
   }
 });

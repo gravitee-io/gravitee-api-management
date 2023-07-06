@@ -122,9 +122,10 @@ describe('PolicyStudioDesignComponent', () => {
         featureMoreInformation: {
           description:
             'This policy is part of Gravitee Enterprise. Enterprise policies allows you to easily define and customise rules according to your evolving business needs.',
-          image: 'assets/gio-ee-unlock-dialog/policies.png',
+          image: 'assets/gio-ee-unlock-dialog/policies.svg',
         },
-        trialURL: `${CONSTANTS_TESTING.trialBaseURL}?utm_source=oss_apim&utm_medium=v2_policy_studio_policy&utm_campaign=oss_apim_to_ee_apim`,
+        trialURL:
+          'https://gravitee.io/self-hosted-trial?utm_source=oss_apim&utm_medium=v2_policy_studio_policy&utm_campaign=oss_apim_to_ee_apim',
       },
       id: 'gioLicenseDialog',
       role: 'alertdialog',

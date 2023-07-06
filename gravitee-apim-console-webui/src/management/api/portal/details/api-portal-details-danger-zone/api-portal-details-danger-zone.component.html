@@ -32,10 +32,10 @@
 
       <div *ngIf="dangerActions.canStartApi" class="danger-card__actions__action">
         <span> Start the API. It will be available on all gateways (depending on sharding tags). </span>
-        <button mat-button color="warn" [disabled]="isReadOnly" (click)="changeLifecycle('START')">Start the API</button>
+        <button mat-button color="warn" [disabled]="canStart$ | async" (click)="changeLifecycle('START')">Start the API</button>
       </div>
 
-      <div *ngIf="!hasLicense">
+      <div *ngIf="shouldUpgrade$ | async">
         <gio-banner type="error" icon="gio:universe">
           This action is only available for users with an enterprise license
           <span gioBannerBody

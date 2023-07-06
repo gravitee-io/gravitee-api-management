@@ -25,12 +25,16 @@ export enum Feature {
   APIM_EE_UPGRADE = 'apim-ee-upgrade',
 }
 
+export enum Pack {
+  EVENT_NATIVE = 'event-native',
+}
+
 export function stringFeature(value: string): Feature {
   const feature = value as Feature;
   if (FeatureInfoData[feature]) {
     return feature;
   }
-  throw new Error(`Unknown Feature value ${value}. Expected be one of ${Object.keys(FeatureInfoData)}`);
+  throw new Error(`Unknown Feature value ${value}. Expected one of ${Object.keys(FeatureInfoData)}`);
 }
 
 export interface FeatureInfo {

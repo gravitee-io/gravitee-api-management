@@ -41,7 +41,7 @@ export function licenseGuard(transitionService: TransitionService) {
     const licenseService: GioLicenseService = transition.injector().get(GioLicenseService);
     const $state = transition.router.stateService;
 
-    const notAllowed = await licenseService.notAllowed(licenseRouterData.license.feature).toPromise();
+    const notAllowed = await licenseService.isMissingFeature$(licenseRouterData.license.feature).toPromise();
     if (notAllowed) {
       return $state.target(licenseRouterData.redirect);
     }

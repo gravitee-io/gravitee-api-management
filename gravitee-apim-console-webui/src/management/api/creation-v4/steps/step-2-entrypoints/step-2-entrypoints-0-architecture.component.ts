@@ -30,6 +30,7 @@ import { ApiType, ConnectorPlugin } from '../../../../../entities/management-api
 import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
+import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -38,14 +39,15 @@ import { UTMMedium } from '../../../../../shared/components/gio-license/gio-lice
 })
 export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
-
-  form: FormGroup;
   private httpProxyEntrypoint: ConnectorPlugin;
-
   private initialValue: { type: ApiType[] };
-  private hasLicense: boolean;
 
-  public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT;
+  public form: FormGroup;
+  public utmMedium = UTMMedium.API_CREATION_TRY_MESSAGE;
+
+  public get shouldUpgrade$() {
+    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
+  }
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -73,8 +75,6 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
 
         this.initialValue = this.form.getRawValue();
       });
-
-    this.licenseService.hasLicense().then((hasLicense) => (this.hasLicense = hasLicense));
   }
 
   ngOnDestroy() {

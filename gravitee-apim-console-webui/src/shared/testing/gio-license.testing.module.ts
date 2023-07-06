@@ -24,7 +24,8 @@ import { GioLicenseService } from '../components/gio-license/gio-license.service
     {
       provide: GioLicenseService,
       useValue: {
-        notAllowed: () => of(true),
+        isMissingFeature$: () => of(true),
+        isMissingPack$: () => of(true),
         getFeatureMoreInformation: () => ({}),
         getTrialURL: () => '',
       },
@@ -39,7 +40,8 @@ export class GioLicenseTestingModule {
         {
           provide: GioLicenseService,
           useValue: {
-            notAllowed: () => of(!license),
+            isMissingFeature$: () => of(!license),
+            isMissingPack$: () => of(license),
             getFeatureMoreInformation: () => ({}),
             getTrialURL: () => '',
           },
