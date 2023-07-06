@@ -1857,6 +1857,14 @@ workflows:
                   context: cicd-orchestrator
                   requires:
                       - Commit and prepare next version
+
+            # Release Helm chart
+            - job-release_helm:
+                  name: Helm Chart Release
+                  context: cicd-orchestrator
+                  requires:
+                      - Package bundle
+
             # Publish Docker images
             - job-publish-prod-docker-images:
                   graviteeio_version: << pipeline.parameters.graviteeio_version >>
