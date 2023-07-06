@@ -26,7 +26,7 @@
       "type": "mock",
       "endpoints": [
         {
-          "name": "default",
+          "name": "mock",
           "type": "mock",
           "inheritConfiguration": false,
           "configuration": {
@@ -38,5 +38,16 @@
       ]
     }
   ],
-  "flows": []
+  "flows": [ {
+    "name": "Flow ready",
+    "enabled": true,
+    "subscribe": [
+      {
+        "name": "Message Flow Ready",
+        "description": "Detect the message flow is ready",
+        "enabled": true,
+        "policy": "message-flow-ready"
+      }
+    ]
+  }]
 }

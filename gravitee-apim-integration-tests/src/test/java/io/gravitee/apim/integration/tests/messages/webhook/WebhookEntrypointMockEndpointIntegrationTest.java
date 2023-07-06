@@ -29,7 +29,7 @@ import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.apim.gateway.tests.sdk.annotations.InjectApi;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.fakes.MessageStorage;
@@ -38,11 +38,14 @@ import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.apim.gateway.tests.sdk.reactor.ReactorBuilder;
 import io.gravitee.apim.integration.tests.fake.MessageFlowReadyPolicy;
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
+import io.gravitee.definition.model.v4.listener.entrypoint.Dlq;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.exception.MessageProcessingException;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
+import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.policy.PolicyPlugin;
@@ -143,9 +146,15 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint-5xx.json" })
-    void should_retry_on_5xx_and_interrupt_when_max_retries_is_reached() throws JsonProcessingException {
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_retry_on_5xx_and_interrupt_when_max_retries_is_reached(
+        @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api
+    ) throws JsonProcessingException {
         try {
+            configureWebhookConcurrency(api, 1);
+            configureMockEndpoint(api, 0, 1);
+            deploy(api);
+
             final int messageCount = 6;
             final String callbackPath = WEBHOOK_URL_PATH + "/test";
             final ArrayList<Completable> readyObs = new ArrayList<>();
@@ -182,10 +191,15 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint-5xx.json" })
-    void should_retry_in_case_of_5xx_and_continue_normally() throws JsonProcessingException {
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_retry_in_case_of_5xx_and_continue_normally(@InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api)
+        throws JsonProcessingException {
         try {
             // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+            configureWebhookConcurrency(api, 1);
+            configureMockEndpoint(api, 0, 1);
+            deploy(api);
+
             final int messageCount = 3;
             final String callbackPath = WEBHOOK_URL_PATH + "/test";
             final ArrayList<Completable> readyObs = new ArrayList<>();
@@ -238,10 +252,14 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint-4xx.json" })
-    void should_stop_on_4xx() throws JsonProcessingException {
-        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_stop_on_4xx(@InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api) throws JsonProcessingException {
         final int messageCount = 3;
+
+        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+        configureWebhookConcurrency(api, 1);
+        configureMockEndpoint(api, 10, messageCount);
+        deploy(api);
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
@@ -395,8 +413,17 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint-oauth2-renew.json" })
-    void should_receive_messages_oauth2_auth_when_token_expired_and_is_renewed() throws JsonProcessingException {
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_receive_messages_oauth2_auth_when_token_expired_and_is_renewed(
+        @InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api
+    ) throws JsonProcessingException {
+        final int messageCount = 3;
+
+        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+        configureWebhookConcurrency(api, 1);
+        configureMockEndpoint(api, 10, messageCount);
+        deploy(api);
+
         // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
@@ -456,10 +483,16 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint-dlq.json" })
-    void should_put_into_dlq_on_4xx() throws JsonProcessingException {
-        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-mock-endpoint.json" })
+    void should_put_into_dlq_on_4xx(@InjectApi(apiId = "webhook-entrypoint-mock-endpoint") ReactableApi<?> api)
+        throws JsonProcessingException {
         final int messageCount = 3;
+
+        // Note that this test forces webhook concurrency to 1 because of wiremock scenario not supporting concurrency (see https://github.com/wiremock/wiremock/issues?q=is%3Aissue+is%3Aopen+scenario#issuecomment-1348029799).
+        configureWebhookConcurrency(api, 1);
+        configureMockEndpoint(api, 10, messageCount);
+        configureDlq(api, "mock");
+        deploy(api);
         final String callbackPath = WEBHOOK_URL_PATH + "/test";
 
         final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
@@ -489,5 +522,29 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
         webhookActions.verifyMessages(messageCount, callbackPath, "message");
 
         messageStorage.subject().test().assertValueCount(2);
+    }
+
+    private void configureWebhookConcurrency(ReactableApi<?> api, int concurrency) {
+        ((Api) api).getDefinition()
+            .getListeners()
+            .get(0)
+            .getEntrypoints()
+            .get(0)
+            .setConfiguration("{\"http\": { \"maxConcurrentConnections\": " + concurrency + " }}");
+    }
+
+    private void configureMockEndpoint(ReactableApi<?> api, int messageInterval, int messageCount) {
+        ((Api) api).getDefinition()
+            .getEndpointGroups()
+            .get(0)
+            .getEndpoints()
+            .get(0)
+            .setConfiguration(
+                "{\"messageInterval\": " + messageInterval + ",\"messageContent\": \"message\", \"messageCount\": " + messageCount + "}"
+            );
+    }
+
+    private void configureDlq(ReactableApi<?> api, String endpointId) {
+        ((Api) api).getDefinition().getListeners().get(0).getEntrypoints().get(0).setDlq(new Dlq(endpointId));
     }
 }
