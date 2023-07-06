@@ -205,6 +205,10 @@ public class ApiStateServiceImpl implements ApiStateService {
 
     @Override
     public ApiEntity start(ExecutionContext executionContext, String apiId, String userId) {
+        if (!apiValidationService.canDeploy(executionContext, apiId)) {
+            throw new ApiNotDeployableException("The API {" + apiId + "} can not be started without at least one published plan");
+        }
+
         try {
             log.debug("Start API {}", apiId);
             ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STARTED, userId);
