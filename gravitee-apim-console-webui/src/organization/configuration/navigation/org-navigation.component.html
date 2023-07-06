@@ -22,7 +22,7 @@
         <mat-icon svgIcon="gio:arrow-left"></mat-icon>Organization
       </button>
       <ng-container *ngFor="let group of this.groupItems">
-        <gio-submenu-group [title]="group.title" *ngIf="group.title">
+        <gio-submenu-group [title]="group.title" *ngIf="group.title" theme="light">
           <ng-container *ngFor="let subItem of group.items">
             <gio-submenu-item
               *ngIf="subItem?.targetRoute"
