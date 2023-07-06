@@ -15,28 +15,59 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioBreadcrumbModule, GioIconsModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
+import {
+  GioBannerModule,
+  GioBreadcrumbModule,
+  GioFormSlideToggleModule,
+  GioIconsModule,
+  GioLoaderModule,
+  GioSubmenuModule,
+} from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { UIRouterModule } from '@uirouter/angular';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { ApiNgNavigationComponent } from './api-ng-navigation.component';
-import { ApiNgNavigationTitleComponent } from './api-ng-navigation-title/api-ng-navigation-title.component';
+import { ApiReviewDialogComponent } from './api-review-dialog/api-review-dialog.component';
+import { ApiConfirmDeploymentDialogComponent } from './api-confirm-deployment-dialog/api-confirm-deployment-dialog.component';
 import { ApiNgNavigationTabsComponent } from './api-ng-navigation-tabs/api-ng-navigation-tabs.component';
+import { ApiNgNavigationTitleComponent } from './api-ng-navigation-title/api-ng-navigation-title.component';
+import { ApiNgNavigationComponent } from './api-ng-navigation.component';
 
 @NgModule({
   imports: [
     CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
     GioSubmenuModule,
     GioIconsModule,
     MatButtonModule,
     MatTooltipModule,
     MatTabsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSlideToggleModule,
     GioBreadcrumbModule,
+    GioBannerModule,
+    GioFormSlideToggleModule,
+    GioLoaderModule,
+    MatSnackBarModule,
     UIRouterModule,
   ],
-  declarations: [ApiNgNavigationComponent, ApiNgNavigationTitleComponent, ApiNgNavigationTabsComponent],
+  declarations: [
+    ApiNgNavigationComponent,
+    ApiNgNavigationTitleComponent,
+    ApiNgNavigationTabsComponent,
+    ApiConfirmDeploymentDialogComponent,
+    ApiReviewDialogComponent,
+  ],
   exports: [ApiNgNavigationComponent],
 })
 export class ApiNgNavigationModule {}
