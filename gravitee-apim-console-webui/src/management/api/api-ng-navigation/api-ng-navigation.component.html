@@ -94,6 +94,15 @@
         [tabMenuItems]="this.selectedItemWithTabs.tabs"
       ></api-ng-navigation-tabs>
 
+      <div class="api-navigation__content__view__banners" *ngIf="banners$ | async as banners">
+        <gio-banner *ngFor="let banner of banners" [type]="banner.type">
+          {{ banner.title }}
+          <div *ngIf="banner.action" gioBannerAction>
+            <button mat-stroked-button color="basic" (click)="banner.action.onClick()">{{ banner.action.btnText }}</button>
+          </div>
+        </gio-banner>
+      </div>
+
       <ui-view class="api-navigation__content__view__ui"></ui-view>
     </div>
   </div>

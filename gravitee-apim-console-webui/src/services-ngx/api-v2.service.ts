@@ -15,7 +15,8 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, ReplaySubject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import {
@@ -32,6 +33,8 @@ import {
   providedIn: 'root',
 })
 export class ApiV2Service {
+  private lastApiFetch$: ReplaySubject<Api> = new ReplaySubject<Api>(1);
+
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   create(newApi: CreateApi): Observable<Api> {
@@ -39,11 +42,19 @@ export class ApiV2Service {
   }
 
   get(id: string): Observable<Api> {
-    return this.http.get<Api>(`${this.constants.env.v2BaseURL}/apis/${id}`);
+    return this.http.get<Api>(`${this.constants.env.v2BaseURL}/apis/${id}`).pipe(
+      tap((api) => {
+        this.lastApiFetch$.next(api);
+      }),
+    );
   }
 
   update(apiId: string, api: UpdateApi): Observable<Api> {
-    return this.http.put<Api>(`${this.constants.env.v2BaseURL}/apis/${apiId}`, api);
+    return this.http.put<Api>(`${this.constants.env.v2BaseURL}/apis/${apiId}`, api).pipe(
+      tap((api) => {
+        this.lastApiFetch$.next(api);
+      }),
+    );
   }
 
   delete(apiId: string, closePlan = false): Observable<void> {
@@ -56,6 +67,12 @@ export class ApiV2Service {
 
   stop(apiId: string): Observable<void> {
     return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_stop`, {});
+  }
+
+  deploy(apiId: string, deploymentLabel?: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/deployments`, {
+      deploymentLabel,
+    });
   }
 
   export(apiId: string): Observable<Blob> {
@@ -98,5 +115,9 @@ export class ApiV2Service {
         ...(name ? { name } : {}),
       },
     });
+  }
+
+  getLastApiFetch(): Observable<Api> {
+    return this.lastApiFetch$.asObservable();
   }
 }

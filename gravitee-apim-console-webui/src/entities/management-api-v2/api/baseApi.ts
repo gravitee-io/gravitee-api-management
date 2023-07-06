@@ -67,9 +67,18 @@ export interface BaseApi {
    */
   groups?: string[];
   /**
-   * The status of the API regarding the gateway.
+   * The status of the API regarding the gateway(s).
    */
-  state?: StateEnum;
+  state?: ApiState;
+
+  /**
+   * The deployment state of the API regarding the gateway(s).
+   */
+  deploymentState?: ApiDeploymentState;
+
+  /**
+   * The visibility of the resource regarding the portal.
+   */
   visibility?: ApiVisibility;
   /**
    * The free list of labels associated with this API.
@@ -96,4 +105,5 @@ export interface BaseApi {
   _links?: { [key: string]: string };
 }
 
-export type StateEnum = 'CLOSED' | 'INITIALIZED' | 'STARTED' | 'STOPPED' | 'STOPPING';
+export type ApiState = 'CLOSED' | 'INITIALIZED' | 'STARTED' | 'STOPPED' | 'STOPPING';
+export type ApiDeploymentState = 'NEED_REDEPLOY' | 'DEPLOYED';

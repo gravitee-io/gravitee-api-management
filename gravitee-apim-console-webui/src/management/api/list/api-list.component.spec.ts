@@ -33,7 +33,7 @@ import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../..
 import { User as DeprecatedUser } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
-import { fakePagedResult, fakeApiV2, fakeApiV4, ApiLifecycleState, Api, StateEnum, OriginEnum } from '../../../entities/management-api-v2';
+import { fakePagedResult, fakeApiV2, fakeApiV4, ApiLifecycleState, Api, ApiState, OriginEnum } from '../../../entities/management-api-v2';
 
 describe('ApisListComponent', () => {
   const fakeUiRouter = { go: jest.fn() };
@@ -279,7 +279,7 @@ describe('ApisListComponent', () => {
           owner: 'admin',
           ownerEmail: 'admin@gio.com',
           picture: null,
-          state: 'CREATED' as StateEnum,
+          state: 'CREATED' as ApiState,
           lifecycleState: 'PUBLISHED' as ApiLifecycleState,
           workflowState: 'REVIEW_OK',
           visibility: { label: 'PUBLIC', icon: 'public' },
