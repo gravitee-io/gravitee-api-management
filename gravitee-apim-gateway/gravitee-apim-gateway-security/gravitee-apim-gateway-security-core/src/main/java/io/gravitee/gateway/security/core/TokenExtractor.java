@@ -13,38 +13,83 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.security.core;
+package io.gravitee.policy.jwt.utils;
 
-import io.gravitee.gateway.api.Request;
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.api.context.HttpRequest;
+import io.gravitee.gateway.reactive.api.context.Request;
+import java.util.List;
+import java.util.Optional;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TokenExtractor {
 
-    static final String BEARER = "Bearer";
-    static final String ACCESS_TOKEN = "access_token";
+    public static final String BEARER = "Bearer";
+    public static final String ACCESS_TOKEN = "access_token";
 
     /**
-     * Extract JWT from the request.
-     * First attempt to extract if from standard Authorization header.
-     * If none, then try to extract it from access_token query param.
-     * @param request Request
-     * @return String Json Web Token.
+     * Extract a jwt token from a {@link Request} headers or parameters.
+     * <ul>
+     *     <li>Get the first <code>Authorization</code> bearer header</li>
+     *     <li>If no header, try to find an <code>access_token</code> query parameter</li>
+     * </ul>
+     *
+     * If no jwt token has been found, an {@link Optional#empty()} is returned.
+     *
+     * @param request the request to extract the JWT token from.
+     *
+     * @return the jwt token as string, {@link Optional#empty()} if no token has been found.
      */
-    public static String extract(Request request) {
-        String authorization = request.headers().getFirst(HttpHeaderNames.AUTHORIZATION);
+    public static Optional<String> extract(HttpRequest request) {
+        return extractFromHeaders(request.headers()).or(() -> extractFromParameters(request.parameters()));
+    }
 
-        if (authorization != null && !authorization.isEmpty() && StringUtils.startsWithIgnoreCase(authorization, BEARER)) {
-            final String authToken = authorization.substring(BEARER.length()).trim();
-            if (!authToken.isEmpty()) {
-                return authToken;
+    /**
+     * @deprecated kept for v3
+     *
+     * @param request the request to extract the JWT token from.
+     * @return the jwt token as string or <code>null</code> if no token has been found.
+     * @see #extract(HttpRequest)
+     */
+    @Deprecated
+    public static String extract(io.gravitee.gateway.api.Request request) {
+        return extractFromHeaders(request.headers()).or(() -> extractFromParameters(request.parameters())).orElse(null);
+    }
+
+    private static Optional<String> extractFromHeaders(HttpHeaders headers) {
+        if (headers != null) {
+            List<String> authorizationHeaders = headers.getAll(HttpHeaderNames.AUTHORIZATION);
+
+            if (!ObjectUtils.isEmpty(authorizationHeaders)) {
+                Optional<String> authorizationBearerHeader = authorizationHeaders
+                    .stream()
+                    .filter(h -> StringUtils.startsWithIgnoreCase(h, BEARER))
+                    .findFirst();
+
+                if (authorizationBearerHeader.isPresent()) {
+                    return Optional.of(authorizationBearerHeader.get().substring(BEARER.length()).trim());
+                }
             }
         }
+        return Optional.empty();
+    }
 
-        return request.parameters() != null ? request.parameters().getFirst(ACCESS_TOKEN) : null;
+    private static Optional<String> extractFromParameters(MultiValueMap<String, String> parameters) {
+        if (parameters != null) {
+            return Optional.ofNullable(parameters.getFirst(TokenExtractor.ACCESS_TOKEN));
+        }
+
+        return Optional.empty();
     }
 }
