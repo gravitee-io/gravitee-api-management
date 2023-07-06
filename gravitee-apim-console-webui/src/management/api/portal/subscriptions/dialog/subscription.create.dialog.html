@@ -55,7 +55,7 @@
               ng-disabled="dialogSubscriptionCreateController.planAlreadyHaveSubscriptions(plan.id) || dialogSubscriptionCreateController.hasGeneralConditions(plan)"
             >
               {{plan.name}}
-              <md-tooltip md-direction="right"> {{plan.description}} </md-tooltip>
+              <md-tooltip md-direction="right" ng-if="plan.description"> {{plan.description}} </md-tooltip>
               <div
                 ng-if="dialogSubscriptionCreateController.planAlreadyHaveSubscriptions(plan.id)"
                 style="color: rgba(0, 0, 0, 0.54); font-size: smaller"
