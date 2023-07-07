@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>21.0.1</version>
+        <version>22.0.0</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
@@ -53,7 +53,7 @@
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-apim-gateway-standalone-container -->
         <vertx.version>4.3.8</vertx.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>5.0.0</gravitee-bom.version>
+        <gravitee-bom.version>6.0.1</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>2.0.0</gravitee-cockpit-api.version>
         <gravitee-common.version>2.1.0</gravitee-common.version>
@@ -62,7 +62,7 @@
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>3.0.0-alpha.9</gravitee-gateway-api.version>
         <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
-        <gravitee-node.version>4.0.0-alpha.2</gravitee-node.version>
+        <gravitee-node.version>4.0.0-alpha.4</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-plugin.version>2.0.0-alpha.4</gravitee-plugin.version>
         <gravitee-platform-repository-api.version>1.3.0</gravitee-platform-repository-api.version>
@@ -1157,10 +1157,12 @@
             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>
                 <artifactId>prettier-maven-plugin</artifactId>
-                <version>${maven-plugin-prettier.version}</version>
                 <configuration>
                     <prettierJavaVersion>${maven-plugin-prettier.prettierjava.version}</prettierJavaVersion>
                     <skip>${skip.validation}</skip>
+                    <inputGlobs>
+                        <inputGlob>src/{main,test}/{java,resources}/**/*.{java}</inputGlob>
+                    </inputGlobs>
                 </configuration>
                 <executions>
                     <execution>
@@ -1174,7 +1176,6 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.11</version>
                 <configuration>
                     <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
                     <properties>
