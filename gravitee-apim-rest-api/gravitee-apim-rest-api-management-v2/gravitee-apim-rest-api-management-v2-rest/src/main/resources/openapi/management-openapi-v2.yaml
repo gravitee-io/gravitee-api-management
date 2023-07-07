@@ -424,6 +424,92 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # API Reviews
+    /environments/{envId}/apis/{apiId}/reviews/_ask:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Ask for a review
+            description: |-
+                Ask for a review
+
+                Return a 400 HTTP Error:
+                 - when user tries to change reviews state of an ARCHIVED API
+                 - when user tries to change reviews state of an API already in review
+                
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: reviewsAsk
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApiReview"
+                required: true
+            responses:
+                "204":
+                    description: API successfully change review state
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/reviews/_accept:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Accept a review
+            description: |-
+                Accept a review
+
+                Return a 400 HTTP Error:
+                 - when user tries to change reviews state of an ARCHIVED API
+                 - when user tries to change reviews state of an API that is not in review
+                
+                User must have the API_REVIEWS[UPDATE] permission.
+            operationId: reviewsAccept
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApiReview"
+                required: true
+            responses:
+                "204":
+                    description: API successfully change review state
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/reviews/_reject:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Reject a review
+            description: |-
+                Reject a review
+
+                Return a 400 HTTP Error:
+                 - when user tries to change reviews state of an ARCHIVED API
+                 - when user tries to change reviews state of an API that is not in review
+                
+                User must have the API_REVIEWS[UPDATE] permission.
+            operationId: reviewsReject
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApiReview"
+                required: true
+            responses:
+                "204":
+                    description: API successfully change review state
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API Members
     /environments/{envId}/apis/{apiId}/members:
         parameters:
@@ -2982,6 +3068,13 @@ components:
                 overrideAccess:
                     type: boolean
                     default: false
+
+        ApiReview:
+            type: object
+            properties:
+                message:
+                    type: string
+                    description: Optional message from the API reviewer.
 
         BasePlan:
             type: object

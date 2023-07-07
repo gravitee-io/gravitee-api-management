@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
+import io.gravitee.rest.api.model.ReviewEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
@@ -141,4 +142,6 @@ public interface ApiMapper {
     }
 
     BaseApi map(GenericApiEntity apiEntity);
+
+    ReviewEntity map(ApiReview apiReview);
 }
