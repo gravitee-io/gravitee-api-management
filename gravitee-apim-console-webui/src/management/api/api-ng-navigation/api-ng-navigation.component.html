@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div class="api-navigation">
+<div *ngIf="currentApi$ | async as currentApi" class="api-navigation">
   <div class="api-navigation__menu">
     <gio-submenu class="api-navigation__submenu">
       <api-ng-navigation-title
@@ -25,7 +25,7 @@
         [apiVersion]="currentApi.apiVersion"
         [apiState]="currentApi.state"
         [apiLifecycleState]="currentApi.lifecycleState"
-        [apiIsSync]="currentApiIsSync"
+        [apiDeploymentState]="currentApi.deploymentState"
         [apiOrigin]="currentApi.definitionContext.origin"
         separator="pipe"
       ></api-ng-navigation-title>
@@ -70,6 +70,15 @@
   <div class="api-navigation__content">
     <ng-content select="#banner"></ng-content>
     <div class="api-navigation__content__view" [ngClass]="{ breadcrumb: hasBreadcrumb }">
+      <div class="api-navigation__content__view__banners" *ngIf="banners$ | async as banners">
+        <gio-banner *ngFor="let banner of banners" [type]="banner.type">
+          {{ banner.title }}
+          <div *ngIf="banner.action" gioBannerAction>
+            <button mat-stroked-button color="basic" (click)="banner.action.onClick()">{{ banner.action.btnText }}</button>
+          </div>
+        </gio-banner>
+      </div>
+
       <gio-breadcrumb *ngIf="hasBreadcrumb" class="api-navigation__breadcrumb">
         <span *gioBreadcrumbItem class="api-navigation__breadcrumb__item">APIs</span>
         <api-ng-navigation-title
@@ -79,7 +88,7 @@
           [apiVersion]="currentApi.apiVersion"
           [apiState]="currentApi.state"
           [apiLifecycleState]="currentApi.lifecycleState"
-          [apiIsSync]="currentApiIsSync"
+          [apiDeploymentState]="currentApi.deploymentState"
           [apiOrigin]="currentApi.definitionContext.origin"
           *gioBreadcrumbItem
         ></api-ng-navigation-title>
@@ -93,15 +102,6 @@
         class="api-navigation__content__tabs"
         [tabMenuItems]="this.selectedItemWithTabs.tabs"
       ></api-ng-navigation-tabs>
-
-      <div class="api-navigation__content__view__banners" *ngIf="banners$ | async as banners">
-        <gio-banner *ngFor="let banner of banners" [type]="banner.type">
-          {{ banner.title }}
-          <div *ngIf="banner.action" gioBannerAction>
-            <button mat-stroked-button color="basic" (click)="banner.action.onClick()">{{ banner.action.btnText }}</button>
-          </div>
-        </gio-banner>
-      </div>
 
       <ui-view class="api-navigation__content__view__ui"></ui-view>
     </div>

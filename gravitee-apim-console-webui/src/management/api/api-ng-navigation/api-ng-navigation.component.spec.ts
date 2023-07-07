@@ -27,15 +27,15 @@ import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../..
 import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 import { User as DeprecatedUser } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { fakeApiV4 } from '../../../entities/management-api-v2';
 
 describe('ApiNgNavigationComponent', () => {
+  const API_ID = 'apiId';
+
   const fakeUiRouter = { go: jest.fn() };
   let fixture: ComponentFixture<ApiNgNavigationComponent>;
   let apiNgNavigationComponent: ApiNgNavigationComponent;
   let httpTestingController: HttpTestingController;
-  let apiV2Service: ApiV2Service;
   const currentUser = new DeprecatedUser();
   currentUser.userPermissions = ['environment-api-c'];
 
@@ -58,7 +58,12 @@ describe('ApiNgNavigationComponent', () => {
         ],
         providers: [
           { provide: UIRouterState, useValue: fakeUiRouter },
-          { provide: UIRouterStateParams, useValue: {} },
+          {
+            provide: UIRouterStateParams,
+            useValue: {
+              apiId: API_ID,
+            },
+          },
           { provide: CurrentUserService, useValue: { currentUser } },
           { provide: 'Constants', useValue: CONSTANTS_TESTING },
         ],
@@ -67,12 +72,19 @@ describe('ApiNgNavigationComponent', () => {
       fixture = TestBed.createComponent(ApiNgNavigationComponent);
       apiNgNavigationComponent = await fixture.componentInstance;
       httpTestingController = TestBed.inject(HttpTestingController);
-      apiV2Service = TestBed.inject(ApiV2Service);
     });
+
     describe('Banners', () => {
       it('should display "Out of sync" banner', async (done) => {
-        const API_ID = 'apiId';
-        apiV2Service.get(API_ID).subscribe();
+        apiNgNavigationComponent.banners$.subscribe((banners) => {
+          expect(banners).toEqual([
+            {
+              title: 'This API is out of sync.',
+              type: 'warning',
+            },
+          ]);
+          done();
+        });
 
         httpTestingController
           .expectOne({
@@ -85,16 +97,6 @@ describe('ApiNgNavigationComponent', () => {
               deploymentState: 'NEED_REDEPLOY',
             }),
           );
-
-        apiNgNavigationComponent.banners$.subscribe((banners) => {
-          expect(banners).toEqual([
-            {
-              title: 'This API is out of sync.',
-              type: 'warning',
-            },
-          ]);
-          done();
-        });
       });
     });
   });

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
@@ -29,11 +29,10 @@ import {
 } from './api-confirm-deployment-dialog/api-confirm-deployment-dialog.component';
 import { ApiReviewDialogComponent, ApiReviewDialogData, ApiReviewDialogResult } from './api-review-dialog/api-review-dialog.component';
 
-import { AjsRootScope, CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
+import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
-import { Api } from '../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 
 export interface MenuItem {
@@ -63,11 +62,7 @@ type TopBanner = {
   styles: [require('./api-ng-navigation.component.scss')],
 })
 export class ApiNgNavigationComponent implements OnInit, OnDestroy {
-  @Input()
-  public currentApi: Api;
-
-  @Input()
-  public currentApiIsSync: boolean;
+  public currentApi$ = this.apiV2Service.getLastApiFetch(this.ajsStateParams.apiId);
 
   public subMenuItems: MenuItem[] = [];
   public groupItems: GroupItem[] = [];
@@ -75,7 +70,7 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
   public bannerState: string;
   public hasBreadcrumb = false;
   public breadcrumbItems: string[] = [];
-  public banners$: Observable<TopBanner[]> = this.apiV2Service.getLastApiFetch().pipe(
+  public banners$: Observable<TopBanner[]> = this.apiV2Service.getLastApiFetch(this.ajsStateParams.apiId).pipe(
     map((api) => {
       const banners = [];
 
@@ -243,6 +238,7 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject();
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly permissionService: GioPermissionService,
     @Inject(CurrentUserService) private readonly currentUserService: UserService,
     @Inject('Constants') private readonly constants: Constants,

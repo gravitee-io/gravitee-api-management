@@ -30,7 +30,7 @@
       svgIcon="gio:stop-circle"
     ></mat-icon>
     <mat-icon
-      *ngIf="!apiIsSync"
+      *ngIf="apiDeploymentState === 'NEED_REDEPLOY'"
       matTooltip="API out of sync"
       class="api-navigation-title__icons__icon api-navigation-title__icons__icon__refresh"
       svgIcon="gio:refresh-cw"
