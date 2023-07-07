@@ -52,4 +52,7 @@ public abstract class Selector implements Serializable {
     @JsonProperty(required = true)
     @NotNull
     private SelectorType type;
+
+    // Keep me for Javadoc generation purpose
+    public abstract static class SelectorBuilder<C extends Selector, B extends Selector.SelectorBuilder<C, B>> {}
 }
