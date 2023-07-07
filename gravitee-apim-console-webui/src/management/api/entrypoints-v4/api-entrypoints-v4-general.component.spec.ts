@@ -429,6 +429,32 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
     });
+
+    it('should only be not be able to delete last entrypoint', async () => {
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
+      const tableRows = await harness.getEntrypointsTableRows();
+
+      // Find row to delete
+      const allEntrypointsType = await Promise.all(
+        tableRows.map(async (row) => row.getCells({ columnName: 'type' }).then((cells) => cells[0].getText())),
+      );
+      expect(allEntrypointsType).toEqual(['HTTP GET', 'HTTP POST', 'Webhook']);
+
+      // Delete
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+      expect(await saveButton.isDisabled()).toEqual(true);
+
+      expect(await harness.getDeleteBtnByRowIndex(2).then((btn) => btn.isDisabled())).toEqual(false);
+      await harness.deleteRowByIndex(2);
+      expect(await saveButton.isDisabled()).toEqual(false);
+
+      expect(await harness.getDeleteBtnByRowIndex(1).then((btn) => btn.isDisabled())).toEqual(false);
+      await harness.deleteRowByIndex(1);
+      expect(await saveButton.isDisabled()).toEqual(false);
+
+      expect(await harness.getDeleteBtnByRowIndex(0).then((btn) => btn.isDisabled())).toEqual(true);
+      expect(await saveButton.isDisabled()).toEqual(false);
+    });
   });
 
   describe('When deleting the only entrypoint for HTTP listener', () => {

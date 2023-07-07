@@ -63,7 +63,7 @@
             <button type="button" mat-icon-button aria-label="Edit" (click)="onEdit(element)">
               <mat-icon svgIcon="gio:edit-pencil"> </mat-icon>
             </button>
-            <button type="button" mat-icon-button aria-label="Edit" (click)="onDelete(element)">
+            <button type="button" [disabled]="dataSource.length === 1" mat-icon-button aria-label="Delete" (click)="onDelete(element)">
               <mat-icon svgIcon="gio:trash"></mat-icon>
             </button>
           </td>
