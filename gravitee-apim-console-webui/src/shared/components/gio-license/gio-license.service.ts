@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 
-import { Feature, FeatureInfo, FeatureInfoData, Pack } from './gio-license-features';
+import { Feature, FeatureInfo, FeatureInfoData } from './gio-license-features';
 import { UTM_DATA, UTMMedium } from './gio-license-utm';
 
 import { License } from '../../../entities/license/License';
@@ -34,10 +34,6 @@ export class GioLicenseService {
 
   getLicense$(): Observable<License> {
     return this.loadLicense$;
-  }
-
-  isMissingPack$(pack: Pack): Observable<boolean> {
-    return this.getLicense$().pipe(map((license) => license === null || !license.packs.includes(pack)));
   }
 
   isMissingFeature$(feature: string): Observable<boolean> {

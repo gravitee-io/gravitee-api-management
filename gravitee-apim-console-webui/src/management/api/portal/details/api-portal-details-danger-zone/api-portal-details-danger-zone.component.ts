@@ -35,7 +35,7 @@ import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
-import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
+import { Feature } from '../../../../../shared/components/gio-license/gio-license-features';
 
 @Component({
   selector: 'api-portal-details-danger-zone',
@@ -73,7 +73,7 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
     if (api.type === 'PROXY') {
       return false;
     }
-    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
+    return this.licenseService?.isMissingFeature$(Feature.APIM_EN_MESSAGE_REACTOR);
   }
 
   public get canStart$() {

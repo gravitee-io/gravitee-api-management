@@ -22,11 +22,7 @@ export enum Feature {
   APIM_DCR_REGISTRATION = 'apim-dcr-registration',
   APIM_POLICY_V2 = 'apim-policy-v2',
   APIM_SCHEMA_REGISTRY_PROVIDER = 'apim-en-schema-registry-provider',
-  APIM_EE_UPGRADE = 'apim-ee-upgrade',
-}
-
-export enum Pack {
-  EVENT_NATIVE = 'event-native',
+  APIM_EN_MESSAGE_REACTOR = 'apim-en-message-reactor',
 }
 
 export function stringFeature(value: string): Feature {
@@ -84,7 +80,7 @@ export const FeatureInfoData: Record<Feature, FeatureInfo> = {
     description:
       'Confluent Schema Registry is part of Gravitee Enterprise. Integration with a Schema Registry enables your APIs to validate schemas used in API calls, and serialize and deserialize data.',
   },
-  [Feature.APIM_EE_UPGRADE]: {
+  [Feature.APIM_EN_MESSAGE_REACTOR]: {
     title: 'Request an upgrade',
     image: 'assets/gio-ee-unlock-dialog/ee-upgrade.svg',
     description:

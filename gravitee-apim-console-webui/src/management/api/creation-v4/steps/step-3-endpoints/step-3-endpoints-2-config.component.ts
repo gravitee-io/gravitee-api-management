@@ -25,8 +25,6 @@ import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step4Security1PlansComponent } from '../step-4-security/step-4-security-1-plans.component';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
-import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
-import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
@@ -39,24 +37,18 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public formGroup: FormGroup;
-  public selectedEndpoints: { id: string; name: string }[];
+  public selectedEndpoints: { id: string; name: string; deployed: boolean }[];
   public endpointSchemas: Record<string, { config: GioJsonSchema; sharedConfig: GioJsonSchema }>;
 
   public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG;
 
-  private apiType: ApiCreationPayload['type'];
+  public shouldUpgrade = false;
 
-  public get shouldUpgrade$() {
-    if (this.apiType === 'PROXY') {
-      return false;
-    }
-    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
-  }
+  private apiType: ApiCreationPayload['type'];
 
   constructor(
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly stepService: ApiCreationStepService,
-    private readonly licenseService: GioLicenseService,
     public readonly licenseDialog: GioLicenseDialog,
   ) {}
 
@@ -87,6 +79,7 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
         });
 
         this.selectedEndpoints = currentStepPayload.selectedEndpoints;
+        this.shouldUpgrade = this.selectedEndpoints.some(({ deployed }) => !deployed);
 
         this.formGroup = new FormGroup({
           ...(currentStepPayload.selectedEndpoints?.reduce(
