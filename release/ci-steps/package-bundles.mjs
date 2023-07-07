@@ -12,8 +12,11 @@ await within(async () => {
   await $`mvn flatten:flatten`;
 });
 
-const pomXml = await fs.readFile(`../gravitee-apim-distribution/.flattened-pom.xml`, 'utf-8');
-const jsonPom = JSON.parse(await xml2json.toJson(pomXml, {}));
+const distributionPomXml = await fs.readFile(`../gravitee-apim-distribution/.flattened-pom.xml`, 'utf-8');
+const distributionJsonPom = JSON.parse(await xml2json.toJson(distributionPomXml, {}));
+
+const parentPomXml = await fs.readFile(`../.flattened-pom.xml`, 'utf-8');
+const parentJsonPom = JSON.parse(await xml2json.toJson(parentPomXml, {}));
 
 const releasingVersion = argv.version;
 const tmpPath = `./.tmp/${releasingVersion}`;
@@ -23,9 +26,9 @@ const resolveLinkedVersion = (allVersions, valueToResolve) => {
   return versionLinkMatch ? allVersions[versionLinkMatch[1]] : valueToResolve;
 };
 const distributionProperties = Object.fromEntries(
-  Object.entries(jsonPom.project.properties).map(([key, value]) => [key, resolveLinkedVersion(jsonPom.project.properties, value)]),
+  Object.entries(parentJsonPom.project.properties).map(([key, value]) => [key, resolveLinkedVersion(parentJsonPom.project.properties, value)]),
 );
-const distributionDependencies = jsonPom.project.dependencies.dependency.map((dependency) => ({
+const distributionDependencies = distributionJsonPom.project.dependencies.dependency.map((dependency) => ({
   ...dependency,
   version: resolveLinkedVersion(
     {
