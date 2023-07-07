@@ -264,7 +264,7 @@ class SubscriptionCacheServiceTest {
         void should_get_subscription_by_api_id_and_apiKey() {
             Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
-            SecurityToken securityToken = SecurityToken.forApiKey("apiKeyValue");
+            SecurityToken securityToken = new SecurityToken(SecurityToken.TokenType.API_KEY.name(), "apiKeyValue");
             ApiKey apiKey = new ApiKey();
             apiKey.setSubscription(SUB_ID);
             when(apiKeyService.getByApiAndKey(API_ID, "apiKeyValue")).thenReturn(Optional.of(apiKey));
@@ -278,7 +278,7 @@ class SubscriptionCacheServiceTest {
         void should_not_get_subscription_by_api_id_without_apiKey() {
             Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
-            SecurityToken securityToken = SecurityToken.forApiKey("apiKeyValue");
+            SecurityToken securityToken = new SecurityToken(SecurityToken.TokenType.API_KEY.name(), "apiKeyValue");
             when(apiKeyService.getByApiAndKey(API_ID, "apiKeyValue")).thenReturn(Optional.empty());
 
             Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
@@ -289,7 +289,7 @@ class SubscriptionCacheServiceTest {
         void should_get_subscription_by_api_id_and_clientId() {
             Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
-            SecurityToken securityToken = SecurityToken.forClientId(CLIENT_ID);
+            SecurityToken securityToken = new SecurityToken(SecurityToken.TokenType.CLIENT_ID.name(), CLIENT_ID);
             Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
             assertThat(subscriptionOpt).isPresent();
             assertThat(subscriptionOpt.get()).isEqualTo(subscription);
@@ -299,7 +299,7 @@ class SubscriptionCacheServiceTest {
         void should_not_get_subscription_by_api_id_and_unknown_security_token() {
             Subscription subscription = buildAcceptedSubscription(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscriptionService.register(subscription);
-            SecurityToken securityToken = SecurityToken.builder().tokenValue("unknown").tokenType("unknown").build();
+            SecurityToken securityToken = new SecurityToken("unknown", "unknown");
             Optional<Subscription> subscriptionOpt = subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
             assertThat(subscriptionOpt).isEmpty();
         }

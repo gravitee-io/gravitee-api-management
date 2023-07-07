@@ -81,11 +81,9 @@ public class SecurityPlan {
         return policy
             .extractSecurityToken(ctx)
             .flatMap(securityToken -> {
+                final var canExec = isApplicableWithValidSubscription(ctx, securityToken);
                 ctx.setInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN, securityToken);
-                if (!securityToken.isInvalid()) {
-                    return isApplicableWithValidSubscription(ctx, securityToken);
-                }
-                return Maybe.empty();
+                return canExec;
             })
             .defaultIfEmpty(false);
     }
