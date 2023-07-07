@@ -132,7 +132,7 @@
         <protobuf-java.version>3.19.3</protobuf-java.version>
         <reactor-core.version>3.5.0</reactor-core.version>
         <reactor-adapter.version>3.5.0</reactor-adapter.version>
-        <slf4j-mock.version>2.2.0</slf4j-mock.version>
+        <slf4j2-mock.version>2.3.0</slf4j2-mock.version>
         <snakeyaml.version>2.0</snakeyaml.version>
         <swagger-jaxrs2.version>2.2.9</swagger-jaxrs2.version>
         <swagger-core.version>2.2.9</swagger-core.version>
@@ -937,8 +937,8 @@
 
             <dependency>
                 <groupId>org.simplify4u</groupId>
-                <artifactId>slf4j-mock</artifactId>
-                <version>${slf4j-mock.version}</version>
+                <artifactId>slf4j2-mock</artifactId>
+                <version>${slf4j2-mock.version}</version>
             </dependency>
 
             <dependency>

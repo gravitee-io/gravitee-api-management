@@ -50,17 +50,19 @@ describe('Portal: Business Error - users', () => {
     test('invalid input', async () => {
       await fail(usersPortalApiAsAdmin.registerNewUserRaw({}), 400, { message: 'Input must not be null.' });
       // @ts-ignore
-      await fail(usersPortalApiAsAdmin.registerNewUserRaw({ registerUserInput: {} }), 400, { code: 'registerUser.arg0.email' });
+      await fail(usersPortalApiAsAdmin.registerNewUserRaw({ registerUserInput: {} }), 400, {
+        code: 'registerUser.registerUserInput.email',
+      });
       await fail(usersPortalApiAsAdmin.registerNewUserRaw({ registerUserInput: { email: 'DUMMY EMAIL' } }), 400, {
         code: 'errors.email.invalid',
       });
       await fail(usersPortalApiAsAdmin.finalizeUserRegistrationRaw({}), 400, { message: 'Input must not be null.' });
       // @ts-ignore
       await fail(usersPortalApiAsAdmin.finalizeUserRegistrationRaw({ finalizeRegistrationInput: {} }), 400, [
-        { code: 'finalizeRegistration.arg0.lastname' },
-        { code: 'finalizeRegistration.arg0.firstname' },
-        { code: 'finalizeRegistration.arg0.password' },
-        { code: 'finalizeRegistration.arg0.token' },
+        { code: 'finalizeRegistration.finalizeRegistrationInput.lastname' },
+        { code: 'finalizeRegistration.finalizeRegistrationInput.firstname' },
+        { code: 'finalizeRegistration.finalizeRegistrationInput.password' },
+        { code: 'finalizeRegistration.finalizeRegistrationInput.token' },
       ]);
       await fail(usersPortalApiAsAdmin.resetUserPasswordRaw({}), 400, { message: 'Input must not be null.' });
     });

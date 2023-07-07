@@ -120,7 +120,7 @@ describe('Portal: Business Error - subscriptions', () => {
   describe('400', () => {
     test('should check input value', async () => {
       await fail(portalSubscriptionApiAsAdmin.createSubscriptionRaw({ subscriptionInput: undefined }), 400, {
-        code: 'createSubscription.arg0',
+        code: 'createSubscription.subscriptionInput',
         message: 'Input must not be null.',
       });
     });
