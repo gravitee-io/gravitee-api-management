@@ -1407,7 +1407,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       it('should go to confirmation page after clicking Deploy my API', async () => {
-        expectLicenseGetRequest({ tier: '', features: [], packs: ['event-native'] });
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         await step6Harness.clickDeployMyApiButton();
 

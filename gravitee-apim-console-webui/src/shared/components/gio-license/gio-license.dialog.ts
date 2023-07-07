@@ -17,7 +17,7 @@ import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 
 import { GioLicenseService } from './gio-license.service';
-import { stringFeature } from './gio-license-features';
+import { Feature } from './gio-license-features';
 import { UTMMedium } from './gio-license-utm';
 
 import { GioEeUnlockDialogComponent, GioEeUnlockDialogData } from '../../../components/gio-ee-unlock-dialog/gio-ee-unlock-dialog.component';
@@ -31,7 +31,7 @@ export class GioLicenseDialog {
   displayUpgradeCta(utmMedium: UTMMedium, event?: Event) {
     event?.stopPropagation();
     event?.preventDefault();
-    const featureInfo = this.licenseService.getFeatureInfo(stringFeature('apim-ee-upgrade'));
+    const featureInfo = this.licenseService.getFeatureInfo(Feature.APIM_EN_MESSAGE_REACTOR);
     const trialURL = this.licenseService.getTrialURL(utmMedium);
     this.matDialog
       .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {

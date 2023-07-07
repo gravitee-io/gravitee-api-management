@@ -35,7 +35,7 @@ import { IconService } from '../../../../../services-ngx/icon.service';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
 import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
-import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
+import { Feature } from '../../../../../shared/components/gio-license/gio-license-features';
 
 @Component({
   selector: 'step-3-endpoints-1-list',
@@ -53,7 +53,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG;
 
   public get shouldUpgrade$() {
-    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
+    return this.licenseService?.isMissingFeature$(Feature.APIM_EN_MESSAGE_REACTOR);
   }
 
   constructor(

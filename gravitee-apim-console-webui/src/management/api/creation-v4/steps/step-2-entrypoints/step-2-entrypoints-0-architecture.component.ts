@@ -30,7 +30,7 @@ import { ApiType, ConnectorPlugin } from '../../../../../entities/management-api
 import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
-import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
+import { Feature } from '../../../../../shared/components/gio-license/gio-license-features';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -46,7 +46,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   public utmMedium = UTMMedium.API_CREATION_TRY_MESSAGE;
 
   public get shouldUpgrade$() {
-    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
+    return this.licenseService?.isMissingFeature$(Feature.APIM_EN_MESSAGE_REACTOR);
   }
 
   constructor(

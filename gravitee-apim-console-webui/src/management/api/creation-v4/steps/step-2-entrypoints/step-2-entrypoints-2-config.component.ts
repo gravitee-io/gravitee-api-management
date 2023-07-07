@@ -29,9 +29,7 @@ import { Step3Endpoints2ConfigComponent } from '../step-3-endpoints/step-3-endpo
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { PathV4 } from '../../../../../entities/management-api-v2';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
-import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
-import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -49,15 +47,9 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public enableVirtualHost: boolean;
   public domainRestrictions: string[] = [];
   public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG;
+  public shouldUpgrade = false;
 
   private apiType: ApiCreationPayload['type'];
-
-  public get shouldUpgrade$() {
-    if (this.apiType === 'PROXY') {
-      return false;
-    }
-    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
-  }
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -65,7 +57,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     private readonly stepService: ApiCreationStepService,
     private readonly environmentService: EnvironmentService,
     private readonly changeDetectorRef: ChangeDetectorRef,
-    private readonly licenseService: GioLicenseService,
     public readonly licenseDialog: GioLicenseDialog,
   ) {}
 
@@ -96,6 +87,10 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     currentStepPayload.selectedEntrypoints.forEach(({ id, configuration }) => {
       this.formGroup.addControl(id, this.formBuilder.control(configuration ?? {}));
     });
+
+    if (this.apiType === 'MESSAGE') {
+      this.shouldUpgrade = currentStepPayload.selectedEntrypoints.some(({ deployed }) => !deployed);
+    }
 
     forkJoin(
       currentStepPayload.selectedEntrypoints.reduce(

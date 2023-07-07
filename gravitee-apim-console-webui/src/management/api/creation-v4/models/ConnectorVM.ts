@@ -19,6 +19,10 @@ export type ConnectorVM = {
   id: string;
   name: string;
   description: string;
+  /**
+   * @deprecated since v4.0.0
+   * Please use deployed instead of this field to check if a connector is licensed or not.
+   */
   isEnterprise: boolean;
   supportedListenerType: ListenerType;
   icon: string;

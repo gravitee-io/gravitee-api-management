@@ -28,9 +28,7 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { ConnectorVM, fromConnector } from '../../models/ConnectorVM';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
-import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
 
 @Component({
@@ -47,9 +45,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT;
 
-  public get shouldUpgrade$() {
-    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
-  }
+  public shouldUpgrade = false;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -58,7 +54,6 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     private readonly stepService: ApiCreationStepService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly iconService: IconService,
-    private readonly licenseService: GioLicenseService,
     public readonly licenseDialog: GioLicenseDialog,
   ) {}
 
@@ -83,6 +78,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
             const name2 = entrypoint2.name.toUpperCase();
             return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
           });
+        this.shouldUpgrade = this.entrypoints.some((entrypoint) => !entrypoint.deployed);
         this.changeDetectorRef.detectChanges();
       });
   }

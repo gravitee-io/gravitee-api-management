@@ -15,14 +15,11 @@
  */
 
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
-import { Pack } from '../../../../../shared/components/gio-license/gio-license-features';
 
 @Component({
   selector: 'step-5-summary',
@@ -35,32 +32,14 @@ export class Step5SummaryComponent implements OnInit {
   public listenerTypes: string[];
   public entrypointsDeployable: boolean;
   public endpointsDeployable: boolean;
+  public deployable: boolean;
+  public shouldUpgrade: boolean;
 
   public utmMedium = UTMMedium.API_CREATION_MESSAGE_SUMMARY;
 
   private apiType: ApiCreationPayload['type'];
 
-  public get shouldUpgrade$(): boolean | Observable<boolean> {
-    if (this.apiType === 'PROXY') {
-      return false;
-    }
-    return this.licenseService?.isMissingPack$(Pack.EVENT_NATIVE);
-  }
-
-  public get deployable$(): boolean | Observable<boolean> {
-    const hasUnDeployedEndpoint = this.currentStepPayload.selectedEndpoints.some(({ deployed }) => !deployed);
-    const hasUnDeployedEntryPoint = this.currentStepPayload.selectedEntrypoints.some(({ deployed }) => !deployed);
-    if (hasUnDeployedEndpoint || hasUnDeployedEntryPoint) {
-      return false;
-    }
-    return this.shouldUpgrade$;
-  }
-
-  constructor(
-    private readonly stepService: ApiCreationStepService,
-    private readonly licenseService: GioLicenseService,
-    public readonly licenseDialog: GioLicenseDialog,
-  ) {}
+  constructor(private readonly stepService: ApiCreationStepService, public readonly licenseDialog: GioLicenseDialog) {}
 
   ngOnInit(): void {
     this.currentStepPayload = this.stepService.payload;
@@ -73,6 +52,8 @@ export class Step5SummaryComponent implements OnInit {
 
     this.entrypointsDeployable = this.currentStepPayload.selectedEntrypoints.every(({ deployed }) => deployed);
     this.endpointsDeployable = this.currentStepPayload.selectedEndpoints.every(({ deployed }) => deployed);
+    this.deployable = this.entrypointsDeployable && this.endpointsDeployable;
+    this.shouldUpgrade = !this.deployable;
   }
 
   createApi(deploy: boolean) {
