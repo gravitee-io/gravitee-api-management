@@ -1388,7 +1388,7 @@ jobs:
     job-nexus-staging:
         executor:
             name: openjdk
-            version: "11.0"
+            version: "17.0"
             class: xlarge
         steps:
             - checkout
