@@ -15,8 +15,8 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable, ReplaySubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { filter, shareReplay, tap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import {
@@ -33,7 +33,7 @@ import {
   providedIn: 'root',
 })
 export class ApiV2Service {
-  private lastApiFetch$: ReplaySubject<Api> = new ReplaySubject<Api>(1);
+  private lastApiFetch$: BehaviorSubject<Api | null> = new BehaviorSubject<Api | null>(null);
 
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
@@ -117,7 +117,13 @@ export class ApiV2Service {
     });
   }
 
-  getLastApiFetch(): Observable<Api> {
-    return this.lastApiFetch$.asObservable();
+  getLastApiFetch(apiId: string): Observable<Api> {
+    if (this.lastApiFetch$.value === null) {
+      return this.get(apiId);
+    }
+    return this.lastApiFetch$.pipe(
+      filter((api) => !!api),
+      shareReplay(1),
+    );
   }
 }

@@ -30,7 +30,7 @@ export class ApiNgNavigationTitleComponent {
   @Input()
   public apiState: Api['state'];
   @Input()
-  public apiIsSync: boolean;
+  public apiDeploymentState: Api['deploymentState'];
   @Input()
   public apiLifecycleState: Api['lifecycleState'];
   @Input()
