@@ -15,9 +15,6 @@
  */
 package io.gravitee.apim.integration.tests.plan.apikey;
 
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_APIKEY_ID;
-import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
-
 import com.graviteesource.entrypoint.http.get.HttpGetEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
@@ -37,23 +34,35 @@ import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
+import org.junit.jupiter.params.provider.Arguments;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.jupiter.params.provider.Arguments;
+
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_ID;
 
 /**
  * @author GraviteeSource Team
  */
-@DeployApi(value = { "/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json" })
+@DeployApi(value = {"/apis/plan/v4-proxy-api.json", "/apis/plan/v4-message-api.json"})
 public class PlanApiKeyV4IntegrationTest extends PlanApiKeyV4EmulationIntegrationTest {
 
     @Override
     public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
         if (isV4Api(definitionClass)) {
-            final Api apiDefinition = (Api) api.getDefinition();
-            configurePlans(apiDefinition, Set.of("api-key"));
+            final Api definition = (Api) api.getDefinition();
+            Plan keylessPlan = Plan.builder()
+                    .id(PLAN_ID)
+                    .name("plan-name")
+                    .security(PlanSecurity.builder()
+                            .type("api-key")
+                            .build())
+                    .status(PlanStatus.PUBLISHED)
+                    .mode(PlanMode.STANDARD)
+                    .build();
+            definition.setPlans(Collections.singletonList(keylessPlan));
         }
     }
 
@@ -76,6 +85,9 @@ public class PlanApiKeyV4IntegrationTest extends PlanApiKeyV4EmulationIntegratio
 
     @Override
     protected Stream<Arguments> provideApis() {
-        return Stream.of(Arguments.of("v4-proxy-api", true), Arguments.of("v4-message-api", false));
+        return Stream.of(
+                Arguments.of("v4-proxy-api", true),
+                Arguments.of("v4-message-api", false)
+        );
     }
 }

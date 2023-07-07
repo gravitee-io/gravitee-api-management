@@ -15,12 +15,14 @@
  */
 package io.gravitee.apim.integration.tests.plan.apikey;
 
-import static io.gravitee.definition.model.ExecutionMode.V3;
-
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+
+import static io.gravitee.definition.model.ExecutionMode.V3;
 
 /**
  * @author GraviteeSource Team
  */
 @GatewayTest(v2ExecutionMode = V3)
-public class PlanApiKeyV3IntegrationTest extends PlanApiKeyV4EmulationIntegrationTest {}
+public class PlanApiKeyV3IntegrationTest extends PlanApiKeyV4EmulationIntegrationTest {
+
+}

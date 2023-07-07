@@ -15,21 +15,21 @@
  */
 package io.gravitee.apim.integration.tests.plan.oauth2;
 
-import static io.gravitee.definition.model.ExecutionMode.V3;
-import static org.mockito.Mockito.when;
-
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
-import java.util.Optional;
 import org.mockito.stubbing.OngoingStubbing;
+
+import java.util.Optional;
+
+import static io.gravitee.definition.model.ExecutionMode.V3;
+import static org.mockito.Mockito.when;
 
 /**
  * @author GraviteeSource Team
  */
 @GatewayTest(v2ExecutionMode = V3)
 public class PlanOAuth2V3IntegrationTest extends PlanOAuth2V4EmulationIntegrationTest {
-
     /**
      * This overrides subscription search :
      * - in jupiter its searched with getByApiAndSecurityToken
