@@ -29,11 +29,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class MessageFlowReadyPolicy implements Policy {
 
     private static final Map<Object, ReplaySubject<Void>> readyObsMap = new ConcurrentHashMap<>();
@@ -65,7 +67,10 @@ public class MessageFlowReadyPolicy implements Policy {
                     final ReplaySubject<Void> obs = readyObsMap.get(id);
                     if (obs != null) {
                         // Even if we capture the message flow subscription, it could take time to effectively be connected to the backend. Apply a small delay to avoid side effects.
-                        return obs.ignoreElements().delaySubscription(100, TimeUnit.MILLISECONDS, Schedulers.newThread());
+                        return obs
+                            .ignoreElements()
+                            .doOnComplete(() -> log.info("Message flow should be ready"))
+                            .delaySubscription(100, TimeUnit.MILLISECONDS, Schedulers.newThread());
                     } else {
                         Thread.sleep(5);
                     }
