@@ -1,7 +1,7 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.0.0
+version: 4.0.0-alpha.1
 appVersion: 4.0.0
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
@@ -19,10 +19,10 @@ annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
-    - Change the versioning
+    - Change the version: 4.0.0-alpha.1
     - Remove duplicate annotation in ui deployment
     - Add support for managed Service Account for each product
     - Remove old and unused `cache.type` from gateway config map
     - Fix resources missing in ui-deployment.yaml
     - Change readinessProbe for the gateway to sync-process
-    - Update Elasticsearch version
+    - Update Elasticsearch version: 4.0.0-alpha.1
