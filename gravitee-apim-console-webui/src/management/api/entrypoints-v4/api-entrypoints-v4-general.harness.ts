@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatTableHarness } from '@angular/material/table/testing';
+import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
   public static hostSelector = 'api-entrypoints-v4-general';
@@ -26,7 +27,17 @@ export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
       .then((_) => true)
       .catch((_) => false);
   }
-  async getEntrypointsTableRows() {
+  async getEntrypointsTableRows(): Promise<MatRowHarness[]> {
     return this.tableLocator().then((table) => table.getRows());
+  }
+
+  async getDeleteBtnByRowIndex(index: number): Promise<MatButtonHarness> {
+    return this.getEntrypointsTableRows()
+      .then((rows) => rows[index].getCells({ columnName: 'actions' }))
+      .then((actionCell) => actionCell[0].getAllHarnesses(MatButtonHarness))
+      .then((actionButtons) => actionButtons[1]);
+  }
+  async deleteRowByIndex(index: number): Promise<void> {
+    return this.getDeleteBtnByRowIndex(index).then((btn) => btn.click());
   }
 }
