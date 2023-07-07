@@ -92,7 +92,7 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
                 Boolean value = expression.getValue(evaluation, Boolean.class);
                 // Remove any security  token as the selection rule don't match
                 if (Boolean.FALSE.equals(value)) {
-                    authenticationContext.remove(ATTR_INTERNAL_TOKEN_IDENTIFIED);
+                    authenticationContext.setInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED, false);
                 }
                 return Boolean.TRUE.equals(value);
             } catch (ParseException | EvaluationException e) {
