@@ -16,11 +16,11 @@
 import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
-import { FeatureMoreInformation } from '../../entities/feature/FeatureMoreInformation';
 import { GioLicenseService } from '../../shared/components/gio-license/gio-license.service';
+import { FeatureInfo } from '../../shared/components/gio-license/gio-license-features';
 
 export type GioEeUnlockDialogData = {
-  featureMoreInformation: FeatureMoreInformation;
+  featureInfo: FeatureInfo;
   trialURL?: string;
 };
 
@@ -30,7 +30,7 @@ export type GioEeUnlockDialogData = {
   styles: [require('./gio-ee-unlock-dialog.component.scss')],
 })
 export class GioEeUnlockDialogComponent {
-  public featureMoreInformation: FeatureMoreInformation;
+  public featureInfo: FeatureInfo;
   public trialURL: string;
 
   constructor(
@@ -38,7 +38,7 @@ export class GioEeUnlockDialogComponent {
     @Inject(MAT_DIALOG_DATA) dialogData: GioEeUnlockDialogData,
     public readonly licenseService: GioLicenseService,
   ) {
-    this.featureMoreInformation = dialogData?.featureMoreInformation;
+    this.featureInfo = dialogData?.featureInfo;
     this.trialURL = dialogData?.trialURL;
   }
 

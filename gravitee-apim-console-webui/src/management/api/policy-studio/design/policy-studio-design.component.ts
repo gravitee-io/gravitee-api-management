@@ -120,13 +120,13 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
   }
 
   public displayPolicyCta() {
-    const featureMoreInformation = this.licenseService.getFeatureMoreInformation(Feature.APIM_POLICY_V2);
+    const featureInfo = this.licenseService.getFeatureInfo(Feature.APIM_POLICY_V2);
     const trialURL = this.licenseService.getTrialURL(UTMMedium.POLICY_STUDIO_V2);
 
     this.matDialog
       .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
         data: {
-          featureMoreInformation,
+          featureInfo,
           trialURL,
         },
         role: 'alertdialog',

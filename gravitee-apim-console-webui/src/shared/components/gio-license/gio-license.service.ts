@@ -18,12 +18,11 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
 
-import { Feature, FeatureInfoData, Pack } from './gio-license-features';
+import { Feature, FeatureInfo, FeatureInfoData, Pack } from './gio-license-features';
 import { UTM_DATA, UTMMedium } from './gio-license-utm';
 
 import { License } from '../../../entities/license/License';
 import { Constants } from '../../../entities/Constants';
-import { FeatureMoreInformation } from '../../../entities/feature/FeatureMoreInformation';
 
 @Injectable({
   providedIn: 'root',
@@ -45,9 +44,9 @@ export class GioLicenseService {
     return this.getLicense$().pipe(map((license) => license == null || license.features.find((feat) => feat === feature) == null));
   }
 
-  getFeatureMoreInformation(feature: Feature): FeatureMoreInformation {
-    const featureMoreInformation = FeatureInfoData[feature];
-    if (!featureMoreInformation) {
+  getFeatureInfo(feature: Feature): FeatureInfo {
+    const featureInfo = FeatureInfoData[feature];
+    if (!featureInfo) {
       throw new Error(`Unknown Feature value ${feature}. Expected one of ${Object.keys(FeatureInfoData)}`);
     }
     return FeatureInfoData[feature];

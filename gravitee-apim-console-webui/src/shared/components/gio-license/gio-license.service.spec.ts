@@ -86,11 +86,11 @@ describe('GioLicenseService', () => {
   });
 
   it('should get feature more information', () => {
-    expect(gioLicenseService.getFeatureMoreInformation(Feature.APIM_CUSTOM_ROLES)).not.toBeNull();
+    expect(gioLicenseService.getFeatureInfo(Feature.APIM_CUSTOM_ROLES)).not.toBeNull();
   });
 
   it('should throw error when get more information with wrong feature', () => {
-    expect(() => gioLicenseService.getFeatureMoreInformation('bad' as Feature)).toThrow();
+    expect(() => gioLicenseService.getFeatureInfo('bad' as Feature)).toThrow();
   });
 
   it('should return trial URL from UTM medium', () => {

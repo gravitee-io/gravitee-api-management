@@ -119,7 +119,7 @@ describe('PolicyStudioDesignComponent', () => {
 
     expect(dialog.open).toHaveBeenCalledWith(expect.any(Function), {
       data: {
-        featureMoreInformation: {
+        featureInfo: {
           description:
             'This policy is part of Gravitee Enterprise. Enterprise policies allows you to easily define and customise rules according to your evolving business needs.',
           image: 'assets/gio-ee-unlock-dialog/policies.svg',

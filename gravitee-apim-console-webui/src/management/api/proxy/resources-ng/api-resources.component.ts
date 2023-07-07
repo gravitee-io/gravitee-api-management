@@ -98,13 +98,13 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
     const resourceId = event.detail.id;
     const featureName = this.resourceTypes.find((resourceType) => resourceType.id === resourceId).feature;
     const feature = stringFeature(featureName);
-    const featureMoreInformation = this.gioLicenseService.getFeatureMoreInformation(feature);
+    const featureInfo = this.gioLicenseService.getFeatureInfo(feature);
     const trialURL = this.gioLicenseService.getTrialURL(UTMMedium.CONFLUENT_SCHEMA_REGISTRY);
 
     this.matDialog
       .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
         data: {
-          featureMoreInformation,
+          featureInfo,
           trialURL,
         },
         role: 'alertdialog',
