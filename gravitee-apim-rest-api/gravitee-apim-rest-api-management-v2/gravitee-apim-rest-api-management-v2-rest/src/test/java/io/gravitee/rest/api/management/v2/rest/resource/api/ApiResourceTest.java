@@ -47,7 +47,8 @@ public abstract class ApiResourceTest extends AbstractResourceTest {
             workflowService,
             apiServiceV4,
             apiService,
-            apiLicenseService
+            apiLicenseService,
+            apiWorkflowStateService
         );
         GraviteeContext.cleanContext();
 

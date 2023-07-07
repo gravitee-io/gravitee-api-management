@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.model.v4.api;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.search.Indexable;
 import java.util.Date;
@@ -69,6 +71,8 @@ public interface GenericApiEntity extends Indexable {
     Set<String> getCategories();
 
     DefinitionContext getDefinitionContext();
+
+    WorkflowState getWorkflowState();
 
     String getPicture();
 
