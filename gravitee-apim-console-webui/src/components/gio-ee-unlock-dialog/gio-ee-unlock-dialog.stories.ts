@@ -24,8 +24,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { GioEeUnlockDialogComponent, GioEeUnlockDialogData } from './gio-ee-unlock-dialog.component';
 import { GioEeUnlockDialogModule } from './gio-ee-unlock-dialog.module';
 
-import { FeatureMoreInformation } from '../../entities/feature/FeatureMoreInformation';
-import { Feature, FeatureInfoData } from '../../shared/components/gio-license/gio-license-features';
+import { Feature, FeatureInfo, FeatureInfoData } from '../../shared/components/gio-license/gio-license-features';
 import { UTMMedium } from '../../shared/components/gio-license/gio-license-utm';
 
 @Component({
@@ -33,14 +32,14 @@ import { UTMMedium } from '../../shared/components/gio-license/gio-license-utm';
   template: `<button id="open-dialog" (click)="openDialog()">More information</button>`,
 })
 class GioEeUnlockDialogStoryComponent {
-  @Input() public featureMoreInformation: FeatureMoreInformation;
+  @Input() public featureInfo: FeatureInfo;
   constructor(private readonly matDialog: MatDialog) {}
 
   public openDialog() {
     this.matDialog
       .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
         data: {
-          featureMoreInformation: this.featureMoreInformation,
+          featureInfo: this.featureInfo,
         },
         role: 'alertdialog',
         id: 'dialog',
@@ -65,12 +64,12 @@ export default {
     }),
   ],
   argTypes: {
-    featureMoreInformation: {
+    featureInfo: {
       type: { name: 'object', value: {} },
     },
   },
   render: (args) => ({
-    template: `<gio-ee-unlock-dialog-story [name]="name" [featureMoreInformation]="featureMoreInformation"></gio-ee-unlock-dialog-story>`,
+    template: `<gio-ee-unlock-dialog-story [name]="name" [featureInfo]="featureInfo"></gio-ee-unlock-dialog-story>`,
     props: { ...args },
   }),
   parameters: {
@@ -86,7 +85,7 @@ export const Audit: StoryObj = {
 };
 
 Audit.args = {
-  featureMoreInformation: FeatureInfoData[Feature.APIM_AUDIT_TRAIL],
+  featureInfo: FeatureInfoData[Feature.APIM_AUDIT_TRAIL],
   utmMedium: UTMMedium.AUDIT_TRAIL_API,
 };
 
@@ -98,7 +97,7 @@ export const DCRProviders: StoryObj = {
 };
 
 DCRProviders.args = {
-  featureMoreInformation: FeatureInfoData[Feature.APIM_DCR_REGISTRATION],
+  featureInfo: FeatureInfoData[Feature.APIM_DCR_REGISTRATION],
   utmMedium: UTMMedium.DCR_REGISTRATION,
 };
 
@@ -110,7 +109,7 @@ export const DebugMode: StoryObj = {
 };
 
 DebugMode.args = {
-  featureMoreInformation: FeatureInfoData[Feature.APIM_DEBUG_MODE],
+  featureInfo: FeatureInfoData[Feature.APIM_DEBUG_MODE],
   utmMedium: UTMMedium.DEBUG_MODE,
 };
 
@@ -122,7 +121,7 @@ export const OpenIDConnect: StoryObj = {
 };
 
 OpenIDConnect.args = {
-  featureMoreInformation: FeatureInfoData[Feature.APIM_OPENID_CONNECT_SSO],
+  featureInfo: FeatureInfoData[Feature.APIM_OPENID_CONNECT_SSO],
   utmMedium: UTMMedium.OPENID_CONNECT,
 };
 
@@ -134,7 +133,7 @@ export const Roles: StoryObj = {
 };
 
 Roles.args = {
-  featureMoreInformation: FeatureInfoData[Feature.APIM_CUSTOM_ROLES],
+  featureInfo: FeatureInfoData[Feature.APIM_CUSTOM_ROLES],
   utmMedium: UTMMedium.CUSTOM_ROLES,
 };
 
@@ -146,7 +145,7 @@ export const ShardingTags: StoryObj = {
 };
 
 ShardingTags.args = {
-  featureMoreInformation: FeatureInfoData[Feature.APIM_SHARDING_TAGS],
+  featureInfo: FeatureInfoData[Feature.APIM_SHARDING_TAGS],
   utmMedium: UTMMedium.SHARDING_TAGS,
 };
 
@@ -158,6 +157,6 @@ export const SchemaRegistryArgs: StoryObj = {
 };
 
 SchemaRegistryArgs.args = {
-  featureMoreInformation: FeatureInfoData[Feature.APIM_SCHEMA_REGISTRY_PROVIDER],
+  featureInfo: FeatureInfoData[Feature.APIM_SCHEMA_REGISTRY_PROVIDER],
   utmMedium: UTMMedium.CONFLUENT_SCHEMA_REGISTRY,
 };

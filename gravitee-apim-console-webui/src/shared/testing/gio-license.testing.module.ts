@@ -26,7 +26,7 @@ import { GioLicenseService } from '../components/gio-license/gio-license.service
       useValue: {
         isMissingFeature$: () => of(true),
         isMissingPack$: () => of(true),
-        getFeatureMoreInformation: () => ({}),
+        getFeatureInfo: () => ({}),
         getTrialURL: () => '',
       },
     },
@@ -42,7 +42,7 @@ export class GioLicenseTestingModule {
           useValue: {
             isMissingFeature$: () => of(!license),
             isMissingPack$: () => of(license),
-            getFeatureMoreInformation: () => ({}),
+            getFeatureInfo: () => ({}),
             getTrialURL: () => '',
           },
         },

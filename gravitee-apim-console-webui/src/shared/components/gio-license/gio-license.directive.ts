@@ -20,11 +20,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 
 import { GioLicenseService } from './gio-license.service';
-import { Feature } from './gio-license-features';
+import { Feature, FeatureInfo } from './gio-license-features';
 import { UTMMedium } from './gio-license-utm';
 
 import { GioEeUnlockDialogComponent, GioEeUnlockDialogData } from '../../../components/gio-ee-unlock-dialog/gio-ee-unlock-dialog.component';
-import { FeatureMoreInformation } from '../../../entities/feature/FeatureMoreInformation';
 
 export interface GioLicenseOptions {
   feature?: Feature;
@@ -38,7 +37,7 @@ export class GioLicenseDirective implements OnInit, OnDestroy {
   @Input()
   public gioLicense: GioLicenseOptions = {};
 
-  private featureMoreInformation: FeatureMoreInformation;
+  private featureInfo: FeatureInfo;
   private trialURL: string;
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -54,9 +53,9 @@ export class GioLicenseDirective implements OnInit, OnDestroy {
           this.elRef.nativeElement.removeEventListener('click', this.onClick, true);
         }),
         filter((notAllowed) => this.gioLicense != null && notAllowed),
-        map(() => this.licenseService.getFeatureMoreInformation(this.gioLicense.feature)),
-        tap((featureMoreInformation) => {
-          this.featureMoreInformation = featureMoreInformation;
+        map(() => this.licenseService.getFeatureInfo(this.gioLicense.feature)),
+        tap((featureInfo) => {
+          this.featureInfo = featureInfo;
           this.elRef.nativeElement.addEventListener('click', this.onClick, true);
         }),
         takeUntil(this.unsubscribe$),
@@ -81,7 +80,7 @@ export class GioLicenseDirective implements OnInit, OnDestroy {
     this.matDialog
       .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
         data: {
-          featureMoreInformation: this.featureMoreInformation,
+          featureInfo: this.featureInfo,
           trialURL: this.trialURL,
         },
         role: 'alertdialog',

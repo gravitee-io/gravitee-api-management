@@ -170,7 +170,7 @@ describe('PolicyStudioResourcesComponent', () => {
 
     expect(dialog.open).toHaveBeenCalledWith(expect.any(Function), {
       data: {
-        featureMoreInformation: {
+        featureInfo: {
           description:
             'Confluent Schema Registry is part of Gravitee Enterprise. Integration with a Schema Registry enables your APIs to validate schemas used in API calls, and serialize and deserialize data.',
           image: 'assets/gio-ee-unlock-dialog/confluent-schema-registry.svg',
