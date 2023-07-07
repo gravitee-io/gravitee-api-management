@@ -83,10 +83,12 @@ public class SecurityPlan {
             .flatMap(securityToken ->
                 matchSelectionRule(ctx)
                     .flatMap(matches -> {
-                        if (!matches) {
-                            return FALSE;
+                        if (matches) {
+                            return validateSubscription(ctx, securityToken);
                         }
-                        return validateSubscription(ctx, securityToken);
+                        // Remove any security  token as the selection rule don't match
+                        ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
+                        return FALSE;
                     })
             )
             .defaultIfEmpty(false)
