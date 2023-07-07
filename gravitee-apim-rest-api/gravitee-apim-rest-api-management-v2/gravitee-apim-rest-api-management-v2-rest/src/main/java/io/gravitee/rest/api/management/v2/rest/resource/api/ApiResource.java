@@ -274,7 +274,7 @@ public class ApiResource extends AbstractResource {
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiLifeCycle(genericApiEntity, LifecycleAction.START);
-        ApiEntity updatedApi = apiStateService.start(executionContext, genericApiEntity.getId(), getAuthenticatedUser());
+        GenericApiEntity updatedApi = apiStateService.start(executionContext, genericApiEntity.getId(), getAuthenticatedUser());
 
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
     }
@@ -287,7 +287,7 @@ public class ApiResource extends AbstractResource {
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 
         checkApiLifeCycle(genericApiEntity, LifecycleAction.STOP);
-        ApiEntity updatedApi = apiStateService.stop(
+        GenericApiEntity updatedApi = apiStateService.stop(
             GraviteeContext.getExecutionContext(),
             genericApiEntity.getId(),
             getAuthenticatedUser()

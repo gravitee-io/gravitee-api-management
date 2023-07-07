@@ -204,17 +204,17 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     @Override
-    public ApiEntity start(ExecutionContext executionContext, String apiId, String userId) {
+    public GenericApiEntity start(ExecutionContext executionContext, String apiId, String userId) {
         if (!apiValidationService.canDeploy(executionContext, apiId)) {
             throw new ApiNotDeployableException("The API {" + apiId + "} can not be started without at least one published plan");
         }
 
         try {
             log.debug("Start API {}", apiId);
-            ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STARTED, userId);
-            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
+            GenericApiEntity api = updateLifecycle(executionContext, apiId, LifecycleState.STARTED, userId);
+            GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, api);
             apiNotificationService.triggerStartNotification(executionContext, genericApiEntity);
-            return apiEntity;
+            return api;
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to start API {}", apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to start API " + apiId, ex);
@@ -222,10 +222,10 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     @Override
-    public ApiEntity stop(ExecutionContext executionContext, String apiId, String userId) {
+    public GenericApiEntity stop(ExecutionContext executionContext, String apiId, String userId) {
         try {
             log.debug("Stop API {}", apiId);
-            ApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
+            GenericApiEntity apiEntity = updateLifecycle(executionContext, apiId, LifecycleState.STOPPED, userId);
             GenericApiEntity genericApiEntity = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
             apiNotificationService.triggerStopNotification(executionContext, genericApiEntity);
             return apiEntity;
@@ -235,8 +235,12 @@ public class ApiStateServiceImpl implements ApiStateService {
         }
     }
 
-    private ApiEntity updateLifecycle(ExecutionContext executionContext, String apiId, LifecycleState lifecycleState, String username)
-        throws TechnicalException {
+    private GenericApiEntity updateLifecycle(
+        ExecutionContext executionContext,
+        String apiId,
+        LifecycleState lifecycleState,
+        String username
+    ) throws TechnicalException {
         Optional<Api> optApi = apiRepository.findById(apiId);
         if (optApi.isPresent()) {
             Api api = optApi.get();
@@ -270,7 +274,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             }
 
             if (!DefinitionContext.isKubernetes(updateApi.getOrigin())) {
-                final ApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
+                final GenericApiEntity deployedApi = deployLastPublishedAPI(executionContext, apiId, username, eventType);
                 if (deployedApi != null) {
                     return deployedApi;
                 }
@@ -289,7 +293,7 @@ public class ApiStateServiceImpl implements ApiStateService {
      * @return The persisted API or null
      * @throws TechnicalException if an exception occurs while saving the API
      */
-    private ApiEntity deployLastPublishedAPI(ExecutionContext executionContext, String apiId, String userId, EventType eventType)
+    private GenericApiEntity deployLastPublishedAPI(ExecutionContext executionContext, String apiId, String userId, EventType eventType)
         throws TechnicalException {
         final EventQuery query = new EventQuery();
         query.setApi(apiId);
@@ -326,7 +330,7 @@ public class ApiStateServiceImpl implements ApiStateService {
             } else {
                 // this is the first time we start the api without previously deployed id.
                 // let's do it.
-                return (ApiEntity) this.deploy(executionContext, apiId, userId, new ApiDeploymentEntity());
+                return this.deploy(executionContext, apiId, userId, new ApiDeploymentEntity());
             }
         } catch (AbstractManagementException e) {
             log.info("Unable to deploy last published API {} due to : {}", apiId, e.getMessage());

@@ -212,7 +212,10 @@ public class ApiStateServiceImplTest {
     public void shouldThrowExceptionWhenNoPlanPublished() throws TechnicalException {
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(false);
 
-        assertThrows(ApiNotDeployableException.class, () -> apiStateService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME));
+        assertThrows(
+            ApiNotDeployableException.class,
+            () -> apiStateService.start(GraviteeContext.getExecutionContext(), API_ID, USER_NAME)
+        );
     }
 
     @Test
