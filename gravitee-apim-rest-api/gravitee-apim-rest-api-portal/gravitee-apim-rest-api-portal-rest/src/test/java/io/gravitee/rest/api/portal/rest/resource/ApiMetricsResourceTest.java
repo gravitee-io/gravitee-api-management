@@ -25,8 +25,8 @@ import static org.mockito.Mockito.when;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.analytics.query.StatsAnalytics;
 import io.gravitee.rest.api.model.analytics.query.StatsQuery;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -60,13 +60,13 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(mockApi);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(mockApi);
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
     }
 
     @Test
     public void shouldNotFoundApiWhileGettingApiMetrics() {
-        when(apiService.findById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
 
         final Response response = target(API).path("metrics").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());
