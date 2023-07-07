@@ -67,7 +67,7 @@ public class WebhookTestingActions {
 
     public Subscription createSubscription(String apiId, String callbackPath, List<HttpHeader> headers, List<Completable> readyObs)
         throws JsonProcessingException {
-        final Subscription subscription = this.configureSubscriptionAndCallback(apiId, callbackPath, null, headers);
+        final Subscription subscription = this.configureSubscriptionAndCallback(apiId, callbackPath, headers);
         readyObs.add(MessageFlowReadyPolicy.readyObs(subscription));
 
         return subscription;
@@ -157,24 +157,19 @@ public class WebhookTestingActions {
      * @throws JsonProcessingException
      */
     public Subscription configureSubscriptionAndCallback(String apiId, String callbackPath) throws JsonProcessingException {
-        return configureSubscriptionAndCallback(apiId, callbackPath, null, null);
+        return configureSubscriptionAndCallback(apiId, callbackPath, null);
     }
 
     /**
      * Configures a {@link Subscription} object to be deployed and the wiremock target accordingly.
      * @param apiId is the id of the api to configure in the subscription. ⚠️ It must match the id used in the api you want to test.
      * @param callbackPath is the path of callback to reach.
-     * @param authConfiguration is the authentication configuration of the webhook subscription
      * @param headers are the additional headers to send to callback
      * @return the {@link Subscription} object.
      * @throws JsonProcessingException
      */
-    public Subscription configureSubscriptionAndCallback(
-        String apiId,
-        String callbackPath,
-        WebhookSubscriptionAuthConfiguration authConfiguration,
-        List<HttpHeader> headers
-    ) throws JsonProcessingException {
+    public Subscription configureSubscriptionAndCallback(String apiId, String callbackPath, List<HttpHeader> headers)
+        throws JsonProcessingException {
         WebhookEntrypointConnectorSubscriptionConfiguration configuration = new WebhookEntrypointConnectorSubscriptionConfiguration();
         configuration.setCallbackUrl(String.format("http://localhost:%s%s", wiremock.port(), callbackPath));
         configuration.setHeaders(headers);
@@ -279,7 +274,7 @@ public class WebhookTestingActions {
         subscription.setStatus("ACCEPTED");
         subscription.setType(Subscription.Type.PUSH);
         SubscriptionConfiguration subscriptionConfiguration = new SubscriptionConfiguration(
-            "subscribe",
+            null,
             "webhook",
             MAPPER.writeValueAsString(configuration)
         );
