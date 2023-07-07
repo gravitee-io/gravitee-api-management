@@ -24,7 +24,7 @@
 
 <mat-dialog-content class="gio-ee-unlock-dialog__content">
   <img class="gio-ee-unlock-dialog__content__image" [src]="featureInfo.image" [alt]="featureInfo.title || 'Unlock Gravitee Enterprise'" />
-  <h2 class="gio-ee-unlock-dialog__content__title" [innerHTML]="featureInfo.title || 'Unlock Gravitee Enterprise' | safe : 'html'"></h2>
+  <h2 class="gio-ee-unlock-dialog__content__title" [innerHTML]="(featureInfo.title || 'Unlock Gravitee Enterprise') | safe : 'html'"></h2>
   <div class="gio-ee-unlock-dialog__content__description" [innerHTML]="featureInfo.description | safe : 'html'"></div>
   <div class="gio-ee-unlock-dialog__content__action">
     <a class="gio-ee-unlock-dialog__content__action__button" mat-stroked-button color="accent" target="_blank" [href]="trialURL">
