@@ -95,7 +95,7 @@ export interface BaseApi {
   categories?: string[];
   definitionContext?: DefinitionContext;
   /**
-   * The API logo URL.
+   * The status of the API regarding the review feature.
    */
   workflowState?: ApiWorkflowState;
   responseTemplates?: { [key: string]: { [key: string]: ResponseTemplate } };

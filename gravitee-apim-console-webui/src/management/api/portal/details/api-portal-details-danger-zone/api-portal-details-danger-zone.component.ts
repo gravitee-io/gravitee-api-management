@@ -29,11 +29,11 @@ import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operato
 import { UIRouterState } from '../../../../../ajs-upgraded-providers';
 import { Constants } from '../../../../../entities/Constants';
 import { Api, ApiV4, UpdateApi } from '../../../../../entities/management-api-v2';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
+import { ApiReviewV2Service } from '../../../../../services-ngx/api-review-v2.service';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
 import { Feature } from '../../../../../shared/components/gio-license/gio-license-features';
 
@@ -85,8 +85,7 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    // TODO: we should remove this service as soon as everything is migrated to management API v2
-    private readonly legacyApiService: ApiService,
+    private readonly apiReviewV2Service: ApiReviewV2Service,
     private readonly apiService: ApiV2Service,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
@@ -144,7 +143,7 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.legacyApiService.askForReview(this.api.id)),
+        switchMap(() => this.apiReviewV2Service.ask(this.api.id)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;

@@ -21,9 +21,9 @@ import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { FlowService } from '../../../../services-ngx/flow.service';
 import { QualityRuleService } from '../../../../services-ngx/quality-rule.service';
-import { ApiService } from '../../../../services-ngx/api.service';
 import { ApiQualityRuleService } from '../../../../services-ngx/api-quality-rule.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiReviewV2Service } from '../../../../services-ngx/api-review-v2.service';
 
 export interface ApiReviewDialogData {
   apiId: string;
@@ -59,7 +59,7 @@ export class ApiReviewDialogComponent implements OnDestroy {
     private readonly qualityRuleService: QualityRuleService,
     private readonly flowService: FlowService,
     private readonly apiQualityRuleService: ApiQualityRuleService,
-    private readonly apiService: ApiService,
+    private readonly apiReviewV2Service: ApiReviewV2Service,
   ) {}
 
   ngOnInit() {
@@ -104,8 +104,8 @@ export class ApiReviewDialogComponent implements OnDestroy {
     });
 
     const acceptRejectToSave$ = accept
-      ? this.apiService.acceptReview(this.dialogData.apiId, this.reviewComments.value)
-      : this.apiService.rejectReview(this.dialogData.apiId, this.reviewComments.value);
+      ? this.apiReviewV2Service.accept(this.dialogData.apiId, this.reviewComments.value)
+      : this.apiReviewV2Service.reject(this.dialogData.apiId, this.reviewComments.value);
 
     combineLatest([
       ...apiQualityRulesToSave$,
