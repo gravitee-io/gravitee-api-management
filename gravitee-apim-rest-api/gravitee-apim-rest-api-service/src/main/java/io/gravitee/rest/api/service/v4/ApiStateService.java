@@ -32,9 +32,9 @@ public interface ApiStateService {
         ApiDeploymentEntity apiDeploymentEntity
     );
 
-    ApiEntity start(ExecutionContext executionContext, String apiId, String userId);
+    GenericApiEntity start(ExecutionContext executionContext, String apiId, String userId);
 
-    ApiEntity stop(ExecutionContext executionContext, String apiId, String userId);
+    GenericApiEntity stop(ExecutionContext executionContext, String apiId, String userId);
 
     boolean isSynchronized(ExecutionContext executionContext, GenericApiEntity apiEntity);
 }
