@@ -137,14 +137,7 @@ public class SecurityPlan {
         return ctx
             .getTemplateEngine()
             .eval(selectionRule, Boolean.class)
-            .map(matches -> {
-                if (Boolean.TRUE.equals(matches)) {
-                    return validateSubscription(ctx, securityToken);
-                }
-                // Remove any security  token as the selection rule don't match
-                ctx.removeInternalAttribute(ATTR_INTERNAL_SECURITY_TOKEN);
-                return false;
-            });
+            .map(matches -> matches && validateSubscription(ctx, securityToken));
     }
 
     private boolean validateSubscription(GenericExecutionContext ctx, SecurityToken securityToken) {

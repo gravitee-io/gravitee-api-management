@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.handlers.api.security;
 
-import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_TOKEN_IDENTIFIED;
-
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.el.EvaluableRequest;
@@ -89,12 +87,7 @@ public abstract class PlanBasedAuthenticationHandler implements AuthenticationHa
                 evaluation.setVariable("request", new EvaluableRequest(authenticationContext.request()));
                 evaluation.setVariable("context", new EvaluableAuthenticationContext(authenticationContext));
 
-                Boolean value = expression.getValue(evaluation, Boolean.class);
-                // Remove any security  token as the selection rule don't match
-                if (Boolean.FALSE.equals(value)) {
-                    authenticationContext.remove(ATTR_INTERNAL_TOKEN_IDENTIFIED);
-                }
-                return Boolean.TRUE.equals(value);
+                return expression.getValue(evaluation, Boolean.class);
             } catch (ParseException | EvaluationException e) {
                 LOGGER.error("Plan selection rule execution failed", e);
                 return false;
