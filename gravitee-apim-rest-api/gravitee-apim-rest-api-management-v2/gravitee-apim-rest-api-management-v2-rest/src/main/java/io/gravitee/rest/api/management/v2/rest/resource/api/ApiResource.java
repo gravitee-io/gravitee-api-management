@@ -35,6 +35,7 @@ import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
@@ -76,6 +77,7 @@ import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
+import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -98,6 +100,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ApiResource extends AbstractResource {
+
+    private static final String REVIEWS_ACTION_ASK = "ask";
+    private static final String REVIEWS_ACTION_ACCEPT = "accept";
+    private static final String REVIEWS_ACTION_REJECT = "reject";
 
     @Context
     private ResourceContext resourceContext;
@@ -125,6 +131,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ApiLicenseService apiLicenseService;
+
+    @Inject
+    private ApiWorkflowStateService apiWorkflowStateService;
 
     @Context
     protected UriInfo uriInfo;
@@ -401,6 +410,60 @@ public class ApiResource extends AbstractResource {
             .links(computePaginationLinks(Math.toIntExact(subscribersApplicationPage.getTotalElements()), paginationParam));
     }
 
+    @POST
+    @Path("/reviews/_ask")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response reviewsAsk(@Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
+        evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
+
+        checkApiReviewWorkflow(genericApiEntity, REVIEWS_ACTION_ASK);
+        GenericApiEntity updatedApi = apiWorkflowStateService.askForReview(
+            GraviteeContext.getExecutionContext(),
+            apiId,
+            getAuthenticatedUser(),
+            ApiMapper.INSTANCE.map(apiReview)
+        );
+
+        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+    }
+
+    @POST
+    @Path("/reviews/_accept")
+    @Permissions({ @Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE) })
+    public Response reviewsAccept(@Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
+        evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
+
+        checkApiReviewWorkflow(genericApiEntity, REVIEWS_ACTION_ACCEPT);
+        GenericApiEntity updatedApi = apiWorkflowStateService.acceptReview(
+            GraviteeContext.getExecutionContext(),
+            apiId,
+            getAuthenticatedUser(),
+            ApiMapper.INSTANCE.map(apiReview)
+        );
+
+        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+    }
+
+    @POST
+    @Path("/reviews/_reject")
+    @Permissions({ @Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE) })
+    public Response reviewsReject(@Context HttpHeaders headers, @PathParam("apiId") String apiId, @Valid ApiReview apiReview) {
+        GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
+        evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
+
+        checkApiReviewWorkflow(genericApiEntity, REVIEWS_ACTION_REJECT);
+        GenericApiEntity updatedApi = apiWorkflowStateService.rejectReview(
+            GraviteeContext.getExecutionContext(),
+            apiId,
+            getAuthenticatedUser(),
+            ApiMapper.INSTANCE.map(apiReview)
+        );
+
+        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+    }
+
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, apiId);
@@ -577,5 +640,27 @@ public class ApiResource extends AbstractResource {
             .message("Api [" + apiId + "] is not valid.")
             .putParametersItem("apiId", apiId)
             .technicalCode("api.invalid");
+    }
+
+    private void checkApiReviewWorkflow(final GenericApiEntity api, final String action) {
+        if (ApiLifecycleState.ARCHIVED.equals(api.getLifecycleState())) {
+            throw new BadRequestException("Deleted API cannot be reviewed.");
+        }
+        if (api.getWorkflowState() != null) {
+            switch (api.getWorkflowState()) {
+                case IN_REVIEW:
+                    if (REVIEWS_ACTION_ASK.equals(action)) {
+                        throw new BadRequestException("Review is still in progress.");
+                    }
+                    break;
+                case DRAFT:
+                    if (REVIEWS_ACTION_ACCEPT.equals(action) || REVIEWS_ACTION_REJECT.equals(action)) {
+                        throw new BadRequestException("State invalid to accept/reject a review.");
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }
