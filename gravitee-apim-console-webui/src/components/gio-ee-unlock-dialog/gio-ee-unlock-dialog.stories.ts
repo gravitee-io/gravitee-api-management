@@ -40,6 +40,7 @@ class GioEeUnlockDialogStoryComponent {
       .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
         data: {
           featureInfo: this.featureInfo,
+          trialURL: 'https://gravitee.io/self-hosted-trial',
         },
         role: 'alertdialog',
         id: 'dialog',

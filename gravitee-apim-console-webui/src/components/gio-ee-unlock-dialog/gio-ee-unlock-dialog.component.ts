@@ -21,7 +21,7 @@ import { FeatureInfo } from '../../shared/components/gio-license/gio-license-fea
 
 export type GioEeUnlockDialogData = {
   featureInfo: FeatureInfo;
-  trialURL?: string;
+  trialURL: string;
 };
 
 @Component({
