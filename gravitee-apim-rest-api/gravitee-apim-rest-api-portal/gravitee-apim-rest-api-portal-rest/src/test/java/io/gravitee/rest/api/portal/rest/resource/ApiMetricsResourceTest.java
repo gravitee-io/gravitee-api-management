@@ -60,13 +60,13 @@ public class ApiMetricsResourceTest extends AbstractResourceTest {
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        when(apiSearchService.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(mockApi);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(mockApi);
         when(accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), API)).thenReturn(true);
     }
 
     @Test
     public void shouldNotFoundApiWhileGettingApiMetrics() {
-        when(apiSearchService.findById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
 
         final Response response = target(API).path("metrics").request().get();
         assertEquals(NOT_FOUND_404, response.getStatus());

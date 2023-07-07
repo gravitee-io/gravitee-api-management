@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.analytics.query.StatsQuery;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiMetrics;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.service.AnalyticsService;
@@ -66,7 +67,7 @@ public class ApiMetricsResource extends AbstractResource {
     @Produces({ MediaType.APPLICATION_JSON })
     @RequirePortalAuth
     public Response getApiMetricsByApiId(@Context Request request, @PathParam("apiId") String apiId) {
-        ApiEntity api = apiSearchService.findById(GraviteeContext.getExecutionContext(), apiId);
+        GenericApiEntity api = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId);
 
         if (api.getLifecycleState() != ApiLifecycleState.PUBLISHED) {
             throw new ApiNotFoundException(apiId);
