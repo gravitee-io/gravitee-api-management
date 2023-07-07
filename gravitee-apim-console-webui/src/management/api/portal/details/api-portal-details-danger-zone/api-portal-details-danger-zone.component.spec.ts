@@ -120,7 +120,7 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     httpTestingController
       .expectOne({
         method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/reviews?action=ASK`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/reviews/_ask`,
       })
       .flush({});
 

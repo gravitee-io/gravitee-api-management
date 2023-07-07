@@ -151,7 +151,7 @@ describe('ApiReviewDialogComponent', () => {
     createApiQualityRuleReq.flush({});
 
     const acceptReq = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/reviews?action=ACCEPT`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/reviews/_accept`,
       method: 'POST',
     });
     expect(acceptReq.request.body).toEqual({ message: 'Review comments' });
@@ -182,7 +182,7 @@ describe('ApiReviewDialogComponent', () => {
     await rejectBtn.click();
 
     const rejectReq = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/reviews?action=REJECT`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/reviews/_reject`,
       method: 'POST',
     });
     expect(rejectReq.request.body).toEqual({ message: null });
