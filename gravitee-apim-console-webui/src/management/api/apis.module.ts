@@ -45,7 +45,6 @@ import { ApiPropertiesComponent } from './proxy/properties-ng/api-properties.com
 import { ApiResourcesComponent } from './proxy/resources-ng/api-resources.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
-import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
 import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
@@ -90,18 +89,6 @@ const states: Ng2StateDeclaration[] = [
     data: {
       baseRouteState: 'management.apis.ng',
     },
-    resolve: [
-      {
-        token: 'currentApi',
-        deps: [ApiV2Service, Transition],
-        resolveFn: (apiV2Service: ApiV2Service, transition: Transition) => apiV2Service.get(transition.params().apiId).toPromise(),
-      },
-      {
-        token: 'currentApiIsSync',
-        // TODO: Implement api sync check
-        resolveFn: () => false,
-      },
-    ],
   },
   {
     name: 'management.apis.ng.policyStudio',
