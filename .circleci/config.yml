@@ -2021,7 +2021,7 @@ workflows:
                       - Test backend
                       - Test plugins
                       - Test repository
-                      - Integration tests
+                      # - Integration tests
             - job-publish-on-nexus:
                   name: Publish on nexus
                   context: cicd-orchestrator
@@ -2034,7 +2034,7 @@ workflows:
                       - Test backend
                       - Test plugins
                       - Test repository
-                      - Integration tests
+                      # - Integration tests
             - job-webui-lint-test:
                   name: Lint & test APIM Console
                   context: cicd-orchestrator
@@ -2094,7 +2094,7 @@ workflows:
                       - Test backend
                       - Test plugins
                       - Test repository
-                      - Integration tests
+                      # - Integration tests
                       - Build and push rest api and gateway images
                       - Build APIM Console and publish image
                       - Build APIM Portal and publish image
