@@ -99,7 +99,7 @@ public class CheckSubscriptionPolicyTest {
         when(executionContext.getAttribute(ExecutionContext.ATTR_API)).thenReturn("api-id");
 
         // no subscription found in cache for this API / clientID
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.empty());
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.empty());
 
         policy.execute(policyChain, executionContext);
 
@@ -121,7 +121,7 @@ public class CheckSubscriptionPolicyTest {
         // subscription found in cache, with end date in the past
         Subscription subscription = new Subscription();
         subscription.setEndingAt(new Date(currentTimeMillis() - 100000));
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -147,7 +147,7 @@ public class CheckSubscriptionPolicyTest {
         // subscription found in cache, with a valid plan, and time
         Subscription subscription = new Subscription();
         subscription.setPlan(PLAN_ID);
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -170,7 +170,7 @@ public class CheckSubscriptionPolicyTest {
         subscription.setPlan(PLAN_ID);
         subscription.setApplication("application-id");
 
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 
@@ -191,7 +191,7 @@ public class CheckSubscriptionPolicyTest {
         // subscription found in cache, with an invalid plan
         Subscription subscription = new Subscription();
         subscription.setPlan("another-plan");
-        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, null)).thenReturn(Optional.of(subscription));
 
         policy.execute(policyChain, executionContext);
 

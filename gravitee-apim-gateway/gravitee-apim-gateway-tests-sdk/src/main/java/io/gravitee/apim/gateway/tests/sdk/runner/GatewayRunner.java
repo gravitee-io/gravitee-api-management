@@ -550,7 +550,10 @@ public class GatewayRunner {
     }
 
     private void ensureMinimalRequirementForPolicies(Map<String, PolicyPlugin> policies) {
+        policies.putIfAbsent("api-key", PolicyBuilder.build("api-key", KeylessPolicy.class));
         policies.putIfAbsent("key-less", PolicyBuilder.build("key-less", KeylessPolicy.class));
+        policies.putIfAbsent("oauth2", PolicyBuilder.build("oauth2", KeylessPolicy.class));
+        policies.putIfAbsent("jwt", PolicyBuilder.build("jwt", KeylessPolicy.class));
     }
 
     private void registerConnectors(GatewayTestContainer container) {

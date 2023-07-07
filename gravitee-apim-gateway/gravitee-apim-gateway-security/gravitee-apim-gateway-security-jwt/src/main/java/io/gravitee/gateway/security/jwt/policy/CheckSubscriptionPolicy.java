@@ -37,8 +37,10 @@ public class CheckSubscriptionPolicy implements Policy {
         ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
 
-    static final String OAUTH2_UNAUTHORIZED_MESSAGE = "Unauthorized";
+    private static final String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
+
     static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
+    static final String GATEWAY_OAUTH2_SERVER_ERROR_KEY = "GATEWAY_OAUTH2_SERVER_ERROR";
 
     @Override
     public void execute(PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {
@@ -52,7 +54,8 @@ public class CheckSubscriptionPolicy implements Policy {
         executionContext.request().metrics().setSecurityType(JWT);
         executionContext.request().metrics().setSecurityToken(clientId);
 
-        Optional<Subscription> optionalSubscription = subscriptionService.getByApiAndClientIdAndPlan(api, clientId, plan);
+        // FIXME: Use plan instead of `null` to properly handle plan selection in multi-plan context
+        Optional<Subscription> optionalSubscription = subscriptionService.getByApiAndClientIdAndPlan(api, clientId, null);
 
         if (optionalSubscription.isPresent()) {
             final boolean selectionRuleBasedPlan = Boolean.TRUE.equals(
@@ -74,9 +77,12 @@ public class CheckSubscriptionPolicy implements Policy {
             }
         }
 
-        policyChain.failWith(
-            PolicyResult.failure(GATEWAY_OAUTH2_ACCESS_DENIED_KEY, HttpStatusCode.UNAUTHORIZED_401, OAUTH2_UNAUTHORIZED_MESSAGE)
-        );
+        // As per https://tools.ietf.org/html/rfc6749#section-4.1.2.1
+        sendUnauthorized(GATEWAY_OAUTH2_ACCESS_DENIED_KEY, policyChain, OAUTH2_ERROR_ACCESS_DENIED);
+    }
+
+    private void sendUnauthorized(String key, PolicyChain policyChain, String description) {
+        policyChain.failWith(PolicyResult.failure(key, HttpStatusCode.UNAUTHORIZED_401, description));
     }
 
     @Override

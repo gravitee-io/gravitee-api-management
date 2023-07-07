@@ -41,7 +41,10 @@ public class CheckSubscriptionPolicy implements Policy {
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
     static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
     static final String GATEWAY_OAUTH2_INVALID_CLIENT_KEY = "GATEWAY_OAUTH2_INVALID_CLIENT";
-    static final String OAUTH2_UNAUTHORIZED_MESSAGE = "Unauthorized";
+
+    private static final String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
+
+    private static final String OAUTH2_ERROR_SERVER_ERROR = "server_error";
 
     @Override
     public void execute(PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {
@@ -53,17 +56,24 @@ public class CheckSubscriptionPolicy implements Policy {
 
         // client_id is mandatory
         if (clientId == null || clientId.trim().isEmpty()) {
-            sendError(GATEWAY_OAUTH2_INVALID_CLIENT_KEY, executionContext.response(), policyChain);
+            sendError(
+                GATEWAY_OAUTH2_INVALID_CLIENT_KEY,
+                executionContext.response(),
+                policyChain,
+                "invalid_client",
+                "No client_id was supplied"
+            );
             return;
         }
 
         executionContext.request().metrics().setSecurityType(OAUTH2);
         executionContext.request().metrics().setSecurityToken(clientId);
 
+        // FIXME: Use plan instead of `null` to properly handle plan selection in multi-plan context
         Optional<io.gravitee.gateway.api.service.Subscription> optionalSubscription = subscriptionService.getByApiAndClientIdAndPlan(
             api,
             clientId,
-            plan
+            null
         );
 
         if (optionalSubscription.isPresent()) {
@@ -86,9 +96,12 @@ public class CheckSubscriptionPolicy implements Policy {
             }
         }
 
-        policyChain.failWith(
-            PolicyResult.failure(GATEWAY_OAUTH2_ACCESS_DENIED_KEY, HttpStatusCode.UNAUTHORIZED_401, OAUTH2_UNAUTHORIZED_MESSAGE)
-        );
+        // As per https://tools.ietf.org/html/rfc6749#section-4.1.2.1
+        sendUnauthorized(GATEWAY_OAUTH2_ACCESS_DENIED_KEY, policyChain, OAUTH2_ERROR_ACCESS_DENIED);
+    }
+
+    private void sendUnauthorized(String key, PolicyChain policyChain, String description) {
+        policyChain.failWith(PolicyResult.failure(key, HttpStatusCode.UNAUTHORIZED_401, description));
     }
 
     /**
@@ -99,10 +112,18 @@ public class CheckSubscriptionPolicy implements Policy {
      *      error="invalid_token",
      *      error_description="The access token expired"
      */
-    private void sendError(String key, Response response, PolicyChain policyChain) {
-        String headerValue = BEARER_AUTHORIZATION_TYPE + " realm=\"gravitee.io\"";
+    private void sendError(String key, Response response, PolicyChain policyChain, String error, String description) {
+        String headerValue =
+            BEARER_AUTHORIZATION_TYPE +
+            " realm=\"gravitee.io\"," +
+            " error=\"" +
+            error +
+            "\"," +
+            " error_description=\"" +
+            description +
+            "\"";
         response.headers().add(HttpHeaders.WWW_AUTHENTICATE, headerValue);
-        policyChain.failWith(PolicyResult.failure(key, HttpStatusCode.UNAUTHORIZED_401, OAUTH2_UNAUTHORIZED_MESSAGE));
+        policyChain.failWith(PolicyResult.failure(key, HttpStatusCode.UNAUTHORIZED_401, null));
     }
 
     @Override
