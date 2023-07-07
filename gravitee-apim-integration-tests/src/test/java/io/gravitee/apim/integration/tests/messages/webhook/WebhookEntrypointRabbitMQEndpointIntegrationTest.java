@@ -94,7 +94,6 @@ class WebhookEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitMQE
         Subscription subscription = webhookActions.configureSubscriptionAndCallback(
             "webhook-entrypoint-rabbitmq-endpoint",
             callbackPath,
-            null,
             List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value"))
         );
 

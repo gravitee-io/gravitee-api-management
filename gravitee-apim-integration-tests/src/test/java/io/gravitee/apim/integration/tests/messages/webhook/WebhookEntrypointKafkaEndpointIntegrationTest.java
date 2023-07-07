@@ -15,26 +15,33 @@
  */
 package io.gravitee.apim.integration.tests.messages.webhook;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.graviteesource.entrypoint.webhook.WebhookEntrypointConnectorFactory;
 import com.graviteesource.entrypoint.webhook.configuration.HttpHeader;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.annotations.InjectApi;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
+import io.gravitee.apim.integration.tests.fake.ForceClientIdentifierPolicy;
 import io.gravitee.apim.integration.tests.messages.AbstractKafkaEndpointIntegrationTest;
+import io.gravitee.definition.model.v4.Api;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.reactive.api.qos.Qos;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
-import io.reactivex.rxjava3.core.Single;
-import io.vertx.rxjava3.core.Vertx;
+import io.gravitee.plugin.policy.PolicyPlugin;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.observers.TestObserver;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -52,90 +59,131 @@ class WebhookEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
         entrypoints.putIfAbsent("webhook", EntrypointBuilder.build("webhook", WebhookEntrypointConnectorFactory.class));
     }
 
+    @Override
+    public void configurePolicies(Map<String, PolicyPlugin> policies) {
+        super.configurePolicies(policies);
+        policies.putIfAbsent("force-client-identifier", PolicyBuilder.build("force-client-identifier", ForceClientIdentifierPolicy.class));
+    }
+
     @BeforeEach
     public void prepare() {
         webhookActions = new WebhookTestingActions(wiremock, getBean(SubscriptionDispatcher.class));
     }
 
-    @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-kafka-endpoint.json" })
-    void should_receive_all_messages_without_header(Vertx vertx) throws JsonProcessingException {
+    @ParameterizedTest
+    @MethodSource("allQosParameters")
+    @DeployApi(
+        {
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-auto.json",
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-none.json",
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-most-once.json",
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-least-once.json",
+        }
+    )
+    void should_receive_messages_single(Qos qos) throws JsonProcessingException {
+        final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
+        final List<Completable> readyObs = new ArrayList<>();
 
-        // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
-        // It allows us to publish the messages in the topic before opening the api connection.
-        Single
-            .fromCallable(() -> getKafkaProducer(vertx))
-            .flatMapCompletable(producer ->
-                publishToKafka(producer, "message1")
-                    .andThen(publishToKafka(producer, "message2"))
-                    .andThen(publishToKafka(producer, "message3"))
-                    .doFinally(producer::close)
+        final Subscription subscription = webhookActions.createSubscription("kafka-endpoint-qos-" + qos.getLabel(), callbackPath, readyObs);
+
+        final TestObserver<Void> obs = Completable
+            .mergeArray(
+                webhookActions.dispatchSubscription(subscription),
+                publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel())
             )
-            .blockingAwait();
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test();
 
-        Subscription subscription = webhookActions.configureSubscriptionAndCallback("webhook-entrypoint-kafka-endpoint", callbackPath);
+        obs.awaitDone(30, TimeUnit.SECONDS).assertComplete();
 
-        webhookActions.dispatchSubscriptionAndWaitForRequestsOnCallback(subscription, 3, callbackPath);
-
-        // verify requests received by wiremock
-        wiremock.verify(1, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("message1")));
-        wiremock.verify(1, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("message2")));
-        wiremock.verify(1, postRequestedFor(urlPathEqualTo(callbackPath)).withRequestBody(equalTo("message3")));
-
-        // close the subscription to avoid maintaining it between test methods
-        webhookActions.closeSubscription(subscription);
+        // Verify requests received by wiremock
+        webhookActions.verifyMessages(messageCount, callbackPath);
     }
 
-    @Test
-    @DeployApi({ "/apis/v4/messages/webhook/webhook-entrypoint-kafka-endpoint.json" })
-    void should_receive_all_messages_with_additional_headers(Vertx vertx) throws JsonProcessingException {
+    @ParameterizedTest
+    @MethodSource("allQosParameters")
+    @DeployApi(
+        {
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-auto.json",
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-none.json",
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-most-once.json",
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-least-once.json",
+        }
+    )
+    void should_receive_all_messages_with_additional_headers(Qos qos) throws JsonProcessingException {
+        final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/with-header";
+        final List<Completable> readyObs = new ArrayList<>();
 
-        // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
-        // It allows us to publish the messages in the topic before opening the api connection.
-        Single
-            .fromCallable(() -> getKafkaProducer(vertx))
-            .flatMapCompletable(producer ->
-                publishToKafka(producer, "message1")
-                    .andThen(publishToKafka(producer, "message2"))
-                    .andThen(publishToKafka(producer, "message3"))
-                    .doFinally(producer::close)
-            )
-            .blockingAwait();
+        final List<HttpHeader> headers = List.of(
+            new HttpHeader("Header1", "my-header-1-value"),
+            new HttpHeader("Header2", "my-header-2-value")
+        );
 
-        Subscription subscription = webhookActions.configureSubscriptionAndCallback(
-            "webhook-entrypoint-kafka-endpoint",
+        final Subscription subscription = webhookActions.createSubscription(
+            "kafka-endpoint-qos-" + qos.getLabel(),
             callbackPath,
-            null,
-            List.of(new HttpHeader("Header1", "my-header-1-value"), new HttpHeader("Header2", "my-header-2-value"))
+            headers,
+            readyObs
         );
 
-        webhookActions.dispatchSubscriptionAndWaitForRequestsOnCallback(subscription, 3, callbackPath);
-        // verify requests received by wiremock
-        wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message1"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
-        );
-        wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message2"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
-        );
-        wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo(callbackPath))
-                .withRequestBody(equalTo("message3"))
-                .withHeader("Header1", equalTo("my-header-1-value"))
-                .withHeader("Header2", equalTo("my-header-2-value"))
-        );
+        final TestObserver<Void> obs = Completable
+            .mergeArray(
+                webhookActions.dispatchSubscription(subscription),
+                publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel())
+            )
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test();
 
-        // close the subscription to avoid maintaining it between test methods
-        webhookActions.closeSubscription(subscription);
+        obs.awaitDone(30, TimeUnit.SECONDS).assertComplete();
+
+        // Verify requests received by wiremock
+        webhookActions.verifyMessagesWithHeaders(messageCount, callbackPath, headers);
+    }
+
+    @ParameterizedTest
+    @MethodSource("allQosParameters")
+    @DeployApi(
+        {
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-auto.json",
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-none.json",
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-most-once.json",
+            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-least-once.json",
+        }
+    )
+    void should_receive_messages_parallel(Qos qos, boolean unused, @InjectApi Map<String, ReactableApi<?>> reactableApis)
+        throws JsonProcessingException {
+        final int messageCount = 40;
+        final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
+        final List<Completable> readyObs = new ArrayList<>();
+
+        // Simulate the same subscription running on 2 different instances.
+        final String apiId = "kafka-endpoint-qos-" + qos.getLabel();
+
+        // Reconfigure the api to add a special policy that forces the client identifier since it is not possible to set it when using webhook.
+        final ReactableApi<?> api = reactableApis.get(apiId);
+        ((Api) api.getDefinition()).getFlows()
+            .get(0)
+            .setRequest(List.of(Step.builder().name("Force client identifier").policy("force-client-identifier").enabled(true).build()));
+
+        redeploy(api);
+
+        final Subscription subscriptionInstance1 = webhookActions.createSubscription(apiId, callbackPath, readyObs);
+        final Subscription subscriptionInstance2 = webhookActions.createSubscription(apiId, callbackPath, readyObs);
+
+        final TestObserver<Void> obs = Completable
+            .mergeArray(
+                webhookActions.dispatchSubscription(subscriptionInstance1),
+                webhookActions.dispatchSubscription(subscriptionInstance2),
+                publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-" + qos.getLabel())
+            )
+            .takeUntil(webhookActions.waitForRequestsOnCallback(messageCount, callbackPath))
+            .test();
+
+        obs.awaitDone(30, TimeUnit.SECONDS).assertComplete();
+
+        // Verify requests received by wiremock has no duplicates.
+        webhookActions.verifyMessages(messageCount, callbackPath);
     }
 }

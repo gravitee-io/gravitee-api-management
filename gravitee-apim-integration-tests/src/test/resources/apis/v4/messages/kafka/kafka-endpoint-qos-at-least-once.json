@@ -1,0 +1,92 @@
+{
+  "id": "kafka-endpoint-qos-at-least-once",
+  "name": "my-api",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "message",
+  "description": "api v4 using HTTP Get entrypoint",
+  "listeners": [
+    {
+      "type": "subscription",
+      "entrypoints": [
+        {
+          "type": "webhook"
+        }
+      ]
+    },
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-qos-at-least-once"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-get",
+          "qos": "at-least-once",
+          "configuration": {
+            "messagesLimitCount": 1,
+            "messagesLimitDurationMs": 10000,
+            "headersInPayload": true,
+            "metadataInPayload": true
+          }
+        },
+        {
+          "type": "sse",
+          "qos": "at-least-once",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "kafka",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "kafka",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "bootstrapServers": "bootstrap-server"
+          },
+          "sharedConfigurationOverride": {
+            "consumer": {
+              "enabled": true,
+              "topics": [
+                "test-topic-qos-at-least-once"
+              ],
+              "autoOffsetReset": "earliest"
+            },
+            "producer": {
+              "enabled": true,
+              "topics": [
+                "test-topic-qos-at-least-once"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Flow ready",
+      "enabled": true,
+      "subscribe": [
+        {
+          "name": "Message Flow Ready",
+          "description": "Detect the message flow is ready",
+          "enabled": true,
+          "policy": "message-flow-ready"
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
