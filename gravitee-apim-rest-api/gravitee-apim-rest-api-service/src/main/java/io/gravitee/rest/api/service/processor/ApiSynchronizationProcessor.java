@@ -20,7 +20,10 @@ import io.gravitee.rest.api.model.DeploymentRequired;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +40,10 @@ public class ApiSynchronizationProcessor {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    public static final String DEPLOYED_API_KEY = "deployedApi";
+    public static final String API_TO_DEPLOY_KEY = "apiToDeploy";
+
 
     public boolean processCheckSynchronization(ApiEntity deployedApi, ApiEntity apiToDeploy) {
         Class<ApiEntity> cl = ApiEntity.class;
@@ -66,5 +73,20 @@ public class ApiSynchronizationProcessor {
             LOGGER.error("Unexpected error while generating API deployment required fields definition", e);
             return false;
         }
+    }
+
+    /**
+     * Ignore crossIds by making them both the same value,
+     * they will not be considered in the API synchronization checks
+     */
+    public Map<String, ApiEntity> ignoreCrossIds(ApiEntity deployedApi, ApiEntity apiToDeploy){
+        Map<String, ApiEntity> apiStates = new HashMap<>();
+        deployedApi.setCrossId(null);
+        apiToDeploy.setCrossId(null);
+
+        apiStates.put(DEPLOYED_API_KEY, deployedApi);
+        apiStates.put(API_TO_DEPLOY_KEY, apiToDeploy);
+
+        return apiStates;
     }
 }
