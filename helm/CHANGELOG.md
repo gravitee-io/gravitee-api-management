@@ -3,6 +3,12 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 3.18.29
+
+- Add attribute `gateway.ssl.keystore.watch` to disable watch of Gateway keystore
+- Fix indentation in `api` section of the Management API and Gateway configmaps
+- Add truststore and keystore attributes to the MongoDB Rate Limit section of the Gateway configmap
+
 ### 3.20.12
 
 - Add support for managed Service Account for each product

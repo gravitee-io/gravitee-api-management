@@ -52,6 +52,9 @@ data:
           {{- if .Values.gateway.ssl.keystore.kubernetes }}
           kubernetes: {{ .Values.gateway.ssl.keystore.kubernetes }}
           {{- end }}
+          {{- if hasKey .Values.gateway.ssl.keystore "watch" }}
+          watch: {{ .Values.gateway.ssl.keystore.watch }}
+          {{- end }}
         clientAuth: {{ .Values.gateway.ssl.clientAuth }}
         {{- if .Values.gateway.ssl.truststore }}
         truststore:
@@ -167,6 +170,12 @@ data:
         {{- end }}
         {{- else }}
         uri: mongodb://{{- if (eq .Values.mongo.auth.enabled true) }}{{ .Values.mongo.auth.username }}:{{ .Values.mongo.auth.password }}@{{- end }}{{ .Values.mongo.dbhost }}:{{ .Values.mongo.dbport }}/{{ .Values.mongo.dbname }}?{{- if .Values.mongo.rsEnabled }}&replicaSet={{ .Values.mongo.rs }}{{- end }}{{- if (eq .Values.mongo.auth.enabled true) }}&authSource={{ .Values.mongo.auth.source }}{{- end }}{{- if .Values.mongo.connectTimeoutMS }}&connectTimeoutMS={{ .Values.mongo.connectTimeoutMS }}{{- end }}
+        {{- end }}
+        {{- if .Values.mongo.keystore }}
+        keystore:{{- toYaml .Values.mongo.keystore | nindent 10 }}
+        {{- end }}
+        {{- if .Values.mongo.truststore }}
+        truststore:{{- toYaml .Values.mongo.truststore | nindent 10 }}
         {{- end }}
       {{- else if (eq .Values.ratelimit.type "jdbc") }}
       jdbc:
@@ -419,7 +428,7 @@ data:
 
     # APIs specific configuration
     {{- if .Values.gateway.api }}
-      api: {{- toYaml .Values.gateway.api | nindent 6 -}}
+    api: {{- toYaml .Values.gateway.api | nindent 6 -}}
     {{- end}}
 
     gracefulShutdown:
