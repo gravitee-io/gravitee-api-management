@@ -7,9 +7,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -34,6 +37,9 @@ import static org.powermock.api.mockito.PowerMockito.when;
 class ApiSynchronizationProcessorTest {
     private final ApiSynchronizationProcessor apiSynchronizationProcessor = new ApiSynchronizationProcessor();
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     @ParameterizedTest
     @MethodSource("provideApiEntityCrossIds")
     @DisplayName("GIVEN the currently deployed API state and the API state to be potentially deployed\nWHEN the API states have been processed\nTHEN the API states should have equal crossIds")
@@ -44,14 +50,12 @@ class ApiSynchronizationProcessorTest {
         deployedApi.setCrossId(deployedApiCrossId);
         apiToDeploy.setCrossId(apiToDeployCrossId);
 
-
-        Map<String, ApiEntity> newApiEntities = apiSynchronizationProcessor.ignoreCrossIds(deployedApi, apiToDeploy);
-
-        ApiEntity processedDeployedApi = newApiEntities.get("deployedApi");
-        ApiEntity processedApiToDeploy = newApiEntities.get("apiToDeploy");
+        apiSynchronizationProcessor.setDeployedApi(deployedApi);
+        apiSynchronizationProcessor.setApiToDeploy(apiToDeploy);
+        apiSynchronizationProcessor.ignoreCrossIds();
 
 
-        boolean crossIdsAreEqual = processedDeployedApi.getCrossId() == processedApiToDeploy.getCrossId();
+        boolean crossIdsAreEqual = Objects.equals(apiSynchronizationProcessor.getDeployedApi().getCrossId(), apiSynchronizationProcessor.getApiToDeploy().getCrossId());
 
         assertThat(crossIdsAreEqual, is(true));
     }
