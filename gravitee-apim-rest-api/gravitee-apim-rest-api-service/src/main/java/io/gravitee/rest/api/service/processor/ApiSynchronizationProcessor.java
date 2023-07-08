@@ -29,10 +29,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 @Component
 public class ApiSynchronizationProcessor {
 
@@ -41,11 +46,17 @@ public class ApiSynchronizationProcessor {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public static final String DEPLOYED_API_KEY = "deployedApi";
-    public static final String API_TO_DEPLOY_KEY = "apiToDeploy";
+    public ApiEntity deployedApi;
+
+    public ApiEntity apiToDeploy;
 
 
     public boolean processCheckSynchronization(ApiEntity deployedApi, ApiEntity apiToDeploy) {
+        setDeployedApi(deployedApi);
+        setApiToDeploy(apiToDeploy);
+
+        ignoreCrossIds();
+
         Class<ApiEntity> cl = ApiEntity.class;
         List<Object> requiredFieldsDeployedApi = new ArrayList<Object>();
         List<Object> requiredFieldsApiToDeploy = new ArrayList<Object>();
@@ -79,14 +90,10 @@ public class ApiSynchronizationProcessor {
      * Ignore crossIds by making them both the same value,
      * they will not be considered in the API synchronization checks
      */
-    public Map<String, ApiEntity> ignoreCrossIds(ApiEntity deployedApi, ApiEntity apiToDeploy){
-        Map<String, ApiEntity> apiStates = new HashMap<>();
-        deployedApi.setCrossId(null);
-        apiToDeploy.setCrossId(null);
-
-        apiStates.put(DEPLOYED_API_KEY, deployedApi);
-        apiStates.put(API_TO_DEPLOY_KEY, apiToDeploy);
-
-        return apiStates;
+    public void ignoreCrossIds(){
+        getDeployedApi().setCrossId(null);
+        getApiToDeploy().setCrossId(null);
     }
+
+
 }
