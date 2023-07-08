@@ -65,8 +65,8 @@ public class ApiSynchronizationProcessor {
                 boolean previousAccessibleState = f.isAccessible();
                 f.setAccessible(true);
                 try {
-                    requiredFieldsDeployedApi.add(f.get(deployedApi));
-                    requiredFieldsApiToDeploy.add(f.get(apiToDeploy));
+                    requiredFieldsDeployedApi.add(f.get(getDeployedApi()));
+                    requiredFieldsApiToDeploy.add(f.get(getApiToDeploy()));
                 } catch (Exception e) {
                     LOGGER.error("Error access API required deployment fields", e);
                 } finally {
