@@ -26,7 +26,7 @@ import { TasksHarness } from './tasks.harness';
 
 import { PagedResult } from '../../entities/pagedResult';
 import { Task } from '../../entities/task/task';
-import { UIRouterState } from '../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
 
 describe('TasksComponent', () => {
@@ -119,6 +119,7 @@ describe('TasksComponent', () => {
       },
       '9a3825da-64a8-43d4-b825-da64a8e3d42e': {
         name: 'API A',
+        environmentId: 'TaskEnvironmentId',
       },
       '629c1b5e-8cee-3e14-bcf2-c2848311c993': {
         name: 'star',
@@ -130,6 +131,7 @@ describe('TasksComponent', () => {
       },
       'c097d5ac-0e13-4d18-97d5-ac0e13bd18b7': {
         name: 'just_api',
+        environmentId: 'TaskEnvironmentId',
       },
       'fcf8a3d9-c612-4ef8-b8a3-d9c6120ef844': {
         name: 'marcEchoNodeInfos',
@@ -154,7 +156,15 @@ describe('TasksComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [TasksComponent],
       imports: [NoopAnimationsModule, TasksModule, MatIconTestingModule, GioHttpTestingModule],
-      providers: [{ provide: UIRouterState, useValue: fakeAjsState }],
+      providers: [
+        { provide: UIRouterState, useValue: fakeAjsState },
+        {
+          provide: UIRouterStateParams,
+          useValue: {
+            environmentId: 'DEFAULT',
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TasksComponent);
@@ -206,7 +216,7 @@ describe('TasksComponent', () => {
       expect(await buttons[1].getText()).toEqual('Reject');
     });
 
-    it('should send apiId and subscriptionId after validating subscription', async () => {
+    it('should send apiId and subscriptionId and environmentId after validating subscription', async () => {
       const tasks = await harness.getTasks();
       expect(tasks.length).toEqual(5);
 
@@ -216,6 +226,7 @@ describe('TasksComponent', () => {
       expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.detail.portal.subscriptions.subscription', {
         apiId: responseData.data[0].data.api,
         subscriptionId: responseData.data[0].data.id,
+        environmentId: 'TaskEnvironmentId',
       });
     });
   });
