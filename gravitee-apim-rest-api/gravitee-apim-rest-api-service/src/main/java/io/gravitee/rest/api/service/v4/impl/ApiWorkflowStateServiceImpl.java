@@ -106,14 +106,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
         final ReviewEntity reviewEntity
     ) {
         log.debug("Ask for review API {}", apiId);
-        return updateWorkflowReview(
-            executionContext,
-            apiId,
-            userId,
-            ApiHook.ASK_FOR_REVIEW,
-            WorkflowState.IN_REVIEW,
-            reviewEntity.getMessage()
-        );
+        return updateWorkflowReview(executionContext, apiId, userId, ApiHook.ASK_FOR_REVIEW, WorkflowState.IN_REVIEW, reviewEntity);
     }
 
     @Override
@@ -124,7 +117,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
         final ReviewEntity reviewEntity
     ) {
         log.debug("Accept review API {}", apiId);
-        return updateWorkflowReview(executionContext, apiId, userId, ApiHook.REVIEW_OK, WorkflowState.REVIEW_OK, reviewEntity.getMessage());
+        return updateWorkflowReview(executionContext, apiId, userId, ApiHook.REVIEW_OK, WorkflowState.REVIEW_OK, reviewEntity);
     }
 
     @Override
@@ -141,7 +134,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
             userId,
             ApiHook.REQUEST_FOR_CHANGES,
             WorkflowState.REQUEST_FOR_CHANGES,
-            reviewEntity.getMessage()
+            reviewEntity
         );
     }
 
@@ -151,8 +144,9 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
         final String userId,
         final ApiHook hook,
         final WorkflowState workflowState,
-        final String workflowMessage
+        final ReviewEntity reviewEntity
     ) {
+        final String workflowMessage = reviewEntity == null ? null : reviewEntity.getMessage();
         Workflow workflow = workflowService.create(WorkflowReferenceType.API, apiId, REVIEW, userId, workflowState, workflowMessage);
 
         // Get updated API with new workflow state for notification
