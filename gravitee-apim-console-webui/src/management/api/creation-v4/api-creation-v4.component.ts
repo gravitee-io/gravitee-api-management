@@ -15,9 +15,10 @@
  */
 
 import { Component, HostBinding, Inject, Injector, OnDestroy, OnInit } from '@angular/core';
-import { catchError, map, switchMap, takeUntil } from 'rxjs/operators';
-import { forkJoin, Observable, of, Subject } from 'rxjs';
+import { catchError, concatMap, map, switchMap, takeUntil } from 'rxjs/operators';
+import { from, Observable, of, Subject, throwError } from 'rxjs';
 import { StateService } from '@uirouter/angular';
+import { isEmpty } from 'lodash';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
@@ -35,14 +36,13 @@ import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { ApiPlanV2Service } from '../../../services-ngx/api-plan-v2.service';
 import { PlanV4, Api, CreateApiV4, EndpointGroupV4, Entrypoint, Listener } from '../../../entities/management-api-v2';
 
-// TODO: Make better... Add apiId as req ?
 export interface Result {
-  status: 'success' | 'failure';
+  errorMessages: string[];
   apiCreationPayload: ApiCreationPayload;
-  message?: string;
   result?: {
     api?: Api;
     plans?: PlanV4[];
+    deployed?: boolean;
   };
 }
 
@@ -137,37 +137,27 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     this.stepper.finished$
       .pipe(
         switchMap((p) => this.createApi$(p)),
-        switchMap((apiCreationResult) => {
-          if (apiCreationResult.apiCreationPayload.plans && apiCreationResult.status === 'success') {
-            return this.createPlans$(apiCreationResult);
-          }
-          return of(apiCreationResult);
-        }),
-        switchMap((planCreationResult) => {
-          if (planCreationResult.apiCreationPayload.deploy && planCreationResult.status === 'success') {
-            return this.publishPlans$(planCreationResult);
-          }
-          return of(planCreationResult);
-        }),
-        switchMap((planPublishResult) => {
-          if (planPublishResult.apiCreationPayload.deploy && planPublishResult.status === 'success') {
-            return this.startApi$(planPublishResult);
-          }
-          return of(planPublishResult);
-        }),
+        switchMap((previousResult) => this.createAndPublishPlans$(previousResult)),
+        switchMap((previousResult) => this.startApi$(previousResult)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((result) => {
-        // TODO: Improve handling various errors non-related to creating API
-        if (result.status === 'failure') {
-          this.snackBarService.error(result.message);
-        } else {
-          this.snackBarService.success(`API ${this.currentStep.payload.deploy ? 'deployed' : 'created'} successfully!`);
-        }
-        if (result.result?.api?.id) {
-          this.ajsState.go('management.apis.create-v4-confirmation', { apiId: result.result.api.id });
-        }
-      });
+      .subscribe(
+        (finalResult) => {
+          if (isEmpty(finalResult.errorMessages)) {
+            this.snackBarService.success(`API ${finalResult.result.deployed ? 'deployed' : 'created'} successfully!`);
+          } else {
+            // When some non-blocking error happen
+            this.snackBarService.error(finalResult.errorMessages.join('\n'));
+          }
+          if (finalResult.result?.api?.id) {
+            this.ajsState.go('management.apis.create-v4-confirmation', { apiId: finalResult.result.api.id });
+          }
+        },
+        (error) => {
+          // When the error is blocking
+          this.snackBarService.error(error.message ?? 'An error occurred while creating the API');
+        },
+      );
   }
 
   ngOnDestroy() {
@@ -229,55 +219,70 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     };
 
     return this.apiV2Service.create(newV4Api).pipe(
-      map((apiEntity) => ({ apiCreationPayload, result: { api: apiEntity }, status: 'success' as const })),
+      map((apiEntity) => ({ apiCreationPayload, result: { api: apiEntity }, errorMessages: [] })),
       catchError((err) => {
-        return of({ apiCreationPayload, status: 'failure' as const, message: err.error?.message ?? `Error occurred when creating API` });
+        // Blocking error - If thrown, stop observable chain
+        return throwError({ message: err.error?.message ?? `Error occurred when creating API!` });
       }),
     );
   }
 
-  private createPlans$(apiCreationStatus: Result): Observable<Result> {
-    const api = apiCreationStatus.result.api;
-    return forkJoin(
-      apiCreationStatus.apiCreationPayload.plans.map((plan) => this.apiPlanV2Service.create(api.id, { ...plan, definitionVersion: 'V4' })),
-    ).pipe(
-      map((plans: PlanV4[]) => ({ ...apiCreationStatus, result: { ...apiCreationStatus.result, plans }, status: 'success' as const })),
-      catchError((err) => {
-        return of({
-          ...apiCreationStatus,
-          result: { ...apiCreationStatus.result, plans: [] },
-          status: 'failure' as const,
-          message: `Error while creating security plans: ${err.error?.message}`,
-        });
-      }),
+  private createAndPublishPlans$(previousResult: Result): Observable<Result> {
+    if (isEmpty(previousResult.apiCreationPayload.plans)) {
+      return of(previousResult);
+    }
+
+    const api = previousResult.result.api;
+
+    const errorMessages = previousResult.errorMessages;
+
+    // For each plan
+    return from(previousResult.apiCreationPayload.plans).pipe(
+      concatMap((plan) =>
+        // Create it
+        this.apiPlanV2Service.create(api.id, { ...plan, definitionVersion: 'V4' }).pipe(
+          concatMap((plan) =>
+            // If create success, publish it
+            this.apiPlanV2Service.publish(api.id, plan.id).pipe(
+              // If publish success, add it to the result
+              map((plan: PlanV4) => ({
+                ...previousResult,
+                result: { ...previousResult.result, plans: [...(previousResult.result?.plans ?? []), plan] },
+              })),
+              // If publish failed, add error message to the result
+              catchError((err) => {
+                errorMessages.push(`Error while publishing plan "${plan.name}": ${err.error?.message}.`);
+                return of({
+                  ...previousResult,
+                  errorMessages,
+                });
+              }),
+            ),
+          ),
+          // If create failed, add error message to the result
+          catchError((err) => {
+            errorMessages.push(`Error while creating plan "${plan.name}": ${err.error?.message}.`);
+            return of({
+              ...previousResult,
+              errorMessages,
+            });
+          }),
+        ),
+      ),
     );
   }
 
-  private publishPlans$(apiCreationStatus: Result): Observable<Result> {
-    return forkJoin(
-      apiCreationStatus.result.plans.map((p: PlanV4) => {
-        return this.apiPlanV2Service.publish(apiCreationStatus.result.api.id, p.id);
-      }),
-    ).pipe(
-      map(() => apiCreationStatus),
-      catchError((err) => {
-        return of({
-          ...apiCreationStatus,
-          status: 'failure' as const,
-          message: `Error while publishing plans: ${err.error?.message}`,
-        });
-      }),
-    );
-  }
+  private startApi$(previousResult: Result): Observable<Result> {
+    if (!previousResult.apiCreationPayload.deploy) {
+      return of(previousResult);
+    }
 
-  private startApi$(planPublishResult: Result): Observable<Result> {
-    return this.apiV2Service.start(planPublishResult.result.api.id).pipe(
-      map(() => planPublishResult),
+    return this.apiV2Service.start(previousResult.result.api.id).pipe(
+      map(() => ({ ...previousResult, result: { ...previousResult.result, deployed: true } })),
       catchError((err) => {
         return of({
-          ...planPublishResult,
-          status: 'failure' as const,
-          message: `Error while starting API: ${err.error?.message}`,
+          ...previousResult,
+          errorMessages: [...previousResult.errorMessages, `Error while starting API: ${err.error?.message}.`],
         });
       }),
     );
