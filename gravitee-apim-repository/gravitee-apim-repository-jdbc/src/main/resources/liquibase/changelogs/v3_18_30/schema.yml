@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.18.30
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # Flows Changes
+        # ################
+        - modifyDataType:
+            tableName: ${gravitee_prefix}notification_templates
+            columnName: title
+            newDataType: nvarchar(256)
