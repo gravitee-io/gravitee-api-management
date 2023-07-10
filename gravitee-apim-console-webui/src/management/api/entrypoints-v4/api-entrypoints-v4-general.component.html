@@ -15,42 +15,48 @@
     limitations under the License.
 
 -->
-<mat-card class="entrypoints">
-  <h3>Entrypoints</h3>
+<div class="entrypoints">
   <form [formGroup]="formGroup" *ngIf="formGroup" (ngSubmit)="onSaveChanges()">
-    <div class="entrypoints__context-path" *ngIf="pathsFormControl">
-      <div class="entrypoints__context-path__title">
-        <span class="mat-body-strong">Entrypoints context-paths</span>
+    <mat-card *ngIf="apiExistingPaths?.length > 0">
+      <div class="entrypoints__context-path">
+        <div class="entrypoints__context-path__title">
+          <span class="mat-body-strong">Entrypoint context-paths</span>
 
-        <button id="switchListenerType" mat-button type="button" (click)="switchEntrypointsMode()">
-          <ng-container *ngIf="!this.enableVirtualHost"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
-          <ng-container *ngIf="this.enableVirtualHost"> <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts </ng-container>
-        </button>
+          <button id="switchListenerType" mat-button type="button" (click)="switchEntrypointsMode()">
+            <ng-container *ngIf="!this.enableVirtualHost"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
+            <ng-container *ngIf="this.enableVirtualHost"> <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts </ng-container>
+          </button>
+        </div>
+        <gio-form-listeners-context-path
+          *ngIf="!this.enableVirtualHost"
+          [formControl]="pathsFormControl"
+          [pathsToIgnore]="apiExistingPaths"
+        ></gio-form-listeners-context-path>
+
+        <gio-form-listeners-virtual-host
+          *ngIf="this.enableVirtualHost"
+          [formControl]="pathsFormControl"
+          [pathsToIgnore]="apiExistingPaths"
+          [domainRestrictions]="domainRestrictions"
+        ></gio-form-listeners-virtual-host>
       </div>
-      <gio-form-listeners-context-path
-        *ngIf="!this.enableVirtualHost"
-        [formControl]="pathsFormControl"
-        [pathsToIgnore]="apiExistingPaths"
-      ></gio-form-listeners-context-path>
-
-      <gio-form-listeners-virtual-host
-        *ngIf="this.enableVirtualHost"
-        [formControl]="pathsFormControl"
-        [pathsToIgnore]="apiExistingPaths"
-        [domainRestrictions]="domainRestrictions"
-      ></gio-form-listeners-virtual-host>
-    </div>
-
+      <div class="entrypoints__footer">
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="formGroup.pristine || formGroup.invalid || dataSource.length === 0"
+        >
+          Save changes
+        </button>
+        <button mat-stroked-button type="button" (click)="onReset()" [disabled]="!formGroup.dirty">Reset</button>
+      </div>
+    </mat-card>
+  </form>
+  <mat-card *ngIf="api?.type === 'MESSAGE'">
     <div class="entrypoints__type">
-      <span class="mat-body-strong">Entrypoints types</span>
-
-      <table
-        mat-table
-        [dataSource]="dataSource"
-        class="entrypoints__type__table gio-table-light"
-        aria-label="entrypoints"
-        *ngIf="api?.type === 'MESSAGE'"
-      >
+      <span class="mat-body-strong">Entrypoint types</span>
+      <table mat-table [dataSource]="dataSource" class="entrypoints__type__table gio-table-light" aria-label="entrypoints">
         <ng-container matColumnDef="type">
           <th mat-header-cell *matHeaderCellDef>Entrypoint type</th>
           <td mat-cell *matCellDef="let element">
@@ -61,10 +67,13 @@
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let element" class="entrypoints__type__table__actions">
             <button type="button" mat-icon-button aria-label="Edit" (click)="onEdit(element)">
-              <mat-icon svgIcon="gio:edit-pencil"> </mat-icon>
+              <mat-icon svgIcon="gio:edit-pencil" matTooltip="Edit"> </mat-icon>
             </button>
-            <button type="button" [disabled]="dataSource.length === 1" mat-icon-button aria-label="Delete" (click)="onDelete(element)">
-              <mat-icon svgIcon="gio:trash"></mat-icon>
+            <button type="button" [disabled]="dataSource.length <= 1" mat-icon-button aria-label="Delete" (click)="onDelete(element)">
+              <mat-icon
+                svgIcon="gio:trash"
+                [matTooltip]="dataSource.length <= 1 ? 'At least one entrypoint is required' : 'Delete'"
+              ></mat-icon>
             </button>
           </td>
         </ng-container>
@@ -72,21 +81,9 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns" class="entrypoints__type__table__header"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
-      <button
-        mat-stroked-button
-        type="button"
-        *ngIf="api?.type === 'MESSAGE'"
-        [disabled]="entrypointAvailableForAdd.length < 1"
-        (click)="addNewEntrypoint()"
-      >
+      <button mat-stroked-button type="button" [disabled]="entrypointAvailableForAdd.length < 1" (click)="addNewEntrypoint()">
         Add an entrypoint
       </button>
     </div>
-
-    <div class="entrypoints__footer">
-      <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.pristine || formGroup.invalid || dataSource.length === 0">
-        Save changes
-      </button>
-    </div>
-  </form>
-</mat-card>
+  </mat-card>
+</div>

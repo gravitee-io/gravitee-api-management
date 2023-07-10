@@ -18,7 +18,7 @@ import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing'
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
-  public static hostSelector = 'api-entrypoints-v4-general';
+  public static hostSelector = '.entrypoints';
 
   private tableLocator = this.locatorFor(MatTableHarness);
 
@@ -37,7 +37,7 @@ export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
       .then((actionCell) => actionCell[0].getAllHarnesses(MatButtonHarness))
       .then((actionButtons) => actionButtons[1]);
   }
-  async deleteRowByIndex(index: number): Promise<void> {
+  async deleteEntrypointByIndex(index: number): Promise<void> {
     return this.getDeleteBtnByRowIndex(index).then((btn) => btn.click());
   }
 }
