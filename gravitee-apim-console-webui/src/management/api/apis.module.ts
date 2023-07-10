@@ -75,7 +75,7 @@ function apiPermissionHook($transitions: TransitionService, gioPermissionService
         )
         .toPromise();
     },
-    { priority: 11 },
+    { priority: 9 },
   );
 }
 graviteeManagementModule.run(apiPermissionHook);
