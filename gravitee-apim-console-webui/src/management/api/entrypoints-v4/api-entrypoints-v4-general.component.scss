@@ -9,6 +9,10 @@
 }
 
 .entrypoints {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
   &__context-path {
     &__title {
       display: flex;

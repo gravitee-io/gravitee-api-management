@@ -17,7 +17,7 @@
 -->
 <ng-container *ngIf="!showContextPathForm; else contextPathForm">
   <div class="header">
-    <div class="header__title">Select your Event-Native API entrypoints</div>
+    <div class="header__title">Add your API entrypoints</div>
     <p class="header__subtitle">Choose how your users will consume your API</p>
   </div>
 
@@ -25,7 +25,7 @@
     <gio-entrypoints-selection-list formControlName="selectedEntrypointsIds" [entrypoints]="entrypoints"></gio-entrypoints-selection-list>
     <mat-dialog-actions class="actions">
       <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my entrypoints</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Add API entrypoints</button>
     </mat-dialog-actions>
   </form>
 </ng-container>

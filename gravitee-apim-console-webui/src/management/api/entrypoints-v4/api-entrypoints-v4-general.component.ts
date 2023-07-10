@@ -16,11 +16,11 @@
 import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
-import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/core';
-import { flatten, isEmpty } from 'lodash';
+import { flatten, isEmpty, remove } from 'lodash';
 
 import { ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData } from './edit/api-entrypoints-v4-add-dialog.component';
 
@@ -49,7 +49,6 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   public api: ApiV4;
   public formGroup: FormGroup;
   public pathsFormControl: FormControl;
-  public entrypointsToRemoveFormControl: FormControl;
   public displayedColumns = ['type', 'actions'];
   public dataSource: EntrypointVM[] = [];
   private allEntrypoints: ConnectorPlugin[];
@@ -102,10 +101,10 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
       this.formGroup.addControl('paths', this.pathsFormControl);
       this.enableVirtualHost = this.apiExistingPaths.some((path) => path.host !== undefined);
     } else {
+      this.apiExistingPaths = [];
+      this.formGroup.removeControl('paths');
       this.enableVirtualHost = false;
     }
-    this.entrypointsToRemoveFormControl = this.formBuilder.control([]);
-    this.formGroup.addControl('entrypointsToRemove', this.entrypointsToRemoveFormControl);
 
     const existingEntrypoints = flatten(this.api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
     this.entrypointAvailableForAdd = this.allEntrypoints
@@ -133,9 +132,44 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   }
 
   onDelete(elementToRemove: EntrypointVM) {
-    this.entrypointsToRemoveFormControl.setValue([elementToRemove.id, ...this.entrypointsToRemoveFormControl.value]);
-    this.entrypointsToRemoveFormControl.markAsDirty();
-    this.dataSource = this.dataSource.filter((e) => e !== elementToRemove);
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: {
+          title: 'Delete Entrypoint',
+          content: `Are you sure you want to delete your <strong>${elementToRemove.type}</strong> entrypoint?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deleteEntrypointConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.get(this.api.id)),
+        switchMap((api: ApiV4) => {
+          api.listeners.forEach((listener) => {
+            remove(listener.entrypoints, (e) => e.type === elementToRemove.id);
+          });
+
+          const updateApi: UpdateApiV4 = {
+            ...(api as ApiV4),
+            listeners: [...api.listeners].filter((listener) => listener.entrypoints.length > 0),
+          };
+          return this.apiService.update(api.id, updateApi);
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(
+            error.message === 'Validation error' ? `${error.message}: ${error.details[0].message}` : error.message,
+          );
+          return EMPTY;
+        }),
+        tap(() => this.snackBarService.success(`${elementToRemove.type} entrypoint successfully deleted!`)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((api) => {
+        this.initForm(api as ApiV4);
+      });
   }
 
   addNewEntrypoint() {
@@ -143,7 +177,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     // Show dialog to add a new entrypoint
     this.matDialog
       .open<ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData>(ApiEntrypointsV4AddDialogComponent, {
-        data: { entrypoints: this.entrypointAvailableForAdd, hasHttpListener },
+        data: { entrypoints: this.entrypointAvailableForAdd.sort((e1, e2) => e1.name.localeCompare(e2.name)), hasHttpListener },
       })
       .afterClosed()
       .pipe(
@@ -155,7 +189,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
           return EMPTY;
         }),
         tap(() => {
-          this.snackBarService.success('Configuration successfully saved!');
+          this.snackBarService.success('New entrypoint successfully added!');
         }),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? err.message);
@@ -181,29 +215,19 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
             paths: this.enableVirtualHost
               ? formValue.paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
               : formValue.paths.map(({ path }) => ({ path })),
-            entrypoints: [
-              ...currentHttpListener.entrypoints.filter((listener) => !this.entrypointsToRemoveFormControl.value.includes(listener.type)),
-            ],
+            entrypoints: currentHttpListener.entrypoints,
           };
           const updateApi: UpdateApiV4 = {
             ...(api as ApiV4),
-            listeners: [
-              updatedHttpListener,
-              ...this.api.listeners
-                .filter((listener) => listener.type !== 'HTTP')
-                .map((l) => {
-                  return {
-                    ...l,
-                    entrypoints: l.entrypoints.filter((listener) => !this.entrypointsToRemoveFormControl.value.includes(listener.type)),
-                  };
-                }),
-            ].filter((listener) => listener.entrypoints.length > 0),
+            listeners: [updatedHttpListener, ...this.api.listeners.filter((listener) => listener.type !== 'HTTP')].filter(
+              (listener) => listener.entrypoints.length > 0,
+            ),
           };
 
           return this.apiService.update(this.apiId, updateApi);
         }),
         tap(() => {
-          this.snackBarService.success('Configuration successfully saved!');
+          this.snackBarService.success('Context-path configuration successfully saved!');
         }),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? err.message);
@@ -223,7 +247,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
           width: '500px',
           data: {
             title: 'Switch to context-path mode',
-            content: `By moving back to context-path you will loose all virtual-hosts. Are you sure to continue?`,
+            content: `By moving back to context-path you will lose all virtual-hosts. Are you sure to continue?`,
             confirmButton: 'Switch',
           },
           role: 'alertdialog',
@@ -289,5 +313,10 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
       }),
       takeUntil(this.unsubscribe$),
     );
+  }
+
+  onReset() {
+    this.formGroup.reset();
+    this.initForm(this.api);
   }
 }
