@@ -34,9 +34,10 @@ export class SnackBarService {
     });
   }
 
-  error(message: string, undoAction?: string) {
-    return this.matSnackBar.open(message, undoAction, {
+  error(message: string) {
+    return this.matSnackBar.open(message, 'Close', {
       ...this.defaultSnackBarOptions,
+      duration: undefined,
       panelClass: 'gio-snack-bar-error',
     });
   }
