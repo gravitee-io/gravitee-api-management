@@ -49,6 +49,10 @@ export class ApiEndpointsGroupsHarness extends ComponentHarness {
       .then((element) => element.click());
   }
 
+  public async isEndpointDeleteDisabled(index: number) {
+    return this.getDeleteEndpointButtons().then((buttons) => buttons[index].isDisabled());
+  }
+
   public async clickAddEndpoint(index: number) {
     const button = (await this.getAddEndpointButtons())[index];
     return button.click();
