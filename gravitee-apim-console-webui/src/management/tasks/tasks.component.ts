@@ -23,7 +23,7 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-pa
 import { TaskService } from '../../services-ngx/task.service';
 import { PagedResult } from '../../entities/pagedResult';
 import { PromotionApprovalTaskData, Task } from '../../entities/task/task';
-import { UIRouterState } from '../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../ajs-upgraded-providers';
 import { PromotionService } from '../../services-ngx/promotion.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { Workflow } from '../../entities/workflow/workflow';
@@ -53,6 +53,7 @@ export class TasksComponent implements OnInit, OnDestroy {
     private readonly taskService: TaskService,
     private readonly promotionService: PromotionService,
     @Inject(UIRouterState) private readonly ajsState: StateService,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
@@ -91,19 +92,29 @@ export class TasksComponent implements OnInit, OnDestroy {
   }
 
   go(task: TaskData): void {
+    const currentEnvironmentId = this.ajsStateParams.environmentId;
+
     switch (task.type) {
       case 'SUBSCRIPTION_APPROVAL': {
-        const { api, id } = task.data as any;
+        const { api: apiId, id } = task.data as any;
+        const taskEnvironmentId = this.tasks.metadata[apiId]?.environmentId;
+
         this.ajsState.go('management.apis.detail.portal.subscriptions.subscription', {
-          apiId: api,
+          apiId,
           subscriptionId: id,
+          environmentId: taskEnvironmentId || currentEnvironmentId,
         });
         break;
       }
       case 'IN_REVIEW':
       case 'REQUEST_FOR_CHANGES': {
         const { referenceId } = task.data as Workflow;
-        this.ajsState.go('management.apis.detail.portal.general', { apiId: referenceId });
+        const taskEnvironmentId = this.tasks.metadata[referenceId]?.environmentId;
+
+        this.ajsState.go('management.apis.detail.portal.general', {
+          apiId: referenceId,
+          environmentId: taskEnvironmentId || currentEnvironmentId,
+        });
         break;
       }
       case 'USER_REGISTRATION_APPROVAL': {
