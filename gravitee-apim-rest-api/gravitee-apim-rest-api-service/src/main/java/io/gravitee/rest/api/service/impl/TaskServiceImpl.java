@@ -282,7 +282,10 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
         if (API.name().equals(workflow.getReferenceType()) && !metadata.containsKey(workflow.getReferenceId())) {
             try {
                 Optional<Api> optionalApi = apiRepository.findById(workflow.getReferenceId());
-                optionalApi.ifPresent(api -> metadata.put(workflow.getReferenceId(), "name", api.getName()));
+                optionalApi.ifPresent(api -> {
+                    metadata.put(workflow.getReferenceId(), "name", api.getName());
+                    metadata.put(workflow.getReferenceId(), "environmentId", api.getEnvironmentId());
+                });
             } catch (TechnicalException e) {
                 LOGGER.error("Error retrieving api task metadata {}", e.getMessage());
             }
@@ -292,7 +295,11 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     private void addApplicationMetadata(Metadata metadata, SubscriptionEntity subscription) {
         try {
             Optional<Application> application = applicationRepository.findById(subscription.getApplication());
-            application.ifPresent(value -> metadata.put(subscription.getApplication(), "name", value.getName()));
+
+            application.ifPresent(value -> {
+                metadata.put(subscription.getApplication(), "name", value.getName());
+                metadata.put(subscription.getApplication(), "environmentId", value.getEnvironmentId());
+            });
         } catch (TechnicalException e) {
             LOGGER.error("Error retrieving application task metadata {}", e.getMessage());
         }
@@ -309,6 +316,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
                 Optional<Api> optionalApi = apiRepository.findById(apiId);
                 optionalApi.ifPresent(api -> metadata.put(apiId, "name", api.getName()));
+                optionalApi.ifPresent(api -> metadata.put(apiId, "environmentId", api.getEnvironmentId()));
             }
         } catch (TechnicalException e) {
             LOGGER.error("Error retrieving plan task metadata {}", e.getMessage());
