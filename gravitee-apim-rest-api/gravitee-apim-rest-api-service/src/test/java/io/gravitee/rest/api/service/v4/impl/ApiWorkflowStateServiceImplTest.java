@@ -157,6 +157,31 @@ public class ApiWorkflowStateServiceImplTest {
     }
 
     @Test
+    public void shouldAskForReviewWithNoMessage() {
+        final GenericApiEntity genericApiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        genericApiEntity.setId(API_ID);
+
+        when(workflowService.create(WorkflowReferenceType.API, API_ID, REVIEW, USER_ID, WorkflowState.IN_REVIEW, null)).thenReturn(null);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(genericApiEntity);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(new UserEntity());
+
+        apiWorkflowStateService.askForReview(GraviteeContext.getExecutionContext(), API_ID, USER_ID, null);
+
+        verify(workflowService).create(WorkflowReferenceType.API, API_ID, REVIEW, USER_ID, WorkflowState.IN_REVIEW, null);
+        verify(auditService)
+            .createApiAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(apiId -> apiId.equals(API_ID)),
+                anyMap(),
+                argThat(evt -> Workflow.AuditEvent.API_REVIEW_ASKED.equals(evt)),
+                any(),
+                any(),
+                any()
+            );
+        verify(apiNotificationService, times(0)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), any(ApiEntity.class));
+    }
+
+    @Test
     public void shouldAcceptReview() {
         final GenericApiEntity genericApiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         genericApiEntity.setId(API_ID);
