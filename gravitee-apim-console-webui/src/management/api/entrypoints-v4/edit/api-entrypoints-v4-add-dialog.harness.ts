@@ -24,7 +24,7 @@ export class ApiEntrypointsV4AddDialogHarness extends ComponentHarness {
 
   private entrypointListLocator = this.locatorFor(GioEntrypointsSelectionListHarness);
   private contextPathFormLocator = this.locatorFor(GioFormListenersContextPathHarness);
-  private saveButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Select my entrypoints' }));
+  private saveButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add API entrypoints' }));
   private saveWithContextPathButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Validate my entrypoints' }));
   private cancelButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
   public getEntrypointSelectionList() {
