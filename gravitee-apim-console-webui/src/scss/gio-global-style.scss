@@ -10,12 +10,20 @@ $background: map.get(gio.$mat-theme, background);
   white-space: pre-wrap;
   background-color: mat.get-color-from-palette(gio.$mat-success-palette, default);
   color: mat.get-color-from-palette(gio.$mat-success-palette, default-contrast);
+
+  .mat-button {
+    color: mat.get-color-from-palette(gio.$mat-success-palette, default-contrast);
+  }
 }
 
 .gio-snack-bar-error {
   white-space: pre-wrap;
   background-color: mat.get-color-from-palette(gio.$mat-error-palette, default);
   color: mat.get-color-from-palette(gio.$mat-error-palette, default-contrast);
+
+  .mat-button {
+    color: mat.get-color-from-palette(gio.$mat-error-palette, default-contrast);
+  }
 }
 
 /**
