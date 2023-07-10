@@ -25,18 +25,6 @@ import apiDetails from '@pageobjects/Apis/ApiDetails';
             cy.wait(1000)
             cy.contains('Home board').should('be.visible');
         });
-
-        // it('Navigate to Test API', () => {
-        //     cy.visit('/')
-        //     HomePage.apis().click();
-        //     cy.getByDataTestId('search').click().type("Test");
-        //     cy.get('input').type('{enter}')
-        //     cy.wait(1000)
-        //     cy.getByDataTestId('api_list_edit_button').first().click();
-        //     ApiDetails.design().should('be.visible');
-        //     ApiDetails.general().should('be.visible');
-        //     ApiDetails.plans().should('be.visible');
-        // });
         
         it('Verify Existing Plan', () => {
             cy.visit('/#!/environments/default/apis/?q=Test&page=1&size=10');
