@@ -65,10 +65,6 @@
     &__actions {
       display: flex;
       justify-content: center;
-
-      mat-icon {
-        color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter50');
-      }
     }
   }
 
