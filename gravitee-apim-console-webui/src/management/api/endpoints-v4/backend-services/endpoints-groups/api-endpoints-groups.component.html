@@ -104,10 +104,17 @@
                 <button
                   mat-icon-button
                   aria-label="Delete endpoint"
-                  matTooltip="Delete endpoint"
                   (click)="deleteEndpoint(group.name, element.name)"
+                  [disabled]="groupsTableData?.length === 1 && group.endpoints.length === 1"
                 >
-                  <mat-icon svgIcon="gio:trash"></mat-icon>
+                  <mat-icon
+                    [matTooltip]="
+                      groupsTableData?.length === 1 && group.endpoints.length === 1
+                        ? 'At least one endpoint is required'
+                        : 'Delete endpoint'
+                    "
+                    svgIcon="gio:trash"
+                  ></mat-icon>
                 </button>
               </div>
             </td>

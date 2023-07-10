@@ -148,6 +148,15 @@ describe('ApiEndpointsGroupsComponent', () => {
       });
       expectEndpointsGetRequest();
     });
+
+    it('should not be able to delete last endpoint', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group2],
+      });
+      await initComponent(apiV4);
+      expect(await componentHarness.isEndpointDeleteDisabled(0)).toEqual(true);
+    });
   });
 
   describe('deleteGroup', () => {
