@@ -18,7 +18,7 @@
 <ng-container *ngIf="generalForm" [formGroup]="generalForm">
   <mat-form-field class="name-field">
     <mat-label>Name</mat-label>
-    <input matInput formControlName="name" required />
+    <input matInput data-testid="api_planName" formControlName="name" required />
     <mat-error *ngIf="generalForm.get('name').hasError('required')">Name is required.</mat-error>
     <mat-error *ngIf="generalForm.get('name').hasError('maxlength')">The name has to be less than 50 characters long.</mat-error>
     <mat-hint align="end">{{ generalForm.get('name').value?.length || 0 }}/50</mat-hint>
@@ -26,7 +26,7 @@
 
   <mat-form-field class="description-field">
     <mat-label>Description</mat-label>
-    <textarea matInput formControlName="description"></textarea>
+    <textarea matInput data-testid="api_planDescription" formControlName="description"></textarea>
   </mat-form-field>
 
   <mat-form-field class="characteristics-field">

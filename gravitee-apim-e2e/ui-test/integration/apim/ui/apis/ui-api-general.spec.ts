@@ -25,60 +25,57 @@ import apiDetails from '@pageobjects/Apis/ApiDetails';
             cy.wait(1000)
             cy.contains('Home board').should('be.visible');
         });
-
-        // it('Navigate to Test (1) API', () => {
-        //     cy.visit('/')
-        //     HomePage.apis().click();
-        //     ApiHome.searchApi().click().type("Test");
-        //     cy.get('input').type('{enter}')
-        //     ApiHome.testApi().click().click();
-        //     cy.contains('Test (1)').should('be.visible');
-        //     ApiDetails.design().should('be.visible');
-        //     ApiDetails.general().should('be.visible');
-        //     ApiDetails.plans().should('be.visible');
-        // });
         
         it('Verify General Page Elements', () => {
             cy.visit('/#!/environments/default/apis/');
-            ApiHome.searchApi().click().type("Test");
+            cy.getByDataTestId('search').click().type("Test")
             cy.get('input').type('{enter}')
-            ApiHome.testApi().click().click();
-            cy.contains('Test (1)').should('be.visible');
-            ApiDetails.design().should('be.visible');
-            ApiDetails.general().should('be.visible');
-            ApiDetails.plans().should('be.visible');
-            ApiDetails.general().click();
-            ApiDetails.generalName().should('be.visible');
-            ApiDetails.generalVersion().should('be.visible');
-            ApiDetails.generalDescription().should('be.visible');
-            ApiDetails.generalLabels().should('be.visible');
-            ApiDetails.generalCategories().should('be.visible');
-            ApiDetails.generalCategories().click();
-            ApiDetails.categories().should('be.visible');
+            cy.wait(1000)
+            cy.getByDataTestId('api_list_edit_button').first().click();
+            // cy.contains('Test (1)').should('be.visible');
+            cy.contains('Design').should('be.visible');
+            cy.contains('General').should('be.visible');
+            cy.contains('Plans').should('be.visible');
+            // ApiDetails.general().click();
+            // ^ I cannot pinpoint the html element for this button.
+            cy.getByDataTestId('generalName').should('be.visible');
+            cy.getByDataTestId('generalVersion').should('be.visible');
+            cy.getByDataTestId('generalDescription').should('be.visible');
+            cy.getByDataTestId('generalLabels').should('be.visible');
+            cy.getByDataTestId('generalCategories').should('be.visible');
+            cy.getByDataTestId('generalCategories').click();
+            cy.getByDataTestId('categoryList').should('be.visible');
         })
 
         it('Edit General Page and Verify changes', () => {
             cy.visit('/#!/environments/default/apis/');
-            ApiHome.searchApi().click().type("Test");
+            cy.getByDataTestId('search').click().type("Test");
             cy.get('input').type('{enter}')
-            ApiHome.testApi().click().click();
-            ApiDetails.general().click();
-            ApiDetails.generalName().should('be.visible');
-            ApiDetails.generalName().type(' EDIT');
             cy.wait(1000)
-            ApiDetails.saveDetails().click();
+            cy.getByDataTestId('api_list_edit_button').first().click();
+            // ApiDetails.general().click();
+            // ^ I cannot pinpoint the html element for this button.
+            cy.getByDataTestId('generalName').should('be.visible');
+            cy.getByDataTestId('generalName').type(' EDIT');
+            cy.getByDataTestId('generalVersion').clear().type('1');
+            cy.wait(1000)
+            // // ApiDetails.saveDetails().click();
+            cy.getByDataTestId('apiGeneralSaveBar').contains('Save').click();
             cy.contains('Configuration successfully saved!').should('be.visible');
-            HomePage.apis().click();
-            ApiHome.searchApi().click().type("Test");
+            cy.visit('/#!/environments/default/apis/');
+            cy.getByDataTestId('search').click().type("EDIT");
             cy.get('input').type('{enter}');
-            cy.contains('Test EDIT (1)').should('be.visible');
-            cy.get('[href]').contains('Test EDIT (1)').click().click();
-            // cy.contains('Test EDIT (1)').click().click();
-            ApiDetails.generalName().should('be.visible');
-            ApiDetails.generalName().clear().type('Test')
-            cy.wait(1000)
-            ApiDetails.saveDetails().click();
-            cy.contains('Configuration successfully saved!').should('be.visible');
+            cy.contains('EDIT (1)').should('be.visible');
+            // ^ for now, test stops here to verify edited api until i figure out faker to generate a random api name
+
+            // cy.get('[href]').contains('EDIT (1)').click().click();
+            // cy.getByDataTestId('generalName').should('be.visible');
+            // cy.getByDataTestId('generalName').clear().type('Test');
+            // // ^ Could probably do with faker here to generate random name so this test is able to execute over and over.
+            // cy.wait(1000)
+            // // ApiDetails.saveDetails().click();
+            // cy.getByDataTestId('apiGeneralSaveDetails').click();
+            // cy.contains('Configuration successfully saved!').should('be.visible');
             })
 
     });

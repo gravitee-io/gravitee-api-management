@@ -31,6 +31,7 @@
     [creationMode]="mode === 'create'"
     [form]="planForm"
     [formInitialValues]="initialPlanFormValue"
+    data-testid="planCreate"
     [hideSubmitButton]="mode === 'create' && apiPlanForm.hasNextStep() === true"
   >
     <button
@@ -49,6 +50,7 @@
       gioFormFocusInvalid
       color="primary"
       type="button"
+      data-testid="planNext"
       (click)="apiPlanForm.nextStep()"
     >
       Next

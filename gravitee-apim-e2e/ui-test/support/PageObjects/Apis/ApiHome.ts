@@ -4,7 +4,7 @@ class apiHome {
 
     searchApi(){return cy.get('[data-testid="search"]')}
 
-    testApi(){return cy.get('[href]').contains('Test (1)')}
+    testApi(){return cy.get('[data-layer="Content"]').first()}
 
 }
 
