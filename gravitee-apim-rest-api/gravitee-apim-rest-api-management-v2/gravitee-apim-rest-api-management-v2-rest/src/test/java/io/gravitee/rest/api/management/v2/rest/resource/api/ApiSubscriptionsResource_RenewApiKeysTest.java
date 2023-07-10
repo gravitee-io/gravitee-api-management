@@ -23,12 +23,15 @@ import static org.mockito.Mockito.*;
 import fixtures.ApplicationFixtures;
 import fixtures.SubscriptionFixtures;
 import io.gravitee.rest.api.management.v2.rest.model.ApiKey;
+import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Subscription;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -37,6 +40,7 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.Set;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ApiSubscriptionsResource_RenewApiKeysTest extends ApiSubscriptionsResourceTest {
@@ -44,6 +48,37 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends ApiSubscriptionsR
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API + "/subscriptions" + "/" + SUBSCRIPTION + "/api-keys/_renew";
+    }
+
+    @Before
+    public void before() {
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(true);
+    }
+
+    @Test
+    public void should_return_400_if_custom_api_key_not_enabled() {
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(false);
+
+        final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aRenewApiKey()));
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+
+        var error = response.readEntity(Error.class);
+        assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
+        assertEquals("You are not allowed to provide a custom API Key", error.getMessage());
     }
 
     @Test

@@ -500,13 +500,23 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @PathParam("subscriptionId") String subscriptionId,
         @Valid @NotNull RenewApiKey renewApiKey
     ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (
+            StringUtils.isNotEmpty(renewApiKey.getCustomApiKey()) &&
+            !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+        ) {
+            return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(subscriptionInvalid("You are not allowed to provide a custom API Key"))
+                .build();
+        }
+
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
 
         if (!subscriptionEntity.getApi().equals(apiId)) {
             return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
         }
 
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         checkApplicationDoesntUseSharedApiKey(executionContext, subscriptionEntity.getApplication());
 
         final ApiKeyEntity apiKeyEntity = apiKeyService.renew(executionContext, subscriptionEntity, renewApiKey.getCustomApiKey());
