@@ -45,21 +45,23 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   let fixture: ComponentFixture<ApiEntrypointsV4GeneralComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let rootLoader: HarnessLoader;
 
-  const createComponent = (environment: Environment, api: ApiV4) => {
-    fixture = TestBed.createComponent(ApiEntrypointsV4GeneralComponent);
+  const createComponent = async (environment: Environment, api: ApiV4, getPortalSettings = true) => {
+    await init();
     fixture.detectChanges();
 
     expectGetCurrentEnvironment(environment);
     expectGetEntrypoints();
     expectGetApi(api);
-    fixture.detectChanges();
 
-    loader = TestbedHarnessEnvironment.loader(fixture);
+    if (getPortalSettings) {
+      expectGetPortalSettings();
+    }
   };
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  const init = async () => {
+    await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
@@ -72,7 +74,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
-  });
+    fixture = await TestBed.createComponent(ApiEntrypointsV4GeneralComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = await TestbedHarnessEnvironment.documentRootLoader(fixture);
+  };
 
   afterEach(() => {
     httpTestingController.verify({ ignoreCancelled: true });
@@ -85,10 +90,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       listeners: [{ type: 'HTTP', entrypoints: [{ type: 'http-get' }], paths: [{ path: '/path' }] }],
     });
 
-    beforeEach(() => {
-      createComponent(ENV, API);
-      expectGetPortalSettings();
-      fixture.detectChanges();
+    beforeEach(async () => {
+      await createComponent(ENV, API);
     });
 
     it('should show context paths only', async () => {
@@ -107,9 +110,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     const ENV = fakeEnvironment();
     const API = fakeApiV4({ listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }] });
 
-    beforeEach(() => {
-      createComponent(ENV, API);
-      fixture.detectChanges();
+    beforeEach(async () => {
+      await createComponent(ENV, API, false);
     });
 
     it('should not show context paths', async () => {
@@ -130,10 +132,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     const ENV = fakeEnvironment();
     const API = fakeApiV4({ listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] }] });
 
-    beforeEach(() => {
-      createComponent(ENV, API);
-      expectGetPortalSettings();
-      fixture.detectChanges();
+    beforeEach(async () => {
+      await createComponent(ENV, API);
     });
 
     it('should show context paths', async () => {
@@ -173,6 +173,23 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       saveReq.flush(API);
     });
 
+    it('should reset context-paths', async () => {
+      const harness = await loader.getHarness(GioFormListenersContextPathHarness);
+
+      await harness.addListener({ path: '/new-context-path' });
+      expectApiVerify();
+      fixture.detectChanges();
+
+      expect(await harness.getLastListenerRow().then((row) => row.pathInput.getValue())).toEqual('/new-context-path');
+
+      const resetButton = await loader.getHarness(MatButtonHarness.with({ text: 'Reset' }));
+
+      expect(await resetButton.isDisabled()).toBeFalsy();
+      await resetButton.click();
+
+      expect(await harness.getLastListenerRow().then((row) => row.pathInput.getValue())).toEqual('/context-path');
+    });
+
     it('should switch to virtual host mode', async () => {
       const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Enable virtual hosts' }));
       await switchButton.click();
@@ -190,10 +207,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       listeners: [{ type: 'HTTP', paths: [{ path: '/context-path', host: 'host' }], entrypoints: [{ type: 'http-get' }] }],
     });
 
-    beforeEach(() => {
-      createComponent(ENV, API);
-      expectGetPortalSettings();
-      fixture.detectChanges();
+    beforeEach(async () => {
+      await createComponent(ENV, API);
     });
 
     it('should show virtual host', async () => {
@@ -242,7 +257,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Disable virtual hosts' }));
       await switchButton.click();
 
-      const dialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
       await dialog.confirm();
 
       const harness = await loader.getHarness(GioFormListenersContextPathHarness);
@@ -254,21 +269,21 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
   describe('Entrypoints management', () => {
     const ENV = fakeEnvironment();
-    const API = fakeApiV4({
-      listeners: [
-        { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }, { type: 'http-post' }] },
-        { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
-      ],
-    });
+    const API = () =>
+      fakeApiV4({
+        id: API_ID,
+        listeners: [
+          { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }, { type: 'http-post' }] },
+          { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
+        ],
+      });
 
-    beforeEach(() => {
-      createComponent(ENV, API);
-      expectGetPortalSettings();
-      fixture.detectChanges();
+    beforeEach(async () => {
+      await createComponent(ENV, API());
     });
 
     it('should show entrypoints list with action buttons', async () => {
-      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
+      const harness = await loader.getHarness(ApiEntrypointsV4GeneralHarness);
       const rows = await harness.getEntrypointsTableRows();
       expect(rows.length).toEqual(3);
       const entrypointsTypes: MatRowHarnessColumnsText[] = await Promise.all(rows.map(async (row) => await row.getCellTextByColumnName()));
@@ -283,111 +298,89 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     it('should remove entrypoint and save changes', async () => {
-      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
+      const harness = await loader.getHarness(ApiEntrypointsV4GeneralHarness);
 
       const tableRows = await harness.getEntrypointsTableRows();
+      expect(tableRows.length).toEqual(3);
 
       // Find row to delete
       const allEntrypointsType = await Promise.all(
-        tableRows
-          .map(async (row) => {
-            return (await row.getCells({ columnName: 'type' }))[0];
-          })
-          .map(async (cell) => {
-            return await (await cell).getText();
-          }),
+        tableRows.map((row) => row.getCells({ columnName: 'type' }).then((cells) => cells[0].getText())),
       );
       const indexToRemove = allEntrypointsType.indexOf('HTTP POST');
       expect(indexToRemove).toEqual(1);
 
       // Delete
-      const actionCell = await tableRows[1].getCells({ columnName: 'actions' });
-      const actionButtons = await actionCell[0].getAllHarnesses(MatButtonHarness);
-      const deleteButton = actionButtons[1];
-      await deleteButton.click();
+      await harness.deleteEntrypointByIndex(1);
 
-      // Check row is removed and entrypoint marked for deletion
-      const rows = await harness.getEntrypointsTableRows();
-      expect(rows.length).toEqual(2);
-      expect(fixture.componentInstance.entrypointsToRemoveFormControl.value).toEqual(['http-post']);
-
-      // Check deletion is done on save
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
-
-      expect(await saveButton.isDisabled()).toBeFalsy();
-      await saveButton.click();
+      const deleteDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await deleteDialog.confirm();
 
       // GET
-      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
+      const currentApi = API();
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(currentApi);
       // UPDATE
       const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
       const expectedUpdateApi: UpdateApiV4 = {
-        ...API,
+        ...currentApi,
         listeners: [
           { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] },
           { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
         ],
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
-      saveReq.flush(API);
-    });
+      const updatedApi: ApiV4 = {
+        ...currentApi,
+        listeners: [
+          { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] },
+          { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
+        ],
+      };
+      saveReq.flush(updatedApi);
 
-    it('should remove empty listener before save changes', async () => {
-      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
-
-      const tableRows = await harness.getEntrypointsTableRows();
-
-      // Find row to delete
-      const allEntrypointsType = await Promise.all(
-        tableRows
-          .map(async (row) => {
-            return (await row.getCells({ columnName: 'type' }))[0];
-          })
-          .map(async (cell) => {
-            return await (await cell).getText();
-          }),
-      );
-      const indexToRemove = allEntrypointsType.indexOf('Webhook');
-      expect(indexToRemove).toEqual(2);
-
-      // Delete
-      const actionCell = await tableRows[2].getCells({ columnName: 'actions' });
-      const actionButtons = await actionCell[0].getAllHarnesses(MatButtonHarness);
-      const deleteButton = actionButtons[1];
-      await deleteButton.click();
-
+      fixture.detectChanges();
       // Check row is removed and entrypoint marked for deletion
       const rows = await harness.getEntrypointsTableRows();
       expect(rows.length).toEqual(2);
-      expect(fixture.componentInstance.entrypointsToRemoveFormControl.value).toEqual(['webhook']);
+    });
 
-      // Check deletion is done on save
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+    it('should not remove entrypoint on cancel', async () => {
+      const harness = await loader.getHarness(ApiEntrypointsV4GeneralHarness);
 
-      expect(await saveButton.isDisabled()).toBeFalsy();
-      await saveButton.click();
+      const tableRows = await harness.getEntrypointsTableRows();
+      expect(tableRows.length).toEqual(3);
 
-      // GET
-      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
-      // UPDATE
-      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
-      const expectedUpdateApi: UpdateApiV4 = {
-        ...API,
-        listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }, { type: 'http-post' }] }],
-      };
-      expect(saveReq.request.body).toEqual(expectedUpdateApi);
-      saveReq.flush(API);
+      // Find row to delete
+      const allEntrypointsType = await Promise.all(
+        tableRows.map((row) => row.getCells({ columnName: 'type' }).then((cells) => cells[0].getText())),
+      );
+      const indexToRemove = allEntrypointsType.indexOf('HTTP POST');
+      expect(indexToRemove).toEqual(1);
+
+      // Delete
+      await harness.deleteEntrypointByIndex(1);
+
+      const deleteDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await deleteDialog.cancel();
+
+      const rows = await harness.getEntrypointsTableRows();
+      expect(rows.length).toEqual(3);
     });
 
     it('should not add listener when clicking on cancel', async () => {
+      const harness = await loader.getHarness(ApiEntrypointsV4GeneralHarness);
+
+      const tableRows = await harness.getEntrypointsTableRows();
+      expect(tableRows.length).toEqual(3);
+
       const addListenerButton = await loader.getHarness(MatButtonHarness.with({ text: 'Add an entrypoint' }));
       expect(await addListenerButton.isDisabled()).toEqual(false);
       await addListenerButton.click();
 
-      const rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
       const dialog = await rootLoader.getHarness(ApiEntrypointsV4AddDialogHarness);
       const entrypointList = await dialog.getEntrypointSelectionList();
       const items = await entrypointList.getItems();
+
       expect(items.length).toEqual(1);
       expect(await items[0].getText()).toContain('Server-Sent Events');
 
@@ -403,7 +396,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(await addListenerButton.isDisabled()).toEqual(false);
       await addListenerButton.click();
 
-      const rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
       const dialog = await rootLoader.getHarness(ApiEntrypointsV4AddDialogHarness);
       const entrypointList = await dialog.getEntrypointSelectionList();
       const items = await entrypointList.getItems();
@@ -412,64 +404,39 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
       // click on save
       await dialog.getSaveButton().then((btn) => btn.click());
-      expectGetApi(API);
+      const currentApi = API();
+      expectGetApi(currentApi);
       // UPDATE
       const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
-      const expectedUpdateApi: UpdateApiV4 = {
-        ...API,
+      const updatedApi: ApiV4 = {
+        ...currentApi,
         listeners: [
           {
             type: 'HTTP',
-            ...API.listeners.find((l) => l.type === 'HTTP'),
-            entrypoints: [...API.listeners.find((l) => l.type === 'HTTP').entrypoints, { type: 'sse', configuration: {} }],
+            ...currentApi.listeners.find((l) => l.type === 'HTTP'),
+            entrypoints: [...currentApi.listeners.find((l) => l.type === 'HTTP').entrypoints, { type: 'sse', configuration: {} }],
           },
-          ...API.listeners.filter((l) => l.type !== 'HTTP'),
+          ...currentApi.listeners.filter((l) => l.type !== 'HTTP'),
         ],
       };
+      const expectedUpdateApi: UpdateApiV4 = { ...updatedApi };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
-      saveReq.flush(API);
-    });
-
-    it('should only be not be able to delete last entrypoint', async () => {
-      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
-      const tableRows = await harness.getEntrypointsTableRows();
-
-      // Find row to delete
-      const allEntrypointsType = await Promise.all(
-        tableRows.map(async (row) => row.getCells({ columnName: 'type' }).then((cells) => cells[0].getText())),
-      );
-      expect(allEntrypointsType).toEqual(['HTTP GET', 'HTTP POST', 'Webhook']);
-
-      // Delete
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
-      expect(await saveButton.isDisabled()).toEqual(true);
-
-      expect(await harness.getDeleteBtnByRowIndex(2).then((btn) => btn.isDisabled())).toEqual(false);
-      await harness.deleteRowByIndex(2);
-      expect(await saveButton.isDisabled()).toEqual(false);
-
-      expect(await harness.getDeleteBtnByRowIndex(1).then((btn) => btn.isDisabled())).toEqual(false);
-      await harness.deleteRowByIndex(1);
-      expect(await saveButton.isDisabled()).toEqual(false);
-
-      expect(await harness.getDeleteBtnByRowIndex(0).then((btn) => btn.isDisabled())).toEqual(true);
-      expect(await saveButton.isDisabled()).toEqual(false);
+      saveReq.flush(updatedApi);
     });
   });
 
   describe('When deleting the only entrypoint for HTTP listener', () => {
     const ENV = fakeEnvironment();
     const API = fakeApiV4({
+      id: API_ID,
       listeners: [
         { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] },
         { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
       ],
     });
 
-    beforeEach(() => {
-      createComponent(ENV, API);
-      expectGetPortalSettings();
-      fixture.detectChanges();
+    beforeEach(async () => {
+      await createComponent(ENV, API);
     });
 
     it('should remove empty HTTP listener and attached context-path on save', async () => {
@@ -479,33 +446,16 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
       // Find row to delete
       const allEntrypointsType = await Promise.all(
-        tableRows
-          .map(async (row) => {
-            return (await row.getCells({ columnName: 'type' }))[0];
-          })
-          .map(async (cell) => {
-            return await (await cell).getText();
-          }),
+        tableRows.map((row) => row.getCells({ columnName: 'type' }).then((cells) => cells[0].getText())),
       );
       const indexToRemove = allEntrypointsType.indexOf('HTTP GET');
       expect(indexToRemove).toEqual(0);
 
       // Delete
-      const actionCell = await tableRows[0].getCells({ columnName: 'actions' });
-      const actionButtons = await actionCell[0].getAllHarnesses(MatButtonHarness);
-      const deleteButton = actionButtons[1];
-      await deleteButton.click();
+      await harness.deleteEntrypointByIndex(indexToRemove);
 
-      // Check row is removed and entrypoint marked for deletion
-      const rows = await harness.getEntrypointsTableRows();
-      expect(rows.length).toEqual(1);
-      expect(fixture.componentInstance.entrypointsToRemoveFormControl.value).toEqual(['http-get']);
-
-      // Check deletion is done on save
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
-
-      expect(await saveButton.isDisabled()).toBeFalsy();
-      await saveButton.click();
+      const deleteDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await deleteDialog.confirm();
 
       // GET
       httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
@@ -517,6 +467,12 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
+
+      // Check row is removed and entrypoint marked for deletion
+      const rows = await harness.getEntrypointsTableRows();
+      expect(rows.length).toEqual(1);
+
+      expect(await harness.getDeleteBtnByRowIndex(0).then((btn) => btn.isDisabled())).toEqual(true);
     });
   });
 
@@ -528,10 +484,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       ],
     });
 
-    beforeEach(() => {
-      createComponent(ENV, API);
-      expectGetPortalSettings();
-      fixture.detectChanges();
+    beforeEach(async () => {
+      await createComponent(ENV, API);
     });
 
     it('should add the corresponding listener', async () => {
@@ -539,7 +493,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(await addListenerButton.isDisabled()).toBeFalsy();
       await addListenerButton.click();
 
-      const rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
       const dialog = await rootLoader.getHarness(ApiEntrypointsV4AddDialogHarness);
       const entrypointList = await dialog.getEntrypointSelectionList();
       const items = await entrypointList.getItems();
@@ -572,10 +525,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       ],
     });
 
-    beforeEach(() => {
-      createComponent(ENV, API);
-      expectGetPortalSettings();
-      fixture.detectChanges();
+    beforeEach(async () => {
+      await createComponent(ENV, API);
     });
 
     it('should disable add button if no listener type available', async () => {
@@ -590,9 +541,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }],
     });
 
-    beforeEach(() => {
-      createComponent(ENV, API);
-      fixture.detectChanges();
+    beforeEach(async () => {
+      await createComponent(ENV, API, false);
     });
 
     it('should ask for the context path', async () => {
@@ -600,7 +550,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(await addListenerButton.isDisabled()).toBeFalsy();
       await addListenerButton.click();
 
-      const rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
       const dialog = await rootLoader.getHarness(ApiEntrypointsV4AddDialogHarness);
       const entrypointList = await dialog.getEntrypointSelectionList();
       const items = await entrypointList.getItems();
@@ -634,24 +583,23 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       saveReq.flush(API);
     });
   });
-  const expectGetCurrentEnvironment = (environment: Environment) => {
+  function expectGetCurrentEnvironment(environment: Environment): void {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}`, method: 'GET' }).flush(environment);
-  };
-  const expectGetApi = (api: Api) => {
+  }
+  function expectGetApi(api: Api): void {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);
-    fixture.detectChanges();
-  };
+  }
 
-  const expectGetPortalSettings = () => {
+  function expectGetPortalSettings(): void {
     const settings: PortalSettings = { portal: { entrypoint: 'localhost' } };
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
-  };
+  }
 
-  const expectApiVerify = () => {
+  function expectApiVerify(): void {
     httpTestingController.match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' });
-  };
+  }
 
-  const expectGetEntrypoints = () => {
+  function expectGetEntrypoints(): void {
     const entrypoints: Partial<ConnectorPlugin>[] = [
       { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET' },
       { id: 'http-post', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP POST' },
@@ -660,5 +608,5 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     ];
 
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(entrypoints);
-  };
+  }
 });
