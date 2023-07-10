@@ -47,21 +47,37 @@ function apisRouterConfig($stateProvider: StateProvider) {
           return ApiService.isAPISynchronized($stateParams.apiId);
         },
         resolvedApiV1V2: function (
-          $q: angular.IQService,
           $stateParams: StateParams,
           ApiService: ApiService,
           ngApiV2Service: ApiV2Service,
           $state: StateService,
           Constants: any,
           EnvironmentService: EnvironmentService,
+          $timeout: angular.ITimeoutService,
         ) {
           return ngApiV2Service
             .get($stateParams.apiId)
             .toPromise()
             .then((api) => {
-              // Should not land here for API V4
               if (isApiV4(api)) {
-                throw new Error(`Illegal state: V4 API should never trigger navigation to this route ${$state.current}`);
+                // 📝 Best effort to redirect to the right new route state (no mapping for $stateParams as not necessary for current routes)
+                // Used for the task page links
+                const ngStateRedirectionMap = {
+                  'management.apis.detail.portal.general': 'management.apis.ng.general',
+                  'management.apis.detail.portal.subscriptions.subscription': 'management.apis.ng.subscription.edit',
+                };
+
+                const ngRedirectToState = ngStateRedirectionMap[$state.transition.to().name];
+                if (ngRedirectToState) {
+                  $state.transition.abort();
+
+                  $timeout(() => {
+                    $state.go(ngRedirectToState, $stateParams, { location: 'replace' });
+                  });
+                  return;
+                }
+                // If thrown, Check origin state link and update it to new Angular one. Or add redirect mapping upper
+                throw new Error(`Illegal state: V4 API should never trigger navigation to this route ${$state.current.name}.`);
               }
               return ApiService.get($stateParams.apiId).catch((err) => {
                 if (err && err.interceptorFuture) {
