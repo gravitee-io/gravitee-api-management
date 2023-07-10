@@ -121,6 +121,28 @@ public class PathValidationServiceTest {
         assertEquals(new Path(null, "/context/", false), paths.get(0));
     }
 
+    @Test
+    public void shouldSucceed_create_withOverrideAccess() {
+        Api api1 = createMock("mock1", "/existing");
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                null,
+                new ApiFieldFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Stream.of(api1));
+
+        List<Path> paths = pathValidationService.validateAndSanitizePaths(
+            GraviteeContext.getExecutionContext(),
+            null,
+            Collections.singletonList(new Path("host", "path", true))
+        );
+
+        assertEquals(1, paths.size());
+        assertEquals(new Path("host", "/path/", true), paths.get(0));
+    }
+
     @Test(expected = PathAlreadyExistsException.class)
     public void shouldFail_create_existingPath() {
         Api api1 = createMock("mock1", "/context");

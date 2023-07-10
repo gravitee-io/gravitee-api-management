@@ -75,7 +75,7 @@ public class PathValidationServiceImpl implements PathValidationService {
         }
         List<Path> sanitizedPaths = paths
             .stream()
-            .map(path -> new Path(path.getHost(), sanitizePath(path.getPath())))
+            .map(path -> new Path(path.getHost(), sanitizePath(path.getPath()), path.isOverrideAccess()))
             .collect(Collectors.toList());
 
         final EnvironmentEntity currentEnv = environmentService.findById(executionContext.getEnvironmentId());
