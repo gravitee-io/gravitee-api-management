@@ -229,6 +229,7 @@ public class TaskServiceTest {
 
         Application application = new Application();
         application.setName("App Name");
+        application.setEnvironmentId("envId");
         when(applicationRepository.findById(eq("appId"))).thenReturn(Optional.of(application));
 
         Plan plan = new Plan();
@@ -237,6 +238,7 @@ public class TaskServiceTest {
         when(planRepository.findById(eq("planId"))).thenReturn(Optional.of(plan));
         Api planApi = new Api();
         planApi.setName("Plan Api Name");
+        planApi.setEnvironmentId("envId");
         when(apiRepository.findById(eq("planApiId"))).thenReturn(Optional.of(planApi));
 
         // Task Workflow
@@ -247,20 +249,21 @@ public class TaskServiceTest {
         workflow.setReferenceId("workflowApiId");
         Api workflowApi = new Api();
         workflowApi.setName("Workflow Api Name");
+        workflowApi.setEnvironmentId("envId");
         when(apiRepository.findById(eq("workflowApiId"))).thenReturn(Optional.of(workflowApi));
 
         Metadata metadata = taskService.getMetadata(GraviteeContext.getExecutionContext(), Arrays.asList(taskSubscription, taskWorkflow));
 
         Map<String, Map<String, Object>> expectedMetadata = new HashMap<>();
         // expected Metadata for Task Subscription
-        expectedMetadata.put("appId", Collections.singletonMap("name", "App Name"));
-        expectedMetadata.put("planApiId", Collections.singletonMap("name", "Plan Api Name"));
+        expectedMetadata.put("appId", Map.of("name", "App Name", "environmentId", "envId"));
+        expectedMetadata.put("planApiId", Map.of("name", "Plan Api Name", "environmentId", "envId"));
         Map<String, Object> expectedPlanIdMetadata = new HashMap<>();
         expectedPlanIdMetadata.put("name", "Plan Name");
         expectedPlanIdMetadata.put("api", "planApiId");
         expectedMetadata.put("planId", expectedPlanIdMetadata);
         // expected Metadata for Task Workflow
-        expectedMetadata.put("workflowApiId", Collections.singletonMap("name", "Workflow Api Name"));
+        expectedMetadata.put("workflowApiId", Map.of("name", "Workflow Api Name", "environmentId", "envId"));
 
         assertEquals(metadata.toMap(), expectedMetadata);
     }
