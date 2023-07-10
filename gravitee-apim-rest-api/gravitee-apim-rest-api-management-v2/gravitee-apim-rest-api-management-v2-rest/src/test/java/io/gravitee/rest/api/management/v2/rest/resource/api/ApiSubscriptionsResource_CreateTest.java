@@ -109,7 +109,7 @@ public class ApiSubscriptionsResource_CreateTest extends ApiSubscriptionsResourc
     }
 
     @Test
-    public void should_return_403_if_custom_api_key_not_enabled() {
+    public void should_return_400_if_custom_api_key_not_enabled() {
         final CreateSubscription createSubscription = SubscriptionFixtures
             .aCreateSubscription()
             .toBuilder()
