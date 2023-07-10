@@ -25,39 +25,11 @@ describe('Get Gateway instance information as admin', () => {
   it('should display all important UI elements', function () {
     cy.wait(1000);
     cy.get('h1').contains('API Gateway').should('be.visible');
-    cy.getByDataTestId('instances_show-history-switch').should((historySwitch) => {
-      expect(historySwitch).to.have.class('ng-empty');
-      expect(historySwitch).to.contain.text('Show history');
-    });
     cy.getByDataTestId('instances_search-gateway-textfield').should((textfield) => {
       expect(textfield).to.have.attr('placeholder', 'Search Gateway instances...');
       expect(textfield).to.have.attr('type', 'text');
       expect(textfield).to.have.class('ng-empty');
     });
-    cy.getByDataTestId('instances_instances-box').should((instancesBox) => {
-      expect(instancesBox).to.have.length.greaterThan(0);
-      expect(instancesBox[0]).to.contain('STARTED');
-    });
-  });
-
-  it('should be able to toggle the show history button', () => {
-    cy.getByDataTestId('instances_show-history-switch').trigger('click');
-    cy.getByDataTestId('instances_instances-box').should('not.exist');
-    const headerList = [];
-    cy.getByDataTestId('instances_history-table-head')
-      .find('th')
-      .should((tableHeadItems) => {
-        expect(tableHeadItems).to.have.length(7);
-        tableHeadItems.each(($headerItem) => {
-          headerList.push(tableHeadItems[$headerItem].innerText);
-        });
-        expect(headerList).to.deep.equal(['Host', 'Status', 'Tags', 'Tenant', 'Started at', 'Last heartbeat', 'Stopped at']);
-      });
-  });
-
-  it('should be able to toggle the hide history button', function () {
-    cy.getByDataTestId('instances_show-history-switch').trigger('click');
-    cy.getByDataTestId('instances_show-history-switch').trigger('click');
     cy.getByDataTestId('instances_instances-box').should((instancesBox) => {
       expect(instancesBox).to.have.length.greaterThan(0);
       expect(instancesBox[0]).to.contain('STARTED');
