@@ -21,7 +21,13 @@
   </div>
 
   <div *ngIf="!isReadOnly && subscriptionsTableDS && !isLoadingData" class="subscriptions__header__buttons">
-    <button mat-raised-button type="button" color="primary" disabled="true" aria-label="Export subscriptions list">
+    <button
+      mat-raised-button
+      type="button"
+      [disabled]="isLoadingData || subscriptionsTableDS.length === 0"
+      aria-label="Export subscriptions list"
+      (click)="exportAsCSV()"
+    >
       <mat-icon svgIcon="gio:upload"></mat-icon>Export as CSV
     </button>
     <button

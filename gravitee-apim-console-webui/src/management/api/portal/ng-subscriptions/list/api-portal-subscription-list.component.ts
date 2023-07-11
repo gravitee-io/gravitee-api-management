@@ -21,6 +21,7 @@ import { isEqual } from 'lodash';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { AutocompleteOptions } from '@gravitee/ui-particles-angular';
+import * as _ from 'lodash';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SubscriptionStatus } from '../../../../../entities/subscription/subscription';
@@ -67,7 +68,6 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
   });
 
   public plans: Plan[] = [];
-  public applications$ = new Observable<AutocompleteOptions>();
   public statuses: { id: SubscriptionStatus; name: string }[] = [
     { id: 'ACCEPTED', name: 'Accepted' },
     { id: 'CLOSED', name: 'Closed' },
@@ -231,6 +231,36 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
 
   public navigateToSubscription(subscriptionId: string): void {
     this.ajsState.go(`${this.routeBase}.subscription.edit`, { subscriptionId });
+  }
+
+  public exportAsCSV(): void {
+    const apiId = this.ajsStateParams.apiId;
+    const page = '1';
+    const perPage = `${this.nbTotalSubscriptions}`;
+    const planIds: string[] = this.filtersStream.value.subscriptionsFilters.statuses;
+    const applicationIds = this.filtersStream.value.subscriptionsFilters.applicationIds;
+    const statuses = this.filtersStream.value.subscriptionsFilters.planIds;
+    const apikey = this.filtersStream.value.subscriptionsFilters.apikey;
+
+    this.apiSubscriptionService
+      .exportAsCSV(apiId, page, perPage, planIds, applicationIds, statuses, apikey)
+      .pipe(
+        tap((blob) => {
+          let fileName = `subscriptions-${this.api.name}-${this.api.apiVersion}-${_.now()}.csv`;
+          fileName = fileName.replace(/[\s]/gi, '-').replace(/[^\w]/gi, '-');
+
+          const anchor = document.createElement('a');
+          anchor.download = fileName;
+          anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+          anchor.click();
+        }),
+        catchError(() => {
+          this.snackBarService.error('An error occurred while exporting the subscriptions.');
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   public createSubscription(): void {
