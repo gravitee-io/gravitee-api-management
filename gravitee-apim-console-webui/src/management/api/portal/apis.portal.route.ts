@@ -15,7 +15,6 @@
  */
 import { StateParams } from '@uirouter/core';
 
-import { ApiService } from '../../../services/api.service';
 import CategoryService from '../../../services/category.service';
 import { DocumentationQuery, DocumentationService } from '../../../services/documentation.service';
 import FetcherService from '../../../services/fetcher.service';
@@ -97,47 +96,15 @@ function apisPortalRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.portal.subscriptions', {
-      abstract: true,
-      url: '/subscriptions',
-      template: '<div layout="column"><div ui-view></div></div>',
-      resolve: {
-        api: ($stateParams, ApiService: ApiService) => ApiService.get($stateParams.apiId).then((response) => response.data),
-      },
-    })
-    .state('management.apis.detail.portal.subscriptions.list', {
-      url: '?page&size&:application&:status&:plan&:api_key',
-      component: 'apiSubscriptions',
-      resolve: {
-        subscriptions: ($stateParams, ApiService: ApiService) => {
-          let query = '?page=' + $stateParams.page + '&size=' + $stateParams.size;
-
-          if ($stateParams.status) {
-            query += '&status=' + $stateParams.status;
-          }
-
-          if ($stateParams.application) {
-            query += '&application=' + $stateParams.application;
-          }
-
-          if ($stateParams.plan) {
-            query += '&plan=' + $stateParams.plan;
-          }
-
-          if ($stateParams.api_key) {
-            query += '&api_key=' + $stateParams.api_key;
-          }
-
-          return ApiService.getSubscriptions($stateParams.apiId, query).then((response) => response.data);
-        },
-
-        plans: ($stateParams, ApiService: ApiService) => ApiService.getApiPlans($stateParams.apiId).then((response) => response.data),
-      },
+      url: '/subscriptions?page&size&:application&:status&:plan&:apiKey',
+      component: 'ngApiPortalSubscriptionList',
       data: {
-        perms: {
-          only: ['api-subscription-r'],
-        },
+        useAngularMaterial: true,
         docs: {
           page: 'management-api-subscriptions',
+        },
+        perms: {
+          only: ['api-subscription-r'],
         },
       },
       params: {
@@ -163,53 +130,25 @@ function apisPortalRouterConfig($stateProvider) {
           value: 10,
           dynamic: true,
         },
-        api_key: {
+        apiKey: {
           type: 'string',
           dynamic: true,
         },
       },
     })
-    .state('management.apis.detail.portal.subscriptions.subscription', {
-      url: '/:subscriptionId?:page&:size&:application&:status&:plan&:api_key',
-      component: 'apiSubscription',
-      resolve: {
-        subscription: ($stateParams, ApiService: ApiService) =>
-          ApiService.getSubscription($stateParams.apiId, $stateParams.subscriptionId).then((response) => response.data),
-      },
+    .state('management.apis.detail.portal.subscription', {
+      url: '/subscription',
+    })
+    .state('management.apis.detail.portal.subscription.edit', {
+      url: '/:subscriptionId',
+      component: 'ngApiPortalSubscriptionEdit',
       data: {
-        perms: {
-          only: ['api-subscription-r'],
-        },
+        useAngularMaterial: true,
         docs: {
           page: 'management-api-subscriptions',
         },
-      },
-      params: {
-        status: {
-          type: 'string',
-          dynamic: true,
-        },
-        application: {
-          type: 'string',
-          dynamic: true,
-        },
-        plan: {
-          type: 'string',
-          dynamic: true,
-        },
-        page: {
-          type: 'int',
-          value: 1,
-          dynamic: true,
-        },
-        size: {
-          type: 'int',
-          value: 10,
-          dynamic: true,
-        },
-        api_key: {
-          type: 'string',
-          dynamic: true,
+        perms: {
+          only: ['api-subscription-r'],
         },
       },
     })
