@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
 import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
+import { Constants } from '../../../../../entities/Constants';
 
 @Component({
   selector: 'step-5-summary',
@@ -34,12 +35,17 @@ export class Step5SummaryComponent implements OnInit {
   public endpointsDeployable: boolean;
   public deployable: boolean;
   public shouldUpgrade: boolean;
+  public hasReviewEnabled = this.constants.env?.settings?.apiReview?.enabled ?? false;
 
   public utmMedium = UTMMedium.API_CREATION_MESSAGE_SUMMARY;
 
   private apiType: ApiCreationPayload['type'];
 
-  constructor(private readonly stepService: ApiCreationStepService, public readonly licenseDialog: GioLicenseDialog) {}
+  constructor(
+    private readonly stepService: ApiCreationStepService,
+    public readonly licenseDialog: GioLicenseDialog,
+    @Inject('Constants') private readonly constants: Constants,
+  ) {}
 
   ngOnInit(): void {
     this.currentStepPayload = this.stepService.payload;
@@ -56,8 +62,8 @@ export class Step5SummaryComponent implements OnInit {
     this.shouldUpgrade = !this.deployable;
   }
 
-  createApi(deploy: boolean) {
-    this.stepService.validStep((payload) => ({ ...payload, deploy }));
+  createApi({ deploy, askForReview }: { deploy: boolean; askForReview: boolean }) {
+    this.stepService.validStep((payload) => ({ ...payload, deploy, askForReview }));
     this.stepService.finishStepper();
   }
 

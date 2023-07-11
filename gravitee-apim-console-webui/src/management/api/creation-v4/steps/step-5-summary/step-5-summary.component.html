@@ -140,27 +140,44 @@
   </div>
   <div class="step-5-summary__footer">
     <div class="step-5-summary__footer__actions">
-      <button mat-stroked-button type="button" (click)="createApi(false)">
+      <button mat-stroked-button type="button" (click)="createApi({ deploy: false, askForReview: false })">
         Save API<mat-icon
           svgIcon="gio:info"
           class="step-5-summary__footer__button-icon"
-          matTooltip="Your API definition will be saved, but not deployed to the gateway"
+          matTooltip="Your API definition will be saved, but not deployed to the gateway."
         ></mat-icon>
       </button>
       <button
+        *ngIf="!hasReviewEnabled"
         data-testid="deploy_api_button"
         color="primary"
         mat-flat-button
         type="button"
         [disabled]="shouldUpgrade"
-        (click)="createApi(true)"
+        (click)="createApi({ deploy: true, askForReview: false })"
       >
         Save & Deploy API<mat-icon
           svgIcon="gio:info"
           class="step-5-summary__footer__button-icon"
           [matTooltip]="
-            deployable ? 'Your API will be deployed to the gateway' : 'You cannot deploy an API with endpoints or entrypoints not deployed'
+            deployable
+              ? 'Your API will be deployed to the gateway.'
+              : 'You cannot deploy an API with endpoints or entrypoints not deployed.'
           "
+        ></mat-icon>
+      </button>
+      <button
+        *ngIf="hasReviewEnabled"
+        data-testid="create_and_ask_review_api_button"
+        color="primary"
+        mat-flat-button
+        type="button"
+        (click)="createApi({ deploy: false, askForReview: true })"
+      >
+        Save API & Ask for a review<mat-icon
+          svgIcon="gio:info"
+          class="step-5-summary__footer__button-icon"
+          matTooltip="Your API definition will be saved and asked for review."
         ></mat-icon>
       </button>
     </div>

@@ -65,6 +65,8 @@ describe('ApiCreationV4Component', () => {
   let harnessLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
+  let enabledReviewMode = false;
+
   const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiCreationV4Component],
@@ -97,6 +99,12 @@ describe('ApiCreationV4Component', () => {
                 enabled: true,
               },
             });
+
+            set(constants, 'env.settings.apiReview', {
+              get enabled() {
+                return enabledReviewMode;
+              },
+            });
             return constants;
           },
         },
@@ -122,6 +130,7 @@ describe('ApiCreationV4Component', () => {
   afterEach(() => {
     jest.clearAllMocks();
     httpTestingController.verify();
+    enabledReviewMode = false;
   });
 
   describe('menu', () => {
@@ -1414,6 +1423,42 @@ describe('ApiCreationV4Component', () => {
         expectCallsForApiDeployment(API_ID, PLAN_ID);
 
         expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.create-v4-confirmation', { apiId: API_ID });
+      });
+    });
+
+    describe('with review mode enabled', () => {
+      beforeEach(async () => {
+        enabledReviewMode = true;
+        await fillAndValidateStep1ApiDetails();
+        await fillAndValidateStep2Entrypoints0Architecture();
+        await fillAndValidateStep2Entrypoints1List([
+          { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP' },
+        ]);
+        await fillAndValidateStep2Entrypoints2Config();
+        await fillAndValidateStep3Endpoints1List();
+        await fillAndValidateStep3Endpoints2Config();
+        await fillAndValidateStep4Security1PlansList();
+        fixture.detectChanges();
+      });
+
+      it('should go to confirmation page after clicking Save API & Ask for review', async () => {
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
+        const step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
+        await step6Harness.clickCreateAndAskForReviewMyApiButton();
+
+        expectCallsForApiCreation(API_ID, PLAN_ID);
+
+        const publishPlansRequest = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_ID}/_publish`,
+          method: 'POST',
+        });
+        publishPlansRequest.flush({});
+
+        const askRequest = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/reviews/_ask`,
+          method: 'POST',
+        });
+        askRequest.flush({});
       });
     });
   });
