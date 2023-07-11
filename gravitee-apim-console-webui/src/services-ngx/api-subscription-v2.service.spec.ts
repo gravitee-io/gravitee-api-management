@@ -89,6 +89,36 @@ describe('ApiSubscriptionV2Service', () => {
     });
   });
 
+  describe('export', () => {
+    it('should call the API', (done) => {
+      apiSubscriptionV2Service.exportAsCSV(API_ID).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/_export?page=1&perPage=10`,
+        method: 'GET',
+      });
+
+      req.flush(null);
+    });
+
+    it('should export with all query params', (done) => {
+      apiSubscriptionV2Service
+        .exportAsCSV(API_ID, '1', '10', ['ACCEPTED', 'CLOSED'], ['app1', 'app2'], ['plan1', 'plan2'], 'apikey')
+        .subscribe(() => {
+          done();
+        });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/_export?page=1&perPage=10&statuses=ACCEPTED,CLOSED&applicationIds=app1,app2&planIds=plan1,plan2&apikey=apikey`,
+        method: 'GET',
+      });
+
+      req.flush(null);
+    });
+  });
+
   describe('getById', () => {
     const SUBSCRIPTION_ID = 'my-subscription';
     it('should call API', (done) => {
