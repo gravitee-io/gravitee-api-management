@@ -1149,6 +1149,13 @@ jobs:
                       if [ "${CIRCLE_BRANCH}" == "master" ]; then
                         kubectl rollout restart deployment apim-apim-master-ce-apim-ce-api -n apim-apim-master-ce
                         kubectl rollout restart deployment apim-apim-master-ce-apim-ce-ui -n apim-apim-master-ce
+                        kubectl rollout restart deployment apim-apim-master-ce-apim-ce-portal -n apim-apim-master-ce
+                        kubectl rollout restart deployment apim-apim-master-ce-apim-ce-gateway -n apim-apim-master-ce
+                      elif [ "${CIRCLE_BRANCH}" == "4.0.x" ]; then
+                        kubectl rollout restart deployment apim-apim-4-0-x-ce-apim-ce-api -n apim-apim-4-0-x-ce
+                        kubectl rollout restart deployment apim-apim-4-0-x-ce-apim-ce-ui -n apim-apim-4-0-x-ce
+                        kubectl rollout restart deployment apim-apim-4-0-x-ce-apim-ce-portal -n apim-apim-4-0-x-ce
+                        kubectl rollout restart deployment apim-apim-4-0-x-ce-apim-ce-gateway -n apim-apim-4-0-x-ce
                       fi
             - keeper/env-export:
                   secret-url: keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token
