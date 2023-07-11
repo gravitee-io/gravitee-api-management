@@ -122,13 +122,7 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -689,7 +683,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .findById(updateSubscription.getId())
                 .orElseThrow(() -> new SubscriptionNotFoundException(updateSubscription.getId()));
 
-            if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
+            if (
+                subscription.getStatus() == Subscription.Status.ACCEPTED ||
+                subscription.getStatus() == PENDING ||
+                subscription.getStatus() == Subscription.Status.PAUSED
+            ) {
                 final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
 
                 subscriptionValidationService.validateAndSanitize(genericPlanEntity, updateSubscription);
