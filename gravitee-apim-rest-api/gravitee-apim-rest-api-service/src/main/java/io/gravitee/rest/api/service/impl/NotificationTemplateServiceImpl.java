@@ -38,6 +38,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.InvalidTemplateException;
 import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
@@ -146,9 +147,13 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         try {
             Template template = new Template(name, inlineTemplateReader, orgFreemarkerConfiguration);
             return FreeMarkerTemplateUtils.processTemplateIntoString(template, params);
-        } catch (IOException e) {
-            LOGGER.warn("Error while creating template from reader:\n{}", e.getMessage());
-            return "";
+        } catch (freemarker.core.ParseException e) {
+            if (ignoreTplException) {
+                LOGGER.warn("Error while parsing the inline reader:\n{}", e.getMessage());
+                return "";
+            } else {
+                throw new InvalidTemplateException(e.getMessage());
+            }
         } catch (TemplateException e) {
             if (ignoreTplException) {
                 LOGGER.warn("Error while processing the inline reader:\n{}", e.getMessage());
@@ -156,6 +161,9 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             } else {
                 throw new TemplateProcessingException(e);
             }
+        } catch (IOException e) {
+            LOGGER.warn("Error while creating template from reader:\n{}", e.getMessage());
+            return "";
         }
     }
 
