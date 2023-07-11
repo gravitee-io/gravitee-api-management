@@ -546,10 +546,13 @@ public class ApplicationService_UpdateTest {
         String oauthPlanId = "oauthPLan";
         SubscriptionEntity jwtSubscription = new SubscriptionEntity();
         jwtSubscription.setPlan(jwtPlanId);
+        jwtSubscription.setStatus(SubscriptionStatus.ACCEPTED);
         SubscriptionEntity apiKeySubscription = new SubscriptionEntity();
         apiKeySubscription.setPlan(apiKeyPlanId);
+        apiKeySubscription.setStatus(SubscriptionStatus.ACCEPTED);
         SubscriptionEntity oauthSubscription = new SubscriptionEntity();
         oauthSubscription.setPlan(oauthPlanId);
+        oauthSubscription.setStatus(SubscriptionStatus.ACCEPTED);
         when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null))
             .thenReturn(Arrays.asList(jwtSubscription, apiKeySubscription, oauthSubscription));
 
@@ -665,5 +668,80 @@ public class ApplicationService_UpdateTest {
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class), any());
+    }
+
+    @Test
+    public void should_filter_subscriptions_when_validate_client_id() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(Strings.EMPTY);
+        settings.setApp(clientSettings);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+
+        String jwtPlanId = "jwtPLan";
+        String apiKeyPlanId = "apiKeyPlan";
+        SubscriptionEntity jwtSubscription = new SubscriptionEntity();
+        jwtSubscription.setPlan(jwtPlanId);
+        jwtSubscription.setStatus(SubscriptionStatus.CLOSED);
+        SubscriptionEntity jwtSubscription2 = new SubscriptionEntity();
+        jwtSubscription2.setPlan(jwtPlanId);
+        jwtSubscription2.setStatus(SubscriptionStatus.REJECTED);
+        SubscriptionEntity apiKeySubscription = new SubscriptionEntity();
+        apiKeySubscription.setPlan(apiKeyPlanId);
+        apiKeySubscription.setStatus(SubscriptionStatus.ACCEPTED);
+        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null))
+            .thenReturn(Arrays.asList(jwtSubscription, apiKeySubscription, jwtSubscription2));
+
+        PlanEntity jwtPlanEntity = new PlanEntity();
+        jwtPlanEntity.setId(jwtPlanId);
+        jwtPlanEntity.setSecurity(PlanSecurityType.JWT);
+        PlanEntity apiKeyPlanEntity = new PlanEntity();
+        apiKeyPlanEntity.setId(apiKeyPlanId);
+        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(apiKeyPlanId)))
+            .thenReturn(Set.of(apiKeyPlanEntity));
+
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(true);
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        final ApplicationEntity applicationEntity = applicationService.update(
+            GraviteeContext.getExecutionContext(),
+            APPLICATION_ID,
+            updateApplication
+        );
+
+        assertNotNull(applicationEntity);
+        assertEquals(APPLICATION_NAME, applicationEntity.getName());
+
+        verify(applicationRepository)
+            .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
+        verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
+        verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(apiKeyPlanId)));
     }
 }
