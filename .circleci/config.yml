@@ -1373,18 +1373,18 @@ jobs:
                         DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION}-${GRAVITEEIO_QUALIFIER_NAME}"
                         DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION}-${GRAVITEEIO_QUALIFIER_NAME}"
                       else
-                        # create x.y, x.y-ee, x.y.z-ee tags only if there is no qualifier
-                        DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION}-ee"
-                        DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR} -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION}-ee"
-                        DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION}-ee"
-                        DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}-ee      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION}-ee"
+                        # create x.y tags only if there is no qualifier
+                        DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}
+                        DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}
+                        DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}
+                        DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}
 
-                        #  create x, x-ee and latest tags only if it's the latest version and there is no qualifier
+                        #  create x and latest tags only if it's the latest version and there is no qualifier
                         if [ "<< parameters.docker_tag_as_latest >>" = "true" ]; then
-                          DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}           -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}-ee           -t graviteeio/apim-gateway:latest"
-                          DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}    -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}-ee    -t graviteeio/apim-management-api:latest"
-                          DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}     -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}-ee     -t graviteeio/apim-management-ui:latest"
-                          DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}         -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}-ee         -t graviteeio/apim-portal-ui:latest"
+                          DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}           -t graviteeio/apim-gateway:latest"
+                          DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}    -t graviteeio/apim-management-api:latest"
+                          DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}     -t graviteeio/apim-management-ui:latest"
+                          DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}         -t graviteeio/apim-portal-ui:latest"
                         fi
                       fi
 
