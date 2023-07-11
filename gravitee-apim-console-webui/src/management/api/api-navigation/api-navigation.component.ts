@@ -151,8 +151,8 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
       plansMenuItem.tabs.push({
         displayName: 'Subscriptions',
-        targetRoute: 'management.apis.detail.portal.subscriptions.list',
-        baseRoute: 'management.apis.detail.portal.subscriptions',
+        targetRoute: 'management.apis.detail.portal.subscriptions',
+        baseRoute: ['management.apis.detail.portal.subscriptions', 'management.apis.detail.portal.subscription'],
       });
     }
     if (plansMenuItem.tabs.length > 0) {
