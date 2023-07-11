@@ -163,7 +163,7 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.ng.subscriptions',
-    url: '/subscriptions?page&size&plan&application&status&apikey',
+    url: '/subscriptions?page&size&plan&application&status&apiKey',
     component: ApiPortalSubscriptionListComponent,
     data: {
       useAngularMaterial: true,
@@ -195,7 +195,7 @@ const states: Ng2StateDeclaration[] = [
         value: 10,
         dynamic: true,
       },
-      apikey: {
+      apiKey: {
         type: 'string',
         dynamic: true,
       },

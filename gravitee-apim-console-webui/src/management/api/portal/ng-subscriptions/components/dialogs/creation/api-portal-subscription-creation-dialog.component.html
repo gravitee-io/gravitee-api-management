@@ -69,7 +69,7 @@
 
       <ng-container
         *ngIf="
-          canUseCustomApikey &&
+          canUseCustomApiKey &&
           form.get('selectedPlan').value?.security?.type === 'API_KEY' &&
           form.get('selectedPlan').value?.apiId &&
           form.get('selectedApplication').value?.id
