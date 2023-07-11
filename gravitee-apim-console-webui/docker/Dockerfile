@@ -18,6 +18,7 @@ FROM graviteeio/nginx-noconfd:1.25
 LABEL maintainer="contact@graviteesource.com"
 
 ENV CONSOLE_BASE_HREF "/"
+ENV MGMT_API_URL "http://localhost:8083/management/organizations/DEFAULT/environments/DEFAULT"
 
 COPY ./dist /usr/share/nginx/html/
 

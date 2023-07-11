@@ -19,6 +19,7 @@ LABEL maintainer="contact@graviteesource.com"
 
 ENV ALLOWED_FRAME_ANCESTOR_URLS "'self'"
 ENV PORTAL_BASE_HREF "/"
+ENV PORTAL_API_URL "http://localhost:8083/portal/environments/DEFAULT"
 
 COPY ./dist /usr/share/nginx/html/
 
