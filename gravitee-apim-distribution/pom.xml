@@ -493,20 +493,6 @@
         </dependency>
         <!-- Repositories -->
         <dependency>
-            <groupId>com.graviteesource.apim</groupId>
-            <artifactId>gravitee-apim-repository-bridge-http-server</artifactId>
-            <version>${gravitee-repository-bridge.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.apim</groupId>
-            <artifactId>gravitee-apim-repository-bridge-http-client</artifactId>
-            <version>${gravitee-repository-bridge.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-jdbc</artifactId>
             <version>${project.version}</version>
@@ -852,6 +838,20 @@
                     <groupId>com.graviteesource.resource</groupId>
                     <artifactId>gravitee-resource-schema-registry-confluent</artifactId>
                     <version>${gravitee-resource-schema-registry-confluent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.apim</groupId>
+                    <artifactId>gravitee-apim-repository-bridge-http-server</artifactId>
+                    <version>${gravitee-repository-bridge.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.apim</groupId>
+                    <artifactId>gravitee-apim-repository-bridge-http-client</artifactId>
+                    <version>${gravitee-repository-bridge.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
