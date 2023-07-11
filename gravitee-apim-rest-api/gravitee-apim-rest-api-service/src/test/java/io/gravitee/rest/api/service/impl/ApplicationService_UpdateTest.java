@@ -19,8 +19,7 @@ import static io.gravitee.repository.management.model.ApiKeyMode.SHARED;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
 import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -40,6 +39,7 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntit
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
@@ -50,11 +50,13 @@ import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.util.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import joptsimple.internal.Strings;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -113,6 +115,9 @@ public class ApplicationService_UpdateTest {
 
     @Mock
     private ApplicationTypeService applicationTypeService;
+
+    @Mock
+    private PlanSearchService planSearchService;
 
     @Test
     public void shouldUpdate() throws TechnicalException {
@@ -508,5 +513,46 @@ public class ApplicationService_UpdateTest {
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
         verify(subscriptionService, times(2)).update(any(), any(UpdateSubscriptionEntity.class), eq(CLIENT_ID));
+    }
+
+    @Test
+    public void shouldNotUpdateWhenClientIdIsEmptyWithJWTPlan() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(Strings.EMPTY);
+        settings.setApp(clientSettings);
+        when(updateApplication.getSettings()).thenReturn(settings);
+
+        String jwtPlanId = "jwtPLan";
+        String apiKeyPlanId = "apiKeyPlan";
+        String oauthPlanId = "oauthPLan";
+        SubscriptionEntity jwtSubscription = new SubscriptionEntity();
+        jwtSubscription.setPlan(jwtPlanId);
+        SubscriptionEntity apiKeySubscription = new SubscriptionEntity();
+        apiKeySubscription.setPlan(apiKeyPlanId);
+        SubscriptionEntity oauthSubscription = new SubscriptionEntity();
+        oauthSubscription.setPlan(oauthPlanId);
+        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null))
+            .thenReturn(Arrays.asList(jwtSubscription, apiKeySubscription, oauthSubscription));
+
+        PlanEntity jwtPlanEntity = new PlanEntity();
+        jwtPlanEntity.setId(jwtPlanId);
+        jwtPlanEntity.setSecurity(PlanSecurityType.JWT);
+        PlanEntity apiKeyPlanEntity = new PlanEntity();
+        apiKeyPlanEntity.setId(apiKeyPlanId);
+        apiKeyPlanEntity.setSecurity(PlanSecurityType.API_KEY);
+        PlanEntity oauthPlanEntity = new PlanEntity();
+        oauthPlanEntity.setId(oauthPlanId);
+        oauthPlanEntity.setSecurity(PlanSecurityType.OAUTH2);
+        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId)))
+            .thenReturn(Set.of(jwtPlanEntity, apiKeyPlanEntity, oauthPlanEntity));
+
+        assertThrows(
+            ApplicationClientIdException.class,
+            () -> applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication)
+        );
+
+        verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
+        verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId)));
     }
 }
