@@ -25,6 +25,7 @@ export class Step5SummaryHarness extends ComponentHarness {
 
   protected getButtonCreateMyApi = this.locatorFor(MatButtonHarness.with({ text: /Save API/ }));
   protected getButtonDeployMyApi = this.locatorFor(MatButtonHarness.with({ text: /Save & Deploy API/ }));
+  protected getButtonCreateAskReviewMyApi = this.locatorFor(MatButtonHarness.with({ text: /Save API & Ask for a review/ }));
 
   async getStepSummaryTextContent(stepNumber: number) {
     return this.getStepById(stepNumber)().then((el) => el.text());
@@ -42,6 +43,11 @@ export class Step5SummaryHarness extends ComponentHarness {
 
   async clickDeployMyApiButton(): Promise<void> {
     const button: MatButtonHarness = await this.getButtonDeployMyApi();
+    await button.click();
+  }
+
+  async clickCreateAndAskForReviewMyApiButton(): Promise<void> {
+    const button: MatButtonHarness = await this.getButtonCreateAskReviewMyApi();
     await button.click();
   }
 }
