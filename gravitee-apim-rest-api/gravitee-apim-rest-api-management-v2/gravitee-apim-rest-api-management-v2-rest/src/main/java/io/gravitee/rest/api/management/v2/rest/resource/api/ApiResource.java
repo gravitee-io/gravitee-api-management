@@ -577,16 +577,10 @@ public class ApiResource extends AbstractResource {
                     GraviteeContext.getExecutionContext(),
                     Key.API_REVIEW_ENABLED,
                     ParameterReferenceType.ENVIRONMENT
-                )
+                ) &&
+                !WorkflowState.REVIEW_OK.equals(api.getWorkflowState())
             ) {
-                final List<Workflow> workflows = workflowService.findByReferenceAndType(API, api.getId(), REVIEW);
-
-                workflows.forEach(workflow -> {
-                    WorkflowState workflowState = WorkflowState.valueOf(workflow.getState());
-                    if (!WorkflowState.REVIEW_OK.equals(workflowState)) {
-                        throw new BadRequestException("API cannot be started without being reviewed");
-                    }
-                });
+                throw new BadRequestException("API cannot be started without being reviewed");
             }
         }
     }
