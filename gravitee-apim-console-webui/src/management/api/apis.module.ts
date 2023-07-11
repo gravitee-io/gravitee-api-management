@@ -202,30 +202,6 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.entrypoints',
-    url: '/entrypoints',
-    component: ApiEntrypointsV4GeneralComponent,
-    data: {
-      useAngularMaterial: true,
-      docs: null,
-      apiPermissions: {
-        only: ['api-definition-r'],
-      },
-    },
-  },
-  {
-    name: 'management.apis.ng.entrypoints-edit',
-    url: '/entrypoints/:entrypointId',
-    component: ApiEntrypointsV4EditComponent,
-    data: {
-      useAngularMaterial: true,
-      docs: null,
-      apiPermissions: {
-        only: ['api-definition-u'],
-      },
-    },
-  },
-  {
     name: 'management.apis.ng.subscription',
     url: '/subscription',
     component: GioEmptyComponent,
@@ -246,6 +222,30 @@ const states: Ng2StateDeclaration[] = [
       docs: null,
       apiPermissions: {
         only: ['api-subscription-u'],
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.entrypoints',
+    url: '/entrypoints',
+    component: ApiEntrypointsV4GeneralComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.entrypoints-edit',
+    url: '/entrypoints/:entrypointId',
+    component: ApiEntrypointsV4EditComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+      apiPermissions: {
+        only: ['api-definition-u'],
       },
     },
   },
