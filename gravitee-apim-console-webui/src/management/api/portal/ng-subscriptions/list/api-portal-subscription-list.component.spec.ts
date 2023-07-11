@@ -392,6 +392,42 @@ describe('ApiPortalSubscriptionListComponent', () => {
     }));
   });
 
+  describe('export subscriptions', () => {
+    it('should not export subscriptions if no subscription', fakeAsync(async () => {
+      await initComponent([]);
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const exportBtn = await harness.getExportButton();
+      expect(await exportBtn.isDisabled()).toEqual(true);
+    }));
+
+    it('should export subscriptions with same filters except pagination', fakeAsync(async () => {
+      const listedSubscriptions = [
+        fakeSubscription(),
+        fakeSubscription(),
+        fakeSubscription(),
+        fakeSubscription(),
+        fakeSubscription(),
+        fakeSubscription(),
+      ];
+      await initComponent(listedSubscriptions, anAPI, [aPlan], [aBaseApplication], [anApplication], {
+        plan: aPlan.id,
+        application: aBaseApplication.id,
+        status: 'ACCEPTED,CLOSED,RESUMED',
+        apikey: '12345678',
+      });
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const exportBtn = await harness.getExportButton();
+      expect(await exportBtn.isDisabled()).toEqual(false);
+
+      await exportBtn.click();
+      tick(400);
+      expectExportGetRequest(listedSubscriptions, ['ACCEPTED', 'CLOSED', 'RESUMED'], [aBaseApplication.id], [aPlan.id], '12345678');
+      flush();
+    }));
+  });
+
   async function initComponent(
     subscriptions: Subscription[],
     api: Api = anAPI,
@@ -575,5 +611,25 @@ describe('ApiPortalSubscriptionListComponent', () => {
       testRequest.flush(application);
       fixture.detectChanges();
     }
+  }
+
+  function expectExportGetRequest(
+    subscriptions: Subscription[] = [],
+    statuses?: string[],
+    applicationIds?: string[],
+    planIds?: string[],
+    apikey?: string,
+  ) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/_export?page=1&perPage=${subscriptions.length}${
+          statuses ? `&statuses=${statuses.join(',')}` : '&statuses=ACCEPTED,PAUSED,PENDING'
+        }${applicationIds ? `&applicationIds=${applicationIds.join(',')}` : ''}${planIds ? `&planIds=${planIds.join(',')}` : ''}${
+          apikey ? `&apikey=${apikey}` : ''
+        }`,
+        method: 'GET',
+      })
+      .flush(new Blob(['a'], { type: 'text/csv' }));
+    fixture.detectChanges();
   }
 });
