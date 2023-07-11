@@ -602,23 +602,22 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 updatedApplication
             );
 
-            // Set correct client_id for all subscriptions
+            // Set correct client_id for all active subscriptions
             SubscriptionQuery subQuery = new SubscriptionQuery();
             subQuery.setApplication(applicationId);
-            subQuery.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
+            subQuery.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING));
+            String clientId = application.getMetadata().get(METADATA_CLIENT_ID);
             subscriptionService
                 .search(executionContext, subQuery)
                 .forEach(subscriptionEntity -> {
-                    UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
-                    updateSubscriptionEntity.setId(subscriptionEntity.getId());
-                    updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
-                    updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
+                    if (StringUtils.isNotEmpty(subscriptionEntity.getClientId()) && StringUtils.isNotEmpty(clientId)) {
+                        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                        updateSubscriptionEntity.setId(subscriptionEntity.getId());
+                        updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
+                        updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
 
-                    subscriptionService.update(
-                        executionContext,
-                        updateSubscriptionEntity,
-                        application.getMetadata().get(METADATA_CLIENT_ID)
-                    );
+                        subscriptionService.update(executionContext, updateSubscriptionEntity, clientId);
+                    }
                 });
             return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
         } catch (TechnicalException ex) {

@@ -793,7 +793,7 @@ public class SubscriptionServiceTest {
         UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
         updatedSubscription.setId(SUBSCRIPTION_ID);
 
-        Subscription subscription = buildTestSubscription(PENDING);
+        Subscription subscription = buildTestSubscription(REJECTED);
 
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
@@ -867,6 +867,44 @@ public class SubscriptionServiceTest {
 
         // Verify
         verify(subscriptionRepository, times(1)).update(argThat(s -> "my-client-id".equals(s.getClientId())));
+    }
+
+    @Test
+    public void shouldUpdateSubscriptionWithPendingStatus() throws Exception {
+        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+
+        Subscription subscription = buildTestSubscription(PENDING);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        // Run
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription, null);
+
+        // Verify
+        verify(subscriptionRepository, times(1)).update(any());
+    }
+
+    @Test
+    public void shouldUpdateSubscriptionWithPausedStatus() throws Exception {
+        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+
+        Subscription subscription = buildTestSubscription(PAUSED);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        // Run
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription, null);
+
+        // Verify
+        verify(subscriptionRepository, times(1)).update(any());
     }
 
     @Test(expected = SubscriptionNotFoundException.class)
