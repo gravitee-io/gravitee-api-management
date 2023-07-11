@@ -48,6 +48,8 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -58,10 +60,12 @@ import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.HookScope;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,6 +131,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     @Autowired
     private ApplicationConverter applicationConverter;
+
+    @Autowired
+    private PlanSearchService planSearchService;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -496,6 +503,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     ) {
         try {
             LOGGER.debug("Update application {}", applicationId);
+
+            validateApplicationClientId(executionContext, applicationId, updateApplicationEntity);
+
             if (updateApplicationEntity.getGroups() != null && !updateApplicationEntity.getGroups().isEmpty()) {
                 //throw a NotFoundException if the group doesn't exist
                 groupService.findByIds(updateApplicationEntity.getGroups());
@@ -617,6 +627,41 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 String.format("An error occurs while trying to update application %s", applicationId),
                 ex
             );
+        }
+    }
+
+    private void validateApplicationClientId(
+        ExecutionContext executionContext,
+        String applicationId,
+        UpdateApplicationEntity updateApplicationEntity
+    ) {
+        if (
+            null != updateApplicationEntity.getSettings() &&
+            null != updateApplicationEntity.getSettings().getApp() &&
+            StringUtils.isEmpty(updateApplicationEntity.getSettings().getApp().getClientId())
+        ) {
+            Set<String> planIds = subscriptionService
+                .findByApplicationAndPlan(executionContext, applicationId, null)
+                .stream()
+                .map(SubscriptionEntity::getPlan)
+                .collect(Collectors.toSet());
+
+            if (!planIds.isEmpty()) {
+                Set<GenericPlanEntity> plans =
+                    this.planSearchService.findByIdIn(executionContext, planIds)
+                        .stream()
+                        .filter(planEntity -> {
+                            PlanSecurityType security = PlanSecurityType.valueOfLabel(planEntity.getPlanSecurity().getType());
+                            return security == PlanSecurityType.JWT || security == PlanSecurityType.OAUTH2;
+                        })
+                        .collect(toSet());
+
+                if (!plans.isEmpty()) {
+                    throw new ApplicationClientIdException(
+                        "Can't update application because client_id is missing and it has subscriptions"
+                    );
+                }
+            }
         }
     }
 
