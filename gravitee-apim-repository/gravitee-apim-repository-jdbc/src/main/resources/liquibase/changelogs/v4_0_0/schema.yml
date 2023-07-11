@@ -15,10 +15,11 @@ databaseChangeLog:
               - column: {name: parent_id, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}events_latest
-            columnNames: id
-            tableName: ${gravitee_prefix}events_latest
+            constraints:
+              - primaryKey:
+                  columnNames: id
+                  constraintName: pk_${gravitee_prefix}events_latest
+
         - createIndex:
             indexName: idx_${gravitee_prefix}events_latest_type
             columns:
@@ -40,10 +41,11 @@ databaseChangeLog:
               - column: {name: event_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: property_key, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: property_value, type: nvarchar(256), constraints: { nullable: true } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}events_latest_properties
-            columnNames: event_id, property_key
-            tableName: ${gravitee_prefix}events_latest_properties
+            constraints:
+              - primaryKey:
+                  columnNames: event_id, property_key
+                  constraintName: pk_${gravitee_prefix}events_latest_properties
+
         - createIndex:
             indexName: idx_${gravitee_prefix}events_latest_properties_propertykey
             columns:
@@ -57,21 +59,20 @@ databaseChangeLog:
             columns:
               - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}events_latest_environments
-            columnNames: event_id, environment_id
-            tableName: ${gravitee_prefix}events_latest_environments
+            constraints:
+              - primaryKey:
+                  columnNames: event_id, environment_id
+                  constraintName: pk_${gravitee_prefix}events_latest_environments
 
         - createTable:
             tableName: ${gravitee_prefix}upgraders
             columns:
               - column: { name: id, type: nvarchar(255), constraints: { nullable: false } }
               - column: { name: applied_at, type: timestamp(6), constraints: { nullable: false } }
-
-        - addPrimaryKey:
-            constraintName: pk_${gravitee_prefix}upgraders
-            columnNames: id
-            tableName: ${gravitee_prefix}upgraders
+            constraints:
+              - primaryKey:
+                  columnNames: id
+                  constraintName: pk_${gravitee_prefix}upgraders
 
         - dropColumn:
             columnName: author_picture
