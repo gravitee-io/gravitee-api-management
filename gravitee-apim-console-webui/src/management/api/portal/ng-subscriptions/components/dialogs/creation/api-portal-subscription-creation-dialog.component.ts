@@ -50,7 +50,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   public applications$: Observable<Application[]> = new Observable<Application[]>();
   public selectedSchema: GioJsonSchema;
   public showGeneralConditionsMsg: boolean;
-  public canUseCustomApikey: boolean;
+  public canUseCustomApiKey: boolean;
 
   public form: FormGroup = new FormGroup({
     selectedPlan: new FormControl(undefined, [Validators.required]),
@@ -69,7 +69,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   ) {
     this.plans = dialogData.plans.filter((plan) => plan.security?.type !== 'KEY_LESS');
     this.availableSubscriptionEntrypoints = dialogData.availableSubscriptionEntrypoints.map((entrypoint) => ({ type: entrypoint.type }));
-    this.canUseCustomApikey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
+    this.canUseCustomApiKey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
   }
 
   ngOnInit(): void {
@@ -132,7 +132,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       .get('selectedPlan')
       .valueChanges.pipe(
         distinctUntilChanged(),
-        filter((plan) => plan.security?.type === 'API_KEY' && this.canUseCustomApikey),
+        filter((plan) => plan.security?.type === 'API_KEY' && this.canUseCustomApiKey),
         tap(() => {
           this.form.addControl('customApiKey', new FormControl('', []));
           this.form.removeControl('selectedEntrypoint');
