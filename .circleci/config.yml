@@ -1344,8 +1344,21 @@ jobs:
             - run:
                   name: "Build & Publish Gravitee.io APIM Docker images"
                   command: |
+                      # Determine download URL
+                      if [ "${GRAVITEEIO_QUALIFIER}" != "" ]; then
+                          export TARGET_FOLDER="/pre-releases/graviteeio-apim"
+                      else
+                          export TARGET_FOLDER="/graviteeio-apim"
+                      fi;
+                      if [ "<< parameters.dry_run >>" = "false" ]; then
+                          export DOWNLOAD_HOST="https://download.gravitee.io"
+                      else
+                          export DOWNLOAD_HOST="https://gravitee-dry-releases-downloads.cellar-c2.services.clever-cloud.com"
+                      fi;
+
+
                       export DOCKER_TAG_SUFFIX=""
-                      export DOCKER_BUILD_ARGS="--build-arg GRAVITEEIO_VERSION=${GRAVITEEIO_VERSION_WITH_QUALIFIER} --build-arg GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distributions"
+                      export DOCKER_BUILD_ARGS="--build-arg GRAVITEEIO_VERSION=${GRAVITEEIO_VERSION_WITH_QUALIFIER} --build-arg GRAVITEEIO_DOWNLOAD_URL=${DOWNLOAD_HOST}${TARGET_FOLDER}"
 
                       # always create a tag with the full version. If the qualifier is empty then GRAVITEEIO_VERSION will be the same as GRAVITEEIO_VERSION_WITH_QUALIFIER
                       export DOCKER_BUILD_GATEWAY_TAG="       -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
@@ -1696,6 +1709,17 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://3-pU56sIqcyWWw7HxhxjaQ/field/password
                   var-name: AWS_SECRET_ACCESS_KEY
+            - cmd-parse-gravitee-version:
+                  graviteeio_version: << pipeline.parameters.graviteeio_version >>
+            - run:
+                  name: "Determine target bucket"
+                  command: |
+                      if [ "${GRAVITEEIO_QUALIFIER}" != "" ]; then
+                          export TARGET_FOLDER="/pre-releases/graviteeio-apim"
+                      else
+                          export TARGET_FOLDER="/graviteeio-apim"
+                      fi;
+                      echo "export TARGET_FOLDER=${TARGET_FOLDER}" >> $BASH_ENV
             - when:
                   condition: << pipeline.parameters.dry_run>>
                   steps:
@@ -1704,7 +1728,7 @@ jobs:
                                 --endpoint-url https://cellar-c2.services.clever-cloud.com \
                                 --acl public-read
                             from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
-                            to: "s3://gravitee-dry-releases-downloads/graviteeio-apim"
+                            to: "s3://gravitee-dry-releases-downloads${TARGET_FOLDER}"
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run>>
@@ -1714,7 +1738,7 @@ jobs:
                                 --endpoint-url https://cellar-c2.services.clever-cloud.com \
                                 --acl public-read
                             from: ./release/.tmp/<< pipeline.parameters.graviteeio_version >>/dist
-                            to: "s3://gravitee-releases-downloads/graviteeio-apim"
+                            to: "s3://gravitee-releases-downloads${TARGET_FOLDER}"
 
     job-release-notes-apim:
         executor:
