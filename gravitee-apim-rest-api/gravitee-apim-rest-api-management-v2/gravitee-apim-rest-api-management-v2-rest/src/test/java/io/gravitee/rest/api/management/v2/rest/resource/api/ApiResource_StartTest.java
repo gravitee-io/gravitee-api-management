@@ -27,6 +27,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.model.WorkflowReferenceType;
+import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -148,7 +149,13 @@ public class ApiResource_StartTest extends ApiResourceTest {
 
     @Test
     public void should_not_start_api_if_not_review_ok() {
-        var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
+        var apiEntity = ApiFixtures
+            .aModelApiV4()
+            .toBuilder()
+            .id(API)
+            .state(Lifecycle.State.STOPPED)
+            .workflowState(WorkflowState.IN_REVIEW)
+            .build();
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
 
         when(
@@ -159,17 +166,6 @@ public class ApiResource_StartTest extends ApiResourceTest {
             )
         )
             .thenReturn(true);
-
-        var workflowOk = new Workflow();
-        workflowOk.setState("REVIEW_OK");
-        var workflowNotOk = new Workflow();
-        workflowNotOk.setState("DRAFT");
-
-        var workflowList = new ArrayList<Workflow>();
-        workflowList.add(workflowOk);
-        workflowList.add(workflowNotOk);
-
-        when(workflowService.findByReferenceAndType(eq(WorkflowReferenceType.API), eq(API), eq(REVIEW))).thenReturn(workflowList);
 
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
