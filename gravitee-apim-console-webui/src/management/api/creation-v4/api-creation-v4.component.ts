@@ -35,6 +35,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { ApiPlanV2Service } from '../../../services-ngx/api-plan-v2.service';
 import { PlanV4, Api, CreateApiV4, EndpointGroupV4, Entrypoint, Listener } from '../../../entities/management-api-v2';
+import { ApiReviewV2Service } from '../../../services-ngx/api-review-v2.service';
 
 export interface Result {
   errorMessages: string[];
@@ -109,6 +110,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
     private readonly injector: Injector,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiPlanV2Service: ApiPlanV2Service,
+    private readonly apiReviewV2Service: ApiReviewV2Service,
     private readonly snackBarService: SnackBarService,
     @Inject(UIRouterState) readonly ajsState: StateService,
   ) {}
@@ -139,6 +141,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         switchMap((p) => this.createApi$(p)),
         switchMap((previousResult) => this.createAndPublishPlans$(previousResult)),
         switchMap((previousResult) => this.startApi$(previousResult)),
+        switchMap((previousResult) => this.askForReview$(previousResult)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(
@@ -283,6 +286,22 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         return of({
           ...previousResult,
           errorMessages: [...previousResult.errorMessages, `Error while starting API: ${err.error?.message}.`],
+        });
+      }),
+    );
+  }
+
+  private askForReview$(previousResult: Result): Observable<Result> {
+    if (!previousResult.apiCreationPayload.askForReview) {
+      return of(previousResult);
+    }
+
+    return this.apiReviewV2Service.ask(previousResult.result.api.id).pipe(
+      map(() => previousResult),
+      catchError((err) => {
+        return of({
+          ...previousResult,
+          errorMessages: [...previousResult.errorMessages, `Error while asking for review: ${err.error?.message}.`],
         });
       }),
     );
