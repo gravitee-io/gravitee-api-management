@@ -94,17 +94,7 @@ import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.PageConverter;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
-import io.gravitee.rest.api.service.exceptions.NoFetcherDefinedException;
-import io.gravitee.rest.api.service.exceptions.PageActionException;
-import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
-import io.gravitee.rest.api.service.exceptions.PageFolderActionException;
-import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
-import io.gravitee.rest.api.service.exceptions.PageUsedAsGeneralConditionsException;
-import io.gravitee.rest.api.service.exceptions.PageUsedByCategoryException;
-import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
 import io.gravitee.rest.api.service.impl.swagger.transformer.entrypoints.EntrypointsOAITransformer;
@@ -821,6 +811,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     pageEntity.setMessages(new ArrayList<>());
                 }
                 pageEntity.getMessages().add("Invalid expression or value is missing for " + e.getBlamedExpressionString());
+            } catch (InvalidTemplateException e) {
+                if (pageEntity.getMessages() == null) {
+                    pageEntity.setMessages(new ArrayList<>());
+                }
+                pageEntity.getMessages().add("Invalid template: " + e.getMessage());
             }
         }
     }
