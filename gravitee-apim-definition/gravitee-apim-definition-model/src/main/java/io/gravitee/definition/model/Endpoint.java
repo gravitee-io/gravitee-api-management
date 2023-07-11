@@ -161,10 +161,18 @@ public class Endpoint implements Serializable {
         listeners.add(listener);
     }
 
+    @JsonIgnore
+    // Need to add @JsonIgnore too because transient + @JsonIgnore on the property does not work anymore in 2.15
+    // See https://github.com/FasterXML/jackson-databind/issues/3874#issuecomment-1505211857
+    // Before 2.15, it was an unexpected feature.
     public String getConfiguration() {
         return configuration;
     }
 
+    @JsonIgnore
+    // Need to add @JsonIgnore too because transient + @JsonIgnore on the property does not work anymore in 2.15
+    // See https://github.com/FasterXML/jackson-databind/issues/3874#issuecomment-1505211857
+    // Before 2.15, it was an unexpected feature.
     public void setConfiguration(String configuration) {
         this.configuration = configuration;
     }
