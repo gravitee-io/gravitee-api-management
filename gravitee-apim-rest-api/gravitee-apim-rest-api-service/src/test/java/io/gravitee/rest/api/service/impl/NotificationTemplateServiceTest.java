@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,12 +30,12 @@ import io.gravitee.repository.management.model.NotificationTemplateType;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.InvalidTemplateException;
 import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,6 +65,8 @@ public class NotificationTemplateServiceTest {
     private static final Date NOTIFICATION_TEMPLATE_CREATED_AT = new Date(100000000L);
     private static final Date NOTIFICATION_TEMPLATE_UPDATED_AT = new Date(110000000L);
     private static final boolean NOTIFICATION_TEMPLATE_ENABLED = true;
+
+    private static final String ORGANIZATION_ID = "ORG_ID";
 
     @InjectMocks
     private NotificationTemplateService notificationTemplateService = new NotificationTemplateServiceImpl();
@@ -215,5 +218,63 @@ public class NotificationTemplateServiceTest {
                 eq(toUpdate),
                 eq(notificationTemplate)
             );
+    }
+
+    @Test
+    public void resolveInlineTemplateWithParamReturnsEvaluatedTemplate() {
+        String result = notificationTemplateService.resolveInlineTemplateWithParam(
+            ORGANIZATION_ID,
+            NOTIFICATION_TEMPLATE_NAME,
+            "# Hello ${metadata.test}",
+            Map.of("metadata", Map.of("test", "world")),
+            true
+        );
+        assertThat(result).isEqualTo("# Hello world");
+    }
+
+    @Test(expected = InvalidTemplateException.class)
+    public void resolveInlineTemplateWithParamThrowsWhenTemplateIsInvalid() {
+        notificationTemplateService.resolveInlineTemplateWithParam(
+            ORGANIZATION_ID,
+            NOTIFICATION_TEMPLATE_NAME,
+            "# Hello ${metadata.[wrong]}",
+            Map.of("metadata", Map.of()),
+            false
+        );
+    }
+
+    @Test
+    public void resolveInlineTemplateWithParamReturnsEmptyWhenTemplateIsInvalid() {
+        String result = notificationTemplateService.resolveInlineTemplateWithParam(
+            ORGANIZATION_ID,
+            NOTIFICATION_TEMPLATE_NAME,
+            "# Hello ${metadata.[wrong]}",
+            Map.of("metadata", Map.of()),
+            true
+        );
+        assertThat(result).isEqualTo("");
+    }
+
+    @Test(expected = TemplateProcessingException.class)
+    public void resolveInlineTemplateWithParamThrowsWhenTemplateEvaluateUnknownProperties() {
+        notificationTemplateService.resolveInlineTemplateWithParam(
+            ORGANIZATION_ID,
+            NOTIFICATION_TEMPLATE_NAME,
+            "# Hello ${metadata.wrong}",
+            Map.of("metadata", Map.of()),
+            false
+        );
+    }
+
+    @Test
+    public void resolveInlineTemplateWithParamReturnsEmptyWhenTemplateEvaluateUnknownProperties() {
+        String result = notificationTemplateService.resolveInlineTemplateWithParam(
+            ORGANIZATION_ID,
+            NOTIFICATION_TEMPLATE_NAME,
+            "# Hello ${metadata.wrong}",
+            Map.of("metadata", Map.of()),
+            true
+        );
+        assertThat(result).isEqualTo("");
     }
 }
