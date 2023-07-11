@@ -48,4 +48,5 @@ export type ApiCreationPayload = Partial<{
 
   // Summary
   deploy: boolean;
+  askForReview: boolean;
 }>;
