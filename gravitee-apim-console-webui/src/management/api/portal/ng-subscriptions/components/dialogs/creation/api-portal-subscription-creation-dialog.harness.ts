@@ -32,7 +32,7 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
     MatFormFieldHarness.with({ selector: '.subscription-creation__content__applications' }),
   );
   protected getPlansRadioGroup = this.locatorFor(MatRadioGroupHarness.with({ selector: '[formControlName="selectedPlan"]' }));
-  protected getCustomApikeyInput = this.locatorForOptional(ApiKeyValidationHarness);
+  protected getCustomApiKeyInput = this.locatorForOptional(ApiKeyValidationHarness);
   protected getSelectEntrypointSelect = this.locatorForOptional(
     MatSelectHarness.with({ selector: '[formControlName="selectedEntrypoint"]' }),
   );
@@ -74,13 +74,13 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
 
   // Custom API Key
   public async isCustomApiKeyInputDisplayed() {
-    const matInputHarness = await this.getCustomApikeyInput();
+    const matInputHarness = await this.getCustomApiKeyInput();
     return matInputHarness !== null;
   }
 
-  public async addCustomKey(customApikey: string) {
-    const matInputHarness = await this.getCustomApikeyInput();
-    return await matInputHarness.setInputValue(customApikey);
+  public async addCustomKey(customApiKey: string) {
+    const matInputHarness = await this.getCustomApiKeyInput();
+    return await matInputHarness.setInputValue(customApiKey);
   }
 
   // PUSH Plan

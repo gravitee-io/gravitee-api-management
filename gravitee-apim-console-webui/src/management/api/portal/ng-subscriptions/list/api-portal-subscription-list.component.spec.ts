@@ -132,9 +132,9 @@ describe('ApiPortalSubscriptionListComponent', () => {
       expect(await statusSelectInput.isDisabled()).toEqual(false);
       expect(await statusSelectInput.getValueText()).toEqual('Accepted, Paused, Pending');
 
-      const apikeyInput = await harness.getApiKeyInput();
-      expect(await apikeyInput.isDisabled()).toEqual(false);
-      expect(await apikeyInput.getValue()).toEqual('');
+      const apiKeyInput = await harness.getApiKeyInput();
+      expect(await apiKeyInput.isDisabled()).toEqual(false);
+      expect(await apiKeyInput.getValue()).toEqual('');
     }));
 
     it('should init filters from params', fakeAsync(async () => {
@@ -142,7 +142,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
         plan: PLAN_ID,
         application: APPLICATION_ID,
         status: 'CLOSED,REJECTED',
-        apikey: 'apikey_1',
+        apiKey: 'apiKey_1',
       });
       const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
 
@@ -158,9 +158,9 @@ describe('ApiPortalSubscriptionListComponent', () => {
       expect(await statusSelectInput.isDisabled()).toEqual(false);
       expect(await statusSelectInput.getValueText()).toEqual('Closed, Rejected');
 
-      const apikeyInput = await harness.getApiKeyInput();
-      expect(await apikeyInput.isDisabled()).toEqual(false);
-      expect(await apikeyInput.getValue()).toEqual('apikey_1');
+      const apiKeyInput = await harness.getApiKeyInput();
+      expect(await apiKeyInput.isDisabled()).toEqual(false);
+      expect(await apiKeyInput.getValue()).toEqual('apiKey_1');
     }));
 
     it('should reset filters from params', fakeAsync(async () => {
@@ -168,7 +168,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
         plan: null,
         application: null,
         status: 'CLOSED,REJECTED',
-        apikey: 'apikey_1',
+        apiKey: 'apiKey_1',
       });
       const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
 
@@ -188,9 +188,9 @@ describe('ApiPortalSubscriptionListComponent', () => {
       expect(await statusSelectInput.isDisabled()).toEqual(false);
       expect(await statusSelectInput.getValueText()).toEqual('Accepted, Paused, Pending');
 
-      const apikeyInput = await harness.getApiKeyInput();
-      expect(await apikeyInput.isDisabled()).toEqual(false);
-      expect(await apikeyInput.getValue()).toEqual('');
+      const apiKeyInput = await harness.getApiKeyInput();
+      expect(await apiKeyInput.isDisabled()).toEqual(false);
+      expect(await apiKeyInput.getValue()).toEqual('');
     }));
   });
 
@@ -414,7 +414,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
         plan: aPlan.id,
         application: aBaseApplication.id,
         status: 'ACCEPTED,CLOSED,RESUMED',
-        apikey: '12345678',
+        apiKey: '12345678',
       });
 
       const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
@@ -434,7 +434,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     plans: Plan[] = [aPlan],
     subscribers: BaseApplication[] = [aBaseApplication],
     applications?: Application[],
-    params?: { plan?: string; application?: string; status?: string; apikey?: string },
+    params?: { plan?: string; application?: string; status?: string; apiKey?: string },
   ) {
     await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id, ...(params ? params : {}) } }).compileComponents();
     fixture = TestBed.createComponent(TestComponent);
@@ -458,7 +458,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       params?.status?.split(','),
       params?.application?.split(','),
       params?.plan?.split(','),
-      params?.apikey,
+      params?.apiKey,
     );
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
@@ -540,7 +540,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     statuses?: string[],
     applicationIds?: string[],
     planIds?: string[],
-    apikey?: string,
+    apiKey?: string,
   ) {
     const response: ApiSubscriptionsResponse = {
       data: subscriptions,
@@ -554,7 +554,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions?page=1&perPage=10${
           statuses ? `&statuses=${statuses.join(',')}` : '&statuses=ACCEPTED,PAUSED,PENDING'
         }${applicationIds ? `&applicationIds=${applicationIds.join(',')}` : ''}${planIds ? `&planIds=${planIds.join(',')}` : ''}${
-          apikey ? `&apikey=${apikey}` : ''
+          apiKey ? `&apiKey=${apiKey}` : ''
         }&expands=application,plan`,
         method: 'GET',
       })
@@ -618,14 +618,14 @@ describe('ApiPortalSubscriptionListComponent', () => {
     statuses?: string[],
     applicationIds?: string[],
     planIds?: string[],
-    apikey?: string,
+    apiKey?: string,
   ) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/_export?page=1&perPage=${subscriptions.length}${
           statuses ? `&statuses=${statuses.join(',')}` : '&statuses=ACCEPTED,PAUSED,PENDING'
         }${applicationIds ? `&applicationIds=${applicationIds.join(',')}` : ''}${planIds ? `&planIds=${planIds.join(',')}` : ''}${
-          apikey ? `&apikey=${apikey}` : ''
+          apiKey ? `&apiKey=${apiKey}` : ''
         }`,
         method: 'GET',
       })

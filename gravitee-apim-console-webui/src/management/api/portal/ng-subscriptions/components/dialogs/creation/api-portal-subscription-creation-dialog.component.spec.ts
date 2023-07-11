@@ -89,8 +89,8 @@ describe('Subscription creation dialog', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  describe('Test customApikey input', () => {
-    describe('With custom apikey enabled', () => {
+  describe('Test customApiKey input', () => {
+    describe('With custom apiKey enabled', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
@@ -207,7 +207,7 @@ describe('Subscription creation dialog', () => {
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
       });
     });
-    describe('With custom apikey disabled', () => {
+    describe('With custom apiKey disabled', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
