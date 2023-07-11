@@ -58,6 +58,28 @@ export class ApiSubscriptionV2Service {
     });
   }
 
+  exportAsCSV(
+    apiId: string,
+    page = '1',
+    perPage = '10',
+    statuses?: string[],
+    applicationIds?: string[],
+    planIds?: string[],
+    apikey?: string,
+  ): Observable<Blob> {
+    return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/_export`, {
+      responseType: 'blob',
+      params: {
+        page,
+        perPage,
+        ...(statuses && statuses.length > 0 ? { statuses: statuses.join(',') } : {}),
+        ...(applicationIds && applicationIds.length > 0 ? { applicationIds: applicationIds.join(',') } : {}),
+        ...(planIds && planIds.length > 0 ? { planIds: planIds.join(',') } : {}),
+        ...(apikey ? { apikey: apikey } : {}),
+      },
+    });
+  }
+
   getById(apiId: string, subscriptionId: string, expands: string[] = []): Observable<Subscription> {
     return this.http.get<Subscription>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/${subscriptionId}?expands=${expands}`);
   }
