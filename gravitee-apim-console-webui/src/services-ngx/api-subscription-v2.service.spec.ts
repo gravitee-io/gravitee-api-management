@@ -74,14 +74,14 @@ describe('ApiSubscriptionV2Service', () => {
       };
 
       apiSubscriptionV2Service
-        .list(API_ID, '1', '10', ['ACCEPTED', 'CLOSED'], ['app1', 'app2'], ['plan1', 'plan2'], 'apikey', ['plan', 'application'])
+        .list(API_ID, '1', '10', ['ACCEPTED', 'CLOSED'], ['app1', 'app2'], ['plan1', 'plan2'], 'apiKey', ['plan', 'application'])
         .subscribe((apiSubscriptionsResponse) => {
           expect(apiSubscriptionsResponse.data).toEqual([fakeSubscription()]);
           done();
         });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions?page=1&perPage=10&statuses=ACCEPTED,CLOSED&applicationIds=app1,app2&planIds=plan1,plan2&apikey=apikey&expands=plan,application`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions?page=1&perPage=10&statuses=ACCEPTED,CLOSED&applicationIds=app1,app2&planIds=plan1,plan2&apiKey=apiKey&expands=plan,application`,
         method: 'GET',
       });
 
@@ -105,13 +105,13 @@ describe('ApiSubscriptionV2Service', () => {
 
     it('should export with all query params', (done) => {
       apiSubscriptionV2Service
-        .exportAsCSV(API_ID, '1', '10', ['ACCEPTED', 'CLOSED'], ['app1', 'app2'], ['plan1', 'plan2'], 'apikey')
+        .exportAsCSV(API_ID, '1', '10', ['ACCEPTED', 'CLOSED'], ['app1', 'app2'], ['plan1', 'plan2'], 'apiKey')
         .subscribe(() => {
           done();
         });
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/_export?page=1&perPage=10&statuses=ACCEPTED,CLOSED&applicationIds=app1,app2&planIds=plan1,plan2&apikey=apikey`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscriptions/_export?page=1&perPage=10&statuses=ACCEPTED,CLOSED&applicationIds=app1,app2&planIds=plan1,plan2&apiKey=apiKey`,
         method: 'GET',
       });
 

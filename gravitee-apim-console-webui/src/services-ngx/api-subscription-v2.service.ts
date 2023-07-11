@@ -42,7 +42,7 @@ export class ApiSubscriptionV2Service {
     statuses?: string[],
     applicationIds?: string[],
     planIds?: string[],
-    apikey?: string,
+    apiKey?: string,
     expands?: ('plan' | 'application')[],
   ): Observable<ApiSubscriptionsResponse> {
     return this.http.get<ApiSubscriptionsResponse>(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions`, {
@@ -52,7 +52,7 @@ export class ApiSubscriptionV2Service {
         ...(statuses && statuses.length > 0 ? { statuses: statuses.join(',') } : {}),
         ...(applicationIds && applicationIds.length > 0 ? { applicationIds: applicationIds.join(',') } : {}),
         ...(planIds && planIds.length > 0 ? { planIds: planIds.join(',') } : {}),
-        ...(apikey ? { apikey: apikey } : {}),
+        ...(apiKey ? { apiKey: apiKey } : {}),
         ...(expands ? { expands: expands.join(',') } : {}),
       },
     });
@@ -65,7 +65,7 @@ export class ApiSubscriptionV2Service {
     statuses?: string[],
     applicationIds?: string[],
     planIds?: string[],
-    apikey?: string,
+    apiKey?: string,
   ): Observable<Blob> {
     return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/subscriptions/_export`, {
       responseType: 'blob',
@@ -75,7 +75,7 @@ export class ApiSubscriptionV2Service {
         ...(statuses && statuses.length > 0 ? { statuses: statuses.join(',') } : {}),
         ...(applicationIds && applicationIds.length > 0 ? { applicationIds: applicationIds.join(',') } : {}),
         ...(planIds && planIds.length > 0 ? { planIds: planIds.join(',') } : {}),
-        ...(apikey ? { apikey: apikey } : {}),
+        ...(apiKey ? { apiKey: apiKey } : {}),
       },
     });
   }

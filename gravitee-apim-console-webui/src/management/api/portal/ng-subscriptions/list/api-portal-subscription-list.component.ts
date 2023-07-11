@@ -64,7 +64,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     planIds: new FormControl(),
     applicationIds: new FormControl(),
     statuses: new FormControl(),
-    apikey: new FormControl(),
+    apiKey: new FormControl(),
   });
 
   public plans: Plan[] = [];
@@ -86,7 +86,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
       planIds?: string[];
       applicationIds?: string[];
       statuses?: SubscriptionStatus[];
-      apikey?: string;
+      apiKey?: string;
     };
   }>({
     tableWrapper: {
@@ -97,7 +97,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
       planIds: null,
       applicationIds: null,
       statuses: ['ACCEPTED', 'PAUSED', 'PENDING'],
-      apikey: undefined,
+      apiKey: undefined,
     },
   });
 
@@ -126,7 +126,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
 
     this.filtersForm.valueChanges
       .pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))
-      .subscribe(({ planIds, applicationIds, statuses, apikey }) =>
+      .subscribe(({ planIds, applicationIds, statuses, apiKey }) =>
         this.filtersStream.next({
           tableWrapper: {
             ...this.filtersStream.value.tableWrapper,
@@ -138,7 +138,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
             planIds,
             applicationIds,
             statuses,
-            apikey,
+            apiKey,
           },
         }),
       );
@@ -176,7 +176,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
               status: subscriptionsFilters.statuses?.join(','),
               plan: subscriptionsFilters.planIds?.join(','),
               application: subscriptionsFilters.applicationIds?.join(','),
-              apikey: subscriptionsFilters.apikey,
+              apiKey: subscriptionsFilters.apiKey,
             },
             { notify: false },
           );
@@ -185,7 +185,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
           this.filtersForm.get('planIds').setValue(subscriptionsFilters.planIds);
           this.filtersForm.get('applicationIds').setValue(subscriptionsFilters.applicationIds);
           this.filtersForm.get('statuses').setValue(subscriptionsFilters.statuses);
-          this.filtersForm.get('apikey').setValue(subscriptionsFilters.apikey);
+          this.filtersForm.get('apiKey').setValue(subscriptionsFilters.apiKey);
         }),
         switchMap(({ subscriptionsFilters, tableWrapper }) =>
           this.apiSubscriptionService
@@ -196,7 +196,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
               subscriptionsFilters.statuses,
               subscriptionsFilters.applicationIds,
               subscriptionsFilters.planIds,
-              subscriptionsFilters.apikey,
+              subscriptionsFilters.apiKey,
               ['application', 'plan'],
             )
             .pipe(
@@ -240,10 +240,10 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     const planIds: string[] = this.filtersStream.value.subscriptionsFilters.statuses;
     const applicationIds = this.filtersStream.value.subscriptionsFilters.applicationIds;
     const statuses = this.filtersStream.value.subscriptionsFilters.planIds;
-    const apikey = this.filtersStream.value.subscriptionsFilters.apikey;
+    const apiKey = this.filtersStream.value.subscriptionsFilters.apiKey;
 
     this.apiSubscriptionService
-      .exportAsCSV(apiId, page, perPage, planIds, applicationIds, statuses, apikey)
+      .exportAsCSV(apiId, page, perPage, planIds, applicationIds, statuses, apiKey)
       .pipe(
         tap((blob) => {
           let fileName = `subscriptions-${this.api.name}-${this.api.apiVersion}-${_.now()}.csv`;
@@ -303,7 +303,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
     const initialPlanIds: string[] = this.ajsStateParams.plan ? this.ajsStateParams.plan.split(',') : null;
     const initialApplicationIds = this.ajsStateParams.application ? this.ajsStateParams.application.split(',') : null;
     const initialStatuses = this.ajsStateParams.status ? this.ajsStateParams.status.split(',') : ['ACCEPTED', 'PAUSED', 'PENDING'];
-    const initialApikey = this.ajsStateParams.apikey ? this.ajsStateParams.apikey : undefined;
+    const initialApiKey = this.ajsStateParams.apiKey ? this.ajsStateParams.apiKey : undefined;
 
     this.filtersStream.next({
       tableWrapper: {
@@ -314,7 +314,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
         planIds: initialPlanIds,
         applicationIds: initialApplicationIds,
         statuses: initialStatuses,
-        apikey: initialApikey,
+        apiKey: initialApiKey,
       },
     });
   }
@@ -329,7 +329,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
         planIds: null,
         applicationIds: null,
         statuses: ['ACCEPTED', 'PAUSED', 'PENDING'],
-        apikey: undefined,
+        apiKey: undefined,
       },
     });
   }
