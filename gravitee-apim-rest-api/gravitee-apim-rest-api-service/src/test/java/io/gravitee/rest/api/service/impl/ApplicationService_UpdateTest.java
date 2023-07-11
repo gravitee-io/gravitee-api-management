@@ -506,8 +506,26 @@ public class ApplicationService_UpdateTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
-        List<SubscriptionEntity> subscriptions = List.of(mock(SubscriptionEntity.class), mock(SubscriptionEntity.class));
-        when(subscriptionService.search(any(), argThat(criteria -> criteria.getApplications().contains(APPLICATION_ID))))
+        SubscriptionEntity subscription1 = new SubscriptionEntity();
+        subscription1.setId("sub-1");
+        subscription1.setClientId("old id");
+
+        SubscriptionEntity subscription2 = new SubscriptionEntity();
+        subscription2.setId("sub-2");
+        subscription2.setClientId("old id");
+
+        List<SubscriptionEntity> subscriptions = List.of(subscription1, subscription2);
+        when(
+            subscriptionService.search(
+                any(),
+                argThat(criteria ->
+                    criteria.getApplications().contains(APPLICATION_ID) &&
+                    criteria
+                        .getStatuses()
+                        .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
+                )
+            )
+        )
             .thenReturn(subscriptions);
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
@@ -516,7 +534,7 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
-    public void shouldNotUpdateWhenClientIdIsEmptyWithJWTPlan() throws TechnicalException {
+    public void shouldNotUpdateWhenClientIdIsEmptyWithJWTPlan() {
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(Strings.EMPTY);
@@ -554,5 +572,98 @@ public class ApplicationService_UpdateTest {
 
         verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
         verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(jwtPlanId, apiKeyPlanId, oauthPlanId)));
+    }
+
+    @Test
+    public void should_not_update_null_new_client_id() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        settings.setApp(clientSettings);
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        SubscriptionEntity subscription1 = new SubscriptionEntity();
+        subscription1.setId("sub-1");
+        subscription1.setClientId("old id");
+
+        SubscriptionEntity subscription2 = new SubscriptionEntity();
+        subscription2.setId("sub-2");
+        subscription2.setClientId("old id");
+
+        List<SubscriptionEntity> subscriptions = List.of(subscription1, subscription2);
+        when(
+            subscriptionService.search(
+                any(),
+                argThat(criteria ->
+                    criteria.getApplications().contains(APPLICATION_ID) &&
+                    criteria
+                        .getStatuses()
+                        .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
+                )
+            )
+        )
+            .thenReturn(subscriptions);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class), any());
+    }
+
+    @Test
+    public void should_not_update_client_id_of_subscriptions_with_null_client_id() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        List<SubscriptionEntity> subscriptions = List.of(mock(SubscriptionEntity.class), mock(SubscriptionEntity.class));
+        when(
+            subscriptionService.search(
+                any(),
+                argThat(criteria ->
+                    criteria.getApplications().contains(APPLICATION_ID) &&
+                    criteria
+                        .getStatuses()
+                        .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
+                )
+            )
+        )
+            .thenReturn(subscriptions);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class), any());
     }
 }
