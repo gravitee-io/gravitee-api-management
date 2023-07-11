@@ -28,6 +28,7 @@ export class ApiPortalSubscriptionListHarness extends ComponentHarness {
   public getApiKeyInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="apikey"]' }));
   public getCreateSubscriptionButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Create a subscription"]' }));
   public getResetFilterButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Reset filters"]' }));
+  public getExportButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Export subscriptions list"]' }));
 
   public async getApplications(): Promise<string[]> {
     const matSelectHarness = await this.getApplicationSelectInput();
