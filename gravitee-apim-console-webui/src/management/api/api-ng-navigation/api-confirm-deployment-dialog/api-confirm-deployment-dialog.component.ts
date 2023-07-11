@@ -62,8 +62,8 @@ export class ApiConfirmDeploymentDialogComponent implements OnDestroy {
           this.dialogRef.close();
           this.snackBarService.success('API successfully deployed.');
         },
-        () => {
-          this.snackBarService.error('An error occurred while deploying the API.');
+        (err) => {
+          this.snackBarService.error(`An error occurred while deploying the API.\n${err.error?.message}.`);
         },
       );
   }
