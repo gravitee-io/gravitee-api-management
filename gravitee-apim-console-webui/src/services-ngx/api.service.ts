@@ -27,6 +27,11 @@ import { FlowSchema } from '../entities/flow/flowSchema';
 import { PagedResult } from '../entities/pagedResult';
 import { AjsRootScope } from '../ajs-upgraded-providers';
 
+export interface ContextPathValidatorParams {
+  currentContextPath?: string;
+  apiId?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -195,7 +200,7 @@ export class ApiService {
     return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/duplicate`, config);
   }
 
-  contextPathValidator(currentContextPath?: string): AsyncValidatorFn {
+  contextPathValidator(params: ContextPathValidatorParams): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
       if (!control.value) {
         // If the control is empty, return no error
@@ -207,14 +212,17 @@ export class ApiService {
         return of({ contextPath: 'Context path has to be more than 3 characters long.' });
       }
 
-      if (currentContextPath === contextPath) {
+      if (params.currentContextPath === contextPath) {
         return of(null);
       }
 
+      const { apiId } = params;
+      const url = `${this.constants.env.baseURL}/apis/verify`;
+
       return this.http
         .post(
-          `${this.constants.env.baseURL}/apis/verify`,
-          { context_path: contextPath },
+          url,
+          { context_path: contextPath, apiId },
           {
             responseType: 'text',
           },
