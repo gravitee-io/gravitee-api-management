@@ -18,7 +18,7 @@ import { NgModule } from '@angular/core';
 import { ApiPortalDetailsModule } from './details/api-portal-details.module';
 import { ApiPortalDocumentationModule } from './documentation/api-portal-documentation.module';
 import { ApiPortalPlansModule } from './plans/api-portal-plans.module';
-import { ApiPortalSubscriptionsModule } from './ng-subscriptions/api-portal-subscriptions.module';
+import { ApiPortalSubscriptionsModule } from './subscriptions/api-portal-subscriptions.module';
 import { ApiPortalUserGroupModule } from './user-group-access/api-portal-user-group.module';
 
 @NgModule({

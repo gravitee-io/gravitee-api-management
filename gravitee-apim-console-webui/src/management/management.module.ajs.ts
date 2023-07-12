@@ -502,8 +502,8 @@ import { ApiBackendServicesComponent } from './api/endpoints-v4/backend-services
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
 import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
-import { ApiPortalSubscriptionListComponent } from './api/portal/ng-subscriptions/list/api-portal-subscription-list.component';
-import { ApiPortalSubscriptionEditComponent } from './api/portal/ng-subscriptions/edit/api-portal-subscription-edit.component';
+import { ApiPortalSubscriptionListComponent } from './api/portal/subscriptions/list/api-portal-subscription-list.component';
+import { ApiPortalSubscriptionEditComponent } from './api/portal/subscriptions/edit/api-portal-subscription-edit.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
