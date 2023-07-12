@@ -119,3 +119,5 @@ databaseChangeLog:
                   value: PUSH
             tableName: ${gravitee_prefix}subscriptions
             where: type='SUBSCRIPTION'
+
+        # dummy test
