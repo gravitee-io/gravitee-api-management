@@ -17,8 +17,8 @@ import { Component, Inject, Input } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { castArray } from 'lodash';
 
-import { MenuItem } from '../api-ng-navigation.component';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
+import { MenuItem } from '../MenuGroupItem';
 
 @Component({
   selector: 'api-ng-navigation-tabs',
