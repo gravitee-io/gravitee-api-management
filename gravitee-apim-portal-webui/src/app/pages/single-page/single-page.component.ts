@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Page, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
@@ -34,10 +34,5 @@ export class SinglePageComponent implements OnInit {
         this.portalService.getPageByPageId({ pageId: params.pageId }).subscribe(response => (this.singlePage = response));
       }
     });
-  }
-
-  @HostListener(':gv-button:click', ['$event.srcElement.dataset.pageId'])
-  onInternalLinkClick(pageId: string) {
-    this.router.navigate(['/documentation/root'], { queryParams: { page: pageId } });
   }
 }
