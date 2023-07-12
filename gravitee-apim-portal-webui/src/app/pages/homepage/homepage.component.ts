@@ -30,6 +30,7 @@ import { ConfigurationService } from '../../services/configuration.service';
 export class HomepageComponent implements OnInit {
   public homepage: Page;
   public topApis: { item: Api; metric: Promise<ApiMetrics> }[] = [];
+  public pageBaseUrl = '/documentation/root';
 
   constructor(
     private portalService: PortalService,
@@ -63,10 +64,5 @@ export class HomepageComponent implements OnInit {
     Promise.resolve(api).then(_api => {
       this.router.navigate(['/catalog/api/' + _api.id]);
     });
-  }
-
-  @HostListener(':app-gv-page-markdown:navigate', ['$event.detail.pageId'])
-  onInternalLinkClick(pageId: string) {
-    this.router.navigate(['/documentation/root'], { queryParams: { page: pageId } });
   }
 }
