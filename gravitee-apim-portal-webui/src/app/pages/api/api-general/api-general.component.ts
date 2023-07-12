@@ -87,6 +87,7 @@ export class ApiGeneralComponent implements OnInit {
   hasRatingFeature: boolean;
   apiInformations: Array<ApiInformation>;
   backButton: { url?: string; label?: string; queryParams?: Params };
+  pageBaseUrl: string;
 
   constructor(
     private apiService: ApiService,
@@ -114,7 +115,7 @@ export class ApiGeneralComponent implements OnInit {
 
   ngOnInit() {
     const apiId = this.route.snapshot.params.apiId;
-
+    this.pageBaseUrl = `/catalog/api/${apiId}/doc`;
     if (this.apiHomepage == null) {
       this.apiHomepageLoaded = true;
     }
@@ -152,6 +153,7 @@ export class ApiGeneralComponent implements OnInit {
           .toPromise()
           .then(metrics => (this.currentApiMetrics = metrics));
         this.currentApi = this.route.snapshot.data.api;
+        this.pageBaseUrl = `/catalog/api/${this.currentApi.id}/doc`;
         this.apiService.getApiLinks({ apiId }).subscribe(apiLinks => {
           if (apiLinks.slots && apiLinks.slots.aside) {
             apiLinks.slots.aside.forEach(catLinks => {
@@ -432,11 +434,6 @@ export class ApiGeneralComponent implements OnInit {
   onSortRatings({ target }) {
     this.currentOrder = target.value;
     this._updateRatings();
-  }
-
-  @HostListener(':app-gv-page-markdown:navigate', ['$event.detail.pageId'])
-  onInternalLinkClick(pageId: string) {
-    this.router.navigate(['/catalog/api/' + this.currentApi.id + '/doc'], { queryParams: { page: pageId } });
   }
 
   goBack() {
