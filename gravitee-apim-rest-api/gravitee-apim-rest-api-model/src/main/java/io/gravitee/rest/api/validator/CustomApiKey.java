@@ -37,7 +37,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = {})
 @Documented
 public @interface CustomApiKey {
-    String message() default "Bad format for custom API key";
+    String message() default "Bad format for custom API Key";
 
     Class<?>[] groups() default {};
 

@@ -11,7 +11,7 @@
   ],
   "info": {
     "title": "Gravitee.io Swagger API",
-    "description": "This is a sample server Petstore server.  You can find out more about Swagger \n    at <a href=\"http://swagger.io\">http://swagger.io</a> or on irc.freenode.net, #swagger.  For this sample,\n    you can use the api key \"special-key\" to test the authorization filters",
+    "description": "This is a sample server Petstore server.  You can find out more about Swagger \n    at <a href=\"http://swagger.io\">http://swagger.io</a> or on irc.freenode.net, #swagger.  For this sample,\n    you can use the API Key \"special-key\" to test the authorization filters",
     "termsOfServiceUrl": "http://swagger.io/terms/",
     "contact": "apiteam@swagger.io",
     "license": "Apache 2.0",

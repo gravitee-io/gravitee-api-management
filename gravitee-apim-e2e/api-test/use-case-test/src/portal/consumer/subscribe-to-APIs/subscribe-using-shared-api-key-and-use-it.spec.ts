@@ -53,12 +53,12 @@ describe('Subscribe using shared API-Key and use it', () => {
   let createdSharedApiKey;
 
   beforeAll(async () => {
-    // enable shared API key mode at the environment level
+    // enable shared API Key mode at the environment level
     portalSettingsEntity = await settingsResource.getPortalSettings({ orgId, envId });
     portalSettingsEntity.plan.security.sharedApiKey.enabled = true;
     await settingsResource.savePortalSettings({ orgId, envId, portalSettingsEntity });
 
-    // create APIs with a published API key plan
+    // create APIs with a published API Key plan
     createdApi1 = await apisResource.importApiDefinition({
       envId,
       orgId,
@@ -107,7 +107,7 @@ describe('Subscribe using shared API-Key and use it', () => {
       applicationInput: PortalApplicationFaker.newApplicationInput(),
     });
 
-    // subscribe application to first API key plan
+    // subscribe application to first API Key plan
     createdSubscription1 = await portalSubscriptionResource.createSubscription({
       subscriptionInput: {
         application: createdApplication.id,
@@ -115,13 +115,13 @@ describe('Subscribe using shared API-Key and use it', () => {
       },
     });
 
-    // enable shared API key mode at the application level
+    // enable shared API Key mode at the application level
     await portalApplicationResource.updateApplicationByApplicationId({
       applicationId: createdApplication.id,
       application: { ...createdApplication, api_key_mode: ApiKeyModeEnum.SHARED },
     });
 
-    // subscribe application to the other API key plan
+    // subscribe application to the other API Key plan
     createdSubscription2 = await portalSubscriptionResource.createSubscription({
       subscriptionInput: {
         application: createdApplication.id,
@@ -129,7 +129,7 @@ describe('Subscribe using shared API-Key and use it', () => {
       },
     });
 
-    // get portal subscription API key
+    // get portal subscription API Key
     createdSharedApiKey = (
       await portalSubscriptionResource.getSubscriptionById({
         subscriptionId: createdSubscription1.id,
@@ -138,8 +138,8 @@ describe('Subscribe using shared API-Key and use it', () => {
     ).keys[0];
   });
 
-  describe('Gateway call with shared API key in HTTP header', () => {
-    describe('Gateway call with correct X-Gravitee-Api-Key header using shared API key', () => {
+  describe('Gateway call with shared API Key in HTTP header', () => {
+    describe('Gateway call with correct X-Gravitee-Api-Key header using shared API Key', () => {
       test('Should return 200 OK', async () => {
         await fetchGatewaySuccess({
           contextPath: createdApi1.context_path,
@@ -156,7 +156,7 @@ describe('Subscribe using shared API-Key and use it', () => {
     });
   });
 
-  describe('Gateway call with API key in query parameter', () => {
+  describe('Gateway call with API Key in query parameter', () => {
     describe('Gateway call with correct api-key query param using portal subscription', () => {
       test('Should return 200 OK', async () => {
         await fetchGatewaySuccess({
@@ -173,7 +173,7 @@ describe('Subscribe using shared API-Key and use it', () => {
   });
 
   afterAll(async () => {
-    // disable shared API key mode at the environment level
+    // disable shared API Key mode at the environment level
     portalSettingsEntity.plan.security.sharedApiKey.enabled = false;
     await settingsResource.savePortalSettings({ orgId, envId, portalSettingsEntity });
 

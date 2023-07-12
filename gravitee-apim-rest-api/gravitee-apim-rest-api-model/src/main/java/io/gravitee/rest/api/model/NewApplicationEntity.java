@@ -77,7 +77,7 @@ public class NewApplicationEntity {
     private String background;
 
     @JsonProperty("api_key_mode")
-    @Schema(description = "The API key mode used for this application.")
+    @Schema(description = "The API Key mode used for this application.")
     private ApiKeyMode apiKeyMode;
 
     @JsonProperty(value = "origin")

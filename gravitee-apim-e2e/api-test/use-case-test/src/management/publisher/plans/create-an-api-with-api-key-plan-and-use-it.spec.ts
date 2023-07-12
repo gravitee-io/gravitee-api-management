@@ -52,7 +52,7 @@ describe('Create an API with API-Key plan and use it', () => {
   let createdApiSubscriptionApiKey: ApiKeyEntity;
 
   beforeAll(async () => {
-    // create an API with a published API key plan
+    // create an API with a published API Key plan
     createdApi = await apisResource.importApiDefinition({
       envId,
       orgId,
@@ -84,14 +84,14 @@ describe('Create an API with API-Key plan and use it', () => {
       action: LifecycleAction.START,
     });
 
-    // create an application to subscribe to the API key plan from console application
+    // create an application to subscribe to the API Key plan from console application
     createdApplicationSubscriptionApplication = await applicationsResource.createApplication({
       envId,
       orgId,
       newApplicationEntity: ApplicationsFaker.newApplication(),
     });
 
-    // create an application to subscribe to the API key plan from console API
+    // create an application to subscribe to the API Key plan from console API
     createdApiSubscriptionApplication = await applicationsResource.createApplication({
       envId,
       orgId,
@@ -106,7 +106,7 @@ describe('Create an API with API-Key plan and use it', () => {
       application: createdApplicationSubscriptionApplication.id,
     });
 
-    // get the application subscription API key
+    // get the application subscription API Key
     createdApplicationSubscriptionApiKey = (
       await applicationSubscriptionsResource.getApiKeysForApplicationSubscription({
         envId,
@@ -125,7 +125,7 @@ describe('Create an API with API-Key plan and use it', () => {
       api: createdApi.id,
     });
 
-    // get console API subscription API key
+    // get console API subscription API Key
     createdApiSubscriptionApiKey = (
       await apiSubscriptionResource.getApiKeysForApiSubscription({
         envId,
@@ -136,7 +136,7 @@ describe('Create an API with API-Key plan and use it', () => {
     )[0];
   });
 
-  describe('Gateway call with API key in HTTP header', () => {
+  describe('Gateway call with API Key in HTTP header', () => {
     describe.each`
       case                                 | headers
       ${'no X-Gravitee-Api-Key header'}    | ${{}}
@@ -167,7 +167,7 @@ describe('Create an API with API-Key plan and use it', () => {
     });
   });
 
-  describe('Gateway call with API key in query parameter', () => {
+  describe('Gateway call with API Key in query parameter', () => {
     describe.each`
       case                           | queryParams
       ${'no api-key query param'}    | ${{}}

@@ -348,7 +348,7 @@ describe('ApiSubscriptionV2Service', () => {
     });
   });
 
-  describe('list api keys', () => {
+  describe('list API Keys', () => {
     const API_KEY_ID = 'my-api-key';
     const SUBSCRIPTION_ID = 'my-subscription-id';
     it('should call API', (done) => {
@@ -368,7 +368,7 @@ describe('ApiSubscriptionV2Service', () => {
     });
   });
 
-  describe('renew api key', () => {
+  describe('renew API Key', () => {
     const API_KEY_ID = 'my-api-key';
     const SUBSCRIPTION_ID = 'my-subscription-id';
     it('should call API', (done) => {
@@ -389,7 +389,7 @@ describe('ApiSubscriptionV2Service', () => {
     });
   });
 
-  describe('revoke api key', () => {
+  describe('revoke API Key', () => {
     const API_KEY_ID = 'my-api-key';
     const SUBSCRIPTION_ID = 'my-subscription-id';
     it('should call API', (done) => {
@@ -409,7 +409,7 @@ describe('ApiSubscriptionV2Service', () => {
     });
   });
 
-  describe('expire api key', () => {
+  describe('expire API Key', () => {
     const API_KEY_ID = 'my-api-key';
     const SUBSCRIPTION_ID = 'my-subscription-id';
     it('should call API', (done) => {
@@ -430,7 +430,7 @@ describe('ApiSubscriptionV2Service', () => {
     });
   });
 
-  describe('reactivate api key', () => {
+  describe('reactivate API Key', () => {
     const API_KEY_ID = 'my-api-key';
     const SUBSCRIPTION_ID = 'my-subscription-id';
     it('should call API', (done) => {

@@ -24,7 +24,7 @@ import java.util.Map;
 public class ApiKeyAlreadyExistingException extends AbstractManagementException {
 
     public ApiKeyAlreadyExistingException() {
-        super("API key already exists");
+        super("API Key already exists");
     }
 
     @Override

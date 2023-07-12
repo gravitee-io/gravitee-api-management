@@ -76,8 +76,8 @@ public class ApiSubscriptionApiKeyResource extends AbstractApiKeyResource {
     @POST
     @Path("/_reactivate")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Reactivate an API key", description = "User must have the API_SUBSCRIPTION permission to use this service")
-    @ApiResponse(responseCode = "204", description = "API key successfully reactivated")
+    @Operation(summary = "Reactivate an API Key", description = "User must have the API_SUBSCRIPTION permission to use this service")
+    @ApiResponse(responseCode = "204", description = "API Key successfully reactivated")
     @ApiResponse(responseCode = "400", description = "API Key does not correspond to the subscription")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
@@ -86,7 +86,7 @@ public class ApiSubscriptionApiKeyResource extends AbstractApiKeyResource {
         ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
 
         if (!apiKeyEntity.hasSubscription(subscription)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("api key in path does not correspond to the subscription").build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("API Key in path does not correspond to the subscription").build();
         }
         checkApplicationDoesntUseSharedApiKey(apiKeyEntity.getApplication());
         ApiKeyEntity reactivated = apiKeyService.reactivate(executionContext, apiKeyEntity);
@@ -95,14 +95,14 @@ public class ApiSubscriptionApiKeyResource extends AbstractApiKeyResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Revoke API key", description = "User must have the API_SUBSCRIPTION:DELETE permission to use this service")
+    @Operation(summary = "Revoke API Key", description = "User must have the API_SUBSCRIPTION:DELETE permission to use this service")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApiSubscription() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
 
         if (!apiKeyEntity.hasSubscription(subscription)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("api key in path does not correspond to the subscription").build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("API Key in path does not correspond to the subscription").build();
         }
         checkApplicationDoesntUseSharedApiKey(apiKeyEntity.getApplication());
         apiKeyService.revoke(executionContext, apiKeyEntity, true);

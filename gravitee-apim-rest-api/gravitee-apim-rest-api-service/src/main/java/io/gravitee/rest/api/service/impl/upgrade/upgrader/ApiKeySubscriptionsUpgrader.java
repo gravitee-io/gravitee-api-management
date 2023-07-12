@@ -64,7 +64,7 @@ public class ApiKeySubscriptionsUpgrader implements Upgrader {
     @SuppressWarnings("removal")
     private void updateApiKeySubscriptions(ApiKey apiKey) {
         try {
-            LOGGER.debug("Updating subscriptions for API key [{}]", apiKey);
+            LOGGER.debug("Updating subscriptions for API Key [{}]", apiKey);
             List<String> allSubscriptions = apiKey.getSubscriptions() != null ? apiKey.getSubscriptions() : new ArrayList<>();
             if (apiKey.getSubscription() != null && !allSubscriptions.contains(apiKey.getSubscription())) {
                 allSubscriptions.add(apiKey.getSubscription());
@@ -72,7 +72,7 @@ public class ApiKeySubscriptionsUpgrader implements Upgrader {
             apiKey.setSubscriptions(allSubscriptions);
             apiKeyRepository.update(apiKey);
         } catch (TechnicalException e) {
-            LOGGER.error("Failed to update subscriptions for API key [{}]", apiKey, e);
+            LOGGER.error("Failed to update subscriptions for API Key [{}]", apiKey, e);
         }
     }
 }

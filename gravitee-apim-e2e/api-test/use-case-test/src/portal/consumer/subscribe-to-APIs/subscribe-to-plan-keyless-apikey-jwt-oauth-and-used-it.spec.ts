@@ -57,7 +57,7 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
       orgId,
       body: ApisFaker.apiImport({
         plans: [
-          // With a published API key plan
+          // With a published API Key plan
           PlansFaker.plan({ security: PlanSecurityType.API_KEY, status: PlanStatus.PUBLISHED, order: 1 }),
           // With a published JWT plan
           PlansFaker.plan({
@@ -98,7 +98,7 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
       applicationInput: PortalApplicationFaker.newApplicationInput(),
     });
 
-    // Subscribe application to API key plan
+    // Subscribe application to API Key plan
     createdApiKeyPlanPortalSubscription = await portalSubscriptionResource.createSubscription({
       subscriptionInput: {
         application: createdPortalApplication.id,
@@ -106,7 +106,7 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
       },
     });
 
-    // Get portal subscription API key
+    // Get portal subscription API Key
     createdPortalApiKey = (
       await portalSubscriptionResource.getSubscriptionById({
         subscriptionId: createdApiKeyPlanPortalSubscription.id,
@@ -131,7 +131,7 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
     });
   });
 
-  describe('Gateway call with API key in HTTP header', () => {
+  describe('Gateway call with API Key in HTTP header', () => {
     describe('Gateway call with correct X-Gravitee-Api-Key header using portal subscription', () => {
       test('Should return 200 OK', async () => {
         await fetchGatewaySuccess({
@@ -142,7 +142,7 @@ describe('Subscribe to API Key & JWT plans and use them', () => {
     });
   });
 
-  describe('Gateway call with API key in query parameter', () => {
+  describe('Gateway call with API Key in query parameter', () => {
     describe('Gateway call with correct api-key query param using portal subscription', () => {
       test('Should return 200 OK', async () => {
         await fetchGatewaySuccess({
