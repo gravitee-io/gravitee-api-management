@@ -9,15 +9,13 @@
  * Do not edit the class manually.
  */
 
-
 /**
- * The API key mode to use for this application.   - The `SHARED` API key mode allows consumer to use the same API key across all the subscriptions   - The `EXCLUSIVE` API key mode will result to a new API key being generated for each subscription   - The `UNSPECIFIED` API key mode is a marker value informing that no choice as been made yet regarding     the API key mode to use for the application. 
+ * The API Key mode to use for this application.   - The `SHARED` API Key mode allows consumer to use the same API Key across all the subscriptions   - The `EXCLUSIVE` API Key mode will result to a new API Key being generated for each subscription   - The `UNSPECIFIED` API Key mode is a marker value informing that no choice as been made yet regarding     the API Key mode to use for the application.
  */
 export type ApiKeyModeEnum = 'SHARED' | 'EXCLUSIVE' | 'UNSPECIFIED';
 
 export const ApiKeyModeEnum = {
-    SHARED: 'SHARED' as ApiKeyModeEnum,
-    EXCLUSIVE: 'EXCLUSIVE' as ApiKeyModeEnum,
-    UNSPECIFIED: 'UNSPECIFIED' as ApiKeyModeEnum
+  SHARED: 'SHARED' as ApiKeyModeEnum,
+  EXCLUSIVE: 'EXCLUSIVE' as ApiKeyModeEnum,
+  UNSPECIFIED: 'UNSPECIFIED' as ApiKeyModeEnum,
 };
-

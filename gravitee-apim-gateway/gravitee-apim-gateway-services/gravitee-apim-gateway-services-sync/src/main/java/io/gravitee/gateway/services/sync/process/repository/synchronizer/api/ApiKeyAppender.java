@@ -39,9 +39,9 @@ public class ApiKeyAppender {
     private final ApiKeyMapper apiKeyMapper;
 
     /**
-     * Fetching api keys for given deployables
+     * Fetching API Keys for given deployables
      * @param deployables the deployables to update
-     * @return the deployables updated with api keys
+     * @return the deployables updated with API Keys
      */
     public List<ApiReactorDeployable> appends(final boolean initialSync, final List<ApiReactorDeployable> deployables) {
         final Map<String, ApiReactorDeployable> deployableByApi = deployables
@@ -90,7 +90,7 @@ public class ApiKeyAppender {
                 )
                 .collect(groupingBy(ApiKey::getApi));
         } catch (Exception ex) {
-            throw new SyncException("Error occurred when retrieving api keys", ex);
+            throw new SyncException("Error occurred when retrieving API Keys", ex);
         }
     }
 }

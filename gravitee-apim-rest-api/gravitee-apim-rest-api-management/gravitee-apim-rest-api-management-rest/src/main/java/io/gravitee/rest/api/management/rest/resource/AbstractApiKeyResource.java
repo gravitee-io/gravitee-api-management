@@ -23,7 +23,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeExcep
 import jakarta.inject.Inject;
 
 /**
- * A resource that manages API keys.
+ * A resource that manages API Keys.
  *
  * @author GraviteeSource Team
  */
@@ -52,7 +52,7 @@ public class AbstractApiKeyResource extends AbstractResource {
         if (applicationEntity.hasApiKeySharedMode() != usesSharedApiKey) {
             throw new InvalidApplicationApiKeyModeException(
                 String.format(
-                    "Invalid operation for api key mode [%s] of application [%s]",
+                    "Invalid operation for API Key mode [%s] of application [%s]",
                     applicationEntity.getApiKeyMode(),
                     applicationEntity.getId()
                 )

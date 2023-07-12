@@ -181,7 +181,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public ApiKeyEntity renew(ExecutionContext executionContext, ApplicationEntity application) {
         if (!application.hasApiKeySharedMode()) {
-            throw new InvalidApplicationApiKeyModeException("Can't renew an API key on application that doesn't use shared API key mode");
+            throw new InvalidApplicationApiKeyModeException("Can't renew an API Key on application that doesn't use shared API Key mode");
         }
 
         try {
@@ -291,12 +291,12 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     /**
-     * Generate an {@link ApiKey} from a subscription. If no custom API key, then generate a new one.
+     * Generate an {@link ApiKey} from a subscription. If no custom API Key, then generate a new one.
      *
      * @param executionContext
      * @param subscription
      * @param customApiKey
-     * @return An Api Key
+     * @return An API Key
      */
     private ApiKey generateForSubscription(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
         if (isNotEmpty(customApiKey) && !canCreate(executionContext, customApiKey, subscription)) {
@@ -321,18 +321,18 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
      * Generate an {@link ApiKey} for an application. Generates a new random key value.
      *
      * @param application
-     * @return An Api Key
+     * @return An API Key
      */
     private ApiKey generateForApplication(String application) {
         return generateForApplication(application, null);
     }
 
     /**
-     * Generate an {@link ApiKey} for an application. If no custom API key, then generate a new one.
+     * Generate an {@link ApiKey} for an application. If no custom API Key, then generate a new one.
      *
      * @param application
      * @param customApiKey
-     * @return An Api Key
+     * @return An API Key
      */
     private ApiKey generateForApplication(String application, String customApiKey) {
         ApiKey apiKey = new ApiKey();
@@ -398,7 +398,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             key.setUpdatedAt(new Date());
             key.setRevokedAt(null);
 
-            // If this is not a shared API key,
+            // If this is not a shared API Key,
             // Get the subscription to get ending date and set key expiration date
             if (!apiKeyEntity.getApplication().hasApiKeySharedMode()) {
                 SubscriptionEntity subscription = subscriptionService.findById(key.getSubscriptions().get(0));
@@ -416,7 +416,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             return updatedEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to reactivate an api key", ex);
-            throw new TechnicalManagementException("An error occurs while trying to reactivate an api key", ex);
+            throw new TechnicalManagementException("An error occurs while trying to reactivate an API Key", ex);
         }
     }
 
@@ -446,8 +446,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             LOGGER.debug("Find API Keys by key");
             return apiKeyRepository.findByKey(apiKey).stream().map(apiKey1 -> convert(executionContext, apiKey1)).collect(toList());
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while finding API keys", e);
-            throw new TechnicalManagementException("An error occurs while finding API keys", e);
+            LOGGER.error("An error occurs while finding API Keys", e);
+            throw new TechnicalManagementException("An error occurs while finding API Keys", e);
         }
     }
 
@@ -464,9 +464,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
                 .collect(toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while finding API keys for subscription {}", subscription, ex);
+            LOGGER.error("An error occurs while finding API Keys for subscription {}", subscription, ex);
             throw new TechnicalManagementException(
-                String.format("An error occurs while finding API keys for subscription %s", subscription),
+                String.format("An error occurs while finding API Keys for subscription %s", subscription),
                 ex
             );
         }
@@ -579,7 +579,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public Collection<ApiKeyEntity> search(ExecutionContext executionContext, ApiKeyQuery query) {
         try {
-            LOGGER.debug("Search api keys {}", query);
+            LOGGER.debug("Search API Keys {}", query);
 
             ApiKeyCriteria apiKeyCriteria = toApiKeyCriteria(query);
 
@@ -589,8 +589,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .map(apiKey -> convert(executionContext, apiKey))
                 .collect(toList());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to search api keys: {}", query, ex);
-            throw new TechnicalManagementException(String.format("An error occurs while trying to search api keys: {}", query), ex);
+            LOGGER.error("An error occurs while trying to search API Keys: {}", query, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to search API Keys: {}", query), ex);
         }
     }
 
@@ -627,7 +627,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         key.setUpdatedAt(now);
 
         if (!key.isRevoked()) {
-            // If API key is not shared
+            // If API Key is not shared
             // The expired date must be <= than the subscription end date
             if (
                 apiKeyEntity.getApplication() != null &&

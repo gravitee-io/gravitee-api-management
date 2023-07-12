@@ -797,7 +797,7 @@
       "general_conditions_revision": "Les conditions générales d'utilisation du plan {plan} ont changées. ",
       "general_conditions_status": "Le plan {plan} référence une page de conditions générales d'utilisation non publiée.",
       "notSubscribable": "Un client_id est requis pour s'abonner à un plan OAuth2 ou JWT.",
-      "notSubscribableWithSharedApiKey": "Vous ne pouvez pas souscrire un second plan API key sur la même API avec une clé d'API partagée.",
+      "notSubscribableWithSharedApiKey": "Vous ne pouvez pas souscrire un second plan API Key sur la même API avec une clé d'API partagée.",
       "otherOAuth2OrJWTSubscribed": "Un autre plan OAuth2 ou JWT est déjà souscrit par la même application",
       "subscribed": "Il existe déjà un abonnement EN ATTENTE ou ACCEPTÉ pour ce plan."
     },

@@ -565,7 +565,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             application.getApiKeyMode() == UNSPECIFIED &&
             countApiKeySubscriptions(executionContext, application) > 0
         ) {
-            logger.debug("Force application {} Api Key mode to EXCLUSIVE, as it's his second subscription", application.getId());
+            logger.debug("Force application {} API Key mode to EXCLUSIVE, as it's his second subscription", application.getId());
             application.setApiKeyMode(EXCLUSIVE);
             applicationService.update(executionContext, application.getId(), applicationConverter.toUpdateApplicationEntity(application));
         }
@@ -717,7 +717,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscription
                 );
 
-                // Update the expiration date for not yet revoked api-keys relative to this subscription (except for shared API keys)
+                // Update the expiration date for not yet revoked api-keys relative to this subscription (except for shared API Keys)
                 PlanSecurity planSecurity = genericPlanEntity.getPlanSecurity();
                 if (planSecurity != null) {
                     Date endingAt = subscription.getEndingAt();
@@ -1037,7 +1037,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private void pauseNonSharedApiKeys(ExecutionContext executionContext, Subscription subscription, ApplicationEntity application) {
         streamActiveApiKeys(executionContext, subscription.getId())
             .forEach(apiKey -> {
-                // Only paused key if the applicatio is not using shared api key
+                // Only paused key if the applicatio is not using shared API Key
                 if (!application.hasApiKeySharedMode()) {
                     apiKey.setPaused(true);
                 }

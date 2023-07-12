@@ -12,9 +12,9 @@ The OAuth2 plan type allows you to check an access token and identify the applic
 
 The JWT plan type allows you to check that the given JSON web token is valid and not expired
 
-* API key
+* API Key
 
-The API key plan type allows you to identify and to check that the given API key is valid and not expired
+The API Key plan type allows you to identify and to check that the given API Key is valid and not expired
 
 * Keyless
 

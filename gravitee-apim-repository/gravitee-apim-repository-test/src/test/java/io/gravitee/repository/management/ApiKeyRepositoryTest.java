@@ -61,11 +61,11 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
         apiKeyRepository.create(apiKey);
 
         Optional<ApiKey> optional = apiKeyRepository.findById(id);
-        assertTrue("ApiKey not found", optional.isPresent());
+        assertTrue("API Key not found", optional.isPresent());
 
         ApiKey keyFound = optional.get();
 
-        assertNotNull("ApiKey not found", keyFound);
+        assertNotNull("API Key not found", keyFound);
 
         assertEquals("Key value saved doesn't match", apiKey.getKey(), keyFound.getKey());
         assertTrue("Key expiration doesn't match", compareDate(apiKey.getExpireAt(), keyFound.getExpireAt()));
@@ -82,10 +82,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void findById_should_find_apikey() throws Exception {
         Optional<ApiKey> optional = apiKeyRepository.findById("id-of-apikey-1");
 
-        assertTrue("ApiKey not found", optional.isPresent());
+        assertTrue("API Key not found", optional.isPresent());
 
         ApiKey keyFound = optional.get();
-        assertNotNull("ApiKey not found", keyFound);
+        assertNotNull("API Key not found", keyFound);
 
         assertNotNull("No subscriptions relative to the key", keyFound.getSubscriptions());
         assertEquals("Subscriptions count does not match", 1, keyFound.getSubscriptions().size());
@@ -108,16 +108,16 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void findById_should_return_optional_if_key_not_found() throws Exception {
         Optional<ApiKey> apiKey = apiKeyRepository.findById("id-of-apikey-112");
 
-        assertFalse("Invalid ApiKey found", apiKey.isPresent());
+        assertFalse("Invalid API Key found", apiKey.isPresent());
     }
 
     @Test
-    public void findByKey_should_find_all_matching_apikeys() throws Exception {
+    public void findByKey_should_find_all_matching_API_Keys() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByKey("d449098d-8c31-4275-ad59-8dd707865a34");
 
-        assertFalse("API keys not found", apiKeys.isEmpty());
+        assertFalse("API Keys not found", apiKeys.isEmpty());
 
-        assertNotNull("ApiKeys not found", apiKeys);
+        assertNotNull("API Keys not found", apiKeys);
         assertEquals(2, apiKeys.size());
         assertTrue(Set.of("id-of-apikey-1", "id-of-apikey-2").containsAll(apiKeys.stream().map(ApiKey::getId).collect(toList())));
     }
@@ -126,7 +126,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void findBykey_should_return_empty_list_if_key_not_found() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByKey("unknown-api-key-d449098d-8c31-42");
 
-        assertTrue("Invalid ApiKeys found", apiKeys.isEmpty());
+        assertTrue("Invalid API Keys found", apiKeys.isEmpty());
     }
 
     @Test
@@ -145,10 +145,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void findBySubscription_should_find_apikeys_list() throws Exception {
+    public void findBySubscription_should_find_API_Keys_list() throws Exception {
         Set<ApiKey> apiKeys = apiKeyRepository.findBySubscription("subscription1");
 
-        assertNotNull("API keys not found", apiKeys);
+        assertNotNull("API Keys not found", apiKeys);
         assertEquals("Invalid number of ApiKey found", 2, apiKeys.size());
     }
 
@@ -192,9 +192,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             ApiKeyCriteria.builder().includeRevoked(false).subscriptions(singleton("sub3")).build()
         );
 
-        assertNotNull("found api key", apiKeys);
-        assertFalse("found api key", apiKeys.isEmpty());
-        assertEquals("found 2 apikeys", 2, apiKeys.size());
+        assertNotNull("found API Key", apiKeys);
+        assertFalse("found API Key", apiKeys.isEmpty());
+        assertEquals("found 2 API Keys", 2, apiKeys.size());
 
         List<String> expectedKeys = List.of("findByCriteria2", "findByCriteria1");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
@@ -216,9 +216,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             ApiKeyCriteria.builder().includeRevoked(false).from(1486771200000L).to(1486771400000L).subscriptions(singleton("sub3")).build()
         );
 
-        assertNotNull("found api key", apiKeys);
-        assertFalse("found api key", apiKeys.isEmpty());
-        assertEquals("found 1 api key " + apiKeys.stream().map(ApiKey::getKey).collect(toList()), 1, apiKeys.size());
+        assertNotNull("found API Key", apiKeys);
+        assertFalse("found API Key", apiKeys.isEmpty());
+        assertEquals("found 1 API Key " + apiKeys.stream().map(ApiKey::getKey).collect(toList()), 1, apiKeys.size());
         assertEquals("findByCriteria1", apiKeys.get(0).getKey());
     }
 
@@ -240,9 +240,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             ApiKeyCriteria.builder().includeRevoked(true).subscriptions(singleton("sub3")).build()
         );
 
-        assertNotNull("found api key", apiKeys);
-        assertFalse("found api key", apiKeys.isEmpty());
-        assertEquals("found 3 apikeys", 3, apiKeys.size());
+        assertNotNull("found API Key", apiKeys);
+        assertFalse("found API Key", apiKeys.isEmpty());
+        assertEquals("found 3 API Keys", 3, apiKeys.size());
 
         List<String> expectedKeys = List.of("findByCriteria1", "findByCriteria2", "findByCriteria1Revoked");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
@@ -254,7 +254,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             ApiKeyCriteria.builder().expireAfter(1439022010000L).expireBefore(1439022020000L).build()
         );
 
-        assertEquals("found 2 apikeys", 2, apiKeys.size());
+        assertEquals("found 2 API Keys", 2, apiKeys.size());
 
         List<String> expectedKeys = List.of("d449098d-8c31-4275-ad59-8dd707865a34", "d449098d-8c31-4275-ad59-8dd707865a35");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
@@ -264,7 +264,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void findByCriteria_should_find_by_criteria_with_expire_at_after_dates() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().expireAfter(30019401755L).build());
 
-        assertEquals("found 2 apikeys", 2, apiKeys.size());
+        assertEquals("found 2 API Keys", 2, apiKeys.size());
 
         List<String> expectedKeys = List.of("d449098d-8c31-4275-ad59-8dd707865a34", "d449098d-8c31-4275-ad59-8dd707865a35");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
@@ -276,7 +276,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             ApiKeyCriteria.builder().expireAfter(30019401755L).includeWithoutExpiration(true).build()
         );
 
-        assertEquals("found 4 apikeys", 4, apiKeys.size());
+        assertEquals("found 4 API Keys", 4, apiKeys.size());
 
         List<String> expectedKeys = List.of(
             "the-key-of-api-key-7",
@@ -291,7 +291,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void findByCriteria_should_find_by_criteria_with_expire_at_before_dates() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().expireBefore(30019401755L).build());
 
-        assertEquals("found 2 apikeys", 2, apiKeys.size());
+        assertEquals("found 2 API Keys", 2, apiKeys.size());
 
         List<String> expectedKeys = List.of("findByCriteria2", "findByCriteria1");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
@@ -303,7 +303,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             ApiKeyCriteria.builder().expireBefore(30019401755L).includeWithoutExpiration(true).build()
         );
 
-        assertEquals("found 4 apikeys", 4, apiKeys.size());
+        assertEquals("found 4 API Keys", 4, apiKeys.size());
 
         List<String> expectedKeys = List.of("findByCriteria2", "the-key-of-api-key-7", "the-key-of-api-key-8", "findByCriteria1");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
@@ -380,9 +380,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             ApiKeyCriteria.builder().includeRevoked(true).subscription("sub3").build(),
             new SortableBuilder().order(Order.ASC).field("id").build()
         );
-        assertNotNull("found api key", apiKeys);
-        assertFalse("found api key", apiKeys.isEmpty());
-        assertEquals("found 3 apikeys", 3, apiKeys.size());
+        assertNotNull("found API Key", apiKeys);
+        assertFalse("found API Key", apiKeys.isEmpty());
+        assertEquals("found 3 API Keys", 3, apiKeys.size());
 
         List<String> expectedKeys = List.of("findByCriteria1", "findByCriteria1Revoked", "findByCriteria2");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
@@ -394,9 +394,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             ApiKeyCriteria.builder().includeRevoked(true).subscription("sub3").build(),
             new SortableBuilder().order(Order.DESC).field("updatedAt").build()
         );
-        assertNotNull("found api key", apiKeys);
-        assertFalse("found api key", apiKeys.isEmpty());
-        assertEquals("found 3 apikeys", 3, apiKeys.size());
+        assertNotNull("found API Key", apiKeys);
+        assertFalse("found API Key", apiKeys.isEmpty());
+        assertEquals("found 3 API Keys", 3, apiKeys.size());
 
         List<String> expectedKeys = List.of("findByCriteria2", "findByCriteria1Revoked", "findByCriteria1");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));

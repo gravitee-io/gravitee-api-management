@@ -81,9 +81,9 @@ public class EmailNotificationBuilder {
     }
 
     public enum EmailTemplate {
-        API_APIKEY_REVOKED(ApiHook.APIKEY_REVOKED, "apiKeyRevoked.html", "API key revoked for API ${api.name}"),
-        API_APIKEY_RENEWED(ApiHook.APIKEY_RENEWED, "apiKeyRenewed.html", "API key renewed"),
-        API_APIKEY_EXPIRED(ApiHook.APIKEY_EXPIRED, "apiKeyExpired.html", "API key expiration!"),
+        API_APIKEY_REVOKED(ApiHook.APIKEY_REVOKED, "apiKeyRevoked.html", "API Key revoked for API ${api.name}"),
+        API_APIKEY_RENEWED(ApiHook.APIKEY_RENEWED, "apiKeyRenewed.html", "API Key renewed"),
+        API_APIKEY_EXPIRED(ApiHook.APIKEY_EXPIRED, "apiKeyExpired.html", "API Key expiration!"),
         API_SUBSCRIPTION_NEW(
             ApiHook.SUBSCRIPTION_NEW,
             "subscriptionReceived.html",
@@ -209,7 +209,7 @@ public class EmailNotificationBuilder {
         TEMPLATES_FOR_ACTION_SUBSCRIPTION_PRE_EXPIRATION(
             ActionHook.SUBSCRIPTION_PRE_EXPIRATION,
             "subscriptionPreExpirationNotification.html",
-            "<#if apiKey??>API key of<#else>Subscription to</#if> ${api.name} will expire in ${expirationDelay} days!"
+            "<#if apiKey??>API Key of<#else>Subscription to</#if> ${api.name} will expire in ${expirationDelay} days!"
         ),
         TEMPLATES_FOR_ACTION_GENERIC_MESSAGE(ActionHook.GENERIC_MESSAGE, "genericMessage.html", "${messageSubject}"),
         TEMPLATES_FOR_ALERT_CONSUMER_HTTP_STATUS(

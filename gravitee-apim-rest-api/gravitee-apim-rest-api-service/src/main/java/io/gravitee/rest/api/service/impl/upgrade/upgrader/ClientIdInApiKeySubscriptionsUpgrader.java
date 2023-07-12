@@ -64,12 +64,12 @@ public class ClientIdInApiKeySubscriptionsUpgrader implements Upgrader {
     private void updateApiKeySubscriptions(Subscription subscription) {
         try {
             if (subscription.getClientId() != null) {
-                log.debug("Removing clientId from API key subscription [{}]", subscription);
+                log.debug("Removing clientId from API Key subscription [{}]", subscription);
                 subscription.setClientId(null);
                 subscriptionRepository.update(subscription);
             }
         } catch (TechnicalException e) {
-            log.error("Failed to remove clientID from API key subscriptions for API key [{}]", subscription, e);
+            log.error("Failed to remove clientID from API Key subscriptions for API Key [{}]", subscription, e);
         }
     }
 }

@@ -25,7 +25,7 @@ import java.util.Map;
 public class ApiKeyAlreadyActivatedException extends AbstractManagementException {
 
     public ApiKeyAlreadyActivatedException() {
-        super("API key is already activated");
+        super("API Key is already activated");
     }
 
     @Override

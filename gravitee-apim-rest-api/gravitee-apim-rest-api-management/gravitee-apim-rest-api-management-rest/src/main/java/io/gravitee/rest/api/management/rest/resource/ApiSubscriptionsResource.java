@@ -225,7 +225,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
-        summary = "Check a subscription can be created with given api key, and application",
+        summary = "Check a subscription can be created with given API Key, and application",
         description = "User must have the API_SUBSCRIPTION:READ permission to use this service"
     )
     @ApiResponse(

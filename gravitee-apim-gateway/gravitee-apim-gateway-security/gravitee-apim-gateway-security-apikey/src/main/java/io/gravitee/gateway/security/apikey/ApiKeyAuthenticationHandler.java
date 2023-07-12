@@ -53,7 +53,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Compo
     private static final String APIKEY_CONTEXT_ATTRIBUTE = "apikey";
 
     private static final List<AuthenticationPolicy> POLICIES = Arrays.asList(
-        // First, validate the incoming api key
+        // First, validate the incoming API Key
         (PluginAuthenticationPolicy) () -> API_KEY_POLICY
     );
 

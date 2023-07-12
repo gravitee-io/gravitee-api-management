@@ -59,8 +59,8 @@ public class ApplicationSubscriptionApiKeyResource extends AbstractApiKeyResourc
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Revoke an API key", description = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponse(responseCode = "204", description = "API key successfully revoked")
+    @Operation(summary = "Revoke an API Key", description = "User must have the MANAGE_API_KEYS permission to use this service")
+    @ApiResponse(responseCode = "204", description = "API Key successfully revoked")
     @ApiResponse(responseCode = "400", description = "API Key does not correspond to the subscription")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })

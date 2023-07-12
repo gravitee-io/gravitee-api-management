@@ -286,7 +286,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
   });
 
   describe('create subscription', () => {
-    it('should create subscription to a api key plan without customApiKey', fakeAsync(async () => {
+    it('should create subscription to a API Key plan without customApiKey', fakeAsync(async () => {
       const planV4 = fakePlanV4({ generalConditions: undefined });
       const application = fakeApplication();
 
@@ -321,7 +321,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       flush();
     }));
 
-    it('should create subscription to a api key plan with customApiKey', fakeAsync(async () => {
+    it('should create subscription to a API Key plan with customApiKey', fakeAsync(async () => {
       const planV4 = fakePlanV4({ apiId: API_ID, generalConditions: undefined });
       const application = fakeApplication({ id: 'my-app' });
 
