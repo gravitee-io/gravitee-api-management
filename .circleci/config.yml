@@ -1156,6 +1156,16 @@ jobs:
                         kubectl rollout restart deployment apim-apim-4-0-x-ce-apim-ce-ui -n apim-apim-4-0-x-ce
                         kubectl rollout restart deployment apim-apim-4-0-x-ce-apim-ce-portal -n apim-apim-4-0-x-ce
                         kubectl rollout restart deployment apim-apim-4-0-x-ce-apim-ce-gateway -n apim-apim-4-0-x-ce
+
+                        # To remove when QA env is deleted
+                        kubectl rollout restart deployment qa-v4-api-management-api -n qa-v4
+                        kubectl rollout restart deployment qa-v4-api-management-ui -n qa-v4
+                        kubectl rollout restart deployment qa-v4-api-management-portal -n qa-v4
+                        kubectl rollout restart deployment qa-v4-api-management-gateway -n qa-v4
+                        kubectl rollout restart deployment qa-v4-ce-api-management-api -n qa-v4-ce
+                        kubectl rollout restart deployment qa-v4-ce-api-management-ui -n qa-v4-ce
+                        kubectl rollout restart deployment qa-v4-ce-api-management-portal -n qa-v4-ce
+                        kubectl rollout restart deployment qa-v4-ce-api-management-gateway -n qa-v4-ce
                       fi
             - keeper/env-export:
                   secret-url: keeper://G4hBnFUDBYb9Sw3TxhvjHg/custom_field/token
