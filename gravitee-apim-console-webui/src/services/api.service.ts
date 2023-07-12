@@ -772,7 +772,7 @@ export class ApiService {
   }
 
   /*
-   * Api Keys
+   * API Keys
    */
   verifyApiKey(apiId: string, applicationId: string, apiKey: string): IHttpPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/_canCreate`, {

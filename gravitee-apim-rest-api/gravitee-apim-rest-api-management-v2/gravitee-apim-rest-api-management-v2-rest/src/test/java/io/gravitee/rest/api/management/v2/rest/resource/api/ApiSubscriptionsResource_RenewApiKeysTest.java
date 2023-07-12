@@ -151,7 +151,7 @@ public class ApiSubscriptionsResource_RenewApiKeysTest extends ApiSubscriptionsR
 
         var error = response.readEntity(Error.class);
         assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
-        assertEquals("Invalid operation for api key mode [SHARED] of application [my-application].", error.getMessage());
+        assertEquals("Invalid operation for API Key mode [SHARED] of application [my-application].", error.getMessage());
     }
 
     @Test

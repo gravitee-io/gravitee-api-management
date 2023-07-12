@@ -26,7 +26,7 @@
                     "condition": "{#request.method == 'DELETE' || #request.method == 'PUT'}"
                 },
                 {
-                    "name": "Api Key",
+                    "name": "API Key",
                     "description": "Description of the ApiKey Gravitee Policy",
                     "enabled": true,
                     "policy": "api-key",
@@ -109,7 +109,7 @@
             "methods": ["GET", "POST"],
             "pre": [
                 {
-                    "name": "Api Key",
+                    "name": "API Key",
                     "description": "Description of the ApiKey Gravitee Policy",
                     "enabled": true,
                     "policy": "api-key",

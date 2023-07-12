@@ -1081,7 +1081,7 @@ describe('ApiCreationV4Component', () => {
       });
 
       describe('step4 - add API_KEY plan', () => {
-        it('should add api key plan to payload', async () => {
+        it('should add API Key plan to payload', async () => {
           const step4Security1PlansHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
 
           const keylessPlan = await step4Security1PlansHarness.getColumnTextByRowIndex(0);

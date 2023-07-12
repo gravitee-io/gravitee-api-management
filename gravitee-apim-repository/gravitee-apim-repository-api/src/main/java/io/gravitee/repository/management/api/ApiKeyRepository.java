@@ -31,7 +31,7 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     /**
      * Give the API Key detail from the given id
      *
-     * @param id API key's unique id
+     * @param id API Key's unique id
      * @return API Key Details
      */
     Optional<ApiKey> findById(String id) throws TechnicalException;
@@ -39,7 +39,7 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     /**
      * Give the API Keys from the given key
      *
-     * @param key API key
+     * @param key API Key
      * @return API Keys
      */
     List<ApiKey> findByKey(String key) throws TechnicalException;
@@ -47,7 +47,7 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     /**
      * Give the API Key from the given key and api
      *
-     * @param key API key
+     * @param key API Key
      * @param api Key api
      * @return API Key
      */
@@ -65,7 +65,7 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * Update an API Key
      *
      * @param key The API Key to update
-     * @return Updated API key
+     * @return Updated API Key
      */
     ApiKey update(ApiKey key) throws TechnicalException;
 
@@ -82,7 +82,7 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Application}
      *
      * @param applicationId application ID
-     * @return API keys issued for the given application
+     * @return API Keys issued for the given application
      * @throws TechnicalException
      */
     List<ApiKey> findByApplication(String applicationId) throws TechnicalException;

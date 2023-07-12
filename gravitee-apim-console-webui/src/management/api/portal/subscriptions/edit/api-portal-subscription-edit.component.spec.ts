@@ -335,7 +335,7 @@ describe('ApiPortalSubscriptionEditComponent', () => {
 
       expect(await harness.getStatus()).toEqual('ACCEPTED');
     });
-    it('should not contain info about shared api key', async () => {
+    it('should not contain info about shared API Key', async () => {
       const keylessSubscription = BASIC_SUBSCRIPTION();
       keylessSubscription.plan = fakeBasePlan({ security: { type: 'KEY_LESS' } });
       await initComponent(keylessSubscription);
@@ -1056,7 +1056,7 @@ describe('ApiPortalSubscriptionEditComponent', () => {
 
   describe('reactivate API Key', () => {
     const API_KEY_ID = 'my-api-key-id';
-    it('should not appear if api key is valid', async () => {
+    it('should not appear if API Key is valid', async () => {
       await initComponent();
       expectApplicationGet(ApiKeyMode.SHARED);
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expired: false, revoked: false })]);

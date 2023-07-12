@@ -79,7 +79,7 @@ class ApiKeysController {
   }
 
   areKeysEditable(): boolean {
-    // shared api keys are editable if this is not a subscription related screen
+    // shared API Keys are editable if this is not a subscription related screen
     if (this.isSharedApiKey()) {
       return !this.subscription;
     }

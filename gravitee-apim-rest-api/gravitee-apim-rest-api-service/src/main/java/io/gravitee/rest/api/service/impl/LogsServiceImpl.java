@@ -437,7 +437,7 @@ public class LogsServiceImpl implements LogsService {
             try {
                 return getApiKeySubscription(executionContext, log);
             } catch (ApiKeyNotFoundException e) {
-                logger.error("Unable to find API key for log [api={}, application={}]", log.getApi(), log.getApplication());
+                logger.error("Unable to find API Key for log [api={}, application={}]", log.getApi(), log.getApplication());
             }
         } else if (log.getPlan() != null && log.getApplication() != null) {
             try {
@@ -469,8 +469,9 @@ public class LogsServiceImpl implements LogsService {
             return null;
         }
 
-        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType =
-            io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(plan.getPlanSecurity().getType());
+        io.gravitee.rest.api.model.v4.plan.PlanSecurityType planSecurityType = io.gravitee.rest.api.model.v4.plan.PlanSecurityType.valueOfLabel(
+            plan.getPlanSecurity().getType()
+        );
         if (
             io.gravitee.rest.api.model.v4.plan.PlanSecurityType.API_KEY == planSecurityType ||
             io.gravitee.rest.api.model.v4.plan.PlanSecurityType.KEY_LESS == planSecurityType

@@ -981,7 +981,7 @@ paths:
                           $ref: "#/components/schemas/SubscriptionStatus"
                 - name: apiKey
                   in: query
-                  description: Api key associated to the subscription to filter on.
+                  description: API Key associated to the subscription to filter on.
                   schema:
                       type: string
                 - name: expands
@@ -1068,7 +1068,7 @@ paths:
                           $ref: "#/components/schemas/SubscriptionStatus"
                 - name: apiKey
                   in: query
-                  description: Api key associated to the subscription to filter on.
+                  description: API Key associated to the subscription to filter on.
                   schema:
                       type: string
                 - $ref: "#/components/parameters/pageParam"
@@ -1102,7 +1102,7 @@ paths:
                 - API Subscriptions
             summary: Check a subscription can be created
             description: |-
-                Check a subscription can be created with given api key, and application.
+                Check a subscription can be created with given API Key, and application.
 
                 User must have the API_SUBSCRIPTION[CREATE] permission.
             operationId: verifyCreateApiSubscription
@@ -1347,9 +1347,9 @@ paths:
         get:
             tags:
                 - API Subscriptions
-            summary: Get subscription's api keys
+            summary: Get subscription's API Keys
             description: |-
-                Get the subscription api keys.
+                Get the subscription API Keys.
 
                 User must have the API_SUBSCRIPTION[READ] permission.
             operationId: getApiSubscriptionApiKeys
@@ -1366,10 +1366,10 @@ paths:
         post:
             tags:
                 - API Subscriptions
-            summary: Renew the subscription api keys.
+            summary: Renew the subscription API Keys.
             description: |-
-                Renew the subscription api key by setting an expiration date on the existing active api keys and creating a new api key.<br>
-                The newly created api key is returned in response.
+                Renew the subscription API Key by setting an expiration date on the existing active API Keys and creating a new API Key.<br>
+                The newly created API Key is returned in response.
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: renewApiSubscriptionApiKeys
@@ -1381,7 +1381,7 @@ paths:
                 required: true
             responses:
                 "200":
-                    description: API's subscription api key successfully renewed
+                    description: API's subscription API Key successfully renewed
                     content:
                         application/json:
                             schema:
@@ -1397,9 +1397,9 @@ paths:
         put:
             tags:
                 - API Subscriptions
-            summary: Update a subscription api key
+            summary: Update a subscription API Key
             description: |-
-                Update the subscription api key.
+                Update the subscription API Key.
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: updateApiSubscriptionApiKey
@@ -1411,7 +1411,7 @@ paths:
                 required: true
             responses:
                 "200":
-                    description: The subscription api key.
+                    description: The subscription API Key.
                     content:
                         application/json:
                             schema:
@@ -1427,16 +1427,16 @@ paths:
         post:
             tags:
                 - API Subscriptions
-            summary: Revoke a subscription api key
+            summary: Revoke a subscription API Key
             description: |-
-                Revoke the subscription api key by setting the revocation date to the current date and flagging it as revoked.<br>
+                Revoke the subscription API Key by setting the revocation date to the current date and flagging it as revoked.<br>
                 A notification will be sent to the subscriber according to his portal notification options.
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: revokeApiSubscriptionApiKey
             responses:
                 "200":
-                    description: The revoked subscription api key.
+                    description: The revoked subscription API Key.
                     content:
                         application/json:
                             schema:
@@ -1452,15 +1452,15 @@ paths:
         post:
             tags:
                 - API Subscriptions
-            summary: Reactivate subscription api key
+            summary: Reactivate subscription API Key
             description: |-
-                Reactivate the revoked or expired subscription api key.
+                Reactivate the revoked or expired subscription API Key.
 
                 User must have the API_SUBSCRIPTION[UPDATE] permission.
             operationId: reactivateApiSubscriptionApiKey
             responses:
                 "200":
-                    description: The reactivated subscription api key.
+                    description: The reactivated subscription API Key.
                     content:
                         application/json:
                             schema:
@@ -3598,7 +3598,7 @@ components:
                     description: The id plan the application is subscribing to.
                 customApiKey:
                     type: string
-                    description: Optional custom api key that can be given when the subscription is related to an api-key plan and custom api key support is enabled.
+                    description: Optional custom API Key that can be given when the subscription is related to an api-key plan and custom API Key support is enabled.
                 consumerConfiguration:
                     $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
                 metadata:
@@ -3637,7 +3637,7 @@ components:
                     description: The id of the application subscribing.
                 apiKey:
                     type: string
-                    description: 'The api key that needs to be verified. Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)'
+                    description: 'The API Key that needs to be verified. Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)'
                     pattern: '^[^#%@/;=?|^~, \\]*$'
             required: [applicationId, apiKey]
 
@@ -3659,7 +3659,7 @@ components:
                     description: Optional reason explaining why the subscription has been accepted.
                 customApiKey:
                     type: string
-                    description: Optional custom api key that can be given when the subscription is related to an api-key plan and custom api key support is enabled.
+                    description: Optional custom API Key that can be given when the subscription is related to an api-key plan and custom API Key support is enabled.
                 startingAt:
                     type: string
                     format: date-time
@@ -3690,11 +3690,11 @@ components:
             properties:
                 id:
                     type: string
-                    description: The internal UUID of the api key.
+                    description: The internal UUID of the API Key.
                     example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
                 key:
                     type: string
-                    description: The api key value to use to call the protected api.
+                    description: The API Key value to use to call the protected api.
                     example: my-api-key
                 application:
                     $ref: "#/components/schemas/BaseApplication"
@@ -3702,16 +3702,16 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/BaseSubscription"
-                    description: The list of subscriptions using this api key. Multiple subscription is possible with shared api key.
+                    description: The list of subscriptions using this API Key. Multiple subscription is possible with shared API Key.
                 revoked:
                     type: boolean
-                    description: Flag indicating that the api key has been revoked.
+                    description: Flag indicating that the API Key has been revoked.
                 paused:
                     type: boolean
-                    description: Flag indicating that the api key has been paused.
+                    description: Flag indicating that the API Key has been paused.
                 expired:
                     type: boolean
-                    description: Flag indicating that the api key has expired.
+                    description: Flag indicating that the API Key has expired.
                 daysToExpirationOnLastNotification:
                     type: integer
                     format: int32
@@ -3719,22 +3719,22 @@ components:
                 expireAt:
                     type: string
                     format: date-time
-                    description: The datetime when the api key expires. No date means no expiration.
+                    description: The datetime when the API Key expires. No date means no expiration.
                     example: 2023-05-18T12:40:46.184Z
                 createdAt:
                     type: string
                     format: date-time
-                    description: The datetime when the api key has been created.
+                    description: The datetime when the API Key has been created.
                     example: 2023-01-18T12:40:46.184Z
                 updatedAt:
                     type: string
                     format: date-time
-                    description: The datetime when the api key has been updated.
+                    description: The datetime when the API Key has been updated.
                     example: 2023-01-18T12:40:46.184Z
                 revokedAt:
                     type: string
                     format: date-time
-                    description: The datetime when the api key has been revoke. No date means not revoked.
+                    description: The datetime when the API Key has been revoke. No date means not revoked.
                     example: 2023-01-18T12:40:46.184Z
 
         UpdateApiKey:
@@ -3743,7 +3743,7 @@ components:
                 expireAt:
                     type: string
                     format: date-time
-                    description: The datetime when the api key expires. No date means no expiration.
+                    description: The datetime when the API Key expires. No date means no expiration.
                     example: 2023-05-18T12:40:46.184Z
 
         RenewApiKey:
@@ -3751,7 +3751,7 @@ components:
             properties:
                 customApiKey:
                     type: string
-                    description: Optional custom api key that can be given when custom api key support is enabled.
+                    description: Optional custom API Key that can be given when custom API Key support is enabled.
 
         BaseUser:
             type: object
@@ -5182,7 +5182,7 @@ components:
             name: apiKeyId
             in: path
             required: true
-            description: Id of an api key.
+            description: Id of an API Key.
             schema:
                 type: string
         endpointIdParam:
@@ -5345,14 +5345,14 @@ components:
                                 $ref: "#/components/schemas/Links"
 
         SubscriptionApiKeysResponse:
-            description: Page of subscription api keys
+            description: Page of subscription API Keys
             content:
                 application/json:
                     schema:
                         title: "SubscriptionApiKeysResponse"
                         properties:
                             data:
-                                description: List of subscription api keys.
+                                description: List of subscription API Keys.
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/ApiKey"

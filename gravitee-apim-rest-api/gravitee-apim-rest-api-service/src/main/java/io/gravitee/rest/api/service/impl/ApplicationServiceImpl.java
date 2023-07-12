@@ -319,13 +319,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             throw new InvalidApplicationTypeException();
         }
 
-        // Check that shared API key mode is enabled
+        // Check that shared API Key mode is enabled
         if (
             newApplicationEntity.getApiKeyMode() == ApiKeyMode.SHARED &&
             !parameterService.findAsBoolean(executionContext, Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED, ParameterReferenceType.ENVIRONMENT)
         ) {
             throw new InvalidApplicationApiKeyModeException(
-                "Can't create application with SHARED api key mode cause environment setting is disabled"
+                "Can't create application with SHARED API Key mode cause environment setting is disabled"
             );
         }
 
@@ -529,7 +529,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 throw new InvalidApplicationTypeException();
             }
 
-            // Check that application Api Key mode is valid
+            // Check that application API Key mode is valid
             checkApiKeyModeUpdate(executionContext, updateApplicationEntity, applicationToUpdate);
 
             // Update application metadata
@@ -1294,7 +1294,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         ) {
             throw new InvalidApplicationApiKeyModeException(
                 String.format(
-                    "Can't update application %s Api key mode cause current Api Key Mode %s is not updatable",
+                    "Can't update application %s API Key mode cause current API Key Mode %s is not updatable",
                     applicationToUpdate.getId(),
                     applicationToUpdate.getApiKeyMode()
                 )
@@ -1306,7 +1306,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         ) {
             throw new InvalidApplicationApiKeyModeException(
                 String.format(
-                    "Can't update application %s Api key mode to SHARED cause environment setting is disabled",
+                    "Can't update application %s API Key mode to SHARED cause environment setting is disabled",
                     applicationToUpdate.getId()
                 )
             );

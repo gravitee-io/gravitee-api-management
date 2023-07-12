@@ -70,7 +70,7 @@ public class CustomApiKeyTest {
 
     @Test
     public void shoultTestCustomApiKeyValidation() {
-        LOGGER.info("Exectute custom API key validation test for: " + this.customApiKeyParam);
+        LOGGER.info("Exectute custom API Key validation test for: " + this.customApiKeyParam);
 
         CustomApiKeyObject customApiKeyObject = new CustomApiKeyObject(this.customApiKeyParam);
         Set<ConstraintViolation<CustomApiKeyObject>> violations = validator.validate(customApiKeyObject);
