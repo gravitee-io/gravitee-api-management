@@ -206,7 +206,7 @@
         <gravitee-policy-xml-json.version>2.0.0-alpha.2</gravitee-policy-xml-json.version>
         <gravitee-policy-xml-threat-protection.version>1.4.0</gravitee-policy-xml-threat-protection.version>
         <gravitee-policy-xml-validation.version>1.1.0</gravitee-policy-xml-validation.version>
-        <gravitee-policy-xslt.version>3.0.0</gravitee-policy-xslt.version>
+        <gravitee-policy-xslt.version>3.0.0-alpha.2</gravitee-policy-xslt.version>
         <gravitee-resource-cache.version>1.10.0-alpha.2</gravitee-resource-cache.version>
         <gravitee-resource-oauth2-provider-am.version>2.0.0</gravitee-resource-oauth2-provider-am.version>
         <gravitee-resource-oauth2-provider-generic.version>2.0.0</gravitee-resource-oauth2-provider-generic.version>
