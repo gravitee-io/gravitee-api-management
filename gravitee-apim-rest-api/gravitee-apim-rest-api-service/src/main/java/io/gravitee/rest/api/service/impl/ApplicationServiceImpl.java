@@ -643,6 +643,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             Set<String> planIds = subscriptionService
                 .findByApplicationAndPlan(executionContext, applicationId, null)
                 .stream()
+                .filter(subscriptionEntity ->
+                    Set
+                        .of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING)
+                        .contains(subscriptionEntity.getStatus())
+                )
                 .map(SubscriptionEntity::getPlan)
                 .collect(Collectors.toSet());
 
