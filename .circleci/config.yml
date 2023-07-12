@@ -1346,9 +1346,9 @@ jobs:
                   command: |
                       # Determine download URL
                       if [ "${GRAVITEEIO_QUALIFIER}" != "" ]; then
-                          export TARGET_FOLDER="/pre-releases/graviteeio-apim"
+                          export TARGET_FOLDER="/pre-releases/graviteeio-apim/distributions"
                       else
-                          export TARGET_FOLDER="/graviteeio-apim"
+                          export TARGET_FOLDER="/graviteeio-apim/distributions"
                       fi;
                       if [ "<< parameters.dry_run >>" = "false" ]; then
                           export DOWNLOAD_HOST="https://download.gravitee.io"
