@@ -53,6 +53,8 @@
 #    subProtocols: v10.stomp, v11.stomp, v12.stomp
 #    perMessageWebSocketCompressionSupported: true
 #    perFrameWebSocketCompressionSupported: true
+#    maxWebSocketFrameSize: 65536
+#    maxWebSocketMessageSize: 262144 # 4 full frames worth of data
 #  haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
 #    proxyProtocol: false
 #    proxyProtocolTimeout: 10000
