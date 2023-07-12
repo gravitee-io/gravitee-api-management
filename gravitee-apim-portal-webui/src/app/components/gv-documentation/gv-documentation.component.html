@@ -29,6 +29,7 @@
     [ngClass]="{ 'gv-documentation__content_swagger': isSwagger(currentPage), show: isLoaded, fullscreen: this.hasTreeClosed }"
     [fragment]="this.fragment"
     class="gv-documentation__content"
+    [pageBaseUrl]="pageBaseUrl"
   ></app-gv-page>
 </div>
 
