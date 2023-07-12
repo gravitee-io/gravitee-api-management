@@ -1345,7 +1345,7 @@ jobs:
                   name: "Build & Publish Gravitee.io APIM Docker images"
                   command: |
                       # Determine download URL
-                      if [ "${GRAVITEEIO_QUALIFIER}" != "" ]; then
+                      if [ -z "$GRAVITEEIO_QUALIFIER" ]; then
                           export TARGET_FOLDER="/pre-releases/graviteeio-apim"
                       else
                           export TARGET_FOLDER="/graviteeio-apim"
