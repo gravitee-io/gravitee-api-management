@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { UIRouterGlobals } from '@uirouter/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { Api } from '../../../../../entities/api';
@@ -37,7 +38,7 @@ export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
   public entrypointsForm: FormGroup;
   public initialEntrypointsFormValue: unknown;
 
-  constructor(private readonly apiService: ApiService) {}
+  constructor(private readonly apiService: ApiService, private readonly $router: UIRouterGlobals) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.apiProxy || changes.readOnly) {
@@ -50,6 +51,9 @@ export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
   }
 
   private initForm(apiProxy: Api['proxy']) {
+    const currentContextPath = apiProxy.virtual_hosts[0].path;
+    const { apiId } = this.$router.params;
+
     this.entrypointsForm = new FormGroup({
       contextPath: new FormControl(
         {
@@ -57,7 +61,12 @@ export class ApiProxyEntrypointsContextPathComponent implements OnChanges {
           disabled: this.readOnly,
         },
         [Validators.required],
-        [this.apiService.contextPathValidator(apiProxy.virtual_hosts[0].path)],
+        [
+          this.apiService.contextPathValidator({
+            currentContextPath,
+            apiId,
+          }),
+        ],
       ),
     });
     this.initialEntrypointsFormValue = this.entrypointsForm.getRawValue();

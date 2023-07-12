@@ -27,6 +27,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
+import { UIRouterModule } from '@uirouter/angular';
 
 import { ApiProxyEntrypointsModule } from './api-proxy-entrypoints.module';
 import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
@@ -52,7 +53,15 @@ describe('ApiProxyEntrypointsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEntrypointsModule, MatIconTestingModule],
+      imports: [
+        NoopAnimationsModule,
+        GioHttpTestingModule,
+        ApiProxyEntrypointsModule,
+        MatIconTestingModule,
+        UIRouterModule.forRoot({
+          useHash: true,
+        }),
+      ],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },

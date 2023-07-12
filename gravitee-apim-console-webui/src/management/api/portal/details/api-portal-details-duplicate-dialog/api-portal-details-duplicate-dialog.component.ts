@@ -60,7 +60,7 @@ export class ApiPortalDetailsDuplicateDialogComponent implements OnDestroy {
     this.versionPlaceholder = dialogData.api.version;
 
     this.duplicateApiForm = new FormGroup({
-      contextPath: new FormControl('', [Validators.required], [this.apiService.contextPathValidator()]),
+      contextPath: new FormControl('', [Validators.required], [this.apiService.contextPathValidator({})]),
       version: new FormControl('', [Validators.required, this.apiService.versionValidator()]),
       options: new FormGroup(
         this.optionsCheckbox.reduce((acc, option) => {
