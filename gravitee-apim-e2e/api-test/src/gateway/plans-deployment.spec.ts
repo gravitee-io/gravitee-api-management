@@ -52,7 +52,7 @@ const timeBetweenRetries = 5000;
 
 describe.skip('Gateway - Plans deployment', () => {
   beforeAll(async () => {
-    // create an API with a published API key plan
+    // create an API with a published API Key plan
     createdApi = await apisResource.importApiDefinition({
       envId,
       orgId,
@@ -129,7 +129,7 @@ describe.skip('Gateway - Plans deployment', () => {
     });
   });
 
-  describe('With 1 additional API key plan', () => {
+  describe('With 1 additional API Key plan', () => {
     beforeAll(async () => {
       createdApiKeyPlan = await apisResource.createApiPlan({
         envId,
@@ -153,7 +153,7 @@ describe.skip('Gateway - Plans deployment', () => {
         application: createdApplication.id,
       });
 
-      // get the subscription api key
+      // get the subscription API Key
       createdApiKey = (
         await applicationSubscriptionsResource.getApiKeysForApplicationSubscription({
           envId,
@@ -164,16 +164,16 @@ describe.skip('Gateway - Plans deployment', () => {
       )[0];
     });
 
-    test('gateway should return HTTP 401 cause published api key plan is not deployed', async () => {
+    test('gateway should return HTTP 401 cause published API Key plan is not deployed', async () => {
       await fetchGatewayUnauthorized({ contextPath: createdApi.context_path, headers: { 'X-Gravitee-Api-Key': createdApiKey.key } });
       await fetchGatewayUnauthorized({ contextPath: createdApi.context_path });
     });
 
-    test('should redeploy the API with published API key plan', async () => {
+    test('should redeploy the API with published API Key plan', async () => {
       await succeed(apisResource.deployApiRaw({ orgId, envId, api: createdApi.id }));
     });
 
-    test('gateway should succeed with HTTP 200 on API key plan, but still not authorized on free plan', async () => {
+    test('gateway should succeed with HTTP 200 on API Key plan, but still not authorized on free plan', async () => {
       await fetchGatewaySuccess({
         contextPath: createdApi.context_path,
         headers: { 'X-Gravitee-Api-Key': createdApiKey.key },
@@ -191,11 +191,11 @@ describe.skip('Gateway - Plans deployment', () => {
       });
     });
 
-    test('should redeploy the API with published API key plan and free plan', async () => {
+    test('should redeploy the API with published API Key plan and free plan', async () => {
       await succeed(apisResource.deployApiRaw({ orgId, envId, api: createdApi.id }));
     });
 
-    test('gateway should succeed with HTTP 200 on API key plan, and on free plan', async () => {
+    test('gateway should succeed with HTTP 200 on API Key plan, and on free plan', async () => {
       await fetchGatewaySuccess({
         contextPath: createdApi.context_path,
         headers: { 'X-Gravitee-Api-Key': createdApiKey.key },
@@ -208,7 +208,7 @@ describe.skip('Gateway - Plans deployment', () => {
       await succeed(apiPlansResource.closeApiPlanRaw({ envId, orgId, plan: createdFreePlan.id, api: createdApi.id }));
     });
 
-    test('should redeploy the API with closed API key plan and free plan', async () => {
+    test('should redeploy the API with closed API Key plan and free plan', async () => {
       await succeed(apisResource.deployApiRaw({ orgId, envId, api: createdApi.id }));
     });
 
@@ -225,7 +225,7 @@ describe.skip('Gateway - Plans deployment', () => {
       await succeed(apiPlansResource.closeApiPlanRaw({ envId, orgId, plan: createdApiKeyPlan.id, api: createdApi.id }));
     });
 
-    test('should redeploy the API with closed API key plan and closed free plan', async () => {
+    test('should redeploy the API with closed API Key plan and closed free plan', async () => {
       await succeed(apisResource.deployApiRaw({ orgId, envId, api: createdApi.id }));
     });
 

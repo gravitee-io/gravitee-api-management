@@ -25,7 +25,7 @@ import java.util.Map;
 public class ApiKeyAlreadyExpiredException extends AbstractManagementException {
 
     public ApiKeyAlreadyExpiredException() {
-        super("API key is already expired");
+        super("API Key is already expired");
     }
 
     @Override

@@ -1611,9 +1611,9 @@ paths:
     post:
       tags:
         - Application
-      summary: Renew the shared api key of an application.
+      summary: Renew the shared API Key of an application.
       description: |
-        Renew the shared api key of on application.
+        Renew the shared API Key of on application.
         The application must have the ApiKeyMode set to SHARED
         User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
       operationId: renewSharedKey
@@ -1625,7 +1625,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Key'
         400:
-          description: Application does not use shared API key mode
+          description: Application does not use shared API Key mode
           content:
             application/json:
               schema:
@@ -1651,9 +1651,9 @@ paths:
     post:
       tags:
         - Application
-      summary: Revoke the shared api key of an application.
+      summary: Revoke the shared API Key of an application.
       description: |
-        Revoke the shared api key of on application.
+        Revoke the shared API Key of on application.
         The application must have the ApiKeyMode set to SHARED
         User must have APPLICATION_SUBSCRIPTION[UPDATE] permission.
       operationId: revokeSharedKey
@@ -5367,11 +5367,11 @@ components:
       default: MINUTES
     ApiKeyModeEnum:
       description: |
-        The API key mode to use for this application.
-          - The `SHARED` API key mode allows consumer to use the same API key across all the subscriptions
-          - The `EXCLUSIVE` API key mode will result to a new API key being generated for each subscription
-          - The `UNSPECIFIED` API key mode is a marker value informing that no choice as been made yet regarding
-            the API key mode to use for the application.
+        The API Key mode to use for this application.
+          - The `SHARED` API Key mode allows consumer to use the same API Key across all the subscriptions
+          - The `EXCLUSIVE` API Key mode will result to a new API Key being generated for each subscription
+          - The `UNSPECIFIED` API Key mode is a marker value informing that no choice as been made yet regarding
+            the API Key mode to use for the application.
       type: string
       enum:
         - SHARED

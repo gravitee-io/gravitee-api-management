@@ -61,14 +61,14 @@
   "apiKeyMode": {
     "description": "Please not that this choice is permanent",
     "exclusive": {
-      "description": "a new API key will be generated for every new subscription",
+      "description": "a new API Key will be generated for every new subscription",
       "title": "Generated API Key"
     },
     "shared": {
-      "description": "the same API key will be used for every new subscription",
-      "title": "Shared API key"
+      "description": "the same API Key will be used for every new subscription",
+      "title": "Shared API Key"
     },
-    "title": "API key management mode"
+    "title": "API Key management mode"
   },
   "apiSubscribe": {
     "apps": {
@@ -84,7 +84,7 @@
       "title": "Choice of application"
     },
     "chooseKeyMode": {
-      "title": "Choice of API key mode"
+      "title": "Choice of API Key mode"
     },
     "choosePlan": {
       "title": "Choice of plan"
@@ -436,22 +436,22 @@
       "info": {
         "created_at": "Created at",
         "end_at": "Ends on",
-        "title": "API key"
+        "title": "API Key"
       },
       "message": "Your application is configured to use the same API Key for all its subscriptions.",
       "no-key": {
         "create": "You can create a new one by clicking on \"Renew\".",
-        "message": "Unfortunately, no valid shared API key has been found.",
+        "message": "Unfortunately, no valid shared API Key has been found.",
         "recommendation": "Please contact the owner of the application."
       },
       "renew": {
-        "message": "Are you sure you want to renew this shared API key?",
-        "success": "The shared API key has been successfully renewed",
+        "message": "Are you sure you want to renew this shared API Key?",
+        "success": "The shared API Key has been successfully renewed",
         "title": "Renew"
       },
       "revoke": {
-        "message": "Are you sure you want to revoke this shared API key?",
-        "success": "The shared API key has been successfully revoked",
+        "message": "Are you sure you want to revoke this shared API Key?",
+        "success": "The shared API Key has been successfully revoked",
         "title": "Revoke"
       },
       "title": "Application with a shared API Key"
@@ -468,12 +468,12 @@
         },
         "revoke": {
           "label": "Revoke",
-          "message": "Are you sure you want to revoke this API key?"
+          "message": "Are you sure you want to revoke this API Key?"
         },
         "success": {
-          "revoke": "Your API key has been successfully revoked"
+          "revoke": "Your API Key has been successfully revoked"
         },
-        "title": "API keys:"
+        "title": "API Keys:"
       },
       "close": {
         "message": "Are you sure you want to close this subscription?",
@@ -553,7 +553,7 @@
       "label": "Types of rights authorized for the client."
     },
     "step": {
-      "apiKeyMode": "API key",
+      "apiKeyMode": "API Key",
       "createApp": "Create the app",
       "general": "General",
       "next": "Next",
@@ -797,7 +797,7 @@
       "general_conditions_revision": "The terms of use of plan {plan} have changed.",
       "general_conditions_status": "Plan {plan} references an unpublished terms of use page.",
       "notSubscribable": "A client_id is required to subscribe to an OAuth2 or JWT plan.",
-      "notSubscribableWithSharedApiKey": "You cannot subscribe to a second API key plan on the same API in shared API key mode.",
+      "notSubscribableWithSharedApiKey": "You cannot subscribe to a second API Key plan on the same API in shared API Key mode.",
       "otherOAuth2OrJWTSubscribed": "An other OAuth2 or JWT plan is already subscribed by the same application",
       "subscribed": "There is already a PENDING or ACCEPTED subscription for this plan."
     },

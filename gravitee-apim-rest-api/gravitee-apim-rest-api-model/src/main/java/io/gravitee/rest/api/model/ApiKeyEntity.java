@@ -61,7 +61,7 @@ public class ApiKeyEntity {
     private boolean expired;
 
     /**
-     * Number of days before the expiration of this api key when the last pre-expiration notification was sent
+     * Number of days before the expiration of this API Key when the last pre-expiration notification was sent
      */
     private Integer daysToExpirationOnLastNotification;
 

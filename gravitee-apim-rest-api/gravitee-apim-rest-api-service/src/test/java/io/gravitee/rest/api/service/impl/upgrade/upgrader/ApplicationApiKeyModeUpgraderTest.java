@@ -76,20 +76,20 @@ public class ApplicationApiKeyModeUpgraderTest {
         when(subscriptionRepository.findAll())
             .thenReturn(
                 Set.of(
-                    // application-1 has 1 subscription to 3 plans, but only 1 api key
+                    // application-1 has 1 subscription to 3 plans, but only 1 API Key
                     buildTestSubscription("plan-1", "application-1"),
                     buildTestSubscription("plan-2", "application-1"),
                     buildTestSubscription("plan-3", "application-1"),
-                    // application-2 has 1 subscription to 3 plans, including 2 api key plans
+                    // application-2 has 1 subscription to 3 plans, including 2 API Key plans
                     buildTestSubscription("plan-1", "application-2"),
                     buildTestSubscription("plan-2", "application-2"),
                     buildTestSubscription("plan-4", "application-2"),
                     // application-3 has 1 subscription on key less plan only
                     buildTestSubscription("plan-2", "application-3"),
-                    // application-4 has 2 subscription to api key plans
+                    // application-4 has 2 subscription to API Key plans
                     buildTestSubscription("plan-1", "application-4"),
                     buildTestSubscription("plan-4", "application-4"),
-                    // application-4 has 2 subscription to api key plans
+                    // application-4 has 2 subscription to API Key plans
                     buildTestSubscription("plan-1", "application-6"),
                     buildTestSubscription("plan-4", "application-6")
                 )
@@ -103,7 +103,7 @@ public class ApplicationApiKeyModeUpgraderTest {
                     buildTestApplication("application-3"),
                     buildTestApplication("application-4"),
                     buildTestApplication("application-5"),
-                    buildTestApplication("application-6", SHARED) // application-6 won't be updated as its api key mode is already defined
+                    buildTestApplication("application-6", SHARED) // application-6 won't be updated as its API Key mode is already defined
                 )
             );
 
@@ -111,10 +111,10 @@ public class ApplicationApiKeyModeUpgraderTest {
 
         // all applications have been searched
         verify(applicationRepository, times(1)).findAll();
-        // application-2 and application-4 api key mode are updated to EXCLUSIVE
+        // application-2 and application-4 API Key mode are updated to EXCLUSIVE
         verify(applicationRepository, times(1)).update(argThat(a -> a.getId().equals("application-2") && a.getApiKeyMode() == EXCLUSIVE));
         verify(applicationRepository, times(1)).update(argThat(a -> a.getId().equals("application-4") && a.getApiKeyMode() == EXCLUSIVE));
-        // 3 others applications api key mode are set to UNSPECIFIED
+        // 3 others applications API Key mode are set to UNSPECIFIED
         verify(applicationRepository, times(1)).update(argThat(a -> a.getId().equals("application-1") && a.getApiKeyMode() == UNSPECIFIED));
         verify(applicationRepository, times(1)).update(argThat(a -> a.getId().equals("application-3") && a.getApiKeyMode() == UNSPECIFIED));
         verify(applicationRepository, times(1)).update(argThat(a -> a.getId().equals("application-5") && a.getApiKeyMode() == UNSPECIFIED));

@@ -86,9 +86,9 @@ export function setup(): GatewayTestData {
       ...authorizationHeaderFor(ADMIN_USER),
     },
   });
-  failIf(apiKeysResponse.status !== 200, 'Could not get api keys');
+  failIf(apiKeysResponse.status !== 200, 'Could not get API Keys');
   const apiKeys = HttpHelper.parseBody<ApiKeyEntity[]>(apiKeysResponse);
-  failIf(apiKeys.length < 1, 'Could not retrieve api keys');
+  failIf(apiKeys.length < 1, 'Could not retrieve API Keys');
 
   const changeLifecycleResponse = ApisClient.changeLifecycle(createdApi.id, LifecycleAction.START, {
     headers: {

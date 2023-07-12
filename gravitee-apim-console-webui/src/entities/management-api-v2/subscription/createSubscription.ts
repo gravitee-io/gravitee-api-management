@@ -25,7 +25,7 @@ export interface CreateSubscription {
    */
   planId: string;
   /**
-   * Optional custom api key that can be given when the subscription is related to an api-key plan and custom api key support is enabled.
+   * Optional custom API Key that can be given when the subscription is related to an api-key plan and custom api key support is enabled.
    */
   customApiKey?: string;
   consumerConfiguration?: SubscriptionConsumerConfiguration;

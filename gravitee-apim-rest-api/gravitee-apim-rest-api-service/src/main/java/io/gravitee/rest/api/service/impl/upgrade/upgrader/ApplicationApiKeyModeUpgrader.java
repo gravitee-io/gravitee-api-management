@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * This one-shot upgrader initializes all applications api_key_mode to :
- * - EXCLUSIVE if it has more than 1 subscription to an API key plan
+ * - EXCLUSIVE if it has more than 1 subscription to an API Key plan
  * - UNSPECIFIED otherwise
  *
  * @author GraviteeSource Team

@@ -18,7 +18,7 @@
 <div class="api-key-validation">
   <mat-form-field appearance="outline" class="api-key-validation__form-field">
     <input matInput [formControl]="apiKeyFormControl" minlength="8" maxlength="64" pattern="^[^#%@\;=?|^~, \\]*$" />
-    <mat-label>Custom API key</mat-label>
+    <mat-label>Custom API Key</mat-label>
     <mat-error *ngIf="apiKeyFormControl.errors?.pattern">No special characters allowed</mat-error>
     <mat-error *ngIf="apiKeyFormControl.errors?.minlength">Must be longer than 8 characters</mat-error>
     <mat-error *ngIf="apiKeyFormControl.errors?.maxlength">Must be shorter than 64 characters</mat-error>

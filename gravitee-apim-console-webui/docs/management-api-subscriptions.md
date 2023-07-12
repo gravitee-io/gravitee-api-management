@@ -6,7 +6,7 @@ Subscriptions can be:
 
 * Accepted
 
-Subscription is valid and consumer can use its API key to perform operations of the API.
+Subscription is valid and consumer can use its API Key to perform operations of the API.
 The subscription can be renewed, revoked or valid until its expiration date.
 
 * Pending

@@ -87,7 +87,7 @@ public class ApplicationListItem {
     private String backgroundUrl;
 
     @JsonProperty("api_key_mode")
-    @Schema(description = "The API key mode used for this application.")
+    @Schema(description = "The API Key mode used for this application.")
     private ApiKeyMode apiKeyMode;
 
     @JsonProperty("disable_membership_notifications")

@@ -90,7 +90,7 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractApiKeyResour
     @POST
     @Path("/_renew")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Renew an API key", description = "User must have the MANAGE_API_KEYS permission to use this service")
+    @Operation(summary = "Renew an API Key", description = "User must have the MANAGE_API_KEYS permission to use this service")
     @ApiResponse(
         responseCode = "201",
         description = "A new API Key",

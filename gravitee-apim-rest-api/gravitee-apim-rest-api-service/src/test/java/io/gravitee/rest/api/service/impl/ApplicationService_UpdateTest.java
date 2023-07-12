@@ -298,16 +298,16 @@ public class ApplicationService_UpdateTest {
 
     @Test(expected = InvalidApplicationApiKeyModeException.class)
     public void should_throw_exception_trying_to_update_apiKeyMode_shared() throws TechnicalException {
-        // existing application has a SHARED api key mode
+        // existing application has a SHARED API Key mode
         when(existingApplication.getApiKeyMode()).thenReturn(SHARED);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
 
-        // updated application has a UNSPECIFIED api key mode
+        // updated application has a UNSPECIFIED API Key mode
         when(updateApplication.getApiKeyMode()).thenReturn(UNSPECIFIED);
         when(updateApplication.getSettings()).thenReturn(new ApplicationSettings());
         updateApplication.getSettings().setApp(new SimpleApplicationSettings());
 
-        // this should throw exception cause API key mode update is forbidden
+        // this should throw exception cause API Key mode update is forbidden
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
     }
 
@@ -323,16 +323,16 @@ public class ApplicationService_UpdateTest {
         )
             .thenReturn(false);
 
-        // existing application has a UNSPECIFIED api key mode
+        // existing application has a UNSPECIFIED API Key mode
         when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
 
-        // updated application has a SHARED api key mode
+        // updated application has a SHARED API Key mode
         when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
         when(updateApplication.getSettings()).thenReturn(new ApplicationSettings());
         updateApplication.getSettings().setApp(new SimpleApplicationSettings());
 
-        // this should throw exception cause shard API key setting is disabled
+        // this should throw exception cause shard API Key setting is disabled
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
     }
 
