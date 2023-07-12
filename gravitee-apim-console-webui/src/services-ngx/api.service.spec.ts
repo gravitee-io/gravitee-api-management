@@ -448,7 +448,7 @@ describe('ApiService', () => {
       ['/aaa', expectVerifyContextPathPostRequest, null],
       ['/echo', expectVerifyContextPathFailedRequest, { contextPath: 'The path [/echo/] is already covered by an other API.' }],
     ] as any[])('should validate %p contextPath', (contextPath, expectVerifyContextPathGetRequest, error, done) => {
-      from(apiService.contextPathValidator()(new FormControl(contextPath))).subscribe((result) => {
+      from(apiService.contextPathValidator({})(new FormControl(contextPath))).subscribe((result) => {
         expect(result).toEqual(error);
         done();
       });

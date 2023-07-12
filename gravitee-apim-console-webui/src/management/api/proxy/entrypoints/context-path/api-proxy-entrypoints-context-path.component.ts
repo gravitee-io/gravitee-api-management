@@ -17,6 +17,7 @@ import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, S
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { UIRouterGlobals } from '@uirouter/core';
 
 import { Api } from '../../../../../entities/api';
 import { ApiService } from '../../../../../services-ngx/api.service';
@@ -43,7 +44,11 @@ export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChange
   public initialEntrypointsFormValue: unknown;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  constructor(private readonly apiService: ApiService, private readonly portalSettingsService: PortalSettingsService) {}
+  constructor(
+    private readonly apiService: ApiService,
+    private readonly portalSettingsService: PortalSettingsService,
+    private readonly $router: UIRouterGlobals,
+  ) {}
 
   ngOnInit(): void {
     this.portalSettingsService
@@ -72,6 +77,9 @@ export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChange
   }
 
   private initForm(apiProxy: Api['proxy']) {
+    const currentContextPath = apiProxy.virtual_hosts[0].path;
+    const { apiId } = this.$router.params;
+
     this.entrypointsForm = new FormGroup({
       contextPath: new FormControl(
         {
@@ -79,7 +87,12 @@ export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChange
           disabled: this.readOnly,
         },
         [Validators.required],
-        [this.apiService.contextPathValidator(apiProxy.virtual_hosts[0].path)],
+        [
+          this.apiService.contextPathValidator({
+            currentContextPath,
+            apiId,
+          }),
+        ],
       ),
     });
     this.initialEntrypointsFormValue = this.entrypointsForm.getRawValue();
