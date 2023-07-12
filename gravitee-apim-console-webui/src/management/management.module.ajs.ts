@@ -43,7 +43,6 @@ import ApiPropertiesController from './api/proxy/properties/properties.controlle
 import ApiEventsController from '../management/api/audit/events/apiEvents.controller';
 import ApiHistoryController from '../management/api/audit/history/apiHistory.controller';
 import DialogAddPropertyController from './api/proxy/properties/add-property.dialog.controller';
-import DialogApiKeyExpirationController from './api/portal/subscriptions/dialog/apikey.expiration.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
 import FileLoaderDirective from '../components/fileloader/fileloader.directive';
@@ -77,9 +76,6 @@ import DialogConfirmDeploymentController from '../management/api/deploy/confirmD
 import ApiPlanComponent from '../management/api/api-plan.component';
 // API PrimaryOwner Mode
 import ApiPrimaryOwnerModeService from '../services/apiPrimaryOwnerMode.service';
-// API Subscription
-import ApiSubscriptionsComponent from '../management/api/portal/subscriptions/subscriptions.component';
-import ApiSubscriptionComponent from '../management/api/portal/subscriptions/subscription.component';
 // Applications
 import ApplicationService from '../services/application.service';
 import ApplicationTypesService from '../services/applicationTypes.service';
@@ -166,12 +162,6 @@ import RegistrationController from '../user/registration/registration.controller
 import ConfirmController from '../user/registration/confirm/confirm.controller';
 import ResetPasswordController from '../user/resetPassword/resetPassword.controller';
 import SubscriptionService from '../services/subscription.service';
-import DialogSubscriptionRejectController from './api/portal/subscriptions/dialog/subscription.reject.dialog.controller';
-import DialogSubscriptionAcceptController from './api/portal/subscriptions/dialog/subscription.accept.dialog.controller';
-import DialogSubscriptionCreateController from './api/portal/subscriptions/dialog/subscription.create.dialog.controller';
-import DialogSubscriptionTransferController from './api/portal/subscriptions/dialog/subscription.transfer.dialog.controller';
-import DialogSubscriptionChangeEndDateController from './api/portal/subscriptions/dialog/subscription.change.end.date.dialog.controller';
-import DialogSubscriptionRenewController from './api/portal/subscriptions/dialog/subscription.renew.dialog.controller';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import TagService from '../services/tag.service';
 import MetadataController from '../components/metadata/metadata.controller';
@@ -372,7 +362,6 @@ import NewFieldDialogController from './configuration/custom-user-fields/dialog/
 import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
 import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from '../services/flow.service';
-import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
 import TicketsListController from './support/tickets-list.controller';
 import TicketDetailComponent from './support/ticket-detail.component';
 import SpelService from '../services/spel.service';
@@ -693,7 +682,6 @@ graviteeManagementModule.controller('ApiResourcesController', ApiResourcesContro
 graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
 graviteeManagementModule.controller('DialogImportPathMappingController', DialogImportPathMappingController);
 graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
-graviteeManagementModule.controller('DialogApiKeyExpirationController', DialogApiKeyExpirationController);
 graviteeManagementModule.controller('UserController', UserController);
 graviteeManagementModule.controller('DialogEditPolicyController', DialogEditPolicyController);
 graviteeManagementModule.controller('LoginController', LoginController);
@@ -716,12 +704,6 @@ graviteeManagementModule.controller('RegistrationController', RegistrationContro
 graviteeManagementModule.controller('ConfirmController', ConfirmController);
 graviteeManagementModule.controller('ResetPasswordController', ResetPasswordController);
 graviteeManagementModule.controller('NewsletterSubscriptionController', NewsletterSubscriptionController);
-graviteeManagementModule.controller('DialogSubscriptionRejectController', DialogSubscriptionRejectController);
-graviteeManagementModule.controller('DialogSubscriptionAcceptController', DialogSubscriptionAcceptController);
-graviteeManagementModule.controller('DialogSubscriptionCreateController', DialogSubscriptionCreateController);
-graviteeManagementModule.controller('DialogSubscriptionTransferController', DialogSubscriptionTransferController);
-graviteeManagementModule.controller('DialogSubscriptionChangeEndDateController', DialogSubscriptionChangeEndDateController);
-graviteeManagementModule.controller('DialogSubscriptionRenewController', DialogSubscriptionRenewController);
 graviteeManagementModule.controller('MetadataController', MetadataController);
 graviteeManagementModule.controller('DeleteMetadataDialogController', DeleteMetadataDialogController);
 graviteeManagementModule.controller('NewMetadataDialogController', NewMetadataDialogController);
@@ -865,12 +847,9 @@ graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 graviteeManagementModule.directive('ngApiPortalGroups', downgradeComponent({ component: ApiPortalGroupsComponent }));
 
 // API subscriptions
-graviteeManagementModule.component('apiKeyValidatedInput', ApiKeyValidatedInput);
 graviteeManagementModule.component('apiKeys', ApiKeysComponent);
 graviteeManagementModule.controller('ApiKeysController', ApiKeysController);
 
-graviteeManagementModule.component('apiSubscriptions', ApiSubscriptionsComponent);
-graviteeManagementModule.component('apiSubscription', ApiSubscriptionComponent);
 graviteeManagementModule.directive('ngBanner', downgradeComponent({ component: GioBannerComponent }));
 
 graviteeManagementModule.directive('ngEnvApplicationList', downgradeComponent({ component: EnvApplicationListComponent }));
