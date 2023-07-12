@@ -16,9 +16,7 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, SecurityContext, ViewChild } from '@angular/core';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
-import '@gravitee/ui-components/wc/gv-button';
 import { Router } from '@angular/router';
-import { dispatchCustomEvent } from '@gravitee/ui-components/src/lib/events';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
@@ -33,6 +31,7 @@ import { ConfigurationService } from '../../services/configuration.service';
 })
 export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   @Input() withToc: boolean;
+  @Input() pageBaseUrl: string;
 
   pageContent: string;
   pageElementsPosition: any[];
@@ -40,6 +39,8 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   baseURL: string;
 
   @ViewChild('mdContent', { static: false }) mdContent: ElementRef;
+  private ANCHOR_CLASSNAME = 'anchor';
+  private INTERNAL_LINK_CLASSNAME = 'internal-link';
 
   constructor(
     private configurationService: ConfigurationService,
@@ -99,11 +100,11 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
         if (parsedURL) {
           const pageId = parsedURL[1];
-          return `<gv-button link data-page-id="${pageId}">${text}</gv-button>`;
+          return `<a class="${that.INTERNAL_LINK_CLASSNAME}" href="${that.pageBaseUrl}?page=${pageId}">${text}</a>`;
         }
 
         if (href.startsWith('#')) {
-          return `<gv-button link href="${href}">${text}</gv-button>`;
+          return `<a class="${that.ANCHOR_CLASSNAME}" href="${href}">${text}</a>`;
         }
 
         return defaultRenderer.link(href, title, text);
@@ -163,12 +164,19 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     window.open(link, '_blank');
   }
 
-  @HostListener(':gv-button:click', ['$event.target'])
-  onButtonClick(btn) {
-    if (btn.href != null) {
-      this.scrollService.scrollToAnchor(btn.href);
-    } else if (btn.dataset != null && btn.dataset.pageId) {
-      dispatchCustomEvent(this.elementRef.nativeElement, 'navigate', { pageId: btn.dataset.pageId });
+  @HostListener('click', ['$event'])
+  onClick($event) {
+    if ($event.target.tagName.toLowerCase() !== 'a') {
+      return true;
     }
+    const url = new URL($event.target.href);
+    if ($event.target.classList.contains(this.ANCHOR_CLASSNAME)) {
+      this.scrollService.scrollToAnchor(url.hash);
+      return false;
+    } else if ($event.target.classList.contains(this.INTERNAL_LINK_CLASSNAME)) {
+      this.router.navigateByUrl(url.pathname + url.search);
+      return false;
+    }
+    return true;
   }
 }

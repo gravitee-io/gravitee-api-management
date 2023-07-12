@@ -63,7 +63,7 @@ export class ScrollService {
             }, resolutionTime);
           }, 50);
         } else {
-          reject();
+          reject(`Anchor [${anchor}] not found in document`);
         }
       }, 0);
     });
