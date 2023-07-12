@@ -30,6 +30,11 @@ import { GroupMember } from '../entities/group/groupMember';
 import { ApiHealthAverage } from '../entities/api/ApiHealthAverage';
 import { Metadata, NewMetadata, UpdateMetadata } from '../entities/metadata/metadata';
 
+export interface ContextPathValidatorParams {
+  currentContextPath?: string;
+  apiId?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -206,7 +211,7 @@ export class ApiService {
     return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/duplicate`, config);
   }
 
-  contextPathValidator(currentContextPath?: string): AsyncValidatorFn {
+  contextPathValidator(params: ContextPathValidatorParams): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
       if (!control.value) {
         // If the control is empty, return no error
@@ -218,19 +223,19 @@ export class ApiService {
         return of({ contextPath: 'Context path has to be more than 3 characters long.' });
       }
 
-      if (currentContextPath === contextPath) {
+      if (params.currentContextPath === contextPath) {
         return of(null);
       }
-
-      return this.verify(contextPath);
+      const { apiId } = params;
+      return this.verify(contextPath, apiId);
     };
   }
 
-  verify(contextPath): Observable<ValidationErrors | null> {
+  verify(contextPath, apiId?): Observable<ValidationErrors | null> {
     return this.http
       .post(
         `${this.constants.env.baseURL}/apis/verify`,
-        { context_path: contextPath },
+        { context_path: contextPath, apiId },
         {
           responseType: 'text',
         },
