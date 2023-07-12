@@ -31,10 +31,10 @@ import { ApiNgNavigationComponent } from './api-ng-navigation/api-ng-navigation.
 import { ApiPortalDetailsComponent } from './portal/details/api-portal-details.component';
 import { ApiPortalPlanEditComponent } from './portal/plans/edit/api-portal-plan-edit.component';
 import { ApiPortalPlanListComponent } from './portal/plans/list/api-portal-plan-list.component';
-import { ApiPortalSubscriptionListComponent } from './portal/ng-subscriptions/list/api-portal-subscription-list.component';
+import { ApiPortalSubscriptionListComponent } from './portal/subscriptions/list/api-portal-subscription-list.component';
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
 import { ApisPortalModule } from './portal/apis-portal.module';
-import { ApiPortalSubscriptionEditComponent } from './portal/ng-subscriptions/edit/api-portal-subscription-edit.component';
+import { ApiPortalSubscriptionEditComponent } from './portal/subscriptions/edit/api-portal-subscription-edit.component';
 import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
 import { ApiBackendServicesComponent } from './endpoints-v4/backend-services/api-backend-services.component';
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
