@@ -53,18 +53,18 @@ import apiDetails from '@pageobjects/Apis/ApiDetails';
             cy.get('input').type('{enter}')
             cy.wait(1000)
             cy.getByDataTestId('api_list_edit_button').first().click();
-            // ApiDetails.general().click();
-            // ^ I cannot pinpoint the html element for this button.
+            ApiDetails.general().click();
+            // ^ I cannot pinpoint the html element for this button. 
+            // // ^ Page dynamically generated, therefore, use page object. 
             cy.getByDataTestId('generalName').should('be.visible');
             cy.getByDataTestId('generalName').type(' EDIT');
             cy.getByDataTestId('generalVersion').clear().type('1');
-            cy.wait(1000)
-            // // ApiDetails.saveDetails().click();
+            cy.wait(500)
+            // ^ ideally need to waitFor apiGeneralSaveBar, need to figure out correct command. 
             cy.getByDataTestId('apiGeneralSaveBar').contains('Save').click();
             cy.contains('Configuration successfully saved!').should('be.visible');
             cy.visit('/#!/environments/default/apis/');
-            cy.getByDataTestId('search').click().type("EDIT");
-            cy.get('input').type('{enter}');
+            cy.getByDataTestId('search').type("EDIT");
             cy.contains('EDIT (1)').should('be.visible');
             // ^ for now, test stops here to verify edited api until i figure out faker to generate a random api name
 
