@@ -14,7 +14,17 @@ schedule(check);
 
 async function check() {
     for (const check of checks) {
-        await postMessages( getMessagesForCheck(check));
+        await postMessages(getMessagesForCheck(check));
+
+        const { hasAddPrimaryKey, file } = await checkLiquibaseAddPrimaryKey(check);
+        if (hasAddPrimaryKey) {
+            await postMessages([
+                {
+                    why: "`addPrimaryKey` detected in liquibase changelog 💥. Please create the primary key directly with the create table statement.",
+                    file,
+                },
+            ]);
+        }
     }
 }
 
@@ -51,4 +61,20 @@ function toMessage(check, file) {
 
 function getModifiedFiles(check) {
     return git.modified_files.filter((file) => file.startsWith(check.location));
+}
+
+async function checkLiquibaseAddPrimaryKey(check) {
+    const files = getModifiedFiles(check);
+    let hasAddPrimaryKey = false;
+    let fileToChange = null;
+
+    for (const file of files) {
+        const content = await git.diffForFile(file);
+        if (content && content.added.includes("addPrimaryKey")) {
+            hasAddPrimaryKey = true;
+            fileToChange = file;
+            break;
+        }
+    }
+    return { hasAddPrimaryKey, file: fileToChange };
 }
