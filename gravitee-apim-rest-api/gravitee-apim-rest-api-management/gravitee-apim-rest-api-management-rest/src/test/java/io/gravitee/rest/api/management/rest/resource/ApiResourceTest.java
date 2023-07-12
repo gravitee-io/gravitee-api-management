@@ -22,6 +22,11 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+<<<<<<< HEAD
+=======
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+>>>>>>> 908f95d6b2 (fix: exclude current API from context path checks on update)
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.component.Lifecycle;
@@ -31,6 +36,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.management.rest.model.ErrorEntity;
 import io.gravitee.rest.api.management.rest.resource.param.LifecycleAction;
 import io.gravitee.rest.api.management.rest.resource.param.ReviewAction;
+import io.gravitee.rest.api.management.rest.resource.param.VerifyApiParam;
 import io.gravitee.rest.api.model.ApiStateEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.Visibility;
@@ -38,7 +44,9 @@ import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.ws.rs.client.Entity;
@@ -49,6 +57,13 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
+<<<<<<< HEAD
+=======
+import java.util.List;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+>>>>>>> 908f95d6b2 (fix: exclude current API from context path checks on update)
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;

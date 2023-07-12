@@ -16,23 +16,27 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+<<<<<<< HEAD
 import jakarta.validation.constraints.NotNull;
+=======
+import javax.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.jackson.Jacksonized;
+>>>>>>> 908f95d6b2 (fix: exclude current API from context path checks on update)
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
+@Jacksonized
+@Builder
 public class VerifyApiParam {
 
     @NotNull
     @JsonProperty("context_path")
     private String contextPath;
 
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
+    private String apiId;
 }

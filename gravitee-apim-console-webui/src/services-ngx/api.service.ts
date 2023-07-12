@@ -30,6 +30,11 @@ import { GroupMember } from '../entities/group/groupMember';
 import { ApiHealthAverage } from '../entities/api/ApiHealthAverage';
 import { Metadata, NewMetadata, UpdateMetadata } from '../entities/metadata/metadata';
 
+export interface ContextPathValidatorParams {
+  currentContextPath?: string;
+  apiId?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -206,7 +211,7 @@ export class ApiService {
     return this.http.post<Api>(`${this.constants.env.baseURL}/apis/${apiId}/duplicate`, config);
   }
 
-  contextPathValidator(currentContextPath?: string): AsyncValidatorFn {
+  contextPathValidator(params: ContextPathValidatorParams): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
       if (!control.value) {
         // If the control is empty, return no error
@@ -218,11 +223,37 @@ export class ApiService {
         return of({ contextPath: 'Context path has to be more than 3 characters long.' });
       }
 
-      if (currentContextPath === contextPath) {
+      if (params.currentContextPath === contextPath) {
         return of(null);
       }
 
+<<<<<<< HEAD
       return this.verify(contextPath);
+=======
+      const { apiId } = params;
+      const url = `${this.constants.env.baseURL}/apis/verify`;
+
+      return this.http
+        .post(
+          url,
+          { context_path: contextPath, apiId },
+          {
+            responseType: 'text',
+          },
+        )
+        .pipe(
+          mapTo(null),
+          catchError((error) => {
+            let message = 'Context path is not valid.';
+            try {
+              const errorResponse = JSON.parse(error.error);
+              message = errorResponse.message;
+            } catch (error) {}
+
+            return of({ contextPath: message });
+          }),
+        );
+>>>>>>> 908f95d6b2 (fix: exclude current API from context path checks on update)
     };
   }
 

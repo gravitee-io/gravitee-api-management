@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+<<<<<<< HEAD
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+=======
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { UIRouterGlobals } from '@uirouter/core';
+>>>>>>> 908f95d6b2 (fix: exclude current API from context path checks on update)
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
@@ -43,6 +48,7 @@ export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChange
   public initialEntrypointsFormValue: unknown;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
+<<<<<<< HEAD
   constructor(private readonly apiService: ApiService, private readonly portalSettingsService: PortalSettingsService) {}
 
   ngOnInit(): void {
@@ -55,6 +61,9 @@ export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChange
           : settings.portal.entrypoint;
       });
   }
+=======
+  constructor(private readonly apiService: ApiService, private readonly $router: UIRouterGlobals) {}
+>>>>>>> 908f95d6b2 (fix: exclude current API from context path checks on update)
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.apiProxy || changes.readOnly) {
@@ -72,6 +81,9 @@ export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChange
   }
 
   private initForm(apiProxy: Api['proxy']) {
+    const currentContextPath = apiProxy.virtual_hosts[0].path;
+    const { apiId } = this.$router.params;
+
     this.entrypointsForm = new FormGroup({
       contextPath: new FormControl(
         {
@@ -79,7 +91,12 @@ export class ApiProxyEntrypointsContextPathComponent implements OnInit, OnChange
           disabled: this.readOnly,
         },
         [Validators.required],
-        [this.apiService.contextPathValidator(apiProxy.virtual_hosts[0].path)],
+        [
+          this.apiService.contextPathValidator({
+            currentContextPath,
+            apiId,
+          }),
+        ],
       ),
     });
     this.initialEntrypointsFormValue = this.entrypointsForm.getRawValue();
