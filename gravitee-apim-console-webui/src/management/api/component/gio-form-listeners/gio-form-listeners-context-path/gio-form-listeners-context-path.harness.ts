@@ -80,4 +80,8 @@ export class GioFormListenersContextPathHarness extends ComponentHarness {
 
     await pathInput.setValue(path);
   }
+
+  public async getAddButton(): Promise<MatButtonHarness> {
+    return this.addButton();
+  }
 }

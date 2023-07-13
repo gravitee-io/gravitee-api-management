@@ -71,6 +71,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     [this.listenersAsyncValidator()],
   );
   public contextPathPrefix: string;
+  public isDisabled = false;
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public onDelete(pathIndex: number): void {
@@ -145,6 +146,13 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   // From ControlValueAccessor interface
   public registerOnTouched(fn: () => void): void {
     this._onTouched = fn;
+  }
+
+  // From ControlValueAccessor interface
+  public setDisabledState(isDisabled: boolean): void {
+    this.isDisabled = isDisabled;
+
+    isDisabled ? this.mainForm?.disable() : this.mainForm?.enable();
   }
 
   public initForm(): void {
