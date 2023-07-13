@@ -148,12 +148,14 @@
     </div>
 
     <div class="details-card__actions">
-      <button mat-button class="details-card__actions_btn" (click)="exportApi()"><mat-icon svgIcon="gio:upload"></mat-icon> Export</button>
+      <button *gioPermission="{ anyOf: ['api-definition-r'] }" mat-button class="details-card__actions_btn" (click)="exportApi()">
+        <mat-icon svgIcon="gio:upload"></mat-icon> Export
+      </button>
       <button
-        *gioPermission="{ anyOf: ['api-definition-u'] }"
+        *gioPermission="{ anyOf: ['api-definition-c'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="isReadOnly || api.definitionVersion === 'V4'"
+        [disabled]="isKubernetesOrigin || api.definitionVersion === 'V4'"
         (click)="importApi()"
       >
         <mat-icon svgIcon="gio:download"></mat-icon> Import
@@ -162,7 +164,7 @@
         *gioPermission="{ anyOf: ['api-definition-c'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="isReadOnly || api.definitionVersion === 'V4'"
+        [disabled]="isKubernetesOrigin || api.definitionVersion === 'V4'"
         (click)="duplicateApi()"
       >
         <mat-icon svgIcon="gio:copy"></mat-icon> Duplicate
@@ -171,7 +173,7 @@
         *gioPermission="{ anyOf: ['api-definition-u'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="!canPromote || isReadOnly || api.definitionVersion === 'V4'"
+        [disabled]="!canPromote || isKubernetesOrigin || api.definitionVersion === 'V4'"
         (click)="promoteApi()"
       >
         <mat-icon svgIcon="gio:language"></mat-icon> Promote
