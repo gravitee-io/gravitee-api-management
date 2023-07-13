@@ -15,12 +15,11 @@
  */
 package io.gravitee.definition.model.v4.ssl.pem;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.ssl.TrustStore;
 import io.gravitee.definition.model.v4.ssl.TrustStoreType;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -28,7 +27,7 @@ import lombok.experimental.SuperBuilder;
  */
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 public class PEMTrustStore extends TrustStore {
 
     private static final long serialVersionUID = 7432939542056493096L;
@@ -39,5 +38,11 @@ public class PEMTrustStore extends TrustStore {
 
     public PEMTrustStore() {
         super(TrustStoreType.PEM);
+    }
+
+    public PEMTrustStore(String path, String content) {
+        super(TrustStoreType.PEM);
+        this.path = path;
+        this.content = content;
     }
 }
