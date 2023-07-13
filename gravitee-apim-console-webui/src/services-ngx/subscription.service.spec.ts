@@ -22,6 +22,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeApi } from '../entities/api/Api.fixture';
 import { fakeSubscription } from '../entities/subscription/subscription.fixture';
 import { fakePlan } from '../entities/plan/plan.fixture';
+import { fakeApplication } from '../entities/application/Application.fixture';
 
 describe('SubscriptionService', () => {
   let httpTestingController: HttpTestingController;
@@ -56,6 +57,26 @@ describe('SubscriptionService', () => {
       const req = httpTestingController.expectOne({
         method: 'GET',
         url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/subscriptions?plan=${planId}&status=accepted,pending,rejected,closed,paused`,
+      });
+
+      req.flush([mockSubscription]);
+    });
+  });
+
+  describe('getApplicationSubscriptions', () => {
+    it('should get the application subscriptions', (done) => {
+      const app = fakeApplication({ id: 'API#1' });
+      const plan = fakePlan({ id: 'PLAN#1' });
+      const mockSubscription = fakeSubscription({ plan });
+
+      subscriptionService.getApplicationSubscriptions(app.id).subscribe((response) => {
+        expect(response).toMatchObject([mockSubscription]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${app.id}/subscriptions?expand=security`,
       });
 
       req.flush([mockSubscription]);

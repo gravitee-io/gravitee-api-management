@@ -39,6 +39,7 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MatMomentDateModule } from '@angular/material-moment-adapter';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { ApiPortalSubscriptionCreationDialogComponent } from './components/dialogs/creation/api-portal-subscription-creation-dialog.component';
 import { ApiPortalSubscriptionTransferDialogComponent } from './components/dialogs/transfer/api-portal-subscription-transfer-dialog.component';
@@ -98,6 +99,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     GioLoaderModule,
     GioPermissionModule,
     GioTableWrapperModule,
+    MatButtonToggleModule,
   ],
   providers: [DatePipe, { provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } }],
 })
