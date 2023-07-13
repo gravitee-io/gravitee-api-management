@@ -171,11 +171,9 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         ...(this.form.getRawValue().selectedPlan.mode === 'PUSH'
           ? {
               consumerConfiguration: {
-                channel: this.form.getRawValue().channel ? this.form.getRawValue().channel : undefined,
-                entrypointId: this.form.getRawValue().selectedEntrypoint,
-                entrypointConfiguration: this.form.getRawValue().entrypointConfiguration
-                  ? this.form.getRawValue().entrypointConfiguration
-                  : undefined,
+                channel: this.form.getRawValue().channel ?? undefined,
+                entrypointId: this.form.getRawValue().selectedEntrypoint ?? undefined,
+                entrypointConfiguration: this.form.getRawValue().entrypointConfiguration ?? undefined,
               },
             }
           : undefined),

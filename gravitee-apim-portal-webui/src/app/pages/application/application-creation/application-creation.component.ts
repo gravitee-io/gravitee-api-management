@@ -376,11 +376,15 @@ export class ApplicationCreationComponent implements OnInit {
             application: application.id,
             plan: subscription.plan.id,
             request: subscription.request,
-            configuration: {
-              channel: subscription.channel,
-              entrypointId: subscription.entrypoint,
-              entrypointConfiguration: subscription.entrypointConfiguration,
-            },
+            ...(subscription.plan.mode === 'PUSH'
+              ? {
+                  configuration: {
+                    channel: subscription.channel ?? undefined,
+                    entrypointId: subscription.entrypoint ?? undefined,
+                    entrypointConfiguration: subscription.entrypointConfiguration ?? undefined,
+                  },
+                }
+              : undefined),
           };
 
           if (subscription.general_conditions_accepted) {
