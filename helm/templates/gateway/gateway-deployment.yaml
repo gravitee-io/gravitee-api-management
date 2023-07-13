@@ -162,17 +162,57 @@ spec:
             {{- end }}
           {{- end }}
           {{- if .Values.gateway.deployment.livenessProbe.enabled }}
-          livenessProbe: {{- omit .Values.gateway.deployment.livenessProbe "enabled" | toYaml | nindent 12 }}
+          livenessProbe:
+            periodSeconds: 15
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 3
+            httpGet:
+              path: /_node/health?probes=http-server
+              scheme: HTTP
+              port: 18082
+              {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
+              httpHeaders:
+                - name: Authorization
+                  value: {{ print "Basic " }}{{print "admin:" .Values.gateway.services.core.http.authentication.password | b64enc }}
+              {{- end }}
           {{- else if .Values.gateway.deployment.customLivenessProbe }}
           livenessProbe: {{ toYaml .Values.gateway.deployment.customLivenessProbe | nindent 12 }}
           {{- end }}
           {{- if .Values.gateway.deployment.readinessProbe.enabled }}
-          readinessProbe: {{- omit .Values.gateway.deployment.readinessProbe "enabled" | toYaml | nindent 12 }}
+          readinessProbe:
+            periodSeconds: 10
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 2
+            httpGet:
+              path: /_node/health?probes=sync-process
+              scheme: HTTP
+              port: 18082
+              {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
+              httpHeaders:
+                - name: Authorization
+                  value: {{ print "Basic " }}{{print "admin:" .Values.gateway.services.core.http.authentication.password | b64enc }}
+              {{- end }}
           {{- else if .Values.gateway.deployment.customReadinessProbe }}
           readinessProbe: {{ toYaml .Values.gateway.deployment.customReadinessProbe | nindent 12 }}
           {{- end }}
           {{- if and (.Values.gateway.deployment.startupProbe.enabled) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
-          startupProbe: {{- omit .Values.gateway.deployment.startupProbe "enabled" | toYaml | nindent 12 }}
+          startupProbe:
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 29
+            httpGet:
+              path: /_node/health?probes=http-server
+              scheme: HTTP
+              port: 18082
+              {{- if eq .Values.gateway.services.core.http.authentication.type "basic" }}
+              httpHeaders:
+                - name: Authorization
+                  value: {{ print "Basic " }}{{print "admin:" .Values.gateway.services.core.http.authentication.password | b64enc }}
+              {{- end }}
           {{- else if and (.Values.gateway.deployment.customStartupProbe) (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
           startupProbe: {{ toYaml .Values.gateway.deployment.customStartupProbe | nindent 12 }}
           {{- end }}

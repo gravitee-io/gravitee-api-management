@@ -9,8 +9,27 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.path
           value: /_node/health?probes=sync-process
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.httpHeaders[0].value
+          value: Basic YWRtaW46YWRtaW5hZG1pbg==
       - isEmpty:
           path: spec.template.spec.containers[0].readinessProbe.tcpSocket
+
+  - it: Check default readinessProbe without security
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        services:
+          core:
+            http:
+              authentication:
+                type: none
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /_node/health?probes=sync-process
+      - isEmpty:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.httpHeaders
 
   - it: Check default livenessProbe
     template: gateway/gateway-deployment.yaml
@@ -18,8 +37,27 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.httpGet.path
           value: /_node/health?probes=http-server
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.httpHeaders[0].value
+          value: Basic YWRtaW46YWRtaW5hZG1pbg==
       - isEmpty:
           path: spec.template.spec.containers[0].livenessProbe.tcpSocket
+
+  - it: Check default livenessProbe without security
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        services:
+          core:
+            http:
+              authentication:
+                type: none
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /_node/health?probes=http-server
+      - isEmpty:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.httpHeaders
 
   - it: Check default startupProbe
     template: gateway/gateway-deployment.yaml
@@ -27,8 +65,27 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].startupProbe.httpGet.path
           value: /_node/health?probes=http-server
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.httpHeaders[0].value
+          value: Basic YWRtaW46YWRtaW5hZG1pbg==
       - isEmpty:
           path: spec.template.spec.containers[0].startupProbe.tcpSocket
+
+  - it: Check default startupProbe without security
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        services:
+          core:
+            http:
+              authentication:
+                type: none
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /_node/health?probes=http-server
+      - isEmpty:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.httpHeaders
 
   - it: Check custom readinessProbe
     template: gateway/gateway-deployment.yaml
