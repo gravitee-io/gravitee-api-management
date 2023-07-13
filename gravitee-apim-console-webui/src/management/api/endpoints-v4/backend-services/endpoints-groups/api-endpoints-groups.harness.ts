@@ -40,6 +40,10 @@ export class ApiEndpointsGroupsHarness extends ComponentHarness {
       .then((element) => element.click());
   }
 
+  public async isEndpointGroupDeleteButtonVisible(): Promise<boolean> {
+    return this.getDeleteEndpointGroupButtons().then((buttons) => buttons?.length > 0);
+  }
+
   public async deleteEndpoint(index: number, rootLoader: HarnessLoader) {
     const button = (await this.getDeleteEndpointButtons())[index];
     await button.click();
@@ -53,14 +57,26 @@ export class ApiEndpointsGroupsHarness extends ComponentHarness {
     return this.getDeleteEndpointButtons().then((buttons) => buttons[index].isDisabled());
   }
 
+  public async isEndpointDeleteButtonVisible(): Promise<boolean> {
+    return this.getDeleteEndpointButtons().then((buttons) => buttons?.length > 0);
+  }
+
   public async clickAddEndpoint(index: number) {
     const button = (await this.getAddEndpointButtons())[index];
     return button.click();
   }
 
+  public async isAddEndpointButtonVisible(): Promise<boolean> {
+    return this.getAddEndpointButtons().then((buttons) => buttons?.length > 0);
+  }
+
   public async clickEditEndpoint(index: number) {
     const button = (await this.getEditEndpointButtons())[index];
     return button.click();
+  }
+
+  public async isEditEndpointButtonVisible(): Promise<boolean> {
+    return this.getEditEndpointButtons().then((buttons) => buttons?.length > 0);
   }
 
   public async moveGroupUp(index: number) {

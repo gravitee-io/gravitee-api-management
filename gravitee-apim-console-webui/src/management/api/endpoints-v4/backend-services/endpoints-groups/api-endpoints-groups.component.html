@@ -50,15 +50,17 @@
           >
             <mat-icon svgIcon="gio:arrow-down"></mat-icon>
           </button>
-          <button
-            *ngIf="groupsTableData?.length > 1"
-            mat-stroked-button
-            aria-label="Delete endpoints group"
-            (click)="deleteGroup(group.name)"
-          >
-            <mat-icon svgIcon="gio:trash"></mat-icon>
-            Delete
-          </button>
+          <ng-container *gioPermission="{ anyOf: ['api-definition-u'] }">
+            <button
+              *ngIf="groupsTableData?.length > 1"
+              mat-stroked-button
+              aria-label="Delete endpoints group"
+              (click)="deleteGroup(group.name)"
+            >
+              <mat-icon svgIcon="gio:trash"></mat-icon>
+              Delete
+            </button>
+          </ng-container>
         </div>
       </div>
       <mat-card-content>
@@ -97,7 +99,7 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
             <td mat-cell *matCellDef="let element; let j = index">
-              <div class="endpoints-group-card__table__actions">
+              <div class="endpoints-group-card__table__actions" *gioPermission="{ anyOf: ['api-definition-u'] }">
                 <a mat-icon-button aria-label="Edit endpoint" matTooltip="Edit endpoint" (click)="editEndpoint(i, j)">
                   <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
                 </a>
@@ -128,7 +130,14 @@
             <td class="mat-cell" [attr.colspan]="endpointsDisplayedColumns.length">No Endpoints</td>
           </tr>
         </table>
-        <a mat-stroked-button aria-label="Add endpoint" class="add_endpoint" (click)="addEndpoint(i)">Add endpoint</a>
+        <a
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-stroked-button
+          aria-label="Add endpoint"
+          class="add_endpoint"
+          (click)="addEndpoint(i)"
+          >Add endpoint</a
+        >
       </mat-card-content>
     </ng-container>
   </mat-card>
