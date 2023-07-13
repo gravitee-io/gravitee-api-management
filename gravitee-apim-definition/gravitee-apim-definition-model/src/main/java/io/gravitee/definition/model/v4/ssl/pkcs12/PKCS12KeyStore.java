@@ -17,9 +17,9 @@ package io.gravitee.definition.model.v4.ssl.pkcs12;
 
 import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.KeyStoreType;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -27,7 +27,7 @@ import lombok.experimental.SuperBuilder;
  */
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 public class PKCS12KeyStore extends KeyStore {
 
     private static final long serialVersionUID = 1210626721233767960L;
@@ -47,5 +47,14 @@ public class PKCS12KeyStore extends KeyStore {
 
     public PKCS12KeyStore() {
         super(KeyStoreType.PKCS12);
+    }
+
+    public PKCS12KeyStore(String path, String content, String password, String alias, String keyPassword) {
+        super(KeyStoreType.PKCS12);
+        this.path = path;
+        this.content = content;
+        this.password = password;
+        this.alias = alias;
+        this.keyPassword = keyPassword;
     }
 }
