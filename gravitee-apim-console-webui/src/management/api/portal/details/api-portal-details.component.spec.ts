@@ -40,7 +40,7 @@ import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v
 describe('ApiPortalDetailsComponent', () => {
   const API_ID = 'apiId';
   const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u', 'api-definition-d', 'api-definition-c'];
+  currentUser.userPermissions = ['api-definition-u', 'api-definition-d', 'api-definition-c', 'api-definition-r'];
   const fakeAjsState = {
     go: jest.fn().mockReturnValue({}),
   };
