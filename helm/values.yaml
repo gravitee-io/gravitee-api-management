@@ -745,18 +745,6 @@ gateway:
 
     startupProbe:
       enabled: true
-      initialDelaySeconds: 10
-      periodSeconds: 10
-      timeoutSeconds: 1
-      successThreshold: 1
-      failureThreshold: 29
-      httpGet:
-        path: /_node/health?probes=http-server
-        scheme: HTTP
-        port: 18082
-        httpHeaders:
-        - name: Authorization
-          value: Basic YWRtaW46YWRtaW5hZG1pbg==
 
     # set startupProbe.enabled: false to define your own StartupProbe
     customStartupProbe: {}
@@ -767,17 +755,6 @@ gateway:
 
     livenessProbe:
       enabled: true
-      periodSeconds: 15
-      timeoutSeconds: 2
-      successThreshold: 1
-      failureThreshold: 3
-      httpGet:
-        path: /_node/health?probes=http-server
-        scheme: HTTP
-        port: 18082
-        httpHeaders:
-        - name: Authorization
-          value: Basic YWRtaW46YWRtaW5hZG1pbg==
 
     # set livenessProbe.enabled: false to define your own livenessProbe
     customLivenessProbe: {}
@@ -789,17 +766,6 @@ gateway:
 
     readinessProbe:
       enabled: true
-      periodSeconds: 10
-      timeoutSeconds: 2
-      successThreshold: 1
-      failureThreshold: 2
-      httpGet:
-        path: /_node/health?probes=sync-process
-        scheme: HTTP
-        port: 18082
-        httpHeaders:
-        - name: Authorization
-          value: Basic YWRtaW46YWRtaW5hZG1pbg==
 
     # set readinessProbe.enabled: false to define your own readinessProbe
     customReadinessProbe: {}

@@ -26,3 +26,5 @@ annotations:
     - Fix resources missing in ui-deployment.yaml
     - Change readinessProbe for the gateway to sync-process
     - Update Elasticsearch version
+    - Allow plugin override via {api|gatewaye}.additionalPlugins property
+    - Add auto generate Authorization header on gateway probes when authentication basic is set. 
