@@ -38,4 +38,8 @@ export class SubscriptionService {
       `${this.constants.env.baseURL}/apis/${apiId}/subscriptions?plan=${planId}&status=accepted,pending,rejected,closed,paused`,
     );
   }
+
+  public getApplicationSubscriptions(appId: string): Observable<PagedResult<Subscription>> {
+    return this.http.get<PagedResult<Subscription>>(`${this.constants.env.baseURL}/applications/${appId}/subscriptions?expand=security`);
+  }
 }

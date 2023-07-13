@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
 import { StateService, UIRouterGlobals } from '@uirouter/core';
 import { isEqual } from 'lodash';
@@ -278,8 +278,15 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
+        filter((result) => !!result),
         switchMap((result) => {
-          return result ? this.apiSubscriptionService.create(this.api.id, result.subscriptionToCreate) : EMPTY;
+          if (!result?.apiKeyMode) {
+            return of(result);
+          }
+          return this.applicationService.update({ ...result.application, api_key_mode: result.apiKeyMode }).pipe(map(() => result));
+        }),
+        switchMap((result) => {
+          return this.apiSubscriptionService.create(this.api.id, result.subscriptionToCreate);
         }),
         takeUntil(this.unsubscribe$),
       )
