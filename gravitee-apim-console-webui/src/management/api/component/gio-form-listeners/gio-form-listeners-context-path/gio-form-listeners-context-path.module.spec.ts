@@ -243,4 +243,21 @@ describe('GioFormListenersContextPathModule', () => {
     expect(testComponent.formControl.touched).toEqual(true);
     expect(testComponent.formControl.dirty).toEqual(true);
   });
+
+  it('should not show add button or delete button and be unmodifiable when disabled', async () => {
+    testComponent.formControl = new FormControl({ value: LISTENERS, disabled: true });
+
+    const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
+
+    const contextPathRow = (await formPaths.getListenerRows())[1];
+    expectApiVerify();
+
+    expect(await contextPathRow.pathInput.isDisabled()).toEqual(true);
+    expect(await contextPathRow.removeButton).toBeFalsy();
+
+    await formPaths
+      .getAddButton()
+      .then((_) => fail('The add button should not appear'))
+      .catch((err) => expect(err).toBeTruthy());
+  });
 });

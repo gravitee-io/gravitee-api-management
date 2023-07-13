@@ -53,6 +53,7 @@
           mat-icon-button
           aria-label="Delete"
           [class.gio-form-listeners__table__row__td__button__hide]="listenerFormArray.controls.length <= 1"
+          *ngIf="!isDisabled"
           (click)="onDelete(controlIndex)"
         >
           <mat-icon svgIcon="gio:cancel"></mat-icon>
@@ -62,4 +63,6 @@
   </tbody>
 </table>
 
-<button class="gio-form-listeners__add-button" type="button" mat-stroked-button (click)="addEmptyListener()">Add context-path</button>
+<button *ngIf="!isDisabled" class="gio-form-listeners__add-button" type="button" mat-stroked-button (click)="addEmptyListener()">
+  Add context-path
+</button>
