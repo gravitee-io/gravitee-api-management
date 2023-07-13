@@ -96,8 +96,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
         .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
           data: {
             title: 'Are you sure?',
-            content:
-              'By changing the architecture type, all previously entered data in Endpoints, Security and Document steps will be reset.',
+            content: 'By changing the architecture type, all previously entered data in Endpoints and Security steps will be reset.',
             confirmButton: 'Validate',
             cancelButton: 'Discard',
           },
