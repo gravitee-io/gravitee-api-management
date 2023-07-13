@@ -707,6 +707,7 @@ jobs:
         executor:
             name: openjdk
             class: medium+
+        parallelism: 2
         steps:
             - setup_remote_docker
             - checkout
@@ -728,7 +729,25 @@ jobs:
             - run:
                   name: Run tests
                   command: |
-                      mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dintegration-tests-modules -Dskip.validation=true -T 2C
+                      cd gravitee-apim-integration-tests
+                      # List all tests
+                      circleci tests glob "src/test/java/**/*Test.java" | sed -e 's#^src/test/java/\(.*\)\.java#\1#' | tr "/" "." > all-tests
+
+                      # List all tests to run on this executor
+                      cat all-tests | circleci tests split --split-by=timings --timings-type=classname --time-default=10s > tests-to-run
+
+                      # Compute exclusion list (use grep to invert the include list to an exclude list)
+                      cat all-tests | grep -xvf tests-to-run > ignore_list
+
+                      # Add * add the end of each line of ignore_list to also exclude all inner classes
+                      sed -i 's/$/*/' ignore_list 
+
+                      # Display tests to run on this executor
+                      echo "Following test files will run on this executor:"
+                      cat tests-to-run
+
+                      # Run tests            
+                      mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=ignore_list
             - run:
                   name: Save test results
                   command: |
