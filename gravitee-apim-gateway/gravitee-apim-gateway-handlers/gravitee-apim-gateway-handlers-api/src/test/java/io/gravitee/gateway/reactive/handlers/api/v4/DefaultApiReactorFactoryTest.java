@@ -49,6 +49,7 @@ import io.gravitee.gateway.resource.internal.v4.DefaultResourceManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
+import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
@@ -141,7 +142,8 @@ public class DefaultApiReactorFactoryTest {
                 organizationManager,
                 flowResolverFactory,
                 requestTimeoutConfiguration,
-                reporterService
+                reporterService,
+                new StandaloneCacheManager()
             );
     }
 

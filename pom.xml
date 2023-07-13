@@ -48,7 +48,7 @@
         <!-- Version properties -->
         <revision>4.2.0</revision>
         <sha1/>
-        <changelist>-SNAPSHOT</changelist>
+        <changelist>-optimize-client-identifier-computation-SNAPSHOT</changelist>
 
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-apim-gateway-standalone-container -->
         <vertx.version>4.4.6</vertx.version>
@@ -271,7 +271,7 @@
         <gravitee-endpoint-rabbitmq.version>1.3.0</gravitee-endpoint-rabbitmq.version>
         <gravitee-endpoint-solace.version>1.1.0</gravitee-endpoint-solace.version>
         <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
-        <gravitee-reactor-message.version>2.0.0-alpha.1</gravitee-reactor-message.version>
+        <gravitee-reactor-message.version>2.0.0-optimize-client-identifier-computation-SNAPSHOT</gravitee-reactor-message.version>
         <gravitee-repository-bridge.version>4.0.1</gravitee-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0-alpha.3</gravitee-secretprovider-hc-vault.version>
 

@@ -42,7 +42,9 @@ import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogInitPro
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
 import java.util.Map;
@@ -68,14 +70,16 @@ class ApiProcessorChainFactoryTest {
     private Node node;
 
     private ApiProcessorChainFactory apiProcessorChainFactory;
+    private CacheManager standaloneCacheManager;
 
     @BeforeEach
     public void beforeEach() {
+        standaloneCacheManager = new StandaloneCacheManager();
         when(configuration.getProperty("services.tracing.enabled", Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty("handlers.request.client.header", String.class, DEFAULT_CLIENT_IDENTIFIER_HEADER))
             .thenReturn(DEFAULT_CLIENT_IDENTIFIER_HEADER);
-        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node);
+        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, standaloneCacheManager);
     }
 
     @Test
@@ -159,7 +163,7 @@ class ApiProcessorChainFactoryTest {
     @Test
     void shouldReturnXForwardedBeforeApiExecutionWithOverrideXForwarded() {
         when(configuration.getProperty("handlers.request.headers.x-forwarded-prefix", Boolean.class, false)).thenReturn(true);
-        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node);
+        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, standaloneCacheManager);
 
         io.gravitee.definition.model.Api apiModel = new io.gravitee.definition.model.Api();
         final Proxy proxy = new Proxy();
@@ -179,7 +183,7 @@ class ApiProcessorChainFactoryTest {
 
     @Test
     void shouldReturnPathParamProcessorBeforeApiExecution() {
-        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node);
+        apiProcessorChainFactory = new ApiProcessorChainFactory(configuration, node, standaloneCacheManager);
 
         io.gravitee.definition.model.Api apiModel = new io.gravitee.definition.model.Api();
         final Proxy proxy = new Proxy();

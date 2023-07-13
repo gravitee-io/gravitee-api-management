@@ -23,6 +23,7 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.APPLICATION_ANONYMOUS;
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.PLAN_ANONYMOUS;
+import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.REMOTE_ADDRESS_HASHES_CACHE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,11 +39,15 @@ import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
+import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.MultiMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -52,7 +57,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -72,12 +76,18 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     @Captor
     ArgumentCaptor<Collection<TemplateVariableProvider>> providersCaptor;
 
-    private SubscriptionProcessor cut;
+    private static SubscriptionProcessor cut;
+    private static StandaloneCacheManager cacheManager;
     private MultiValueMap<String, String> requestParams;
+
+    @BeforeAll
+    static void beforeAll() {
+        cacheManager = new StandaloneCacheManager();
+        cut = SubscriptionProcessor.instance(null, cacheManager);
+    }
 
     @BeforeEach
     void initProcessor() {
-        cut = SubscriptionProcessor.instance(null);
         spyCtx.setAttribute(ATTR_PLAN, PLAN_ID);
         spyCtx.setAttribute(ATTR_APPLICATION, APPLICATION_ID);
         spyCtx.setAttribute(ATTR_SUBSCRIPTION_ID, SUBSCRIPTION_ID);
@@ -85,6 +95,11 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         lenient().when(mockRequest.transactionId()).thenReturn(TRANSACTION_ID);
         requestParams = new VertxHttpHeaders(MultiMap.caseInsensitiveMultiMap());
         lenient().when(mockRequest.parameters()).thenReturn(requestParams);
+    }
+
+    @AfterEach
+    public void afterEach() {
+        cacheManager.destroy(REMOTE_ADDRESS_HASHES_CACHE);
     }
 
     @Test
@@ -201,7 +216,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         void should_use_hash_subscription_id_when_client_identifier_header_is_null_and_subscription_equals_remote_address() {
             spyCtx.setAttribute(ContextAttributes.ATTR_SUBSCRIPTION_ID, REMOTE_ADDRESS);
 
-            cut.execute(spyCtx).test().assertComplete();
+            cut.execute(spyCtx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isNotNull();
             assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).doesNotContain(TRANSACTION_ID);
@@ -220,6 +235,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
             assertThat(spyCtx.metrics().getClientIdentifier()).doesNotContain(TRANSACTION_ID);
             assertThat(spyCtx.metrics().getClientIdentifier()).doesNotContain(REMOTE_ADDRESS);
             assertThat(spyCtx.metrics().getClientIdentifier()).doesNotContain(SUBSCRIPTION_ID);
+            assertThat(cacheManager.getOrCreateCache(REMOTE_ADDRESS_HASHES_CACHE).get(REMOTE_ADDRESS)).isNotNull();
         }
 
         @Test
@@ -275,7 +291,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
             String startCtxClientIdentifier = "1234-";
             spyRequestHeaders.set(DEFAULT_CLIENT_IDENTIFIER_HEADER, clientIdentifier);
 
-            cut.execute(spyCtx).test().assertComplete();
+            cut.execute(spyCtx).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
             assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).startsWith(startCtxClientIdentifier);
             assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).doesNotContain(SUBSCRIPTION_ID);
@@ -289,6 +305,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
             verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(TRANSACTION_ID)));
             verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(REMOTE_ADDRESS)));
             assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(clientIdentifier);
+            assertThat(cacheManager.getOrCreateCache(REMOTE_ADDRESS_HASHES_CACHE).get(REMOTE_ADDRESS)).isNotNull();
         }
 
         @Test
