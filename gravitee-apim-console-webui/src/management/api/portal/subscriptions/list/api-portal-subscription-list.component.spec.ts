@@ -25,6 +25,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UIRouterGlobals } from '@uirouter/core';
 import { set } from 'lodash';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiPortalSubscriptionListComponent } from './api-portal-subscription-list.component';
 import { ApiPortalSubscriptionListHarness } from './api-portal-subscription-list.harness';
@@ -69,7 +70,6 @@ describe('ApiPortalSubscriptionListComponent', () => {
   const anApplication = fakeApplication({ id: APPLICATION_ID, owner: { displayName: 'Gravitee.io' } });
   const fakeUiRouter = { go: jest.fn() };
   const currentUser = new DeprecatedUser();
-  currentUser.userPermissions = ['api-subscription-c', 'api-subscription-r'];
 
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
@@ -214,7 +214,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       expect(rowCells).toEqual([['There is no subscription (yet).']]);
     }));
 
-    it('should display a table with one row', fakeAsync(async () => {
+    it('should display a table with one row and show view details button when user can create', fakeAsync(async () => {
       const subscription = fakeSubscription();
       await initComponent([subscription]);
 
@@ -243,6 +243,87 @@ describe('ApiPortalSubscriptionListComponent', () => {
           '',
         ],
       ]);
+      expect(
+        await loader
+          .getHarness(MatButtonHarness.with({ selector: '[aria-label="View the subscription details"]' }))
+          .then((btn) => btn.isDisabled()),
+      ).toEqual(false);
+    }));
+
+    it('should display a table with one row and show edit button when user can update', fakeAsync(async () => {
+      const subscription = fakeSubscription();
+      await initComponent([subscription], undefined, undefined, undefined, undefined, undefined, [
+        'api-subscription-u',
+        'api-subscription-r',
+        'api-subscription-c',
+      ]);
+
+      const { headerCells, rowCells } = await computeSubscriptionsTableCells();
+      expect(headerCells).toEqual([
+        {
+          plan: 'Plan',
+          application: 'Application',
+          createdAt: 'Created at',
+          processedAt: 'Processed at',
+          startingAt: 'Start at',
+          endAt: 'End at',
+          status: 'Status',
+          actions: '',
+        },
+      ]);
+      expect(rowCells).toEqual([
+        [
+          'My Plan',
+          'My Application (Primary Owner)',
+          'Jan 1, 2020, 12:00:00 AM',
+          'Jan 1, 2020, 12:00:00 AM',
+          'Jan 1, 2020, 12:00:00 AM',
+          '',
+          'Accepted',
+          '',
+        ],
+      ]);
+      expect(
+        await loader
+          .getHarness(MatButtonHarness.with({ selector: '[aria-label="Edit the subscription"]' }))
+          .then((btn) => btn.isDisabled()),
+      ).toEqual(false);
+    }));
+
+    it('should display a table with one row and view details button when read only', fakeAsync(async () => {
+      const subscription = fakeSubscription();
+      await initComponent([subscription], undefined, undefined, undefined, undefined, undefined, ['api-subscription-r']);
+
+      const { headerCells, rowCells } = await computeSubscriptionsTableCells();
+      expect(headerCells).toEqual([
+        {
+          plan: 'Plan',
+          application: 'Application',
+          createdAt: 'Created at',
+          processedAt: 'Processed at',
+          startingAt: 'Start at',
+          endAt: 'End at',
+          status: 'Status',
+          actions: '',
+        },
+      ]);
+      expect(rowCells).toEqual([
+        [
+          'My Plan',
+          'My Application (Primary Owner)',
+          'Jan 1, 2020, 12:00:00 AM',
+          'Jan 1, 2020, 12:00:00 AM',
+          'Jan 1, 2020, 12:00:00 AM',
+          '',
+          'Accepted',
+          '',
+        ],
+      ]);
+      expect(
+        await loader
+          .getHarness(MatButtonHarness.with({ selector: '[aria-label="View the subscription details"]' }))
+          .then((btn) => btn.isDisabled()),
+      ).toEqual(false);
     }));
 
     it('should search closed subscription', fakeAsync(async () => {
@@ -435,8 +516,14 @@ describe('ApiPortalSubscriptionListComponent', () => {
     subscribers: BaseApplication[] = [aBaseApplication],
     applications?: Application[],
     params?: { plan?: string; application?: string; status?: string; apiKey?: string },
+    permissions: string[] = ['api-subscription-c', 'api-subscription-r'],
   ) {
     await TestBed.overrideProvider(UIRouterStateParams, { useValue: { apiId: api.id, ...(params ? params : {}) } }).compileComponents();
+    if (permissions.length > 0) {
+      const newCurrentUser = new DeprecatedUser();
+      newCurrentUser.userPermissions = permissions;
+      await TestBed.overrideProvider(CurrentUserService, { useValue: { currentUser: newCurrentUser } }).compileComponents();
+    }
     fixture = TestBed.createComponent(TestComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -460,12 +547,13 @@ describe('ApiPortalSubscriptionListComponent', () => {
       params?.plan?.split(','),
       params?.apiKey,
     );
+
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
     tick(400);
 
     expect(fixture.componentInstance.apiPortalSubscriptionList.isLoadingData).toEqual(false);
-    expect(fixture.componentInstance.apiPortalSubscriptionList.isReadOnly).toEqual(false);
+    expect(fixture.componentInstance.apiPortalSubscriptionList.canUpdate).toEqual(permissions.includes('api-subscription-u'));
     expect(fixture.componentInstance.apiPortalSubscriptionList.subscriptionsTableDS).toBeDefined();
     expect(fixture.componentInstance.apiPortalSubscriptionList.subscriptionsTableDS.length).toEqual(subscriptions.length);
   }
