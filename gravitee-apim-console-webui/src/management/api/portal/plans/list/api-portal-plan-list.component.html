@@ -17,14 +17,7 @@
 -->
 <div class="plans__header">
   <div *ngIf="!isReadOnly && plansTableDS && !isLoadingData">
-    <button
-      *gioPermission="{ anyOf: ['api-plan-u'] }"
-      mat-raised-button
-      type="button"
-      color="primary"
-      aria-label="Add new plan"
-      [matMenuTriggerFor]="menu"
-    >
+    <button mat-raised-button type="button" color="primary" aria-label="Add new plan" [matMenuTriggerFor]="menu">
       <mat-icon svgIcon="gio:plus"></mat-icon>Add new plan
     </button>
     <mat-menu #menu="matMenu">
@@ -103,57 +96,27 @@
       <div class="plans__table__actions">
         <ng-container *ngIf="!isReadOnly; else readOnlyPlanActions">
           <ng-container *ngIf="element.status !== 'CLOSED'">
-            <button
-              *gioPermission="{ anyOf: ['api-plan-u'] }"
-              mat-icon-button
-              aria-label="Edit the plan"
-              matTooltip="Edit the plan"
-              (click)="navigateToPlan(element.id)"
-            >
+            <button mat-icon-button aria-label="Edit the plan" matTooltip="Edit the plan" (click)="navigateToPlan(element.id)">
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>
           </ng-container>
           <ng-container *ngIf="isV2Api && element.status !== 'CLOSED'">
-            <button
-              *gioPermission="{ anyOf: ['api-plan-u'] }"
-              mat-icon-button
-              aria-label="Design the plan"
-              matTooltip="Design the plan"
-              (click)="designPlan(element.id)"
-            >
+            <button mat-icon-button aria-label="Design the plan" matTooltip="Design the plan" (click)="designPlan(element.id)">
               <mat-icon svgIcon="gio:shield-check"></mat-icon>
             </button>
           </ng-container>
           <ng-container *ngIf="element.status === 'STAGING'">
-            <button
-              *gioPermission="{ anyOf: ['api-plan-u'] }"
-              mat-icon-button
-              aria-label="Publish the plan"
-              matTooltip="Publish the plan"
-              (click)="publishPlan(element)"
-            >
+            <button mat-icon-button aria-label="Publish the plan" matTooltip="Publish the plan" (click)="publishPlan(element)">
               <mat-icon svgIcon="gio:upload-cloud"></mat-icon>
             </button>
           </ng-container>
           <ng-container *ngIf="element.status === 'PUBLISHED'">
-            <button
-              *gioPermission="{ anyOf: ['api-plan-u'] }"
-              mat-icon-button
-              aria-label="Deprecate the plan"
-              matTooltip="Deprecate the plan"
-              (click)="deprecatePlan(element)"
-            >
+            <button mat-icon-button aria-label="Deprecate the plan" matTooltip="Deprecate the plan" (click)="deprecatePlan(element)">
               <mat-icon svgIcon="gio:cloud-unpublished"></mat-icon>
             </button>
           </ng-container>
           <ng-container *ngIf="element.status !== 'CLOSED'">
-            <button
-              *gioPermission="{ anyOf: ['api-plan-u'] }"
-              mat-icon-button
-              aria-label="Close the plan"
-              matTooltip="Close the plan"
-              (click)="closePlan(element)"
-            >
+            <button mat-icon-button aria-label="Close the plan" matTooltip="Close the plan" (click)="closePlan(element)">
               <mat-icon svgIcon="gio:cancel"></mat-icon>
             </button>
           </ng-container>
