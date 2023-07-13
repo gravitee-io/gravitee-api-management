@@ -99,7 +99,7 @@ export class TasksComponent implements OnInit, OnDestroy {
         const { api: apiId, id } = task.data as any;
         const taskEnvironmentId = this.tasks.metadata[apiId]?.environmentId;
 
-        this.ajsState.go('management.apis.detail.portal.subscriptions.subscription', {
+        this.ajsState.go('management.apis.detail.portal.subscription.edit', {
           apiId,
           subscriptionId: id,
           environmentId: taskEnvironmentId || currentEnvironmentId,
