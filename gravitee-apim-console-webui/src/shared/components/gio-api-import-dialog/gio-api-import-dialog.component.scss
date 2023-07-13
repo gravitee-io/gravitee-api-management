@@ -16,9 +16,8 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__file-tab {
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: column;
     justify-content: space-around;
-    align-items: flex-start;
 
     &__file {
       display: flex;
