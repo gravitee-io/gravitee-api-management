@@ -240,7 +240,6 @@ public class KeyStoreMapperTest {
     void shouldMapFromJKSKeyStoreV4() {
         var jksKeyStoreEntityV4 = io.gravitee.definition.model.v4.ssl.jks.JKSKeyStore
             .builder()
-            .type(io.gravitee.definition.model.v4.ssl.KeyStoreType.JKS)
             .path("path")
             .content("content")
             .password("password")
@@ -262,7 +261,6 @@ public class KeyStoreMapperTest {
     void shouldMapFromPKCS12KeyStoreV4() {
         var pkcs12KeyStoreEntityV4 = io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore
             .builder()
-            .type(io.gravitee.definition.model.v4.ssl.KeyStoreType.PKCS12)
             .path("path")
             .content("content")
             .password("password")
@@ -284,7 +282,6 @@ public class KeyStoreMapperTest {
     void shouldMapFromPEMKeyStoreV4() {
         var pemKeyStoreEntityV4 = io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore
             .builder()
-            .type(io.gravitee.definition.model.v4.ssl.KeyStoreType.PEM)
             .keyPath("key-path")
             .keyContent("key-content")
             .certPath("cert-path")
@@ -302,10 +299,7 @@ public class KeyStoreMapperTest {
 
     @Test
     void shouldMapFromNoneKeyStoreV4() {
-        var noneKeyStoreEntityV4 = io.gravitee.definition.model.v4.ssl.none.NoneKeyStore
-            .builder()
-            .type(io.gravitee.definition.model.v4.ssl.KeyStoreType.NONE)
-            .build();
+        var noneKeyStoreEntityV4 = io.gravitee.definition.model.v4.ssl.none.NoneKeyStore.builder().build();
 
         var noneKeyStore = keyStoreMapper.map(noneKeyStoreEntityV4);
         assertThat(noneKeyStore).isNotNull();

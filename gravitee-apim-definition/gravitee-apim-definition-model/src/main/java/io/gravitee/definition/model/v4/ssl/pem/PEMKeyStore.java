@@ -15,12 +15,11 @@
  */
 package io.gravitee.definition.model.v4.ssl.pem;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.KeyStoreType;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -28,7 +27,7 @@ import lombok.experimental.SuperBuilder;
  */
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 public class PEMKeyStore extends KeyStore {
 
     private static final long serialVersionUID = 1051430527272519608L;
@@ -43,5 +42,13 @@ public class PEMKeyStore extends KeyStore {
 
     public PEMKeyStore() {
         super(KeyStoreType.PEM);
+    }
+
+    public PEMKeyStore(String keyPath, String keyContent, String certPath, String certContent) {
+        super(KeyStoreType.PEM);
+        this.keyPath = keyPath;
+        this.keyContent = keyContent;
+        this.certPath = certPath;
+        this.certContent = certContent;
     }
 }

@@ -17,13 +17,13 @@ package io.gravitee.definition.model.v4.ssl.none;
 
 import io.gravitee.definition.model.v4.ssl.TrustStore;
 import io.gravitee.definition.model.v4.ssl.TrustStoreType;
-import lombok.experimental.SuperBuilder;
+import lombok.Builder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@SuperBuilder
+@Builder
 public class NoneTrustStore extends TrustStore {
 
     private static final long serialVersionUID = -6013813999148592319L;
