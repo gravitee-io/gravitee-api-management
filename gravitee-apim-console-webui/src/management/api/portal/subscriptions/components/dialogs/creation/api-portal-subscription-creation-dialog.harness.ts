@@ -32,6 +32,7 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
     MatFormFieldHarness.with({ selector: '.subscription-creation__content__applications' }),
   );
   protected getPlansRadioGroup = this.locatorFor(MatRadioGroupHarness.with({ selector: '[formControlName="selectedPlan"]' }));
+  protected getApiKeyModeRadioGroup = this.locatorForOptional(MatRadioGroupHarness.with({ selector: '[formControlName="apiKeyMode"]' }));
   protected getCustomApiKeyInput = this.locatorForOptional(ApiKeyValidationHarness);
   protected getSelectEntrypointSelect = this.locatorForOptional(
     MatSelectHarness.with({ selector: '[formControlName="selectedEntrypoint"]' }),
@@ -72,15 +73,31 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
     return await matRadioGroupHarness.checkRadioButton({ label: planName });
   }
 
+  public async isPlanRadioGroupEnabled() {
+    const matRadioGroupHarness = await this.getPlansRadioGroup();
+    const group = await matRadioGroupHarness.host();
+    return (await group.getAttribute('ng-reflect-disabled')) !== 'true';
+  }
+
   // Custom API Key
   public async isCustomApiKeyInputDisplayed() {
     const matInputHarness = await this.getCustomApiKeyInput();
     return matInputHarness !== null;
   }
 
-  public async addCustomKey(customApiKey: string) {
+  public async isApiKeyModeRadioGroupDisplayed() {
+    const matRadioGroupHarness = await this.getApiKeyModeRadioGroup();
+    return matRadioGroupHarness !== null;
+  }
+
+  public async chooseApiKeyMode(label: string) {
+    const matRadioGroupHarness = await this.getApiKeyModeRadioGroup();
+    return await matRadioGroupHarness.checkRadioButton({ label });
+  }
+
+  public async addCustomKey(customApikey: string) {
     const matInputHarness = await this.getCustomApiKeyInput();
-    return await matInputHarness.setInputValue(customApiKey);
+    return await matInputHarness.setInputValue(customApikey);
   }
 
   // PUSH Plan

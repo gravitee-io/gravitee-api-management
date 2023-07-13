@@ -37,4 +37,5 @@ export interface Subscription {
   closed_at?: Date;
   paused_at?: Date;
   client_id?: string;
+  security?: string;
 }
