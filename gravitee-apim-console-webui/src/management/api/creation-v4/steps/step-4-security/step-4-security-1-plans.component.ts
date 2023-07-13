@@ -18,7 +18,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiType, CreatePlanV4 } from '../../../../../entities/management-api-v2';
-import { AVAILABLE_PLANS_FOR_MENU, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
+import { AVAILABLE_PLANS_FOR_MENU, ConstantsService, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 
 @Component({
@@ -36,7 +36,7 @@ export class Step4Security1PlansComponent implements OnInit {
   selectedPlanMenuItem: PlanMenuItemVM;
   public apiType: ApiType;
 
-  constructor(private readonly stepService: ApiCreationStepService) {}
+  constructor(private readonly stepService: ApiCreationStepService, private readonly constantsService: ConstantsService) {}
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
@@ -52,8 +52,9 @@ export class Step4Security1PlansComponent implements OnInit {
   }
 
   private computeDefaultApiPlans(currentStepPayload: ApiCreationPayload) {
+    const availablePlanMenuItems = this.constantsService.getEnabledPlanMenuItems();
     const entrypoint = currentStepPayload.selectedEntrypoints.find((e) => e.supportedListenerType !== 'SUBSCRIPTION');
-    if (entrypoint) {
+    if (entrypoint && availablePlanMenuItems.some((p) => p.planFormType === 'KEY_LESS')) {
       this.plans.push({
         definitionVersion: 'V4',
         name: 'Default Keyless (UNSECURED)',
@@ -68,8 +69,7 @@ export class Step4Security1PlansComponent implements OnInit {
     }
 
     const subscriptionEntrypoint = currentStepPayload.selectedEntrypoints.find((e) => e.supportedListenerType === 'SUBSCRIPTION');
-    if (subscriptionEntrypoint) {
-      // If yes, add a plan with a default security type
+    if (subscriptionEntrypoint && availablePlanMenuItems.some((p) => p.planFormType === 'PUSH')) {
       this.plans.push({
         definitionVersion: 'V4',
         name: 'Default PUSH plan',
