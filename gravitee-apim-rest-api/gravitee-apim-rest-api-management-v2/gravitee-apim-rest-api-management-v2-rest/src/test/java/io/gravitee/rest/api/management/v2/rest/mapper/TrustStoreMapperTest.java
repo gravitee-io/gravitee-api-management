@@ -204,7 +204,6 @@ public class TrustStoreMapperTest {
     void shouldMapFromJKSTrustStoreV4() {
         var jksTrustStoreEntityV4 = io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore
             .builder()
-            .type(io.gravitee.definition.model.v4.ssl.TrustStoreType.JKS)
             .path("path")
             .content("content")
             .password("password")
@@ -224,7 +223,6 @@ public class TrustStoreMapperTest {
     void shouldMapFromPKCS12TrustStoreV4() {
         var pkcs12TrustStoreEntityV4 = io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore
             .builder()
-            .type(io.gravitee.definition.model.v4.ssl.TrustStoreType.PKCS12)
             .path("path")
             .content("content")
             .password("password")
@@ -241,12 +239,7 @@ public class TrustStoreMapperTest {
 
     @Test
     void shouldMapFromPEMTrustStoreV4() {
-        var pemTrustStoreEntityV4 = io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore
-            .builder()
-            .type(io.gravitee.definition.model.v4.ssl.TrustStoreType.PEM)
-            .path("path")
-            .content("content")
-            .build();
+        var pemTrustStoreEntityV4 = io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore.builder().path("path").content("content").build();
 
         var pemTrustStore = trustStoreMapper.map(pemTrustStoreEntityV4);
         assertThat(pemTrustStore).isNotNull();
@@ -257,10 +250,7 @@ public class TrustStoreMapperTest {
 
     @Test
     void shouldMapFromNoneTrustStoreV4() {
-        var noneTrustStoreEntityV4 = io.gravitee.definition.model.v4.ssl.none.NoneTrustStore
-            .builder()
-            .type(io.gravitee.definition.model.v4.ssl.TrustStoreType.NONE)
-            .build();
+        var noneTrustStoreEntityV4 = io.gravitee.definition.model.v4.ssl.none.NoneTrustStore.builder().build();
 
         var noneTrustStore = trustStoreMapper.map(noneTrustStoreEntityV4);
         assertThat(noneTrustStore).isNotNull();
