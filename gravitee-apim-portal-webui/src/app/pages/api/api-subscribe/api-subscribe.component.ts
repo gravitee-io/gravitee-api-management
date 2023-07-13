@@ -516,11 +516,15 @@ export class ApiSubscribeComponent implements OnInit {
               application: this.subscribeForm.value.application,
               plan: this.subscribeForm.value.plan,
               request: this.subscribeForm.value.request,
-              configuration: {
-                channel: this.subscribeForm.value.channel,
-                entrypointId: this.subscribeForm.value.entrypoint,
-                entrypointConfiguration: this.subscribeForm.value.entrypointConfiguration,
-              },
+              ...(this.subscribeForm.value.entrypoint
+                ? {
+                    configuration: {
+                      channel: this.subscribeForm.value.channel ?? undefined,
+                      entrypointId: this.subscribeForm.value.entrypoint ?? undefined,
+                      entrypointConfiguration: this.subscribeForm.value.entrypointConfiguration ?? undefined,
+                    },
+                  }
+                : undefined),
               general_conditions_accepted: this.subscribeForm.value.general_conditions_accepted,
               general_conditions_content_revision: this.subscribeForm.value.general_conditions_content_revision,
             },
