@@ -6,6 +6,9 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 4.0.0
 
 - Remove old and unused `cache.type` from gateway config map
+- Inherit notifiers.smtp from root smtp configuration
+
+- **BREAKING CHANGE**: Inherit `notifiers.smtp` from root `smtp` configuration by default
 
 ### 3.20.12
 

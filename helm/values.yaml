@@ -157,9 +157,9 @@ smtp:
   host: smtp.example.com
   port: 25
   from: info@example.com
+  subject: "[gravitee] %s"
   username: info@example.com
   password: example.com
-  subject: "[gravitee] %s"
   properties:
     auth: true
     starttls.enable: false
@@ -168,13 +168,13 @@ smtp:
 notifiers:
   smtp:
     enabled: true
-    host: ${email.host}
-    subject: ${email.subject}
-    port: ${email.port}
-    from: ${email.from}
-    username: ${email.username}
-    password: ${email.password}
-    # starttlsEnabled: false
+    host: ${smtp.host}
+    port: ${smtp.port}
+    from: ${smtp.from}
+    subject: ${smtp.subject}
+    username: ${smtp.username}
+    password: ${smtp.password}
+    # starttlsEnabled: ${smtp.properties.starttls.enable}
     # ssl:
     #   trustAll: false
     #   keyStore:
