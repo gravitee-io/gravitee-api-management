@@ -1,7 +1,7 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 3.19.18
+version: 3.19.19
 appVersion: 3.19.x-latest
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
@@ -19,6 +19,4 @@ annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
-    - Add attribute `gateway.ssl.keystore.watch` to disable watch of Gateway keystore
-    - Fix indentation in `api` section of the Management API and Gateway configmaps
-    - Add truststore and keystore attributes to the MongoDB Rate Limit section of the Gateway configmap 
+    - Inherit notifiers.smtp from root smtp configuration
