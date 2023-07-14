@@ -55,13 +55,13 @@
         <div class="details-card__header__info-inputs__first-row">
           <mat-form-field class="details-card__header__info-inputs__first-row__name-field">
             <mat-label>Name</mat-label>
-            <input #apiName matInput formControlName="name" required />
+            <input #apiName matInput formControlName="name" data-testid="api_general_namefield" required />
             <mat-error *ngIf="apiDetailsForm.controls.name.hasError('required')">Name is required.</mat-error>
           </mat-form-field>
 
           <mat-form-field class="details-card__header__info-inputs__first-row__version-field">
             <mat-label>Version</mat-label>
-            <input matInput formControlName="version" required maxlength="32" />
+            <input matInput formControlName="version" data-testid="api_general_versionfield" required maxlength="32" />
             <mat-error *ngIf="apiDetailsForm.controls.version.hasError('required')">Version is required.</mat-error>
             <mat-error *ngIf="apiDetailsForm.controls.version.hasError('version')">{{
               apiDetailsForm.controls.version.getError('version')
@@ -71,13 +71,14 @@
         <div class="details-card__header__info-inputs__second-row">
           <mat-form-field class="details-card__header__info-inputs__second-row__description-field">
             <mat-label>Description</mat-label>
-            <textarea matInput formControlName="description"></textarea>
+            <textarea matInput formControlName="description" data-testid="api_general_descriptionfield"></textarea>
           </mat-form-field>
 
           <mat-form-field class="etails-card__header__info-inputs__second-row__labels-field">
             <mat-label>Labels</mat-label>
             <gio-form-tags-input
               formControlName="labels"
+              data-testid="api_general_labelsfield"
               [addOnBlur]="false"
               [autocompleteOptions]="labelsAutocompleteOptions"
             ></gio-form-tags-input>
@@ -85,8 +86,8 @@
 
           <mat-form-field class="etails-card__header__info-inputs__second-row__categories-field">
             <mat-label>Categories</mat-label>
-            <mat-select formControlName="categories" multiple>
-              <mat-option *ngIf="apiCategories.length === 0" disabled>No categories available</mat-option>
+            <mat-select formControlName="categories" data-testid="api_general_categoriesdropdown" multiple>
+              <mat-option data-testid="api_general_categorieslist-unavailable" *ngIf="apiCategories.length === 0" disabled>No categories available</mat-option>
               <mat-option *ngFor="let category of apiCategories" [value]="category.key"
                 >{{ category.name }} <em *ngIf="category.description"> - {{ category.description }}</em></mat-option
               >
@@ -187,5 +188,5 @@
 
   <api-portal-details-danger-zone class="danger-zone" [api]="api" (reloadDetails)="ngOnInit()"></api-portal-details-danger-zone>
 
-  <gio-save-bar [form]="parentForm" [formInitialValues]="initialApiDetailsFormValue" (submitted)="onSubmit()"></gio-save-bar>
+  <gio-save-bar [form]="parentForm" data-testid="api_general_savebar" [formInitialValues]="initialApiDetailsFormValue" (submitted)="onSubmit()"></gio-save-bar>
 </form>
