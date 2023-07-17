@@ -61,9 +61,13 @@
         formControlName="selectedPlan"
         arial-label="Select an plan"
         class="subscription-creation__content__plans"
-        [disabled]="!form.get('selectedApplication').value"
+        [disabled]="!form.get('selectedApplication').value?.id"
       >
-        <mat-radio-button *ngFor="let plan of plans" [value]="plan" [disabled]="!!plan.generalConditions">
+        <mat-radio-button
+          *ngFor="let plan of plans"
+          [value]="plan"
+          [disabled]="!!plan.generalConditions || isPlanSubscribedBySelectedApp(plan)"
+        >
           {{ plan.name }}
         </mat-radio-button>
       </mat-radio-group>

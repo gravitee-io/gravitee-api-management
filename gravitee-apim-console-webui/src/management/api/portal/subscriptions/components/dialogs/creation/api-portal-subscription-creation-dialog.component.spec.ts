@@ -51,6 +51,7 @@ import { PagedResult } from '../../../../../../../entities/pagedResult';
 import { fakeApplication } from '../../../../../../../entities/application/Application.fixture';
 import { SubscriptionService } from '../../../../../../../services-ngx/subscription.service';
 import { PlanSecurityType } from '../../../../../../../entities/plan';
+import { ApplicationSubscription } from '../../../../../../../entities/subscription/subscription';
 
 @Component({
   selector: 'gio-dialog-test',
@@ -90,6 +91,111 @@ describe('Subscription creation dialog', () => {
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+
+  describe('Test already subscribed', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        declarations: [TestComponent],
+        imports: [ApiPortalSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+        providers: [
+          {
+            provide: InteractivityChecker,
+            useValue: {
+              isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+              isTabbable: () => true, // This traps tabbable checks and so avoid warnings when dealing with
+            },
+          },
+          {
+            provide: 'Constants',
+            useFactory: () => {
+              const constants = CONSTANTS_TESTING;
+              set(constants, 'env.settings.plan.security', {
+                customApiKey: { enabled: true },
+                sharedApiKey: { enabled: false },
+              });
+              return constants;
+            },
+          },
+        ],
+      });
+      fixture = TestBed.createComponent(TestComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture.detectChanges();
+      component = fixture.componentInstance;
+      loader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      httpTestingController.verify();
+    });
+
+    it('should not be able to select already subscribed plan by selected application', async () => {
+      const applicationWithClientId = fakeApplication({
+        id: 'my-app',
+        name: 'withClientId',
+        settings: { app: { client_id: 'clientId' } },
+      });
+      const apiKeyPlan = fakePlanV4({
+        id: 'api-key-id',
+        name: 'apikey',
+        apiId: 'my-api',
+        mode: 'STANDARD',
+        security: { type: 'API_KEY' },
+        generalConditions: undefined,
+      });
+      const jwtPlan = fakePlanV4({
+        id: 'jwt-id',
+        name: 'jwt',
+        apiId: 'my-api',
+        mode: 'STANDARD',
+        security: { type: 'JWT' },
+        generalConditions: undefined,
+      });
+      const oauthPlan = fakePlanV4({
+        id: 'oauth-id',
+        name: 'oauth2',
+        apiId: 'my-api',
+        mode: 'STANDARD',
+        security: { type: 'OAUTH2' },
+        generalConditions: undefined,
+      });
+      component.plans = [apiKeyPlan, jwtPlan, oauthPlan];
+      component.availableSubscriptionEntrypoints = [];
+      await componentTestingOpenDialog();
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+      expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+      expect(await harness.isPlanRadioGroupEnabled()).toBeFalsy();
+
+      expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+
+      await harness.searchApplication('withClientId');
+      expectApplicationsSearch('withClientId', [applicationWithClientId]);
+      await harness.selectApplication(applicationWithClientId.name);
+
+      expectSubscriptionsForApplication(applicationWithClientId.id, [
+        {
+          security: PlanSecurityType.JWT,
+          api: 'my-api',
+          plan: jwtPlan.id,
+        },
+        {
+          security: PlanSecurityType.API_KEY,
+          api: 'my-api',
+          plan: apiKeyPlan.id,
+        },
+      ]);
+
+      expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
+      const apiKeyRadioButton = await harness.getRadioButtons({ label: apiKeyPlan.name });
+      expect(await apiKeyRadioButton[0].isDisabled()).toBeTruthy();
+      const jwtKeyRadioButton = await harness.getRadioButtons({ label: jwtPlan.name });
+      expect(await jwtKeyRadioButton[0].isDisabled()).toBeTruthy();
+      const oauth2RadioButton = await harness.getRadioButtons({ label: oauthPlan.name });
+      expect(await oauth2RadioButton[0].isDisabled()).toBeFalsy();
+    });
+  });
 
   describe('Test customApiKey input', () => {
     describe('With custom API Key enabled and shared API Key disabled', () => {
@@ -151,6 +257,8 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
+        expectSubscriptionsForApplication(applicationWithClientId.id, []);
+
         expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
         await harness.choosePlan(planV4.name);
 
@@ -188,6 +296,8 @@ describe('Subscription creation dialog', () => {
         await harness.searchApplication('withClientId');
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
+
+        expectSubscriptionsForApplication(applicationWithClientId.id, []);
 
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
 
@@ -275,17 +385,15 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
-        expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
-        await harness.choosePlan(planV4.name);
-
         expectSubscriptionsForApplication(applicationWithClientId.id, [
           {
             security: PlanSecurityType.API_KEY,
-            api: {
-              id: 'another-plan-id',
-            },
+            api: 'another-plan-id',
           },
         ]);
+
+        expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
+        await harness.choosePlan(planV4.name);
 
         expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeTruthy();
 
@@ -329,10 +437,10 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
+        expectSubscriptionsForApplication(applicationWithClientId.id, []);
+
         expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
         await harness.choosePlan(planV4.name);
-
-        expectSubscriptionsForApplication(applicationWithClientId.id, []);
 
         expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
 
@@ -374,17 +482,15 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
-        expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
-        await harness.choosePlan(planV4.name);
-
         expectSubscriptionsForApplication(applicationWithClientId.id, [
           {
             security: PlanSecurityType.API_KEY,
-            api: {
-              id: 'another-plan-id',
-            },
+            api: 'another-plan-id',
           },
         ]);
+
+        expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
+        await harness.choosePlan(planV4.name);
 
         expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeTruthy();
 
@@ -495,6 +601,7 @@ describe('Subscription creation dialog', () => {
       await harness.searchApplication('withClientId');
       expectApplicationsSearch('withClientId', [applicationWithClientId]);
       await harness.selectApplication(applicationWithClientId.name);
+      expectSubscriptionsForApplication(applicationWithClientId.id, []);
 
       await harness.choosePlan(planV4.name);
 
@@ -523,6 +630,7 @@ describe('Subscription creation dialog', () => {
       await harness.searchApplication('withClientId');
       expectApplicationsSearch('withClientId', [applicationWithClientId]);
       await harness.selectApplication(applicationWithClientId.name);
+      expectSubscriptionsForApplication(applicationWithClientId.id, []);
 
       await harness.choosePlan(pushPlanV4.name);
       await harness.selectEntrypoint('Webhook');
@@ -579,6 +687,7 @@ describe('Subscription creation dialog', () => {
         await harness.searchApplication('withClientId');
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
+        expectSubscriptionsForApplication(applicationWithClientId.id, []);
 
         await harness.choosePlan(jwtPlanV4.name);
 
@@ -600,6 +709,7 @@ describe('Subscription creation dialog', () => {
         await harness.searchApplication('withoutClientId');
         expectApplicationsSearch('withoutClientId', [applicationWithoutClientId]);
         await harness.selectApplication(applicationWithoutClientId.name);
+        expectSubscriptionsForApplication(applicationWithoutClientId.id, []);
 
         await harness.choosePlan(jwtPlanV4.name);
 
@@ -627,7 +737,7 @@ describe('Subscription creation dialog', () => {
     fixture.detectChanges();
   }
 
-  function expectSubscriptionsForApplication(applicationId: string, subscriptions: Partial<any>[]) {
+  function expectSubscriptionsForApplication(applicationId: string, subscriptions: Partial<ApplicationSubscription>[]) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?expand=security`,
