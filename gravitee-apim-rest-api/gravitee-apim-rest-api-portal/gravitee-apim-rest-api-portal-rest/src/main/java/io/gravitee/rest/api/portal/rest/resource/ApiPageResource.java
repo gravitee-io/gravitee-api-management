@@ -18,12 +18,14 @@ package io.gravitee.rest.api.portal.rest.resource;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
@@ -32,11 +34,19 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
+<<<<<<< HEAD
+=======
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
+>>>>>>> b990e1e52a (perf: refactor portal api page resource)
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public class ApiPageResource extends AbstractResource {
 
     private static final String INCLUDE_CONTENT = "content";
@@ -56,24 +66,21 @@ public class ApiPageResource extends AbstractResource {
         @PathParam("pageId") String pageId,
         @QueryParam("include") List<String> include
     ) {
-        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
+
+        if (accessControlService.canAccessApiFromPortal(executionContext, genericApiEntity)) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
-
             PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
-
-            if (accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), apiId, pageEntity)) {
-                pageService.transformSwagger(GraviteeContext.getExecutionContext(), pageEntity, apiId);
-
+            if (accessControlService.canAccessApiPageFromPortal(executionContext, genericApiEntity, pageEntity)) {
+                pageService.transformSwagger(executionContext, pageEntity, genericApiEntity);
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                     pageEntity.getMetadata().clear();
                 }
-
                 Page page = pageMapper.convert(uriInfo.getBaseUriBuilder(), apiId, pageEntity);
-
                 if (include.contains(INCLUDE_CONTENT)) {
                     page.setContent(pageEntity.getContent());
                 }
-
                 page.setLinks(
                     pageMapper.computePageLinks(
                         PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, pageId),
@@ -95,10 +102,11 @@ public class ApiPageResource extends AbstractResource {
     public Response getPageContentByApiIdAndPageId(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
-        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiId)) {
+        GenericApiEntity genericApiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId);
+        if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), genericApiEntity)) {
             PageEntity pageEntity = pageService.findById(pageId, null);
-            if (accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), apiId, pageEntity)) {
-                pageService.transformSwagger(GraviteeContext.getExecutionContext(), pageEntity, apiId);
+            if (accessControlService.canAccessApiPageFromPortal(GraviteeContext.getExecutionContext(), genericApiEntity, pageEntity)) {
+                pageService.transformSwagger(GraviteeContext.getExecutionContext(), pageEntity, genericApiEntity);
                 return Response.ok(pageEntity.getContent()).build();
             } else {
                 throw new UnauthorizedAccessException();

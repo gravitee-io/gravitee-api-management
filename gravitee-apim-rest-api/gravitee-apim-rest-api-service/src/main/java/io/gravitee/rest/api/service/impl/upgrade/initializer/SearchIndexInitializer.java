@@ -39,7 +39,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.search.Indexable;
-import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -47,8 +47,10 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +76,11 @@ public class SearchIndexInitializer implements Initializer {
 
     private final ApiRepository apiRepository;
 
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/initializer/SearchIndexInitializer.java
+=======
+    private final GenericApiMapper genericApiMapper;
+
+>>>>>>> b990e1e52a (perf: refactor portal api page resource):gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/SearchIndexUpgrader.java
     private final PageService pageService;
 
     private final UserRepository userRepository;
@@ -93,6 +100,10 @@ public class SearchIndexInitializer implements Initializer {
     @Autowired
     public SearchIndexInitializer(
         @Lazy ApiRepository apiRepository,
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/initializer/SearchIndexInitializer.java
+=======
+        GenericApiMapper genericApiMapper,
+>>>>>>> b990e1e52a (perf: refactor portal api page resource):gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/SearchIndexUpgrader.java
         PageService pageService,
         @Lazy UserRepository userRepository,
         SearchEngineService searchEngineService,
@@ -103,6 +114,10 @@ public class SearchIndexInitializer implements Initializer {
         final PrimaryOwnerService primaryOwnerService
     ) {
         this.apiRepository = apiRepository;
+<<<<<<< HEAD:gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/initializer/SearchIndexInitializer.java
+=======
+        this.genericApiMapper = genericApiMapper;
+>>>>>>> b990e1e52a (perf: refactor portal api page resource):gravitee-apim-rest-api/gravitee-apim-rest-api-service/src/main/java/io/gravitee/rest/api/service/impl/upgrade/SearchIndexUpgrader.java
         this.pageService = pageService;
         this.userRepository = userRepository;
         this.searchEngineService = searchEngineService;
@@ -196,12 +211,13 @@ public class SearchIndexInitializer implements Initializer {
             LOGGER.error("Failed to convert API {} to indexable", api.getId(), e);
             return CompletableFuture.failedFuture(e);
         }
-        return runApiIndexationAsync(executionContext, api.getId(), indexable, executorService);
+        return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
     }
 
     private CompletableFuture<?> runApiIndexationAsync(
         ExecutionContext executionContext,
-        String apiId,
+        Api api,
+        PrimaryOwnerEntity primaryOwnerEntity,
         Indexable indexable,
         ExecutorService executorService
     ) {
@@ -212,9 +228,10 @@ public class SearchIndexInitializer implements Initializer {
                     searchEngineService.index(executionContext, indexable, true, false);
 
                     // Pages
+                    GenericApiEntity genericApiEntity = genericApiMapper.toGenericApi(api, primaryOwnerEntity);
                     List<PageEntity> apiPages = pageService.search(
                         executionContext.getEnvironmentId(),
-                        new PageQuery.Builder().api(apiId).published(true).build(),
+                        new PageQuery.Builder().api(api.getId()).published(true).build(),
                         true
                     );
                     apiPages.forEach(page -> {
@@ -225,7 +242,7 @@ public class SearchIndexInitializer implements Initializer {
                                 !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
                                 !PageType.LINK.name().equals(page.getType())
                             ) {
-                                pageService.transformSwagger(executionContext, page, apiId);
+                                pageService.transformSwagger(executionContext, page, genericApiEntity);
                                 searchEngineService.index(executionContext, page, true, false);
                             }
                         } catch (Exception ignored) {}

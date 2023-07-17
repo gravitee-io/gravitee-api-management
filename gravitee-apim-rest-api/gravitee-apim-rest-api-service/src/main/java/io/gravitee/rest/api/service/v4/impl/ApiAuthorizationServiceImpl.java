@@ -28,13 +28,10 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
-import io.gravitee.rest.api.model.GroupEntity;
-import io.gravitee.rest.api.model.MembershipEntity;
+import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
@@ -227,6 +224,48 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         return searchEngineQuery;
     }
 
+    @Override
+    public boolean canConsumeApi(ExecutionContext executionContext, String userId, GenericApiEntity api) {
+        if (io.gravitee.rest.api.model.Visibility.PUBLIC.equals(api.getVisibility())) {
+            return true;
+        }
+
+        boolean isDirectMember = membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API)
+            .stream()
+            .anyMatch(membership -> membership.getReferenceId().equals(api.getId()));
+
+        if (isDirectMember) {
+            return true;
+        }
+
+        Set<String> apiGroups = api.getGroups();
+
+        if (apiGroups != null && !apiGroups.isEmpty()) {
+            boolean isApiGroupMember = membershipService
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.GROUP)
+                .stream()
+                .anyMatch(membership -> apiGroups.contains(membership.getReferenceId()));
+
+            if (isApiGroupMember) {
+                return true;
+            }
+        }
+
+        Set<String> applicationIds = getUserApplicationIds(executionContext, userId);
+
+        if (applicationIds.isEmpty()) {
+            return false;
+        }
+
+        final SubscriptionQuery query = new SubscriptionQuery();
+        query.setApplications(applicationIds);
+        query.setApi(api.getId());
+        query.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.RESUMED));
+
+        return !subscriptionService.search(executionContext, query).isEmpty();
+    }
+
     public List<ApiCriteria> computeApiCriteriaForUser(
         ExecutionContext executionContext,
         String userId,
@@ -263,27 +302,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
             if (!manageOnly) {
-                Set<String> userApplicationIds = membershipService.getReferenceIdsByMemberAndReference(
-                    MembershipMemberType.USER,
-                    userId,
-                    MembershipReferenceType.APPLICATION
-                );
-
-                Set<String> applicationIds = new HashSet<>(userApplicationIds);
-
-                Set<String> userGroupIds = membershipService.getReferenceIdsByMemberAndReference(
-                    MembershipMemberType.USER,
-                    userId,
-                    MembershipReferenceType.GROUP
-                );
-
-                ApplicationQuery appQuery = new ApplicationQuery();
-                appQuery.setGroups(userGroupIds);
-                appQuery.setStatus(ApplicationStatus.ACTIVE.name());
-
-                Set<String> userGroupApplicationIds = applicationService.searchIds(executionContext, appQuery, null);
-
-                applicationIds.addAll(userGroupApplicationIds);
+                Set<String> applicationIds = getUserApplicationIds(executionContext, userId);
 
                 if (!applicationIds.isEmpty()) {
                     final SubscriptionQuery query = new SubscriptionQuery();
@@ -311,6 +330,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         return apiCriteriaList;
     }
 
+<<<<<<< HEAD
     public Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery) {
         if (Objects.isNull(userId)) {
             return new HashSet<>();
@@ -347,6 +367,31 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             })
             .map(MembershipEntity::getReferenceId)
             .collect(toSet());
+=======
+    private Set<String> getUserApplicationIds(ExecutionContext executionContext, String userId) {
+        Set<String> userApplicationIds = membershipService.getReferenceIdsByMemberAndReference(
+            MembershipMemberType.USER,
+            userId,
+            MembershipReferenceType.APPLICATION
+        );
+
+        Set<String> applicationIds = new HashSet<>(userApplicationIds);
+
+        Set<String> userGroupIds = membershipService.getReferenceIdsByMemberAndReference(
+            MembershipMemberType.USER,
+            userId,
+            MembershipReferenceType.GROUP
+        );
+
+        ApplicationQuery appQuery = new ApplicationQuery();
+        appQuery.setGroups(userGroupIds);
+        appQuery.setStatus(ApplicationStatus.ACTIVE.name());
+
+        Set<String> groupApplicationIds = applicationService.searchIds(executionContext, appQuery, null);
+        applicationIds.addAll(groupApplicationIds);
+
+        return applicationIds;
+>>>>>>> b990e1e52a (perf: refactor portal api page resource)
     }
 
     private Set<String> findApiIdsByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {

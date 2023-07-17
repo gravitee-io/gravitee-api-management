@@ -33,5 +33,7 @@ public interface AccessControlService {
 
     boolean canAccessPageFromPortal(final ExecutionContext executionContext, String apiId, PageEntity pageEntity);
 
+    boolean canAccessApiPageFromPortal(final ExecutionContext executionContext, GenericApiEntity apiEntity, PageEntity pageEntity);
+
     boolean canAccessPageFromConsole(final ExecutionContext executionContext, GenericApiEntity genericApiEntity, PageEntity pageEntity);
 }
