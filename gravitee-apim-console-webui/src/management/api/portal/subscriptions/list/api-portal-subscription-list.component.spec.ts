@@ -53,6 +53,7 @@ import { ApiKeyMode, Application } from '../../../../../entities/application/app
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.harness';
 import { PlanSecurityType } from '../../../../../entities/plan';
+import { ApplicationSubscription } from '../../../../../entities/subscription/subscription';
 
 @Component({
   template: ` <api-portal-subscription-list #apiPortalSubscriptionList></api-portal-subscription-list> `,
@@ -404,16 +405,14 @@ describe('ApiPortalSubscriptionListComponent', () => {
       tick(400);
       expectApplicationsSearch('application', [application]);
       await creationDialogHarness.selectApplication('application');
-      await creationDialogHarness.choosePlan(planV4.name);
-
+      tick(400);
       expectSubscriptionsForApplication(application.id, [
         {
           security: PlanSecurityType.API_KEY,
-          api: {
-            id: 'another-plan-id',
-          },
+          api: 'another-plan-id',
         },
       ]);
+      await creationDialogHarness.choosePlan(planV4.name);
 
       expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeFalsy();
 
@@ -461,16 +460,15 @@ describe('ApiPortalSubscriptionListComponent', () => {
       tick(400);
       expectApplicationsSearch('application', [application]);
       await creationDialogHarness.selectApplication('application');
-      await creationDialogHarness.choosePlan(planV4.name);
-
+      tick(400);
       expectSubscriptionsForApplication(application.id, [
         {
           security: PlanSecurityType.API_KEY,
-          api: {
-            id: 'another-plan-id',
-          },
+          api: 'another-plan-id',
         },
       ]);
+
+      await creationDialogHarness.choosePlan(planV4.name);
 
       expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeFalsy();
 
@@ -845,7 +843,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     }
   }
 
-  function expectSubscriptionsForApplication(applicationId: string, subscriptions: Partial<any>[]) {
+  function expectSubscriptionsForApplication(applicationId: string, subscriptions: Partial<ApplicationSubscription>[]) {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?expand=security`,
