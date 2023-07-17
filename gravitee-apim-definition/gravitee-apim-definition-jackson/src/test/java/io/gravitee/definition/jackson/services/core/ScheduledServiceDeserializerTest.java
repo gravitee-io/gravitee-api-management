@@ -15,34 +15,35 @@
  */
 package io.gravitee.definition.jackson.services.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.gravitee.definition.jackson.datatype.services.core.deser.ScheduledServiceDeserializer;
 import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ScheduledServiceDeserializerTest {
 
     @Test
     public void shouldConvertCronForEvery10Seconds() {
         final String every10SecondsCRON = ScheduledServiceDeserializer.convertToCron(10L, TimeUnit.SECONDS);
-        Assert.assertEquals("*/10 * * * * *", every10SecondsCRON);
+        assertEquals("*/10 * * * * *", every10SecondsCRON);
     }
 
     @Test
     public void shouldConvertCronForEvery5Minutes() {
         final String every5MinutesCRON = ScheduledServiceDeserializer.convertToCron(5L, TimeUnit.MINUTES);
-        Assert.assertEquals("0 */5 * * * *", every5MinutesCRON);
+        assertEquals("0 */5 * * * *", every5MinutesCRON);
     }
 
     @Test
     public void shouldConvertCronForEvery2Hours() {
         final String every2HoursCRON = ScheduledServiceDeserializer.convertToCron(2L, TimeUnit.HOURS);
-        Assert.assertEquals("0 0 */2 * * *", every2HoursCRON);
+        assertEquals("0 0 */2 * * *", every2HoursCRON);
     }
 
     @Test
     public void shouldConvertCronForEveryDay() {
         final String everyDayCRON = ScheduledServiceDeserializer.convertToCron(1L, TimeUnit.DAYS);
-        Assert.assertEquals("0 0 0 */1 * *", everyDayCRON);
+        assertEquals("0 0 0 */1 * *", everyDayCRON);
     }
 }

@@ -15,7 +15,8 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.definition.jackson.AbstractTest;
@@ -25,7 +26,7 @@ import io.gravitee.definition.model.debug.DebugStep;
 import io.gravitee.definition.model.debug.DebugStepStatus;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DebugApiDeserializerTest extends AbstractTest {
 
@@ -139,8 +140,11 @@ public class DebugApiDeserializerTest extends AbstractTest {
         assertEquals(debugApi.getBackendResponse().getHeaders().get("content-length"), List.of("42"));
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void debugApi_withoutRequest() throws Exception {
-        load("/io/gravitee/definition/jackson/debug/debug-api-without-request.json", DebugApi.class);
+        assertThrows(
+            JsonMappingException.class,
+            () -> load("/io/gravitee/definition/jackson/debug/debug-api-without-request.json", DebugApi.class)
+        );
     }
 }

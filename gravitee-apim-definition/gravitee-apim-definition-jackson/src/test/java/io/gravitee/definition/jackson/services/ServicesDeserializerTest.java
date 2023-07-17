@@ -15,10 +15,11 @@
  */
 package io.gravitee.definition.jackson.services;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,8 +31,8 @@ public class ServicesDeserializerTest extends AbstractTest {
     public void definition_withServices() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/api-withservices.json", Api.class);
 
-        Assert.assertNotNull(api);
-        Assert.assertFalse(api.getServices().isEmpty());
-        Assert.assertEquals(2, api.getServices().getAll().size());
+        assertNotNull(api);
+        assertFalse(api.getServices().isEmpty());
+        assertEquals(2, api.getServices().getAll().size());
     }
 }

@@ -15,16 +15,11 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.AbstractTest;
-import io.gravitee.definition.model.debug.DebugApi;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
