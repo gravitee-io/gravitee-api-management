@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -69,7 +70,9 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
 
     @Override
     public boolean canAccessApiFromPortal(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
-        if (PUBLIC.equals(genericApiEntity.getVisibility())) {
+        if (!ApiLifecycleState.PUBLISHED.equals(genericApiEntity.getLifecycleState())) {
+            return false;
+        } else if (PUBLIC.equals(genericApiEntity.getVisibility())) {
             return true;
         } else if (isAuthenticated()) {
             return apiAuthorizationService.canConsumeApi(executionContext, getAuthenticatedUsername(), genericApiEntity);
