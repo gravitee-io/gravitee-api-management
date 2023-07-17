@@ -31,6 +31,7 @@ import { ConnectorPluginsV2Service } from '../../../../../../../services-ngx/con
 import { IconService } from '../../../../../../../services-ngx/icon.service';
 import { PlanSecurityType } from '../../../../../../../entities/plan';
 import { SubscriptionService } from '../../../../../../../services-ngx/subscription.service';
+import { ApplicationSubscription } from '../../../../../../../entities/subscription/subscription';
 
 export type ApiPortalSubscriptionCreationDialogData = {
   availableSubscriptionEntrypoints?: Entrypoint[];
@@ -63,6 +64,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   });
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private currentSubscriptions: ApplicationSubscription[];
 
   constructor(
     private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionCreationDialogComponent, ApiPortalSubscriptionCreationDialogResult>,
@@ -84,7 +86,8 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
 
     this.prepareSubscriptionEntrypoints();
 
-    this.applications$ = this.onApplicationChange();
+    this.applications$ = this.onApplicationSearchChange();
+    this.onApplicationSelectChange();
 
     this.onPushPlanChange();
     this.onApiKeyPlanChange();
@@ -131,6 +134,10 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
     return application?.name;
   }
 
+  isPlanSubscribedBySelectedApp(plan: Plan) {
+    return this.currentSubscriptions?.some((subscription) => subscription.plan === plan.id);
+  }
+
   private prepareSubscriptionEntrypoints() {
     if (this.availableSubscriptionEntrypoints.length > 0) {
       this.connectorPluginsV2Service
@@ -150,10 +157,11 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
     }
   }
 
-  private onApplicationChange() {
+  private onApplicationSearchChange() {
     return this.form.get('selectedApplication').valueChanges.pipe(
       distinctUntilChanged(),
       debounceTime(100),
+      filter((term) => typeof term === 'string'),
       switchMap((term) =>
         term.length > 0 ? this.applicationService.list('ACTIVE', term, 'name', 1, 20) : of(new PagedResult<Application>()),
       ),
@@ -167,6 +175,27 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
       share(),
       takeUntil(this.unsubscribe$),
     );
+  }
+
+  private onApplicationSelectChange() {
+    return this.form
+      .get('selectedApplication')
+      .valueChanges.pipe(
+        distinctUntilChanged(),
+        debounceTime(100),
+        filter((app) => app?.id),
+        switchMap((app) => this.subscriptionService.getApplicationSubscriptions(app.id)),
+        map((applicationsPage) => applicationsPage.data),
+        tap((subscriptions) => {
+          this.currentSubscriptions = subscriptions;
+          this.form.get('selectedPlan')?.reset();
+          this.form.get('customApiKey')?.reset();
+          this.form.removeControl('apiKeyMode');
+          this.form.removeControl('customApiKey');
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   private onPushPlanChange() {
@@ -200,14 +229,10 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         filter((plan) => plan?.security?.type === 'API_KEY'),
         switchMap((plan) => {
           if (this.canUseSharedApiKeys && this.form.get('selectedApplication').value.api_key_mode === ApiKeyMode.UNSPECIFIED) {
-            return this.subscriptionService.getApplicationSubscriptions(this.form.get('selectedApplication').value.id).pipe(
-              map((subscriptions) => {
-                return (
-                  subscriptions.data.filter(
-                    (subscription) => subscription?.security === PlanSecurityType.API_KEY && subscription?.api?.id !== plan?.apiId,
-                  ).length >= 1
-                );
-              }),
+            return of(
+              this.currentSubscriptions.filter(
+                (subscription) => subscription?.security === PlanSecurityType.API_KEY && subscription?.api !== plan?.apiId,
+              ).length >= 1,
             );
           }
           return of(false);

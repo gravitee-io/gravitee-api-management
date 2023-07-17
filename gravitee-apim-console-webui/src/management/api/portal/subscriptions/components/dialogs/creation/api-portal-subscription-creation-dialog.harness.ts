@@ -16,7 +16,7 @@
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
-import { MatRadioGroupHarness } from '@angular/material/radio/testing';
+import { MatRadioGroupHarness, RadioButtonHarnessFilters } from '@angular/material/radio/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
@@ -31,7 +31,7 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
   public getSelectedApplicationFormField = this.locatorFor(
     MatFormFieldHarness.with({ selector: '.subscription-creation__content__applications' }),
   );
-  protected getPlansRadioGroup = this.locatorFor(MatRadioGroupHarness.with({ selector: '[formControlName="selectedPlan"]' }));
+  public getPlansRadioGroup = this.locatorFor(MatRadioGroupHarness.with({ selector: '[formControlName="selectedPlan"]' }));
   protected getApiKeyModeRadioGroup = this.locatorForOptional(MatRadioGroupHarness.with({ selector: '[formControlName="apiKeyMode"]' }));
   protected getCustomApiKeyInput = this.locatorForOptional(ApiKeyValidationHarness);
   protected getSelectEntrypointSelect = this.locatorForOptional(
@@ -64,8 +64,8 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
   }
 
   // Plans
-  public async getRadioButtons() {
-    return (await this.getPlansRadioGroup()).getRadioButtons();
+  public async getRadioButtons(filter?: RadioButtonHarnessFilters) {
+    return (await this.getPlansRadioGroup()).getRadioButtons(filter);
   }
 
   public async choosePlan(planName: string) {
