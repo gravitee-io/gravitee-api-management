@@ -479,7 +479,7 @@ public class ApplicationService_UpdateTest {
         ApplicationSettings settings = new ApplicationSettings();
         OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
         oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
-        oAuthClientSettings.setApplicationType("application-type");
+        oAuthClientSettings.setApplicationType(ApplicationType.BROWSER.name());
         settings.setoAuthClient(oAuthClientSettings);
         when(updateApplication.getSettings()).thenReturn(settings);
 
@@ -489,7 +489,7 @@ public class ApplicationService_UpdateTest {
         applicationGrantTypeEntity.setResponse_types(List.of("response-type"));
         applicationTypeEntity.setAllowed_grant_types(List.of(applicationGrantTypeEntity));
         applicationTypeEntity.setRequires_redirect_uris(false);
-        when(applicationTypeService.getApplicationType("application-type")).thenReturn(applicationTypeEntity);
+        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
 
         // mock response from DCR with a new client ID
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
@@ -540,7 +540,7 @@ public class ApplicationService_UpdateTest {
         ApplicationSettings settings = new ApplicationSettings();
         OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
         oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
-        oAuthClientSettings.setApplicationType("application-type");
+        oAuthClientSettings.setApplicationType(ApplicationType.BROWSER.name());
         settings.setoAuthClient(oAuthClientSettings);
         when(updateApplication.getSettings()).thenReturn(settings);
 
@@ -550,7 +550,7 @@ public class ApplicationService_UpdateTest {
         applicationGrantTypeEntity.setResponse_types(List.of("response-type"));
         applicationTypeEntity.setAllowed_grant_types(List.of(applicationGrantTypeEntity));
         applicationTypeEntity.setRequires_redirect_uris(false);
-        when(applicationTypeService.getApplicationType("application-type")).thenReturn(applicationTypeEntity);
+        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
 
         // DCR throws exception
         when(clientRegistrationService.update(any(), any(), same(updateApplication))).thenThrow(RuntimeException.class);
