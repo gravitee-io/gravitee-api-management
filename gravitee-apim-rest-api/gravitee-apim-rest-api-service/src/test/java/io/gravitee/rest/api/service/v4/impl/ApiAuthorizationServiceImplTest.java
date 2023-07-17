@@ -22,9 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableMap;
 import io.gravitee.common.data.domain.Page;
@@ -34,20 +32,19 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.rest.api.model.MembershipEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -521,5 +518,59 @@ public class ApiAuthorizationServiceImplTest {
 
         assertThat(result).hasSize(2);
         verify(subscriptionService).search(any(), argThat(argument -> argument.getExcludedApis().contains(apiId)));
+    }
+
+    @Test
+    public void shouldBeAbleToConsumePublicApi() {
+        GenericApiEntity api = mock(GenericApiEntity.class);
+        when(api.getVisibility()).thenReturn(io.gravitee.rest.api.model.Visibility.PUBLIC);
+        assertThat(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USER_NAME, api)).isTrue();
+    }
+
+    @Test
+    public void shouldBeAbleToConsumeApiIfDirectMember() {
+        GenericApiEntity api = mock(GenericApiEntity.class);
+        when(api.getId()).thenReturn("api-id");
+        when(api.getVisibility()).thenReturn(io.gravitee.rest.api.model.Visibility.PRIVATE);
+        MembershipEntity membership = mock(MembershipEntity.class);
+        when(membership.getReferenceId()).thenReturn("api-id");
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.API))
+            .thenReturn(Collections.singleton(membership));
+        assertThat(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USER_NAME, api)).isTrue();
+    }
+
+    @Test
+    public void shouldBeAbleToConsumeApiIfMemberFromGroup() {
+        GenericApiEntity api = mock(GenericApiEntity.class);
+        when(api.getVisibility()).thenReturn(io.gravitee.rest.api.model.Visibility.PRIVATE);
+        when(api.getGroups()).thenReturn(Collections.singleton("group-id"));
+        MembershipEntity membership = mock(MembershipEntity.class);
+        when(membership.getReferenceId()).thenReturn("group-id");
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.GROUP))
+            .thenReturn(Collections.singleton(membership));
+        assertThat(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USER_NAME, api)).isTrue();
+    }
+
+    @Test
+    public void shouldBeAbleToConsumeApiIfDirectMemberOfSubscribedApplication() {
+        GenericApiEntity api = mock(GenericApiEntity.class);
+        when(api.getId()).thenReturn("api-id");
+        when(api.getVisibility()).thenReturn(io.gravitee.rest.api.model.Visibility.PRIVATE);
+        when(api.getVisibility()).thenReturn(io.gravitee.rest.api.model.Visibility.PRIVATE);
+
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.APPLICATION)
+        )
+            .thenReturn(Collections.singleton("application-id"));
+
+        final SubscriptionQuery query = new SubscriptionQuery();
+        query.setApplications(Collections.singleton("application-id"));
+        query.setApi(api.getId());
+        query.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.RESUMED));
+
+        when(subscriptionService.search(any(ExecutionContext.class), eq(query)))
+            .thenReturn(Collections.singletonList(new SubscriptionEntity()));
+
+        assertThat(apiAuthorizationService.canConsumeApi(GraviteeContext.getExecutionContext(), USER_NAME, api)).isTrue();
     }
 }
