@@ -15,12 +15,13 @@
  */
 package io.gravitee.definition.jackson.services.discovery;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,7 +34,7 @@ public class EndpointDiscoveryServiceDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/services/discovery/api-withoutservice.json", Api.class);
 
         EndpointDiscoveryService endpointDiscoveryService = api.getService(EndpointDiscoveryService.class);
-        Assert.assertNull(endpointDiscoveryService);
+        assertNull(endpointDiscoveryService);
     }
 
     @Test
@@ -47,15 +48,15 @@ public class EndpointDiscoveryServiceDeserializerTest extends AbstractTest {
             .next()
             .getServices()
             .get(EndpointDiscoveryService.class);
-        Assert.assertNotNull(endpointDiscoveryService);
-        Assert.assertNotNull(endpointDiscoveryService.getConfiguration());
+        assertNotNull(endpointDiscoveryService);
+        assertNotNull(endpointDiscoveryService.getConfiguration());
 
-        Assert.assertEquals("consul-service-discovery", endpointDiscoveryService.getProvider());
-        Assert.assertNotNull(endpointDiscoveryService.getConfiguration());
+        assertEquals("consul-service-discovery", endpointDiscoveryService.getProvider());
+        assertNotNull(endpointDiscoveryService.getConfiguration());
 
         JsonNode configNode = objectMapper().readTree(endpointDiscoveryService.getConfiguration());
-        Assert.assertEquals("my-service", configNode.path("service").asText());
-        Assert.assertEquals("acl", configNode.path("acl").asText());
-        Assert.assertEquals("dc", configNode.path("dc").asText());
+        assertEquals("my-service", configNode.path("service").asText());
+        assertEquals("acl", configNode.path("acl").asText());
+        assertEquals("dc", configNode.path("dc").asText());
     }
 }
