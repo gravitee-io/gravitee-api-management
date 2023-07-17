@@ -39,4 +39,23 @@ public class NewApiEntityTest {
         newApiEntity.setName("A <a href=\"https://www.gravitee.io\">Test</a> API");
         assertEquals("A Test API", newApiEntity.getName());
     }
+
+    @Test
+    public void setDescriptionShouldSanitizeInput() {
+        NewApiEntity newApiEntity = new NewApiEntity();
+        newApiEntity.setDescription("A Test API");
+        assertEquals("A Test API", newApiEntity.getDescription());
+
+        newApiEntity.setDescription("A <img src=\"../../../image.png\">Test API");
+        assertEquals("A Test API", newApiEntity.getDescription());
+
+        newApiEntity.setDescription("A Test <script>alert()</script>API");
+        assertEquals("A Test API", newApiEntity.getDescription());
+
+        newApiEntity.setDescription("<h1>A Test</h1> API");
+        assertEquals("A Test API", newApiEntity.getDescription());
+
+        newApiEntity.setDescription("A <a href=\"https://www.gravitee.io\">Test</a> API");
+        assertEquals("A Test API", newApiEntity.getDescription());
+    }
 }
