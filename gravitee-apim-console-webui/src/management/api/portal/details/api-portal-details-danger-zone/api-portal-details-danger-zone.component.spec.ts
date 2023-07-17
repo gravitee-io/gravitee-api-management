@@ -24,6 +24,7 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { SimpleChange } from '@angular/core';
+import { of } from 'rxjs';
 
 import { ApiPortalDetailsDangerZoneComponent } from './api-portal-details-danger-zone.component';
 
@@ -31,7 +32,8 @@ import { ApiPortalDetailsModule } from '../api-portal-details.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
-import { Api, fakeApiV2 } from '../../../../../entities/management-api-v2';
+import { Api, fakeApiV2, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 
 describe('ApiPortalDetailsDangerZoneComponent', () => {
   const API_ID = 'apiId';
@@ -115,7 +117,6 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#reviewApiDialog' }));
     const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Ask for review' }));
     await confirmDialogSwitchButton.click();
-    expectLicenseGetRequest();
 
     httpTestingController
       .expectOne({
@@ -140,7 +141,6 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#lifecycleDialog' }));
     const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Start' }));
     await confirmDialogSwitchButton.click();
-    expectLicenseGetRequest();
 
     httpTestingController
       .expectOne({
@@ -165,7 +165,6 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#lifecycleDialog' }));
     const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Stop' }));
     await confirmDialogSwitchButton.click();
-    expectLicenseGetRequest();
 
     httpTestingController
       .expectOne({
@@ -190,7 +189,6 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#apiLifecycleDialog' }));
     const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Publish' }));
     await confirmDialogSwitchButton.click();
-    expectLicenseGetRequest();
 
     expectApiGetRequest(api);
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
@@ -198,6 +196,39 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     req.flush({});
 
     expect(component.reloadDetails.emit).toHaveBeenCalled();
+  });
+
+  it('should not display the upgrade banner', async () => {
+    const api = fakeApiV2({
+      id: API_ID,
+      lifecycleState: 'CREATED',
+    });
+
+    createComponent(api);
+
+    const upgradeButton = fixture.debugElement.query(
+      (elem) => elem.name === 'button' && elem.nativeElement.textContent === 'Request upgrade',
+    );
+    expect(upgradeButton).toBeNull();
+  });
+
+  it('should display the upgrade banner', async () => {
+    const api = fakeApiV4({
+      id: API_ID,
+      lifecycleState: 'CREATED',
+    });
+
+    createComponent(api);
+
+    const licenseService = fixture.debugElement.injector.get(GioLicenseService);
+    spyOn(licenseService, 'isMissingFeature$').and.returnValue(of(true));
+    fixture.detectChanges();
+
+    const upgradeButton = fixture.debugElement.query(
+      (elem) => elem.name === 'button' && elem.nativeElement.textContent === 'Request upgrade',
+    );
+    expectLicenseGetRequest();
+    expect(upgradeButton).not.toBeNull();
   });
 
   it('should make public the api', async () => {
@@ -213,7 +244,6 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
     const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#apiLifecycleDialog' }));
     const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Make Public' }));
     await confirmDialogSwitchButton.click();
-    expectLicenseGetRequest();
 
     expectApiGetRequest(api);
     const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
@@ -234,7 +264,6 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
 
     const button = await loader.getHarness(MatButtonHarness.with({ text: 'Delete' }));
     await button.click();
-    expectLicenseGetRequest();
 
     const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
     await confirmDialog.confirm();
