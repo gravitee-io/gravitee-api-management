@@ -113,7 +113,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', 'admin', 'v2', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', 'admin', 'V2', 'public', 'edit']]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
 
@@ -136,7 +136,7 @@ describe('ApisListComponent', () => {
         },
       ]);
       expect(rowCells).toEqual([
-        ['', '🪐 Planets (1.0)', '', 'No context path with this configuration', '', 'admin', 'v4', 'public', 'edit'],
+        ['', '🪐 Planets (1.0)', '', 'No context path with this configuration', '', 'admin', 'V4 - Message', 'public', 'edit'],
       ]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
@@ -176,7 +176,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/test/ws 2 more', '', 'admin', 'v4', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/test/ws 2 more', '', 'admin', 'V4 - Message', 'public', 'edit']]);
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
 
@@ -348,7 +348,7 @@ describe('ApisListComponent', () => {
           visibility: 'Visibility',
         },
       ]);
-      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', '100%', 'admin', 'v2', 'public', 'edit']]);
+      expect(rowCells).toEqual([['', '🪐 Planets (1.0)', '', '/planets', '', '100%', 'admin', 'V2', 'public', 'edit']]);
       expect(fixture.debugElement.query(By.css('.quality-score__good'))).toBeTruthy();
       expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-started' }))).toBeTruthy();
     }));
