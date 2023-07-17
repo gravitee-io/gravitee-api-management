@@ -125,11 +125,11 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
 
     describe('Verify element of API list filled with sample data', function () {
       it(`should display ${noOfApis} v2 APIs and ${noOfApis} v4 APIs `, function () {
-        cy.get('tr:contains(v4)').should('have.length', noOfApis);
-        cy.get('tr:contains(v2)').should('have.length', noOfApis);
+        cy.get('tr:contains(V4 - Message)').should('have.length', noOfApis);
+        cy.get('tr:contains(V2)').should('have.length', noOfApis);
       });
 
-      it('should have ${noOfApis} APIs with "api1" and ${noOfApis} with "admin" as owner', function () {
+      it(`should have ${noOfApis} APIs with "api1" and ${noOfApis} with "admin" as owner`, function () {
         cy.get('tr:contains(api1)').should('have.length', noOfApis);
         cy.get('tr:contains(admin)').should('have.length', noOfApis);
       });
