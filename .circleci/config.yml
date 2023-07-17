@@ -1276,8 +1276,8 @@ jobs:
                       sed -i "s#\"version\": \".*\"#\"version\": \"${GRAVITEEIO_VERSION_WITH_QUALIFIER}\"#" gravitee-apim-portal-webui/build.json
 
                       # Helm chart
-                      sed "s/version.*/version: ${GRAVITEEIO_VERSION_WITH_QUALIFIER}/" -i helm/Chart.yaml
-
+                      sed "0,/version.*/s/version.*/version: ${GRAVITEEIO_VERSION_WITH_QUALIFIER}/" -i helm/Chart.yaml
+                    
                       git add --update
                       git commit -m "${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
                       git tag ${GRAVITEEIO_VERSION_WITH_QUALIFIER}
