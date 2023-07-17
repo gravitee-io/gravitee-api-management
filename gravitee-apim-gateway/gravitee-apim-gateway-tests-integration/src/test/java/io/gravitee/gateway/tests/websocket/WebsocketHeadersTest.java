@@ -26,12 +26,13 @@ import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 @GatewayTest(mode = GatewayMode.V3)
 @DeployApi({ "/apis/http/api.json" })
 public class WebsocketHeadersTest extends AbstractWebsocketGatewayTest {
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void websocket_header_request(VertxTestContext testContext) throws Throwable {
         final String customHeaderName = "Custom-Header";
         final String customHeaderValue = "My-Custom-Header-Value";

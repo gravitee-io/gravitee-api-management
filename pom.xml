@@ -114,6 +114,7 @@
         <json-path.version>2.6.0</json-path.version>
         <json-smart.version>2.4.11</json-smart.version>
         <jsoup.version>1.15.3</jsoup.version>
+        <junit-pioneer.version>2.0.1</junit-pioneer.version>
         <lucene.version>7.7.3</lucene.version>
         <!-- mockito version to remove when https://github.com/gravitee-io/issues/issues/8257 will be completed -->
         <mockito-inline.version>3.11.2</mockito-inline.version>
