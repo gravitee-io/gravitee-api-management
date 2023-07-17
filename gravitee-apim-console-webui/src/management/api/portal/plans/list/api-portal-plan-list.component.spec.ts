@@ -237,10 +237,14 @@ describe('ApiPortalPlanListComponent', () => {
       component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
 
       expectApiPlanUpdateRequest({ ...plan2, order: 1 });
-      expectApiPlansListRequest([
-        { ...plan2, order: 1 },
-        { ...plan1, order: 2 },
-      ]);
+      expectApiGetRequest();
+      expectApiPlansListRequest(
+        [
+          { ...plan2, order: 1 },
+          { ...plan1, order: 2 },
+        ],
+        [...PLAN_STATUS],
+      );
     });
 
     it('should fail to update and reload plans', async () => {
@@ -252,7 +256,14 @@ describe('ApiPortalPlanListComponent', () => {
       component.dropRow({ previousIndex: 1, currentIndex: 0 } as any);
 
       expectApiPlanUpdateRequestFail({ ...plan2, order: 1 });
-      expectApiPlansListRequest([plan1, plan2]);
+      expectApiGetRequest();
+      expectApiPlansListRequest(
+        [
+          { ...plan2, order: 1 },
+          { ...plan1, order: 2 },
+        ],
+        [...PLAN_STATUS],
+      );
       expect(snackBarSpy).toHaveBeenCalled();
     });
   });
@@ -364,10 +375,11 @@ describe('ApiPortalPlanListComponent', () => {
         const updatedPlan: Plan = { ...plan, status: 'PUBLISHED' };
         expectApiPlanPublishRequest(updatedPlan);
         expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
+        expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
 
         table = await computePlansTableCells();
-        expect(table.rowCells).toEqual([['There is no plan (yet).']]);
+        expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
       });
 
       it('With a plan V4', async () => {
@@ -389,10 +401,11 @@ describe('ApiPortalPlanListComponent', () => {
         const updatedPlan: Plan = { ...plan, status: 'PUBLISHED' };
         expectApiPlanPublishRequest(updatedPlan);
         expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
+        expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
 
         table = await computePlansTableCells();
-        expect(table.rowCells).toEqual([['There is no plan (yet).']]);
+        expect(table.rowCells).toEqual([['', 'publish me ☁️️', 'API_KEY', 'PUBLISHED', 'tag1', '']]);
       });
     });
 
@@ -413,6 +426,7 @@ describe('ApiPortalPlanListComponent', () => {
         const updatedPlan: Plan = { ...plan, status: 'DEPRECATED' };
         expectApiPlanDeprecateRequest(updatedPlan);
         expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
+        expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
 
         table = await computePlansTableCells();
@@ -435,6 +449,7 @@ describe('ApiPortalPlanListComponent', () => {
         const updatedPlan: Plan = { ...plan, status: 'DEPRECATED' };
         expectApiPlanDeprecateRequest(updatedPlan);
         expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
+        expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
 
         table = await computePlansTableCells();
@@ -461,6 +476,7 @@ describe('ApiPortalPlanListComponent', () => {
           const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
           expectApiPlanCloseRequest(updatedPlan);
           expect(fakeRootScope.$broadcast).toHaveBeenCalledWith('apiChangeSuccess', { apiId: API_ID });
+          expectApiGetRequest();
           expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
 
           table = await computePlansTableCells();
@@ -484,6 +500,7 @@ describe('ApiPortalPlanListComponent', () => {
           const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
           expectApiPlanCloseRequest(updatedPlan);
           expect(fakeRootScope.$broadcast).not.toHaveBeenCalled();
+          expectApiGetRequest();
           expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
 
           table = await computePlansTableCells();
@@ -508,6 +525,7 @@ describe('ApiPortalPlanListComponent', () => {
 
         const updatedPlan: Plan = { ...plan, status: 'CLOSED' };
         expectApiPlanCloseRequest(updatedPlan);
+        expectApiGetRequest();
         expectApiPlansListRequest([updatedPlan], [...PLAN_STATUS]);
       });
     });
@@ -614,7 +632,7 @@ describe('ApiPortalPlanListComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectApiGetRequest(api: Api) {
+  function expectApiGetRequest(api: Api = anAPi) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
