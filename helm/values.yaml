@@ -235,7 +235,7 @@ mongodb:
   podAffinityPreset: soft
   image:
     repository: bitnami/mongodb
-    tag: 6.0.7
+    tag: 6.0.8
   auth:
     enabled: false
   resources:
