@@ -15,13 +15,12 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.HttpRequest;
-import io.gravitee.definition.model.HttpResponse;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

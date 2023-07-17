@@ -15,14 +15,14 @@
  */
 package io.gravitee.definition.model.kubernetes.v1alpha1;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.net.URL;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ApiDefinitionResourceTest {
 

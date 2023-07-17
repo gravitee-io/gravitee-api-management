@@ -15,10 +15,9 @@
  */
 package io.gravitee.definition.model;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Arrays;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -30,7 +29,7 @@ public class PropertyTest {
         Property property1 = new Property("key", "value", true);
         Property property2 = new Property("key", "value", true);
 
-        assertTrue(property1.equals(property2));
+        assertEquals(property1, property2);
     }
 
     @Test
@@ -38,21 +37,21 @@ public class PropertyTest {
         Property property1 = new Property("key", "value", true);
         Property property2 = new Property("key", "value", false);
 
-        assertFalse(property1.equals(property2));
+        assertNotEquals(property1, property2);
     }
 
     @Test
     public void equals_should_return_false_cause_parameter_is_null() {
         Property property1 = new Property("key", "value", true);
 
-        assertFalse(property1.equals(null));
+        assertNotEquals(null, property1);
     }
 
     @Test
     public void equals_should_return_false_cause_parameter_is_not_a_property() {
         Property property1 = new Property("key", "value", true);
 
-        assertFalse(property1.equals("a string"));
+        assertNotEquals("a string", property1);
     }
 
     @Test

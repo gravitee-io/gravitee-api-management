@@ -15,6 +15,8 @@
  */
 package io.gravitee.definition.jackson.services.dynamicproperty;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.AbstractTest;
@@ -22,8 +24,7 @@ import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,44 +37,46 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty.json", Api.class);
         DynamicPropertyService dynamicPropertyService = api.getService(DynamicPropertyService.class);
 
-        Assert.assertNotNull(dynamicPropertyService);
+        assertNotNull(dynamicPropertyService);
 
         // Check service configuration
-        Assert.assertTrue(dynamicPropertyService.isEnabled());
+        assertTrue(dynamicPropertyService.isEnabled());
 
         // Check scheduling configuration
-        Assert.assertEquals("*/60 * * * * *", dynamicPropertyService.getSchedule());
+        assertEquals("*/60 * * * * *", dynamicPropertyService.getSchedule());
 
         // Check provider
-        Assert.assertNotNull(dynamicPropertyService.getProvider());
+        assertNotNull(dynamicPropertyService.getProvider());
 
         // Check configuration
         DynamicPropertyProviderConfiguration configuration = dynamicPropertyService.getConfiguration();
-        Assert.assertNotNull(configuration);
+        assertNotNull(configuration);
 
-        Assert.assertEquals("http://my_configuration_url", ((HttpDynamicPropertyProviderConfiguration) configuration).getUrl());
-        Assert.assertEquals("{}", ((HttpDynamicPropertyProviderConfiguration) configuration).getSpecification());
-        Assert.assertEquals(HttpMethod.POST, ((HttpDynamicPropertyProviderConfiguration) configuration).getMethod());
-        Assert.assertEquals(1, ((HttpDynamicPropertyProviderConfiguration) configuration).getHeaders().size());
-        Assert.assertTrue(
+        assertEquals("http://my_configuration_url", ((HttpDynamicPropertyProviderConfiguration) configuration).getUrl());
+        assertEquals("{}", ((HttpDynamicPropertyProviderConfiguration) configuration).getSpecification());
+        assertEquals(HttpMethod.POST, ((HttpDynamicPropertyProviderConfiguration) configuration).getMethod());
+        assertEquals(1, ((HttpDynamicPropertyProviderConfiguration) configuration).getHeaders().size());
+        assertTrue(
             ((HttpDynamicPropertyProviderConfiguration) configuration).getHeaders()
                 .stream()
                 .allMatch(header -> header.getName().equals("Content-type"))
         );
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void definition_withDynamicProperty_badUnit() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json", Api.class);
-
-        Assert.assertNotNull(api);
+        assertThrows(
+            JsonMappingException.class,
+            () -> load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json", Api.class)
+        );
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void definition_withDynamicProperty_noProvider() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json", Api.class);
-
-        Assert.assertNotNull(api);
+        assertThrows(
+            JsonMappingException.class,
+            () -> load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-badUnit.json", Api.class)
+        );
     }
 
     @Test
@@ -83,23 +86,28 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
             Api.class
         );
         DynamicPropertyService dynamicPropertyService = api.getService(DynamicPropertyService.class);
-        Assert.assertNotNull(dynamicPropertyService);
-        Assert.assertTrue(dynamicPropertyService.isEnabled());
-        Assert.assertEquals("*/60 * * * * *", dynamicPropertyService.getSchedule());
+        assertNotNull(dynamicPropertyService);
+        assertTrue(dynamicPropertyService.isEnabled());
+        assertEquals("*/60 * * * * *", dynamicPropertyService.getSchedule());
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void definition_withDynamicProperty_httpProvider_noUrl() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noUrl.json", Api.class);
-        api.getServices().get(DynamicPropertyService.class);
+        assertThrows(
+            JsonMappingException.class,
+            () -> load("/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noUrl.json", Api.class)
+        );
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void definition_withDynamicProperty_httpProvider_noSpecification() throws Exception {
-        Api api = load(
-            "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noSpecification.json",
-            Api.class
+        assertThrows(
+            JsonMappingException.class,
+            () ->
+                load(
+                    "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-noSpecification.json",
+                    Api.class
+                )
         );
-        api.getServices().get(DynamicPropertyService.class);
     }
 }

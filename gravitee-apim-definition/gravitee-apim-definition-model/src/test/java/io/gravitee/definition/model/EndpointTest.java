@@ -15,12 +15,12 @@
  */
 package io.gravitee.definition.model;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.endpoint.EndpointStatusListener;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class EndpointTest {
 
