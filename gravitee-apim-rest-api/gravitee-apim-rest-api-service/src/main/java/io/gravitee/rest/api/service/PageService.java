@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ public interface PageService {
 
     void transformSwagger(ExecutionContext executionContext, PageEntity pageEntity);
 
-    void transformSwagger(ExecutionContext executionContext, PageEntity pageEntity, String apiId);
+    void transformSwagger(ExecutionContext executionContext, PageEntity pageEntity, GenericApiEntity apiEntity);
 
     PageEntity createPage(ExecutionContext executionContext, String apiId, NewPageEntity page);
 
@@ -86,6 +87,7 @@ public interface PageService {
     Map<SystemFolderType, String> initialize(ExecutionContext executionContext);
 
     PageEntity createAsideFolder(ExecutionContext executionContext, String apiId);
+
     PageEntity createSystemFolder(ExecutionContext executionContext, String apiId, SystemFolderType systemFolderType, int order);
 
     PageEntity createWithDefinition(ExecutionContext executionContext, String apiId, String toString);

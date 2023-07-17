@@ -19,6 +19,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +30,8 @@ import java.util.Set;
  */
 public interface ApiAuthorizationService {
     boolean canManageApi(RoleEntity role);
+
+    boolean canConsumeApi(ExecutionContext executionContext, String userId, GenericApiEntity apiEntity);
 
     default Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId) {
         return findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery());

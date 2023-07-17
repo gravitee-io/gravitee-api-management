@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -64,6 +65,9 @@ public class SearchIndexInitializerTest {
 
     @Mock
     private ApiRepository apiRepository;
+
+    @Mock
+    private GenericApiMapper genericApiMapper;
 
     @Mock
     private PageService pageService;
@@ -109,7 +113,10 @@ public class SearchIndexInitializerTest {
         verify(environmentRepository, times(1)).findById("env1");
         verify(environmentRepository, times(1)).findById("env2");
         verify(environmentRepository, times(1)).findById("env3");
+
         verifyNoMoreInteractions(environmentRepository);
+
+        verify(genericApiMapper, times(4)).toGenericApi(any(Api.class), any());
     }
 
     @Test
@@ -150,6 +157,8 @@ public class SearchIndexInitializerTest {
                 eq(true),
                 eq(false)
             );
+
+        verify(genericApiMapper, times(4)).toGenericApi(any(Api.class), any());
     }
 
     @Test

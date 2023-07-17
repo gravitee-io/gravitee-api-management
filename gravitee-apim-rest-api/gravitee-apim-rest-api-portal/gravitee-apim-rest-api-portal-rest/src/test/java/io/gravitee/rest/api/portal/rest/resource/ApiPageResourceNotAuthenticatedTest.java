@@ -20,12 +20,12 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
@@ -83,7 +83,16 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveMetadataCleared() {
-        when(accessControlService.canAccessPageFromPortal(eq(GraviteeContext.getExecutionContext()), eq(API), any(PageEntity.class)))
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(mock(GenericApiEntity.class));
+        when(accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+            .thenReturn(true);
+        when(
+            accessControlService.canAccessApiPageFromPortal(
+                eq(GraviteeContext.getExecutionContext()),
+                any(GenericApiEntity.class),
+                any(PageEntity.class)
+            )
+        )
             .thenReturn(true);
 
         Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
