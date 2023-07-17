@@ -72,12 +72,7 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
         if (PUBLIC.equals(genericApiEntity.getVisibility())) {
             return true;
         } else if (isAuthenticated()) {
-            Set<String> publishedByUser = apiAuthorizationService.findAccessibleApiIdsForUser(
-                executionContext,
-                getAuthenticatedUser().getUsername(),
-                Set.of(genericApiEntity.getId())
-            );
-            return publishedByUser.contains(genericApiEntity.getId());
+            return apiAuthorizationService.canConsumeApi(executionContext, getAuthenticatedUsername(), genericApiEntity);
         }
         return false;
     }
@@ -146,6 +141,11 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
             return canAccessPage(executionContext, genericApiEntity, pageEntity);
         }
         return canAccessPage(executionContext, null, pageEntity);
+    }
+
+    @Override
+    public boolean canAccessApiPageFromPortal(ExecutionContext executionContext, GenericApiEntity apiEntity, PageEntity pageEntity) {
+        return canAccessPage(executionContext, apiEntity, pageEntity);
     }
 
     @Override
