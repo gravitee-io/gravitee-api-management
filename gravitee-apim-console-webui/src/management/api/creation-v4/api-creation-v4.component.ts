@@ -15,10 +15,10 @@
  */
 
 import { Component, HostBinding, Inject, Injector, OnDestroy, OnInit } from '@angular/core';
-import { catchError, concatMap, map, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, concatMap, map, switchMap, takeUntil, toArray } from 'rxjs/operators';
 import { from, Observable, of, Subject, throwError } from 'rxjs';
 import { StateService } from '@uirouter/angular';
-import { isEmpty } from 'lodash';
+import { isEmpty, isString } from 'lodash';
 
 import { ApiCreationStep, ApiCreationStepperService } from './services/api-creation-stepper.service';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
@@ -237,8 +237,6 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
     const api = previousResult.result.api;
 
-    const errorMessages = previousResult.errorMessages;
-
     // For each plan
     return from(previousResult.apiCreationPayload.plans).pipe(
       concatMap((plan) =>
@@ -247,31 +245,41 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
           concatMap((plan) =>
             // If create success, publish it
             this.apiPlanV2Service.publish(api.id, plan.id).pipe(
-              // If publish success, add it to the result
-              map((plan: PlanV4) => ({
-                ...previousResult,
-                result: { ...previousResult.result, plans: [...(previousResult.result?.plans ?? []), plan] },
-              })),
-              // If publish failed, add error message to the result
+              // If publish failed, return error message as result
               catchError((err) => {
-                errorMessages.push(`Error while publishing plan "${plan.name}": ${err.error?.message}.`);
-                return of({
-                  ...previousResult,
-                  errorMessages,
-                });
+                return of(`Error while publishing plan "${plan.name}": ${err.error?.message}.`);
               }),
             ),
           ),
-          // If create failed, add error message to the result
+          // If create failed, return error message as result
           catchError((err) => {
-            errorMessages.push(`Error while creating plan "${plan.name}": ${err.error?.message}.`);
-            return of({
-              ...previousResult,
-              errorMessages,
-            });
+            return of(`Error while creating plan "${plan.name}": ${err.error?.message}.`);
           }),
         ),
       ),
+      toArray(),
+      map((results: (string | PlanV4)[]) => {
+        return results.reduce((result, val) => {
+          const isErrorMessage = isString(val);
+
+          // If error message, add it to errorMessages
+          if (isErrorMessage) {
+            return {
+              ...result,
+              errorMessages: [...(result?.errorMessages ?? []), val],
+            };
+          }
+
+          // If Plan, add it to result
+          return {
+            ...result,
+            result: {
+              ...result.result,
+              plans: [...(result.result?.plans ?? []), val],
+            },
+          };
+        }, previousResult);
+      }),
     );
   }
 
