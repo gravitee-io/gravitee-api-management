@@ -50,9 +50,17 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- Junit dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Do not remove junit-platform-launcher as it's necessary to run the tests with Junit 5 and Junit Pioneer.  -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
