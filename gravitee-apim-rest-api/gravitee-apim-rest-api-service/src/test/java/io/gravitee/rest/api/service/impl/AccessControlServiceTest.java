@@ -39,6 +39,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -46,9 +47,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -197,8 +196,11 @@ public class AccessControlServiceTest {
         apiEntity.setId(API_ID);
         apiEntity.setVisibility(Visibility.PRIVATE);
 
-        when(apiAuthorizationService.findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), any(), any(Set.class)))
-            .thenReturn(Collections.singleton(API_ID));
+        when(
+            apiAuthorizationService.canConsumeApi(eq(GraviteeContext.getExecutionContext()), any(String.class), any(GenericApiEntity.class))
+        )
+            .thenReturn(true);
+
         connectUser();
 
         boolean canAccess = accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiEntity);
