@@ -104,4 +104,8 @@ public class NewApiEntity {
     public void setName(String name) {
         this.name = HTML_SANITIZER.sanitize(name);
     }
+
+    public void setDescription(String description) {
+        this.description = HTML_SANITIZER.sanitize(description);
+    }
 }
