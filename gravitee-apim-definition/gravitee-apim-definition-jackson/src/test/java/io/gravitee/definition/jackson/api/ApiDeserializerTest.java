@@ -15,7 +15,7 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -54,8 +54,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -87,39 +86,39 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals("http://localhost:1234", endpoint.getTarget());
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void definition_noProxyPart() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-noproxy-part.json", Api.class);
+        assertThrows(JsonMappingException.class, () -> load("/io/gravitee/definition/jackson/api-noproxy-part.json", Api.class));
     }
 
     @Test
     public void definition_noPath() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-nopath.json", Api.class);
 
-        Assert.assertNull(api.getPaths());
+        assertNull(api.getPaths());
     }
 
     @Test
     public void definition_reformatContextPath() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-reformat-contextpath.json", Api.class);
 
-        Assert.assertNotNull(api.getProxy().getVirtualHosts());
-        Assert.assertFalse(api.getProxy().getVirtualHosts().isEmpty());
+        assertNotNull(api.getProxy().getVirtualHosts());
+        assertFalse(api.getProxy().getVirtualHosts().isEmpty());
         assertEquals("/my-api/team", api.getProxy().getVirtualHosts().iterator().next().getPath());
-        Assert.assertNull(api.getProxy().getVirtualHosts().iterator().next().getHost());
-        Assert.assertFalse(api.getProxy().getVirtualHosts().iterator().next().isOverrideEntrypoint());
+        assertNull(api.getProxy().getVirtualHosts().iterator().next().getHost());
+        assertFalse(api.getProxy().getVirtualHosts().iterator().next().isOverrideEntrypoint());
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void definition_contextPathExpected() throws Exception {
-        load("/io/gravitee/definition/jackson/api-no-contextpath.json", Api.class);
+        assertThrows(JsonMappingException.class, () -> load("/io/gravitee/definition/jackson/api-no-contextpath.json", Api.class));
     }
 
     @Test
     public void definition_defaultPath() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
 
-        Assert.assertNotNull(api.getPaths());
+        assertNotNull(api.getPaths());
         assertEquals(1, api.getPaths().size());
 
         Map<String, List<Rule>> paths = api.getPaths();
@@ -133,7 +132,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_multiplePath() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-multiplepath.json", Api.class);
 
-        Assert.assertNotNull(api.getPaths());
+        assertNotNull(api.getPaths());
         assertEquals(2, api.getPaths().size());
     }
 
@@ -141,7 +140,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_pathwithmethods() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
 
-        Assert.assertNotNull(api.getPaths());
+        assertNotNull(api.getPaths());
         assertEquals(1, api.getPaths().size());
 
         Map<String, List<Rule>> paths = api.getPaths();
@@ -157,7 +156,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_pathwithoutmethods() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-path-nohttpmethod.json", Api.class);
 
-        Assert.assertNotNull(api.getPaths());
+        assertNotNull(api.getPaths());
         assertEquals(1, api.getPaths().size());
 
         Map<String, List<Rule>> paths = api.getPaths();
@@ -176,7 +175,7 @@ public class ApiDeserializerTest extends AbstractTest {
         List<Rule> rules = paths.get("/*");
 
         Policy policy = rules.iterator().next().getPolicy();
-        Assert.assertNotNull(policy);
+        assertNotNull(policy);
         assertEquals("access-control", policy.getName());
     }
 
@@ -188,13 +187,13 @@ public class ApiDeserializerTest extends AbstractTest {
 
         Rule accessControlRule = rules.get(0);
         Policy policy = accessControlRule.getPolicy();
-        Assert.assertNotNull(policy);
+        assertNotNull(policy);
         assertEquals("access-control", policy.getName());
-        Assert.assertFalse(accessControlRule.isEnabled());
+        assertFalse(accessControlRule.isEnabled());
 
         Rule corsRule = rules.get(1);
         policy = corsRule.getPolicy();
-        Assert.assertNotNull(policy);
+        assertNotNull(policy);
         assertEquals("cors", policy.getName());
         assertTrue(corsRule.isEnabled());
     }
@@ -213,7 +212,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withoutproperties.json", Api.class);
         Properties properties = api.getProperties();
 
-        Assert.assertNull(properties);
+        assertNull(properties);
     }
 
     @Test
@@ -221,7 +220,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withemptyproperties.json", Api.class);
         Properties properties = api.getProperties();
 
-        Assert.assertNotNull(properties);
+        assertNotNull(properties);
         assertTrue(properties.getValues().isEmpty());
     }
 
@@ -230,7 +229,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withproperties.json", Api.class);
         Properties properties = api.getProperties();
 
-        Assert.assertNotNull(properties);
+        assertNotNull(properties);
         assertEquals(4, properties.getValues().size());
         assertEquals("true", properties.getValues().get("my_property"));
         assertEquals("123", properties.getValues().get("my_property2"));
@@ -238,22 +237,22 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals("text", properties.getValues().get("my_property4"));
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void definition_withoutID() throws Exception {
-        load("/io/gravitee/definition/jackson/api-withoutid.json", Api.class);
+        assertThrows(JsonMappingException.class, () -> load("/io/gravitee/definition/jackson/api-withoutid.json", Api.class));
     }
 
     @Test
     public void definition_withoutTags() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withouttags.json", Api.class);
-        Assert.assertNotNull(api.getTags());
+        assertNotNull(api.getTags());
         assertEquals(0, api.getTags().size());
     }
 
     @Test
     public void definition_withTags() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-withtags.json", Api.class);
-        Assert.assertNotNull(api.getTags());
+        assertNotNull(api.getTags());
         assertEquals(2, api.getTags().size());
         assertEquals("tag1", api.getTags().iterator().next());
     }
@@ -268,7 +267,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_singleEndpoint_backup() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-singleendpoint.json", Api.class);
         assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
-        Assert.assertFalse(api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().isBackup());
+        assertFalse(api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().isBackup());
     }
 
     @Test
@@ -287,7 +286,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_singleEndpoint_inArray_backup() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-singleendpoint-inarray.json", Api.class);
         assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
-        Assert.assertFalse(api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().isBackup());
+        assertFalse(api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().isBackup());
     }
 
     @Test
@@ -301,7 +300,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_defaultLoadBalancer_roundRobin() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
 
-        Assert.assertNotNull(api.getProxy().getGroups().iterator().next().getLoadBalancer());
+        assertNotNull(api.getProxy().getGroups().iterator().next().getLoadBalancer());
         assertEquals(LoadBalancerType.ROUND_ROBIN, api.getProxy().getGroups().iterator().next().getLoadBalancer().getType());
     }
 
@@ -309,15 +308,15 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_no_failover() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-defaulthttpconfig.json", Api.class);
 
-        Assert.assertNull(api.getProxy().getFailover());
-        Assert.assertFalse(api.getProxy().failoverEnabled());
+        assertNull(api.getProxy().getFailover());
+        assertFalse(api.getProxy().failoverEnabled());
     }
 
     @Test
     public void definition_default_failover() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-default-failover.json", Api.class);
 
-        Assert.assertNotNull(api.getProxy().getFailover());
+        assertNotNull(api.getProxy().getFailover());
         assertTrue(api.getProxy().failoverEnabled());
 
         assertEquals(Failover.DEFAULT_MAX_ATTEMPTS, api.getProxy().getFailover().getMaxAttempts());
@@ -329,23 +328,23 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_override_failover() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-override-failover.json", Api.class);
 
-        Assert.assertNotNull(api.getProxy().getFailover());
+        assertNotNull(api.getProxy().getFailover());
         assertTrue(api.getProxy().failoverEnabled());
 
         assertEquals(3, api.getProxy().getFailover().getMaxAttempts());
         assertEquals(3000, api.getProxy().getFailover().getRetryTimeout());
-        assertEquals(Failover.DEFAULT_FAILOVER_CASES, api.getProxy().getFailover().getCases());
+        assertArrayEquals(Failover.DEFAULT_FAILOVER_CASES, api.getProxy().getFailover().getCases());
     }
 
     @Test
     public void definition_failover_singlecase() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-failover-singlecase.json", Api.class);
 
-        Assert.assertNotNull(api.getProxy().getFailover());
+        assertNotNull(api.getProxy().getFailover());
         assertTrue(api.getProxy().failoverEnabled());
 
         assertEquals(3, api.getProxy().getFailover().getMaxAttempts());
-        assertEquals(Failover.DEFAULT_FAILOVER_CASES, api.getProxy().getFailover().getCases());
+        assertArrayEquals(Failover.DEFAULT_FAILOVER_CASES, api.getProxy().getFailover().getCases());
     }
 
     @Test
@@ -360,7 +359,7 @@ public class ApiDeserializerTest extends AbstractTest {
             .getEndpoints()
             .forEach(endpoint -> {
                 if ("endpoint_0".equals(endpoint.getName())) {
-                    Assert.assertFalse(endpoint.isBackup());
+                    assertFalse(endpoint.isBackup());
                 } else {
                     assertTrue(endpoint.isBackup());
                 }
@@ -383,28 +382,44 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals("asie", tenants.get(1));
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void shouldFailWithSameEndpointNames() throws Exception {
-        load("/io/gravitee/definition/jackson/api-multiplesameendpoints.json", Api.class);
-        Assert.fail("should throw deser exception");
+        try {
+            load("/io/gravitee/definition/jackson/api-multiplesameendpoints.json", Api.class);
+            fail("should throw deser exception");
+        } catch (JsonMappingException e) {
+            assertNotNull(e);
+        }
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void shouldFailWithSameEndpointNamesInDifferentGroup() throws Exception {
-        load("/io/gravitee/definition/jackson/api-multiplesameendpointsindifferentgroups.json", Api.class);
-        Assert.fail("should throw deser exception");
+        try {
+            load("/io/gravitee/definition/jackson/api-multiplesameendpointsindifferentgroups.json", Api.class);
+            fail("should throw deser exception");
+        } catch (JsonMappingException e) {
+            assertNotNull(e);
+        }
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void shouldFailWithSameGroupEndpointNames() throws Exception {
-        load("/io/gravitee/definition/jackson/api-multiplesamegroupendpoints.json", Api.class);
-        Assert.fail("should throw deser exception");
+        try {
+            load("/io/gravitee/definition/jackson/api-multiplesamegroupendpoints.json", Api.class);
+            fail("should throw deser exception");
+        } catch (JsonMappingException e) {
+            assertNotNull(e);
+        }
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void shouldFailWithSameGroupEndpointNamesAndEndpointNames() throws Exception {
-        load("/io/gravitee/definition/jackson/api-multiplesamegroupendpointsandendpoints.json", Api.class);
-        Assert.fail("should throw deser exception");
+        try {
+            load("/io/gravitee/definition/jackson/api-multiplesamegroupendpointsandendpoints.json", Api.class);
+            fail("should throw deser exception");
+        } catch (JsonMappingException e) {
+            assertNotNull(e);
+        }
     }
 
     @Test
@@ -412,7 +427,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-hostHeader.json", Api.class);
 
         Cors cors = api.getProxy().getCors();
-        Assert.assertNull(cors);
+        assertNull(cors);
     }
 
     @Test
@@ -434,17 +449,17 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-cors-disabled.json", Api.class);
 
         Cors cors = api.getProxy().getCors();
-        Assert.assertNotNull(cors);
-        Assert.assertFalse(cors.isEnabled());
-        Assert.assertFalse(cors.isAccessControlAllowCredentials());
-        Assert.assertFalse(cors.isRunPolicies());
+        assertNotNull(cors);
+        assertFalse(cors.isEnabled());
+        assertFalse(cors.isAccessControlAllowCredentials());
+        assertFalse(cors.isRunPolicies());
         assertEquals(-1, cors.getAccessControlMaxAge());
         assertEquals(HttpStatusCode.BAD_REQUEST_400, cors.getErrorStatusCode());
-        Assert.assertNull(cors.getAccessControlAllowOrigin());
-        Assert.assertNull(cors.getAccessControlAllowOriginRegex());
-        Assert.assertNull(cors.getAccessControlAllowHeaders());
-        Assert.assertNull(cors.getAccessControlAllowMethods());
-        Assert.assertNull(cors.getAccessControlExposeHeaders());
+        assertNull(cors.getAccessControlAllowOrigin());
+        assertNull(cors.getAccessControlAllowOriginRegex());
+        assertNull(cors.getAccessControlAllowHeaders());
+        assertNull(cors.getAccessControlAllowMethods());
+        assertNull(cors.getAccessControlExposeHeaders());
     }
 
     @Test
@@ -452,17 +467,17 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-cors.json", Api.class);
 
         Cors cors = api.getProxy().getCors();
-        Assert.assertNotNull(cors);
+        assertNotNull(cors);
         assertTrue(cors.isEnabled());
-        Assert.assertFalse(cors.isAccessControlAllowCredentials());
-        Assert.assertFalse(cors.isRunPolicies());
+        assertFalse(cors.isAccessControlAllowCredentials());
+        assertFalse(cors.isRunPolicies());
         assertEquals(-1, cors.getAccessControlMaxAge());
         assertEquals(HttpStatusCode.BAD_REQUEST_400, cors.getErrorStatusCode());
-        Assert.assertNotNull(cors.getAccessControlAllowOrigin());
-        Assert.assertNotNull(cors.getAccessControlAllowOriginRegex());
-        Assert.assertNotNull(cors.getAccessControlAllowHeaders());
-        Assert.assertNotNull(cors.getAccessControlAllowMethods());
-        Assert.assertNotNull(cors.getAccessControlExposeHeaders());
+        assertNotNull(cors.getAccessControlAllowOrigin());
+        assertNotNull(cors.getAccessControlAllowOriginRegex());
+        assertNotNull(cors.getAccessControlAllowHeaders());
+        assertNotNull(cors.getAccessControlAllowMethods());
+        assertNotNull(cors.getAccessControlExposeHeaders());
     }
 
     @Test
@@ -470,7 +485,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-logging.json", Api.class);
 
         Logging logging = api.getProxy().getLogging();
-        Assert.assertNotNull(logging);
+        assertNotNull(logging);
         assertEquals(LoggingMode.NONE, logging.getMode());
         assertEquals(LoggingScope.NONE, logging.getScope());
         assertEquals(LoggingContent.NONE, logging.getContent());
@@ -482,7 +497,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-logging-client.json", Api.class);
 
         Logging logging = api.getProxy().getLogging();
-        Assert.assertNotNull(logging);
+        assertNotNull(logging);
         assertEquals(LoggingMode.CLIENT_PROXY, logging.getMode());
         assertEquals(LoggingScope.REQUEST, logging.getScope());
         assertEquals(LoggingContent.HEADERS, logging.getContent());
@@ -494,7 +509,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-endpointgroup-discovery.json", Api.class);
 
         EndpointGroup group = api.getProxy().getGroups().iterator().next();
-        Assert.assertNotNull(group);
+        assertNotNull(group);
     }
 
     @Test
@@ -502,10 +517,10 @@ public class ApiDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-response-templates.json", Api.class);
 
         Map<String, Map<String, ResponseTemplate>> responseTemplates = api.getResponseTemplates();
-        Assert.assertNotNull(responseTemplates);
+        assertNotNull(responseTemplates);
 
         Map<String, ResponseTemplate> apiKeyResponseTemplates = responseTemplates.get("API_KEY_INVALID");
-        Assert.assertNotNull(apiKeyResponseTemplates);
+        assertNotNull(apiKeyResponseTemplates);
 
         assertEquals(3, apiKeyResponseTemplates.size());
         Iterator<String> responseTemplateIterator = apiKeyResponseTemplates.keySet().iterator();
@@ -525,7 +540,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_virtualhosts() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-virtualhosts.json", Api.class);
 
-        Assert.assertNotNull(api.getProxy().getVirtualHosts());
+        assertNotNull(api.getProxy().getVirtualHosts());
         assertEquals(2, api.getProxy().getVirtualHosts().size());
 
         VirtualHost host1 = api.getProxy().getVirtualHosts().get(0);
@@ -535,9 +550,9 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals("/my-api", host1.getPath());
         assertTrue(host1.isOverrideEntrypoint());
 
-        Assert.assertNull(host2.getHost());
+        assertNull(host2.getHost());
         assertEquals("/my-api2", host2.getPath());
-        Assert.assertFalse(host2.isOverrideEntrypoint());
+        assertFalse(host2.isOverrideEntrypoint());
     }
 
     @Test
@@ -569,12 +584,12 @@ public class ApiDeserializerTest extends AbstractTest {
 
     @Test
     public void definition_defaultFlow() throws Exception {
-        Assert.assertNotNull(DefinitionVersion.valueOfLabel("2.0.0"));
+        assertNotNull(DefinitionVersion.valueOfLabel("2.0.0"));
         Api api = load("/io/gravitee/definition/jackson/api-defaultflow.json", Api.class);
 
-        Assert.assertNotNull(api.getDefinitionVersion());
+        assertNotNull(api.getDefinitionVersion());
         assertEquals(DefinitionVersion.V2, api.getDefinitionVersion());
-        Assert.assertNotNull(api.getFlows());
+        assertNotNull(api.getFlows());
         List<Flow> flows = api.getFlows();
         assertEquals(1, flows.size());
         Flow flow = flows.get(0);
@@ -583,46 +598,46 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals(3, flow.getMethods().size());
         assertTrue(flow.getMethods().containsAll(Arrays.asList(HttpMethod.POST, HttpMethod.PUT, HttpMethod.GET)));
         assertEquals("/", flow.getPath());
-        Assert.assertNotNull(flow.getConsumers());
+        assertNotNull(flow.getConsumers());
         assertEquals(2, flow.getConsumers().size());
         final Consumer consumer = flow.getConsumers().get(0);
-        Assert.assertNotNull(consumer);
+        assertNotNull(consumer);
         assertEquals("PUBLIC", consumer.getConsumerId());
         assertEquals(ConsumerType.TAG, consumer.getConsumerType());
         final Consumer consumer2 = flow.getConsumers().get(1);
-        Assert.assertNotNull(consumer2);
+        assertNotNull(consumer2);
         assertEquals("PRIVATE", consumer2.getConsumerId());
         assertEquals(ConsumerType.TAG, consumer2.getConsumerType());
         assertEquals(FlowStage.API, flow.getStage());
 
         Step rule = flow.getPre().get(0);
-        Assert.assertNotNull(rule);
+        assertNotNull(rule);
         assertEquals("Rate Limit", rule.getName());
         assertEquals("rate-limit", rule.getPolicy());
-        Assert.assertNotNull(rule.getConfiguration());
+        assertNotNull(rule.getConfiguration());
         assertTrue(rule.isEnabled());
         assertNull(rule.getCondition());
 
         Step ruleApiKey = flow.getPre().get(1);
-        Assert.assertNotNull(ruleApiKey);
+        assertNotNull(ruleApiKey);
         assertEquals("Check API Key", ruleApiKey.getName());
         assertEquals("api-key", ruleApiKey.getPolicy());
-        Assert.assertNotNull(ruleApiKey.getConfiguration());
+        assertNotNull(ruleApiKey.getConfiguration());
         assertTrue(ruleApiKey.isEnabled());
         assertNull(ruleApiKey.getCondition());
 
         Step ruleTransformHeaders = flow.getPre().get(2);
-        Assert.assertNotNull(ruleTransformHeaders);
+        assertNotNull(ruleTransformHeaders);
         assertEquals("Add HTTP headers", ruleTransformHeaders.getName());
         assertEquals("transform-headers", ruleTransformHeaders.getPolicy());
-        Assert.assertNotNull(ruleTransformHeaders.getConfiguration());
+        assertNotNull(ruleTransformHeaders.getConfiguration());
         assertTrue(ruleTransformHeaders.isEnabled());
         assertEquals("a non empty condition", ruleTransformHeaders.getCondition());
 
         Collection<Plan> plans = api.getPlans();
-        Assert.assertNotNull(plans);
+        assertNotNull(plans);
         assertEquals(2, plans.size());
-        Assert.assertNotNull(api.getPlan("plan-1"));
+        assertNotNull(api.getPlan("plan-1"));
         assertEquals(2, api.getPlan("plan-1").getFlows().size());
         assertEquals("#context.attributes['jwt'].claims['iss'] == 'toto'", api.getPlan("plan-1").getSelectionRule());
         assertEquals("OAUTH2", api.getPlan("plan-1").getSecurity());
@@ -633,14 +648,14 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals(FlowMode.DEFAULT, api.getFlowMode());
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void definition_v2_withPath() throws Exception {
-        load("/io/gravitee/definition/jackson/api-v2-withpath.json", Api.class);
+        assertThrows(JsonMappingException.class, () -> load("/io/gravitee/definition/jackson/api-v2-withpath.json", Api.class));
     }
 
-    @Test(expected = JsonMappingException.class)
+    @Test
     public void definition_v1_withFlow() throws Exception {
-        load("/io/gravitee/definition/jackson/api-v1-withflow.json", Api.class);
+        assertThrows(JsonMappingException.class, () -> load("/io/gravitee/definition/jackson/api-v1-withflow.json", Api.class));
     }
 
     @Test

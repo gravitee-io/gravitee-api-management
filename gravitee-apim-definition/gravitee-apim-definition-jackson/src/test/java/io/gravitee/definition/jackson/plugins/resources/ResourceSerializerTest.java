@@ -15,10 +15,11 @@
  */
 package io.gravitee.definition.jackson.plugins.resources;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,7 +32,7 @@ public class ResourceSerializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-defaultpath.json", Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
+        assertNotNull(generatedJsonDefinition);
     }
 
     @Test
@@ -39,7 +40,7 @@ public class ResourceSerializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withresource.json", Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
+        assertNotNull(generatedJsonDefinition);
     }
 
     @Test
@@ -47,7 +48,7 @@ public class ResourceSerializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withresources.json", Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
+        assertNotNull(generatedJsonDefinition);
     }
 
     @Test
@@ -55,6 +56,6 @@ public class ResourceSerializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/api-withduplicatedresources.json", Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        Assert.assertNotNull(generatedJsonDefinition);
+        assertNotNull(generatedJsonDefinition);
     }
 }
