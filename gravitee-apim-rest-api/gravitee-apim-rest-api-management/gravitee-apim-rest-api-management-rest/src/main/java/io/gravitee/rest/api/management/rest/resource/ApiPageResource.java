@@ -104,7 +104,7 @@ public class ApiPageResource extends AbstractResource {
             pageEntity.setGeneralConditions(pageService.isPageUsedAsGeneralConditions(executionContext, pageEntity, api));
 
             if (portal) {
-                pageService.transformSwagger(executionContext, pageEntity, api);
+                pageService.transformSwagger(executionContext, pageEntity, genericApiEntity);
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                     pageEntity.getMetadata().clear();
                 }
