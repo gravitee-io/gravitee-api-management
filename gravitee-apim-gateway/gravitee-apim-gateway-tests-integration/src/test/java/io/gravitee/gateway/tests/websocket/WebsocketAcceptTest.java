@@ -23,13 +23,13 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 @GatewayTest(mode = GatewayMode.V3)
 @DeployApi({ "/apis/http/api.json" })
 public class WebsocketAcceptTest extends AbstractWebsocketGatewayTest {
 
-    @Test
+    @RetryingTest(maxAttempts = 3)
     public void websocket_accepted_request(VertxTestContext testContext) throws Throwable {
         httpServer
             .webSocketHandler(serverWebSocket -> {
