@@ -48,9 +48,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @NoArgsConstructor
 @Getter
@@ -59,6 +62,11 @@ import lombok.ToString;
 @EqualsAndHashCode
 @Schema(name = "UpdateApiEntityV4")
 public class UpdateApiEntity {
+
+    /**
+     * OWASP HTML sanitizer to prevent XSS attacks.
+     */
+    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().toFactory();
 
     @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String id;
@@ -181,4 +189,12 @@ public class UpdateApiEntity {
         example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background"
     )
     private String backgroundUrl;
+
+    public void setName(String name) {
+        this.name = HTML_SANITIZER.sanitize(name);
+    }
+
+    public void setDescription(String description) {
+        this.description = HTML_SANITIZER.sanitize(description);
+    }
 }

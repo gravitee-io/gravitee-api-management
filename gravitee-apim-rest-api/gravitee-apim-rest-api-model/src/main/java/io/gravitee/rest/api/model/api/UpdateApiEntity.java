@@ -33,13 +33,21 @@ import jakarta.validation.constraints.NotNull;
 import java.util.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 @Getter
 @Setter
 public class UpdateApiEntity {
+
+    /**
+     * OWASP HTML sanitizer to prevent XSS attacks.
+     */
+    private static final PolicyFactory HTML_SANITIZER = new HtmlPolicyBuilder().toFactory();
 
     @Schema(description = "API's crossId. Identifies API across environments.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")
     private String crossId;
@@ -173,5 +181,13 @@ public class UpdateApiEntity {
             return properties.getProperties();
         }
         return Collections.emptyList();
+    }
+
+    public void setName(String name) {
+        this.name = HTML_SANITIZER.sanitize(name);
+    }
+
+    public void setDescription(String description) {
+        this.description = HTML_SANITIZER.sanitize(description);
     }
 }
