@@ -581,81 +581,89 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @Override
     public void transformSwagger(final ExecutionContext executionContext, PageEntity pageEntity) {
-        String apiId = null;
         if (pageEntity instanceof ApiPageEntity) {
-            apiId = ((ApiPageEntity) pageEntity).getApi();
+            ApiPageEntity apiPageEntity = (ApiPageEntity) pageEntity;
+            GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiPageEntity.getApi());
+            transformSwagger(executionContext, pageEntity, genericApiEntity);
+        } else {
+            if (markdownSanitize && PageType.MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
+                sanitizeMarkdown(pageEntity);
+            } else if (PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
+                SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
+                Collection<SwaggerTransformer<OAIDescriptor>> transformers = new ArrayList<>();
+                transformers.add(new PageConfigurationOAITransformer(pageEntity));
+                swaggerService.transform((OAIDescriptor) descriptor, transformers);
+                setSwaggerContent(pageEntity, descriptor);
+            }
         }
-        transformSwagger(executionContext, pageEntity, apiId);
     }
 
     @Override
-    public void transformSwagger(final ExecutionContext executionContext, PageEntity pageEntity, String apiId) {
+    public void transformSwagger(final ExecutionContext executionContext, PageEntity pageEntity, GenericApiEntity genericApiEntity) {
         // First apply templating if required
-        if (apiId != null) {
-            transformWithTemplate(executionContext, pageEntity, apiId);
-        }
+        transformWithTemplate(executionContext, pageEntity, genericApiEntity.getId());
 
         if (markdownSanitize && PageType.MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
-            final HtmlSanitizer.SanitizeInfos safe = HtmlSanitizer.isSafe(pageEntity.getContent());
-            if (!safe.isSafe()) {
-                pageEntity.setContent(HtmlSanitizer.sanitize(pageEntity.getContent()));
-            }
+            sanitizeMarkdown(pageEntity);
         } else if (PageType.SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
             // If swagger page, let's try to apply transformations
             SwaggerDescriptor<?> descriptor;
+
             try {
                 descriptor = swaggerService.parse(pageEntity.getContent());
             } catch (SwaggerDescriptorException sde) {
-                if (apiId != null) {
-                    logger.error("Parsing error for API id[{}]: {}", apiId, sde.getMessage());
-                }
+                logger.error("Parsing error for API id[{}]: {}", genericApiEntity.getId(), sde.getMessage());
                 throw sde;
             }
 
             Collection<SwaggerTransformer<OAIDescriptor>> transformers = new ArrayList<>();
             transformers.add(new PageConfigurationOAITransformer(pageEntity));
 
-            if (apiId != null) {
-                GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
-                List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, genericApiEntity);
-
-                String contextPath = null;
-                if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
-                    ApiEntity apiEntity = (ApiEntity) genericApiEntity;
-                    contextPath = apiEntity.getContextPath();
-                } else {
-                    io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
-                    Optional<String> firstPathOpt = apiEntity
-                        .getListeners()
-                        .stream()
-                        .filter(listener -> listener.getType() == ListenerType.HTTP)
-                        .findFirst()
-                        .map(listener -> {
-                            HttpListener httpListener = (HttpListener) listener;
-                            return httpListener.getPaths().get(0).getPath();
-                        });
-                    if (firstPathOpt.isPresent()) {
-                        contextPath = firstPathOpt.get();
-                    }
-                }
-
-                transformers.add(new EntrypointsOAITransformer(pageEntity, apiEntrypoints, contextPath));
-            }
+            List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, genericApiEntity);
+            String contextPath = getContextPath(genericApiEntity);
+            transformers.add(new EntrypointsOAITransformer(pageEntity, apiEntrypoints, contextPath));
 
             swaggerService.transform((OAIDescriptor) descriptor, transformers);
 
+            setSwaggerContent(pageEntity, descriptor);
+        }
+    }
+
+    private void setSwaggerContent(PageEntity pageEntity, SwaggerDescriptor<?> descriptor) {
+        try {
             if (pageEntity.getContentType().equalsIgnoreCase(MediaType.APPLICATION_JSON)) {
-                try {
-                    pageEntity.setContent(descriptor.toJson());
-                } catch (JsonProcessingException e) {
-                    logger.error("Unexpected error", e);
-                }
+                pageEntity.setContent(descriptor.toJson());
             } else {
-                try {
-                    pageEntity.setContent(descriptor.toYaml());
-                } catch (JsonProcessingException e) {
-                    logger.error("Unexpected error", e);
-                }
+                pageEntity.setContent(descriptor.toYaml());
+            }
+            pageEntity.setContent(descriptor.toJson());
+        } catch (JsonProcessingException e) {
+            logger.error("Unexpected error", e);
+        }
+    }
+
+    private String getContextPath(GenericApiEntity genericApiEntity) {
+        if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
+            ApiEntity apiEntity = (ApiEntity) genericApiEntity;
+            return apiEntity.getContextPath();
+        } else {
+            io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
+            return apiEntity
+                .getListeners()
+                .stream()
+                .filter(listener -> listener.getType() == ListenerType.HTTP)
+                .findFirst()
+                .map(HttpListener.class::cast)
+                .map(listener -> listener.getPaths().get(0).getPath())
+                .orElse(null);
+        }
+    }
+
+    private void sanitizeMarkdown(PageEntity pageEntity) {
+        if (markdownSanitize && PageType.MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
+            final HtmlSanitizer.SanitizeInfos safe = HtmlSanitizer.isSafe(pageEntity.getContent());
+            if (!safe.isSafe()) {
+                pageEntity.setContent(HtmlSanitizer.sanitize(pageEntity.getContent()));
             }
         }
     }
