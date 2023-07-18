@@ -20,7 +20,7 @@ export class PortalApiFaker {
   static newRatingInput(): RatingInput {
     return {
       title: faker.random.word(),
-      comment: `${faker.commerce.productDescription()}`,
+      comment: `${faker.lorem.words(10)}`,
       value: faker.datatype.number({ min: 1, max: 5, precision: 1 }),
     };
   }
