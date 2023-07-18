@@ -1,0 +1,20 @@
+.api-creation {
+  display: flex;
+  justify-content: center;
+
+  .gv-creation-steppers {
+    width: 100%;
+    max-width: 1080px;
+    margin: 20px 20px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
+
+    md-steppers-canvas {
+      border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    md-content {
+      background-color: #fff;
+    }
+  }
+}
