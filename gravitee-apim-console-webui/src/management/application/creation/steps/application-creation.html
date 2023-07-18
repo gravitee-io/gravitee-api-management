@@ -15,42 +15,13 @@
     limitations under the License.
 
 -->
-<section layout="column" flex>
-  <div layout="row">
-    <div class="gv-creation-steppers" flex="{{$ctrl.selectedStep !== $ctrl.steps.length ? 70: 100}}">
-      <md-steppers md-dynamic-height md-disable-tabs-behavior="true" md-stretch-steppers="always" md-selected="$ctrl.selectedStep">
-        <application-creation-step1></application-creation-step1>
-        <application-creation-step2></application-creation-step2>
-        <application-creation-step3></application-creation-step3>
-        <application-creation-step4></application-creation-step4>
-      </md-steppers>
-    </div>
-
-    <div class="gv-creation-timeline-wrapper" layout-padding flex ng-show="$ctrl.selectedStep !== $ctrl.steps.length">
-      <div>
-        <h4>Prepare your application</h4>
-        <md-divider></md-divider>
-      </div>
-      <div class="gv-creation-timeline">
-        <timeline>
-          <timeline-event ng-repeat="step in $ctrl.steps" side="right" ng-show="$ctrl.selectedStep == $index || step.completed">
-            <timeline-badge class="{{step.badgeClass}}">
-              <div class="application-creation__timeline-badge-container">
-                <gv-icon ng-prop-shape="step.badgeIconClass" class="application-creation__timeline-badge-container__icon"> </gv-icon>
-              </div>
-            </timeline-badge>
-            <timeline-panel class="{{step.badgeClass}}">
-              <timeline-heading>
-                <div
-                  style="font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden"
-                  ng-bind-html="step.title"
-                ></div>
-              </timeline-heading>
-              <p>{{step.content}}</p>
-            </timeline-panel>
-          </timeline-event>
-        </timeline>
-      </div>
-    </div>
+<div class="application-creation">
+  <div class="gv-creation-steppers">
+    <md-steppers md-dynamic-height md-disable-tabs-behavior="true" md-stretch-steppers="always" md-selected="$ctrl.selectedStep">
+      <application-creation-step1></application-creation-step1>
+      <application-creation-step2></application-creation-step2>
+      <application-creation-step3></application-creation-step3>
+      <application-creation-step4></application-creation-step4>
+    </md-steppers>
   </div>
-</section>
+</div>
