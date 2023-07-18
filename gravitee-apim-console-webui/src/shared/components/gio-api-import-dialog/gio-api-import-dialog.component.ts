@@ -69,7 +69,6 @@ export class GioApiImportDialogComponent implements OnDestroy {
   descriptorUrlForm = new FormControl();
 
   configsForm: FormGroup;
-  importPolicyPathsIntermediate = false;
 
   public get isImportValid(): boolean {
     return !!this.importType && (!!this.importFile || !!this.descriptorUrlForm?.value);
@@ -103,37 +102,20 @@ export class GioApiImportDialogComponent implements OnDestroy {
       ),
     });
 
-    // select all policy when importPolicyPaths is checked
+    // Unselect all policies when unselecting "Create flows on path"
     this.configsForm
       .get('importPolicyPaths')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((value) => {
-        this.importPolicyPathsIntermediate = false;
+      .subscribe((checked) => {
         this.configsForm.get('importPolicies').patchValue(
           this.policies.reduce((acc, policy) => {
-            acc[policy.id] = value;
+            if (!checked) {
+              acc[policy.id] = checked;
+            }
             return acc;
           }, {}),
           { emitEvent: false },
         );
-      });
-
-    // handle intermediate state for importPolicyPaths and check importPolicyPaths if at least one policy is checked
-    this.configsForm
-      .get('importPolicies')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((importPoliciesValue) => {
-        const nbPoliciesChecked = Object.keys(importPoliciesValue).filter((policyId) => importPoliciesValue[policyId]).length;
-
-        const isEmptyOrAllChecked = nbPoliciesChecked === 0 || nbPoliciesChecked === this.policies.length;
-        if (isEmptyOrAllChecked) {
-          this.configsForm.get('importPolicyPaths').patchValue(nbPoliciesChecked !== 0, { emitEvent: false });
-          this.importPolicyPathsIntermediate = false;
-          return;
-        }
-
-        this.configsForm.get('importPolicyPaths').patchValue(true, { emitEvent: false });
-        this.importPolicyPathsIntermediate = true;
       });
   }
 
