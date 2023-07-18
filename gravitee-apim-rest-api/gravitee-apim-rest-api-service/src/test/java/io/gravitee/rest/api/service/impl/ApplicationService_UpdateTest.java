@@ -184,13 +184,13 @@ public class ApplicationService_UpdateTest {
 
         // 'Shared API KEY' setting is enabled, allows to update to SHARED mode
         when(
-               parameterService.findAsBoolean(
-                      GraviteeContext.getExecutionContext(),
-                      Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                      ParameterReferenceType.ENVIRONMENT
-               )
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
         )
-               .thenReturn(true);
+            .thenReturn(true);
 
         String apiKeyPlanId = "apiKeyPlan";
         String pushPlanId = "pushPLan";
@@ -201,7 +201,7 @@ public class ApplicationService_UpdateTest {
         pushSubscription.setPlan(pushPlanId);
         pushSubscription.setStatus(SubscriptionStatus.ACCEPTED);
         when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null))
-               .thenReturn(Arrays.asList(apiKeySubscription, pushSubscription));
+            .thenReturn(Arrays.asList(apiKeySubscription, pushSubscription));
 
         io.gravitee.rest.api.model.v4.plan.PlanEntity apiKeyPlanEntity = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
         apiKeyPlanEntity.setId(apiKeyPlanId);
@@ -212,7 +212,7 @@ public class ApplicationService_UpdateTest {
         pushPlanEntity.setSecurity(null);
         pushPlanEntity.setMode(PlanMode.PUSH);
         when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(apiKeyPlanId, pushPlanId)))
-               .thenReturn(Set.of(apiKeyPlanEntity, pushPlanEntity));
+            .thenReturn(Set.of(apiKeyPlanEntity, pushPlanEntity));
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
@@ -239,13 +239,13 @@ public class ApplicationService_UpdateTest {
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         final ApplicationEntity applicationEntity = applicationService.update(
-               GraviteeContext.getExecutionContext(),
-               APPLICATION_ID,
-               updateApplication
+            GraviteeContext.getExecutionContext(),
+            APPLICATION_ID,
+            updateApplication
         );
 
         verify(applicationRepository)
-               .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
+            .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
@@ -621,7 +621,7 @@ public class ApplicationService_UpdateTest {
         clientSettings.setClientId(Strings.EMPTY);
         settings.setApp(clientSettings);
         when(updateApplication.getSettings()).thenReturn(settings);
-// TODO
+
         String jwtPlanId = "jwtPLan";
         String apiKeyPlanId = "apiKeyPlan";
         String oauthPlanId = "oauthPLan";
