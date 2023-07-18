@@ -20,8 +20,8 @@ import * as _ from 'lodash';
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import UserService from '../../../../services/user.service';
-import NewApiImportController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiImport.controller';
-import { PlanSecurityType } from '../../../../entities/plan/plan';
+import NewApiImportController from '../newApiImport.controller';
+import { PlanSecurityType } from '../../../../entities/plan';
 import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match-etag.interceptor';
 
 interface Page {
@@ -78,7 +78,6 @@ class ApiCreationController {
     whitelist: any;
   };
   private skippedStep: boolean;
-  private apiSteps: any[];
   private endpoint: any;
   private rateLimit: any;
   private quota: any;
@@ -170,7 +169,6 @@ class ApiCreationController {
    */
   initStepSettings() {
     this.skippedStep = false;
-    this.apiSteps = this.steps().slice(0, 2);
     this.vm = {
       selectedStep: 0,
       stepProgress: 1,
@@ -196,21 +194,10 @@ class ApiCreationController {
       this.vm.stepProgress = this.vm.stepProgress + 1;
     }
 
-    const stepIndex = this.vm.selectedStep + 1;
     // change api step state
     if (this.skippedStep) {
-      this.apiSteps[stepIndex].badgeClass = 'disable';
-      this.apiSteps[stepIndex].badgeIconClass = 'content:remove_circle';
-      this.apiSteps[stepIndex].title = this.steps()[this.vm.selectedStep].title + ' <em>skipped</em>';
       this.skippedStep = false;
-    } else {
-      this.apiSteps[stepIndex].badgeClass = 'info';
-      this.apiSteps[stepIndex].badgeIconClass = 'action:check_circle';
     }
-    if (!this.apiSteps[stepIndex + 1]) {
-      this.apiSteps.push(this.steps()[stepIndex + 1]);
-    }
-
     this.$timeout(() => {
       this.vm.selectedStep = this.vm.selectedStep + 1;
     });
@@ -311,14 +298,12 @@ class ApiCreationController {
    API context-path
    */
   validFirstStep(stepData) {
-    const stepMessage = `${this.api.name} (${this.api.version}) <code>${this.api.proxy.context_path}</code>`;
     if (this.contextPathInvalid) {
       const criteria = { context_path: this.api.proxy.context_path };
       this.ApiService.verify(criteria).then(
         () => {
           this.contextPathInvalid = false;
           this.submitCurrentStep(stepData);
-          this.apiSteps[this.vm.selectedStep + 1].title = stepMessage;
         },
         () => {
           this.contextPathInvalid = true;
@@ -326,7 +311,6 @@ class ApiCreationController {
       );
     } else {
       this.submitCurrentStep(stepData);
-      this.apiSteps[this.vm.selectedStep + 1].title = stepMessage;
     }
   }
 
@@ -347,8 +331,6 @@ class ApiCreationController {
     };
 
     this.api.proxy.endpoints.push(endpoint);
-
-    this.apiSteps[this.vm.selectedStep].title = endpoint.target;
   }
 
   /*
@@ -442,8 +424,6 @@ class ApiCreationController {
       this.plan.flows = [flow];
     }
     this.api.plans = [this.plan];
-    // set api step message
-    this.apiSteps[this.vm.selectedStep].title = `${this.plan.name} <code>${this.plan.security}</code><code>${this.plan.validation}</code>`;
   }
 
   skipAddPlan() {
@@ -499,10 +479,6 @@ class ApiCreationController {
     });
   }
 
-  selectDocumentation() {
-    this.apiSteps[this.vm.selectedStep].title = this.api.pages.map((page) => page.name).join(' ');
-  }
-
   selectFile(file) {
     if (file && !this.pageAlreadyExist(file.name)) {
       const page = {
@@ -547,41 +523,6 @@ class ApiCreationController {
   skipDocumentation() {
     this.api.pages = [];
     this.skippedStep = true;
-  }
-
-  steps() {
-    return [
-      {
-        badgeClass: 'info',
-        badgeIconClass: 'action:check_circle',
-        title: getDefinitionVersionTitle(this.api.gravitee),
-        content: getDefinitionVersionDescription(this.api.gravitee),
-      },
-      {
-        badgeClass: 'disable',
-        badgeIconClass: 'notification:sync',
-        title: 'General',
-        content: 'Name, version and context-path',
-      },
-      {
-        badgeClass: 'disable',
-        badgeIconClass: 'notification:sync',
-        title: 'Gateway',
-        content: 'Endpoint',
-      },
-      {
-        badgeClass: 'disable',
-        badgeIconClass: 'notification:sync',
-        title: 'Plan',
-        content: 'Name, security type and validation mode',
-      },
-      {
-        badgeClass: 'disable',
-        badgeIconClass: 'notification:sync',
-        title: 'Documentation',
-        content: 'Pages name',
-      },
-    ];
   }
 }
 
