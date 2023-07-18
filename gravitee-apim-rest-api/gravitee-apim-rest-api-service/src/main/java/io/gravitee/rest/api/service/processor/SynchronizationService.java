@@ -53,7 +53,7 @@ public class SynchronizationService {
                 boolean previousAccessibleState = f.isAccessible();
                 f.setAccessible(true);
                 try {
-                    if (f.get(deployedEntity).getClass().getName().equals("io.gravitee.definition.model.Proxy")) {
+                    if (f.get(deployedEntity) instanceof io.gravitee.definition.model.Proxy) {
                         // FIXME - dirty check to ensure the Proxy -> Group -> Endpoint comparison is correct
                         Endpoint deployedEntityProxyGroupEndpoint =
                             ((Proxy) f.get(deployedEntity)).getGroups()
@@ -80,14 +80,14 @@ public class SynchronizationService {
                     } else {
                         // FIXME dirty hack to ignore null pointer and empty object comparisions on Properties & Services
                         if (
-                            f.getType().getName().equals("io.gravitee.definition.model.Properties") &&
+                            (f.getType() instanceof io.gravitee.definition.model.Properties) &&
                             ((Properties) f.get(deployedEntity)).getValues().size() == 0 &&
                             ((Properties) f.get(entityToDeploy)).getValues().size() == 0
                         ) {
                             continue;
                         }
                         if (
-                            f.getType().getName().equals("io.gravitee.definition.model.services.Services") &&
+                            (f.getType() instanceof io.gravitee.definition.model.services.Services) &&
                             ((Services) f.get(deployedEntity)).isEmpty() &&
                             ((Services) f.get(entityToDeploy)).isEmpty()
                         ) {
