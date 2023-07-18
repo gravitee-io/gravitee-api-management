@@ -38,7 +38,13 @@
       </div>
     </div>
 
-    <app-gv-page *ngIf="apiHomepage" [page]="apiHomepage" class="page__box" (loaded)="apiHomepageLoaded = true"></app-gv-page>
+    <app-gv-page
+      *ngIf="apiHomepage"
+      [page]="apiHomepage"
+      class="page__box"
+      (loaded)="apiHomepageLoaded = true"
+      [pageBaseUrl]="pageBaseUrl"
+    ></app-gv-page>
 
     <div *ngIf="canRate" class="page__box">
       <div class="page__box-title">

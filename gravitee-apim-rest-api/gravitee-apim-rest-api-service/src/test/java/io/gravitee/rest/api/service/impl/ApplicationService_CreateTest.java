@@ -326,7 +326,7 @@ public class ApplicationService_CreateTest {
     @Test
     public void shouldCreateOauthApp() throws TechnicalException {
         when(application.getName()).thenReturn(APPLICATION_NAME);
-        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getType()).thenReturn(ApplicationType.BROWSER);
         when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(applicationRepository.create(any())).thenReturn(application);
         when(newApplication.getName()).thenReturn(APPLICATION_NAME);
@@ -347,7 +347,7 @@ public class ApplicationService_CreateTest {
         oAuthClientSettings.setApplicationType("BROWSER");
         settings.setoAuthClient(oAuthClientSettings);
         when(newApplication.getSettings()).thenReturn(settings);
-        when(newApplication.getSettings()).thenReturn(settings);
+        when(newApplication.getType()).thenReturn(ApplicationType.BROWSER.name());
 
         // mock application type service
         ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();

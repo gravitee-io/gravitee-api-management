@@ -25,12 +25,15 @@ import { ApiService, Page } from '../../../../../projects/portal-webclient-sdk/s
 export class ApiDocumentationComponent implements OnInit {
   pages: Page[];
 
+  pageBaseUrl: string;
+
   constructor(private apiService: ApiService, private route: ActivatedRoute) {}
 
   ngOnInit() {
     this.route.params.subscribe(params => {
       if (params.apiId) {
         const apiId = params.apiId;
+        this.pageBaseUrl = `/catalog/api/${apiId}/doc`;
         this.apiService.getPagesByApiId({ apiId, homepage: false, size: -1 }).subscribe(pagesResponse => (this.pages = pagesResponse.data));
       }
     });
