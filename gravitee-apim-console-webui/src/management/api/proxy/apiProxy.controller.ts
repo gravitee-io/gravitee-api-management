@@ -244,13 +244,13 @@ class ApiProxyController {
   }
 
   getTenants(tenants) {
-    if (tenants !== undefined) {
+    if (tenants !== undefined && this.tenants) {
       return _(tenants)
         .map((tenant) => _.find(this.tenants, { id: tenant }))
+        .filter((tenant) => tenant != null)
         .map((tenant: any) => tenant.name)
         .join(', ');
     }
-
     return '';
   }
 
