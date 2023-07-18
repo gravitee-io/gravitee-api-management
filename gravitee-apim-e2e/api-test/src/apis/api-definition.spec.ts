@@ -118,7 +118,7 @@ describe('API definition', () => {
   test('should replace simple properties', async () => {
     const nameExpected = faker.commerce.productName();
     const versionExpected = ApisFaker.version();
-    const descriptionExpected = faker.commerce.productDescription();
+    const descriptionExpected = faker.lorem.words(10);
     const visibilityExpected = 'PUBLIC';
     const flowModeExpected = 'BEST_MATCH';
 

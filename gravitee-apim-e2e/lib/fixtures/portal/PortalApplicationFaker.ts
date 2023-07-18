@@ -19,7 +19,7 @@ import { ApplicationInput } from '@gravitee/portal-webclient-sdk/src/lib/models/
 export class PortalApplicationFaker {
   static newApplicationInput(attributes?: Partial<ApplicationInput>): ApplicationInput {
     const name = faker.commerce.productName();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
     return {
       name,
       description,

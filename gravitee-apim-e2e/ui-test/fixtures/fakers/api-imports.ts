@@ -33,7 +33,7 @@ export class ApiImportFakers {
   static api(attributes?: Partial<ApiImport>): ApiImport {
     const name = faker.commerce.productName();
     const version = ApiFakers.version();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
 
     return {
       name,
@@ -119,7 +119,7 @@ export class ApiImportFakers {
 
   static plan(attributes?: Partial<ApiImportPlan>): ApiImportPlan {
     const name = faker.commerce.productName();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
 
     return {
       name,
@@ -165,7 +165,7 @@ export class ApiImportFakers {
   static role(attributes?: Partial<Role>): Role {
     return {
       default: false,
-      description: faker.commerce.productDescription(),
+      description: faker.lorem.words(10),
       name: faker.commerce.productName(),
       permissions: {},
       scope: 'API',
