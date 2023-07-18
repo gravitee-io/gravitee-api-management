@@ -21,7 +21,14 @@
   <div class="content__row">
     <mat-form-field class="content__row__contextPath-field">
       <mat-label>Context path</mat-label>
-      <input #apiName matInput formControlName="contextPath" data-testid="api_info_duplicate_path" [placeholder]="contextPathPlaceholder" required />
+      <input
+        #apiName
+        matInput
+        formControlName="contextPath"
+        data-testid="api_info_duplicate_path"
+        [placeholder]="contextPathPlaceholder"
+        required
+      />
       <mat-error *ngIf="duplicateApiForm.controls.contextPath.hasError('required')">Context path is required.</mat-error>
       <mat-error *ngIf="duplicateApiForm.controls.contextPath.hasError('contextPath')">{{
         duplicateApiForm.controls.contextPath.getError('contextPath')
@@ -30,7 +37,14 @@
 
     <mat-form-field class="content__row__version-field">
       <mat-label>Version</mat-label>
-      <input #apiName matInput formControlName="version" data-testid="api_info_duplicate_version" [placeholder]="versionPlaceholder" required />
+      <input
+        #apiName
+        matInput
+        formControlName="version"
+        data-testid="api_info_duplicate_version"
+        [placeholder]="versionPlaceholder"
+        required
+      />
       <mat-error *ngIf="duplicateApiForm.controls.version.hasError('required')">Version is required.</mat-error>
       <mat-error *ngIf="duplicateApiForm.controls.version.hasError('version')">{{
         duplicateApiForm.controls.version.getError('version')
@@ -47,5 +61,13 @@
 
 <mat-dialog-actions align="end" class="actions">
   <button mat-flat-button [mat-dialog-close]="false">Cancel</button>
-  <button color="primary" mat-raised-button [disabled]="duplicateApiForm.invalid" data-testid="api_info_duplicate_api" (click)="onDuplicate()">Duplicate</button>
+  <button
+    color="primary"
+    mat-raised-button
+    [disabled]="duplicateApiForm.invalid"
+    data-testid="api_info_duplicate_api"
+    (click)="onDuplicate()"
+  >
+    Duplicate
+  </button>
 </mat-dialog-actions>

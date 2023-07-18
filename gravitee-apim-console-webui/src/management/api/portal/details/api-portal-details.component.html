@@ -87,7 +87,9 @@
           <mat-form-field class="etails-card__header__info-inputs__second-row__categories-field">
             <mat-label>Categories</mat-label>
             <mat-select formControlName="categories" data-testid="api_info_categoriesdropdown" multiple>
-              <mat-option data-testid="api_info_categorieslist-unavailable" *ngIf="apiCategories.length === 0" disabled>No categories available</mat-option>
+              <mat-option data-testid="api_info_categorieslist-unavailable" *ngIf="apiCategories.length === 0" disabled
+                >No categories available</mat-option
+              >
               <mat-option *ngFor="let category of apiCategories" [value]="category.key"
                 >{{ category.name }} <em *ngIf="category.description"> - {{ category.description }}</em></mat-option
               >
@@ -149,7 +151,9 @@
     </div>
 
     <div class="details-card__actions">
-      <button mat-button class="details-card__actions_btn" (click)="exportApi()" data-testid="api_info_export_menu"><mat-icon svgIcon="gio:upload"></mat-icon> Export</button>
+      <button mat-button class="details-card__actions_btn" (click)="exportApi()" data-testid="api_info_export_menu">
+        <mat-icon svgIcon="gio:upload"></mat-icon> Export
+      </button>
       <button
         *gioPermission="{ anyOf: ['api-definition-u'] }"
         mat-button
@@ -190,5 +194,10 @@
 
   <api-portal-details-danger-zone class="danger-zone" [api]="api" (reloadDetails)="ngOnInit()"></api-portal-details-danger-zone>
 
-  <gio-save-bar [form]="parentForm" data-testid="api_info_savebar" [formInitialValues]="initialApiDetailsFormValue" (submitted)="onSubmit()"></gio-save-bar>
+  <gio-save-bar
+    [form]="parentForm"
+    data-testid="api_info_savebar"
+    [formInitialValues]="initialApiDetailsFormValue"
+    (submitted)="onSubmit()"
+  ></gio-save-bar>
 </form>
