@@ -103,5 +103,4 @@ describe('API General Page functionality', () => {
   });
 
   // Danger Zone buttons to be continued at a later stage. See JIRA (2075)
-  
 });
