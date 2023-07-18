@@ -151,7 +151,13 @@
     </div>
 
     <div class="details-card__actions">
-      <button *gioPermission="{ anyOf: ['api-definition-r'] }" mat-button class="details-card__actions_btn" data-testid="api_info_export_menu" (click)="exportApi()">
+      <button
+        *gioPermission="{ anyOf: ['api-definition-r'] }"
+        mat-button
+        class="details-card__actions_btn"
+        data-testid="api_info_export_menu"
+        (click)="exportApi()"
+      >
         <mat-icon svgIcon="gio:upload"></mat-icon> Export
       </button>
       <button
