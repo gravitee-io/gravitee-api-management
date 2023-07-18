@@ -38,6 +38,21 @@ describe('GioApiImportDialogComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
+  const policies = [
+    {
+      id: 'json-validation',
+      name: 'JSON Validation',
+      onRequest: false,
+      onResponse: false,
+    },
+    {
+      id: 'mock',
+      name: 'Mock',
+      onRequest: false,
+      onResponse: false,
+    },
+  ];
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, GioApiImportDialogModule, MatIconTestingModule],
@@ -49,20 +64,7 @@ describe('GioApiImportDialogComponent', () => {
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
-            policies: [
-              {
-                id: 'json-validation',
-                name: 'JSON Validation',
-                onRequest: false,
-                onResponse: false,
-              },
-              {
-                id: 'mock',
-                name: 'Mock',
-                onRequest: false,
-                onResponse: false,
-              },
-            ],
+            policies: [...policies],
           },
         },
       ],
@@ -120,13 +122,25 @@ describe('GioApiImportDialogComponent', () => {
       );
       await importPathMappingInput.check();
 
+      // Cannot select policies if "Create flows on path is not selected"
+      for (const policy of policies) {
+        const policyCheckbox = await loader.getHarness(MatCheckboxHarness.with({ selector: `[ng-reflect-name="${policy.id}"]` }));
+        expect(await policyCheckbox.isDisabled()).toBeTruthy();
+      }
+
       const importPolicyPathsInput = await loader.getHarness(
         MatCheckboxHarness.with({ selector: '[formControlName="importPolicyPaths"]' }),
       );
       await importPolicyPathsInput.check();
 
-      const mockInput = await loader.getHarness(MatCheckboxHarness.with({ selector: '[ng-reflect-name="mock"]' }));
-      await mockInput.uncheck();
+      // Can select policies if "Create flows on path is not selected"
+      for (const policy of policies) {
+        const policyCheckbox = await loader.getHarness(MatCheckboxHarness.with({ selector: `[ng-reflect-name="${policy.id}"]` }));
+        expect(await policyCheckbox.isDisabled()).toBeFalsy();
+      }
+
+      const jsonValidationInput = await loader.getHarness(MatCheckboxHarness.with({ selector: '[ng-reflect-name="json-validation"]' }));
+      await jsonValidationInput.check();
 
       const importButton = await loader.getHarness(MatButtonHarness.with({ text: 'Import' }));
       expect(await importButton.isDisabled()).toBe(false);
