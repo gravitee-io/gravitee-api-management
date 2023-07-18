@@ -1905,6 +1905,7 @@ jobs:
                             command: |
                                 helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
                                 helm push charts/apim-${VERSION}.tgz oci://graviteeio.azurecr.io/helm/
+                                helm push charts/apim3-${VERSION}.tgz oci://graviteeio.azurecr.io/helm/
 
     job-publish-pr-env-urls:
         executor:
