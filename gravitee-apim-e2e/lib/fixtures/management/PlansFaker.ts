@@ -25,7 +25,7 @@ import { Plan } from '@gravitee/management-webclient-sdk/src/lib/models/Plan';
 export class PlansFaker {
   static plan(attributes?: Partial<PlanEntity>): PlanEntity {
     const name = faker.commerce.productName();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
 
     return {
       name,
@@ -45,7 +45,7 @@ export class PlansFaker {
 
   static newPlan(attributes?: Partial<NewPlanEntity>): NewPlanEntity {
     const name = faker.commerce.productName();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
 
     return {
       name,
@@ -65,7 +65,7 @@ export class PlansFaker {
 
   static aPlan(attributes?: Partial<PlanEntity>): Plan {
     const name = faker.commerce.productName();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
 
     return {
       name,

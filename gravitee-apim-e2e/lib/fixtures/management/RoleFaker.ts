@@ -21,7 +21,7 @@ export class RoleFaker {
   static newRoleEntity(attributes?: Partial<NewRoleEntity>): NewRoleEntity {
     return {
       _default: false,
-      description: faker.commerce.productDescription(),
+      description: faker.lorem.words(10),
       name: faker.commerce.productName(),
       permissions: {},
       scope: RoleScope.API,

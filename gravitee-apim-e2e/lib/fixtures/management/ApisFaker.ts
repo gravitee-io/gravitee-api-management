@@ -75,7 +75,7 @@ export class ApisFaker {
   static apiImport(attributes?: Partial<ApiImportEntity>): ApiImportEntity {
     const name = faker.commerce.productName();
     const version = this.version();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
 
     return {
       name,
@@ -99,7 +99,7 @@ export class ApisFaker {
   static api(attributes?: Partial<ApiEntity>): ApiEntity {
     const name = faker.commerce.productName();
     const version = this.version();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
 
     return {
       name,
@@ -122,7 +122,7 @@ export class ApisFaker {
   static newApi(attributes?: Partial<NewApiEntity>): NewApiEntity {
     const name = faker.commerce.productName();
     const version = this.version();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
 
     return {
       contextPath: `/${faker.random.word()}-${faker.datatype.uuid()}-${Math.floor(Date.now() / 1000)}`,
@@ -178,7 +178,7 @@ export class ApisFaker {
   static newRating(): NewRatingEntity {
     return {
       title: faker.random.word(),
-      comment: `${faker.commerce.productDescription()}`,
+      comment: `${faker.lorem.words(10)}`,
       rate: `${faker.datatype.number({ min: 1, max: 5, precision: 1 })}`,
     };
   }
@@ -186,7 +186,7 @@ export class ApisFaker {
   static newRatingInput(): RatingInput {
     return {
       title: faker.random.word(),
-      comment: `${faker.commerce.productDescription()}`,
+      comment: `${faker.lorem.words(10)}`,
       value: faker.datatype.number({ min: 1, max: 5, precision: 1 }),
     };
   }
