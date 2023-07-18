@@ -40,19 +40,13 @@ import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.util.TestSocketUtils;
 
 /**
  * @author GraviteeSource Team
@@ -84,7 +78,7 @@ public class ApiKeysHandlerTest {
         router.post("/_search").handler(apiKeysHandler::search);
         router.post("/_findByCriteria").handler(apiKeysHandler::findByCriteria);
 
-        int port = getRandomPort();
+        int port = getAvailablePort();
 
         client = WebClient.create(vertx, new WebClientOptions().setDefaultHost("localhost").setDefaultPort(port));
 
@@ -254,10 +248,7 @@ public class ApiKeysHandlerTest {
         }
     }
 
-    private int getRandomPort() throws IOException {
-        ServerSocket socket = new ServerSocket(0);
-        int port = socket.getLocalPort();
-        socket.close();
-        return port;
+    private static int getAvailablePort() {
+        return TestSocketUtils.findAvailableTcpPort();
     }
 }

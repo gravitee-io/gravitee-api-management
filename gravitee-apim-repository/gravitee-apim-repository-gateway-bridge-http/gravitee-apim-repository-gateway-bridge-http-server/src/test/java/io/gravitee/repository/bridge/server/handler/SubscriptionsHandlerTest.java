@@ -53,6 +53,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.util.TestSocketUtils;
 
 /**
  * @author GraviteeSource Team
@@ -76,13 +77,12 @@ public class SubscriptionsHandlerTest {
         MockitoAnnotations.openMocks(this);
 
         Router router = Router.router(vertx);
-
         router.route().handler(BodyHandler.create());
         router.post("/_findByIds").handler(subscriptionsHandler::findByIds);
         router.post("/_search").handler(subscriptionsHandler::search);
         router.post("/_searchPageable").handler(subscriptionsHandler::searchPageable);
 
-        int port = getRandomPort();
+        int port = getAvailablePort();
 
         client = WebClient.create(vertx, new WebClientOptions().setDefaultHost("localhost").setDefaultPort(port));
 
@@ -106,6 +106,7 @@ public class SubscriptionsHandlerTest {
     @Nested
     class ByIdsTest {
 
+        // flaky
         @Test
         void should_return_subscription_list(VertxTestContext testContext) throws TechnicalException {
             when(subscriptionRepository.findByIdIn(List.of("id1", "idX", "id4")))
@@ -133,6 +134,7 @@ public class SubscriptionsHandlerTest {
                 .onFailure(testContext::failNow);
         }
 
+        // flaky
         @Test
         void should_return_a_http_500_server_error_with_empty_id_list(VertxTestContext testContext) {
             client
@@ -224,6 +226,7 @@ public class SubscriptionsHandlerTest {
                 .onFailure(testContext::failNow);
         }
 
+        // flaky
         @Test
         void should_respond_subscriptions_without_criteria_but_with_sortable(VertxTestContext testContext) throws TechnicalException {
             when(
@@ -336,6 +339,7 @@ public class SubscriptionsHandlerTest {
                 .onFailure(testContext::failNow);
         }
 
+        // Flaky
         @Test
         void should_respond_subscriptions_without_pageable_or_criteria_but_with_sortable(VertxTestContext testContext)
             throws TechnicalException {
@@ -375,11 +379,8 @@ public class SubscriptionsHandlerTest {
         }
     }
 
-    private int getRandomPort() throws IOException {
-        ServerSocket socket = new ServerSocket(0);
-        int port = socket.getLocalPort();
-        socket.close();
-        return port;
+    private static int getAvailablePort() {
+        return TestSocketUtils.findAvailableTcpPort();
     }
 
     private Subscription buildSubscription(String id) {

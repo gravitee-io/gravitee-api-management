@@ -32,17 +32,14 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
+import org.springframework.test.util.TestSocketUtils;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -53,7 +50,7 @@ import org.mockito.MockedStatic;
 class VersionHandlerTest {
 
     private VersionHandler cut = new VersionHandler();
-    private WebClient client;
+    private int port;
 
     @BeforeEach
     public void beforeEach(Vertx vertx, VertxTestContext testContext) throws Exception {
@@ -67,12 +64,11 @@ class VersionHandlerTest {
                     router.route().handler(cut);
                     router.get("/_test_version").handler(RoutingContext::end);
                     try {
-                        int randomPort = getRandomPort();
-                        client = WebClient.create(vertx, new WebClientOptions().setDefaultHost("localhost").setDefaultPort(randomPort));
+                        port = getAvailablePort();
                         vertx
                             .createHttpServer()
                             .requestHandler(router)
-                            .listen(randomPort)
+                            .listen(port)
                             .onSuccess(event -> promise.complete())
                             .onFailure(promise::fail);
                     } catch (Exception e) {
@@ -114,6 +110,7 @@ class VersionHandlerTest {
     void should_return_200_success_with_matching_versions(
         final String serverVersion,
         final String clientVersion,
+        final Vertx vertx,
         final VertxTestContext testContext
     ) {
         doAnswer(invocation -> {
@@ -126,12 +123,15 @@ class VersionHandlerTest {
             })
             .when(cut)
             .handle(any());
+
+        WebClient client = WebClient.create(vertx, new WebClientOptions().setDefaultHost("localhost").setDefaultPort(port));
+
         client
             .get("/_test_version")
             .putHeader(HttpHeaders.USER_AGENT, "gio-client-bridge/" + clientVersion)
             .expect(ResponsePredicate.SC_OK)
             .send()
-            .onComplete(testContext.succeedingThenComplete())
+            .onComplete(testContext.succeeding(buffer -> testContext.verify(testContext::completeNow)))
             .onFailure(testContext::failNow);
     }
 
@@ -164,6 +164,7 @@ class VersionHandlerTest {
     void should_return_400_bad_request_with_wrong_matching_version(
         final String serverVersion,
         final String clientVersion,
+        final Vertx vertx,
         final VertxTestContext testContext
     ) {
         doAnswer(invocation -> {
@@ -176,19 +177,19 @@ class VersionHandlerTest {
             })
             .when(cut)
             .handle(any());
+
+        WebClient client = WebClient.create(vertx, new WebClientOptions().setDefaultHost("localhost").setDefaultPort(port));
+
         client
             .get("/_test_version")
             .putHeader(HttpHeaders.USER_AGENT, "gio-client-bridge/" + clientVersion)
             .expect(ResponsePredicate.SC_BAD_REQUEST)
             .send()
-            .onComplete(testContext.succeedingThenComplete())
+            .onComplete(testContext.succeeding(buffer -> testContext.verify(testContext::completeNow)))
             .onFailure(testContext::failNow);
     }
 
-    private int getRandomPort() throws IOException {
-        ServerSocket socket = new ServerSocket(0);
-        int port = socket.getLocalPort();
-        socket.close();
-        return port;
+    private static int getAvailablePort() {
+        return TestSocketUtils.findAvailableTcpPort();
     }
 }
