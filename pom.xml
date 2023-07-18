@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>22.0.0</version>
+        <version>22.0.2</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
@@ -53,7 +53,7 @@
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-apim-gateway-standalone-container -->
         <vertx.version>4.4.4</vertx.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>6.0.2</gravitee-bom.version>
+        <gravitee-bom.version>6.0.3</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>2.0.0</gravitee-cockpit-api.version>
         <gravitee-common.version>2.1.0</gravitee-common.version>
