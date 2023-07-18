@@ -80,14 +80,14 @@ public class SynchronizationService {
                     } else {
                         // FIXME dirty hack to ignore null pointer and empty object comparisions on Properties & Services
                         if (
-                            (f.get(deployedEntity) instanceof io.gravitee.definition.model.Properties) &&
+                            ((Properties) f.getType() instanceof io.gravitee.definition.model.Properties) &&
                             ((Properties) f.get(deployedEntity)).getValues().size() == 0 &&
                             ((Properties) f.get(entityToDeploy)).getValues().size() == 0
                         ) {
                             continue;
                         }
                         if (
-                            (f.get(deployedEntity) instanceof io.gravitee.definition.model.services.Services) &&
+                            ((Services) f.getType() instanceof io.gravitee.definition.model.services.Services) &&
                             ((Services) f.get(deployedEntity)).isEmpty() &&
                             ((Services) f.get(entityToDeploy)).isEmpty()
                         ) {
