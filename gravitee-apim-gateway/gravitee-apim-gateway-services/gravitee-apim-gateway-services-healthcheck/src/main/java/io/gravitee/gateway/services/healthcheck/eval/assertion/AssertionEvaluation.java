@@ -15,17 +15,11 @@
  */
 package io.gravitee.gateway.services.healthcheck.eval.assertion;
 
-import io.gravitee.el.spel.function.json.JsonPathFunction;
+import io.gravitee.el.exceptions.ExpressionEvaluationException;
+import io.gravitee.el.spel.SpelTemplateEngine;
 import io.gravitee.gateway.services.healthcheck.eval.Evaluation;
 import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
-import java.util.HashMap;
-import java.util.Map;
-import org.springframework.beans.BeanUtils;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelEvaluationException;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import io.gravitee.gateway.services.healthcheck.eval.assertion.spel.AssertionSpelExpressionParser;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,9 +27,11 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
  */
 public class AssertionEvaluation implements Evaluation {
 
-    private final String assertion;
+    private static final AssertionSpelExpressionParser EXPRESSION_PARSER = new AssertionSpelExpressionParser();
 
-    private final Map<String, Object> variables = new HashMap<>();
+    private final SpelTemplateEngine templateEngine = new SpelTemplateEngine(EXPRESSION_PARSER);
+
+    private final String assertion;
 
     public AssertionEvaluation(final String assertion) {
         this.assertion = assertion;
@@ -44,21 +40,14 @@ public class AssertionEvaluation implements Evaluation {
     @Override
     public boolean validate() throws EvaluationException {
         try {
-            final ExpressionParser parser = new SpelExpressionParser();
-            final Expression expr = parser.parseExpression(assertion);
-
-            final StandardEvaluationContext context = new StandardEvaluationContext();
-            context.registerFunction("jsonPath", BeanUtils.resolveSignature("evaluate", JsonPathFunction.class));
-            context.setVariables(variables);
-
-            return expr.getValue(context, boolean.class);
-        } catch (SpelEvaluationException spelex) {
-            throw new EvaluationException("Assertion cannot be verified : " + assertion, spelex);
+            return templateEngine.getValue(assertion, Boolean.class);
+        } catch (ExpressionEvaluationException eee) {
+            throw new EvaluationException("Assertion cannot be verified : " + assertion, eee);
         }
     }
 
     public void setVariable(String variable, Object value) {
-        this.variables.put(variable, value);
+        templateEngine.getTemplateContext().setVariable(variable, value);
     }
 
     public String getAssertion() {
