@@ -35,7 +35,7 @@ export class MAPIV2ApisFaker {
   static newApi(attributes?: Partial<CreateApiV4>): CreateApiV4 {
     const name = faker.commerce.productName();
     const apiVersion = this.version();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
 
     return {
       apiVersion,
