@@ -49,6 +49,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -654,6 +655,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 Set<GenericPlanEntity> plans =
                     this.planSearchService.findByIdIn(executionContext, planIds)
                         .stream()
+                        .filter(planEntity -> PlanMode.STANDARD.equals(planEntity.getPlanMode()))
                         .filter(planEntity -> {
                             PlanSecurityType security = PlanSecurityType.valueOfLabel(planEntity.getPlanSecurity().getType());
                             return security == PlanSecurityType.JWT || security == PlanSecurityType.OAUTH2;
