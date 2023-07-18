@@ -1,47 +1,32 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 // gio-submenu-item__title and gio-submenu-item for Design
 
 class apiDetails {
+  policyStudio() {
+    return cy.get('.gio-submenu-item').contains('Policy Studio');
+  }
 
-    design(){return cy.get('.gio-submenu-item').contains('Design')}
+  info() {
+    return cy.get('.gio-submenu-item__title').contains('Info');
+  }
 
-    info(){return cy.get('.gio-submenu-item__title').contains('Info')}
-
-    plans(){return cy.get('.gio-submenu-item__title').contains('Plans')}
-
-    // General
-
-    generalName(){return cy.get('[formcontrolname="name"]')}
-
-    generalVersion(){return cy.get('[formcontrolname="version"]')}
-    
-    generalDescription(){return cy.get('[formcontrolname="description"]')}
-
-    generalLabels(){return cy.get('[formcontrolname="labels"]')}
-
-    generalCategories(){return cy.get('[formcontrolname="categories"]')}
-
-    categories(){return cy.get('.mat-option-text')} 
-    // above Step Def would write as ApiDetails.categories().contains('[CATEGORY]').click()
-
-    saveDetails(){return cy.get('[type="submit"]').contains('Save')}
-
-
-    // Plans
-
-    addPlan(){return cy.get('[type="button"]').contains('Add new plan')}
-
-    planOauth2(){return cy.get('[role="menuitem"]').contains('OAuth2')}
-    
-    planJwt(){return cy.get('[role="menuitem"]').contains('JWT')}
-
-    planApiKey(){return cy.get('[role="menuitem"]').contains('API Key')}
-
-    planName(){return cy.get('[formcontrolname="name"]')}
-
-    planDescription(){return cy.get('[formcontrolname="description"]')}
-
-    // planName(){return cy.get('[formcontrolname="name"]')}
-
+  plans() {
+    return cy.get('.gio-submenu-item__title').contains('Plans');
+  }
 }
 
 export default apiDetails;
