@@ -216,10 +216,11 @@ export class ApiListComponent implements OnInit, OnDestroy {
   private getDefinitionVersion(api: Api) {
     switch (api.definitionVersion) {
       case 'V2':
+        return { label: api.definitionVersion };
       case 'V4':
-        return { label: api.definitionVersion.toLowerCase() };
+        return { label: `${api.definitionVersion} - ${(api as ApiV4).type}` };
       default:
-        return { icon: 'gio:alert-circle', label: 'v1' };
+        return { icon: 'gio:alert-circle', label: 'V1' };
     }
   }
 

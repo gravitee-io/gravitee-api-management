@@ -89,7 +89,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
 
           this.computePlanOptions();
         }),
-        tap(() => this.onInit(this.status, true)),
+        tap(() => this.initPlansTableDS(this.status, true)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -106,7 +106,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
 
   public searchPlansByStatus(status: PlanStatus): void {
     this.status = status;
-    this.onInit(this.status);
+    this.initPlansTableDS(this.status);
   }
 
   public dropRow(event: CdkDragDrop<string[]>) {
@@ -126,7 +126,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return of({});
         }),
-        tap(() => this.onInit(this.status)),
+        tap(() => this.ngOnInit()),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -169,7 +169,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
             this.ajsRootScope.$broadcast('apiChangeSuccess', { apiId: plan.apiId });
           }
           this.snackBarService.success(`The plan ${plan.name} has been published with success.`);
-          this.onInit(this.status, true);
+          this.ngOnInit();
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -201,7 +201,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
             this.ajsRootScope.$broadcast('apiChangeSuccess', { apiId: plan.apiId });
           }
           this.snackBarService.success(`The plan ${plan.name} has been deprecated with success.`);
-          this.onInit(this.status, true);
+          this.ngOnInit();
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -255,14 +255,14 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
           }
 
           this.snackBarService.success(`The plan ${plan.name} has been closed with success.`);
-          this.onInit(this.status, true);
+          this.ngOnInit();
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
   }
 
-  private onInit(selectedStatus: PlanStatus, fullReload = false): void {
+  private initPlansTableDS(selectedStatus: PlanStatus, fullReload = false): void {
     // For full reload, we need to reset the number of plans for each status
     const getApiPlans$: Observable<Plan[]> = fullReload
       ? this.plansService.list(this.ajsStateParams.apiId, undefined, [...PLAN_STATUS], undefined, 1, 9999).pipe(

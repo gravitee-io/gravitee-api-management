@@ -83,7 +83,7 @@
           <gio-form-label>Enable</gio-form-label>
         </gio-form-slide-toggle>
       </td>
-      <td class="gio-form-listeners__table__row__td">
+      <td class="gio-form-listeners__table__row__td" *ngIf="!isDisabled">
         <button
           mat-icon-button
           type="button"
@@ -99,4 +99,6 @@
   </tbody>
 </table>
 
-<button class="gio-form-listeners__add-button" type="button" mat-stroked-button (click)="addEmptyListener()">Add context-path</button>
+<button *ngIf="!isDisabled" class="gio-form-listeners__add-button" type="button" mat-stroked-button (click)="addEmptyListener()">
+  Add context-path
+</button>

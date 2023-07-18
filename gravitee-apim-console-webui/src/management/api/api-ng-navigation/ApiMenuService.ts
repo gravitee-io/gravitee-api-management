@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import faker from '@faker-js/faker';
-import { RatingInput } from '@gravitee/portal-webclient-sdk/src/lib/models/RatingInput';
+import { MenuGroupItem, MenuItem } from './MenuGroupItem';
 
-export class PortalApiFaker {
-  static newRatingInput(): RatingInput {
-    return {
-      title: faker.random.word(),
-      comment: `${faker.lorem.words(10)}`,
-      value: faker.datatype.number({ min: 1, max: 5, precision: 1 }),
-    };
-  }
+export interface ApiMenuService {
+  getMenu(): {
+    subMenuItems: MenuItem[];
+    groupItems: MenuGroupItem[];
+  };
 }

@@ -20,7 +20,7 @@ import { NewApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib
 export class ApplicationsFaker {
   static newApplication(attributes?: Partial<NewApiEntity>): NewApplicationEntity {
     const name = faker.commerce.productName();
-    const description = faker.commerce.productDescription();
+    const description = faker.lorem.words(10);
 
     return {
       name,

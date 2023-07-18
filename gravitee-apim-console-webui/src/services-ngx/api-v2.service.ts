@@ -25,6 +25,7 @@ import {
   ApiSortByParam,
   ApisResponse,
   ApiSubscribersResponse,
+  ApiV4,
   CreateApi,
   UpdateApi,
 } from '../entities/management-api-v2';
@@ -78,6 +79,14 @@ export class ApiV2Service {
   export(apiId: string): Observable<Blob> {
     return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/_export/definition`, {
       responseType: 'blob',
+    });
+  }
+
+  import(importApi: any): Observable<ApiV4> {
+    return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/definition`, importApi, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   }
 

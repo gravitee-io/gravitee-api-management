@@ -15,7 +15,7 @@
  */
 import '@gravitee/ui-components/wc/gv-tree';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { AfterViewInit, Component, HostListener, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
@@ -34,7 +34,9 @@ import { ScrollService } from '../../services/scroll.service';
     ]),
   ],
 })
-export class GvDocumentationComponent implements AfterViewInit {
+export class GvDocumentationComponent implements OnInit, AfterViewInit {
+  @Input()
+  pageBaseUrl: string;
   @Input() set pages(pages: Page[]) {
     clearTimeout(this.loadingTimer);
     if (pages && pages.length) {
@@ -52,7 +54,7 @@ export class GvDocumentationComponent implements AfterViewInit {
           pageToDisplay = this.getFirstPage(pages);
         }
         if (pageToDisplay) {
-          this.onPageChange(pageToDisplay);
+          this.selectPage(pageToDisplay.id);
           this.menu = this.initTree(pages, pageToDisplay.id);
           this.expandMenu(this.menu);
         } else {
@@ -177,6 +179,21 @@ export class GvDocumentationComponent implements AfterViewInit {
     });
   }
 
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (this._pages && params.page) {
+        this.selectPage(params.page);
+      }
+    });
+  }
+
+  selectPage(pageId: string) {
+    const pageToDisplay = this._pages.find(page => page.id === pageId);
+    GvDocumentationComponent.reset(this.treeMenu?.nativeElement);
+    this.currentPage = pageToDisplay;
+    this.currentMenuItem = this.findMenuItem(this.menu, pageToDisplay);
+  }
+
   ngAfterViewInit(): void {
     setTimeout(() => {
       GvDocumentationComponent.reset(this.treeMenu.nativeElement);
@@ -203,11 +220,7 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   @HostListener(':gv-tree:select', ['$event.detail.value'])
   onPageChange(page) {
-    this.router.navigate([], { queryParams: { page: page.id } }).then(() => {
-      GvDocumentationComponent.reset(this.treeMenu.nativeElement);
-    });
-    this.currentPage = page;
-    this.currentMenuItem = this.findMenuItem(this.menu, page);
+    return this.router.navigate([], { queryParams: { page: page.id } });
   }
 
   @HostListener(':gv-tree:toggle', ['$event.detail.closed'])
@@ -242,14 +255,6 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   isEmpty() {
     return this.isLoaded && (!this.menu || this.menu.length === 0);
-  }
-
-  @HostListener(':gv-button:click', ['$event.srcElement.dataset.pageId'])
-  onInternalLinkClick(pageId: string) {
-    if (pageId) {
-      const pageToDisplay = this._pages.find(page => page.id === pageId);
-      this.onPageChange(pageToDisplay);
-    }
   }
 
   private findMenuItem(menu: TreeItem[], pageToFind: any) {

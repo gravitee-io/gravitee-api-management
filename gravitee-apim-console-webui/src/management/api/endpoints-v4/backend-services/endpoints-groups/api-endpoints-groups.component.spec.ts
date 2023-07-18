@@ -28,7 +28,8 @@ import { ApiEndpointsGroupsModule } from './api-endpoints-groups.module';
 
 import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { User as DeprecatedUser } from '../../../../../entities/user';
 
 @Component({
   template: ` <api-endpoints-groups #apiEndpointsGroups [api]="api"></api-endpoints-groups> `,
@@ -87,11 +88,17 @@ describe('ApiEndpointsGroupsComponent', () => {
   let rootLoader: HarnessLoader;
   let componentHarness: ApiEndpointsGroupsHarness;
 
-  const initComponent = async (api: ApiV4) => {
+  const initComponent = async (api: ApiV4, permissions: string[] = ['api-definition-u', 'api-definition-c', 'api-definition-r']) => {
+    const currentUser = new DeprecatedUser();
+    currentUser.userPermissions = permissions;
+
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointsGroupsModule, MatIconTestingModule],
-      providers: [{ provide: UIRouterState, useValue: fakeUiRouter }],
+      providers: [
+        { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: CurrentUserService, useValue: { currentUser } },
+      ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true,
@@ -138,6 +145,7 @@ describe('ApiEndpointsGroupsComponent', () => {
         endpointGroups: [group1, group2],
       });
       await initComponent(apiV4);
+      expect(await componentHarness.isEndpointDeleteButtonVisible()).toEqual(true);
 
       await componentHarness.deleteEndpoint(1, rootLoader);
 
@@ -181,7 +189,7 @@ describe('ApiEndpointsGroupsComponent', () => {
         endpointGroups: [group1, group2],
       });
       await initComponent(apiV4);
-
+      expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(true);
       await componentHarness.clickAddEndpoint(0);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-new', { groupIndex: 0 });
@@ -196,6 +204,7 @@ describe('ApiEndpointsGroupsComponent', () => {
       });
       await initComponent(apiV4);
 
+      expect(await componentHarness.isEditEndpointButtonVisible()).toEqual(true);
       await componentHarness.clickEditEndpoint(0);
 
       expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-edit', { groupIndex: 0, endpointIndex: 0 });
@@ -231,6 +240,20 @@ describe('ApiEndpointsGroupsComponent', () => {
       expectApiGetRequest(apiV4);
       expectApiPutRequest({ ...apiV4, endpointGroups: [group2, group1] });
       expectEndpointsGetRequest();
+    });
+  });
+
+  describe('read-only mode', () => {
+    it('should not allow deleting, adding or editing endpoints if user can only read', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [group1, group2],
+      });
+      await initComponent(apiV4, ['api-definition-r']);
+
+      expect(await componentHarness.isEndpointDeleteButtonVisible()).toEqual(false);
+      expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(false);
+      expect(await componentHarness.isEditEndpointButtonVisible()).toEqual(false);
     });
   });
 

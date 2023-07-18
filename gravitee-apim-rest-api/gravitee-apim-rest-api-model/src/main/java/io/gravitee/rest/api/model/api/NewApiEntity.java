@@ -102,7 +102,7 @@ public class NewApiEntity {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = HTML_SANITIZER.sanitize(description);
     }
 
     public String getContextPath() {

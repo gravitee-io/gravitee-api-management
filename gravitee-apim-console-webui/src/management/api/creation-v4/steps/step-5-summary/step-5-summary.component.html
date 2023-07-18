@@ -125,7 +125,7 @@
         </div>
       </div>
     </div>
-    <div *ngIf="shouldUpgrade$ | async">
+    <div *ngIf="shouldUpgrade">
       <gio-banner type="error" icon="gio:universe">
         This configuration requires an enterprise license
         <span gioBannerBody

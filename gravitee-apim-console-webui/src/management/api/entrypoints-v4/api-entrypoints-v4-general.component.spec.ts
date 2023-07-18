@@ -31,13 +31,14 @@ import { ApiEntrypointsV4GeneralHarness } from './api-entrypoints-v4-general.har
 import { ApiEntrypointsV4AddDialogHarness } from './edit/api-entrypoints-v4-add-dialog.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Api, ApiV4, ConnectorPlugin, fakeApiV4, UpdateApiV4 } from '../../../entities/management-api-v2';
 import { GioFormListenersContextPathHarness } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { GioFormListenersVirtualHostHarness } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
 import { Environment } from '../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
+import { User as DeprecatedUser } from '../../../entities/user';
 
 describe('ApiProxyV4EntrypointsComponent', () => {
   const API_ID = 'apiId';
@@ -47,8 +48,8 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
 
-  const createComponent = async (environment: Environment, api: ApiV4, getPortalSettings = true) => {
-    await init();
+  const createComponent = async (environment: Environment, api: ApiV4, getPortalSettings = true, permissions?: string[]) => {
+    await init(permissions);
     fixture.detectChanges();
 
     expectGetCurrentEnvironment(environment);
@@ -60,12 +61,16 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     }
   };
 
-  const init = async () => {
+  const init = async (permissions: string[] = ['api-definition-u', 'api-definition-r']) => {
+    const currentUser = new DeprecatedUser();
+    currentUser.userPermissions = permissions;
+
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
+        { provide: CurrentUserService, useValue: { currentUser } },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -581,6 +586,53 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       };
       expect(saveReq.request.body).toEqual(expectedUpdateApi);
       saveReq.flush(API);
+    });
+  });
+
+  describe('user cannot update', () => {
+    const ENV = fakeEnvironment();
+    const API = fakeApiV4({
+      id: API_ID,
+      listeners: [
+        { type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] },
+        { type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] },
+      ],
+    });
+
+    beforeEach(async () => {
+      await createComponent(ENV, API, undefined, ['api-definition-r']);
+    });
+    it('should not show buttons that require permissions', async () => {
+      // switch to virtual host mode/context path mode
+      await loader
+        .getHarness(MatButtonHarness.with({ text: 'Enable virtual hosts' }))
+        .then((_) => fail('A user should not be able to enable virtual hosts'))
+        .catch((err) => expect(err).toBeTruthy());
+
+      // save changes or reset for context path form
+      await loader
+        .getHarness(MatButtonHarness.with({ text: 'Save changes' }))
+        .then((_) => fail('A user should not be able to save context path form'))
+        .catch((err) => expect(err).toBeTruthy());
+
+      await loader
+        .getHarness(MatButtonHarness.with({ text: 'Reset' }))
+        .then((_) => fail('A user should not be able to reset context path form'))
+        .catch((err) => expect(err).toBeTruthy());
+
+      // actions for a given entrypoint
+      const harness = await loader.getHarness(ApiEntrypointsV4GeneralHarness);
+      const rows = await harness.getEntrypointsTableRows();
+      expect(rows.length).toEqual(2);
+
+      const actionCell = await rows[0].getCells({ columnName: 'actions' });
+      expect(await actionCell[0].getAllHarnesses(MatButtonHarness).then((buttons) => buttons?.length)).toEqual(0);
+
+      // add an entrypoint
+      await loader
+        .getHarness(MatButtonHarness.with({ text: 'Add an entrypoint' }))
+        .then((_) => fail('A user should not be able to add a new entrypoint'))
+        .catch((err) => expect(err).toBeTruthy());
     });
   });
   function expectGetCurrentEnvironment(environment: Environment): void {

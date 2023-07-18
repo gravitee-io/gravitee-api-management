@@ -49,6 +49,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -357,7 +358,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             if (!isApplicationTypeAllowed(executionContext, appType, executionContext.getEnvironmentId())) {
                 throw new IllegalStateException("Application type '" + appType + "' is not allowed");
             }
-            checkClientSettings(newApplicationEntity.getSettings().getoAuthClient());
+            checkClientSettings(newApplicationEntity.getSettings().getoAuthClient(), newApplicationEntity.getType());
 
             // Create an OAuth client
             ClientRegistrationResponse registrationResponse = clientRegistrationService.register(executionContext, newApplicationEntity);
@@ -461,15 +462,15 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private void checkClientSettings(OAuthClientSettings oAuthClientSettings) {
+    private void checkClientSettings(OAuthClientSettings oAuthClientSettings, String applicationType) {
         if (oAuthClientSettings.getGrantTypes() == null || oAuthClientSettings.getGrantTypes().isEmpty()) {
             throw new ApplicationGrantTypesNotFoundException();
         }
 
-        ApplicationTypeEntity applicationType = applicationTypeService.getApplicationType(oAuthClientSettings.getApplicationType());
+        ApplicationTypeEntity applicationTypeEntity = applicationTypeService.getApplicationType(applicationType);
 
         List<String> targetGrantTypes = oAuthClientSettings.getGrantTypes();
-        List<String> allowedGrantTypes = applicationType
+        List<String> allowedGrantTypes = applicationTypeEntity
             .getAllowed_grant_types()
             .stream()
             .map(ApplicationGrantTypeEntity::getType)
@@ -479,11 +480,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         List<String> redirectUris = oAuthClientSettings.getRedirectUris();
-        if (applicationType.getRequires_redirect_uris() && (redirectUris == null || redirectUris.isEmpty())) {
+        if (applicationTypeEntity.getRequires_redirect_uris() && (redirectUris == null || redirectUris.isEmpty())) {
             throw new ApplicationRedirectUrisNotFound();
         }
 
-        List<String> responseTypes = applicationType
+        List<String> responseTypes = applicationTypeEntity
             .getAllowed_grant_types()
             .stream()
             .filter(applicationGrantTypeEntity -> targetGrantTypes.contains(applicationGrantTypeEntity.getType()))
@@ -558,7 +559,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             } else {
                 // Check that client registration is enabled
                 checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
-                checkClientSettings(updateApplicationEntity.getSettings().getoAuthClient());
+                checkClientSettings(updateApplicationEntity.getSettings().getoAuthClient(), applicationToUpdate.getType().name());
 
                 // Update an OAuth client
                 final String registrationPayload = applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD);
@@ -602,23 +603,22 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 updatedApplication
             );
 
-            // Set correct client_id for all subscriptions
+            // Set correct client_id for all active subscriptions
             SubscriptionQuery subQuery = new SubscriptionQuery();
             subQuery.setApplication(applicationId);
-            subQuery.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
+            subQuery.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING));
+            String clientId = application.getMetadata().get(METADATA_CLIENT_ID);
             subscriptionService
                 .search(executionContext, subQuery)
                 .forEach(subscriptionEntity -> {
-                    UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
-                    updateSubscriptionEntity.setId(subscriptionEntity.getId());
-                    updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
-                    updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
+                    if (StringUtils.isNotEmpty(subscriptionEntity.getClientId()) && StringUtils.isNotEmpty(clientId)) {
+                        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                        updateSubscriptionEntity.setId(subscriptionEntity.getId());
+                        updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
+                        updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
 
-                    subscriptionService.update(
-                        executionContext,
-                        updateSubscriptionEntity,
-                        application.getMetadata().get(METADATA_CLIENT_ID)
-                    );
+                        subscriptionService.update(executionContext, updateSubscriptionEntity, clientId);
+                    }
                 });
             return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
         } catch (TechnicalException ex) {
@@ -655,6 +655,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 Set<GenericPlanEntity> plans =
                     this.planSearchService.findByIdIn(executionContext, planIds)
                         .stream()
+                        .filter(planEntity -> PlanMode.STANDARD.equals(planEntity.getPlanMode()))
                         .filter(planEntity -> {
                             PlanSecurityType security = PlanSecurityType.valueOfLabel(planEntity.getPlanSecurity().getType());
                             return security == PlanSecurityType.JWT || security == PlanSecurityType.OAUTH2;

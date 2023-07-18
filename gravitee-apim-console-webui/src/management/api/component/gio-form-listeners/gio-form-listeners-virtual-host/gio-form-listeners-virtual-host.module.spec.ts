@@ -206,7 +206,7 @@ describe('GioFormListenersVirtualHostModule', () => {
     expect(initialContextPathRows.length).toEqual(2);
 
     const contextPathRowToRemove = initialContextPathRows[1];
-    await contextPathRowToRemove.removeButton?.click();
+    await contextPathRowToRemove.removeButton.click();
 
     const newContextPathRows = await formContextPaths.getListenerRows();
     expect(newContextPathRows.length).toEqual(1);
@@ -246,5 +246,23 @@ describe('GioFormListenersVirtualHostModule', () => {
 
     expect(testComponent.formControl.touched).toEqual(true);
     expect(testComponent.formControl.dirty).toEqual(true);
+  });
+
+  it('should not show delete or add buttons and the context paths should be unmodifiable when disabled', async () => {
+    testComponent.formControl = new FormControl({ value: LISTENERS, disabled: true });
+
+    const formPaths = await loader.getHarness(GioFormListenersVirtualHostHarness);
+
+    const contextPathRow = (await formPaths.getListenerRows())[1];
+
+    expect(await contextPathRow.pathInput.isDisabled()).toEqual(true);
+    expect(await contextPathRow.removeButton).toBeFalsy();
+    expect(await contextPathRow.hostSubDomainInput.isDisabled()).toEqual(true);
+    expect(await contextPathRow.overrideAccessInput.isDisabled()).toEqual(true);
+
+    await formPaths
+      .getAddButton()
+      .then((_) => fail('The add button should not appear'))
+      .catch((err) => expect(err).toBeTruthy());
   });
 });

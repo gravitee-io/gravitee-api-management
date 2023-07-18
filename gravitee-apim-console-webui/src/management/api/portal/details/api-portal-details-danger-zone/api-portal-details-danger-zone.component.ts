@@ -23,7 +23,7 @@ import {
   GioConfirmDialogData,
 } from '@gravitee/ui-particles-angular';
 import { StateService } from '@uirouter/core';
-import { EMPTY, Subject } from 'rxjs';
+import { EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState } from '../../../../../ajs-upgraded-providers';
@@ -68,17 +68,20 @@ export class ApiPortalDetailsDangerZoneComponent implements OnChanges, OnDestroy
   };
   public isReadOnly = false;
 
-  public get shouldUpgrade$() {
+  public get shouldUpgrade$(): Observable<boolean> {
+    if (this.api.definitionVersion === 'V2') {
+      return of(false);
+    }
     const api = this.api as ApiV4;
     if (api.type === 'PROXY') {
-      return false;
+      return of(false);
     }
     return this.licenseService?.isMissingFeature$(Feature.APIM_EN_MESSAGE_REACTOR);
   }
 
-  public get canStart$() {
+  public get canStart$(): Observable<boolean> {
     if (this.isReadOnly) {
-      return false;
+      return of(false);
     }
     return this.shouldUpgrade$;
   }

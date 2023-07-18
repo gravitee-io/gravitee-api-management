@@ -32,6 +32,7 @@ import { IconService } from '../../../services-ngx/icon.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
 import { ConnectorVM, fromConnector } from '../creation-v4/models/ConnectorVM';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 type EntrypointVM = {
   id: string;
@@ -56,6 +57,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   public apiExistingPaths: PathV4[] = [];
   public domainRestrictions: string[] = [];
   public entrypointAvailableForAdd: ConnectorVM[] = [];
+  private canUpdate = false;
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -66,12 +68,15 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     private readonly iconService: IconService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
+    private readonly permissionService: GioPermissionService,
     private readonly changeDetector: ChangeDetectorRef,
   ) {
     this.apiId = this.ajsStateParams.apiId;
   }
 
   ngOnInit(): void {
+    this.canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
+
     forkJoin([
       this.environmentService.getCurrent(),
       this.apiService.get(this.apiId),
@@ -97,7 +102,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
       this.apiExistingPaths = httpListeners.flatMap((listener) => {
         return (listener as HttpListener).paths;
       });
-      this.pathsFormControl = this.formBuilder.control(this.apiExistingPaths, Validators.required);
+      this.pathsFormControl = this.formBuilder.control({ value: this.apiExistingPaths, disabled: !this.canUpdate }, Validators.required);
       this.formGroup.addControl('paths', this.pathsFormControl);
       this.enableVirtualHost = this.apiExistingPaths.some((path) => path.host !== undefined);
     } else {

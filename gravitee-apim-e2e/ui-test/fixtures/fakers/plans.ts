@@ -21,7 +21,7 @@ export class PlanFakers {
     return <NewPlanEntity>{
       ...attributes,
       name: faker.commerce.productName(),
-      description: faker.commerce.productDescription(),
+      description: faker.lorem.words(10),
     };
   }
 }

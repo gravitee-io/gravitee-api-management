@@ -151,20 +151,14 @@
     </div>
 
     <div class="details-card__actions">
-      <button
-        *gioPermission="{ anyOf: ['api-definition-r'] }"
-        mat-button
-        class="details-card__actions_btn"
-        (click)="exportApi()"
-        data-testid="api_info_export_menu"
-      >
+      <button *gioPermission="{ anyOf: ['api-definition-r'] }" mat-button class="details-card__actions_btn" data-testid="api_info_export_menu" (click)="exportApi()">
         <mat-icon svgIcon="gio:upload"></mat-icon> Export
       </button>
       <button
-        *gioPermission="{ anyOf: ['api-definition-u'] }"
+        *gioPermission="{ anyOf: ['api-definition-c'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="isReadOnly || api.definitionVersion === 'V4'"
+        [disabled]="isKubernetesOrigin || api.definitionVersion === 'V4'"
         (click)="importApi()"
       >
         <mat-icon svgIcon="gio:download"></mat-icon> Import
@@ -173,8 +167,8 @@
         *gioPermission="{ anyOf: ['api-definition-c'] }"
         mat-button
         class="details-card__actions_btn"
-        data-testid="api_info_duplicate_menu"
         [disabled]="isKubernetesOrigin || api.definitionVersion === 'V4'"
+        data-testid="api_info_duplicate_menu"
         (click)="duplicateApi()"
       >
         <mat-icon svgIcon="gio:copy"></mat-icon> Duplicate
@@ -183,8 +177,8 @@
         *gioPermission="{ anyOf: ['api-definition-u'] }"
         mat-button
         class="details-card__actions_btn"
-        data-testid="api_info_promote"
         [disabled]="!canPromote || isKubernetesOrigin || api.definitionVersion === 'V4'"
+        data-testid="api_info_promote"
         (click)="promoteApi()"
       >
         <mat-icon svgIcon="gio:language"></mat-icon> Promote

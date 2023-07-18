@@ -104,9 +104,9 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
   private api: Api;
 
   public isLoadingData = true;
-  public isReadOnly = false;
+  public canUpdate = false;
   private routeBase: string;
-
+  private isKubernetesOrigin = false;
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -148,9 +148,8 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
       .pipe(
         tap((api) => {
           this.api = api;
-          this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-subscription-u', 'api-subscription-c']) ||
-            api.definitionContext?.origin === 'KUBERNETES';
+          this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+          this.canUpdate = this.permissionService.hasAnyMatching(['api-subscription-u']) && !this.isKubernetesOrigin;
         }),
         switchMap(() => this.apiPlanService.list(this.ajsStateParams.apiId, null, null, null, 1, 9999)),
         tap((plansResponse) => (this.plans = plansResponse.data)),
