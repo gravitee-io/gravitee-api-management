@@ -20,7 +20,7 @@ import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import '@gravitee/ui-components/wc/gv-icon';
-import { PlanSecurityType } from '../../../..//entities/plan/plan';
+import { PlanSecurityType } from '../../../../entities/plan';
 
 class ApplicationCreationController {
   application: any;
@@ -43,44 +43,15 @@ class ApplicationCreationController {
     private NotificationService: NotificationService,
     private $q,
     private ApiService: ApiService,
-  ) {
-    this.steps = [
-      {
-        badgeClass: 'disable',
-        badgeIconClass: 'notification:sync',
-        title: 'General',
-        content: 'Name and description',
-        completed: false,
-      },
-      {
-        badgeClass: 'disable',
-        badgeIconClass: 'notification:sync',
-        title: 'Security',
-        content: this.clientRegistrationEnabled() ? 'OIDC configuration' : 'Type and client id',
-        completed: false,
-      },
-      {
-        badgeClass: 'disable',
-        badgeIconClass: 'notification:sync',
-        title: 'Subscriptions',
-        content: 'Subscribe to APIs',
-        completed: false,
-      },
-    ];
-  }
+  ) {}
 
   $onInit() {
     this.ApiService.list().then((response) => (this.apis = response.data));
   }
 
   next() {
-    this.steps[this.selectedStep].completed = true;
-    this.steps[this.selectedStep].badgeClass = 'info';
-    this.steps[this.selectedStep].badgeIconClass = 'action:check_circle';
-    this.steps[0].title = this.application.name;
     if (this.selectedStep > 0) {
       this.applicationType = this.ApplicationService.getType(this.application);
-      this.steps[1].title = this.applicationType;
     }
     this.goToStep(this.selectedStep + 1);
   }
@@ -95,7 +66,6 @@ class ApplicationCreationController {
 
   goToStep(step) {
     this.selectedStep = step;
-    this.steps[2].title = this.getReadableApiSubscriptions();
   }
 
   clickOnCreate() {
@@ -153,7 +123,6 @@ class ApplicationCreationController {
     this.selectedAPIs.push(api);
     plan.alreadySubscribed = true;
     this.selectedPlans.push(plan);
-    this.steps[2].title = this.getReadableApiSubscriptions();
   }
 
   onUnsubscribe(api, plan) {
@@ -161,7 +130,6 @@ class ApplicationCreationController {
     _.remove(this.selectedPlans, { id: plan.id });
     const index = _.findIndex(this.selectedAPIs, { id: api.id });
     this.selectedAPIs.splice(index, 1);
-    this.steps[2].title = this.getReadableApiSubscriptions();
   }
 
   getReadableApiSubscriptions(): string {

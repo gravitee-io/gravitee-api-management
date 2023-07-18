@@ -25,6 +25,7 @@
 // Not encapsulated because used when encapsulation is .mat
 @import 'components/contextual/contextual-doc.component';
 @import 'management/api/api';
+@import 'management/application/creation/steps/application-creation';
 @import 'user/login/login';
 @import 'components/newsletter-subcription/newsletter-reminder';
 @import 'management/submenu';
