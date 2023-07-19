@@ -101,7 +101,7 @@
         <!-- HTTP mock -->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8</artifactId>
+            <artifactId>wiremock</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -130,17 +130,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <!--
-                io.vertx.core.VertxException: OpenSSL is not available
-                Caused by: java.lang.IllegalArgumentException: Failed to load any of the given libraries: [netty_tcnative_osx_aarch_64, netty_tcnative_aarch_64, netty_tcnative]
-                -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skipTests>true</skipTests>
-                </configuration>
             </plugin>
         </plugins>
     </build>
