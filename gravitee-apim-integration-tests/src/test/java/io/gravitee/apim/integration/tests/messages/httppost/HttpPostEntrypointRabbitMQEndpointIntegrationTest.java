@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.integration.tests.messages.httppost;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.graviteesource.entrypoint.http.post.HttpPostEntrypointConnectorFactory;
@@ -38,6 +39,7 @@ import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 import org.junit.jupiter.api.Test;
 
 @GatewayTest
@@ -62,12 +64,18 @@ class HttpPostEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitMQ
 
     @Test
     @DeployApi({ "/apis/v4/messages/http-post/http-post-entrypoint-rabbitmq-endpoint.json" })
-    void should_publish_message(HttpClient client) {
+    void should_publish_message(HttpClient client) throws InterruptedException {
         JsonObject requestBody = new JsonObject();
         requestBody.put("field", "value");
 
         subscribeToRabbitMQ(exchange, routingKey)
-            .zipWith(postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value")).isEmpty().toFlowable(), (c, o) -> c)
+            .zipWith(
+                    postMessage(client, "/test", requestBody, Map.of("X-Test-Header", "header-value"))
+                        .delaySubscription(750, MILLISECONDS)
+                        .isEmpty()
+                        .toFlowable(),
+                    (c, o) -> c
+            )
             .test()
             .awaitDone(30, TimeUnit.SECONDS)
             .assertValue(message -> {
