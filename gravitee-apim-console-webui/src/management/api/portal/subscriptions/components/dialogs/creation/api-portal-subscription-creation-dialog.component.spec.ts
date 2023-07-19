@@ -46,9 +46,12 @@ import {
   Plan,
   VerifySubscription,
 } from '../../../../../../../entities/management-api-v2';
-import { Application } from '../../../../../../../entities/application/application';
+import { ApiKeyMode, Application } from '../../../../../../../entities/application/application';
 import { PagedResult } from '../../../../../../../entities/pagedResult';
 import { fakeApplication } from '../../../../../../../entities/application/Application.fixture';
+import { SubscriptionService } from '../../../../../../../services-ngx/subscription.service';
+import { PlanSecurityType } from '../../../../../../../entities/plan';
+import { ApplicationSubscription } from '../../../../../../../entities/subscription/subscription';
 
 @Component({
   selector: 'gio-dialog-test',
@@ -89,8 +92,113 @@ describe('Subscription creation dialog', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
+  describe('Test already subscribed', () => {
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        declarations: [TestComponent],
+        imports: [ApiPortalSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+        providers: [
+          {
+            provide: InteractivityChecker,
+            useValue: {
+              isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+              isTabbable: () => true, // This traps tabbable checks and so avoid warnings when dealing with
+            },
+          },
+          {
+            provide: 'Constants',
+            useFactory: () => {
+              const constants = CONSTANTS_TESTING;
+              set(constants, 'env.settings.plan.security', {
+                customApiKey: { enabled: true },
+                sharedApiKey: { enabled: false },
+              });
+              return constants;
+            },
+          },
+        ],
+      });
+      fixture = TestBed.createComponent(TestComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture.detectChanges();
+      component = fixture.componentInstance;
+      loader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+      httpTestingController.verify();
+    });
+
+    it('should not be able to select already subscribed plan by selected application', async () => {
+      const applicationWithClientId = fakeApplication({
+        id: 'my-app',
+        name: 'withClientId',
+        settings: { app: { client_id: 'clientId' } },
+      });
+      const apiKeyPlan = fakePlanV4({
+        id: 'api-key-id',
+        name: 'apikey',
+        apiId: 'my-api',
+        mode: 'STANDARD',
+        security: { type: 'API_KEY' },
+        generalConditions: undefined,
+      });
+      const jwtPlan = fakePlanV4({
+        id: 'jwt-id',
+        name: 'jwt',
+        apiId: 'my-api',
+        mode: 'STANDARD',
+        security: { type: 'JWT' },
+        generalConditions: undefined,
+      });
+      const oauthPlan = fakePlanV4({
+        id: 'oauth-id',
+        name: 'oauth2',
+        apiId: 'my-api',
+        mode: 'STANDARD',
+        security: { type: 'OAUTH2' },
+        generalConditions: undefined,
+      });
+      component.plans = [apiKeyPlan, jwtPlan, oauthPlan];
+      component.availableSubscriptionEntrypoints = [];
+      await componentTestingOpenDialog();
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+      expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+      expect(await harness.isPlanRadioGroupEnabled()).toBeFalsy();
+
+      expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+
+      await harness.searchApplication('withClientId');
+      expectApplicationsSearch('withClientId', [applicationWithClientId]);
+      await harness.selectApplication(applicationWithClientId.name);
+
+      expectSubscriptionsForApplication(applicationWithClientId.id, [
+        {
+          security: PlanSecurityType.JWT,
+          api: 'my-api',
+          plan: jwtPlan.id,
+        },
+        {
+          security: PlanSecurityType.API_KEY,
+          api: 'my-api',
+          plan: apiKeyPlan.id,
+        },
+      ]);
+
+      expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
+      const apiKeyRadioButton = await harness.getRadioButtons({ label: apiKeyPlan.name });
+      expect(await apiKeyRadioButton[0].isDisabled()).toBeTruthy();
+      const jwtKeyRadioButton = await harness.getRadioButtons({ label: jwtPlan.name });
+      expect(await jwtKeyRadioButton[0].isDisabled()).toBeTruthy();
+      const oauth2RadioButton = await harness.getRadioButtons({ label: oauthPlan.name });
+      expect(await oauth2RadioButton[0].isDisabled()).toBeFalsy();
+    });
+  });
+
   describe('Test customApiKey input', () => {
-    describe('With custom apiKey enabled', () => {
+    describe('With custom API Key enabled and shared API Key disabled', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
@@ -109,6 +217,7 @@ describe('Subscription creation dialog', () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {
                   customApiKey: { enabled: true },
+                  sharedApiKey: { enabled: false },
                 });
                 return constants;
               },
@@ -140,8 +249,7 @@ describe('Subscription creation dialog', () => {
 
         const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
-
-        await harness.choosePlan(planV4.name);
+        expect(await harness.isPlanRadioGroupEnabled()).toBeFalsy();
 
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
 
@@ -149,7 +257,13 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
+        expectSubscriptionsForApplication(applicationWithClientId.id, []);
+
+        expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
+        await harness.choosePlan(planV4.name);
+
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeTruthy();
+        expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
 
         await harness.addCustomKey('12345678');
         const req = httpTestingController.expectOne({
@@ -183,6 +297,8 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
+        expectSubscriptionsForApplication(applicationWithClientId.id, []);
+
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
 
         await harness.choosePlan(jwtPlanV4.name);
@@ -207,7 +323,183 @@ describe('Subscription creation dialog', () => {
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
       });
     });
-    describe('With custom apiKey disabled', () => {
+    describe('With custom API Key enabled and shared apiKey enabled', () => {
+      beforeEach(() => {
+        TestBed.configureTestingModule({
+          declarations: [TestComponent],
+          imports: [ApiPortalSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+          providers: [
+            { provide: SubscriptionService },
+            {
+              provide: InteractivityChecker,
+              useValue: {
+                isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+                isTabbable: () => true, // This traps tabbable checks and so avoid warnings when dealing with
+              },
+            },
+            {
+              provide: 'Constants',
+              useFactory: () => {
+                const constants = CONSTANTS_TESTING;
+                set(constants, 'env.settings.plan.security', {
+                  customApiKey: { enabled: true },
+                  sharedApiKey: { enabled: true },
+                });
+                return constants;
+              },
+            },
+          ],
+        });
+        fixture = TestBed.createComponent(TestComponent);
+        httpTestingController = TestBed.inject(HttpTestingController);
+        fixture.detectChanges();
+        component = fixture.componentInstance;
+        loader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      });
+
+      afterEach(() => {
+        jest.clearAllMocks();
+        httpTestingController.verify();
+      });
+
+      it('should be able to select API Key mode EXCLUSIVE and custom API Key', async () => {
+        const applicationWithClientId = fakeApplication({
+          id: 'my-app',
+          name: 'withClientId',
+          settings: { app: { client_id: 'clientId' } },
+          api_key_mode: ApiKeyMode.UNSPECIFIED,
+        });
+        const planV4 = fakePlanV4({ apiId: 'my-api', mode: 'STANDARD', security: { type: 'API_KEY' }, generalConditions: undefined });
+        component.plans = [planV4];
+        component.availableSubscriptionEntrypoints = [];
+
+        await componentTestingOpenDialog();
+
+        const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+        expect(await harness.isPlanRadioGroupEnabled()).toBeFalsy();
+
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+        expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
+
+        await harness.searchApplication('withClientId');
+        expectApplicationsSearch('withClientId', [applicationWithClientId]);
+        await harness.selectApplication(applicationWithClientId.name);
+
+        expectSubscriptionsForApplication(applicationWithClientId.id, [
+          {
+            security: PlanSecurityType.API_KEY,
+            api: 'another-plan-id',
+          },
+        ]);
+
+        expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
+        await harness.choosePlan(planV4.name);
+
+        expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeTruthy();
+
+        await harness.chooseApiKeyMode('API Key');
+
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeTruthy();
+
+        await harness.addCustomKey('12345678');
+        const req = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/my-api/subscriptions/_verify`,
+          method: 'POST',
+        });
+        const verifySubscription: VerifySubscription = {
+          applicationId: 'my-app',
+          apiKey: '12345678',
+        };
+        expect(req.request.body).toEqual(verifySubscription);
+        req.flush({ ok: true });
+      });
+      it('should not be able to select API Key mode when no subscription and custom API Key', async () => {
+        const applicationWithClientId = fakeApplication({
+          id: 'my-app',
+          name: 'withClientId',
+          settings: { app: { client_id: 'clientId' } },
+          api_key_mode: ApiKeyMode.UNSPECIFIED,
+        });
+        const planV4 = fakePlanV4({ apiId: 'my-api', mode: 'STANDARD', security: { type: 'API_KEY' }, generalConditions: undefined });
+        component.plans = [planV4];
+        component.availableSubscriptionEntrypoints = [];
+
+        await componentTestingOpenDialog();
+
+        const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+        expect(await harness.isPlanRadioGroupEnabled()).toBeFalsy();
+
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+        expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
+
+        await harness.searchApplication('withClientId');
+        expectApplicationsSearch('withClientId', [applicationWithClientId]);
+        await harness.selectApplication(applicationWithClientId.name);
+
+        expectSubscriptionsForApplication(applicationWithClientId.id, []);
+
+        expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
+        await harness.choosePlan(planV4.name);
+
+        expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
+
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeTruthy();
+
+        await harness.addCustomKey('12345678');
+        const req = httpTestingController.expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/my-api/subscriptions/_verify`,
+          method: 'POST',
+        });
+        const verifySubscription: VerifySubscription = {
+          applicationId: 'my-app',
+          apiKey: '12345678',
+        };
+        expect(req.request.body).toEqual(verifySubscription);
+        req.flush({ ok: true });
+      });
+      it('should be able to select API Key mode SHARED and not custom API Key', async () => {
+        const applicationWithClientId = fakeApplication({
+          id: 'my-app',
+          name: 'withClientId',
+          settings: { app: { client_id: 'clientId' } },
+          api_key_mode: ApiKeyMode.UNSPECIFIED,
+        });
+        const planV4 = fakePlanV4({ apiId: 'my-api', mode: 'STANDARD', security: { type: 'API_KEY' }, generalConditions: undefined });
+        component.plans = [planV4];
+        component.availableSubscriptionEntrypoints = [];
+
+        await componentTestingOpenDialog();
+
+        const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+        expect(await harness.isPlanRadioGroupEnabled()).toBeFalsy();
+
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+        expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
+
+        await harness.searchApplication('withClientId');
+        expectApplicationsSearch('withClientId', [applicationWithClientId]);
+        await harness.selectApplication(applicationWithClientId.name);
+
+        expectSubscriptionsForApplication(applicationWithClientId.id, [
+          {
+            security: PlanSecurityType.API_KEY,
+            api: 'another-plan-id',
+          },
+        ]);
+
+        expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
+        await harness.choosePlan(planV4.name);
+
+        expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeTruthy();
+
+        await harness.chooseApiKeyMode('Shared API Key');
+
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+      });
+    });
+    describe('With custom API Key disabled', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
@@ -261,6 +553,12 @@ describe('Subscription creation dialog', () => {
   });
 
   describe('Test Push plan form', () => {
+    const applicationWithClientId = fakeApplication({
+      id: 'my-app',
+      name: 'withClientId',
+      settings: { app: { client_id: 'clientId' } },
+    });
+
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponent],
@@ -288,7 +586,7 @@ describe('Subscription creation dialog', () => {
     });
 
     it('should have Push Plan configuration form', async () => {
-      const planV4 = fakePlanV4({ mode: 'PUSH', generalConditions: undefined });
+      const planV4 = fakePlanV4({ mode: 'PUSH', generalConditions: undefined, security: undefined });
       const apiV4 = fakeApiV4({ listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }] });
       component.plans = [planV4];
       component.availableSubscriptionEntrypoints = apiV4.listeners[0].entrypoints;
@@ -299,6 +597,11 @@ describe('Subscription creation dialog', () => {
       expect(await harness.isChannelInputDisplayed()).toBeFalsy();
       expect(await harness.isEntrypointSelectDisplayed()).toBeFalsy();
       expect(await harness.isEntrypointConfigurationFormDisplayed()).toBeFalsy();
+
+      await harness.searchApplication('withClientId');
+      expectApplicationsSearch('withClientId', [applicationWithClientId]);
+      await harness.selectApplication(applicationWithClientId.name);
+      expectSubscriptionsForApplication(applicationWithClientId.id, []);
 
       await harness.choosePlan(planV4.name);
 
@@ -315,7 +618,7 @@ describe('Subscription creation dialog', () => {
     });
 
     it('should remove Push Plan configuration form when select another plan', async () => {
-      const pushPlanV4 = fakePlanV4({ name: 'push plan', mode: 'PUSH', generalConditions: undefined });
+      const pushPlanV4 = fakePlanV4({ name: 'push plan', mode: 'PUSH', generalConditions: undefined, security: undefined });
       const jwtPlanV4 = fakePlanV4({ name: 'JWT plan', mode: 'STANDARD', security: { type: 'JWT' }, generalConditions: undefined });
       const apiV4 = fakeApiV4({ listeners: [{ type: 'SUBSCRIPTION', entrypoints: [{ type: 'webhook' }] }] });
       component.plans = [pushPlanV4, jwtPlanV4];
@@ -324,6 +627,11 @@ describe('Subscription creation dialog', () => {
       expectListEntrypoints(entrypointsGetResponse);
 
       const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+      await harness.searchApplication('withClientId');
+      expectApplicationsSearch('withClientId', [applicationWithClientId]);
+      await harness.selectApplication(applicationWithClientId.name);
+      expectSubscriptionsForApplication(applicationWithClientId.id, []);
+
       await harness.choosePlan(pushPlanV4.name);
       await harness.selectEntrypoint('Webhook');
       expectEntrypointSubscriptionSchema('webhook');
@@ -379,6 +687,7 @@ describe('Subscription creation dialog', () => {
         await harness.searchApplication('withClientId');
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
+        expectSubscriptionsForApplication(applicationWithClientId.id, []);
 
         await harness.choosePlan(jwtPlanV4.name);
 
@@ -400,6 +709,7 @@ describe('Subscription creation dialog', () => {
         await harness.searchApplication('withoutClientId');
         expectApplicationsSearch('withoutClientId', [applicationWithoutClientId]);
         await harness.selectApplication(applicationWithoutClientId.name);
+        expectSubscriptionsForApplication(applicationWithoutClientId.id, []);
 
         await harness.choosePlan(jwtPlanV4.name);
 
@@ -424,6 +734,18 @@ describe('Subscription creation dialog', () => {
         method: 'GET',
       })
       .flush(entrypoints);
+    fixture.detectChanges();
+  }
+
+  function expectSubscriptionsForApplication(applicationId: string, subscriptions: Partial<ApplicationSubscription>[]) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?expand=security`,
+        method: 'GET',
+      })
+      .flush(<PagedResult>{
+        data: [...subscriptions],
+      });
     fixture.detectChanges();
   }
 

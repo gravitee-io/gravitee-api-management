@@ -125,4 +125,32 @@ describe('ApplicationService', () => {
       req.flush(mockApplication);
     });
   });
+  describe('update', () => {
+    it('should call the API', (done) => {
+      const mockApplication = fakeApplication({ id: 'my-app-id' });
+
+      applicationService.update(mockApplication).subscribe((response) => {
+        expect(response).toMatchObject(mockApplication);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/my-app-id`,
+      });
+
+      expect(req.request.body).toEqual({
+        name: mockApplication.name,
+        description: mockApplication.description,
+        domain: mockApplication.domain,
+        groups: mockApplication.groups,
+        settings: mockApplication.settings,
+        picture_url: mockApplication.picture_url,
+        disable_membership_notifications: mockApplication.disable_membership_notifications,
+        api_key_mode: mockApplication.api_key_mode,
+      });
+
+      req.flush(mockApplication);
+    });
+  });
 });

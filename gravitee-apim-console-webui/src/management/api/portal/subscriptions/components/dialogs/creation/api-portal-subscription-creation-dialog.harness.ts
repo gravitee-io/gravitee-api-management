@@ -16,7 +16,7 @@
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
-import { MatRadioGroupHarness } from '@angular/material/radio/testing';
+import { MatRadioGroupHarness, RadioButtonHarnessFilters } from '@angular/material/radio/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
@@ -31,7 +31,8 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
   public getSelectedApplicationFormField = this.locatorFor(
     MatFormFieldHarness.with({ selector: '.subscription-creation__content__applications' }),
   );
-  protected getPlansRadioGroup = this.locatorFor(MatRadioGroupHarness.with({ selector: '[formControlName="selectedPlan"]' }));
+  public getPlansRadioGroup = this.locatorFor(MatRadioGroupHarness.with({ selector: '[formControlName="selectedPlan"]' }));
+  protected getApiKeyModeRadioGroup = this.locatorForOptional(MatRadioGroupHarness.with({ selector: '[formControlName="apiKeyMode"]' }));
   protected getCustomApiKeyInput = this.locatorForOptional(ApiKeyValidationHarness);
   protected getSelectEntrypointSelect = this.locatorForOptional(
     MatSelectHarness.with({ selector: '[formControlName="selectedEntrypoint"]' }),
@@ -63,13 +64,19 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
   }
 
   // Plans
-  public async getRadioButtons() {
-    return (await this.getPlansRadioGroup()).getRadioButtons();
+  public async getRadioButtons(filter?: RadioButtonHarnessFilters) {
+    return (await this.getPlansRadioGroup()).getRadioButtons(filter);
   }
 
   public async choosePlan(planName: string) {
     const matRadioGroupHarness = await this.getPlansRadioGroup();
     return await matRadioGroupHarness.checkRadioButton({ label: planName });
+  }
+
+  public async isPlanRadioGroupEnabled() {
+    const matRadioGroupHarness = await this.getPlansRadioGroup();
+    const group = await matRadioGroupHarness.host();
+    return (await group.getAttribute('ng-reflect-disabled')) !== 'true';
   }
 
   // Custom API Key
@@ -78,9 +85,19 @@ export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness
     return matInputHarness !== null;
   }
 
-  public async addCustomKey(customApiKey: string) {
+  public async isApiKeyModeRadioGroupDisplayed() {
+    const matRadioGroupHarness = await this.getApiKeyModeRadioGroup();
+    return matRadioGroupHarness !== null;
+  }
+
+  public async chooseApiKeyMode(label: string) {
+    const matRadioGroupHarness = await this.getApiKeyModeRadioGroup();
+    return await matRadioGroupHarness.checkRadioButton({ label });
+  }
+
+  public async addCustomKey(customApikey: string) {
     const matInputHarness = await this.getCustomApiKeyInput();
-    return await matInputHarness.setInputValue(customApiKey);
+    return await matInputHarness.setInputValue(customApikey);
   }
 
   // PUSH Plan

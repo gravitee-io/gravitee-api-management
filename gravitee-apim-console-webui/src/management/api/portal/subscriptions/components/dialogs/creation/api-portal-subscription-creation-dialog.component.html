@@ -61,20 +61,40 @@
         formControlName="selectedPlan"
         arial-label="Select an plan"
         class="subscription-creation__content__plans"
+        [disabled]="!form.get('selectedApplication').value?.id"
       >
-        <mat-radio-button *ngFor="let plan of plans" [value]="plan" [disabled]="!!plan.generalConditions">
+        <mat-radio-button
+          *ngFor="let plan of plans"
+          [value]="plan"
+          [disabled]="!!plan.generalConditions || isPlanSubscribedBySelectedApp(plan)"
+        >
           {{ plan.name }}
         </mat-radio-button>
       </mat-radio-group>
 
-      <ng-container
-        *ngIf="
-          canUseCustomApiKey &&
-          form.get('selectedPlan').value?.security?.type === 'API_KEY' &&
-          form.get('selectedPlan').value?.apiId &&
-          form.get('selectedApplication').value?.id
-        "
-      >
+      <ng-container *ngIf="form.get('apiKeyMode')">
+        <div class="mat-body-1">
+          <p>You have to choose between two modes for your application :</p>
+          <ul>
+            <li><b>API Key</b> - a new API Key will be generated for each subscription</li>
+            <li><b>Shared API Key</b> - each subscription will use the same API Key</li>
+          </ul>
+        </div>
+        <div class="subscription-creation__content__keymode__warning">
+          <p>Please note that this choice is permanent.</p>
+        </div>
+        <mat-radio-group
+          aria-labelledby="radio-group-label"
+          formControlName="apiKeyMode"
+          arial-label="API Key Mode"
+          class="subscription-creation__content__keymode"
+        >
+          <mat-radio-button value="EXCLUSIVE">API Key</mat-radio-button>
+          <mat-radio-button value="SHARED">Shared API Key</mat-radio-button>
+        </mat-radio-group>
+      </ng-container>
+
+      <ng-container *ngIf="form.get('customApiKey')">
         <div class="mat-body-1">
           You can provide a custom API Key if you already have one. <br />
           Leave it blank to get a generated API Key.

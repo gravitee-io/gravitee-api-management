@@ -16,7 +16,7 @@
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Observable, of, Subject } from 'rxjs';
+import { EMPTY, Observable, of, Subject } from 'rxjs';
 import { FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, share, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
@@ -24,11 +24,14 @@ import { has } from 'lodash';
 
 import { CreateSubscription, Entrypoint, Plan } from '../../../../../../../entities/management-api-v2';
 import { ApplicationService } from '../../../../../../../services-ngx/application.service';
-import { Application } from '../../../../../../../entities/application/application';
+import { ApiKeyMode, Application } from '../../../../../../../entities/application/application';
 import { PagedResult } from '../../../../../../../entities/pagedResult';
 import { Constants } from '../../../../../../../entities/Constants';
 import { ConnectorPluginsV2Service } from '../../../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../../../services-ngx/icon.service';
+import { PlanSecurityType } from '../../../../../../../entities/plan';
+import { SubscriptionService } from '../../../../../../../services-ngx/subscription.service';
+import { ApplicationSubscription } from '../../../../../../../entities/subscription/subscription';
 
 export type ApiPortalSubscriptionCreationDialogData = {
   availableSubscriptionEntrypoints?: Entrypoint[];
@@ -36,6 +39,8 @@ export type ApiPortalSubscriptionCreationDialogData = {
 };
 
 export type ApiPortalSubscriptionCreationDialogResult = {
+  application: Application;
+  apiKeyMode?: ApiKeyMode;
   subscriptionToCreate: CreateSubscription;
 };
 
@@ -51,6 +56,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   public selectedSchema: GioJsonSchema;
   public showGeneralConditionsMsg: boolean;
   public canUseCustomApiKey: boolean;
+  public canUseSharedApiKeys: boolean;
 
   public form: FormGroup = new FormGroup({
     selectedPlan: new FormControl(undefined, [Validators.required]),
@@ -58,108 +64,45 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   });
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private currentSubscriptions: ApplicationSubscription[];
 
   constructor(
     private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionCreationDialogComponent, ApiPortalSubscriptionCreationDialogResult>,
     @Inject(MAT_DIALOG_DATA) dialogData: ApiPortalSubscriptionCreationDialogData,
     @Inject('Constants') private readonly constants: Constants,
     private readonly applicationService: ApplicationService,
+    private readonly subscriptionService: SubscriptionService,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly iconService: IconService,
   ) {
     this.plans = dialogData.plans.filter((plan) => plan.security?.type !== 'KEY_LESS');
     this.availableSubscriptionEntrypoints = dialogData.availableSubscriptionEntrypoints.map((entrypoint) => ({ type: entrypoint.type }));
     this.canUseCustomApiKey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
+    this.canUseSharedApiKeys = this.constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
   }
 
   ngOnInit(): void {
     this.showGeneralConditionsMsg = this.plans.some((plan) => plan.generalConditions);
 
-    if (this.availableSubscriptionEntrypoints.length > 0) {
-      this.connectorPluginsV2Service
-        .listEntrypointPlugins()
-        .pipe(
-          tap((entrypointPlugins) =>
-            this.availableSubscriptionEntrypoints.forEach((entrypoint) => {
-              const connectorPlugin = entrypointPlugins.find((e) => e.id === entrypoint.type);
-              if (connectorPlugin) {
-                entrypoint.name = connectorPlugin.name;
-                entrypoint.icon = this.iconService.registerSvg(connectorPlugin.id, connectorPlugin.icon);
-              }
-            }),
-          ),
-        )
-        .subscribe();
-    }
+    this.prepareSubscriptionEntrypoints();
 
-    this.applications$ = this.form.get('selectedApplication').valueChanges.pipe(
-      distinctUntilChanged(),
-      debounceTime(100),
-      switchMap((term) =>
-        term.length > 0 ? this.applicationService.list('ACTIVE', term, 'name', 1, 20) : of(new PagedResult<Application>()),
-      ),
-      map((applicationsPage) => applicationsPage.data),
-      tap((_) => {
-        this.form.get('customApiKey')?.reset();
-      }),
-      share(),
-      takeUntil(this.unsubscribe$),
-    );
+    this.applications$ = this.onApplicationSearchChange();
+    this.onApplicationSelectChange();
 
-    // If we select a PUSH Plan
-    this.form
-      .get('selectedPlan')
-      .valueChanges.pipe(
-        distinctUntilChanged(),
-        filter((plan) => plan.mode === 'PUSH'),
-        tap(() => {
-          this.form.removeControl('customApiKey');
-          this.form.addControl('selectedEntrypoint', new FormControl({}, Validators.required));
-          this.form.addControl('channel', new FormControl(undefined, []));
-        }),
-        switchMap(() => this.form.get('selectedEntrypoint').valueChanges),
-        switchMap((entrypointId) => this.connectorPluginsV2Service.getEntrypointPluginSubscriptionSchema(entrypointId)),
-        tap((subscriptionSchema) => {
-          this.selectedSchema = subscriptionSchema;
-          this.form.addControl('entrypointConfiguration', new FormControl({}, Validators.required));
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
-
-    // If we select an API Key Plan
-    this.form
-      .get('selectedPlan')
-      .valueChanges.pipe(
-        distinctUntilChanged(),
-        filter((plan) => plan.security?.type === 'API_KEY' && this.canUseCustomApiKey),
-        tap(() => {
-          this.form.addControl('customApiKey', new FormControl('', []));
-          this.form.removeControl('selectedEntrypoint');
-          this.form.removeControl('channel');
-          this.form.removeControl('entrypointConfiguration');
-        }),
-      )
-      .subscribe();
-
-    // If we select an OAuth2 or JWT Plan
-    this.form
-      .get('selectedPlan')
-      .valueChanges.pipe(
-        distinctUntilChanged(),
-        filter((plan) => plan.security?.type === 'OAUTH2' || plan.security?.type === 'JWT'),
-        tap(() => {
-          this.form.removeControl('customApiKey');
-          this.form.removeControl('selectedEntrypoint');
-          this.form.removeControl('channel');
-          this.form.removeControl('entrypointConfiguration');
-        }),
-      )
-      .subscribe();
+    this.onPushPlanChange();
+    this.onApiKeyPlanChange();
+    this.onApiKeyModeChange();
+    this.onJwtOrOauth2PlanChange();
   }
 
   onCreate() {
     const dialogResult = {
+      application: this.form.getRawValue().selectedApplication,
+      ...(this.form.getRawValue().apiKeyMode && this.form.getRawValue().apiKeyMode !== ''
+        ? {
+            apiKeyMode: this.form.getRawValue().apiKeyMode,
+          }
+        : {}),
       subscriptionToCreate: {
         planId: this.form.getRawValue().selectedPlan.id,
         applicationId: this.form.getRawValue().selectedApplication.id,
@@ -189,6 +132,165 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
 
   displayApplication(application: Application): string {
     return application?.name;
+  }
+
+  isPlanSubscribedBySelectedApp(plan: Plan) {
+    return this.currentSubscriptions?.some((subscription) => subscription.plan === plan.id);
+  }
+
+  private prepareSubscriptionEntrypoints() {
+    if (this.availableSubscriptionEntrypoints.length > 0) {
+      this.connectorPluginsV2Service
+        .listEntrypointPlugins()
+        .pipe(
+          tap((entrypointPlugins) =>
+            this.availableSubscriptionEntrypoints.forEach((entrypoint) => {
+              const connectorPlugin = entrypointPlugins.find((e) => e.id === entrypoint.type);
+              if (connectorPlugin) {
+                entrypoint.name = connectorPlugin.name;
+                entrypoint.icon = this.iconService.registerSvg(connectorPlugin.id, connectorPlugin.icon);
+              }
+            }),
+          ),
+        )
+        .subscribe();
+    }
+  }
+
+  private onApplicationSearchChange() {
+    return this.form.get('selectedApplication').valueChanges.pipe(
+      distinctUntilChanged(),
+      debounceTime(100),
+      filter((term) => typeof term === 'string'),
+      switchMap((term) =>
+        term.length > 0 ? this.applicationService.list('ACTIVE', term, 'name', 1, 20) : of(new PagedResult<Application>()),
+      ),
+      map((applicationsPage) => applicationsPage.data),
+      tap((_) => {
+        this.form.get('selectedPlan')?.reset();
+        this.form.get('customApiKey')?.reset();
+        this.form.removeControl('apiKeyMode');
+        this.form.removeControl('customApiKey');
+      }),
+      share(),
+      takeUntil(this.unsubscribe$),
+    );
+  }
+
+  private onApplicationSelectChange() {
+    return this.form
+      .get('selectedApplication')
+      .valueChanges.pipe(
+        distinctUntilChanged(),
+        debounceTime(100),
+        filter((app) => app?.id),
+        switchMap((app) => this.subscriptionService.getApplicationSubscriptions(app.id)),
+        map((applicationsPage) => applicationsPage.data),
+        tap((subscriptions) => {
+          this.currentSubscriptions = subscriptions;
+          this.form.get('selectedPlan')?.reset();
+          this.form.get('customApiKey')?.reset();
+          this.form.removeControl('apiKeyMode');
+          this.form.removeControl('customApiKey');
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  private onPushPlanChange() {
+    this.form
+      .get('selectedPlan')
+      .valueChanges.pipe(
+        distinctUntilChanged(),
+        filter((plan) => plan?.mode === 'PUSH'),
+        tap(() => {
+          this.form.removeControl('apiKeyMode');
+          this.form.removeControl('customApiKey');
+          this.form.addControl('selectedEntrypoint', new FormControl({}, Validators.required));
+          this.form.addControl('channel', new FormControl(undefined, []));
+        }),
+        switchMap(() => this.form.get('selectedEntrypoint').valueChanges),
+        switchMap((entrypointId) => this.connectorPluginsV2Service.getEntrypointPluginSubscriptionSchema(entrypointId)),
+        tap((subscriptionSchema) => {
+          this.selectedSchema = subscriptionSchema;
+          this.form.addControl('entrypointConfiguration', new FormControl({}, Validators.required));
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  private onApiKeyPlanChange() {
+    this.form
+      .get('selectedPlan')
+      .valueChanges.pipe(
+        distinctUntilChanged(),
+        filter((plan) => plan?.security?.type === 'API_KEY'),
+        switchMap((plan) => {
+          if (this.canUseSharedApiKeys && this.form.get('selectedApplication').value.api_key_mode === ApiKeyMode.UNSPECIFIED) {
+            return of(
+              this.currentSubscriptions.filter(
+                (subscription) => subscription?.security === PlanSecurityType.API_KEY && subscription?.api !== plan?.apiId,
+              ).length >= 1,
+            );
+          }
+          return of(false);
+        }),
+        tap((shouldDisplayKeyModeChoice) => {
+          if (shouldDisplayKeyModeChoice) {
+            this.form.addControl('apiKeyMode', new FormControl('', [Validators.required]));
+          }
+          if (this.canUseCustomApiKey && !shouldDisplayKeyModeChoice) {
+            this.form.addControl('customApiKey', new FormControl('', []));
+          }
+          this.form.removeControl('selectedEntrypoint');
+          this.form.removeControl('channel');
+          this.form.removeControl('entrypointConfiguration');
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  private onApiKeyModeChange() {
+    this.form.valueChanges
+      .pipe(
+        switchMap(() => {
+          if (this.form.get('apiKeyMode')) {
+            return this.form.get('apiKeyMode').valueChanges;
+          }
+          return EMPTY;
+        }),
+        distinctUntilChanged(),
+        tap((value) => {
+          if (this.canUseCustomApiKey && value === ApiKeyMode.EXCLUSIVE) {
+            this.form.addControl('customApiKey', new FormControl('', []));
+          } else {
+            this.form.removeControl('customApiKey');
+          }
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  private onJwtOrOauth2PlanChange() {
+    this.form
+      .get('selectedPlan')
+      .valueChanges.pipe(
+        distinctUntilChanged(),
+        filter((plan) => plan?.security?.type === 'OAUTH2' || plan?.security?.type === 'JWT'),
+        tap(() => {
+          this.form.removeControl('apiKeyMode');
+          this.form.removeControl('customApiKey');
+          this.form.removeControl('selectedEntrypoint');
+          this.form.removeControl('channel');
+          this.form.removeControl('entrypointConfiguration');
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 }
 

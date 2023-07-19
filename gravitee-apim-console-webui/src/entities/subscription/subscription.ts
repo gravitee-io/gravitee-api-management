@@ -37,4 +37,21 @@ export interface Subscription {
   closed_at?: Date;
   paused_at?: Date;
   client_id?: string;
+  security?: string;
+}
+
+export interface ApplicationSubscription {
+  id?: string;
+  api?: string;
+  plan?: string;
+  application?: string;
+  status?: SubscriptionStatus;
+  security?: string;
+  consumerStatus?: string;
+  processed_at?: Date;
+  processed_by?: string;
+  subscribed_by?: User;
+  starting_at?: Date;
+  created_at?: Date;
+  updated_at?: Date;
 }
