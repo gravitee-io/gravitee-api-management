@@ -56,7 +56,7 @@ describe('API General Page functionality', () => {
     cy.contains('Info').should('be.visible');
     cy.contains('Plans').should('be.visible');
     ApiDetails.info().click();
-    cy.getByDataTestId('api_info_namefield').should('be.visible');
+    cy.getByDataTestId('api_info_namefield').scrollIntoView().should('be.visible');
     cy.getByDataTestId('api_info_versionfield').should('be.visible');
     cy.getByDataTestId('api_info_descriptionfield').should('be.visible');
     cy.getByDataTestId('api_info_labelsfield').should('be.visible');
@@ -67,7 +67,7 @@ describe('API General Page functionality', () => {
   it('Edit Info Page and Verify changes', () => {
     cy.getByDataTestId('api_list_edit_button').first().click();
     ApiDetails.info().click();
-    cy.getByDataTestId('api_info_namefield').clear().type(`${apiName}`);
+    cy.getByDataTestId('api_info_namefield').scrollIntoView().clear().type(`${apiName}`);
     cy.getByDataTestId('api_info_versionfield').clear().type(`${apiVersion}`);
     cy.getByDataTestId('api_info_descriptionfield').clear().type(`${apiDescription}`);
     cy.getByDataTestId('api_info_savebar', { timeout: 5000 }).contains('Save').click();
