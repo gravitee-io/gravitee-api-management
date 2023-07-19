@@ -28,7 +28,6 @@ describe('API General Page functionality', () => {
   });
 
   before(() => {
-    api = [];
     cy.log('Import (create) v2 API');
     cy.request({
       method: 'POST',
@@ -37,7 +36,7 @@ describe('API General Page functionality', () => {
       body: ApisFaker.apiImport({ visibility: Visibility.PUBLIC }),
     }).then((response) => {
       expect(response.status).to.eq(200);
-      api.push(response.body);
+      api = response.body;
     });
   });
 
