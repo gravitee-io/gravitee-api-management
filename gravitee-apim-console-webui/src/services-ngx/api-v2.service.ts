@@ -132,7 +132,7 @@ export class ApiV2Service {
     }
     return this.lastApiFetch$.pipe(
       filter((api) => !!api),
-      shareReplay(1),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
   }
 }
