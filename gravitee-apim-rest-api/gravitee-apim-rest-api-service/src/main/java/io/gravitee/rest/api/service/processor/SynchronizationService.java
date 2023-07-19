@@ -53,49 +53,25 @@ public class SynchronizationService {
                 boolean previousAccessibleState = f.isAccessible();
                 f.setAccessible(true);
                 try {
-                    if (f.get(deployedEntity) instanceof io.gravitee.definition.model.Proxy) {
-                        // FIXME - dirty check to ensure the Proxy -> Group -> Endpoint comparison is correct
-                        Endpoint deployedEntityProxyGroupEndpoint =
-                            ((Proxy) f.get(deployedEntity)).getGroups()
-                                .stream()
-                                .findFirst()
-                                .get()
-                                .getEndpoints()
-                                .stream()
-                                .findFirst()
-                                .get();
-                        Endpoint entityToDeployProxyGroupEndpoint =
-                            ((Proxy) f.get(entityToDeploy)).getGroups()
-                                .stream()
-                                .findFirst()
-                                .get()
-                                .getEndpoints()
-                                .stream()
-                                .findFirst()
-                                .get();
-
-                        if (!(deployedEntityProxyGroupEndpoint.equals(entityToDeployProxyGroupEndpoint))) {
-                            return false;
-                        }
-                    } else {
-                        // FIXME dirty hack to ignore null pointer and empty object comparisions on Properties & Services
-                        if (
-                            (
-                                (f.get(deployedEntity) instanceof io.gravitee.definition.model.Properties) &&
-                                ((Properties) f.get(deployedEntity)).getValues().size() == 0 &&
-                                ((Properties) f.get(entityToDeploy)).getValues().size() == 0
-                            ) ||
-                            (
-                                (f.get(deployedEntity) instanceof io.gravitee.definition.model.services.Services) &&
-                                ((Services) f.get(deployedEntity)).isEmpty() &&
-                                ((Services) f.get(entityToDeploy)).isEmpty()
-                            )
-                        ) {
-                            continue;
-                        }
-                        requiredFieldsDeployedApi.add(f.get(deployedEntity));
-                        requiredFieldsApiToDeploy.add(f.get(entityToDeploy));
+                    // FIXME dirty hack to ignore null pointer and empty object comparisions on Properties & Services
+                    if (
+                        (
+                            (f.get(deployedEntity) instanceof io.gravitee.definition.model.Properties) &&
+                            ((Properties) f.get(deployedEntity)).getValues() != null &&
+                            ((Properties) f.get(deployedEntity)).getValues().size() == 0 &&
+                            ((Properties) f.get(entityToDeploy)).getValues() != null &&
+                            ((Properties) f.get(entityToDeploy)).getValues().size() == 0
+                        ) ||
+                        (
+                            (f.get(deployedEntity) instanceof io.gravitee.definition.model.services.Services) &&
+                            ((Services) f.get(deployedEntity)).isEmpty() &&
+                            ((Services) f.get(entityToDeploy)).isEmpty()
+                        )
+                    ) {
+                        continue;
                     }
+                    requiredFieldsDeployedApi.add(f.get(deployedEntity));
+                    requiredFieldsApiToDeploy.add(f.get(entityToDeploy));
                 } catch (Exception e) {
                     LOGGER.error("Error access entity required deployment fields", e);
                 } finally {
@@ -108,7 +84,9 @@ public class SynchronizationService {
             String requiredFieldsDeployedApiDefinition = objectMapper.writeValueAsString(requiredFieldsDeployedApi);
             String requiredFieldsApiToDeployDefinition = objectMapper.writeValueAsString(requiredFieldsApiToDeploy);
 
-            return requiredFieldsDeployedApiDefinition.equals(requiredFieldsApiToDeployDefinition);
+            return objectMapper
+                .readTree(requiredFieldsDeployedApiDefinition)
+                .equals(objectMapper.readTree(requiredFieldsApiToDeployDefinition));
         } catch (Exception e) {
             LOGGER.error("Unexpected error while generating API deployment required fields definition", e);
             return false;
