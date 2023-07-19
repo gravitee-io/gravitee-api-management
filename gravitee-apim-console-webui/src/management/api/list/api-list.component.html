@@ -156,10 +156,10 @@
     <ng-container matColumnDef="definitionVersion">
       <th mat-header-cell *matHeaderCellDef id="definitionVersion">Definition</th>
       <td mat-cell *matCellDef="let element">
-        <span [matTooltip]="element.definitionVersion.label" class="gio-badge-neutral"
-          ><mat-icon *ngIf="element.definitionVersion.icon" class="gio-left" [svgIcon]="element.definitionVersion.icon"></mat-icon
-          >{{ element.definitionVersion.label | titlecase }}</span
-        >
+        <span class="gio-badge-neutral">
+          <mat-icon *ngIf="element.definitionVersion.icon" class="gio-left" [svgIcon]="element.definitionVersion.icon"></mat-icon>
+          {{ element.definitionVersion.label | titlecase }}
+        </span>
       </td>
     </ng-container>
 
