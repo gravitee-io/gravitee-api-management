@@ -3,6 +3,18 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.0.1
+
+- Define gateway http max sizes
+
+### 3.20.15
+
+- Define gateway http max sizes
+
+### 3.19.20
+
+- Define gateway http max sizes
+
 ### 4.0.0
 
 - Remove old and unused `cache.type` from gateway config map
