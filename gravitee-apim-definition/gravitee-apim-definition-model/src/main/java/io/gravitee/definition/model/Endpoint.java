@@ -182,14 +182,14 @@ public class Endpoint implements Serializable {
 
         Endpoint endpoint = (Endpoint) o;
 
-        return  (
-                name.equals(endpoint.name)
-                && target.equals(endpoint.target)
-                && weight == endpoint.weight
-                && backup == endpoint.backup
-                && type.equals(endpoint.type)
-                && inherit == endpoint.inherit
-                );
+        return (
+            name.equals(endpoint.name) &&
+            target.equals(endpoint.target) &&
+            weight == endpoint.weight &&
+            backup == endpoint.backup &&
+            type.equals(endpoint.type) &&
+            inherit == endpoint.inherit
+        );
     }
 
     @Override
