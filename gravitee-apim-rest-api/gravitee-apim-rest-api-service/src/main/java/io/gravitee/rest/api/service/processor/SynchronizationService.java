@@ -16,14 +16,11 @@
 package io.gravitee.rest.api.service.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.DeploymentRequired;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
