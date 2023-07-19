@@ -19,12 +19,4 @@ annotations:
   # List of changes for the release in artifacthub.io
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
-    - Change the versioning
-    - Remove duplicate annotation in ui deployment
-    - Add support for managed Service Account for each product
-    - Remove old and unused `cache.type` from gateway config map
-    - Fix resources missing in ui-deployment.yaml
-    - Change readinessProbe for the gateway to sync-process
-    - Update Elasticsearch version
-    - Allow plugin override via {api|gatewaye}.additionalPlugins property
-    - Add auto generate Authorization header on gateway probes when authentication basic is set. 
+    - Define gateway http max sizes
