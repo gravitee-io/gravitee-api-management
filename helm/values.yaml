@@ -695,6 +695,11 @@ gateway:
   ingressController: false
   type: Deployment
   name: gateway
+  http:
+    maxHeaderSize: 8192
+    maxChunkSize: 8192
+    maxInitialLineLength: 4096
+    maxFormAttributeSize: 2048
   logging:
     debug: false
     stdout:
