@@ -35,6 +35,10 @@ data:
     #  tcpKeepAlive: true
     #  compressionSupported: false
     #  instances: 0
+      maxHeaderSize: {{ .Values.gateway.http.maxHeaderSize }}
+      maxChunkSize: {{ .Values.gateway.http.maxChunkSize }}
+      maxInitialLineLength: {{ .Values.gateway.http.maxInitialLineLength }}
+      maxFormAttributeSize: {{ .Values.gateway.http.maxFormAttributeSize }}
       alpn: true
       {{- if .Values.gateway.ssl.enabled }}
       secured: true
