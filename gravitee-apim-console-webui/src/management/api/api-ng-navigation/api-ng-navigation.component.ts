@@ -37,6 +37,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { Api } from '../../../entities/management-api-v2';
 
 type TopBanner = {
   title: string;
@@ -54,8 +55,7 @@ type TopBanner = {
   providers: [ApiNgV1V2MenuService, ApiNgV4MenuService],
 })
 export class ApiNgNavigationComponent implements OnInit, OnDestroy {
-  public currentApi$ = this.apiV2Service.getLastApiFetch(this.ajsStateParams.apiId);
-
+  public currentApi: Api;
   public subMenuItems: MenuItem[] = [];
   public groupItems: MenuGroupItem[] = [];
   public selectedItemWithTabs: MenuItem = undefined;
@@ -249,19 +249,23 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
 
     this.bannerState = localStorage.getItem('gv-api-navigation-banner');
 
-    this.currentApi$.subscribe((api) => {
-      const { groupItems, subMenuItems } =
-        api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu() : this.apiNgV4MenuService.getMenu();
-      this.groupItems = groupItems;
-      this.subMenuItems = subMenuItems;
+    this.apiV2Service
+      .getLastApiFetch(this.ajsStateParams.apiId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((api) => {
+        this.currentApi = api;
+        const { groupItems, subMenuItems } =
+          api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu() : this.apiNgV4MenuService.getMenu();
+        this.groupItems = groupItems;
+        this.subMenuItems = subMenuItems;
 
-      this.selectedItemWithTabs = this.findMenuItemWithTabs();
-      this.breadcrumbItems = this.computeBreadcrumbItems();
-
-      this.ajsRootScope.$on('$locationChangeStart', () => {
         this.selectedItemWithTabs = this.findMenuItemWithTabs();
+        this.breadcrumbItems = this.computeBreadcrumbItems();
+
+        this.ajsRootScope.$on('$locationChangeStart', () => {
+          this.selectedItemWithTabs = this.findMenuItemWithTabs();
+        });
       });
-    });
   }
 
   ngOnDestroy() {
