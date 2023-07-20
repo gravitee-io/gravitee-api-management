@@ -5,3 +5,4 @@ classes
 lib/management-webclient-sdk
 lib/management-v2-webclient-sdk
 lib/portal-webclient-sdk
+cypress/downloads
