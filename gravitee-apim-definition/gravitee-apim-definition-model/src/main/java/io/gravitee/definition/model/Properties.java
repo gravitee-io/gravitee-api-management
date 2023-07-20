@@ -39,7 +39,7 @@ public class Properties implements Serializable {
         this.propertiesList = properties == null ? List.of() : properties;
 
         this.entries =
-                this.propertiesList.stream()
+            this.propertiesList.stream()
                 .collect(
                     Collectors.toMap(
                         Property::getKey,
