@@ -1,7 +1,7 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 3.20.13
+version: 3.20.14
 appVersion: 3.20.x-latest
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
@@ -22,4 +22,4 @@ annotations:
     - Add attribute `gateway.ssl.keystore.watch` to disable watch of Gateway keystore
     - Fix indentation in `api` section of the Management API and Gateway configmaps
     - Add truststore and keystore attributes to the MongoDB Rate Limit section of the Gateway configmap
-    - Update ElasticSearch default version: 3.20.13
+    - Update ElasticSearch default version: 3.20.14
