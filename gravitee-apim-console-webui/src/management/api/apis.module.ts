@@ -49,6 +49,7 @@ import { ApiPortalMembersComponent } from './portal/user-group-access/members/ap
 import { ApiPortalGroupsComponent } from './portal/user-group-access/groups/api-portal-groups.component';
 import { ApiPortalTransferOwnershipComponent } from './portal/user-group-access/transfer-ownership/api-portal-transfer-ownership.component';
 import { ApiPortalDocumentationMetadataComponent } from './portal/documentation/metadata/api-portal-documentation-metadata.component';
+import { ApiProxyEntrypointsComponent } from './proxy/entrypoints/api-proxy-entrypoints.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -695,6 +696,20 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-members',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.entrypoints-v2',
+    component: ApiProxyEntrypointsComponent,
+    url: '/entrypoints-v2',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r', 'api-health-r'],
+      },
+      docs: {
+        page: 'management-api-proxy',
       },
       useAngularMaterial: true,
     },
