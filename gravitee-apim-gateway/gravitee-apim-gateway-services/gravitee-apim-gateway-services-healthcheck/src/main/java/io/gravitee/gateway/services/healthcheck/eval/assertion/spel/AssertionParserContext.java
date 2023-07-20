@@ -13,29 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.services.healthcheck;
+package io.gravitee.gateway.services.healthcheck.eval.assertion.spel;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
+import io.reactivex.rxjava3.annotations.NonNull;
+import org.springframework.expression.ParserContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-// TODO not deserialize if inherit
-@SuperBuilder
-@NoArgsConstructor
-public class EndpointHealthCheckService extends HealthCheckService {
+public class AssertionParserContext implements ParserContext {
 
-    @JsonProperty("inherit")
-    private boolean inherit;
+    private final String prefix;
+    private final String suffix;
 
-    public boolean isInherit() {
-        return inherit;
+    public AssertionParserContext(String prefix, String suffix) {
+        this.prefix = prefix;
+        this.suffix = suffix;
     }
 
-    public void setInherit(boolean inherit) {
-        this.inherit = inherit;
+    @NonNull
+    @Override
+    public String getExpressionPrefix() {
+        return prefix;
+    }
+
+    @NonNull
+    @Override
+    public String getExpressionSuffix() {
+        return suffix;
+    }
+
+    @Override
+    public boolean isTemplate() {
+        return false;
     }
 }

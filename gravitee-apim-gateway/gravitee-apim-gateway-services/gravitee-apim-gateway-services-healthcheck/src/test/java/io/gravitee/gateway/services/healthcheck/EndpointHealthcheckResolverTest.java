@@ -15,30 +15,38 @@
  */
 package io.gravitee.gateway.services.healthcheck;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.ApiBuilder;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.HttpProxy;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.vertx.core.json.JsonObject;
-import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class EndpointHealthcheckResolverTest {
 
     @Mock
@@ -62,36 +70,38 @@ public class EndpointHealthcheckResolverTest {
     @InjectMocks
     private EndpointHealthcheckResolver endpointHealthcheckResolver = new EndpointHealthcheckResolver();
 
-    @Before
-    public void before() throws JsonProcessingException {
-        reset();
-        when(mockApi.getId()).thenReturn("api-id");
-        when(mockApiDefinition.getProxy()).thenReturn(mockProxy);
-        when(mockApi.getDefinition()).thenReturn(mockApiDefinition);
+    @BeforeEach
+    public void before() {
+        lenient().when(mockApi.getId()).thenReturn("api-id");
+        lenient().when(mockApiDefinition.getProxy()).thenReturn(mockProxy);
+        lenient().when(mockApi.getDefinition()).thenReturn(mockApiDefinition);
 
-        when(mockProxy.getGroups()).thenReturn(Collections.singleton(mockEndpointGroup));
+        lenient().when(mockProxy.getGroups()).thenReturn(Collections.singleton(mockEndpointGroup));
 
-        when(mockEndpointGroup.getEndpoints()).thenReturn(new HashSet<>(Arrays.asList(mockEndpoint, mock(Endpoint.class))));
+        lenient().when(mockEndpointGroup.getEndpoints()).thenReturn(new HashSet<>(Arrays.asList(mockEndpoint, mock(Endpoint.class))));
 
-        when(mockEndpoint.getType()).thenReturn("http");
-        when(mockEndpoint.getConfiguration())
+        lenient().when(mockEndpoint.getType()).thenReturn("http");
+        lenient()
+            .when(mockEndpoint.getConfiguration())
             .thenReturn(
-                "{\n" +
-                "  \"name\": \"test\",\n" +
-                "  \"target\": \"http://localhost\",\n" +
-                "  \"http\": {\n" +
-                "    \"connectTimeout\": 5000,\n" +
-                "    \"idleTimeout\": 60000,\n" +
-                "    \"keepAlive\": true,\n" +
-                "    \"readTimeout\": 10000,\n" +
-                "    \"pipelining\": false,\n" +
-                "    \"maxConcurrentConnections\": 100,\n" +
-                "    \"useCompression\": true,\n" +
-                "    \"followRedirects\": false\n" +
-                "  }\n" +
-                "}\n"
+                """
+                    {
+                      "name": "test",
+                      "target": "http://localhost",
+                      "http": {
+                        "connectTimeout": 5000,
+                        "idleTimeout": 60000,
+                        "keepAlive": true,
+                        "readTimeout": 10000,
+                        "pipelining": false,
+                        "maxConcurrentConnections": 100,
+                        "useCompression": true,
+                        "followRedirects": false
+                      }
+                    }
+                    """
             );
-        when(mockGatewayConfiguration.tenant()).thenReturn(Optional.empty());
+        lenient().when(mockGatewayConfiguration.tenant()).thenReturn(Optional.empty());
     }
 
     /**
@@ -104,133 +114,62 @@ public class EndpointHealthcheckResolverTest {
      */
 
     @Test
-    public void shouldNotResolveEndpointWithoutGlobalNorLocal() {
+    public void should_not_resolve_endpoint_rules_when_healthcheck_is_not_defined_globally_nor_locally() {
         Services services = new Services();
         services.set(Collections.emptyList());
-        when(mockApiDefinition.getServices()).thenReturn(services);
 
-        List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
+        var api = anApi(services, Set.of(healthcheckNotDefinedEndpoint()));
 
-        assertNotNull(resolve);
-        assertTrue(resolve.isEmpty());
+        assertThat(endpointHealthcheckResolver.resolve(api)).isEmpty();
     }
 
     @Test
-    public void shouldNotResolveEndpointWithGlobalDisabledAndNoLocal() {
-        Services services = new Services();
+    public void should_not_resolve_endpoint_rules_when_healthcheck_is_disabled_globally_with_no_endpoint_configuration() {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(false);
+
+        Services services = new Services();
         services.set(Collections.singleton(healthCheckService));
-        when(mockApiDefinition.getServices()).thenReturn(services);
 
-        List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
+        var api = anApi(services, Set.of(healthcheckNotDefinedEndpoint()));
 
-        assertNotNull(resolve);
-        assertTrue(resolve.isEmpty());
+        assertThat(endpointHealthcheckResolver.resolve(api)).isEmpty();
     }
 
     @Test
-    public void shouldNotResolveEndpointWithGlobalDisabledAndLocalDisabled() {
-        Services services = new Services();
+    public void should_not_resolve_endpoint_rules_when_healthcheck_is_disabled_globally_and_locally() {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(false);
+
+        Services services = new Services();
         services.set(Collections.singleton(healthCheckService));
-        when(mockApiDefinition.getServices()).thenReturn(services);
-        when(mockEndpoint.getConfiguration())
-            .thenReturn(
-                "{\n" +
-                "  \"name\": \"test\",\n" +
-                "  \"target\": \"http://localhost\",\n" +
-                "  \"healthcheck\": {\n" +
-                "    \"enabled\": false,\n" +
-                "    \"inherit\": false\n" +
-                "  }, \n" +
-                "  \"http\": {\n" +
-                "    \"connectTimeout\": 5000,\n" +
-                "    \"idleTimeout\": 60000,\n" +
-                "    \"keepAlive\": true,\n" +
-                "    \"readTimeout\": 10000,\n" +
-                "    \"pipelining\": false,\n" +
-                "    \"maxConcurrentConnections\": 100,\n" +
-                "    \"useCompression\": true,\n" +
-                "    \"followRedirects\": false\n" +
-                "  }\n" +
-                "}\n"
-            );
 
-        List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
+        var api = anApi(services, Set.of(healthcheckDisabledEndpoint()));
 
-        assertNotNull(resolve);
-        assertTrue(resolve.isEmpty());
+        assertThat(endpointHealthcheckResolver.resolve(api)).isEmpty();
     }
 
     @Test
-    public void shouldNotResolveEndpointWithoutGlobalAndLocalDisabled() {
+    public void should_not_resolve_endpoint_rules_when_healthcheck_is_disabled_locally_without_global_configuration() {
         Services services = new Services();
         services.set(Collections.emptyList());
-        when(mockApiDefinition.getServices()).thenReturn(services);
-        when(mockEndpoint.getConfiguration())
-            .thenReturn(
-                "{\n" +
-                "  \"name\": \"test\",\n" +
-                "  \"target\": \"http://localhost\",\n" +
-                "  \"healthcheck\": {\n" +
-                "    \"enabled\": false,\n" +
-                "    \"inherit\": false\n" +
-                "  }, \n" +
-                "  \"http\": {\n" +
-                "    \"connectTimeout\": 5000,\n" +
-                "    \"idleTimeout\": 60000,\n" +
-                "    \"keepAlive\": true,\n" +
-                "    \"readTimeout\": 10000,\n" +
-                "    \"pipelining\": false,\n" +
-                "    \"maxConcurrentConnections\": 100,\n" +
-                "    \"useCompression\": true,\n" +
-                "    \"followRedirects\": false\n" +
-                "  }\n" +
-                "}\n"
-            );
 
-        List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
+        var api = anApi(services, Set.of(healthcheckDisabledEndpoint()));
 
-        assertNotNull(resolve);
-        assertTrue(resolve.isEmpty());
+        assertThat(endpointHealthcheckResolver.resolve(api)).isEmpty();
     }
 
     @Test
-    public void shouldNotResolveEndpointWithGlobalEnabledAndLocalDisabled() {
-        Services services = new Services();
+    public void should_not_resolve_endpoint_rules_when_healthcheck_is_enabled_globally_but_locally_disabled() {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(true);
+
+        Services services = new Services();
         services.set(Collections.singleton(healthCheckService));
-        when(mockApiDefinition.getServices()).thenReturn(services);
 
-        when(mockEndpoint.getConfiguration())
-            .thenReturn(
-                "{\n" +
-                "  \"name\": \"test\",\n" +
-                "  \"target\": \"http://localhost\",\n" +
-                "  \"healthcheck\": {\n" +
-                "    \"enabled\": false,\n" +
-                "    \"inherit\": false\n" +
-                "  }, \n" +
-                "  \"http\": {\n" +
-                "    \"connectTimeout\": 5000,\n" +
-                "    \"idleTimeout\": 60000,\n" +
-                "    \"keepAlive\": true,\n" +
-                "    \"readTimeout\": 10000,\n" +
-                "    \"pipelining\": false,\n" +
-                "    \"maxConcurrentConnections\": 100,\n" +
-                "    \"useCompression\": true,\n" +
-                "    \"followRedirects\": false\n" +
-                "  }\n" +
-                "}\n"
-            );
+        var api = anApi(services, Set.of(healthcheckDisabledEndpoint()));
 
-        List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
-
-        assertNotNull(resolve);
-        assertTrue(resolve.isEmpty());
+        assertThat(endpointHealthcheckResolver.resolve(api)).isEmpty();
     }
 
     /**
@@ -242,192 +181,184 @@ public class EndpointHealthcheckResolverTest {
      */
 
     @Test
-    public void shouldResolveEndpointWithGlobalEnabledAndNoLocal() {
-        Services services = new Services();
+    public void should_resolve_endpoint_rules_when_healthcheck_is_enabled_globally_without_local_configuration() {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(true);
+
+        Services services = new Services();
         services.set(Collections.singleton(healthCheckService));
-        when(mockApiDefinition.getServices()).thenReturn(services);
 
-        List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
+        var api = anApi(services, Set.of(healthcheckNotDefinedEndpoint()));
 
-        assertNotNull(resolve);
-        assertEquals(1, resolve.size());
-        assertNotNull(resolve.get(0).api());
-        assertEquals("api-id", resolve.get(0).api().getId());
+        assertThat(endpointHealthcheckResolver.resolve(api)).hasSize(1).extracting(rule -> rule.api().getId()).containsExactly("api-id");
     }
 
     @Test
-    public void shouldResolveEndpointWithGlobalEnabledAndLocalEnabled() {
-        Services services = new Services();
+    public void should_resolve_endpoint_rules_when_healthcheck_is_enabled_globally_and_locally_enabled() {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(true);
+
+        Services services = new Services();
         services.set(Collections.singleton(healthCheckService));
-        when(mockApiDefinition.getServices()).thenReturn(services);
-        when(mockEndpoint.getConfiguration())
-            .thenReturn(
-                "{\n" +
-                "  \"name\": \"test\",\n" +
-                "  \"target\": \"http://localhost\",\n" +
-                "  \"healthcheck\": {\n" +
-                "    \"enabled\": true,\n" +
-                "    \"inherit\": false,\n" +
-                "    \"request\": {" +
-                "      \"uri\": \"http://localhost\",\n" +
-                "      \"method\": \"GET\",\n" +
-                "      \"path\": \"/\"\n" +
-                "    }\n" +
-                "  }, \n" +
-                "  \"http\": {\n" +
-                "    \"connectTimeout\": 5000,\n" +
-                "    \"idleTimeout\": 60000,\n" +
-                "    \"keepAlive\": true,\n" +
-                "    \"readTimeout\": 10000,\n" +
-                "    \"pipelining\": false,\n" +
-                "    \"maxConcurrentConnections\": 100,\n" +
-                "    \"useCompression\": true,\n" +
-                "    \"followRedirects\": false\n" +
-                "  }\n" +
-                "}\n"
-            );
 
-        List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
+        var api = anApi(services, Set.of(healthcheckEnabledEndpoint()));
 
-        assertNotNull(resolve);
-        assertEquals(1, resolve.size());
-        assertNotNull(resolve.get(0).api());
-        assertEquals("api-id", resolve.get(0).api().getId());
+        assertThat(endpointHealthcheckResolver.resolve(api)).hasSize(1).extracting(rule -> rule.api().getId()).containsExactly("api-id");
     }
 
     @Test
-    public void shouldResolveEndpointWithGlobalDisabledAndLocalEnabled() {
-        Services services = new Services();
+    public void should_resolve_endpoint_rules_when_healthcheck_is_disabled_globally_but_locally_enabled() {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(false);
+
+        Services services = new Services();
         services.set(Collections.singleton(healthCheckService));
-        when(mockApiDefinition.getServices()).thenReturn(services);
 
-        when(mockEndpoint.getConfiguration())
-            .thenReturn(
-                "{\n" +
-                "  \"name\": \"test\",\n" +
-                "  \"target\": \"http://localhost\",\n" +
-                "  \"healthcheck\": {\n" +
-                "    \"enabled\": true,\n" +
-                "    \"inherit\": false,\n" +
-                "    \"request\": {" +
-                "      \"uri\": \"http://localhost\",\n" +
-                "      \"method\": \"GET\",\n" +
-                "      \"path\": \"/\"\n" +
-                "    }\n" +
-                "  }, \n" +
-                "  \"http\": {\n" +
-                "    \"connectTimeout\": 5000,\n" +
-                "    \"idleTimeout\": 60000,\n" +
-                "    \"keepAlive\": true,\n" +
-                "    \"readTimeout\": 10000,\n" +
-                "    \"pipelining\": false,\n" +
-                "    \"maxConcurrentConnections\": 100,\n" +
-                "    \"useCompression\": true,\n" +
-                "    \"followRedirects\": false\n" +
-                "  }\n" +
-                "}\n"
-            );
+        var api = anApi(services, Set.of(healthcheckEnabledEndpoint()));
 
-        List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
-
-        assertNotNull(resolve);
-        assertEquals(1, resolve.size());
-        assertNotNull(resolve.get(0).api());
-        assertEquals("api-id", resolve.get(0).api().getId());
+        assertThat(endpointHealthcheckResolver.resolve(api)).hasSize(1).extracting(rule -> rule.api().getId()).containsExactly("api-id");
     }
 
     @Test
-    public void shouldResolveEndpointWithoutGlobalAndLocalEnabled() {
+    public void should_resolve_endpoint_rules_when_healthcheck_is_enabled_locally_without_global_configuration() {
         Services services = new Services();
         services.set(Collections.emptyList());
-        when(mockApiDefinition.getServices()).thenReturn(services);
 
-        when(mockEndpoint.getConfiguration())
-            .thenReturn(
-                "{\n" +
-                "  \"name\": \"test\",\n" +
-                "  \"target\": \"http://localhost\",\n" +
-                "  \"healthcheck\": {\n" +
-                "    \"enabled\": true,\n" +
-                "    \"inherit\": false,\n" +
-                "    \"request\": {" +
-                "      \"uri\": \"http://localhost\",\n" +
-                "      \"method\": \"GET\",\n" +
-                "      \"path\": \"/\"\n" +
-                "    }\n" +
-                "  }, \n" +
-                "  \"http\": {\n" +
-                "    \"connectTimeout\": 5000,\n" +
-                "    \"idleTimeout\": 60000,\n" +
-                "    \"keepAlive\": true,\n" +
-                "    \"readTimeout\": 10000,\n" +
-                "    \"pipelining\": false,\n" +
-                "    \"maxConcurrentConnections\": 100,\n" +
-                "    \"useCompression\": true,\n" +
-                "    \"followRedirects\": false\n" +
-                "  },\n" +
-                "  \"ssl\": {\n" +
-                "    \"trustAll\": true,\n" +
-                "    \"keyStore\": {\n" +
-                "      \"type\": \"\"\n" +
-                "    }\n" +
-                "  }\n" +
-                "}\n"
-            );
+        var api = anApi(services, Set.of(healthcheckEnabledEndpoint()));
 
-        List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
-
-        assertNotNull(resolve);
-        assertEquals(1, resolve.size());
-        assertNotNull(resolve.get(0).api());
-        assertEquals("api-id", resolve.get(0).api().getId());
+        assertThat(endpointHealthcheckResolver.resolve(api)).hasSize(1).extracting(rule -> rule.api().getId()).containsExactly("api-id");
     }
 
     @Test
-    public void shouldResolveEndpointUsingGroupProxy() {
-        Services services = new Services();
+    public void should_resolve_endpoint_using_group_proxy() {
         HealthCheckService healthCheckService = new HealthCheckService();
         healthCheckService.setEnabled(true);
+
+        Services services = new Services();
         services.set(Set.of(healthCheckService));
 
-        when(mockApiDefinition.getServices()).thenReturn(services);
+        var api = anApi(services, Set.of(healthcheckNotDefinedEndpoint()));
 
-        HttpProxy groupProxy = new HttpProxy();
+        List<EndpointRule> resolved = endpointHealthcheckResolver.resolve(api);
+
+        assertThat(resolved)
+            .hasSize(1)
+            .satisfies(rules -> {
+                var endpoint = rules.get(0).endpoint();
+                assertThat(endpoint)
+                    .isInstanceOf(HttpEndpoint.class)
+                    .satisfies(httpEndpoint -> {
+                        var httpProxy = ((HttpEndpoint) httpEndpoint).getHttpProxy();
+                        assertThat(httpProxy).extracting(HttpProxy::getHost, HttpProxy::getPort).containsExactly("localhost", 9001);
+                    });
+            });
+    }
+
+    private Api anApi(Services services, Set<Endpoint> endpoints) {
+        var groupProxy = new HttpProxy();
         groupProxy.setHost("localhost");
         groupProxy.setPort(9001);
 
-        when(mockEndpointGroup.getHttpProxy()).thenReturn(groupProxy);
+        var group = new EndpointGroup();
+        group.setHttpProxy(groupProxy);
+        group.setEndpoints(endpoints);
 
-        JsonObject endpointConfig = new JsonObject()
-            .put("backup", false)
-            .put("inherit", true)
-            .put("name", "default")
-            .put("weight", 1)
-            .put("type", "http")
-            .put("target", "http://localhost:2000");
+        var proxy = new Proxy();
+        proxy.setGroups(Set.of(group));
 
-        when(mockEndpoint.getConfiguration()).thenReturn(endpointConfig.encode());
+        var apiDefinition = ApiBuilder.anApiV2().id("api-id").proxy(proxy).services(services).build();
 
-        List<EndpointRule> resolved = endpointHealthcheckResolver.resolve(mockApi);
+        return new Api(apiDefinition);
+    }
 
-        assertNotNull(resolved);
-        assertEquals(1, resolved.size());
+    private HttpEndpoint healthcheckNotDefinedEndpoint() {
+        HttpEndpoint endpoint = new HttpEndpoint("default", "http://localhost");
+        endpoint.setConfiguration(
+            """
+                {
+                  "name": "test",
+                  "target": "http://localhost:2000",
+                  "inherit": true,
+                  "http": {
+                    "connectTimeout": 5000,
+                    "idleTimeout": 60000,
+                    "keepAlive": true,
+                    "readTimeout": 10000,
+                    "pipelining": false,
+                    "maxConcurrentConnections": 100,
+                    "useCompression": true,
+                    "followRedirects": false
+                  }
+                }
+            """
+        );
+        return endpoint;
+    }
 
-        Endpoint endpoint = resolved.get(0).endpoint();
+    private HttpEndpoint healthcheckDisabledEndpoint() {
+        HttpEndpoint endpoint = new HttpEndpoint("default", "http://localhost");
+        endpoint.setConfiguration(
+            """
+                {
+                  "name": "test",
+                  "target": "http://localhost",
+                  "healthcheck": {
+                    "enabled": false,
+                    "inherit": false
+                  },
+                  "http": {
+                    "connectTimeout": 5000,
+                    "idleTimeout": 60000,
+                    "keepAlive": true,
+                    "readTimeout": 10000,
+                    "pipelining": false,
+                    "maxConcurrentConnections": 100,
+                    "useCompression": true,
+                    "followRedirects": false
+                  }
+                }
+            """
+        );
+        return endpoint;
+    }
 
-        assertEquals(HttpEndpoint.class, endpoint.getClass());
-
-        HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
-        HttpProxy httpProxy = httpEndpoint.getHttpProxy();
-
-        assertNotNull(httpProxy);
-        assertEquals("localhost", httpProxy.getHost());
-        assertEquals(9001, httpProxy.getPort());
+    private HttpEndpoint healthcheckEnabledEndpoint() {
+        HttpEndpoint endpoint = new HttpEndpoint("default", "http://localhost");
+        endpoint.setConfiguration(
+            """
+                {
+                 "name": "test",
+                 "target": "http://localhost",
+                 "healthcheck": {
+                   "enabled": true,
+                   "schedule": "0 */5 * * * *",
+                   "inherit": false,
+                   "steps": [
+                     {
+                       "name": "default-step",
+                       "request": {
+                         "method": "GET",
+                         "path": "/"
+                       },
+                       "response": {
+                         "assertions": ["#response.status == 200"]
+                       }
+                     }
+                   ]
+                 },
+                 "http": {
+                   "connectTimeout": 5000,
+                   "idleTimeout": 60000,
+                   "keepAlive": true,
+                   "readTimeout": 10000,
+                   "pipelining": false,
+                   "maxConcurrentConnections": 100,
+                   "useCompression": true,
+                   "followRedirects": false
+                 }
+               }
+            """
+        );
+        return endpoint;
     }
 }
