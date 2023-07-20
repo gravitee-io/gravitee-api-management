@@ -187,8 +187,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
       proxyGroup.items.push({
         displayName: 'Response Templates',
-        targetRoute: 'management.apis.detail.proxy.responsetemplates.list',
-        baseRoute: 'management.apis.detail.proxy.responsetemplates',
+        targetRoute: 'management.apis.ng.responseTemplates',
+        baseRoute: 'management.apis.ng.responseTemplates',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {

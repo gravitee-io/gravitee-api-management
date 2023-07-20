@@ -52,6 +52,8 @@ import { ApiPortalDocumentationMetadataComponent } from './portal/documentation/
 import { ApiProxyEntrypointsComponent } from './proxy/entrypoints/api-proxy-entrypoints.component';
 import { ApiProxyCorsComponent } from './proxy/cors/api-proxy-cors.component';
 import { ApiProxyDeploymentsComponent } from './proxy/deployments/api-proxy-deployments.component';
+import { ApiProxyResponseTemplatesListComponent } from './proxy/response-templates/list/api-proxy-response-templates-list.component';
+import { ApiProxyResponseTemplatesEditComponent } from './proxy/response-templates/edit/api-proxy-response-templates-edit.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -740,6 +742,48 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-proxy',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.responseTemplates',
+    component: ApiProxyResponseTemplatesListComponent,
+    url: '/response-templates',
+    data: {
+      apiPermissions: {
+        only: ['api-response_templates-r'],
+      },
+      docs: {
+        page: 'management-api-proxy-response-templates',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.responseTemplateNew',
+    component: ApiProxyResponseTemplatesEditComponent,
+    url: '/response-template',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.responseTemplateEdit',
+    component: ApiProxyResponseTemplatesEditComponent,
+    url: '/response-template/:responseTemplateId',
+    data: {
+      apiPermissions: {
+        only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
+      },
+      docs: {
+        page: 'management-api-proxy-response-templates',
       },
       useAngularMaterial: true,
     },
