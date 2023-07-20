@@ -15,11 +15,11 @@
  */
 package io.gravitee.definition.model;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -32,14 +32,15 @@ public class PropertiesTest {
         Properties props = new Properties();
         props.setProperties(Arrays.asList(new Property("key1", "value1"), new Property("key2", "value2")));
 
-        assertEquals("not enough properties", 2, props.getProperties().size());
+        assertEquals(2, props.getProperties().size());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldNotSetDuplicateProperties() {
         Properties props = new Properties();
-        props.setProperties(Arrays.asList(new Property("key1", "value1"), new Property("key1", "value2")));
-
-        fail("must not allow duplicate keys !");
+        assertThrows(
+            RuntimeException.class,
+            () -> props.setProperties(Arrays.asList(new Property("key1", "value1"), new Property("key1", "value2")))
+        );
     }
 }

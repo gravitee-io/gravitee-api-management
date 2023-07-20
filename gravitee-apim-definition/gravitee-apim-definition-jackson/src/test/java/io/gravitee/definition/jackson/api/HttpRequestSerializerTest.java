@@ -15,15 +15,12 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.HttpRequest;
-import io.gravitee.definition.model.HttpResponse;
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -41,7 +38,7 @@ public class HttpRequestSerializerTest extends AbstractTest {
 
         assertNotNull(generatedJsonDefinition);
 
-        Assert.assertEquals(
+        assertEquals(
             objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
             objectMapper().readTree(generatedJsonDefinition.getBytes())
         );
@@ -58,7 +55,7 @@ public class HttpRequestSerializerTest extends AbstractTest {
         assertNotNull(generatedJsonDefinition);
         assertTrue(generatedJsonDefinition.contains("[ \"deflate\", \"gzip\", \"compress\" ]"));
 
-        Assert.assertEquals(
+        assertEquals(
             objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
             objectMapper().readTree(generatedJsonDefinition.getBytes())
         );

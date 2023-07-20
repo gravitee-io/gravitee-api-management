@@ -17,7 +17,7 @@ package io.gravitee.definition.jackson.api;
 
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Property;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 
