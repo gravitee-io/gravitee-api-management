@@ -1280,7 +1280,7 @@ describe('ApiCreationV4Component', () => {
         expect(step2Summary).toContain('EntrypointsPath:/api/my-api-3Type:HTTPSUBSCRIPTIONEntrypoints');
 
         const step3Summary = await step6Harness.getStepSummaryTextContent(3);
-        expect(step3Summary).toContain('Field' + 'Value');
+        expect(step3Summary).toContain('Endpoints' + 'Endpoints: ' + 'Kafka ' + ' Mock Change');
         expect(step3Summary).toContain('Kafka');
         expect(step3Summary).toContain('Mock');
 
@@ -1370,7 +1370,7 @@ describe('ApiCreationV4Component', () => {
         step6Harness = await harnessLoader.getHarness(Step5SummaryHarness);
         const step2Summary = await step6Harness.getStepSummaryTextContent(3);
 
-        expect(step2Summary).toContain('EndpointsFieldValueEndpoints: Mock Change');
+        expect(step2Summary).toContain('Endpoints' + 'Endpoints: Mock Change');
       });
 
       it('should go back to step 4 after clicking Change button', async () => {
