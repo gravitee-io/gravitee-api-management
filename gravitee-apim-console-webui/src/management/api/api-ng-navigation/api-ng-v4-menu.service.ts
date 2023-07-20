@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 
 import { MenuGroupItem, MenuItem } from './MenuGroupItem';
 import { ApiMenuService } from './ApiMenuService';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../entities/Constants';
 
 @Injectable()
 export class ApiNgV4MenuService implements ApiMenuService {
-  constructor(private readonly permissionService: GioPermissionService) {}
+  constructor(private readonly permissionService: GioPermissionService, @Inject('Constants') private readonly constants: Constants) {}
 
   public getMenu(): {
     subMenuItems: MenuItem[];
@@ -35,10 +36,19 @@ export class ApiNgV4MenuService implements ApiMenuService {
         baseRoute: 'management.apis.ng.policyStudio',
         tabs: undefined,
       },
+      {
+        displayName: 'Messages',
+        targetRoute: 'DISABLED',
+      },
     ];
-    const groupItems: MenuGroupItem[] = [this.getGeneralGroup(), this.getEntrypointsGroup(), this.getEndpointsGroup()].filter(
-      (group) => !!group,
-    );
+    const groupItems: MenuGroupItem[] = [
+      this.getGeneralGroup(),
+      this.getEntrypointsGroup(),
+      this.getEndpointsGroup(),
+      this.getAnalyticsGroup(),
+      this.getAuditGroup(),
+      this.getNotificationsGroup(),
+    ].filter((group) => !!group);
 
     return { subMenuItems, groupItems };
   }
@@ -93,6 +103,20 @@ export class ApiNgV4MenuService implements ApiMenuService {
       );
     }
 
+    if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
+      generalGroup.items.push({
+        displayName: 'Documentation',
+        targetRoute: 'DISABLED',
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-member-r'])) {
+      generalGroup.items.push({
+        displayName: 'User and group access',
+        targetRoute: 'DISABLED',
+      });
+    }
+
     return generalGroup;
   }
 
@@ -128,5 +152,90 @@ export class ApiNgV4MenuService implements ApiMenuService {
     }
 
     return endpointsGroup;
+  }
+
+  private getAnalyticsGroup(): MenuGroupItem {
+    const analyticsGroup: MenuGroupItem = {
+      title: 'Analytics',
+      items: [],
+    };
+
+    if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
+      analyticsGroup.items.push({
+        displayName: 'Overview',
+        targetRoute: 'DISABLED',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-log-r'])) {
+      analyticsGroup.items.push({
+        displayName: 'Logs',
+        targetRoute: 'DISABLED',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-definition-u'])) {
+      analyticsGroup.items.push({
+        displayName: 'Path mappings',
+        targetRoute: 'DISABLED',
+      });
+    }
+    if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
+      analyticsGroup.items.push({
+        displayName: 'Alerts',
+        targetRoute: 'DISABLED',
+      });
+    }
+
+    return analyticsGroup;
+  }
+
+  private getAuditGroup(): MenuGroupItem {
+    const auditGroup: MenuGroupItem = {
+      title: 'Audit',
+      items: [],
+    };
+
+    if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
+      auditGroup.items.push({
+        displayName: 'Audit',
+        targetRoute: 'DISABLED',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-event-r'])) {
+      auditGroup.items.push({
+        displayName: 'History',
+        targetRoute: 'DISABLED',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-event-u'])) {
+      auditGroup.items.push({
+        displayName: 'Events',
+        targetRoute: 'DISABLED',
+      });
+    }
+
+    return auditGroup;
+  }
+
+  private getNotificationsGroup(): MenuGroupItem {
+    const notificationsGroup: MenuGroupItem = {
+      title: 'Notifications',
+      items: [],
+    };
+
+    if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
+      notificationsGroup.items.push({
+        displayName: 'Notifications',
+        targetRoute: 'DISABLED',
+      });
+    }
+
+    if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
+      notificationsGroup.items.push({
+        displayName: 'Alerts',
+        targetRoute: 'DISABLED',
+      });
+    }
+
+    return notificationsGroup;
   }
 }
