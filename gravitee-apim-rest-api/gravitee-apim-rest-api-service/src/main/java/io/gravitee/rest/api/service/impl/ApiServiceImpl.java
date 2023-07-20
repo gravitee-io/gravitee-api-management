@@ -1121,21 +1121,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.setCrossId(apiToUpdate.getCrossId());
             }
 
-            // If no new picture and the current picture url is not the default one, keep the current picture
-            if (
-                updateApiEntity.getPicture() == null &&
-                updateApiEntity.getPictureUrl() != null &&
-                updateApiEntity.getPictureUrl().indexOf("?hash") > 0
-            ) {
-                api.setPicture(apiToUpdate.getPicture());
-            }
-            if (
-                updateApiEntity.getBackground() == null &&
-                updateApiEntity.getBackgroundUrl() != null &&
-                updateApiEntity.getBackgroundUrl().indexOf("?hash") > 0
-            ) {
-                api.setBackground(apiToUpdate.getBackground());
-            }
+            // Keep existing picture as picture update has dedicated service
+            api.setPicture(apiToUpdate.getPicture());
+            api.setBackground(apiToUpdate.getBackground());
+
             if (updateApiEntity.getGroups() == null) {
                 api.setGroups(apiToUpdate.getGroups());
             }
