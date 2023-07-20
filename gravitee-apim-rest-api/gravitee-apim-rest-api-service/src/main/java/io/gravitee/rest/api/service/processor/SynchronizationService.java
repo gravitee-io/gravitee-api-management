@@ -54,7 +54,7 @@ public class SynchronizationService {
                     getRequiredFieldsForComparison(entityClass, deployedEntity)
             );
             String requiredFieldsApiToDeployDefinition = objectMapper.writeValueAsString(
-                    getRequiredFieldsForComparison(entityClass, deployedEntity)
+                    getRequiredFieldsForComparison(entityClass, entityToDeploy)
             );
 
             return objectMapper
