@@ -19,7 +19,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioConfirmDialogModule } from '@gravitee/ui-particles-angular';
 
-import { GioPolicyStudioRoutingModule } from './api/policy-studio/gio-policy-studio-routing.module';
 import { EnvAuditModule } from './audit/env-audit.module';
 import { ApiCreationModule } from './api/creation/api-creation.module';
 import { EnvironmentApplicationModule } from './application/environment-application.module';
@@ -44,7 +43,6 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     EnvAuditModule,
     ApiCreationModule,
     ApiCreationV4Module,
-    GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.detail.design.flowsNg' }),
     HomeModule,
     ApisModule,
     EnvironmentApplicationModule,
