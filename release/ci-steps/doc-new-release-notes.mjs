@@ -70,6 +70,10 @@ For upgrade instructions, please refer to https://docs.gravitee.io/apim/3.x/apim
 }
 
 const version = await getJiraVersion(releasingVersion);
+if (version === undefined) {
+  echo(chalk.blue(`No Jira release found for: ${releasingVersion}, nothing to do.`));
+  process.exit(0);
+}
 let issues = await getJiraIssuesOfVersion(version.id);
 
 let changelogPatchTemplate = `
