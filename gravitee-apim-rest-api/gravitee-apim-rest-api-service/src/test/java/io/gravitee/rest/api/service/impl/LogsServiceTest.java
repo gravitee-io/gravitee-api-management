@@ -42,8 +42,9 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Set;
+import java.util.*;
+import org.apache.commons.lang3.time.FastDateFormat;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -63,6 +64,7 @@ class LogsServiceTest {
     private static final String LOG_PLAN_ID = "81d3dc39-0e5f-4c1c-94cc-ec48c3609b5f";
     private static final String LOG_URI = "/echo";
     private static final Long LOG_TIMESTAMP = Instant.now().toEpochMilli();
+    private static final FastDateFormat dateFormat = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     @Mock
     private LogRepository logRepository;
@@ -370,6 +372,111 @@ class LogsServiceTest {
         verify(logRepository, times(1)).findById(eq(LOG_ID), anyLong());
         verify(apiSearchService, times(1)).findGenericById(any(), anyString());
         verify(planSearchService, times(1)).findById(any(), anyString());
+    }
+
+    @Test
+    void exportAsCsvShouldReturnProperlyFormattedStringWithNoLog() {
+        String exportAsCsv = logService.exportAsCsv(EXECUTION_CONTEXT, new SearchLogResponse<>(0));
+        assertThat(exportAsCsv).isEmpty();
+    }
+
+    @Test
+    void exportAsCsvShouldReturnProperlyFormattedStringWithApiRequestItems() {
+        SearchLogResponse<LogItem> searchLogResponse = new SearchLogResponse<>(0);
+        ApiRequestItem item1 = createApiRequestItem(
+            1689838996000L,
+            "id1",
+            "transactionId1",
+            "/path1",
+            200,
+            100L,
+            "app1",
+            HttpMethod.GET,
+            "plan1"
+        );
+        ApiRequestItem item2 = createApiRequestItem(
+            1689838999000L,
+            "id2",
+            "transactionId2",
+            "/path2",
+            201,
+            523L,
+            "app2",
+            HttpMethod.POST,
+            "plan2"
+        );
+        Map<String, Map<String, String>> metadata = new HashMap<>();
+        metadata.put("plan1", Map.of("name", "PLAN 1"));
+        metadata.put("app1", Map.of("name", "APP 1"));
+        metadata.put("plan2", Map.of("name", "PLAN 2"));
+        metadata.put("app2", Map.of("name", "APP 2"));
+
+        searchLogResponse.setLogs(List.of(item1, item2));
+        searchLogResponse.setMetadata(metadata);
+        String exportAsCsv = logService.exportAsCsv(EXECUTION_CONTEXT, searchLogResponse);
+        assertThat(exportAsCsv)
+            .isEqualTo(
+                "Date;Request Id;Transaction Id;Method;Path;Status;Response Time;Plan;Application\n" +
+                dateFormat.format(1689838996000L) +
+                ";id1;transactionId1;GET;/path1;200;100;PLAN 1;APP 1\n" +
+                dateFormat.format(1689838999000L) +
+                ";id2;transactionId2;POST;/path2;201;523;PLAN 2;APP 2\n"
+            );
+    }
+
+    @Test
+    void exportAsCsvShouldEscapeContentToAvoidMaliciousOnes() {
+        SearchLogResponse<LogItem> searchLogResponse = new SearchLogResponse<>(0);
+
+        ApiRequestItem item1 = createApiRequestItem(
+            LOG_TIMESTAMP,
+            "id1",
+            "transactionId1",
+            "/path1;=cmd|'/Ccalc'!A0",
+            200,
+            100L,
+            "app1",
+            HttpMethod.GET,
+            "plan1"
+        );
+        Map<String, Map<String, String>> metadata = new HashMap<>();
+        metadata.put("plan1", Map.of("name", "=1+2\";=1+2"));
+        metadata.put("app1", Map.of("name", "=1+3"));
+
+        searchLogResponse.setLogs(List.of(item1));
+        searchLogResponse.setMetadata(metadata);
+        String exportAsCsv = logService.exportAsCsv(EXECUTION_CONTEXT, searchLogResponse);
+        assertThat(exportAsCsv)
+            .isEqualTo(
+                "Date;Request Id;Transaction Id;Method;Path;Status;Response Time;Plan;Application\n" +
+                dateFormat.format(LOG_TIMESTAMP) +
+                ";id1;transactionId1;GET;\"/path1;=cmd|'/Ccalc'!A0\";200;100;\"'=1+2\"\";=1+2\";\"'=1+3\"\n"
+            );
+    }
+
+    @NotNull
+    private static ApiRequestItem createApiRequestItem(
+        long timestamp,
+        String id,
+        String transactionId,
+        String path,
+        int status,
+        long responseTime,
+        String application,
+        HttpMethod httpMethod,
+        String plan
+    ) {
+        ApiRequestItem item = new ApiRequestItem();
+        item.setTimestamp(timestamp);
+        item.setId(id);
+        item.setTransactionId(transactionId);
+        item.setPath(path);
+        item.setStatus(status);
+        item.setResponseTime(responseTime);
+        item.setApplication(application);
+        item.setMethod(httpMethod);
+        item.setPlan(plan);
+        return item;
     }
 
     private static ApiKeyEntity newApiKey() {
