@@ -45,6 +45,9 @@ import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypo
 import { ApiPropertiesComponent } from './proxy/properties-ng/api-properties.component';
 import { ApiResourcesComponent } from './proxy/resources-ng/api-resources.component';
 import { GioPolicyStudioRoutingModule } from './policy-studio/gio-policy-studio-routing.module';
+import { ApiPortalMembersComponent } from './portal/user-group-access/members/api-portal-members.component';
+import { ApiPortalGroupsComponent } from './portal/user-group-access/groups/api-portal-groups.component';
+import { ApiPortalTransferOwnershipComponent } from './portal/user-group-access/transfer-ownership/api-portal-transfer-ownership.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -640,6 +643,48 @@ const states: Ng2StateDeclaration[] = [
         value: '',
         squash: false,
       },
+    },
+  },
+  {
+    name: 'management.apis.ng.members',
+    component: ApiPortalMembersComponent,
+    url: '/members',
+    data: {
+      apiPermissions: {
+        only: ['api-member-r'],
+      },
+      docs: {
+        page: 'management-api-members',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.groups',
+    component: ApiPortalGroupsComponent,
+    url: '/groups',
+    data: {
+      apiPermissions: {
+        only: ['api-member-r'],
+      },
+      docs: {
+        page: 'management-api-members',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.transferOwnership',
+    component: ApiPortalTransferOwnershipComponent,
+    url: '/transfer-ownership',
+    data: {
+      apiPermissions: {
+        only: ['api-member-r'],
+      },
+      docs: {
+        page: 'management-api-members',
+      },
+      useAngularMaterial: true,
     },
   },
 ];

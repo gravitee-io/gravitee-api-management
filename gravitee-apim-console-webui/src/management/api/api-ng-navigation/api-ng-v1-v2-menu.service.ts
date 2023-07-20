@@ -133,21 +133,21 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
       userAndGroupAccessMenuItems.tabs.push(
         {
           displayName: 'Members',
-          targetRoute: 'management.apis.detail.portal.members',
-          baseRoute: 'management.apis.detail.portal.members',
+          targetRoute: 'management.apis.ng.members',
+          baseRoute: 'management.apis.ng.members',
         },
         {
           displayName: 'Groups',
-          targetRoute: 'management.apis.detail.portal.groups',
-          baseRoute: 'management.apis.detail.portal.groups',
+          targetRoute: 'management.apis.ng.groups',
+          baseRoute: 'management.apis.ng.groups',
         },
       );
     }
     if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
       userAndGroupAccessMenuItems.tabs.push({
         displayName: 'Transfer ownership',
-        targetRoute: 'management.apis.detail.portal.transferownership',
-        baseRoute: 'management.apis.detail.portal.transferownership',
+        targetRoute: 'management.apis.ng.transferOwnership',
+        baseRoute: 'management.apis.ng.transferOwnership',
       });
     }
     if (userAndGroupAccessMenuItems.tabs.length > 0) {
