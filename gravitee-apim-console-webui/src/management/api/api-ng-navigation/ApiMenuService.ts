@@ -15,8 +15,10 @@
  */
 import { MenuGroupItem, MenuItem } from './MenuGroupItem';
 
+import { Api } from '../../../entities/management-api-v2';
+
 export interface ApiMenuService {
-  getMenu(): {
+  getMenu(api: Api): {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   };

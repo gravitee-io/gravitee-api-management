@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Observable } from 'rxjs';
+
+import { GioLicenseOptions } from '../../../shared/components/gio-license/gio-license.directive';
+
 export interface MenuItem {
   targetRoute?: string;
   baseRoute?: string | string[];
   displayName: string;
+  license?: GioLicenseOptions;
+  iconRight$?: Observable<string>;
   tabs?: MenuItem[];
 }
 
