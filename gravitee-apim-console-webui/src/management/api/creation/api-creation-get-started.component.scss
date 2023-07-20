@@ -102,3 +102,8 @@ $typography: map.get(gio.$mat-theme, typography);
     padding: 24px 0 0 0;
   }
 }
+
+.coming-soon-message {
+  color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  font-style: italic;
+}
