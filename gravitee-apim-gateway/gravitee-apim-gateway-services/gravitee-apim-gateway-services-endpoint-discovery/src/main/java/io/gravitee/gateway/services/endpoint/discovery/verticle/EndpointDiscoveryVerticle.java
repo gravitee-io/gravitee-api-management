@@ -88,7 +88,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
                     break;
             }
         } else {
-            LOGGER.warn("Health check service is not compatible with api V4");
+            LOGGER.warn("Endpoint discovery service is not compatible with api V4");
         }
     }
 
