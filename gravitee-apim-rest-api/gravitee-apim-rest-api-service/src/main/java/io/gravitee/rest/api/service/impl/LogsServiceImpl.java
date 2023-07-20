@@ -48,13 +48,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import io.gravitee.rest.api.service.ApiKeyService;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.InstanceService;
-import io.gravitee.rest.api.service.LogsService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
@@ -104,6 +98,7 @@ public class LogsServiceImpl implements LogsService {
     private static final String RFC_3339_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private static final FastDateFormat dateFormatter = FastDateFormat.getInstance(RFC_3339_DATE_FORMAT);
     private static final char separator = ';';
+    private static final CsvUtils csvUtils = new CsvUtils(separator);
     private final Logger logger = LoggerFactory.getLogger(LogsServiceImpl.class);
 
     @Lazy
@@ -547,7 +542,7 @@ public class LogsServiceImpl implements LogsService {
                     apiLog.getUser()
                 );
                 final Object application = searchLogResponse.getMetadata().get(apiLog.getApplication());
-                sb.append(getName(application));
+                sb.append(csvUtils.sanitize(getName(application)));
                 sb.append(lineSeparator());
             }
         } else if (searchLogResponse.getLogs().get(0) instanceof ApplicationRequestItem) {
@@ -571,7 +566,7 @@ public class LogsServiceImpl implements LogsService {
                     applicationLog.getUser()
                 );
                 final Object api = searchLogResponse.getMetadata().get(applicationLog.getApi());
-                sb.append(getName(api));
+                sb.append(csvUtils.sanitize(getName(api)));
                 sb.append(lineSeparator());
             }
         } else if (searchLogResponse.getLogs().get(0) instanceof PlatformRequestItem) {
@@ -601,10 +596,10 @@ public class LogsServiceImpl implements LogsService {
                     platformLog.getUser()
                 );
                 final Object api = searchLogResponse.getMetadata().get(platformLog.getApi());
-                sb.append(getName(api));
+                sb.append(csvUtils.sanitize(getName(api)));
                 sb.append(separator);
                 final Object application = searchLogResponse.getMetadata().get(platformLog.getApplication());
-                sb.append(getName(application));
+                sb.append(csvUtils.sanitize(getName(application)));
                 sb.append(lineSeparator());
             }
         }
@@ -627,22 +622,22 @@ public class LogsServiceImpl implements LogsService {
     ) {
         sb.append(dateFormatter.format(timestamp));
         sb.append(separator);
-        sb.append(id);
+        sb.append(csvUtils.sanitize(id));
         sb.append(separator);
-        sb.append(transactionId);
+        sb.append(csvUtils.sanitize(transactionId));
         sb.append(separator);
         sb.append(method);
         sb.append(separator);
-        sb.append(path);
+        sb.append(csvUtils.sanitize(path));
         sb.append(separator);
         sb.append(status);
         sb.append(separator);
         sb.append(responseTime);
         sb.append(separator);
-        sb.append(getName(searchLogResponse.getMetadata().get(plan)));
+        sb.append(csvUtils.sanitize(getName(searchLogResponse.getMetadata().get(plan))));
         sb.append(separator);
         if (userEnabled) {
-            sb.append(user);
+            sb.append(csvUtils.sanitize(user));
             sb.append(separator);
         }
     }
