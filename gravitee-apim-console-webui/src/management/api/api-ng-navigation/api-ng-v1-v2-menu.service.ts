@@ -166,8 +166,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
       proxyGroup.items.push({
         displayName: 'Entrypoints',
-        targetRoute: 'management.apis.detail.proxy.entrypoints',
-        baseRoute: 'management.apis.detail.proxy.entrypoints',
+        targetRoute: 'management.apis.ng.entrypoints-v2',
+        baseRoute: 'management.apis.ng.entrypoints-v2',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
