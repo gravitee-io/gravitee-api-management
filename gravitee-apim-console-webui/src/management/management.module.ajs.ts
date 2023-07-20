@@ -207,7 +207,7 @@ import NotificationSettingsService from '../services/notificationSettings.servic
 import NotificationTemplatesService from '../services/notificationTemplates.service';
 
 // Documentation
-import '../components/documentation/documentation.module';
+import '../components/documentation/documentation.module.ajs';
 
 // Healthcheck
 import ApiHealthCheckController from '../management/api/proxy/health-check-dashboard/healthcheck.controller';

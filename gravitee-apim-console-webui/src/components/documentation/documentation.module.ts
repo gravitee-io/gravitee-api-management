@@ -13,47 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import * as angular from 'angular';
+import { NgModule } from '@angular/core';
 
 import { DocumentationManagementComponent } from './documentation-management.component';
-import { EditPageComponent } from './edit-page.component';
-import { EditLinkContentComponent } from './edit-tabs/edit-link-content.components';
-import { EditPageAclsComponent } from './edit-tabs/edit-page-acls.components';
-import { EditPageAttachedResourcesComponent } from './edit-tabs/edit-page-attached-resources.components';
-import { EditPageConfigurationComponent } from './edit-tabs/edit-page-configuration.components';
-import { EditPageContentComponent } from './edit-tabs/edit-page-content.components';
-import { EditPageFetchersComponent } from './edit-tabs/edit-page-fetchers.component';
-import { EditPageTranslationsComponent } from './edit-tabs/edit-page-translations.components';
-import { DocumentationNewFolderComponent } from './folder/new-folder.component';
-import { ImportPagesComponent } from './import-pages.component';
-import { DocumentationNewLinkComponent } from './link/new-link.component';
-import { NewPageComponent } from './new-page.component';
-import { PageAsciiDocComponent } from './page/page-asciidoc.component';
-import { PageAsyncApiComponent } from './page/page-asyncapi.component';
-import { PageEditorMarkdownComponent } from './page/page-editormarkdown.component';
-import { PageMarkdownComponent } from './page/page-markdown.component';
-import { PageSwaggerComponent } from './page/page-swagger.component';
+import { DocumentationNewPageComponent } from './new-page.component';
+import { DocumentationEditPageComponent } from './edit-page.component';
+import { DocumentationImportPagesComponent } from './import-pages.component';
 
-angular.module('gravitee-component-documentation', []);
-
-const graviteeDocumentationModule = angular.module('gravitee-component-documentation');
-
-graviteeDocumentationModule.component('documentationManagement', DocumentationManagementComponent);
-graviteeDocumentationModule.component('gvNewFolder', DocumentationNewFolderComponent);
-graviteeDocumentationModule.component('gvNewLink', DocumentationNewLinkComponent);
-graviteeDocumentationModule.component('gvEditLinkContent', EditLinkContentComponent);
-graviteeDocumentationModule.component('editPage', EditPageComponent);
-graviteeDocumentationModule.component('gvEditPageAcls', EditPageAclsComponent);
-graviteeDocumentationModule.component('gvEditPageAttachedResources', EditPageAttachedResourcesComponent);
-graviteeDocumentationModule.component('gvEditPageContent', EditPageContentComponent);
-graviteeDocumentationModule.component('gvEditPageConfiguration', EditPageConfigurationComponent);
-graviteeDocumentationModule.component('gvEditPageFetchers', EditPageFetchersComponent);
-graviteeDocumentationModule.component('gvEditPageTranslations', EditPageTranslationsComponent);
-graviteeDocumentationModule.component('importPages', ImportPagesComponent);
-graviteeDocumentationModule.component('newPage', NewPageComponent);
-graviteeDocumentationModule.component('gvPageAsciiDoc', PageAsciiDocComponent);
-graviteeDocumentationModule.component('gvPageAsyncApi', PageAsyncApiComponent);
-graviteeDocumentationModule.component('gvPageEditorMarkdown', PageEditorMarkdownComponent);
-graviteeDocumentationModule.component('gvPageMarkdown', PageMarkdownComponent);
-graviteeDocumentationModule.component('gvPageSwagger', PageSwaggerComponent);
+@NgModule({
+  declarations: [
+    DocumentationManagementComponent,
+    DocumentationNewPageComponent,
+    DocumentationEditPageComponent,
+    DocumentationImportPagesComponent,
+  ],
+  exports: [
+    DocumentationManagementComponent,
+    DocumentationNewPageComponent,
+    DocumentationEditPageComponent,
+    DocumentationImportPagesComponent,
+  ],
+})
+export class DocumentationModule {}

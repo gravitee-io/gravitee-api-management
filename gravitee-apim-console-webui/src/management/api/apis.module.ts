@@ -20,6 +20,7 @@ import { Transition, TransitionService } from '@uirouter/angularjs';
 import * as angular from 'angular';
 import { switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { StateParams } from '@uirouter/core';
 
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 import { ApiListModule } from './list/api-list.module';
@@ -49,6 +50,15 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
 import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
+import { DocumentationModule } from '../../components/documentation/documentation.module';
+import { DocumentationQuery, DocumentationService } from '../../services/documentation.service';
+import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
+import FetcherService from '../../services/fetcher.service';
+import CategoryService from '../../services/category.service';
+import GroupService from '../../services/group.service';
+import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
+import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
+import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
 
 const graviteeManagementModule = angular.module('gravitee-management');
 apiPermissionHook.$inject = ['$transitions', 'ngGioPermissionService'];
@@ -320,6 +330,318 @@ const states: Ng2StateDeclaration[] = [
       },
     },
   },
+  {
+    name: 'management.apis.ng.documentation',
+    component: DocumentationManagementComponent,
+    url: '/documentation?parent',
+    resolve: [
+      {
+        token: 'pages',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          if ($stateParams.parent && '' !== $stateParams.parent) {
+            q.parent = $stateParams.parent;
+          } else {
+            q.root = true;
+          }
+
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => {
+            return response.data;
+          });
+        },
+      },
+      {
+        token: 'folders',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'FOLDER';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'systemFolders',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'SYSTEM_FOLDER';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+    ],
+    data: {
+      docs: {
+        page: 'management-api-documentation',
+      },
+      apiPermissions: {
+        only: ['api-documentation-r'],
+      },
+    },
+    params: {
+      parent: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.documentationNew',
+    component: DocumentationNewPageComponent,
+    url: '/documentation/new?type&parent',
+    resolve: [
+      {
+        token: 'resolvedFetchers',
+        deps: ['FetcherService'],
+        resolveFn: (FetcherService: FetcherService) => {
+          return FetcherService.list().then((response) => {
+            return response.data;
+          });
+        },
+      },
+      {
+        token: 'folders',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'FOLDER';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'systemFolders',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'SYSTEM_FOLDER';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'pageResources',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'LINK') {
+            const q = new DocumentationQuery();
+            return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+          }
+        },
+      },
+      {
+        token: 'categoryResources',
+        deps: ['CategoryService', '$stateParams'],
+        resolveFn: (CategoryService: CategoryService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'LINK') {
+            return CategoryService.list().then((response) => response.data);
+          }
+        },
+      },
+      {
+        token: 'pagesToLink',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'MARKDOWN_TEMPLATE') {
+            const q = new DocumentationQuery();
+            q.homepage = false;
+            q.published = true;
+            return DocumentationService.search(q, $stateParams.apiId).then((response) =>
+              response.data.filter(
+                (page) =>
+                  page.type.toUpperCase() === 'MARKDOWN' ||
+                  page.type.toUpperCase() === 'SWAGGER' ||
+                  page.type.toUpperCase() === 'ASCIIDOC' ||
+                  page.type.toUpperCase() === 'ASYNCAPI',
+              ),
+            );
+          }
+        },
+      },
+    ],
+    data: {
+      docs: {
+        page: 'management-api-documentation',
+      },
+      apiPermissions: {
+        only: ['api-documentation-c'],
+      },
+    },
+    params: {
+      type: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+      parent: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.documentationImport',
+    component: DocumentationImportPagesComponent,
+    url: '/documentation/import',
+    resolve: [
+      {
+        token: 'resolvedFetchers',
+        deps: ['FetcherService'],
+        resolveFn: (FetcherService: FetcherService) => {
+          return FetcherService.list().then((response) => {
+            return response.data;
+          });
+        },
+      },
+      {
+        token: 'resolvedRootPage',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'ROOT';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) =>
+            response.data && response.data.length > 0 ? response.data[0] : null,
+          );
+        },
+      },
+    ],
+    data: {
+      docs: {
+        page: 'management-api-documentation',
+      },
+      apiPermissions: {
+        only: ['api-documentation-c'],
+      },
+    },
+    params: {
+      type: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+      parent: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.documentationEdit',
+    component: DocumentationEditPageComponent,
+    url: '/documentation/:pageId?:tab&type',
+    resolve: [
+      {
+        token: 'resolvedFetchers',
+        deps: ['FetcherService'],
+        resolveFn: (FetcherService: FetcherService) => {
+          return FetcherService.list().then((response) => {
+            return response.data;
+          });
+        },
+      },
+      {
+        token: 'resolvedPage',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
+          DocumentationService.get($stateParams.apiId, $stateParams.pageId).then((response) => response.data),
+      },
+      {
+        token: 'resolvedGroups',
+        deps: ['GroupService'],
+        resolveFn: (GroupService: GroupService) =>
+          GroupService.list().then((response) => {
+            return response.data;
+          }),
+      },
+      {
+        token: 'folders',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'FOLDER';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'systemFolders',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'SYSTEM_FOLDER';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'pageResources',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'LINK') {
+            const q = new DocumentationQuery();
+            return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+          }
+        },
+      },
+      {
+        token: 'categoryResources',
+        deps: ['CategoryService', '$stateParams'],
+        resolveFn: (CategoryService: CategoryService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'LINK') {
+            return CategoryService.list().then((response) => response.data);
+          }
+        },
+      },
+      {
+        token: 'pagesToLink',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'MARKDOWN_TEMPLATE') {
+            const q = new DocumentationQuery();
+            q.homepage = false;
+            q.published = true;
+            return DocumentationService.search(q, $stateParams.apiId).then((response) =>
+              response.data.filter(
+                (page) =>
+                  page.type.toUpperCase() === 'MARKDOWN' ||
+                  page.type.toUpperCase() === 'SWAGGER' ||
+                  page.type.toUpperCase() === 'ASCIIDOC' ||
+                  page.type.toUpperCase() === 'ASYNCAPI',
+              ),
+            );
+          }
+        },
+      },
+      {
+        token: 'attachedResources',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'ASCIIDOC' || $stateParams.type === 'ASYNCAPI') {
+            return DocumentationService.getMedia($stateParams.pageId, $stateParams.apiId).then((response) => response.data);
+          }
+        },
+      },
+    ],
+    data: {
+      docs: {
+        page: 'management-api-documentation',
+      },
+      apiPermissions: {
+        only: ['api-documentation-c'],
+      },
+    },
+    params: {
+      type: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+      parent: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+    },
+  },
 ];
 
 @NgModule({
@@ -335,6 +657,7 @@ const states: Ng2StateDeclaration[] = [
     ApiEndpointsModule,
     GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.ng.policy-studio-v2' }),
     SpecificJsonSchemaTypeModule,
+    DocumentationModule,
 
     GioEmptyModule,
 

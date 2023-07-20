@@ -13,104 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
 
-import { StateService } from '@uirouter/core';
-import angular, { IController, IScope } from 'angular';
-import * as _ from 'lodash';
-
-import { DocumentationService } from '../../services/documentation.service';
-import NotificationService from '../../services/notification.service';
-
-interface IPageScope extends IScope {
-  fetcherJsonSchema: string;
-}
-
-class ImportPagesComponentController implements IController {
-  resolvedFetchers: any[];
-  resolvedRootPage: any;
-
-  apiId: string;
-  page: any;
-  fetchers: any[];
-  importInProgress: boolean;
-  /* @ngInject */
-  constructor(
-    private readonly NotificationService: NotificationService,
-    private readonly DocumentationService: DocumentationService,
-    private $state: StateService,
-    private $scope: IPageScope,
-  ) {
-    this.apiId = this.$state.params.apiId;
-  }
-
-  $onInit() {
-    this.page = this.resolvedRootPage || {
-      name: 'root',
-      type: 'ROOT',
-    };
-
-    this.fetchers = this.resolvedFetchers;
-
-    if (!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
-      _.forEach(this.fetchers, (fetcher) => {
-        if (fetcher.id === this.page.source.type) {
-          this.$scope.fetcherJsonSchema = angular.fromJson(fetcher.schema);
-        }
-      });
-    }
-  }
-
-  import() {
-    this.importInProgress = true;
-    this.page.name = 'import';
-    this.DocumentationService.import(this.page, this.apiId)
-      .then((response: any) => {
-        if (this.page.id) {
-          if (response.data.messages && response.data.messages.length > 0) {
-            this.NotificationService.showError(
-              "'" +
-                response.data.length +
-                "' elements has been updated (with validation errors - check the bottom of the page for details)",
-            );
-          } else {
-            this.NotificationService.show("'" + response.data.length + "' elements has been updated.");
-          }
-        } else {
-          if (response.data.messages && response.data.messages.length > 0) {
-            this.NotificationService.showError(
-              "'" +
-                response.data.length +
-                "' elements has been created (with validation errors - check the bottom of the page for details)",
-            );
-          } else {
-            this.NotificationService.show("'" + response.data.length + "' elements has been created.");
-          }
-        }
-        if (this.apiId) {
-          this.$state.go('management.apis.detail.portal.documentation', { apiId: this.apiId });
-        } else {
-          this.$state.go('management.settings.documentation.list');
-        }
-      })
-      .finally(() => {
-        this.importInProgress = false;
-      });
-  }
-
-  cancel() {
-    if (this.apiId) {
-      this.$state.go('management.apis.detail.portal.documentation', { apiId: this.apiId });
-    } else {
-      this.$state.go('management.settings.documentation.list');
-    }
-  }
-}
-
-export const ImportPagesComponent: ng.IComponentOptions = {
-  bindings: {
-    resolvedFetchers: '<',
-    resolvedRootPage: '<',
+@Component({
+  template: '',
+  selector: 'documentation-import-pages',
+  host: {
+    class: 'bootstrap',
   },
-  template: require('./import-pages.html'),
-  controller: ImportPagesComponentController,
-};
+})
+export class DocumentationImportPagesComponent extends UpgradeComponent {
+  @Input() resolvedFetchers;
+  @Input() resolvedRootPage;
+
+  constructor(elementRef: ElementRef, injector: Injector) {
+    super('documentationImportPagesAjs', elementRef, injector);
+  }
+
+  ngOnInit() {
+    // Hack to Force the binding between Angular and AngularJS
+    // Don't know why, but the binding is not done automatically when resolver is used
+    this.ngOnChanges({
+      resolvedFetchers: new SimpleChange(null, this.resolvedFetchers, true),
+      resolvedRootPage: new SimpleChange(null, this.resolvedRootPage, true),
+    });
+
+    super.ngOnInit();
+  }
+}
