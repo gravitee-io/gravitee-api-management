@@ -30,6 +30,8 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
+import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -232,7 +234,7 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_get_api_V3() throws JsonProcessingException {
+    public void should_get_api_V2() throws JsonProcessingException {
         doReturn(this.fakeApiEntityV2()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
 
         final Response response = rootTarget(API).request().get();
@@ -250,7 +252,6 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertTrue(responseApi.getLinks().getBackgroundUrl().contains("environments/my-env/apis/my-api/background"));
         assertNotNull(responseApi.getProperties());
         assertEquals(1, responseApi.getProperties().size());
-        assertNotNull(responseApi.getServices());
         assertNotNull(responseApi.getResources());
         assertEquals(1, responseApi.getResources().size());
         assertNotNull(responseApi.getResponseTemplates());
@@ -259,10 +260,16 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertNotNull(responseApi.getProxy());
         assertEquals("/test", responseApi.getProxy().getVirtualHosts().get(0).getPath());
         assertEquals("host.io", responseApi.getProxy().getVirtualHosts().get(0).getHost());
+
+        assertNotNull(responseApi.getServices());
+        assertNotNull(responseApi.getServices().getHealthCheck());
+        assertEquals(Boolean.TRUE, responseApi.getServices().getHealthCheck().getEnabled());
+        assertNotNull(responseApi.getServices().getDynamicProperty());
+        assertEquals(Boolean.TRUE, responseApi.getServices().getDynamicProperty().getEnabled());
     }
 
     @Test
-    public void should_get_filtered_api_V3() {
+    public void should_get_filtered_api_V2() {
         doReturn(this.fakeApiEntityV2()).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API);
 
         doReturn(false)
@@ -397,7 +404,16 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         var properties = new Properties();
         properties.setProperties(List.of(new io.gravitee.definition.model.Property("key", "value")));
         apiEntity.setProperties(properties);
-        apiEntity.setServices(new Services());
+        final Services services = new Services();
+        final HealthCheckService healthCheckService = new HealthCheckService();
+        healthCheckService.setEnabled(true);
+        healthCheckService.setSchedule("schedule");
+        services.setHealthCheckService(healthCheckService);
+        final DynamicPropertyService dynamicPropertyService = new DynamicPropertyService();
+        dynamicPropertyService.setEnabled(true);
+        dynamicPropertyService.setSchedule("schedule");
+        services.setDynamicPropertyService(dynamicPropertyService);
+        apiEntity.setServices(services);
         apiEntity.setResources(List.of(new io.gravitee.definition.model.plugins.resources.Resource()));
         apiEntity.setResponseTemplates(Map.of("key", new HashMap<>()));
         apiEntity.setUpdatedAt(new Date());
