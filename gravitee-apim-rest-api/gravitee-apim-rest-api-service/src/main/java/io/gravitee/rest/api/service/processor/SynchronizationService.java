@@ -51,15 +51,15 @@ public class SynchronizationService {
     public <T> boolean checkSynchronization(final Class<T> entityClass, final T deployedEntity, final T entityToDeploy) {
         try {
             String requiredFieldsDeployedApiDefinition = objectMapper.writeValueAsString(
-                    getRequiredFieldsForComparison(entityClass, deployedEntity)
+                getRequiredFieldsForComparison(entityClass, deployedEntity)
             );
             String requiredFieldsApiToDeployDefinition = objectMapper.writeValueAsString(
-                    getRequiredFieldsForComparison(entityClass, entityToDeploy)
+                getRequiredFieldsForComparison(entityClass, entityToDeploy)
             );
 
             return objectMapper
-                    .readTree(requiredFieldsDeployedApiDefinition)
-                    .equals(objectMapper.readTree(requiredFieldsApiToDeployDefinition));
+                .readTree(requiredFieldsDeployedApiDefinition)
+                .equals(objectMapper.readTree(requiredFieldsApiToDeployDefinition));
         } catch (Exception e) {
             LOGGER.error("Unexpected error while generating API deployment required fields definition", e);
             return false;
