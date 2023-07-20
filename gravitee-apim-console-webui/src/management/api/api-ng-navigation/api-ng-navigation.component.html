@@ -29,6 +29,13 @@
         [apiOrigin]="currentApi.definitionContext.origin"
         separator="pipe"
       ></api-ng-navigation-title>
+      <div
+        class="api-navigation__coming-soon"
+        matTooltipPosition="after"
+        matTooltip="In future versions, documentation, analytics, audits, and more will be included"
+      >
+        <span class="gio-badge-neutral">More features coming soon!</span>
+      </div>
       <ng-container *ngFor="let menuItem of this.subMenuItems">
         <gio-submenu-item
           *ngIf="!menuItem?.targetRoute && menuItem?.tabs?.length > 0"
