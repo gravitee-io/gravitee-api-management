@@ -252,7 +252,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         final SubscriptionQuery query = new SubscriptionQuery();
         query.setApplications(applicationIds);
         query.setApi(api.getId());
-        query.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.RESUMED));
+        query.setStatuses(Set.of(SubscriptionStatus.ACCEPTED));
 
         return !subscriptionService.search(executionContext, query).isEmpty();
     }
