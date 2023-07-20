@@ -134,6 +134,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.After;
@@ -399,6 +400,12 @@ public class ApiService_UpdateTest {
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+
+        // Picture management as a dedicated service, so we should reuse the same picture as the one saved
+        verify(apiRepository).update(argThat(apiToUpdate ->
+               Objects.equals(apiToUpdate.getPicture(), api.getPicture())
+                   && Objects.equals(apiToUpdate.getBackground(), api.getBackground())
+        ));
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
@@ -543,6 +550,8 @@ public class ApiService_UpdateTest {
 
         api.setName(API_NAME);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        api.setPicture("picture");
+        api.setPicture("background");
 
         updateApiEntity.setName(API_NAME);
         updateApiEntity.setVersion("v1");
