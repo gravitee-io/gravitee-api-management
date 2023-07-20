@@ -17,15 +17,14 @@
 import { marked } from 'marked';
 
 export class PageMarkdownController implements ng.IComponentController, ng.IOnInit {
-  constructor(private readonly $sanitize: ng.sanitize.ISanitizeService) {
-    'ngInject';
-  }
+  /* @ngInject */
+  constructor(private readonly $sanitize: ng.sanitize.ISanitizeService) {}
 
   page: any;
   htmlContent: string;
 
   $onInit(): void {
-    this.htmlContent = this.$sanitize(marked.parse(this.page.content));
+    this.htmlContent = this.$sanitize(marked.parse(this.page?.content ?? ''));
   }
 }
 

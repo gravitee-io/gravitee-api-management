@@ -341,7 +341,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
     })
     .state('management.settings.documentation.list', {
       url: '?:parent',
-      component: 'documentationManagement',
+      component: 'documentationManagementAjs',
       resolve: {
         pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
           const q = new DocumentationQuery();
@@ -383,7 +383,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
     })
     .state('management.settings.documentation.new', {
       url: '/new?type&:parent',
-      component: 'newPage',
+      component: 'documentationNewPageAjs',
       resolve: {
         resolvedFetchers: (FetcherService: FetcherService) => {
           return FetcherService.list().then((response) => {
@@ -452,7 +452,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
     })
     .state('management.settings.documentation.import', {
       url: '/import',
-      component: 'importPages',
+      component: 'documentationImportPagesAjs',
       resolve: {
         resolvedFetchers: (FetcherService: FetcherService) => {
           return FetcherService.list(true).then((response) => {
@@ -477,7 +477,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
     })
     .state('management.settings.documentation.edit', {
       url: '/:pageId?:tab&type',
-      component: 'editPage',
+      component: 'documentationEditPageAjs',
       resolve: {
         resolvedPage: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
           DocumentationService.get(null, $stateParams.pageId).then((response) => response.data),
