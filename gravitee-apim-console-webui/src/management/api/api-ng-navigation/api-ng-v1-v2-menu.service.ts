@@ -116,8 +116,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
       documentationMenuItem.tabs.push({
         displayName: 'Metadata',
-        targetRoute: 'management.apis.detail.portal.metadata',
-        baseRoute: 'management.apis.detail.portal.metadata',
+        targetRoute: 'management.apis.ng.metadata',
+        baseRoute: 'management.apis.ng.metadata',
       });
     }
     if (documentationMenuItem.tabs.length > 0) {
