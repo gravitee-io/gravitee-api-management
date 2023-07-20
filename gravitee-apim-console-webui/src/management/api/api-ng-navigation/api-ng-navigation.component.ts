@@ -255,7 +255,7 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
       .subscribe((api) => {
         this.currentApi = api;
         const { groupItems, subMenuItems } =
-          api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu() : this.apiNgV4MenuService.getMenu();
+          api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu(api) : this.apiNgV4MenuService.getMenu();
         this.groupItems = groupItems;
         this.subMenuItems = subMenuItems;
 

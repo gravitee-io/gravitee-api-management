@@ -41,6 +41,8 @@ import { ApiNgNavigationTitleComponent } from './api-ng-navigation-title/api-ng-
 import { ApiNgNavigationComponent } from './api-ng-navigation.component';
 import { ApiNgNavigationDisabledComponent } from './api-ng-navigation-disabled/api-ng-navigation-disabled.component';
 
+import { GioLicenseModule } from '../../../shared/components/gio-license/gio-license.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -59,6 +61,7 @@ import { ApiNgNavigationDisabledComponent } from './api-ng-navigation-disabled/a
     GioBannerModule,
     GioFormSlideToggleModule,
     GioLoaderModule,
+    GioLicenseModule,
     MatSnackBarModule,
     UIRouterModule,
   ],
