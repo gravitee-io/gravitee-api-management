@@ -37,6 +37,7 @@ import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -149,6 +150,7 @@ public class AccessControlServiceTest {
         final ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
         apiEntity.setVisibility(Visibility.PUBLIC);
+        apiEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
 
         boolean canAccess = accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiEntity);
 
@@ -160,6 +162,7 @@ public class AccessControlServiceTest {
         final ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
         apiEntity.setVisibility(Visibility.PUBLIC);
+        apiEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
         connectUser();
 
         boolean canAccess = accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiEntity);
@@ -172,7 +175,7 @@ public class AccessControlServiceTest {
         final ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
         apiEntity.setVisibility(Visibility.PRIVATE);
-
+        apiEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
         boolean canAccess = accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertFalse(canAccess);
@@ -183,6 +186,7 @@ public class AccessControlServiceTest {
         final ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
         apiEntity.setVisibility(Visibility.PRIVATE);
+        apiEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
         connectUser();
 
         boolean canAccess = accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), apiEntity);
@@ -195,6 +199,7 @@ public class AccessControlServiceTest {
         final ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API_ID);
         apiEntity.setVisibility(Visibility.PRIVATE);
+        apiEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
 
         when(
             apiAuthorizationService.canConsumeApi(eq(GraviteeContext.getExecutionContext()), any(String.class), any(GenericApiEntity.class))
