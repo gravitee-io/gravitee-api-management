@@ -30,16 +30,16 @@ import java.util.stream.Collectors;
 public class Properties implements Serializable {
 
     @JsonProperty("properties")
-    private List<Property> properties = List.of();
+    private List<Property> propertiesList = List.of();
 
     @JsonIgnore
     private Map<String, String> entries = Map.of();
 
     public void setProperties(List<Property> properties) {
-        this.properties = properties == null ? List.of() : properties;
+        this.propertiesList = properties == null ? List.of() : properties;
 
         this.entries =
-            this.properties.stream()
+                this.propertiesList.stream()
                 .collect(
                     Collectors.toMap(
                         Property::getKey,
@@ -53,7 +53,7 @@ public class Properties implements Serializable {
     }
 
     public List<Property> getProperties() {
-        return properties;
+        return propertiesList;
     }
 
     @JsonIgnore
