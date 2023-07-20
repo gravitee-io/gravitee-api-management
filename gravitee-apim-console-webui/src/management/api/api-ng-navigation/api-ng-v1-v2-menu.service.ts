@@ -174,8 +174,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
       proxyGroup.items.push(
         {
           displayName: 'CORS',
-          targetRoute: 'management.apis.detail.proxy.cors',
-          baseRoute: 'management.apis.detail.proxy.cors',
+          targetRoute: 'management.apis.ng.cors',
+          baseRoute: 'management.apis.ng.cors',
         },
         {
           displayName: 'Deployments',
