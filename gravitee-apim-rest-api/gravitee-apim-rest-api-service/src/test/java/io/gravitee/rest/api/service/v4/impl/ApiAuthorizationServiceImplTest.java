@@ -529,7 +529,7 @@ public class ApiAuthorizationServiceImplTest {
         final SubscriptionQuery query = new SubscriptionQuery();
         query.setApplications(Collections.singleton("application-id"));
         query.setApi(api.getId());
-        query.setStatuses(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.RESUMED));
+        query.setStatuses(Set.of(SubscriptionStatus.ACCEPTED));
 
         when(subscriptionService.search(any(ExecutionContext.class), eq(query)))
             .thenReturn(Collections.singletonList(new SubscriptionEntity()));
