@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.v4.service.Service;
@@ -42,6 +41,10 @@ public interface ServiceMapper {
     @Mapping(target = "dynamicPropertyService", source = "dynamicProperty")
     @Mapping(target = "healthCheckService", source = "healthCheck")
     Services map(ApiServicesV2 apiServicesV2);
+
+    @Mapping(target = "dynamicProperty", source = "dynamicPropertyService")
+    @Mapping(target = "healthCheck", source = "healthCheckService")
+    ApiServicesV2 map(Services apiServicesV2);
 
     @Mapping(target = "discoveryService", source = "discovery")
     Services map(EndpointGroupServicesV2 endpointGroupServicesV2);
