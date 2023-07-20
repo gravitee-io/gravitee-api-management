@@ -179,8 +179,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
         },
         {
           displayName: 'Deployments',
-          targetRoute: 'management.apis.detail.proxy.deployments',
-          baseRoute: 'management.apis.detail.proxy.deployments',
+          targetRoute: 'management.apis.ng.deployments',
+          baseRoute: 'management.apis.ng.deployments',
         },
       );
     }
