@@ -48,6 +48,7 @@ import { GioPolicyStudioRoutingModule } from './policy-studio/gio-policy-studio-
 import { ApiPortalMembersComponent } from './portal/user-group-access/members/api-portal-members.component';
 import { ApiPortalGroupsComponent } from './portal/user-group-access/groups/api-portal-groups.component';
 import { ApiPortalTransferOwnershipComponent } from './portal/user-group-access/transfer-ownership/api-portal-transfer-ownership.component';
+import { ApiPortalDocumentationMetadataComponent } from './portal/documentation/metadata/api-portal-documentation-metadata.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -643,6 +644,17 @@ const states: Ng2StateDeclaration[] = [
         value: '',
         squash: false,
       },
+    },
+  },
+  {
+    name: 'management.apis.ng.metadata',
+    component: ApiPortalDocumentationMetadataComponent,
+    url: '/metadata',
+    data: {
+      apiPermissions: {
+        only: ['api-metadata-r'],
+      },
+      useAngularMaterial: true,
     },
   },
   {
