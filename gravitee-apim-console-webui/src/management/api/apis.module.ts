@@ -51,6 +51,7 @@ import { ApiPortalTransferOwnershipComponent } from './portal/user-group-access/
 import { ApiPortalDocumentationMetadataComponent } from './portal/documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiProxyEntrypointsComponent } from './proxy/entrypoints/api-proxy-entrypoints.component';
 import { ApiProxyCorsComponent } from './proxy/cors/api-proxy-cors.component';
+import { ApiProxyDeploymentsComponent } from './proxy/deployments/api-proxy-deployments.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -719,6 +720,20 @@ const states: Ng2StateDeclaration[] = [
     name: 'management.apis.ng.cors',
     component: ApiProxyCorsComponent,
     url: '/cors',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-proxy',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.deployments',
+    component: ApiProxyDeploymentsComponent,
+    url: '/deployments',
     data: {
       apiPermissions: {
         only: ['api-definition-r'],
