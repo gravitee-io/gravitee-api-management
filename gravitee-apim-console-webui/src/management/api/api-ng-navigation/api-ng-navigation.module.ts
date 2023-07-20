@@ -39,6 +39,7 @@ import { ApiConfirmDeploymentDialogComponent } from './api-confirm-deployment-di
 import { ApiNgNavigationTabsComponent } from './api-ng-navigation-tabs/api-ng-navigation-tabs.component';
 import { ApiNgNavigationTitleComponent } from './api-ng-navigation-title/api-ng-navigation-title.component';
 import { ApiNgNavigationComponent } from './api-ng-navigation.component';
+import { ApiNgNavigationDisabledComponent } from './api-ng-navigation-disabled/api-ng-navigation-disabled.component';
 
 @NgModule({
   imports: [
@@ -65,6 +66,7 @@ import { ApiNgNavigationComponent } from './api-ng-navigation.component';
     ApiNgNavigationComponent,
     ApiNgNavigationTitleComponent,
     ApiNgNavigationTabsComponent,
+    ApiNgNavigationDisabledComponent,
     ApiConfirmDeploymentDialogComponent,
     ApiReviewDialogComponent,
   ],
