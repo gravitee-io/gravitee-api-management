@@ -790,6 +790,13 @@
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-policy-cloud-events</artifactId>
+                    <version>${gravitee-policy-cloud-events.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
                 <!-- Reporters -->
                 <dependency>
                     <groupId>com.graviteesource.reporter</groupId>
