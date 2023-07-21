@@ -78,19 +78,30 @@ public class SynchronizationService {
 
         for (Field entityField : entityClass.getDeclaredFields()) {
             if (isFieldRequiredForDeployment(entityField)) {
-                boolean previousAccessibleState = entityField.isAccessible();
-                entityField.setAccessible(true);
-
-                try {
-                    requiredEntityFields.add(entityField.get(entity));
-                } catch (Exception e) {
-                    LOGGER.error("Error access entity required deployment fields", e);
-                } finally {
-                    entityField.setAccessible(previousAccessibleState);
-                }
+                addRequiredEntityFieldToList(entityField, entity, requiredEntityFields);
             }
         }
         return requiredEntityFields;
+    }
+
+    /**
+     * Add an entity field from the supplied entity to the given list
+     *
+     * @param entityField
+     * @param entity
+     * @param requiredEntityFields
+     */
+    public <T> void addRequiredEntityFieldToList(Field entityField, final T entity, List<Object> requiredEntityFields) {
+        boolean previousAccessibleState = entityField.isAccessible();
+        entityField.setAccessible(true);
+
+        try {
+            requiredEntityFields.add(entityField.get(entity));
+        } catch (Exception e) {
+            LOGGER.error("Error access entity required deployment fields", e);
+        } finally {
+            entityField.setAccessible(previousAccessibleState);
+        }
     }
 
     /**
