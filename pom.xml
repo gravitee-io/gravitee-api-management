@@ -166,7 +166,7 @@
         <gravitee-policy-assign-content.version>2.0.1</gravitee-policy-assign-content.version>
         <gravitee-policy-assign-metrics.version>3.0.2</gravitee-policy-assign-metrics.version>
         <gravitee-policy-basic-authentication.version>1.5.1</gravitee-policy-basic-authentication.version>
-        <gravitee-policy-aws-lambda.version>1.1.1</gravitee-policy-aws-lambda.version>
+        <gravitee-policy-aws-lambda.version>1.1.2</gravitee-policy-aws-lambda.version>
         <gravitee-policy-cache.version>2.0.1</gravitee-policy-cache.version>
         <gravitee-policy-callout-http.version>2.0.2</gravitee-policy-callout-http.version>
         <gravitee-policy-circuit-breaker.version>1.1.5</gravitee-policy-circuit-breaker.version>
@@ -175,7 +175,7 @@
         <gravitee-policy-dynamic-routing.version>1.12.1</gravitee-policy-dynamic-routing.version>
         <gravitee-policy-generate-http-signature.version>1.2.1</gravitee-policy-generate-http-signature.version>
         <gravitee-policy-generate-jwt.version>1.6.1</gravitee-policy-generate-jwt.version>
-        <gravitee-policy-geoip-filtering.version>2.0.1</gravitee-policy-geoip-filtering.version>
+        <gravitee-policy-geoip-filtering.version>2.0.2</gravitee-policy-geoip-filtering.version>
         <gravitee-policy-groovy.version>2.4.2</gravitee-policy-groovy.version>
         <gravitee-policy-html-json.version>1.6.1</gravitee-policy-html-json.version>
         <gravitee-policy-http-signature.version>1.6.1</gravitee-policy-http-signature.version>
@@ -217,7 +217,7 @@
         <gravitee-policy-xml-threat-protection.version>1.4.1</gravitee-policy-xml-threat-protection.version>
         <gravitee-policy-xml-validation.version>1.1.1</gravitee-policy-xml-validation.version>
         <gravitee-policy-xslt.version>3.0.1</gravitee-policy-xslt.version>
-        <gravitee-policy-wssecurity-authentication.version>2.0.1</gravitee-policy-wssecurity-authentication.version>
+        <gravitee-policy-wssecurity-authentication.version>2.0.2</gravitee-policy-wssecurity-authentication.version>
 
         <gravitee-resource-cache.version>2.0.0</gravitee-resource-cache.version>
         <gravitee-resource-oauth2-provider-am.version>2.0.0</gravitee-resource-oauth2-provider-am.version>
@@ -253,15 +253,15 @@
         <!-- <gravitee-service-geoip.version>1.1.0</gravitee-service-geoip.version>-->
 
         <!-- Enterprise plugins -->
-        <gravitee-entrypoint-http-get.version>1.0.0</gravitee-entrypoint-http-get.version>
-        <gravitee-entrypoint-http-post.version>1.0.0</gravitee-entrypoint-http-post.version>
-        <gravitee-entrypoint-sse.version>4.0.0</gravitee-entrypoint-sse.version>
-        <gravitee-entrypoint-webhook.version>2.0.0</gravitee-entrypoint-webhook.version>
-        <gravitee-entrypoint-websocket.version>1.0.0</gravitee-entrypoint-websocket.version>
-        <gravitee-endpoint-kafka.version>2.0.0</gravitee-endpoint-kafka.version>
-        <gravitee-endpoint-mqtt5.version>2.0.0</gravitee-endpoint-mqtt5.version>
-        <gravitee-endpoint-rabbitmq.version>1.0.1</gravitee-endpoint-rabbitmq.version>
-        <gravitee-endpoint-solace.version>1.0.0</gravitee-endpoint-solace.version>
+        <gravitee-entrypoint-http-get.version>1.0.1</gravitee-entrypoint-http-get.version>
+        <gravitee-entrypoint-http-post.version>1.0.1</gravitee-entrypoint-http-post.version>
+        <gravitee-entrypoint-sse.version>4.0.1</gravitee-entrypoint-sse.version>
+        <gravitee-entrypoint-webhook.version>2.0.1</gravitee-entrypoint-webhook.version>
+        <gravitee-entrypoint-websocket.version>1.0.1</gravitee-entrypoint-websocket.version>
+        <gravitee-endpoint-kafka.version>2.0.2</gravitee-endpoint-kafka.version>
+        <gravitee-endpoint-mqtt5.version>2.0.2</gravitee-endpoint-mqtt5.version>
+        <gravitee-endpoint-rabbitmq.version>1.0.2</gravitee-endpoint-rabbitmq.version>
+        <gravitee-endpoint-solace.version>1.0.1</gravitee-endpoint-solace.version>
         <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>1.0.1</gravitee-reactor-message.version>
         <gravitee-repository-bridge.version>4.0.0</gravitee-repository-bridge.version>
