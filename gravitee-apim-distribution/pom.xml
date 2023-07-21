@@ -791,7 +791,7 @@
                     <scope>runtime</scope>
                 </dependency>
                 <dependency>
-                    <groupId>com.graviteesource.endpoint</groupId>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-cloud-events</artifactId>
                     <version>${gravitee-policy-cloud-events.version}</version>
                     <type>zip</type>
