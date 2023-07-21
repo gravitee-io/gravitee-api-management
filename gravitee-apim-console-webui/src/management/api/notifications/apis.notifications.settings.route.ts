@@ -120,7 +120,7 @@ function apisNotificationsRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.alerts.alert', {
+    .state('management.apis.detail.alerts.editalert', {
       url: '/:alertId?:tab',
       component: 'alertComponent',
       data: {
