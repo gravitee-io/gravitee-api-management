@@ -9,7 +9,6 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import java.util.*;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -37,7 +36,7 @@ class SynchronizationServiceTest {
     void thenTheRequiredFieldsShouldBeReturned() {
         ApiEntity entity = new ApiEntity();
 
-        entity.setCrossId("c38d779e-6e7e-472b-8d77-9e6e7e172b78");
+        entity.setCrossId("c38d779e-6e7e-472b-8d77-9e6e7e172b08");
         entity.setUpdatedAt(new Date());
         entity.setState(Lifecycle.State.INITIALIZED);
         entity.setPrimaryOwner(new PrimaryOwnerEntity());
