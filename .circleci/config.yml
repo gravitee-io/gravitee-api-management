@@ -1403,10 +1403,10 @@ jobs:
                         DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION}-${GRAVITEEIO_QUALIFIER_NAME}"
                       else
                         # create x.y tags only if there is no qualifier
-                        DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}
-                        DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}
-                        DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}
-                        DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}
+                        DOCKER_BUILD_GATEWAY_TAG+="        -t graviteeio/apim-gateway:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}"
+                        DOCKER_BUILD_MANAGEMENT_API_TAG+=" -t graviteeio/apim-management-api:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}"
+                        DOCKER_BUILD_MANAGEMENT_UI_TAG+="  -t graviteeio/apim-management-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}"
+                        DOCKER_BUILD_PORTAL_UI_TAG+="      -t graviteeio/apim-portal-ui:${GRAVITEEIO_VERSION_MAJOR}.${GRAVITEEIO_VERSION_MINOR}"
 
                         #  create x and latest tags only if it's the latest version and there is no qualifier
                         if [ "<< parameters.docker_tag_as_latest >>" = "true" ]; then
