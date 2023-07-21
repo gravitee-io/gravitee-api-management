@@ -68,6 +68,6 @@ public interface ApiAuthorizationService {
     );
 
     Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
-
+    Set<String> findIdsByEnvironment(final ExecutionContext executionContext);
     List<ApiCriteria> computeApiCriteriaForUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
 }

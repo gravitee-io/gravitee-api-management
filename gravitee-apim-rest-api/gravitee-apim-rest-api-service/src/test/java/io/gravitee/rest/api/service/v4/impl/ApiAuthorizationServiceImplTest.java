@@ -54,11 +54,9 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
+
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -231,7 +229,21 @@ public class ApiAuthorizationServiceImplTest {
                     query.getQuery().contains("tag\\-1")
                 )
             );
-    }
+        }
+        @Test
+        public void shouldFindIdsByEnvironmentId() {
+            List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+            apiCriteriaList.add(
+                    new ApiCriteria.Builder()
+                            .environmentId("DEFAULT")
+                            .build()
+            );
+
+            when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
+            final Set<String> apis = apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getExecutionContext());
+
+            assertThat(apis).hasSize(1);
+        }
 
     @Test
     public void shouldNotFindIdsByUserBecauseNotExists() {
