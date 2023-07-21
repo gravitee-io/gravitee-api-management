@@ -21,16 +21,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.log.SearchLogResponse;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Objects;
 import javax.ws.rs.core.Response;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -44,8 +47,22 @@ public class PlatformLogsResourceTest extends AbstractResourceTest {
         return "platform/logs/";
     }
 
+    @Before
+    public void setUp() {
+        reset(logsService, applicationService, apiAuthorizationServiceV4);
+    }
+
     @Test
     public void shouldGetPlatformLogsAsAdmin() {
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_PLATFORM,
+                "DEFAULT",
+                RolePermissionAction.READ
+            )
+        )
+            .thenReturn(true);
         when(logsService.findPlatform(any(ExecutionContext.class), any(LogQuery.class))).thenReturn(new SearchLogResponse<>(10));
         Response logs = sendRequest();
         assertEquals(OK_200, logs.getStatus());
