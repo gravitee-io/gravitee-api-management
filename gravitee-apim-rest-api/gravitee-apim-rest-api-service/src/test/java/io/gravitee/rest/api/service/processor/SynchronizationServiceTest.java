@@ -44,9 +44,9 @@ class SynchronizationServiceTest {
 
     @Test
     @DisplayName(
-            "GIVEN an entity" +
-                    "WHEN the required entity fields are retrieved" +
-                    "THEN only the correct amount of required fields should be returned"
+        "GIVEN an entity" +
+        "WHEN the required entity fields are retrieved" +
+        "THEN only the correct amount of required fields should be returned"
     )
     void thenTheRequiredFieldsShouldBeReturned() {
         ApiEntity entity = new ApiEntity();
