@@ -26,7 +26,11 @@ const resolveLinkedVersion = (allVersions, valueToResolve) => {
   return versionLinkMatch ? allVersions[versionLinkMatch[1]] : valueToResolve;
 };
 const distributionProperties = Object.fromEntries(
-  Object.entries(parentJsonPom.project.properties).map(([key, value]) => [key, resolveLinkedVersion(parentJsonPom.project.properties, value)]),
+  Object.entries(parentJsonPom.project.properties)
+    .filter(([key, value]) => key.endsWith('version'))
+    .map(([key, value]) => {
+    return [key, resolveLinkedVersion(parentJsonPom.project.properties, value)];
+  }),
 );
 const distributionDependencies = distributionJsonPom.project.dependencies.dependency.map((dependency) => ({
   ...dependency,
