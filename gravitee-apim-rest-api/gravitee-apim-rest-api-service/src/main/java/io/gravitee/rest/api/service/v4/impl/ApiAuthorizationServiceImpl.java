@@ -178,6 +178,22 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         return new LinkedHashSet<>(apiIds);
     }
 
+    @Override
+    public Set<String> findIdsByEnvironment(ExecutionContext executionContext) {
+        if (isBlank(executionContext.getEnvironmentId())) {
+            return Set.of();
+        }
+        final ApiCriteria.Builder builder = getDefaultApiCriteriaBuilder()
+            .environmentId(executionContext.getEnvironmentId())
+            .visibility(PUBLIC);
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(builder.build());
+
+        Pageable pageable = new PageableImpl(1, Integer.MAX_VALUE);
+        List<String> apiIds = apiRepository.searchIds(apiCriteriaList, convert(pageable), null).getContent();
+        return new LinkedHashSet<>(apiIds);
+    }
+
     /**
      * This method use ApiQuery to search in indexer for fields in api definition
      *

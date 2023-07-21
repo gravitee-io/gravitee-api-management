@@ -39,6 +39,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -46,6 +47,7 @@ import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -83,42 +85,28 @@ public class PlatformAnalyticsResource extends AbstractResource {
     public Response getPlatformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
         analyticsParam.validate();
 
-        Analytics analytics = null;
-
         // add filter by Apis or Applications
-        String extraFilter = null;
-        if (!isAdmin()) {
-            String fieldName;
-            List<String> ids;
-            final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-            if ("application".equals(analyticsParam.getField())) {
-                fieldName = "application";
-                ids =
-                    applicationService
-                        .findIdsByUser(executionContext, getAuthenticatedUser())
-                        .stream()
-                        .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
-                        .collect(Collectors.toList());
-            } else {
-                fieldName = "api";
-                ids =
-                    apiAuthorizationService
-                        .findIdsByUser(executionContext, getAuthenticatedUser(), true)
-                        .stream()
-                        .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
-                        .collect(Collectors.toList());
-            }
+        String fieldName;
+        Set<String> ids;
 
-            if (ids.isEmpty()) {
-                return Response.noContent().build();
-            }
-            extraFilter = getExtraFilter(fieldName, ids);
+        if ("application".equals(analyticsParam.getField())) {
+            fieldName = "application";
+            ids = findApplicationIds();
+        } else {
+            fieldName = "api";
+            ids = findApiIds();
         }
+
+        if (ids.isEmpty()) {
+            return Response.noContent().build();
+        }
+        String extraFilter = getExtraFilter(fieldName, ids);
 
         if (analyticsParam.getQuery() != null) {
             analyticsParam.setQuery(analyticsParam.getQuery().replaceAll("\\?", "1"));
         }
 
+        Analytics analytics = null;
         switch (analyticsParam.getType()) {
             case DATE_HISTO:
                 analytics = executeDateHisto(analyticsParam, extraFilter);
@@ -135,6 +123,32 @@ public class PlatformAnalyticsResource extends AbstractResource {
         }
 
         return Response.ok(analytics).build();
+    }
+
+    @NotNull
+    private Set<String> findApiIds() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (isAdmin()) {
+            return apiAuthorizationService.findIdsByEnvironment(executionContext);
+        }
+        return apiAuthorizationService
+            .findIdsByUser(executionContext, getAuthenticatedUser(), true)
+            .stream()
+            .filter(appId -> permissionService.hasPermission(executionContext, API_ANALYTICS, appId, READ))
+            .collect(Collectors.toSet());
+    }
+
+    @NotNull
+    private Set<String> findApplicationIds() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (isAdmin()) {
+            return applicationService.findIdsByUser(executionContext, null);
+        }
+        return applicationService
+            .findIdsByUser(executionContext, getAuthenticatedUser())
+            .stream()
+            .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
+            .collect(Collectors.toSet());
     }
 
     private Analytics executeStats(AnalyticsParam analyticsParam, String extraFilter) {
@@ -226,7 +240,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
         }
     }
 
-    private String getExtraFilter(String fieldName, List<String> ids) {
+    private String getExtraFilter(String fieldName, Set<String> ids) {
         if (ids != null && !ids.isEmpty()) {
             return fieldName + ":(" + ids.stream().collect(Collectors.joining(" OR ")) + ")";
         }

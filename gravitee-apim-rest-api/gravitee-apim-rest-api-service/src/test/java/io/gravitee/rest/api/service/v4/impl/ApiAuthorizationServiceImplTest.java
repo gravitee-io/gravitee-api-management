@@ -179,6 +179,24 @@ public class ApiAuthorizationServiceImplTest {
     }
 
     @Test
+    public void shouldFindIdsByEnvironmentId() {
+        List<ApiCriteria> apiCriteriaList = new ArrayList<>();
+        apiCriteriaList.add(
+            new ApiCriteria.Builder()
+                .environmentId("DEFAULT")
+                .visibility(Visibility.PUBLIC)
+                .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
+                .build()
+        );
+
+        when(apiRepository.searchIds(eq(apiCriteriaList), any(), any())).thenReturn(new Page<>(List.of("api-1"), 0, 1, 1));
+
+        final Set<String> apis = apiAuthorizationService.findIdsByEnvironment(GraviteeContext.getExecutionContext());
+
+        assertThat(apis).hasSize(1);
+    }
+
+    @Test
     public void shouldNotFindIdsByUserBecauseNotExists() {
         final String poRoleId = "API_PRIMARY_OWNER";
 
