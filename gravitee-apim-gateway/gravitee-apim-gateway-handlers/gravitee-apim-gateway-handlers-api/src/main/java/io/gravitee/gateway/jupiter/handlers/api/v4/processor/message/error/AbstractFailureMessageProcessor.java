@@ -39,11 +39,13 @@ import io.reactivex.rxjava3.processors.UnicastProcessor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public abstract class AbstractFailureMessageProcessor implements MessageProcessor {
 
     public static final String ID = "message-processor-simple-failure";
@@ -102,6 +104,14 @@ public abstract class AbstractFailureMessageProcessor implements MessageProcesso
                         .message(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
             }
             ctx.setInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+            if (executionFailure.parameters() != null && log.isDebugEnabled()) {
+                var exception = (Throwable) executionFailure.parameters().get("exception");
+
+                if (exception != null) {
+                    log.debug("An error occurred while processing messages for [apiId={}]", ctx.request().metrics().getApi(), exception);
+                }
+            }
 
             return buildMessage(ctx, executionFailure).toFlowable();
         }

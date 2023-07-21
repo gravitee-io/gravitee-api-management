@@ -32,12 +32,14 @@ import io.gravitee.gateway.jupiter.core.processor.Processor;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 public abstract class AbstractFailureProcessor implements Processor {
 
     public static final String ID = "processor-simple-failure";
@@ -83,6 +85,19 @@ public abstract class AbstractFailureProcessor implements Processor {
         // In case of client error we don't want to force close the connection
         if (response.status() / 100 != 4) {
             response.headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+        }
+
+        if (executionFailure.parameters() != null && log.isDebugEnabled()) {
+            var exception = (Throwable) executionFailure.parameters().get("exception");
+
+            if (exception != null) {
+                log.debug(
+                    "An error occurred while executing request [requestId={}]: {}",
+                    request.id(),
+                    executionFailure.message(),
+                    exception
+                );
+            }
         }
 
         if (executionFailure.message() != null) {

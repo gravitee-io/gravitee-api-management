@@ -17,9 +17,15 @@ package io.gravitee.gateway.jupiter.handlers.api.v4.processor.message.error;
 
 import static io.gravitee.gateway.api.http.HttpHeaderNames.ACCEPT;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import appender.MemoryAppender;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.MediaType;
@@ -36,12 +42,16 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import java.util.List;
+import java.util.Map;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -51,6 +61,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
 
     private static final ObjectMapper mapper = new GraviteeMapper();
+
+    private final MemoryAppender memoryAppender = new MemoryAppender();
 
     @Captor
     ArgumentCaptor<Buffer> bufferCaptor;
@@ -63,7 +75,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndIgnoreErrorMessageWithInterruptionExecution() throws InterruptedException {
+    void should_catch_and_ignore_error_message_with_interruption_execution() throws InterruptedException {
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> requestMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
@@ -74,6 +86,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
         verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
+
         FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
         TestSubscriber<Message> testSubscriber = Flowable.<Message>empty().compose(responseMessages).test();
         testSubscriber.await();
@@ -81,7 +94,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndSendErrorMessageWithExecutionFailure() throws InterruptedException {
+    void should_catch_and_send_error_message_with_execution_failure() throws InterruptedException {
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> requestMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
@@ -121,7 +134,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndSendErrorMessageWithoutExecutionFailure() throws InterruptedException {
+    void should_catch_and_send_error_message_without_execution_failure() throws InterruptedException {
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> requestMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
@@ -157,7 +170,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndSendJsonErrorMessageWithAcceptHeaderJson() throws JsonProcessingException, InterruptedException {
+    void should_catch_and_send_json_error_message_with_accept_header_json() throws JsonProcessingException, InterruptedException {
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.APPLICATION_JSON));
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
@@ -198,7 +211,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndSendJsonErrorMessageWithAcceptWildcard() throws JsonProcessingException, InterruptedException {
+    void should_catch_and_send_json_error_message_with_accept_wildcard() throws JsonProcessingException, InterruptedException {
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.WILDCARD));
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
@@ -239,7 +252,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCatchAndSendJsonErrorMessageWithAcceptJsonAndContentTypeJson() throws InterruptedException {
+    void should_catch_and_send_json_error_message_with_accept_json_and_content_type_json() throws InterruptedException {
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.APPLICATION_JSON));
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
@@ -281,7 +294,7 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void shouldCompleteWithTxtErrorAndNoAcceptHeader() throws InterruptedException {
+    void should_complete_with_txt_error_and_no_accept_header() throws InterruptedException {
         simpleFailureMessageProcessor.execute(ctx).test().assertResult();
 
         ArgumentCaptor<FlowableTransformer<Message, Message>> requestMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
@@ -317,5 +330,53 @@ class SimpleFailureMessageProcessorTest extends AbstractV4ProcessorTest {
                     return true;
                 }
             );
+    }
+
+    @Test
+    void should_log_message_when_failure_has_exception_parameter() throws InterruptedException {
+        configureMemoryAppender();
+        when(mockMetrics.getApi()).thenReturn("api-id");
+
+        simpleFailureMessageProcessor.execute(ctx).test().assertResult();
+
+        ArgumentCaptor<FlowableTransformer<Message, Message>> requestMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
+        verify(mockRequest).onMessages(requestMessagesCaptor.capture());
+
+        FlowableTransformer<Message, Message> requestMessages = requestMessagesCaptor.getValue();
+        Flowable
+            .just(new DefaultMessage("1"))
+            .flatMap(defaultMessage ->
+                ctx.interruptMessagesWith(
+                    new ExecutionFailure(HttpResponseStatus.NOT_FOUND.code())
+                        .message(HttpResponseStatus.NOT_FOUND.reasonPhrase())
+                        .parameters(Map.of("exception", new RuntimeException("root exception")))
+                )
+            )
+            .compose(requestMessages)
+            .test()
+            .await();
+
+        ArgumentCaptor<FlowableTransformer<Message, Message>> responseMessagesCaptor = ArgumentCaptor.forClass(FlowableTransformer.class);
+        verify(mockResponse, times(1)).onMessages(responseMessagesCaptor.capture());
+        FlowableTransformer<Message, Message> responseMessages = responseMessagesCaptor.getValue();
+        TestSubscriber<Message> testSubscriber = Flowable.just(new DefaultMessage("2")).compose(responseMessages).test();
+        testSubscriber.await();
+        testSubscriber.assertValueCount(1);
+
+        Assertions.assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
+        SoftAssertions.assertSoftly(soft -> {
+            var event = memoryAppender.getLoggedEvents().get(0);
+            soft.assertThat(event.getMessage()).contains("An error occurred while processing message");
+            soft.assertThat(event.getArgumentArray()).contains("api-id");
+            soft.assertThat(event.getThrowableProxy().getMessage()).isEqualTo("root exception");
+        });
+    }
+
+    private void configureMemoryAppender() {
+        Logger logger = (Logger) LoggerFactory.getLogger(AbstractFailureMessageProcessor.class);
+        memoryAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+        logger.setLevel(Level.DEBUG);
+        logger.addAppender(memoryAppender);
+        memoryAppender.start();
     }
 }
