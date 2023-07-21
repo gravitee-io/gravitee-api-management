@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.processor;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.services.Services;
@@ -42,6 +43,8 @@ class SynchronizationServiceTest {
 
     private SynchronizationService synchronizationService;
 
+    private ObjectMapper objectMapper;
+
     @Test
     @DisplayName(
         "GIVEN an entity" +
@@ -60,6 +63,8 @@ class SynchronizationServiceTest {
         entity.setEntrypoints(new ArrayList<>());
 
         int apiEntityRequiredFieldCount = 13;
+
+        synchronizationService = new SynchronizationService(objectMapper);
 
         List<Object> requiredFields = synchronizationService.getRequiredFieldsForComparison(ApiEntity.class, entity);
 
