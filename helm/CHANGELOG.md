@@ -8,8 +8,6 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Remove old and unused `cache.type` from gateway config map
 - Remove `api.removePlugins` & `gateway.removePlugins` as the platform allows plugin override now, only `additionalPlugins`  is necessary.
 
-- **BREAKING CHANGE**: Inherit `notifiers.smtp` from root `smtp` configuration by default
-
 ### 3.20.12
 
 - Add support for managed Service Account for each product
