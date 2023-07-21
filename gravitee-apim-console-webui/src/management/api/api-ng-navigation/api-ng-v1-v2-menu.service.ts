@@ -209,13 +209,13 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
         proxyGroup.items.push(
           {
             displayName: 'Properties',
-            targetRoute: 'management.apis.detail.proxy.ng-properties',
-            baseRoute: 'management.apis.detail.proxy.ng-properties',
+            targetRoute: 'management.apis.ng.properties',
+            baseRoute: 'management.apis.ng.properties',
           },
           {
             displayName: 'Resources',
-            targetRoute: 'management.apis.detail.proxy.ng-resources',
-            baseRoute: 'management.apis.detail.proxy.ng-resources',
+            targetRoute: 'management.apis.ng.resources',
+            baseRoute: 'management.apis.ng.resources',
           },
         );
       }
