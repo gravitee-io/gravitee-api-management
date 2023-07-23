@@ -37,7 +37,7 @@ public class PropertyFixtures {
 
     private static final Properties.PropertiesBuilder BASE_MODEL_PROPERTIES_V2 = Properties
         .builder()
-        .properties(List.of(BASE_MODEL_PROPERTY_V2.build()));
+        .propertiesList(List.of(BASE_MODEL_PROPERTY_V2.build()));
 
     public static Properties aModelPropertiesV2() {
         return BASE_MODEL_PROPERTIES_V2.build();

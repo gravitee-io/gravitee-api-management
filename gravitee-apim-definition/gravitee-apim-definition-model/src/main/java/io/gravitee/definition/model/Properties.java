@@ -31,40 +31,37 @@ import lombok.Builder;
 public class Properties implements Serializable {
 
     @JsonProperty("properties")
-    private List<Property> properties;
+    private List<Property> propertiesList = List.of();
 
     @JsonIgnore
-    private Map<String, String> entries;
+    private Map<String, String> entries = Map.of();
 
     public Properties() {}
 
     @Builder
-    public Properties(List<Property> properties) {
-        this.properties = properties;
+    public Properties(List<Property> propertiesList) {
+        this.propertiesList = propertiesList;
     }
 
     public void setProperties(List<Property> properties) {
-        this.properties = properties;
+        this.propertiesList = properties == null ? List.of() : properties;
 
-        if (properties != null) {
-            this.entries =
-                properties
-                    .stream()
-                    .collect(
-                        Collectors.toMap(
-                            Property::getKey,
-                            Property::getValue,
-                            (v1, v2) -> {
-                                throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
-                            },
-                            TemplatedValueHashMap::new
-                        )
-                    );
-        }
+        this.entries =
+            this.propertiesList.stream()
+                .collect(
+                    Collectors.toMap(
+                        Property::getKey,
+                        Property::getValue,
+                        (v1, v2) -> {
+                            throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
+                        },
+                        TemplatedValueHashMap::new
+                    )
+                );
     }
 
     public List<Property> getProperties() {
-        return properties;
+        return propertiesList;
     }
 
     @JsonIgnore
