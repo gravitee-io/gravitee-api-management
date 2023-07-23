@@ -20,6 +20,7 @@ import io.gravitee.rest.api.model.DeploymentRequired;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -40,32 +41,82 @@ public class SynchronizationService {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Check synchronization between two entities by only comparing the required fields necessary for comparision
+     *
+     * @param entityClass    entity class type
+     * @param deployedEntity currently deployed entity state
+     * @param entityToDeploy proposed entity state to be deployed
+     * @return the synchronization status
+     */
     public <T> boolean checkSynchronization(final Class<T> entityClass, final T deployedEntity, final T entityToDeploy) {
-        List<Object> requiredFieldsDeployedApi = new ArrayList<Object>();
-        List<Object> requiredFieldsApiToDeploy = new ArrayList<Object>();
-        for (Field f : entityClass.getDeclaredFields()) {
-            if (f.getAnnotation(DeploymentRequired.class) != null) {
-                boolean previousAccessibleState = f.isAccessible();
-                f.setAccessible(true);
-                try {
-                    requiredFieldsDeployedApi.add(f.get(deployedEntity));
-                    requiredFieldsApiToDeploy.add(f.get(entityToDeploy));
-                } catch (Exception e) {
-                    LOGGER.error("Error access entity required deployment fields", e);
-                } finally {
-                    f.setAccessible(previousAccessibleState);
-                }
-            }
-        }
-
         try {
-            String requiredFieldsDeployedApiDefinition = objectMapper.writeValueAsString(requiredFieldsDeployedApi);
-            String requiredFieldsApiToDeployDefinition = objectMapper.writeValueAsString(requiredFieldsApiToDeploy);
+            String requiredFieldsDeployedApiDefinition = objectMapper.writeValueAsString(
+                getRequiredFieldsForComparison(entityClass, deployedEntity)
+            );
+            String requiredFieldsApiToDeployDefinition = objectMapper.writeValueAsString(
+                getRequiredFieldsForComparison(entityClass, entityToDeploy)
+            );
 
-            return requiredFieldsDeployedApiDefinition.equals(requiredFieldsApiToDeployDefinition);
+            return objectMapper
+                .readTree(requiredFieldsDeployedApiDefinition)
+                .equals(objectMapper.readTree(requiredFieldsApiToDeployDefinition));
         } catch (Exception e) {
             LOGGER.error("Unexpected error while generating API deployment required fields definition", e);
             return false;
         }
+    }
+
+    /**
+     * Get required entity fields for synchronization checks
+     *
+     * @param entityClass entity class type
+     * @param entity      an entity object
+     * @return the list of required entity fields
+     */
+    public <T> List<Object> getRequiredFieldsForComparison(final Class<T> entityClass, final T entity) {
+        List<Object> requiredEntityFields = new ArrayList<>();
+
+        if (Objects.nonNull(entityClass)) {
+            for (Field entityField : entityClass.getDeclaredFields()) {
+                addRequiredEntityFieldToList(entityField, entity, requiredEntityFields);
+            }
+        }
+
+        return requiredEntityFields;
+    }
+
+    /**
+     * Add an entity field from the supplied entity to the given list
+     * if the entity field is a required field
+     *
+     * @param entityField the field within a given entity
+     * @param entity the entity object
+     * @param requiredEntityFields a list of required fields
+     */
+    public <T> void addRequiredEntityFieldToList(Field entityField, final T entity, List<Object> requiredEntityFields) {
+        if (isFieldRequiredForDeployment(entityField)) {
+            boolean previousAccessibleState = entityField.isAccessible();
+            entityField.setAccessible(true);
+
+            try {
+                requiredEntityFields.add(entityField.get(entity));
+            } catch (Exception e) {
+                LOGGER.error("Error access entity required deployment fields", e);
+            } finally {
+                entityField.setAccessible(previousAccessibleState);
+            }
+        }
+    }
+
+    /**
+     * Check if the field within a class has the DeploymentRequired
+     * annotation
+     *
+     * @param classField The field within a class
+     * @return whether the field is required
+     */
+    public boolean isFieldRequiredForDeployment(Field classField) {
+        return classField.getAnnotation(DeploymentRequired.class) != null;
     }
 }
