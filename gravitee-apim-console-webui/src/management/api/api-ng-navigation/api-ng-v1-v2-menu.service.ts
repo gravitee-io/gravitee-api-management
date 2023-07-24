@@ -279,8 +279,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
       analyticsGroup.items.push({
         displayName: 'Overview',
-        targetRoute: 'management.apis.detail.analytics.overview',
-        baseRoute: 'management.apis.detail.analytics.overview',
+        targetRoute: 'management.apis.ng.analytics-overview-v2',
+        baseRoute: 'management.apis.ng.analytics-overview-v2',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {

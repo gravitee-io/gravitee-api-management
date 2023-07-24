@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+import { Component, ElementRef, Injector } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
 
-import { ApiPathMappingsModule } from './pathMappings/api-path-mappings.module';
-import { ApiLogsModule } from './logs/api-logs.module';
-import { ApiAnalyticsOverviewComponent } from './overview/analytics-overview.component';
-
-@NgModule({
-  declarations: [ApiAnalyticsOverviewComponent],
-  exports: [ApiAnalyticsOverviewComponent],
-  imports: [ApiLogsModule, ApiPathMappingsModule],
+@Component({
+  template: '',
+  selector: 'api-analytics-overview',
+  host: {
+    class: 'bootstrap',
+  },
 })
-export class ApiAnalyticsModule {}
+export class ApiAnalyticsOverviewComponent extends UpgradeComponent {
+  constructor(elementRef: ElementRef, injector: Injector) {
+    super('apiAnalyticsOverviewComponentAjs', elementRef, injector);
+  }
+}

@@ -32,7 +32,7 @@ function apisAnalyticsRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.analytics.overview', {
       url: '/analytics?from&to&q&dashboard',
-      template: require('./overview/analytics.html'),
+      template: require('./overview/analytics-overview.html'),
       controller: 'ApiAnalyticsController',
       controllerAs: 'analyticsCtrl',
       resolve: {
