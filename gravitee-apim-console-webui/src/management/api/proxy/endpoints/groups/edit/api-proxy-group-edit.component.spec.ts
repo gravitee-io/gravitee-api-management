@@ -97,7 +97,7 @@ describe('ApiProxyGroupEditComponent', () => {
 
       await loader.getHarness(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' })).then((button) => button.click());
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.endpoints', { apiId: API_ID }, undefined);
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoints-v2', { apiId: API_ID }, undefined);
     });
 
     describe('Edit general information of existing group', () => {

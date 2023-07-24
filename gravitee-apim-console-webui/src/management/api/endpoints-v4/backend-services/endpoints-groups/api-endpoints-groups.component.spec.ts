@@ -19,7 +19,6 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { Component, ViewChild } from '@angular/core';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
@@ -28,16 +27,8 @@ import { ApiEndpointsGroupsModule } from './api-endpoints-groups.module';
 
 import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../../../entities/user';
-
-@Component({
-  template: ` <api-endpoints-groups #apiEndpointsGroups [api]="api"></api-endpoints-groups> `,
-})
-class TestComponent {
-  @ViewChild('apiEndpointsGroups') apiEndpointsGroups: ApiEndpointsGroupsComponent;
-  api?: ApiV4;
-}
 
 describe('ApiEndpointsGroupsComponent', () => {
   const API_ID = 'apiId';
@@ -82,9 +73,8 @@ describe('ApiEndpointsGroupsComponent', () => {
   };
   const fakeUiRouter = { go: jest.fn() };
 
-  let fixture: ComponentFixture<TestComponent>;
+  let fixture: ComponentFixture<ApiEndpointsGroupsComponent>;
   let httpTestingController: HttpTestingController;
-  let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let componentHarness: ApiEndpointsGroupsHarness;
 
@@ -93,9 +83,9 @@ describe('ApiEndpointsGroupsComponent', () => {
     currentUser.userPermissions = permissions;
 
     TestBed.configureTestingModule({
-      declarations: [TestComponent],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointsGroupsModule, MatIconTestingModule],
       providers: [
+        { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
@@ -105,16 +95,14 @@ describe('ApiEndpointsGroupsComponent', () => {
       },
     });
 
-    fixture = TestBed.createComponent(TestComponent);
-    fixture.componentInstance.api = api;
+    fixture = TestBed.createComponent(ApiEndpointsGroupsComponent);
 
-    loader = TestbedHarnessEnvironment.loader(fixture);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointsGroupsHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
-    componentHarness = await loader.getHarness(ApiEndpointsGroupsHarness);
-
+    expectApiGetRequest(api);
     expectEndpointsGetRequest();
   };
 
@@ -154,6 +142,7 @@ describe('ApiEndpointsGroupsComponent', () => {
         ...apiV4,
         endpointGroups: [{ ...group1, endpoints: [{ ...group1.endpoints[0] }] }, { ...group2 }],
       });
+      expectApiGetRequest(apiV4);
       expectEndpointsGetRequest();
     });
 
@@ -178,6 +167,7 @@ describe('ApiEndpointsGroupsComponent', () => {
 
       expectApiGetRequest(apiV4);
       expectApiPutRequest({ ...apiV4, endpointGroups: [group2] });
+      expectApiGetRequest(apiV4);
       expectEndpointsGetRequest();
     });
   });
@@ -224,6 +214,7 @@ describe('ApiEndpointsGroupsComponent', () => {
 
       expectApiGetRequest(apiV4);
       expectApiPutRequest({ ...apiV4, endpointGroups: [group2, group1] });
+      expectApiGetRequest(apiV4);
       expectEndpointsGetRequest();
     });
 
@@ -239,6 +230,7 @@ describe('ApiEndpointsGroupsComponent', () => {
 
       expectApiGetRequest(apiV4);
       expectApiPutRequest({ ...apiV4, endpointGroups: [group2, group1] });
+      expectApiGetRequest(apiV4);
       expectEndpointsGetRequest();
     });
   });

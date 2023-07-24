@@ -237,8 +237,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
       backendServicesGroup.items.push(
         {
           displayName: 'Endpoints',
-          targetRoute: 'management.apis.detail.proxy.endpoints',
-          baseRoute: ['management.apis.detail.proxy.endpoints', 'management.apis.detail.proxy.endpoint'],
+          targetRoute: 'management.apis.ng.endpoints-v2',
+          baseRoute: ['management.apis.ng.endpoints-v2', 'management.apis.ng.endpoint-v2', 'management.apis.ng.endpoint-group-v2'],
         },
         {
           displayName: 'Failover',

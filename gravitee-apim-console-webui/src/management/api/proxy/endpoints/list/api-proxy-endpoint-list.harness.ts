@@ -26,6 +26,11 @@ export class ApiProxyEndpointListHarness extends ComponentHarness {
   private getDeleteEndpointGroupButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Delete group"]' }));
   private getDeleteEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete endpoint"]' }));
 
+  public async getTable(index: number) {
+    const table = this.locatorFor(MatTableHarness.with({ selector: `#endpointGroupsTable-${index}` }));
+    return await table();
+  }
+
   public async getTableRows(index: number) {
     const table = this.locatorFor(MatTableHarness.with({ selector: `#endpointGroupsTable-${index}` }));
     return await table().then((t) => t.getCellTextByIndex());

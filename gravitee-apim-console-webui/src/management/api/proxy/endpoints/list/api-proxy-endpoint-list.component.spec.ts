@@ -20,10 +20,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatTableHarness } from '@angular/material/table/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { UIRouterGlobals } from '@uirouter/core';
-import { Component, ViewChild } from '@angular/core';
 
 import { ApiProxyEndpointListComponent } from './api-proxy-endpoint-list.component';
 import { ApiProxyEndpointListHarness } from './api-proxy-endpoint-list.harness';
@@ -34,20 +31,11 @@ import { User } from '../../../../../entities/user';
 import { ApiProxyEndpointModule } from '../api-proxy-endpoints.module';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
-@Component({
-  template: ` <api-proxy-endpoint-list #apiEndpointList [api]="api"></api-proxy-endpoint-list> `,
-})
-class TestComponent {
-  @ViewChild('apiEndpointList') apiEndpointList: ApiProxyEndpointListComponent;
-  api?: ApiV2;
-}
-
 describe('ApiProxyEndpointListComponent', () => {
   const API_ID = 'apiId';
   const fakeUiRouter = { go: jest.fn() };
 
-  let fixture: ComponentFixture<TestComponent>;
-  let loader: HarnessLoader;
+  let fixture: ComponentFixture<ApiProxyEndpointListComponent>;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let endpointsGroupHarness: ApiProxyEndpointListHarness;
@@ -57,13 +45,12 @@ describe('ApiProxyEndpointListComponent', () => {
 
   const initComponent = async (api: ApiV2) => {
     TestBed.configureTestingModule({
-      declarations: [TestComponent],
+      declarations: [ApiProxyEndpointListComponent],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEndpointModule, MatIconTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: UIRouterState, useValue: fakeUiRouter },
         { provide: CurrentUserService, useValue: { currentUser } },
-        { provide: UIRouterGlobals, useValue: { current: { data: { baseRouteState: null } } } },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -71,15 +58,14 @@ describe('ApiProxyEndpointListComponent', () => {
       },
     });
 
-    fixture = TestBed.createComponent(TestComponent);
-    fixture.componentInstance.api = api;
+    fixture = TestBed.createComponent(ApiProxyEndpointListComponent);
 
-    loader = TestbedHarnessEnvironment.loader(fixture);
+    endpointsGroupHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiProxyEndpointListHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
-    endpointsGroupHarness = await loader.getHarness(ApiProxyEndpointListHarness);
+    expectApiGetRequest(api);
   };
 
   afterEach(() => {
@@ -100,12 +86,12 @@ describe('ApiProxyEndpointListComponent', () => {
 
     it('should navigate to new Proxy Endpoint Group page on click to add button', async () => {
       await endpointsGroupHarness.addEndpointGroup();
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.group', { groupName: '' });
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-group-v2', { groupName: '' });
     });
 
     it('should navigate to existing group', async () => {
       await endpointsGroupHarness.editEndpointGroup();
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.group', { groupName: 'default-group' });
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-group-v2', { groupName: 'default-group' });
     });
   });
 
@@ -123,7 +109,7 @@ describe('ApiProxyEndpointListComponent', () => {
         }),
       );
 
-      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#endpointGroupsTable-0' }));
+      const rtTable = await endpointsGroupHarness.getTable(0);
       const rtTableRows = await rtTable.getRows();
 
       const [_1, _2, _3, _4, _5, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
@@ -133,7 +119,7 @@ describe('ApiProxyEndpointListComponent', () => {
       );
       await vhTableFirstRowHostInput.click();
 
-      expect(routerSpy).toHaveBeenCalledWith('management.apis.detail.proxy.endpoint', {
+      expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoint-v2', {
         groupName: 'default-group',
         endpointName: 'default',
       });
@@ -231,7 +217,7 @@ describe('ApiProxyEndpointListComponent', () => {
         }),
       );
 
-      expect(await loader.getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))).toBeTruthy();
+      expect(await rootLoader.getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))).toBeTruthy();
     });
 
     it("should display health check icon when it's configured at API level", async () => {
@@ -246,7 +232,7 @@ describe('ApiProxyEndpointListComponent', () => {
         }),
       );
 
-      expect(await loader.getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))).toBeTruthy();
+      expect(await rootLoader.getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))).toBeTruthy();
     });
 
     it('should not display health check icon', async () => {
@@ -262,7 +248,7 @@ describe('ApiProxyEndpointListComponent', () => {
         }),
       );
 
-      await loader
+      await rootLoader
         .getHarness(MatIconHarness.with({ selector: '[mattooltip="Health check is enabled"]' }))
         .catch((error) =>
           expect(error.message).toEqual(
@@ -383,7 +369,7 @@ describe('ApiProxyEndpointListComponent', () => {
         }),
       );
 
-      expect(await loader.getHarness(MatIconHarness.with({ selector: '[mattooltip="HTTP configuration inherited"]' }))).toBeTruthy();
+      expect(await rootLoader.getHarness(MatIconHarness.with({ selector: '[mattooltip="HTTP configuration inherited"]' }))).toBeTruthy();
     });
   });
 
