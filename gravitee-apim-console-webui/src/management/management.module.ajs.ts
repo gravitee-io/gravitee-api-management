@@ -498,7 +498,6 @@ import AlertsActivityController from '../components/alerts/activity/alerts-activ
 import { ApiPortalPlanEditComponent } from './api/portal/plans/edit/api-portal-plan-edit.component';
 import { ApiPortalDocumentationMetadataComponent } from './api/portal/documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiV2Service } from '../services-ngx/api-v2.service';
-import { ApiBackendServicesComponent } from './api/endpoints-v4/backend-services/api-backend-services.component';
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
 import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
@@ -650,7 +649,6 @@ graviteeManagementModule.directive(
   'ngApiProxyResponseTemplatesEdit',
   downgradeComponent({ component: ApiProxyResponseTemplatesEditComponent }),
 );
-graviteeManagementModule.directive('ngApiProxyEndpointList', downgradeComponent({ component: ApiBackendServicesComponent }));
 graviteeManagementModule.directive('ngApiProxyGroupEdit', downgradeComponent({ component: ApiProxyGroupEditComponent }));
 graviteeManagementModule.directive('ngApiProxyGroupEndpointEdit', downgradeComponent({ component: ApiProxyGroupEndpointEditComponent }));
 graviteeManagementModule.directive('ngApiProxyFailover', downgradeComponent({ component: ApiProxyFailoverComponent }));

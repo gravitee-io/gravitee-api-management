@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { find, remove } from 'lodash';
-import { EMPTY, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/angular';
 
@@ -28,7 +28,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiV4, ConnectorPlugin, UpdateApi } from '../../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
-import { UIRouterState } from '../../../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'api-endpoints-groups',
@@ -36,7 +36,6 @@ import { UIRouterState } from '../../../../../ajs-upgraded-providers';
   styles: [require('./api-endpoints-groups.component.scss')],
 })
 export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
-  @Input() public api: ApiV4;
   public endpointsDisplayedColumns = ['name', 'options', 'weight', 'actions'];
   public groupsTableData: EndpointGroup[];
   public plugins: Map<string, ConnectorPlugin>;
@@ -44,6 +43,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly matDialog: MatDialog,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
@@ -52,14 +52,11 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit() {
-    this.initData(this.api);
-  }
-
-  public initData(api: ApiV4) {
-    this.connectorPluginsV2Service
-      .listEndpointPlugins()
+    combineLatest([this.apiService.get(this.ajsStateParams.apiId), this.connectorPluginsV2Service.listEndpointPlugins()])
       .pipe(
-        tap((plugins) => {
+        tap(([apiV4, plugins]: [ApiV4, ConnectorPlugin[]]) => {
+          this.groupsTableData = toEndpoints(apiV4);
+
           this.plugins = new Map(
             plugins.map((plugin) => [plugin.id, { ...plugin, icon: this.iconService.registerSvg(plugin.id, plugin.icon) }]),
           );
@@ -67,7 +64,6 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
-    this.groupsTableData = toEndpoints(api);
   }
 
   public ngOnDestroy() {
@@ -90,7 +86,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.api.id)),
+        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
         switchMap((api: ApiV4) => {
           remove(api.endpointGroups, (g) => g.name === groupName);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
@@ -101,7 +97,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
           );
           return EMPTY;
         }),
-        tap((api: ApiV4) => this.initData(api)),
+        tap(() => this.ngOnInit()),
         map(() => this.snackBarService.success(`Endpoint group ${groupName} successfully deleted!`)),
         takeUntil(this.unsubscribe$),
       )
@@ -123,7 +119,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.api.id)),
+        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
         switchMap((api: ApiV4) => {
           remove(find(api.endpointGroups, (g) => g.name === groupName).endpoints, (e) => e.name === endpointName);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
@@ -134,7 +130,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
           );
           return EMPTY;
         }),
-        tap((api: ApiV4) => this.initData(api)),
+        tap(() => this.ngOnInit()),
         map(() => this.snackBarService.success(`Endpoint ${endpointName} successfully deleted!`)),
         takeUntil(this.unsubscribe$),
       )
@@ -151,7 +147,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
 
   public reorderEndpointGroup(oldIndex: number, newIndex: number): void {
     this.apiService
-      .get(this.api.id)
+      .get(this.ajsStateParams.apiId)
       .pipe(
         switchMap((api: ApiV4) => {
           api.endpointGroups.splice(newIndex, 0, api.endpointGroups.splice(oldIndex, 1)[0]);
@@ -161,7 +157,7 @@ export class ApiEndpointsGroupsComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
-        tap((api: ApiV4) => this.initData(api)),
+        tap(() => this.ngOnInit()),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();

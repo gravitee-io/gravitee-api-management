@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, Input, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { StateService } from '@uirouter/angular';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { UIRouterGlobals } from '@uirouter/core';
 import { remove, find } from 'lodash';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
@@ -35,13 +34,10 @@ import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
   styles: [require('./api-proxy-endpoint-list.component.scss')],
 })
 export class ApiProxyEndpointListComponent implements OnInit {
-  @Input() api: ApiV2;
-
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public isReadOnly = false;
   public endpointGroupsTableData: EndpointGroup[];
   public endpointTableDisplayedColumns = ['name', 'healthCheck', 'target', 'type', 'weight', 'actions'];
-  private routeBase: string;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -50,22 +46,23 @@ export class ApiProxyEndpointListComponent implements OnInit {
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
-    private readonly ajsGlobals: UIRouterGlobals,
   ) {}
 
   ngOnInit(): void {
-    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.proxy';
-    if (this.api) {
-      this.initData(this.api);
-    }
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((api: ApiV2) => {
+        this.initData(api);
+      });
   }
 
   navigateToGroup(groupName: string): void {
-    this.ajsState.go('management.apis.detail.proxy.group', { groupName });
+    this.ajsState.go('management.apis.ng.endpoint-group-v2', { groupName });
   }
 
   navigateToEndpoint(groupName: string, endpointName: string): void {
-    this.ajsState.go(`${this.routeBase}.endpoint`, { endpointName, groupName });
+    this.ajsState.go(`management.apis.ng.endpoint-v2`, { endpointName, groupName });
   }
 
   deleteGroup(groupName: string): void {
@@ -83,7 +80,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.api.id)),
+        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
         switchMap((api: ApiV2) => {
           remove(api.proxy.groups, (g: EndpointGroupV2) => g.name === groupName);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
@@ -114,7 +111,7 @@ export class ApiProxyEndpointListComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
-        switchMap(() => this.apiService.get(this.api.id)),
+        switchMap(() => this.apiService.get(this.ajsStateParams.apiId)),
         switchMap((api: ApiV2) => {
           remove(
             find(api.proxy.groups, (g: EndpointGroupV2) => g.name === groupName).endpoints,

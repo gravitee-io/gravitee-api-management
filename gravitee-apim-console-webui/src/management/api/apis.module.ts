@@ -37,7 +37,6 @@ import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-
 import { ApisPortalModule } from './portal/apis-portal.module';
 import { ApiPortalSubscriptionEditComponent } from './portal/subscriptions/edit/api-portal-subscription-edit.component';
 import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
-import { ApiBackendServicesComponent } from './endpoints-v4/backend-services/api-backend-services.component';
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
 import { ApiEndpointComponent } from './endpoints-v4/backend-services/endpoint/api-endpoint.component';
@@ -54,6 +53,10 @@ import { ApiProxyCorsComponent } from './proxy/cors/api-proxy-cors.component';
 import { ApiProxyDeploymentsComponent } from './proxy/deployments/api-proxy-deployments.component';
 import { ApiProxyResponseTemplatesListComponent } from './proxy/response-templates/list/api-proxy-response-templates-list.component';
 import { ApiProxyResponseTemplatesEditComponent } from './proxy/response-templates/edit/api-proxy-response-templates-edit.component';
+import { ApiProxyEndpointListComponent } from './proxy/endpoints/list/api-proxy-endpoint-list.component';
+import { ApiEndpointsGroupsComponent } from './endpoints-v4/backend-services/endpoints-groups/api-endpoints-groups.component';
+import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
+import { ApiProxyGroupEditComponent } from './proxy/endpoints/groups/edit/api-proxy-group-edit.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -272,7 +275,7 @@ const states: Ng2StateDeclaration[] = [
   {
     name: 'management.apis.ng.endpoints',
     url: '/endpoints',
-    component: ApiBackendServicesComponent,
+    component: ApiEndpointsGroupsComponent,
     data: {
       useAngularMaterial: true,
       apiPermissions: {
@@ -784,6 +787,48 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-proxy-response-templates',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.endpoints-v2',
+    component: ApiProxyEndpointListComponent,
+    url: '/v2/endpoints',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-proxy-endpoints',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.endpoint-v2',
+    component: ApiProxyGroupEndpointEditComponent,
+    url: '/v2/groups/:groupName/endpoints/:endpointName',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-proxy-endpoints',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.endpoint-group-v2',
+    component: ApiProxyGroupEditComponent,
+    url: '/v2/groups/:groupName',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-proxy-group',
       },
       useAngularMaterial: true,
     },
