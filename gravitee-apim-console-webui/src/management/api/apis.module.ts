@@ -64,6 +64,7 @@ import { ApiHealthCheckLogComponent } from './proxy/health-check-dashboard/healt
 import { ApiAnalyticsOverviewComponent } from './analytics/overview/analytics-overview.component';
 import { ApiAnalyticsLogsComponent } from './analytics/logs/analytics-logs.component';
 import { ApiLogsConfigurationComponent } from './analytics/logs/configuration/api-logs-configuration.component';
+import { ApiAnalyticsLogComponent } from './analytics/logs/analytics-log.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -989,6 +990,20 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-logging-configuration',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.analytics-log-v2',
+    component: ApiAnalyticsLogComponent,
+    url: '/v2/analytics-log/:logId?timestamp&from&to&q&page&size',
+    data: {
+      apiPermissions: {
+        only: ['api-log-r'],
+      },
+      docs: {
+        page: 'management-api-log',
       },
       useAngularMaterial: true,
     },

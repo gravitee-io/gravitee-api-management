@@ -19,7 +19,7 @@ import { setupAngularJsTesting } from '../../../../../jest.setup.js';
 
 setupAngularJsTesting();
 
-describe('LogComponent', () => {
+describe('AnalyticsLogComponent', () => {
   let $componentController: IComponentControllerService;
   let logComponent: any;
 
