@@ -27,12 +27,13 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiLogsConfigurationComponent } from './configuration/api-logs-configuration.component';
 import { ApiAnalyticsLogsComponent } from './analytics-logs.component';
+import { ApiAnalyticsLogComponent } from './analytics-log.component';
 
 import { GioFormCardGroupModule } from '../../../../shared/components/gio-form-card-group/gio-form-card-group.module';
 
 @NgModule({
-  declarations: [ApiAnalyticsLogsComponent, ApiLogsConfigurationComponent],
-  exports: [ApiAnalyticsLogsComponent, ApiLogsConfigurationComponent],
+  declarations: [ApiAnalyticsLogsComponent, ApiLogsConfigurationComponent, ApiAnalyticsLogComponent],
+  exports: [ApiAnalyticsLogsComponent, ApiLogsConfigurationComponent, ApiAnalyticsLogComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,

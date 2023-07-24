@@ -133,7 +133,7 @@ import LogsTimeframeController from '../components/logs/logs-timeframe.controlle
 import LogsFiltersComponent from '../components/logs/logs-filters.component';
 import LogsFiltersController from '../components/logs/logs-filters.controller';
 
-import { LogComponent } from './api/analytics/logs/log.component';
+import { ApiAnalyticsLogComponentAjs } from './api/analytics/logs/analytics-log.component.ajs';
 // Others
 import ThemeElementDirective from '../components/theme/theme-element.directive';
 import EnvironmentService from '../services/environment.service';
@@ -898,7 +898,7 @@ graviteeManagementModule.component('logout', LogoutComponent);
 graviteeManagementModule.component('apiAnalyticsLogsComponentAjs', ApiAnalyticsLogsComponentAjs);
 graviteeManagementModule.component('gvLogsTimeframe', LogsTimeframeComponent);
 graviteeManagementModule.controller('LogsTimeframeController', LogsTimeframeController);
-graviteeManagementModule.component('log', LogComponent);
+graviteeManagementModule.component('apiAnalyticsLogComponentAjs', ApiAnalyticsLogComponentAjs);
 graviteeManagementModule.component('gvLogsFilters', LogsFiltersComponent);
 graviteeManagementModule.controller('LogsFiltersController', LogsFiltersController);
 graviteeManagementModule.controller('configureLoggingDialogController', ConfigureLoggingDialogController);

@@ -27,7 +27,7 @@ interface IQueryParam {
   value: string;
 }
 
-class LogComponentController {
+class ApiAnalyticsLogControllerAjs {
   public log: {
     clientRequest: any;
     proxyRequest: any;
@@ -82,39 +82,42 @@ class LogComponentController {
   }
 
   $onInit() {
-    if (this.log.clientRequest != null) {
-      LogComponentController.headersAsList(this.log.clientRequest);
-      this.log.clientRequest = {
-        ...this.log.clientRequest,
-        queryParams: this.extractQueryParams(this.log.clientRequest.uri),
-      };
-    }
+    this.ApiService.getLog(this.$state.params.apiId, this.$state.params.logId, this.$state.params.timestamp).then((response) => {
+      this.log = response.data;
+      if (this.log.clientRequest != null) {
+        ApiAnalyticsLogControllerAjs.headersAsList(this.log.clientRequest);
+        this.log.clientRequest = {
+          ...this.log.clientRequest,
+          queryParams: this.extractQueryParams(this.log.clientRequest.uri),
+        };
+      }
 
-    if (this.log.proxyRequest != null) {
-      LogComponentController.headersAsList(this.log.proxyRequest);
-      this.log.proxyRequest = {
-        ...this.log.proxyRequest,
-        queryParams: this.extractQueryParams(this.log.proxyRequest.uri),
-      };
-    }
+      if (this.log.proxyRequest != null) {
+        ApiAnalyticsLogControllerAjs.headersAsList(this.log.proxyRequest);
+        this.log.proxyRequest = {
+          ...this.log.proxyRequest,
+          queryParams: this.extractQueryParams(this.log.proxyRequest.uri),
+        };
+      }
 
-    if (this.log.clientResponse != null) {
-      LogComponentController.headersAsList(this.log.clientResponse);
-    }
+      if (this.log.clientResponse != null) {
+        ApiAnalyticsLogControllerAjs.headersAsList(this.log.clientResponse);
+      }
 
-    if (this.log.proxyResponse != null) {
-      LogComponentController.headersAsList(this.log.proxyResponse);
-    }
+      if (this.log.proxyResponse != null) {
+        ApiAnalyticsLogControllerAjs.headersAsList(this.log.proxyResponse);
+      }
 
-    if (this.AnalyticsService.getFetchedLogs()) {
-      this.fillPreviousNext();
-    } else {
-      const query = this.AnalyticsService.buildQueryFromState(this.$state);
-      this.ApiService.findLogs(this.$state.params.apiId, query).then((logs) => {
-        this.AnalyticsService.setFetchedLogs(logs.data.logs);
+      if (this.AnalyticsService.getFetchedLogs()) {
         this.fillPreviousNext();
-      });
-    }
+      } else {
+        const query = this.AnalyticsService.buildQueryFromState(this.$state);
+        this.ApiService.findLogs(this.$state.params.apiId, query).then((logs) => {
+          this.AnalyticsService.setFetchedLogs(logs.data.logs);
+          this.fillPreviousNext();
+        });
+      }
+    });
   }
 
   codeMirrorOptions(log) {
@@ -236,10 +239,10 @@ class LogComponentController {
   }
 }
 
-export const LogComponent: ng.IComponentOptions = {
-  controller: LogComponentController,
+export const ApiAnalyticsLogComponentAjs: ng.IComponentOptions = {
+  controller: ApiAnalyticsLogControllerAjs,
   bindings: {
     log: '<',
   },
-  template: require('./log.html'),
+  template: require('./analytics-log.html'),
 };
