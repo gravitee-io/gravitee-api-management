@@ -250,8 +250,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-health-r'])) {
       backendServicesGroup.items.push({
         displayName: 'Health-check',
-        targetRoute: 'management.apis.detail.proxy.healthcheck',
-        baseRoute: 'management.apis.detail.proxy.healthcheck',
+        targetRoute: 'management.apis.ng.healthcheck-v2',
+        baseRoute: 'management.apis.ng.healthcheck-v2',
       });
     }
 
