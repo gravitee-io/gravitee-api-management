@@ -18,7 +18,7 @@
 <div class="gv-forms gv-forms-fluid api-analytics-logs-log" layout="column">
   <div class="gv-forms-header">
     <h1>Log</h1>
-    <a ui-sref="management.apis.detail.analytics.logs.list($ctrl.backStateParams)">Back to Logs</a>
+    <a ui-sref="management.apis.ng.analytics-logs-v2($ctrl.backStateParams)">Back to Logs</a>
 
     <div class="pull-right" style="margin-top: 16px">
       <md-button type="button" class="md-raised" ng-click="$ctrl.goToLog($ctrl.previousLog)" ng-disabled="!$ctrl.previousLog">
@@ -302,7 +302,7 @@
         <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientRequest">
           <p>No log for this request.</p>
           <p permission permission-only="'api-log-u'">
-            Please check or <a ui-sref="management.apis.detail.analytics.logs.loggingconfigure">configure logging mode</a> (client).
+            Please check or <a ui-sref="management.apis.ng.analytics-logs-configuration-v2">configure logging mode</a> (client).
           </p>
           <p permission permission-except="'api-log-u'">Please check or configure logging mode (client).</p>
         </div>
@@ -375,7 +375,7 @@
         <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyRequest">
           <p>No log for this request.</p>
           <p permission permission-only="'api-log-u'">
-            Please check or <a ui-sref="management.apis.detail.analytics.logs.loggingconfigure">configure logging mode</a> (proxy).
+            Please check or <a ui-sref="management.apis.ng.analytics-logs-configuration-v2">configure logging mode</a> (proxy).
           </p>
           <p permission permission-except="'api-log-u'">Please check or configure logging mode (proxy).</p>
         </div>
@@ -438,7 +438,7 @@
         <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientResponse">
           <p>No log for this response.</p>
           <p permission permission-only="'api-log-u'">
-            Please check or <a ui-sref="management.apis.detail.analytics.logs.loggingconfigure">configure logging mode</a> (client).
+            Please check or <a ui-sref="management.apis.ng.analytics-logs-configuration-v2">configure logging mode</a> (client).
           </p>
           <p permission permission-except="'api-log-u'">Please check or configure logging mode (client).</p>
         </div>
@@ -494,7 +494,7 @@
         <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyResponse">
           <p>No log for this response.</p>
           <p permission permission-only="'api-log-u'">
-            Please check or <a ui-sref="management.apis.detail.analytics.logs.loggingconfigure">configure logging mode</a> (proxy).
+            Please check or <a ui-sref="management.apis.ng.analytics-logs-configuration-v2">configure logging mode</a> (proxy).
           </p>
           <p permission permission-except="'api-log-u'">Please check or configure logging mode (proxy).</p>
         </div>
