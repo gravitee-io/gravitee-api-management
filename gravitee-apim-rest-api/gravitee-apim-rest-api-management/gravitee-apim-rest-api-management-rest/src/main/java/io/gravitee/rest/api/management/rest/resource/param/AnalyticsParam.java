@@ -197,7 +197,7 @@ public class AnalyticsParam {
 
         if (from >= to) {
             throw new WebApplicationException(
-                Response.status(Response.Status.BAD_REQUEST).entity("'from' query parameter value must be greater than 'to'").build()
+                Response.status(Response.Status.BAD_REQUEST).entity("'from' query parameter value must be lesser than 'to'").build()
             );
         }
 
