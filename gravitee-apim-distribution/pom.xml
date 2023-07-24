@@ -91,6 +91,41 @@
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
+        <dependency>
+            <groupId>com.graviteesource.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-http-get</artifactId>
+            <version>${gravitee-entrypoint-http-get.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-http-post</artifactId>
+            <version>${gravitee-entrypoint-http-post.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-sse</artifactId>
+            <version>${gravitee-entrypoint-sse.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-webhook</artifactId>
+            <version>${gravitee-entrypoint-webhook.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-websocket</artifactId>
+            <version>${gravitee-entrypoint-websocket.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
 
         <!-- Endpoints -->
         <dependency>
@@ -106,6 +141,27 @@
             <version>${project.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.endpoint</groupId>
+            <artifactId>gravitee-endpoint-kafka</artifactId>
+            <version>${gravitee-endpoint-kafka.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.endpoint</groupId>
+            <artifactId>gravitee-endpoint-mqtt5</artifactId>
+            <version>${gravitee-endpoint-mqtt5.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.endpoint</groupId>
+            <artifactId>gravitee-endpoint-rabbitmq</artifactId>
+            <version>${gravitee-endpoint-rabbitmq.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- Fetchers -->
@@ -182,6 +238,13 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <groupId>com.graviteesource.policy</groupId>
+            <artifactId>gravitee-policy-assign-metrics</artifactId>
+            <version>${gravitee-policy-assign-metrics.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-assign-content</artifactId>
             <version>${gravitee-policy-assign-content.version}</version>
@@ -201,6 +264,26 @@
             <version>${gravitee-policy-callout-http.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.policy</groupId>
+            <artifactId>gravitee-policy-cloud-events</artifactId>
+            <version>${gravitee-policy-cloud-events.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.policy</groupId>
+            <artifactId>gravitee-policy-data-logging-masking</artifactId>
+            <version>${gravitee-policy-data-logging-masking.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.jayway.jsonpath</groupId>
+                    <artifactId>json-path</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.gravitee.policy</groupId>
@@ -469,6 +552,13 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <groupId>com.graviteesource.policy</groupId>
+            <artifactId>gravitee-policy-xslt</artifactId>
+            <version>${gravitee-policy-xslt.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-json-threat-protection</artifactId>
             <version>${gravitee-policy-json-threat-protection.version}</version>
@@ -582,6 +672,15 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Reactors -->
+        <dependency>
+            <groupId>com.graviteesource.reactor</groupId>
+            <artifactId>gravitee-reactor-message</artifactId>
+            <version>${gravitee-reactor-message.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -625,14 +724,6 @@
                 </property>
             </activation>
             <dependencies>
-                <!-- Reactors -->
-                <dependency>
-                    <groupId>com.graviteesource.reactor</groupId>
-                    <artifactId>gravitee-reactor-message</artifactId>
-                    <version>${gravitee-reactor-message.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
                 <!-- Connectors -->
                 <dependency>
                     <groupId>io.gravitee.connector</groupId>
@@ -641,57 +732,8 @@
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
-                <!-- Entrypoints -->
-                <dependency>
-                    <groupId>com.graviteesource.entrypoint</groupId>
-                    <artifactId>gravitee-entrypoint-http-get</artifactId>
-                    <version>${gravitee-entrypoint-http-get.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
-               <dependency>
-                    <groupId>com.graviteesource.entrypoint</groupId>
-                    <artifactId>gravitee-entrypoint-http-post</artifactId>
-                    <version>${gravitee-entrypoint-http-post.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.entrypoint</groupId>
-                    <artifactId>gravitee-entrypoint-sse</artifactId>
-                    <version>${gravitee-entrypoint-sse.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.entrypoint</groupId>
-                    <artifactId>gravitee-entrypoint-webhook</artifactId>
-                    <version>${gravitee-entrypoint-webhook.version}</version>
-                    <scope>runtime</scope>
-                    <type>zip</type>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.entrypoint</groupId>
-                    <artifactId>gravitee-entrypoint-websocket</artifactId>
-                    <version>${gravitee-entrypoint-websocket.version}</version>
-                    <scope>runtime</scope>
-                    <type>zip</type>
-                </dependency>
+
                 <!-- Endpoints -->
-                <dependency>
-                    <groupId>com.graviteesource.endpoint</groupId>
-                    <artifactId>gravitee-endpoint-kafka</artifactId>
-                    <version>${gravitee-endpoint-kafka.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.endpoint</groupId>
-                    <artifactId>gravitee-endpoint-mqtt5</artifactId>
-                    <version>${gravitee-endpoint-mqtt5.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
                 <dependency>
                     <groupId>com.graviteesource.endpoint</groupId>
                     <artifactId>gravitee-endpoint-solace</artifactId>
@@ -699,21 +741,9 @@
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.endpoint</groupId>
-                    <artifactId>gravitee-endpoint-rabbitmq</artifactId>
-                    <version>${gravitee-endpoint-rabbitmq.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
+
                 <!-- Policies -->
-                <dependency>
-                    <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-assign-metrics</artifactId>
-                    <version>${gravitee-policy-assign-metrics.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
+
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-transform-avro-json</artifactId>
@@ -770,33 +800,7 @@
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-data-logging-masking</artifactId>
-                    <version>${gravitee-policy-data-logging-masking.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>com.jayway.jsonpath</groupId>
-                            <artifactId>json-path</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-xslt</artifactId>
-                    <version>${gravitee-policy-xslt.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.policy</groupId>
-                    <artifactId>gravitee-policy-cloud-events</artifactId>
-                    <version>${gravitee-policy-cloud-events.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
+
                 <!-- Reporters -->
                 <dependency>
                     <groupId>com.graviteesource.reporter</groupId>
