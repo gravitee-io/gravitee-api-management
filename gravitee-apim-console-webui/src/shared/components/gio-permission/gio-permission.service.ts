@@ -35,6 +35,11 @@ export class GioPermissionService {
         this.currentApiPermissions = Object.entries(apiPermissions).flatMap(([key, crudValues]) =>
           crudValues.map((crudValue) => toLower(`API-${key}-${crudValue}`)),
         );
+
+        // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
+        // TODO: Remove when AngularJS API permissions are removed
+        this.currentUserService.currentUser.userApiPermissions = this.currentApiPermissions;
+        this.currentUserService.reloadPermissions();
       }),
     );
   }
