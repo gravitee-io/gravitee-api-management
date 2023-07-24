@@ -18,9 +18,10 @@ import { IScope } from 'angular';
 import * as _ from 'lodash';
 
 import AnalyticsService from '../../../../services/analytics.service';
+import TenantService from '../../../../services/tenant.service';
 import { ApiService, LogsQuery } from '../../../../services/api.service';
 
-class ApiLogsController {
+class ApiAnalyticsLogsControllerAjs {
   private api: any;
   private logs: { total: string; logs: any[]; metadata: any };
   private query: LogsQuery;
@@ -34,42 +35,52 @@ class ApiLogsController {
   /* @ngInject */
   constructor(
     private ApiService: ApiService,
-    private resolvedApi,
-    private plans: any,
-    private applications: any,
-    private tenants: any,
     private $scope: IScope,
     private Constants,
     private $state: StateService,
     private $timeout: ng.ITimeoutService,
     private AnalyticsService: AnalyticsService,
+    private TenantService: TenantService,
+    private $q: ng.IQService,
   ) {
     this.ApiService = ApiService;
     this.$scope = $scope;
     this.$state = $state;
-    this.api = resolvedApi.data;
-    this.metadata = {
-      applications: applications.data,
-      plans: plans.data,
-    };
+  }
 
-    const hasTenants = _.chain(this.api.proxy.groups)
-      .map((group) => group.endpoints)
-      .find((endpoint) => _.has(endpoint, 'tenants'));
+  $onInit() {
+    this.$q
+      .all({
+        plans: this.ApiService.getApiPlans(this.$state.params.apiId),
+        applications: this.ApiService.getSubscribers(this.$state.params.apiId, null, null, null, ['owner']),
+        tenants: this.TenantService.list(),
+        resolvedApi: this.ApiService.get(this.$state.params.apiId),
+      })
+      .then(({ resolvedApi, applications, plans, tenants }) => {
+        this.api = resolvedApi.data;
+        this.metadata = {
+          applications: applications.data,
+          plans: plans.data,
+        };
 
-    if (hasTenants !== undefined) {
-      this.metadata.tenants = tenants.data;
-    }
+        const hasTenants = _.chain(this.api.proxy.groups)
+          .map((group) => group.endpoints)
+          .find((endpoint) => _.has(endpoint, 'tenants'));
 
-    this.onPaginate = this.onPaginate.bind(this);
+        if (hasTenants !== undefined) {
+          this.metadata.tenants = tenants.data;
+        }
 
-    this.query = this.AnalyticsService.buildQueryFromState(this.$state);
+        this.onPaginate = this.onPaginate.bind(this);
 
-    this.$scope.$watch('logsCtrl.query.field', (field) => {
-      if (field && this.init) {
-        this.refresh();
-      }
-    });
+        this.query = this.AnalyticsService.buildQueryFromState(this.$state);
+
+        this.$scope.$watch('$ctrl.query.field', (field) => {
+          if (field && this.init) {
+            this.refresh();
+          }
+        });
+      });
   }
 
   timeframeChange(timeframe) {
@@ -77,7 +88,9 @@ class ApiLogsController {
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
     this.query.page = this.$state.params.page || 1;
-    this.refresh();
+    if (this.api) {
+      this.refresh();
+    }
   }
 
   onPaginate(page) {
@@ -86,21 +99,22 @@ class ApiLogsController {
   }
 
   refresh() {
-    this.$state.transitionTo(
-      this.$state.current,
-      {
-        apiId: this.api.id,
-        page: this.query.page,
-        size: this.query.size,
-        from: this.query.from,
-        to: this.query.to,
-        q: this.query.query,
-      },
-      { notify: false },
-    );
-    this.ApiService.findLogs(this.api.id, this.query).then((logs) => {
+    this.$q.when(this.ApiService.findLogs(this.api.id, this.query)).then((logs) => {
       this.logs = logs.data;
       this.AnalyticsService.setFetchedLogs(logs.data.logs);
+
+      this.$state.transitionTo(
+        this.$state.current,
+        {
+          ...this.$state.params,
+          from: this.query.from,
+          to: this.query.to,
+          page: this.query.page,
+          size: this.query.size,
+          q: this.query.query,
+        },
+        { notify: false },
+      );
     });
   }
 
@@ -132,4 +146,4 @@ class ApiLogsController {
   }
 }
 
-export default ApiLogsController;
+export default ApiAnalyticsLogsControllerAjs;

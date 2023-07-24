@@ -84,7 +84,7 @@ function apisAnalyticsRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.analytics.logs.list', {
       url: '?from&to&q&page&size',
-      template: require('./logs/logs.html'),
+      template: require('./logs/analytics-logs.html'),
       controller: 'ApiLogsController',
       controllerAs: 'logsCtrl',
       data: {

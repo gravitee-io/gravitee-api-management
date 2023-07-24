@@ -80,7 +80,7 @@ describe('ApiLogsConfigurationComponent', () => {
         .getHarness(MatButtonHarness.with({ selector: '[aria-label="Go to Logging dashboard"]' }))
         .then((button) => button.click());
 
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.analytics.logs.list');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.ng.analytics-logs-v2');
     });
   });
 

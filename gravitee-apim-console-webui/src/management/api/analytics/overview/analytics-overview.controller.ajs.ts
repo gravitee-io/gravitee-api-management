@@ -78,7 +78,7 @@ class ApiAnalyticsOverviewControllerAjs {
 
   viewLogs() {
     // Update the query parameter
-    this.$state.transitionTo('management.apis.detail.analytics.logs.list', this.$state.params);
+    this.$state.transitionTo('management.apis.ng.analytics-logs-v2', this.$state.params);
   }
 
   onDashboardChanged() {

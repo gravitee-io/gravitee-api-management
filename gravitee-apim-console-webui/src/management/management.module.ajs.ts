@@ -127,7 +127,7 @@ import DashboardTimeframeController from '../components/dashboard/dashboard-time
 import ContextualDocComponent from '../components/contextual/contextual-doc.component';
 import ContextualDocController from '../components/contextual/contextual-doc.controller';
 // Logs
-import ApiLogsController from '../management/api/analytics/logs/logs.controller';
+import { ApiAnalyticsLogsComponentAjs } from './api/analytics/logs/analytics-logs.component.ajs';
 import LogsTimeframeComponent from '../components/logs/logs-timeframe.component';
 import LogsTimeframeController from '../components/logs/logs-timeframe.controller';
 import LogsFiltersComponent from '../components/logs/logs-filters.component';
@@ -895,7 +895,7 @@ graviteeManagementModule.component('notificationsComponent', NotificationsCompon
 
 graviteeManagementModule.component('logout', LogoutComponent);
 
-graviteeManagementModule.controller('ApiLogsController', ApiLogsController);
+graviteeManagementModule.component('apiAnalyticsLogsComponentAjs', ApiAnalyticsLogsComponentAjs);
 graviteeManagementModule.component('gvLogsTimeframe', LogsTimeframeComponent);
 graviteeManagementModule.controller('LogsTimeframeController', LogsTimeframeController);
 graviteeManagementModule.component('log', LogComponent);

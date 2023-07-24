@@ -62,6 +62,8 @@ import { ApiProxyHealthCheckComponent } from './proxy/health-check/api-proxy-hea
 import { ApiHealthCheckDashboardComponent } from './proxy/health-check-dashboard/healthcheck-dashboard.component';
 import { ApiHealthCheckLogComponent } from './proxy/health-check-dashboard/healthcheck-log.controller';
 import { ApiAnalyticsOverviewComponent } from './analytics/overview/analytics-overview.component';
+import { ApiAnalyticsLogsComponent } from './analytics/logs/analytics-logs.component';
+import { ApiLogsConfigurationComponent } from './analytics/logs/configuration/api-logs-configuration.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -939,6 +941,56 @@ const states: Ng2StateDeclaration[] = [
         type: 'string',
         dynamic: true,
       },
+    },
+  },
+  {
+    name: 'management.apis.ng.analytics-logs-v2',
+    component: ApiAnalyticsLogsComponent,
+    url: '/v2/analytics-logs?from&to&q&page&size',
+    data: {
+      apiPermissions: {
+        only: ['api-log-r'],
+      },
+      docs: {
+        page: 'management-api-logs',
+      },
+      useAngularMaterial: true,
+      params: {
+        from: {
+          type: 'int',
+          dynamic: true,
+        },
+        to: {
+          type: 'int',
+          dynamic: true,
+        },
+        q: {
+          type: 'string',
+          dynamic: true,
+        },
+        page: {
+          type: 'int',
+          dynamic: true,
+        },
+        size: {
+          type: 'int',
+          dynamic: true,
+        },
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.analytics-logs-configuration-v2',
+    component: ApiLogsConfigurationComponent,
+    url: '/v2/analytics-logs-configuration',
+    data: {
+      apiPermissions: {
+        only: ['api-log-u'],
+      },
+      docs: {
+        page: 'management-api-logging-configuration',
+      },
+      useAngularMaterial: true,
     },
   },
 ];
