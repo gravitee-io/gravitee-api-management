@@ -210,10 +210,10 @@ import NotificationTemplatesService from '../services/notificationTemplates.serv
 import '../components/documentation/documentation.module.ajs';
 
 // Healthcheck
-import ApiHealthCheckController from '../management/api/proxy/health-check-dashboard/healthcheck.controller';
 import ProgressBarComponent from '../components/progressbar/progress-bar.component';
-import ApiHealthCheckLogController from '../management/api/proxy/health-check-dashboard/healthcheck-log.controller';
 import HealthCheckMetricComponent from '../components/healthcheckmetric/healthcheck-metric.component';
+import { ApiHealthcheckDashboardComponentAjs } from './api/proxy/health-check-dashboard/healthcheck-dashboard.component.ajs';
+import { ApiHealthcheckLogComponentAjs } from './api/proxy/health-check-dashboard/healthcheck-log.component.ajs';
 
 // Ticket
 import TicketService from '../services/ticket.service';
@@ -672,7 +672,8 @@ graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesControll
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
 graviteeManagementModule.directive('ngApiMembers', downgradeComponent({ component: ApiPortalMembersComponent }));
 graviteeManagementModule.directive('ngApiTransferOwnership', downgradeComponent({ component: ApiPortalTransferOwnershipComponent }));
-graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
+graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHealthcheckDashboardComponentAjs);
+
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
 graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
@@ -911,7 +912,7 @@ graviteeManagementModule.controller('ContextualDocController', ContextualDocCont
 
 // Healthcheck
 graviteeManagementModule.directive('ngApiProxyHealthCheck', downgradeComponent({ component: ApiProxyHealthCheckComponent }));
-graviteeManagementModule.controller('ApiHealthCheckLogController', ApiHealthCheckLogController);
+graviteeManagementModule.component('apiHealthcheckLogComponentAjs', ApiHealthcheckLogComponentAjs);
 graviteeManagementModule.component('progressBar', ProgressBarComponent);
 graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
 

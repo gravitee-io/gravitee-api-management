@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, Injector } from '@angular/core';
-import { UpgradeComponent } from '@angular/upgrade/static';
 
-@Component({
-  template: '',
-  selector: 'api-healthcheck-log',
-  host: {
-    class: 'bootstrap',
-  },
+import { NgModule } from '@angular/core';
+
+import { ApiHealthCheckDashboardComponent } from './healthcheck-dashboard.component';
+import { ApiHealthCheckLogComponent } from './healthcheck-log.controller';
+
+@NgModule({
+  declarations: [ApiHealthCheckDashboardComponent, ApiHealthCheckLogComponent],
+  exports: [ApiHealthCheckDashboardComponent, ApiHealthCheckLogComponent],
+  imports: [],
 })
-export class ApiHealthCheckLogComponent extends UpgradeComponent {
-  constructor(elementRef: ElementRef, injector: Injector) {
-    super('apiHealthcheckLogComponentAjs', elementRef, injector);
-  }
-}
+export class ApiProxyHealthCheckDashboardModule {}

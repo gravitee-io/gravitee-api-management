@@ -90,6 +90,6 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
   }
 
   gotToHealthCheckDashboard() {
-    this.ajsState.go('management.apis.detail.proxy.healthCheckDashboard.visualize');
+    this.ajsState.go('management.apis.ng.healthcheck-dashboard-v2');
   }
 }

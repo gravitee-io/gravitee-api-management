@@ -18,13 +18,13 @@ import { UpgradeComponent } from '@angular/upgrade/static';
 
 @Component({
   template: '',
-  selector: 'api-healthcheck-log',
+  selector: 'api-healthcheck-dashboard',
   host: {
     class: 'bootstrap',
   },
 })
-export class ApiHealthCheckLogComponent extends UpgradeComponent {
+export class ApiHealthCheckDashboardComponent extends UpgradeComponent {
   constructor(elementRef: ElementRef, injector: Injector) {
-    super('apiHealthcheckLogComponentAjs', elementRef, injector);
+    super('apiHealthcheckDashboardComponentAjs', elementRef, injector);
   }
 }
