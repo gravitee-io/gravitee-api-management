@@ -59,7 +59,7 @@ export class GioTopApisTableComponent implements AfterViewInit, OnChanges {
   }
 
   navigateToApi(apiKey: string): void {
-    this.ajsState.go('management.apis.detail.analytics.overview', {
+    this.ajsState.go('management.apis.ng.analytics-overview-v2', {
       apiId: apiKey,
     });
   }

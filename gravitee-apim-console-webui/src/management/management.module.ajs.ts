@@ -35,7 +35,6 @@ import { ApiService } from '../services/api.service';
 import CorsService from '../services/cors.service';
 import ApisStatusDashboardController from '../management/dashboard-ajs/apis-status-dashboard/apis-status-dashboard.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';
-import ApiAnalyticsController from '../management/api/analytics/overview/analytics.controller';
 import ApiPoliciesController from '../management/api/design/policies/policies.controller';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import ApiResourcesController from './api/proxy/resources/resources.controller';
@@ -503,6 +502,7 @@ import { ClientRegistrationProviderComponent } from './configuration/client-regi
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
 import { ApiPortalSubscriptionListComponent } from './api/portal/subscriptions/list/api-portal-subscription-list.component';
 import { ApiPortalSubscriptionEditComponent } from './api/portal/subscriptions/edit/api-portal-subscription-edit.component';
+import { ApiAnalyticsOverviewComponentAjs } from './api/analytics/overview/analytics-overview.component.ajs';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -667,7 +667,7 @@ graviteeManagementModule.directive(
   downgradeComponent({ component: ApiPortalDocumentationMetadataComponent }),
 );
 
-graviteeManagementModule.controller('ApiAnalyticsController', ApiAnalyticsController);
+graviteeManagementModule.component('apiAnalyticsOverviewComponentAjs', ApiAnalyticsOverviewComponentAjs);
 graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
 graviteeManagementModule.directive('ngApiMembers', downgradeComponent({ component: ApiPortalMembersComponent }));

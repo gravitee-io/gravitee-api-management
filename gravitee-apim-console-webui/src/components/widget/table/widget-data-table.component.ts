@@ -102,7 +102,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
       // only on platform analytics
       if ($state.current.name === 'management.analytics' || $state.current.name === 'management.dashboard.home') {
         if (this.widget.chart.request.field === 'api') {
-          this.$state.go('management.apis.detail.analytics.overview', {
+          this.$state.go('management.apis.ng.analytics-overview-v2', {
             apiId: key,
             from: this.widget.chart.request.from,
             to: this.widget.chart.request.to,

@@ -56,7 +56,7 @@
                 <td md-cell>{{$ctrl.getEventLabel(event.type)}}</td>
                 <td md-cell>
                   <a
-                    ui-sref="management.apis.detail.analytics.overview({ apiId: event.properties.api_id, from: $ctrl.$state.params.from, to: $ctrl.$state.params.to} )"
+                    ui-sref="management.apis.ng.analytics-overview-v2({ apiId: event.properties.api_id, from: $ctrl.$state.params.from, to: $ctrl.$state.params.to} )"
                   >
                     {{event.properties.api_name}} <small>({{event.properties.api_version}})</small>
                   </a>

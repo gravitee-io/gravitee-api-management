@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
 
-import { ApiPathMappingsModule } from './pathMappings/api-path-mappings.module';
-import { ApiLogsModule } from './logs/api-logs.module';
-import { ApiAnalyticsOverviewComponent } from './overview/analytics-overview.component';
+import ApiAnalyticsOverviewControllerAjs from './analytics-overview.controller.ajs';
 
-@NgModule({
-  declarations: [ApiAnalyticsOverviewComponent],
-  exports: [ApiAnalyticsOverviewComponent],
-  imports: [ApiLogsModule, ApiPathMappingsModule],
-})
-export class ApiAnalyticsModule {}
+export const ApiAnalyticsOverviewComponentAjs = {
+  template: require('./analytics-overview.html'),
+  controller: ApiAnalyticsOverviewControllerAjs,
+  bindings: {},
+};

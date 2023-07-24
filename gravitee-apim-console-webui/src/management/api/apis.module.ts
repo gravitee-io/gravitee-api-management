@@ -61,6 +61,7 @@ import { ApiProxyFailoverComponent } from './proxy/failover/api-proxy-failover.c
 import { ApiProxyHealthCheckComponent } from './proxy/health-check/api-proxy-health-check.component';
 import { ApiHealthCheckDashboardComponent } from './proxy/health-check-dashboard/healthcheck-dashboard.component';
 import { ApiHealthCheckLogComponent } from './proxy/health-check-dashboard/healthcheck-log.controller';
+import { ApiAnalyticsOverviewComponent } from './analytics/overview/analytics-overview.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -906,6 +907,38 @@ const states: Ng2StateDeclaration[] = [
         only: ['api-health-r'],
       },
       useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.analytics-overview-v2',
+    component: ApiAnalyticsOverviewComponent,
+    url: '/v2/analytics-overview?from&to&q&dashboard',
+    data: {
+      apiPermissions: {
+        only: ['api-analytics-r'],
+      },
+      docs: {
+        page: 'management-api-analytics',
+      },
+      useAngularMaterial: true,
+    },
+    params: {
+      from: {
+        type: 'int',
+        dynamic: true,
+      },
+      to: {
+        type: 'int',
+        dynamic: true,
+      },
+      q: {
+        type: 'string',
+        dynamic: true,
+      },
+      dashboard: {
+        type: 'string',
+        dynamic: true,
+      },
     },
   },
 ];
