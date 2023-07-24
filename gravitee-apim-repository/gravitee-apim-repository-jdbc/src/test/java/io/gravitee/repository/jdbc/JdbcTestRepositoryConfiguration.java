@@ -86,6 +86,9 @@ public class JdbcTestRepositoryConfiguration {
                 break;
             case SQLSERVER:
                 containerBean = new MSSQLServerContainer<>(dockerImageName);
+                // ACCEPT_EULA confirms your acceptance of the End-User Licensing Agreement.
+                // For details see: https://hub.docker.com/_/microsoft-mssql-server#environment-variables
+                containerBean.withEnv("ACCEPT_EULA", "Y");
                 break;
             case POSTGRESQL:
             default:
