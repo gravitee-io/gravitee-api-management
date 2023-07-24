@@ -454,7 +454,6 @@ import { CockpitService } from '../services-ngx/cockpit.service';
 
 import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
-import { ConfigureLoggingDialogController } from './api/analytics/logs/configure-logging.dialog';
 import { GioBannerComponent } from '@gravitee/ui-particles-angular';
 import { GioPendoService } from '@gravitee/ui-analytics';
 import ApplicationSubscriptionsListComponent from '../management/application/details/subscriptions/application-subscriptions-list.component';
@@ -901,7 +900,6 @@ graviteeManagementModule.controller('LogsTimeframeController', LogsTimeframeCont
 graviteeManagementModule.component('apiAnalyticsLogComponentAjs', ApiAnalyticsLogComponentAjs);
 graviteeManagementModule.component('gvLogsFilters', LogsFiltersComponent);
 graviteeManagementModule.controller('LogsFiltersController', LogsFiltersController);
-graviteeManagementModule.controller('configureLoggingDialogController', ConfigureLoggingDialogController);
 graviteeManagementModule.component('gvSearchAndSelect', SearchAndSelectComponent);
 graviteeManagementModule.controller('SearchAndSelectController', SearchAndSelectController);
 

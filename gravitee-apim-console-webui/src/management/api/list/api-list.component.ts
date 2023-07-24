@@ -196,7 +196,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
                 : null,
-              targetRoute: 'management.apis.detail.portal.general',
+              targetRoute: 'management.apis.ng.general',
             };
           }
         })
