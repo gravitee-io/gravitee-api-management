@@ -374,6 +374,7 @@ parameters:
                 bridge_e2e,
                 publish_docker_images,
                 release_helm,
+                repositories_tests,
             ]
         default: pull_requests
     dry_run:
@@ -1296,7 +1297,7 @@ jobs:
 
                       # Helm chart
                       sed "0,/version.*/s/version.*/version: ${GRAVITEEIO_VERSION_WITH_QUALIFIER}/" -i helm/Chart.yaml
-                    
+
                       git add --update
                       git commit -m "${GRAVITEEIO_VERSION_WITH_QUALIFIER}"
                       git tag ${GRAVITEEIO_VERSION_WITH_QUALIFIER}
@@ -2493,23 +2494,17 @@ workflows:
                       - Nexus staging
 
     db_repositories_test_container:
-        triggers:
-            - schedule:
-                  cron: "0 12 * * *"
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^\d+\.\d+\.x$/
+        when:
+            equal: [repositories_tests, << pipeline.parameters.gio_action >>]
         jobs:
             - job-setup:
                   name: Setup
                   context: cicd-orchestrator
             - job-build:
-                name: Build
-                context: cicd-orchestrator
-                requires:
-                  - Setup
+                  name: Build
+                  context: cicd-orchestrator
+                  requires:
+                      - Setup
             - job-jdbc-test-container:
                   name: Management repository tests - JDBC - << matrix.version >>
                   context: cicd-orchestrator
