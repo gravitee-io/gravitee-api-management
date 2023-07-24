@@ -1601,6 +1601,48 @@ jobs:
                             name: Version not set - nothing to run
                             command: exit 0
 
+    job-redis-repository-test-container:
+        parameters:
+            version:
+                type: string
+                description: version of Redis to run the test against
+                default: ""
+        executor:
+            name: ubuntu
+        steps:
+            - when:
+                  condition: << parameters.version >>
+                  steps:
+                      - install-jdk-17-for-machine
+                      - checkout
+                      - attach_workspace:
+                            at: .
+                      - cmd-restore-maven-job-cache:
+                            jobName: job-redis-test-container
+                      - run:
+                            name: Run Redis repository tests with version << parameters.version >>
+                            command: |
+                                cd gravitee-apim-repository
+                                mvn -pl 'gravitee-apim-repository-redis' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -DredisVersion=<< parameters.version >>
+                      - run:
+                            name: Save test results
+                            command: |
+                                mkdir -p ~/test-results/junit/
+                                find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+                            when: always
+                      - cmd-save-maven-job-cache:
+                            jobName: job-redis-test-container
+                      - store_test_results:
+                            path: ~/test-results
+                      - cmd-notify-on-failure
+            - when:
+                  condition:
+                      not: << parameters.version >>
+                  steps:
+                      - run:
+                            name: Version not set - nothing to run
+                            command: exit 0
+
     job-e2e-test:
         executor:
             name: ubuntu
@@ -2520,6 +2562,14 @@ workflows:
                       parameters:
                           engineType: ["opensearch"]
                           version: ["1", "2"]
+            - job-redis-repository-test-container:
+                  name: Rate Limit repository tests - Redis << matrix.version >>
+                  context: cicd-orchestrator
+                  requires:
+                      - Build
+                  matrix:
+                      parameters:
+                          version: ["6.2.6-v9", "7.0.6-RC9"]
 
     release_notes_apim:
         when:

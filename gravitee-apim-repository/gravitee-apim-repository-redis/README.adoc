@@ -223,8 +223,8 @@ ratelimit:
 
 == Testing
 
-By default, unit tests are run with a TestContainer version of Redis 7.0.10, but sometimes it can be useful to run them against other version of Redis.
+By default, unit tests are run with a TestContainer version of Redis Stack `6.2.6-v9`, but sometimes it can be useful to run them against other version of Redis.
 
-You can use the version of Redis you want to test by using the docker image tag in the `-DredisVersion` parameter.
+You can use the version of Redis you want to test by using the docker image tag in the `-DredisStackVersion` parameter.
 
-For example, for Redis 5.0, you will use `mvn -DredisVersion=5.0 test` .
+For example, for Redis 7.0.x, you will use `mvn -DredisStackVersion=7.0.6-RC9 test` .

@@ -44,7 +44,7 @@ public class RedisTestRepositoryConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedisTestRepositoryConfiguration.class);
 
-    @Value("${redisStackVersion:6.2.6-v7}")
+    @Value("${redisStackVersion:6.2.6-v9}")
     private String redisStackVersion;
 
     @Bean(destroyMethod = "stop")
