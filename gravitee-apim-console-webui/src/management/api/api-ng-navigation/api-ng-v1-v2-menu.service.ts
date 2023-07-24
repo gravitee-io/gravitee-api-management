@@ -242,8 +242,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
         },
         {
           displayName: 'Failover',
-          targetRoute: 'management.apis.detail.proxy.failover',
-          baseRoute: 'management.apis.detail.proxy.failover',
+          targetRoute: 'management.apis.ng.failover-v2',
+          baseRoute: 'management.apis.ng.failover-v2',
         },
       );
     }

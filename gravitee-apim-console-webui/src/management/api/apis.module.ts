@@ -57,6 +57,7 @@ import { ApiProxyEndpointListComponent } from './proxy/endpoints/list/api-proxy-
 import { ApiEndpointsGroupsComponent } from './endpoints-v4/backend-services/endpoints-groups/api-endpoints-groups.component';
 import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyGroupEditComponent } from './proxy/endpoints/groups/edit/api-proxy-group-edit.component';
+import { ApiProxyFailoverComponent } from './proxy/failover/api-proxy-failover.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -829,6 +830,20 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-proxy-group',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.failover-v2',
+    component: ApiProxyFailoverComponent,
+    url: '/v2/failover',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-proxy',
       },
       useAngularMaterial: true,
     },
