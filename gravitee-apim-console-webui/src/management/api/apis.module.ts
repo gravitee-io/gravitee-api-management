@@ -58,6 +58,7 @@ import { ApiEndpointsGroupsComponent } from './endpoints-v4/backend-services/end
 import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyGroupEditComponent } from './proxy/endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyFailoverComponent } from './proxy/failover/api-proxy-failover.component';
+import { ApiProxyHealthCheckComponent } from './proxy/health-check/api-proxy-health-check.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -844,6 +845,20 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-proxy',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.healthcheck-v2',
+    component: ApiProxyHealthCheckComponent,
+    url: '/v2/healthcheck',
+    data: {
+      apiPermissions: {
+        only: ['api-health-c'],
+      },
+      docs: {
+        page: 'management-api-health-check-configure',
       },
       useAngularMaterial: true,
     },
