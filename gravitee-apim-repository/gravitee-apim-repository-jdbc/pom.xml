@@ -37,7 +37,7 @@
         <liquibase-slf4j.version>4.0.0</liquibase-slf4j.version>
         <mariaDB.version>2.5.3</mariaDB.version>
         <mssql-jdbc.version>9.4.1.jre8</mssql-jdbc.version>
-        <mysql-connector-java.version>8.0.31</mysql-connector-java.version>
+        <mysql-connector-j.version>8.0.31</mysql-connector-j.version>
         <postgresql.version>42.4.1</postgresql.version>
 
         <!-- Plugin configuration -->
@@ -134,9 +134,9 @@
             https://github.com/mysql/mysql-connector-j/blob/release/8.0/LICENSE
         -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql-connector-java.version}</version>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql-connector-j.version}</version>
             <scope>test</scope>
         </dependency>
 
