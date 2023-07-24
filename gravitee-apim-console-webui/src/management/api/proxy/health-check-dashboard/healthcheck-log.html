@@ -16,30 +16,30 @@
 
 -->
 
-<div class="log-table" layout="row" layout-padding>
+<div class="log-table" layout="row" layout-padding ng-if="$ctrl.log">
   <div layout="column" flex="33">
     <md-table-container>
       <table md-table>
         <tbody md-body>
           <tr md-row style="height: 30px">
             <td md-cell><span style="font-weight: bold">ID</span></td>
-            <td md-cell>{{healthCheckLogCtrl.log.id}}</td>
+            <td md-cell>{{$ctrl.log.id}}</td>
           </tr>
           <tr md-row style="height: 30px">
             <td md-cell><span style="font-weight: bold">Timestamp</span></td>
-            <td md-cell>{{healthCheckLogCtrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
+            <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
           </tr>
           <tr md-row style="height: 30px">
             <td md-cell><span style="font-weight: bold">Response time</span></td>
-            <td md-cell>{{healthCheckLogCtrl.log.responseTime | number}} ms</td>
+            <td md-cell>{{$ctrl.log.responseTime | number}} ms</td>
           </tr>
           <tr md-row style="height: 30px">
             <td md-cell><span style="font-weight: bold">Gateway</span></td>
-            <td md-cell>{{healthCheckLogCtrl.log.gateway}}</td>
+            <td md-cell>{{$ctrl.log.gateway}}</td>
           </tr>
           <tr md-row style="height: 30px">
             <td md-cell><span style="font-weight: bold">Assertion</span></td>
-            <td md-cell>{{healthCheckLogCtrl.log.message}}</td>
+            <td md-cell>{{$ctrl.log.message}}</td>
           </tr>
         </tbody>
       </table>
@@ -60,12 +60,12 @@
             <tr md-row>
               <td md-cell>
                 <span
-                  class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{healthCheckLogCtrl.log.request.method | uppercase}}-selected"
+                  class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.request.method | uppercase}}-selected"
                 >
-                  {{healthCheckLogCtrl.log.request.method | uppercase}}
+                  {{$ctrl.log.request.method | uppercase}}
                 </span>
               </td>
-              <td md-cell>{{healthCheckLogCtrl.log.request.uri}}</td>
+              <td md-cell>{{$ctrl.log.request.uri}}</td>
             </tr>
           </tbody>
         </table>
@@ -73,27 +73,27 @@
 
       <br />
 
-      <md-table-container ng-if="healthCheckLogCtrl.log.request.headers">
+      <md-table-container ng-if="$ctrl.log.request.headers">
         <table md-table>
           <tbody md-body>
-            <tr md-row ng-repeat="(key, value) in healthCheckLogCtrl.log.request.headers" style="height: 30px">
+            <tr md-row ng-repeat="(key, value) in $ctrl.log.request.headers" style="height: 30px">
               <td md-cell><span style="font-weight: bold">{{key}}</span></td>
               <td md-cell>{{value[0]}}</td>
             </tr>
           </tbody>
         </table>
       </md-table-container>
-      <div ng-if="healthCheckLogCtrl.log.request.headers === undefined || healthCheckLogCtrl.log.request.headers.length === 0">
+      <div ng-if="$ctrl.log.request.headers === undefined || $ctrl.log.request.headers.length === 0">
         <span>No HTTP Headers</span>
       </div>
 
       <br />
 
       <div
-        ng-if="healthCheckLogCtrl.log.request.body"
+        ng-if="$ctrl.log.request.body"
         ui-codemirror
-        ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: healthCheckLogCtrl.getMimeType(healthCheckLogCtrl.log.request)}"
-        ng-model="healthCheckLogCtrl.log.response.body"
+        ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.request)}"
+        ng-model="$ctrl.log.response.body"
       ></div>
     </div>
   </div>
@@ -104,12 +104,7 @@
     </span>
   </div>
 
-  <div
-    layout="row"
-    layout-padding
-    flex="45"
-    ng-class="{'gv-log-response-panel-{{healthCheckLogCtrl.log.response.status / 100 | number:0}}': true}"
-  >
+  <div layout="row" layout-padding flex="45" class="gv-log-response-panel-{{$ctrl.log.response.status / 100 | number:0}}">
     <div flex="10" layout="row" layout-align="center center">
       <span class="vertical-text log-header" style="text-align: center">RESPONSE</span>
     </div>
@@ -120,7 +115,7 @@
           <tbody md-body>
             <tr md-row>
               <td md-cell><span style="font-weight: bold">Status</span></td>
-              <td md-cell>{{healthCheckLogCtrl.log.response.status | number}}</td>
+              <td md-cell>{{$ctrl.log.response.status | number}}</td>
             </tr>
           </tbody>
         </table>
@@ -128,33 +123,33 @@
 
       <br />
 
-      <md-table-container ng-if="healthCheckLogCtrl.log.response.headers">
+      <md-table-container ng-if="$ctrl.log.response.headers">
         <table md-table>
           <tbody md-body>
-            <tr md-row ng-repeat="(key, value) in healthCheckLogCtrl.log.response.headers" style="height: 30px">
+            <tr md-row ng-repeat="(key, value) in $ctrl.log.response.headers" style="height: 30px">
               <td md-cell><span style="font-weight: bold">{{key}}</span></td>
               <td md-cell>{{value[0]}}</td>
             </tr>
           </tbody>
         </table>
       </md-table-container>
-      <div ng-if="healthCheckLogCtrl.log.response.headers === undefined || healthCheckLogCtrl.log.response.headers.length === 0">
+      <div ng-if="$ctrl.log.response.headers === undefined || $ctrl.log.response.headers.length === 0">
         <span>No HTTP Headers</span>
       </div>
 
       <br />
 
       <div
-        ng-if="healthCheckLogCtrl.log.response.body"
+        ng-if="$ctrl.log.response.body"
         ui-codemirror
-        ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: healthCheckLogCtrl.getMimeType(healthCheckLogCtrl.log.response)}"
-        ng-model="healthCheckLogCtrl.log.response.body"
+        ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.response)}"
+        ng-model="$ctrl.log.response.body"
       ></div>
     </div>
   </div>
 </div>
 <section>
-  <md-button class="md-button" aria-label="Back to healthcheck" ng-click="healthCheckLogCtrl.backToHealthcheck()">
+  <md-button class="md-button" aria-label="Back to healthcheck" ng-click="$ctrl.backToHealthcheck()">
     <ng-md-icon icon="reply"></ng-md-icon>
     <span style="color: rgba(0, 0, 0, 0.54)">Back to healthcheck</span>
   </md-button>

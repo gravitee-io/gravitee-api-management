@@ -59,6 +59,8 @@ import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/end
 import { ApiProxyGroupEditComponent } from './proxy/endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyFailoverComponent } from './proxy/failover/api-proxy-failover.component';
 import { ApiProxyHealthCheckComponent } from './proxy/health-check/api-proxy-health-check.component';
+import { ApiHealthCheckDashboardComponent } from './proxy/health-check-dashboard/healthcheck-dashboard.component';
+import { ApiHealthCheckLogComponent } from './proxy/health-check-dashboard/healthcheck-log.controller';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -859,6 +861,49 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-health-check-configure',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.healthcheck-dashboard-v2',
+    component: ApiHealthCheckDashboardComponent,
+    url: '/v2/healthcheck-dashboard?from&to&page&size',
+    data: {
+      apiPermissions: {
+        only: ['api-health-r'],
+      },
+      docs: {
+        page: 'management-api-health-check',
+      },
+      useAngularMaterial: true,
+    },
+    params: {
+      from: {
+        type: 'int',
+        dynamic: true,
+      },
+      to: {
+        type: 'int',
+        dynamic: true,
+      },
+      page: {
+        type: 'int',
+        dynamic: true,
+      },
+      size: {
+        type: 'int',
+        dynamic: true,
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.healthcheck-log-v2',
+    component: ApiHealthCheckLogComponent,
+    url: '/v2/logs/:logId',
+    data: {
+      apiPermissions: {
+        only: ['api-health-r'],
       },
       useAngularMaterial: true,
     },

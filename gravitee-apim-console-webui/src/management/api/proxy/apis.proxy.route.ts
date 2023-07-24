@@ -122,11 +122,11 @@ function apisProxyRouterConfig($stateProvider) {
     .state('management.apis.detail.proxy.healthCheckDashboard', {
       abstract: true,
       url: '/healthcheck-dashboard',
-      template: require('./health-check-dashboard/healthcheck.html'),
+      // template: require('./health-check-dashboard/healthcheck.html'),
     })
     .state('management.apis.detail.proxy.healthCheckDashboard.visualize', {
       url: '?from&to&page&size',
-      template: require('./health-check-dashboard/healthcheck-visualize.html'),
+      template: require('./health-check-dashboard/healthcheck-dashboard.html'),
       controller: 'ApiHealthCheckController',
       controllerAs: 'healthCheckCtrl',
       data: {
@@ -157,7 +157,7 @@ function apisProxyRouterConfig($stateProvider) {
       },
     })
     .state('management.apis.detail.proxy.healthCheckDashboard.log', {
-      url: '/logs/:log',
+      url: '/logs/:logId',
       template: require('./health-check-dashboard/healthcheck-log.html'),
       controller: 'ApiHealthCheckLogController',
       controllerAs: 'healthCheckLogCtrl',

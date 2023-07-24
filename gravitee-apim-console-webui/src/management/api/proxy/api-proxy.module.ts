@@ -25,6 +25,7 @@ import { ApiProxyFailoverModule } from './failover/api-proxy-failover.module';
 import { ApiProxyHealthCheckModule } from './health-check/api-proxy-health-check.module';
 import { ApiPropertiesModule } from './properties-ng/api-properties.module';
 import { ApiResourcesModule } from './resources-ng/api-resources.module';
+import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
 
 @NgModule({
   imports: [
@@ -35,6 +36,7 @@ import { ApiResourcesModule } from './resources-ng/api-resources.module';
     ApiProxyEndpointModule,
     ApiProxyFailoverModule,
     ApiProxyHealthCheckModule,
+    ApiProxyHealthCheckDashboardModule,
     ApiPropertiesModule,
     ApiResourcesModule,
   ],

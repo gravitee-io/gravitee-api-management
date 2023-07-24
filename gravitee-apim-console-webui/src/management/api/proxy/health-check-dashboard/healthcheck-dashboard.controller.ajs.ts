@@ -21,7 +21,7 @@ import * as moment from 'moment';
 import { ApiService, LogsQuery } from '../../../../services/api.service';
 import UserService from '../../../../services/user.service';
 
-class ApiHealthCheckController {
+class ApiHealthcheckDashboardControllerAjs {
   public chartData: any;
 
   private api: any;
@@ -41,7 +41,6 @@ class ApiHealthCheckController {
     private UserService: UserService,
     private $window,
   ) {
-    this.api = (this.$scope.$parent as any).apiCtrl.api;
     this.gateway = { availabilities: {}, responsetimes: {} };
     this.endpoint = { availabilities: {}, responsetimes: {} };
 
@@ -55,14 +54,23 @@ class ApiHealthCheckController {
     this.query.to = this.$state.params.to;
 
     $window.localStorage.lastHealthCheckQuery = JSON.stringify(this.query);
+  }
 
-    this.updateChart();
+  $onInit() {
+    this.ApiService.get(this.$state.params.apiId).then((api) => {
+      this.api = api.data;
+      this.updateChart();
+    });
   }
 
   timeframeChange(timeframe: { from: number; to: number }) {
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
-    this.updateChart();
+    if (!this.api) {
+      this.$onInit();
+    } else {
+      this.updateChart();
+    }
   }
 
   updateChart() {
@@ -243,13 +251,9 @@ class ApiHealthCheckController {
     }
   }
 
-  viewLog(log) {
-    this.$state.go('management.apis.detail.proxy.healthCheckDashboard.log', log);
-  }
-
   displayGatewayHC() {
     return this.UserService.currentUser.isOrganizationAdmin();
   }
 }
 
-export default ApiHealthCheckController;
+export default ApiHealthcheckDashboardControllerAjs;

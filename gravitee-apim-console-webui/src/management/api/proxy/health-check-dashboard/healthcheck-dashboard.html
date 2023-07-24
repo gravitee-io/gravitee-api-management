@@ -19,14 +19,14 @@
   <div class="gv-form">
     <div class="gv-form-content" layout="column">
       <div layout="row" layout-align="end center">
-        <a permission permission-only="'api-health-u'" ui-sref="management.apis.detail.proxy.healthcheck">Configure Health-check</a>
+        <a permission permission-only="'api-health-u'" ui-sref="management.apis.ng.healthcheck-v2">Configure Health-check</a>
         <md-button class="md-primary" permission permission-only="'api-health-r'" ng-click="healthCheckCtrl.updateChart()">
           <ng-md-icon icon="refresh"></ng-md-icon>
           Refresh data
         </md-button>
       </div>
       <md-content flex>
-        <gv-logs-timeframe on-timeframe-change="healthCheckCtrl.timeframeChange(timeframe)" flex></gv-logs-timeframe>
+        <gv-logs-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)" flex></gv-logs-timeframe>
         <div layout="column" flex>
           <div layout="row" flex>
             <md-card flex>
@@ -40,7 +40,7 @@
                 </md-card-title>
                 <md-card-content>
                   <div>
-                    <gravitee-chart options="healthCheckCtrl.chartData" zoom="true" type="areaspline" height="180"></gravitee-chart>
+                    <gravitee-chart options="$ctrl.chartData" zoom="true" type="areaspline" height="180"></gravitee-chart>
                   </div>
                   <div layout="row" layout-padding layout-align="center center">
                     <div flex="15"><h5>Last minute</h5></div>
@@ -51,32 +51,32 @@
                   </div>
                   <div layout="row" layout-padding layout-align="center center">
                     <gv-healthcheck-metric
-                      availability="healthCheckCtrl.endpoint.availabilities.data.global['1m']"
-                      responsetime="healthCheckCtrl.endpoint.responsetimes.data.global['1m']"
+                      availability="$ctrl.endpoint.availabilities.data.global['1m']"
+                      responsetime="$ctrl.endpoint.responsetimes.data.global['1m']"
                       layout="column"
                       flex="15"
                     ></gv-healthcheck-metric>
                     <gv-healthcheck-metric
-                      availability="healthCheckCtrl.endpoint.availabilities.data.global['1h']"
-                      responsetime="healthCheckCtrl.endpoint.responsetimes.data.global['1h']"
+                      availability="$ctrl.endpoint.availabilities.data.global['1h']"
+                      responsetime="$ctrl.endpoint.responsetimes.data.global['1h']"
                       layout="column"
                       flex="15"
                     ></gv-healthcheck-metric>
                     <gv-healthcheck-metric
-                      availability="healthCheckCtrl.endpoint.availabilities.data.global['1d']"
-                      responsetime="healthCheckCtrl.endpoint.responsetimes.data.global['1d']"
+                      availability="$ctrl.endpoint.availabilities.data.global['1d']"
+                      responsetime="$ctrl.endpoint.responsetimes.data.global['1d']"
                       layout="column"
                       flex="15"
                     ></gv-healthcheck-metric>
                     <gv-healthcheck-metric
-                      availability="healthCheckCtrl.endpoint.availabilities.data.global['1w']"
-                      responsetime="healthCheckCtrl.endpoint.responsetimes.data.global['1w']"
+                      availability="$ctrl.endpoint.availabilities.data.global['1w']"
+                      responsetime="$ctrl.endpoint.responsetimes.data.global['1w']"
                       layout="column"
                       flex="15"
                     ></gv-healthcheck-metric>
                     <gv-healthcheck-metric
-                      availability="healthCheckCtrl.endpoint.availabilities.data.global['1M']"
-                      responsetime="healthCheckCtrl.endpoint.responsetimes.data.global['1M']"
+                      availability="$ctrl.endpoint.availabilities.data.global['1M']"
+                      responsetime="$ctrl.endpoint.responsetimes.data.global['1M']"
                       layout="column"
                       flex="15"
                     ></gv-healthcheck-metric>
@@ -105,44 +105,40 @@
                       <div flex="15"><h5>Last week</h5></div>
                       <div flex="15"><h5>Last month</h5></div>
                     </div>
-                    <div
-                      layout="row"
-                      ng-repeat="(endpoint, metrics) in healthCheckCtrl.endpoint.availabilities.data.buckets"
-                      layout-padding
-                    >
+                    <div layout="row" ng-repeat="(endpoint, metrics) in $ctrl.endpoint.availabilities.data.buckets" layout-padding>
                       <div layout="column" flex="25">
                         <span style="font-weight: bold">{{endpoint}}</span>
                         <span style="color: rgba(0, 0, 0, 0.54); font-size: 11px"
-                          >{{healthCheckCtrl.endpoint.availabilities.data.metadata[endpoint].target}}</span
+                          >{{$ctrl.endpoint.availabilities.data.metadata[endpoint].target}}</span
                         >
                       </div>
                       <gv-healthcheck-metric
                         availability="metrics['1m']"
-                        responsetime="healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1m']"
+                        responsetime="$ctrl.endpoint.responsetimes.data.buckets[endpoint]['1m']"
                         layout="column"
                         flex="15"
                       ></gv-healthcheck-metric>
                       <gv-healthcheck-metric
                         availability="metrics['1h']"
-                        responsetime="healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1h']"
+                        responsetime="$ctrl.endpoint.responsetimes.data.buckets[endpoint]['1h']"
                         layout="column"
                         flex="15"
                       ></gv-healthcheck-metric>
                       <gv-healthcheck-metric
                         availability="metrics['1d']"
-                        responsetime="healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1d']"
+                        responsetime="$ctrl.endpoint.responsetimes.data.buckets[endpoint]['1d']"
                         layout="column"
                         flex="15"
                       ></gv-healthcheck-metric>
                       <gv-healthcheck-metric
                         availability="metrics['1w']"
-                        responsetime="healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1w']"
+                        responsetime="$ctrl.endpoint.responsetimes.data.buckets[endpoint]['1w']"
                         layout="column"
                         flex="15"
                       ></gv-healthcheck-metric>
                       <gv-healthcheck-metric
                         availability="metrics['1M']"
-                        responsetime="healthCheckCtrl.endpoint.responsetimes.data.buckets[endpoint]['1M']"
+                        responsetime="$ctrl.endpoint.responsetimes.data.buckets[endpoint]['1M']"
                         layout="column"
                         flex="15"
                       ></gv-healthcheck-metric>
@@ -152,7 +148,7 @@
               </div>
             </md-card>
 
-            <md-card flex="50" ng-if="healthCheckCtrl.displayGatewayHC()">
+            <md-card flex="50" ng-if="$ctrl.displayGatewayHC()">
               <div class="widget-card" flex>
                 <md-card-title>
                   <md-card-title-text>
@@ -171,49 +167,44 @@
                       <div flex="15"><h5>Last week</h5></div>
                       <div flex="15"><h5>Last month</h5></div>
                     </div>
-                    <div layout="row" ng-repeat="(gateway, metrics) in healthCheckCtrl.gateway.availabilities.data.buckets">
-                      <div
-                        layout="row"
-                        layout-padding
-                        ng-if="healthCheckCtrl.gateway.availabilities.data.metadata[gateway].deleted !== 'true'"
-                        flex
-                      >
+                    <div layout="row" ng-repeat="(gateway, metrics) in $ctrl.gateway.availabilities.data.buckets">
+                      <div layout="row" layout-padding ng-if="$ctrl.gateway.availabilities.data.metadata[gateway].deleted !== 'true'" flex>
                         <div layout="column" flex="25">
-                          <span style="font-weight: bold">{{healthCheckCtrl.gateway.availabilities.data.metadata[gateway].hostname}}</span>
+                          <span style="font-weight: bold">{{$ctrl.gateway.availabilities.data.metadata[gateway].hostname}}</span>
                           <span style="color: rgba(0, 0, 0, 0.54); font-size: 11px"
-                            >{{healthCheckCtrl.gateway.availabilities.data.metadata[gateway].deleted}}</span
+                            >{{$ctrl.gateway.availabilities.data.metadata[gateway].deleted}}</span
                           >
                           <span style="color: rgba(0, 0, 0, 0.54); font-size: 11px"
-                            >{{healthCheckCtrl.gateway.availabilities.data.metadata[gateway].ip}}</span
+                            >{{$ctrl.gateway.availabilities.data.metadata[gateway].ip}}</span
                           >
                         </div>
                         <gv-healthcheck-metric
                           availability="metrics['1m']"
-                          responsetime="healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1m']"
+                          responsetime="$ctrl.gateway.responsetimes.data.buckets[gateway]['1m']"
                           layout="column"
                           flex="15"
                         ></gv-healthcheck-metric>
                         <gv-healthcheck-metric
                           availability="metrics['1h']"
-                          responsetime="healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1h']"
+                          responsetime="$ctrl.gateway.responsetimes.data.buckets[gateway]['1h']"
                           layout="column"
                           flex="15"
                         ></gv-healthcheck-metric>
                         <gv-healthcheck-metric
                           availability="metrics['1d']"
-                          responsetime="healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1d']"
+                          responsetime="$ctrl.gateway.responsetimes.data.buckets[gateway]['1d']"
                           layout="column"
                           flex="15"
                         ></gv-healthcheck-metric>
                         <gv-healthcheck-metric
                           availability="metrics['1w']"
-                          responsetime="healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1w']"
+                          responsetime="$ctrl.gateway.responsetimes.data.buckets[gateway]['1w']"
                           layout="column"
                           flex="15"
                         ></gv-healthcheck-metric>
                         <gv-healthcheck-metric
                           availability="metrics['1M']"
-                          responsetime="healthCheckCtrl.gateway.responsetimes.data.buckets[gateway]['1M']"
+                          responsetime="$ctrl.gateway.responsetimes.data.buckets[gateway]['1M']"
                           layout="column"
                           flex="15"
                         ></gv-healthcheck-metric>
@@ -245,8 +236,8 @@
                         md-table
                         class="gravitee-analytics-top-hits-table"
                         multiple
-                        md-row-select="healthCheckCtrl.widget.chart.selectable"
-                        data-ng-model="healthCheckCtrl.selected"
+                        md-row-select="$ctrl.widget.chart.selectable"
+                        data-ng-model="$ctrl.selected"
                       >
                         <thead md-head>
                           <tr md-row>
@@ -261,16 +252,16 @@
                         </thead>
                         <tbody md-body>
                           <tr
-                            ng-if="transitionMode?healthCheckCtrl.transitionLogs.logs.length > 0:healthCheckCtrl.logs.logs.length > 0"
+                            ng-if="transitionMode?$ctrl.transitionLogs.logs.length > 0:$ctrl.logs.logs.length > 0"
                             md-row
-                            ng-repeat="log in transitionMode?healthCheckCtrl.transitionLogs.logs:healthCheckCtrl.logs.logs | limitTo: healthCheckCtrl.query.size"
+                            ng-repeat="log in transitionMode?$ctrl.transitionLogs.logs:$ctrl.logs.logs | limitTo: $ctrl.query.size"
                             md-auto-select
                             md-select="log"
                             md-select-id="key"
                           >
                             <td md-cell>{{log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
                             <td md-cell>
-                              <md-tooltip md-direction="bottom">{{healthCheckCtrl.getEndpointStatus(log.state)}}</md-tooltip>
+                              <md-tooltip md-direction="bottom">{{$ctrl.getEndpointStatus(log.state)}}</md-tooltip>
                               <ng-md-icon ng-if="log.state === 0" icon="close" size="14px" style="fill: red"></ng-md-icon>
                               <ng-md-icon ng-if="log.state === 1" icon="trending_down" size="14px" style="fill: orange"></ng-md-icon>
                               <ng-md-icon ng-if="log.state === 2" icon="trending_up" size="14px" style="fill: orange"></ng-md-icon>
@@ -278,7 +269,7 @@
                               {{log.endpoint}}
                             </td>
                             <td md-cell>
-                              {{transitionMode?healthCheckCtrl.transitionLogs.metadata[log.gateway].hostname:healthCheckCtrl.logs.metadata[log.gateway].hostname}}
+                              {{transitionMode?$ctrl.transitionLogs.metadata[log.gateway].hostname:$ctrl.logs.metadata[log.gateway].hostname}}
                             </td>
                             <td md-cell>
                               <ng-md-icon ng-if="log.success" icon="done" size="14px" style="fill: green"></ng-md-icon>
@@ -293,11 +284,11 @@
                                 ng-if="!log.success"
                                 icon="remove_red_eye"
                                 size="16px"
-                                ui-sref="management.apis.detail.proxy.healthCheckDashboard.log({log: log.id})"
+                                ui-sref="management.apis.ng.healthcheck-log-v2({logId: log.id})"
                               ></ng-md-icon>
                             </td>
                           </tr>
-                          <tr ng-if="transitionMode?healthCheckCtrl.transitionLogs.total === 0:healthCheckCtrl.logs.total === 0">
+                          <tr ng-if="transitionMode?$ctrl.transitionLogs.total === 0:$ctrl.logs.total === 0">
                             <td md-cell colspan="6">No log</td>
                           </tr>
                         </tbody>
@@ -305,11 +296,11 @@
                     </md-table-container>
 
                     <md-table-pagination
-                      md-limit="healthCheckCtrl.query.size"
+                      md-limit="$ctrl.query.size"
                       md-limit-options="[10, 25, 50, 75, 100]"
-                      md-page="healthCheckCtrl.query.page"
-                      md-total="{{transitionMode?healthCheckCtrl.transitionLogs.total:healthCheckCtrl.logs.total}}"
-                      md-on-paginate="healthCheckCtrl.onPaginate"
+                      md-page="$ctrl.query.page"
+                      md-total="{{transitionMode?$ctrl.transitionLogs.total:$ctrl.logs.total}}"
+                      md-on-paginate="$ctrl.onPaginate"
                       md-page-select
                     >
                     </md-table-pagination>
