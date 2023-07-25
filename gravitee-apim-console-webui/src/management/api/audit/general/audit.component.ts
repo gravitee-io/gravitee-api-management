@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ApiAuditController {
-  /* @ngInject */
-  constructor(private resolvedEvents: string[], private $scope, private $state) {
-    this.$scope.api = this.$state.params.apiId;
-    this.$scope.apis = [{ id: this.$state.params.apiId }];
-    this.$scope.applications = [];
-    this.$scope.events = resolvedEvents;
+import { Component, ElementRef, Injector } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
+
+@Component({
+  template: '',
+  selector: 'api-audit',
+  host: {
+    class: 'bootstrap',
+  },
+})
+export class ApiAuditComponent extends UpgradeComponent {
+  constructor(elementRef: ElementRef, injector: Injector) {
+    super('apiAuditComponentAjs', elementRef, injector);
   }
 }
-export default ApiAuditController;

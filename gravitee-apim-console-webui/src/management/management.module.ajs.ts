@@ -219,7 +219,7 @@ import TicketService from '../services/ticket.service';
 import SupportTicketController from '../management/support/ticket.controller';
 // Audit
 import AuditService from '../services/audit.service';
-import ApiAuditController from '../management/api/audit/general/audit.controller';
+import { ApiAuditComponentAjs } from './api/audit/general/audit.component.ajs';
 import AuditComponent from '../components/audit/audit.component';
 // Configuration
 import SettingsComponent from '../management/configuration/settings.component';
@@ -717,7 +717,7 @@ graviteeManagementModule.controller('DialogDynamicProviderHttpController', Dialo
 graviteeManagementModule.controller('SupportTicketController', SupportTicketController);
 graviteeManagementModule.controller('TicketsListController', TicketsListController);
 graviteeManagementModule.directive('ngEnvAudit', downgradeComponent({ component: EnvAuditComponent }));
-graviteeManagementModule.controller('ApiAuditController', ApiAuditController);
+graviteeManagementModule.component('apiAuditComponentAjs', ApiAuditComponentAjs);
 graviteeManagementModule.controller('ThemeController', ThemeController);
 graviteeManagementModule.controller('CustomUserFieldsController', CustomUserFieldsController);
 graviteeManagementModule.controller('TopApisController', TopApisController);

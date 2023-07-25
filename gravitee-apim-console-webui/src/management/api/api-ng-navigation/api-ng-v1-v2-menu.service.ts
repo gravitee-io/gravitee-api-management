@@ -324,8 +324,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
       auditGroup.items.push({
         displayName: 'Audit',
-        targetRoute: 'management.apis.detail.audit.general',
-        baseRoute: 'management.apis.detail.audit.general',
+        targetRoute: 'management.apis.ng.audit',
+        baseRoute: 'management.apis.ng.audit',
         license,
         iconRight$,
       });
