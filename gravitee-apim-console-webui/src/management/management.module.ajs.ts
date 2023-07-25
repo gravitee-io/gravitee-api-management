@@ -376,7 +376,7 @@ import { PromotionService } from '../services/promotion.service';
 import * as angular from 'angular';
 
 const ngInfiniteScroll = require('ng-infinite-scroll');
-import ApiAlertsDashboardController from './api/analytics/alerts/api-alerts-dashboard.controller';
+import { ApiAlertsDashboardComponentAjs } from './api/analytics/alerts/api-alerts-dashboard.component.ajs';
 import MovedComponent from './configuration/moved/moved.component';
 
 (<any>window).traverse = traverse;
@@ -689,7 +689,7 @@ graviteeManagementModule.controller('DashboardController', DashboardController);
 graviteeManagementModule.controller('HomeDashboardController', HomeDashboardController);
 graviteeManagementModule.component('gvAlertDashboard', AlertsDashboardComponent);
 graviteeManagementModule.controller('AlertsActivityController', AlertsActivityController);
-graviteeManagementModule.controller('ApiAlertsDashboardController', ApiAlertsDashboardController);
+graviteeManagementModule.component('apiAlertsDashboardComponentAjs', ApiAlertsDashboardComponentAjs);
 graviteeManagementModule.controller('CategoriesController', CategoriesController);
 graviteeManagementModule.controller('CategoryController', CategoryController);
 graviteeManagementModule.controller('DeleteCategoryDialogController', DeleteCategoryDialogController);

@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ApiAlertsDashboardController {
-  private hasConfiguredAlerts: boolean;
-  private hasAlertingPlugin: boolean;
+import { Component, ElementRef, Injector } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
 
-  /* @ngInject */
-  constructor(private configuredAlerts, private alertingStatus) {
-    this.hasConfiguredAlerts = configuredAlerts?.length > 0;
-    this.hasAlertingPlugin = alertingStatus?.available_plugins > 0;
+@Component({
+  template: '',
+  selector: 'api-alerts-dashboard',
+  host: {
+    class: 'bootstrap',
+  },
+})
+export class ApiAlertsDashboardComponent extends UpgradeComponent {
+  constructor(elementRef: ElementRef, injector: Injector) {
+    super('apiAlertsDashboardComponentAjs', elementRef, injector);
   }
 }
-
-export default ApiAlertsDashboardController;

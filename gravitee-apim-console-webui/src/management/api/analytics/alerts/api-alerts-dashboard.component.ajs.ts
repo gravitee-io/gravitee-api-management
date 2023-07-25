@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
 
-import { ApiPathMappingsModule } from './pathMappings/api-path-mappings.module';
-import { ApiLogsModule } from './logs/api-logs.module';
-import { ApiAnalyticsOverviewComponent } from './overview/analytics-overview.component';
-import { ApiAlertsDashboardComponent } from './alerts/api-alerts-dashboard.component';
+import ApiAlertsDashboardControllerAjs from './api-alerts-dashboard.controller.ajs';
 
-@NgModule({
-  declarations: [ApiAnalyticsOverviewComponent, ApiAlertsDashboardComponent],
-  exports: [ApiAnalyticsOverviewComponent],
-  imports: [ApiLogsModule, ApiPathMappingsModule],
-})
-export class ApiAnalyticsModule {}
+export const ApiAlertsDashboardComponentAjs = {
+  template: require('./api-alerts-dashboard.html'),
+  controller: ApiAlertsDashboardControllerAjs,
+  bindings: {},
+};

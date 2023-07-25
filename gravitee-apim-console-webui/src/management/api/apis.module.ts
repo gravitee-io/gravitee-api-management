@@ -66,6 +66,7 @@ import { ApiAnalyticsLogsComponent } from './analytics/logs/analytics-logs.compo
 import { ApiLogsConfigurationComponent } from './analytics/logs/configuration/api-logs-configuration.component';
 import { ApiAnalyticsLogComponent } from './analytics/logs/analytics-log.component';
 import { ApiPathMappingsComponent } from './analytics/pathMappings/api-path-mappings.component';
+import { ApiAlertsDashboardComponent } from './analytics/alerts/api-alerts-dashboard.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -1019,6 +1020,20 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-pathMappings',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.analytics-alerts-v2',
+    component: ApiAlertsDashboardComponent,
+    url: '/v2/analytics-alerts',
+    data: {
+      apiPermissions: {
+        only: ['api-alert-r'],
+      },
+      docs: {
+        page: 'management-api-alerts',
       },
       useAngularMaterial: true,
     },
