@@ -69,6 +69,7 @@ import { ApiPathMappingsComponent } from './analytics/pathMappings/api-path-mapp
 import { ApiAlertsDashboardComponent } from './analytics/alerts/api-alerts-dashboard.component';
 import { ApiAuditModule } from './audit/api-audit.module';
 import { ApiAuditComponent } from './audit/general/audit.component';
+import { ApiHistoryComponent } from './audit/history/apiHistory.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -1050,6 +1051,20 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-audit',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.history',
+    component: ApiHistoryComponent,
+    url: '/history',
+    data: {
+      apiPermissions: {
+        only: ['api-event-r'],
+      },
+      docs: {
+        page: 'management-api-history',
       },
       useAngularMaterial: true,
     },

@@ -18,15 +18,15 @@
 <div layout="row" flex class="api-events" style="margin-top: 20px">
   <div class="api-history-timeline" flex="20">
     <timeline>
-      <div ng-repeat="eventTimeline in apiHistoryCtrl.eventsTimeline">
+      <div ng-repeat="eventTimeline in $ctrl.eventsTimeline">
         <timeline-event side="right">
           <timeline-badge class="{{eventTimeline.badgeClass}}">
             <div class="api-history-timeline__timeline-badge-container">
               <gv-icon ng-prop-shape="eventTimeline.badgeIconClass" class="api-history-timeline__timeline-badge-container__icon"> </gv-icon>
             </div>
           </timeline-badge>
-          <a class="timeline-link" ng-click="apiHistoryCtrl.selectEvent(eventTimeline)">
-            <timeline-panel ng-class="{active : apiHistoryCtrl.isEventSelected(eventTimeline)}" class="{{eventTimeline.badgeClass}}">
+          <a class="timeline-link" ng-click="$ctrl.selectEvent(eventTimeline)">
+            <timeline-panel ng-class="{active : $ctrl.isEventSelected(eventTimeline)}" class="{{eventTimeline.badgeClass}}">
               <timeline-heading>
                 <div class="api-history-timeline_heading-title">
                   <h5>
@@ -34,12 +34,12 @@
                   </h5>
                   <gv-icon
                     class="api-history-icon"
-                    ng-show="apiHistoryCtrl.eventToCompareRequired && !apiHistoryCtrl.isEventSelected(eventTimeline)"
+                    ng-show="$ctrl.eventToCompareRequired && !$ctrl.isEventSelected(eventTimeline)"
                     shape="design:border"
                   ></gv-icon>
                   <gv-icon
                     class="api-history-icon"
-                    ng-show="apiHistoryCtrl.isEventSelectedForComparaison(eventTimeline)"
+                    ng-show="$ctrl.isEventSelectedForComparaison(eventTimeline)"
                     shape="code:git#4"
                   ></gv-icon>
                 </div>
@@ -70,26 +70,20 @@
   </div>
 
   <div class="api-events-content" flex="80">
-    <div ng-show="apiHistoryCtrl.eventsSelected.length == 1" class="api-events-content-descriptor">
+    <div ng-show="$ctrl.eventsSelected.length == 1" class="api-events-content-descriptor">
       <md-card style="box-shadow: none">
-        <div ng-show="apiHistoryCtrl.eventsTimeline.length > 1" class="api-event-content_actions">
+        <div ng-show="$ctrl.eventsTimeline.length > 1" class="api-event-content_actions">
           <div>
-            <gv-button
-              ng-show="apiHistoryCtrl.eventsSelected[0].isCurrentAPI"
-              icon="finance:cloud-upload"
-              ng-click="apiHistoryCtrl.$scope.$parent.apiCtrl.showDeployAPIConfirm($event, apiHistoryCtrl.api)"
-              >Deploy</gv-button
-            >
             <gv-button
               permission
               permission-only="'api-definition-u'"
               icon="code:time-schedule"
-              ng-show="(!apiHistoryCtrl.eventsSelected[0].isCurrentAPI && apiHistoryCtrl.eventsSelected[0].event.id != apiHistoryCtrl.events[0].id) || (!apiHistoryCtrl.eventsSelected[0].isCurrentAPI && apiHistoryCtrl.eventsTimeline[0].isCurrentAPI)"
-              ng-click="apiHistoryCtrl.showRollbackAPIConfirm($event, apiHistoryCtrl.eventSelectedPayload)"
+              ng-show="(!$ctrl.eventsSelected[0].isCurrentAPI && $ctrl.eventsSelected[0].event.id != $ctrl.events[0].id) || (!$ctrl.eventsSelected[0].isCurrentAPI && $ctrl.eventsTimeline[0].isCurrentAPI)"
+              ng-click="$ctrl.showRollbackAPIConfirm($event, $ctrl.eventSelectedPayload)"
               >Rollback</gv-button
             >
             <gv-popover class="clipboard__popover" event="click" delay="750" .arrow="${false}">
-              <gv-button outlined class="api-events_copy-btn" icon="general:clipboard" ng-click="apiHistoryCtrl.copyToClipboard($event)"
+              <gv-button outlined class="api-events_copy-btn" icon="general:clipboard" ng-click="$ctrl.copyToClipboard($event)"
                 >Copy to clipboard</gv-button
               >
               <div slot="popover" class="clipboard__popover-content">
@@ -98,50 +92,44 @@
               </div>
             </gv-popover>
             <gv-button
-              ng-show="apiHistoryCtrl.eventsTimeline.length > 1"
+              ng-show="$ctrl.eventsTimeline.length > 1"
               title="Click and select event from timeline to compare"
-              ng-attr-loading="{{apiHistoryCtrl.eventToCompareRequired ? true : undefined}}"
-              ng-attr-outlined="{{apiHistoryCtrl.mode !== apiHistoryCtrl.modes.Diff ? true : undefined}}"
-              ng-attr-primary="{{apiHistoryCtrl.mode === apiHistoryCtrl.modes.Diff ? true : undefined}}"
+              ng-attr-loading="{{$ctrl.eventToCompareRequired ? true : undefined}}"
+              ng-attr-outlined="{{$ctrl.mode !== $ctrl.modes.Diff ? true : undefined}}"
+              ng-attr-primary="{{$ctrl.mode === $ctrl.modes.Diff ? true : undefined}}"
               icon="code:git#4"
-              ng-click="apiHistoryCtrl.enableDiff()"
+              ng-click="$ctrl.enableDiff()"
               >Diff</gv-button
             >
             <gv-button
-              ng-show="apiHistoryCtrl.events.length > 0 && apiHistoryCtrl.eventsSelected[0].event.id != apiHistoryCtrl.events[0].id"
+              ng-show="$ctrl.events.length > 0 && $ctrl.eventsSelected[0].event.id != $ctrl.events[0].id"
               icon="code:git#3"
-              ng-attr-outlined="{{apiHistoryCtrl.mode !== apiHistoryCtrl.modes.DiffWithMaster ? true : undefined}}"
-              ng-attr-primary="{{apiHistoryCtrl.mode === apiHistoryCtrl.modes.DiffWithMaster ? true : undefined}}"
+              ng-attr-outlined="{{$ctrl.mode !== $ctrl.modes.DiffWithMaster ? true : undefined}}"
+              ng-attr-primary="{{$ctrl.mode === $ctrl.modes.DiffWithMaster ? true : undefined}}"
               outlined
-              ng-click="apiHistoryCtrl.diffWithMaster()"
+              ng-click="$ctrl.diffWithMaster()"
               >Diff with published API</gv-button
             >
           </div>
           <div class="api-event-content_actions-right">
-            <div ng-show="apiHistoryCtrl.hasDiff()" class="api-event_diff-count">
-              <span class="api-event_diff-added">+ {{apiHistoryCtrl.added}}</span>
-              <span class="api-event_diff-removed">- {{apiHistoryCtrl.removed}}</span>
+            <div ng-show="$ctrl.hasDiff()" class="api-event_diff-count">
+              <span class="api-event_diff-added">+ {{$ctrl.added}}</span>
+              <span class="api-event_diff-removed">- {{$ctrl.removed}}</span>
             </div>
             <gv-switch
-              ng-show="apiHistoryCtrl.hasDesign()"
-              ng-on-gv-switch:input="apiHistoryCtrl.toggleMode($event)"
-              ng-value="apiHistoryCtrl.mode !== apiHistoryCtrl.modes.Design"
+              ng-show="$ctrl.hasDesign()"
+              ng-on-gv-switch:input="$ctrl.toggleMode($event)"
+              ng-value="$ctrl.mode !== $ctrl.modes.Design"
               label="Mode"
               description="Design / Definition"
             ></gv-switch>
           </div>
         </div>
         <md-card-content class="api-event-content_content">
-          <pre ng-show="apiHistoryCtrl.mode === apiHistoryCtrl.modes.Payload" class="api-history-definition">
-{{apiHistoryCtrl.eventSelectedPayloadDefinition | json}}</pre
+          <pre ng-show="$ctrl.mode === $ctrl.modes.Payload" class="api-history-definition">
+{{$ctrl.eventSelectedPayloadDefinition | json}}</pre
           >
-          <pre
-            ng-show="apiHistoryCtrl.hasDiff()"
-            class="api-history-definition"
-            gravitee-diff
-            old-value="apiHistoryCtrl.left"
-            new-value="apiHistoryCtrl.right"
-          ></pre>
+          <pre ng-show="$ctrl.hasDiff()" class="api-history-definition" gravitee-diff old-value="$ctrl.left" new-value="$ctrl.right"></pre>
           <gv-policy-studio
             class="api-event_policy-studio"
             flows-title="API Flows"
@@ -150,9 +138,9 @@
             has-resources
             has-plans
             has-conditional-steps
-            ng-on-gv-policy-studio:fetch-documentation="apiHistoryCtrl.fetchPolicyDocumentation($event)"
-            ng-on-gv-resources:fetch-documentation="apiHistoryCtrl.fetchResourceDocumentation($event)"
-            ng-show="apiHistoryCtrl.mode === apiHistoryCtrl.modes.Design"
+            ng-on-gv-policy-studio:fetch-documentation="$ctrl.fetchPolicyDocumentation($event)"
+            ng-on-gv-resources:fetch-documentation="$ctrl.fetchResourceDocumentation($event)"
+            ng-show="$ctrl.mode === $ctrl.modes.Design"
           ></gv-policy-studio>
         </md-card-content>
       </md-card>
@@ -160,7 +148,7 @@
   </div>
 </div>
 <gravitee-empty-state
-  ng-if="apiHistoryCtrl.eventsTimeline.length == 0"
+  ng-if="$ctrl.eventsTimeline.length == 0"
   icon="history"
   model="History"
   message="Your API History will appear here"

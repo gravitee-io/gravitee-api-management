@@ -40,7 +40,7 @@ import AddPoliciesPathController from '../management/api/design/policies/addPoli
 import ApiResourcesController from './api/proxy/resources/resources.controller';
 import ApiPropertiesController from './api/proxy/properties/properties.controller';
 import ApiEventsController from '../management/api/audit/events/apiEvents.controller';
-import ApiHistoryController from '../management/api/audit/history/apiHistory.controller';
+import { ApiHistoryComponentAjs } from './api/audit/history/apiHistory.component.ajs';
 import DialogAddPropertyController from './api/proxy/properties/add-property.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
@@ -675,7 +675,7 @@ graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHea
 
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
-graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
+graviteeManagementModule.component('apiHistoryComponentAjs', ApiHistoryComponentAjs);
 graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
 graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
 graviteeManagementModule.controller('DialogImportPathMappingController', DialogImportPathMappingController);

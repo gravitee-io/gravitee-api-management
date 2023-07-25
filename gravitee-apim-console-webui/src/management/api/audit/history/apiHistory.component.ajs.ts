@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
 
-import { ApiAuditComponent } from './general/audit.component';
-import { ApiHistoryComponent } from './history/apiHistory.component';
+import ApiHistoryControllerAjs from './apiHistory.controller.ajs';
 
-@NgModule({
-  declarations: [ApiAuditComponent, ApiHistoryComponent],
-  exports: [ApiAuditComponent, ApiHistoryComponent],
-  imports: [],
-})
-export class ApiAuditModule {}
+export const ApiHistoryComponentAjs = {
+  template: require('./apiHistory.html'),
+  controller: ApiHistoryControllerAjs,
+  bindings: {},
+};

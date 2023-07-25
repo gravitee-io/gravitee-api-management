@@ -21,6 +21,7 @@ import * as angular from 'angular';
 import { StateService } from '@uirouter/core';
 
 import { ApiService } from '../../../../services/api.service';
+import AuditService from '../../../../services/audit.service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const copy = require('clipboard-copy');
@@ -112,7 +113,7 @@ enum Modes {
   Design = 'Design',
 }
 
-class ApiHistoryController {
+class ApiHistoryControllerAjs {
   public modes = Modes;
   public modeOptions: any;
   private studio: any;
@@ -141,13 +142,11 @@ class ApiHistoryController {
     private $state: StateService,
     private ApiService: ApiService,
     private NotificationService,
-    private resolvedEvents,
+    private AuditService: AuditService,
     private PolicyService,
     private ResourceService,
     private FlowService,
   ) {
-    this.api = JSON.parse(angular.toJson(_.cloneDeep(this.$scope.$parent.apiCtrl.api)));
-    this.events = resolvedEvents.data;
     this.eventsSelected = [];
     this.eventsTimeline = [];
     this.eventsToCompare = [];
@@ -163,26 +162,34 @@ class ApiHistoryController {
 
   $onInit() {
     this.studio = document.querySelector('gv-policy-studio');
-    if (this.hasDesign()) {
-      Promise.all([
-        this.PolicyService.list(true, true),
-        this.ResourceService.list(true, true),
-        this.ApiService.getFlowSchemaForm(),
-        this.FlowService.getConfigurationSchema(),
-      ]).then(([policies, resources, flowSchema, configurationSchema]) => {
-        this.studio.policies = policies.data;
-        this.studio.resourceTypes = resources.data;
-        this.studio.flowSchema = flowSchema.data;
-        this.studio.configurationSchema = configurationSchema.data;
-        this.studio.propertyProviders = propertyProviders;
-      });
-    }
-    this.init();
-    this.initTimeline(this.events);
+
+    this.ApiService.get(this.$state.params.apiId).then((api) => {
+      this.api = api.data;
+
+      if (this.hasDesign()) {
+        return Promise.all([
+          this.PolicyService.list(true, true),
+          this.ResourceService.list(true, true),
+          this.ApiService.getFlowSchemaForm(),
+          this.FlowService.getConfigurationSchema(),
+          this.ApiService.getApiEvents(this.$state.params.apiId, 'PUBLISH_API'),
+        ]).then(([policies, resources, flowSchema, configurationSchema, events]) => {
+          this.studio.policies = policies.data;
+          this.studio.resourceTypes = resources.data;
+          this.studio.flowSchema = flowSchema.data;
+          this.studio.configurationSchema = configurationSchema.data;
+          this.studio.propertyProviders = propertyProviders;
+          this.events = events.data;
+
+          this.init();
+          this.initTimeline(this.events);
+          this.$scope.$apply();
+        });
+      }
+    });
   }
 
   init() {
-    this.$scope.$parent.apiCtrl.checkAPISynchronization(this.api);
     this.$scope.$on('apiChangeSuccess', (event, args) => {
       if (this.$state.current.name.endsWith('history')) {
         // reload API
@@ -194,12 +201,8 @@ class ApiHistoryController {
         // reload API events
         this.ApiService.getApiEvents(this.api.id, this.eventTypes).then((response) => {
           this.events = response.data;
-          this.reloadEventsTimeline(this.events);
         });
       }
-    });
-    this.$scope.$on('checkAPISynchronizationSucceed', () => {
-      this.reloadEventsTimeline(this.events);
     });
   }
 
@@ -489,23 +492,6 @@ class ApiHistoryController {
     return JSON.stringify({ definition: JSON.stringify(payload) });
   }
 
-  reloadEventsTimeline(events) {
-    this.clearDataSelected();
-    this.initTimeline(events);
-    if (!this.$scope.$parent.apiCtrl.apiIsSynchronized && !this.$scope.$parent.apiCtrl.apiJustDeployed) {
-      this.eventsTimeline.unshift({
-        event: {
-          payload: this.stringifyCurrentApi(),
-        },
-        badgeClass: 'warning',
-        badgeIconClass: 'notification:sync',
-        title: 'TO_DEPLOY',
-        isCurrentAPI: true,
-      });
-    }
-    this.selectEvent(this.eventsTimeline[0]);
-  }
-
   reorganizeEvent(_event) {
     const eventPayloadDefinition = JSON.parse(_event.definition);
     const reorganizedEvent = {
@@ -551,4 +537,4 @@ class ApiHistoryController {
   }
 }
 
-export default ApiHistoryController;
+export default ApiHistoryControllerAjs;
