@@ -333,8 +333,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-event-r'])) {
       auditGroup.items.push({
         displayName: 'History',
-        targetRoute: 'management.apis.detail.audit.history',
-        baseRoute: 'management.apis.detail.audit.history',
+        targetRoute: 'management.apis.ng.history',
+        baseRoute: 'management.apis.ng.history',
       });
     }
     if (this.permissionService.hasAnyMatching(['api-event-u'])) {
