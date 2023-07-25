@@ -244,6 +244,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private DataEncryptor dataEncryptor;
 
     @Autowired
+    @Lazy
     private ApiDuplicatorService apiDuplicatorService;
 
     @Autowired

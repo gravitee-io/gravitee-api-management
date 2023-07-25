@@ -43,6 +43,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.v4.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiService;
@@ -70,6 +71,8 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     private final PlanService planService;
     private final RoleService roleService;
 
+    private final ApiIdsCalculatorService apiIdsCalculatorService;
+
     public ApiImportExportServiceImpl(
         final ApiMetadataService apiMetadataService,
         final ApiService apiServiceV4,
@@ -79,7 +82,8 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         final PageService pageService,
         final PermissionService permissionService,
         final PlanService planService,
-        final RoleService roleService
+        final RoleService roleService,
+        final ApiIdsCalculatorService apiIdsCalculatorService
     ) {
         this.apiMetadataService = apiMetadataService;
         this.apiServiceV4 = apiServiceV4;
@@ -90,6 +94,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         this.permissionService = permissionService;
         this.planService = planService;
         this.roleService = roleService;
+        this.apiIdsCalculatorService = apiIdsCalculatorService;
     }
 
     @Override
@@ -167,13 +172,15 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
             throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
         }
 
-        ApiEntity createdApiEntity = apiServiceV4.createWithImport(executionContext, (ApiEntity) apiEntity, userId);
+        final ExportApiEntity exportApiWithIdsRecalculated = apiIdsCalculatorService.recalculateApiDefinitionIds(executionContext, exportApiEntity);
 
-        createMembers(executionContext, createdApiEntity, exportApiEntity.getMembers());
-        createPages(executionContext, createdApiEntity, exportApiEntity.getPages());
-        createPlans(executionContext, createdApiEntity, exportApiEntity.getPlans());
-        createMetadata(executionContext, createdApiEntity, exportApiEntity.getMetadata());
-        createPageAndMedia(executionContext, createdApiEntity, exportApiEntity.getApiMedia());
+        ApiEntity createdApiEntity = apiServiceV4.createWithImport(executionContext, exportApiWithIdsRecalculated.getApiEntity(), userId);
+
+        createMembers(executionContext, createdApiEntity, exportApiWithIdsRecalculated.getMembers());
+        createPages(executionContext, createdApiEntity, exportApiWithIdsRecalculated.getPages());
+        createPlans(executionContext, createdApiEntity, exportApiWithIdsRecalculated.getPlans());
+        createMetadata(executionContext, createdApiEntity, exportApiWithIdsRecalculated.getMetadata());
+        createPageAndMedia(executionContext, createdApiEntity, exportApiWithIdsRecalculated.getApiMedia());
 
         return createdApiEntity;
     }

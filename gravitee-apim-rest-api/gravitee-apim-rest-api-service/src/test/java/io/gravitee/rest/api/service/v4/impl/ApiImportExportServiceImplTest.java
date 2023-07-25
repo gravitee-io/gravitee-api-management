@@ -81,6 +81,7 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.v4.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiService;
@@ -91,6 +92,7 @@ import org.apiguardian.api.API;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.AdditionalAnswers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -131,6 +133,9 @@ public class ApiImportExportServiceImplTest {
     @Mock
     private RoleService roleService;
 
+    @Mock
+    private ApiIdsCalculatorService apiIdsCalculatorService;
+
     private ApiImportExportService cut;
 
     private static final String API_ID = "my-api";
@@ -148,7 +153,8 @@ public class ApiImportExportServiceImplTest {
                 pageService,
                 permissionService,
                 planService,
-                roleService
+                roleService,
+                apiIdsCalculatorService
             );
         reset(
             apiMetadataService,
@@ -330,6 +336,8 @@ public class ApiImportExportServiceImplTest {
 
         doReturn(emptyList()).when(pageService).search(any(), any());
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         GenericApiEntity fromExportedApi = cut.createFromExportedApi(GraviteeContext.getExecutionContext(), exportApiEntityV4, USER_ID);
         assertEquals(exportApiEntityV4.getApiEntity(), fromExportedApi);
 
@@ -400,6 +408,8 @@ public class ApiImportExportServiceImplTest {
             .findByScopeAndName(eq(RoleScope.API), eq(DUMMY), eq(GraviteeContext.getDefaultOrganization()));
 
         doReturn(emptyList()).when(pageService).search(any(), any());
+
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
         cut.createFromExportedApi(GraviteeContext.getExecutionContext(), exportApiEntityV4, USER_ID);
 
