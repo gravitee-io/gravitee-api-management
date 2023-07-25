@@ -18,6 +18,8 @@ package io.gravitee.rest.api.model.v4.plan;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.Identifiable;
+
 import java.util.Date;
 import java.util.List;
 
@@ -25,8 +27,7 @@ import java.util.List;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface GenericPlanEntity {
-    String getId();
+public interface GenericPlanEntity extends Identifiable {
 
     String getName();
 
