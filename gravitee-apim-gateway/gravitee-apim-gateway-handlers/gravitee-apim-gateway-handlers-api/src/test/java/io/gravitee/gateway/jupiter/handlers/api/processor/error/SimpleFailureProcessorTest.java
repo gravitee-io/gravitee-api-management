@@ -16,10 +16,17 @@
 package io.gravitee.gateway.jupiter.handlers.api.processor.error;
 
 import static io.gravitee.gateway.api.http.HttpHeaderNames.ACCEPT;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import appender.MemoryAppender;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeadersValues;
@@ -31,15 +38,17 @@ import io.gravitee.gateway.jupiter.api.ExecutionFailure;
 import io.gravitee.gateway.jupiter.api.context.InternalContextAttributes;
 import io.gravitee.gateway.jupiter.handlers.api.processor.AbstractProcessorTest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpStatusClass;
 import java.util.List;
+import java.util.Map;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -48,6 +57,8 @@ import org.mockito.Captor;
 class SimpleFailureProcessorTest extends AbstractProcessorTest {
 
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    private final MemoryAppender memoryAppender = new MemoryAppender();
 
     @Captor
     ArgumentCaptor<Buffer> bufferCaptor;
@@ -60,124 +71,161 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     }
 
     @Test
-    void shouldCompleteWith500StatusWithoutExecutionFailure() {
+    void should_set_default_application_when_no_application_associated_to_the_request() {
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
+
         verify(mockMetrics).setApplication(eq("1"));
-        verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
-        verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
     }
 
     @Test
-    void shouldCompleteWithChangingResponseBodyWithoutProcessorFailureMessage() {
-        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
+    void should_not_set_default_application_when_an_application_is_associated_to_the_request() {
+        when(mockMetrics.getApplication()).thenReturn("my-application");
+
+        simpleFailureProcessor.execute(spyCtx).test().assertResult();
+
+        verify(mockMetrics, never()).setApplication(any());
+    }
+
+    @Test
+    void should_build_500_response_when_no_execution_failure() {
+        simpleFailureProcessor.execute(spyCtx).test().assertResult();
+
+        verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
+        verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
+    }
+
+    @Test
+    void should_build_response_based_on_the_execution_failure_without_message() {
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.SERVICE_UNAVAILABLE.code());
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
-        verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
-        verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
+
+        verify(mockResponse).status(eq(HttpResponseStatus.SERVICE_UNAVAILABLE.code()));
+        verify(mockResponse).reason(eq(HttpResponseStatus.SERVICE_UNAVAILABLE.reasonPhrase()));
     }
 
     @Test
-    void shouldCompleteWithJsonErrorAndAcceptHeaderJson() throws JsonProcessingException {
+    void should_build_a_json_response_when_json_accept_header() throws JsonProcessingException {
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
-        String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of("application/json"));
+
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
-        verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
-        verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
+
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
-        verify(mockResponse).body(bufferCaptor.capture());
 
-        assertThat(bufferCaptor.getValue().toString()).isEqualTo(contentAsJson);
+        String expectedJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
+        verify(mockResponse).body(bufferCaptor.capture());
+        assertThat(bufferCaptor.getValue()).hasToString(expectedJson);
     }
 
     @Test
-    void shouldCompleteWithJsonErrorAndAcceptHeaderWildCard() throws JsonProcessingException {
+    void should_build_a_json_response_when_wildcard_accept_header() throws JsonProcessingException {
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message("error");
-        String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of(MediaType.WILDCARD));
+
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
-        verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
-        verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
+
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
+
+        String contentAsJson = mapper.writeValueAsString(new ExecutionFailureAsJson(executionFailure));
         verify(mockResponse).body(bufferCaptor.capture());
-        assertThat(bufferCaptor.getValue().toString()).isEqualTo(contentAsJson);
+        assertThat(bufferCaptor.getValue()).hasToString(contentAsJson);
     }
 
     @Test
-    public void shouldCompleteWithJsonErrorAndAcceptHeaderJsonAndContentTypeJson() {
+    public void should_build_a_json_response_when_json_accept_header_and_json_content_type() {
         String contentAsJson = "{\"text\": \"error\"}";
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
             .message(contentAsJson)
             .contentType("application/json");
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
         spyRequestHeaders.add(ACCEPT, List.of("application/json"));
+
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
-        verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
-        verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
+
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("application/json");
-        assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
-        verify(mockResponse).body(bufferCaptor.capture());
 
-        assertThat(bufferCaptor.getValue().toString()).isEqualTo(contentAsJson);
+        verify(mockResponse).body(bufferCaptor.capture());
+        assertThat(bufferCaptor.getValue()).hasToString(contentAsJson);
     }
 
     @Test
-    void shouldCompleteWithTxtErrorAndNoAcceptHeader() {
+    void should_build_a_text_response_when_no_accept_header() {
         String contentAsText = "error";
         ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).message(contentAsText);
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
-        verify(mockMetrics).setApplication(eq("1"));
-        verify(mockResponse).status(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()));
-        verify(mockResponse).reason(eq(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase()));
+
         assertThat(spyResponseHeaders.contains(HttpHeaderNames.CONTENT_LENGTH)).isTrue();
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONTENT_TYPE)).isEqualTo("text/plain");
         assertThat(spyResponseHeaders.get(HttpHeaderNames.CONNECTION)).isEqualTo(HttpHeadersValues.CONNECTION_CLOSE);
+
         verify(mockResponse).body(bufferCaptor.capture());
+        assertThat(bufferCaptor.getValue()).hasToString(contentAsText);
     }
 
-    @ParameterizedTest(name = "''Connection: close'' header should be added only if status is not in CLIENT_ERROR family ")
+    @ParameterizedTest(name = "response status ''{0}''")
     @ValueSource(
         ints = {
-            0,
-            HttpStatusCode.CONTINUE_100,
-            HttpStatusCode.NO_CONTENT_204,
-            HttpStatusCode.NOT_MODIFIED_304,
-            HttpStatusCode.CONFLICT_409,
-            HttpStatusCode.BAD_GATEWAY_502,
+            0, HttpStatusCode.CONTINUE_100, HttpStatusCode.NO_CONTENT_204, HttpStatusCode.NOT_MODIFIED_304, HttpStatusCode.BAD_GATEWAY_502,
         }
     )
-    void shouldAddConnectionCloseHeaderWhenNotAClientError(Integer responseStatus) {
+    void should_add_connection_close_header_when_error_status_is_not_a_client_error_family(Integer responseStatus) {
         ExecutionFailure executionFailure = new ExecutionFailure(responseStatus);
-
-        lenient().when(mockResponse.status()).thenReturn(responseStatus);
-
         spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
 
         simpleFailureProcessor.execute(spyCtx).test().assertResult();
 
-        verify(mockResponse, times(1)).status(responseStatus);
+        Assertions
+            .assertThat(mockResponse.headers().getAll(HttpHeaderNames.CONNECTION))
+            .hasSize(1)
+            .containsExactly(HttpHeadersValues.CONNECTION_CLOSE);
+    }
 
-        if (HttpStatusClass.CLIENT_ERROR.contains(responseStatus)) {
-            Assertions.assertThat(mockResponse.headers().contains(HttpHeaderNames.CONNECTION)).isFalse();
-        } else {
-            Assertions
-                .assertThat(mockResponse.headers().getAll(HttpHeaderNames.CONNECTION))
-                .hasSize(1)
-                .containsExactly(HttpHeadersValues.CONNECTION_CLOSE);
-        }
+    @ParameterizedTest(name = "response status ''{0}''")
+    @ValueSource(ints = { 400, 404, 499 })
+    void should_not_add_connection_close_header_when_error_status_is_a_client_error_family(Integer responseStatus) {
+        ExecutionFailure executionFailure = new ExecutionFailure(responseStatus);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        simpleFailureProcessor.execute(spyCtx).test().assertResult();
+
+        Assertions.assertThat(mockResponse.headers().contains(HttpHeaderNames.CONNECTION)).isFalse();
+    }
+
+    @Test
+    void should_log_message_when_failure_has_exception_parameter() {
+        configureMemoryAppender();
+
+        when(mockRequest.id()).thenReturn("request-id");
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
+            .message("message error")
+            .parameters(Map.of("exception", new RuntimeException("root exception")));
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        simpleFailureProcessor.execute(spyCtx).test().assertResult();
+
+        assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
+        SoftAssertions.assertSoftly(soft -> {
+            var event = memoryAppender.getLoggedEvents().get(0);
+            soft.assertThat(event.getMessage()).contains("An error occurred while executing request");
+            soft.assertThat(event.getArgumentArray()).contains("request-id", "message error");
+            soft.assertThat(event.getThrowableProxy().getMessage()).isEqualTo("root exception");
+        });
+    }
+
+    private void configureMemoryAppender() {
+        Logger logger = (Logger) LoggerFactory.getLogger(AbstractFailureProcessor.class);
+        memoryAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+        logger.setLevel(Level.DEBUG);
+        logger.addAppender(memoryAppender);
+        memoryAppender.start();
     }
 }

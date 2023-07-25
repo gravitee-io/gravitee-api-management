@@ -83,7 +83,7 @@ public abstract class AbstractFailureProcessor implements Processor {
         response.status(executionFailure.statusCode());
         response.reason(HttpResponseStatus.valueOf(executionFailure.statusCode()).reasonPhrase());
         // In case of client error we don't want to force close the connection
-        if (response.status() / 100 != 4) {
+        if (executionFailure.statusCode() / 100 != 4) {
             response.headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
         }
 
