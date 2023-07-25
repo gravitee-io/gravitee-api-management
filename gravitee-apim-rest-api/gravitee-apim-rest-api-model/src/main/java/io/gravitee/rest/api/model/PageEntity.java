@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
+
 import java.util.*;
 
 /**

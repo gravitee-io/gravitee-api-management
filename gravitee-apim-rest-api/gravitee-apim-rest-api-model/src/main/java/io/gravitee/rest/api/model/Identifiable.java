@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.search;
-
-import io.gravitee.rest.api.model.Identifiable;
+package io.gravitee.rest.api.model;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Indexable extends Identifiable {
-    String getReferenceType();
-    void setReferenceType(String referenceType);
-
-    String getReferenceId();
-    void setReferenceId(String referenceId);
+public interface Identifiable {
+    String getId();
+    void setId(String id);
 }
