@@ -40,14 +40,18 @@ import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+
+import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -118,6 +122,9 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
     @Mock
     private PermissionService permissionService;
+
+    @Mock
+    private ApiIdsCalculatorService apiIdsCalculatorService;
 
     @Before
     public void mockUserWithPermissions() {
@@ -199,6 +206,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             .thenReturn(memberEntity);
         when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
 
+        mockApiIdRecalculation();
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(pageService, times(1))
@@ -294,6 +302,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             .thenReturn(new HashSet(Arrays.asList(po)));
         when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
 
+        mockApiIdRecalculation();
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(pageService, never()).duplicatePages(eq(GraviteeContext.getExecutionContext()), anyList(), eq(API_ID));
@@ -336,6 +345,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
         when(userService.findById(GraviteeContext.getExecutionContext(), user.getId())).thenReturn(user);
 
+        mockApiIdRecalculation();
+
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(pageService, never()).createPage(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any(NewPageEntity.class));
@@ -373,6 +384,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
         when(userService.findById(GraviteeContext.getExecutionContext(), user.getId())).thenReturn(user);
 
+        mockApiIdRecalculation();
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(pageService, never()).createPage(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any(NewPageEntity.class));
@@ -413,6 +425,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Collections.singletonList(poRole));
 
+        mockApiIdRecalculation();
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(pageService, times(1))
@@ -420,6 +433,15 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
         verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any());
         verify(apiService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), any());
+    }
+
+    private void mockApiIdRecalculation() {
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).thenAnswer(invocationOnMock -> {
+            // In this case, the ApiIdsCalculator service would have completed the api id
+            final ImportApiJsonNode apiJsonNode = invocationOnMock.getArgument(1, ImportApiJsonNode.class);
+            apiJsonNode.setId(invocationOnMock.getArgument(2, String.class));
+            return apiJsonNode;
+        });
     }
 
     @Test
@@ -434,6 +456,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
+
+        mockApiIdRecalculation();
 
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
@@ -469,6 +493,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId()))
             .thenReturn(Set.of(plan1, plan2, plan3, plan4));
+
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
@@ -509,6 +535,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         plan1.setDescription("plan description before import");
         when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId())).thenReturn(Set.of(plan1));
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         // plan1 has been updated with new name from imported description. But kept his old description
@@ -538,6 +566,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         when(planService.anyPlanMismatchWithApi(anyList(), eq("id-api"))).thenReturn(true);
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
     }
 
@@ -549,6 +579,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         URL resource = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
         String toBeImport = Resources.toString(resource, Charsets.UTF_8);
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
     }
 
@@ -559,6 +591,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         URL resource = Resources.getResource("io/gravitee/rest/api/management/service/import-api-update.definition+plans-missingData.json");
         String toBeImport = Resources.toString(resource, Charsets.UTF_8);
+
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), API_ID, toBeImport);
     }
@@ -592,6 +626,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         when(planService.findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId())).thenReturn(Set.of(plan1, plan2));
         when(apiService.update(eq(GraviteeContext.getExecutionContext()), eq(apiId), any())).thenReturn(apiEntity);
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(planService, times(2)).findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
@@ -605,6 +641,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
+
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
     }
