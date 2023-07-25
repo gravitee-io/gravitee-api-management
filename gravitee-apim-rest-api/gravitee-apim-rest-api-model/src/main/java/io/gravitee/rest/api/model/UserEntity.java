@@ -17,11 +17,11 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.rest.api.model.search.Indexable;
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
+
+import io.gravitee.rest.api.model.search.Indexable;
 import lombok.*;
 
 /**
