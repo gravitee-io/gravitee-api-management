@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+import { Component, ElementRef, Injector } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
 
-import { ApiAuditComponent } from './general/audit.component';
-import { ApiHistoryComponent } from './history/apiHistory.component';
-import { ApiEventsComponent } from './events/apiEvents.component';
-
-@NgModule({
-  declarations: [ApiAuditComponent, ApiHistoryComponent, ApiEventsComponent],
-  exports: [ApiAuditComponent, ApiHistoryComponent, ApiEventsComponent],
-  imports: [],
+@Component({
+  template: '',
+  selector: 'api-events',
+  host: {
+    class: 'bootstrap',
+  },
 })
-export class ApiAuditModule {}
+export class ApiEventsComponent extends UpgradeComponent {
+  constructor(elementRef: ElementRef, injector: Injector) {
+    super('apiEventsComponentAjs', elementRef, injector);
+  }
+}

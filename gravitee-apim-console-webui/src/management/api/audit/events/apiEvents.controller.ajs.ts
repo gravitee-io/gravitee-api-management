@@ -15,15 +15,21 @@
  */
 import * as _ from 'lodash';
 
-class ApiEventsController {
+import { ApiService } from '../../../../services/api.service';
+
+class ApiEventsControllerAjs {
   private events: any;
   private eventsTimeline: any;
 
   /* @ngInject */
-  constructor(resolvedEvents) {
-    this.events = resolvedEvents.data;
-    this.eventsTimeline = [];
-    this.initTimeline(this.events);
+  constructor(private ApiService: ApiService, private $state) {}
+
+  $onInit() {
+    this.ApiService.getApiEvents(this.$state.params.apiId, 'START_API,STOP_API').then((events) => {
+      this.events = events.data;
+      this.eventsTimeline = [];
+      this.initTimeline(this.events);
+    });
   }
 
   initTimeline(events) {
@@ -65,4 +71,4 @@ class ApiEventsController {
   }
 }
 
-export default ApiEventsController;
+export default ApiEventsControllerAjs;
