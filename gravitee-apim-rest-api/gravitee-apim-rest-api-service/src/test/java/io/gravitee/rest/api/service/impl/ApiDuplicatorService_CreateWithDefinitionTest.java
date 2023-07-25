@@ -57,6 +57,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
+import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.io.IOException;
@@ -65,10 +66,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -133,6 +137,9 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     @Mock
     private MediaService mediaService;
+
+    @Mock
+    private ApiIdsCalculatorService apiIdsCalculatorService;
 
     @Before
     public void mockAuthenticatedUser() {
@@ -207,6 +214,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
         when(userService.findById(GraviteeContext.getExecutionContext(), memberEntity.getId())).thenReturn(admin);
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
         verify(apiService, times(1)).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), eq("admin"), any());
@@ -270,6 +279,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         memberEntity.setId(admin.getId());
         memberEntity.setRoles(Collections.singletonList(poRoleEntity));
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
         verify(apiService, times(1)).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), eq("admin"), any());
@@ -305,6 +316,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId("ref-user");
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
         verify(apiService, times(1)).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), eq("admin"), any());
@@ -331,6 +344,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId(API_ID);
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
         verify(apiService, times(1)).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), eq("admin"), any());
@@ -355,6 +370,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId("user");
         user.setSource(SOURCE);
         user.setSourceId(API_ID);
+
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
@@ -381,6 +398,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId(API_ID);
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
         verify(apiService, times(1)).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), eq("admin"), any());
@@ -401,6 +420,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         admin.setId("admin");
         admin.setSource(SOURCE);
         admin.setSourceId(API_ID);
+
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
@@ -426,11 +447,18 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId("user");
         user.setSource(SOURCE);
         user.setSourceId(API_ID);
-
-        apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
-
         String plan1newId = "14b9b538-1e83-334d-a96a-ec04a825928e";
         String plan2newId = "237961c1-3675-3168-832a-d67f7df97d99";
+
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).thenAnswer(invocationOnMock -> {
+            // In this case, the ApiIdsCalculator service would have completed the api id
+            final ImportApiJsonNode apiJsonNode = invocationOnMock.getArgument(1, ImportApiJsonNode.class);
+            apiJsonNode.getPlans().stream().filter(plan -> plan.getId().equals("plan-id")).forEach(plan -> plan.setId(plan1newId));
+            apiJsonNode.getPlans().stream().filter(plan -> plan.getId().equals("plan-id2")).forEach(plan -> plan.setId(plan2newId));
+            return apiJsonNode;
+        });
+        apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
+
 
         // check createWithApiDefinition has been called with newly generated plans IDs in API's definition
         verify(apiService, times(1))
@@ -473,6 +501,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         admin.setId("admin");
         admin.setSource(SOURCE);
         admin.setSourceId(API_ID);
+
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
@@ -528,6 +558,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         )
             .thenThrow(new RoleNotFoundException("API_OWNER Not found"));
 
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
+
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
         verify(apiService, times(1)).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), eq("admin"), any());
@@ -570,6 +602,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId("user");
         user.setSource(SOURCE);
         user.setSourceId(apiId);
+
+        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
