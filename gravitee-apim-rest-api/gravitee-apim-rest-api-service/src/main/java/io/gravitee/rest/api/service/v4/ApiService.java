@@ -25,6 +25,8 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
+import java.util.Optional;
+
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
@@ -52,4 +54,6 @@ public interface ApiService {
         final boolean isAdmin,
         final Pageable pageable
     );
+
+    Optional<ApiEntity> findByEnvironmentIdAndCrossId(String environment, String crossId);
 }
