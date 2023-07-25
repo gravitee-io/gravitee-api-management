@@ -67,6 +67,8 @@ import { ApiLogsConfigurationComponent } from './analytics/logs/configuration/ap
 import { ApiAnalyticsLogComponent } from './analytics/logs/analytics-log.component';
 import { ApiPathMappingsComponent } from './analytics/pathMappings/api-path-mappings.component';
 import { ApiAlertsDashboardComponent } from './analytics/alerts/api-alerts-dashboard.component';
+import { ApiAuditModule } from './audit/api-audit.module';
+import { ApiAuditComponent } from './audit/general/audit.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -1038,6 +1040,20 @@ const states: Ng2StateDeclaration[] = [
       useAngularMaterial: true,
     },
   },
+  {
+    name: 'management.apis.ng.audit',
+    component: ApiAuditComponent,
+    url: '/audit',
+    data: {
+      apiPermissions: {
+        only: ['api-audit-r'],
+      },
+      docs: {
+        page: 'management-api-audit',
+      },
+      useAngularMaterial: true,
+    },
+  },
 ];
 
 @NgModule({
@@ -1051,6 +1067,7 @@ const states: Ng2StateDeclaration[] = [
     ApiProxyModule,
     ApiEntrypointsV4Module,
     ApiEndpointsModule,
+    ApiAuditModule,
     GioPolicyStudioRoutingModule.withRouting({ stateNamePrefix: 'management.apis.ng.policy-studio-v2' }),
     SpecificJsonSchemaTypeModule,
     DocumentationModule,
