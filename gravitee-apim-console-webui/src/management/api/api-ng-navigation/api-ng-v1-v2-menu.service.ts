@@ -293,8 +293,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-definition-u'])) {
       analyticsGroup.items.push({
         displayName: 'Path mappings',
-        targetRoute: 'management.apis.detail.analytics.pathMappings',
-        baseRoute: 'management.apis.detail.analytics.pathMappings',
+        targetRoute: 'management.apis.ng.analytics-path-mappings-v2',
+        baseRoute: 'management.apis.ng.analytics-path-mappings-v2',
       });
     }
     if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
