@@ -184,7 +184,6 @@ public class ApiAuthorizationServiceImplTest {
         apiCriteriaList.add(
             new ApiCriteria.Builder()
                 .environmentId("DEFAULT")
-                .visibility(Visibility.PUBLIC)
                 .definitionVersion(Arrays.asList(null, DefinitionVersion.V1, DefinitionVersion.V2))
                 .build()
         );
