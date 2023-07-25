@@ -1239,6 +1239,16 @@ public class ApiServiceImplTest {
         verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
     }
 
+    @Test
+    public void shouldFindByEnvironmentIdAndCrossId() throws TechnicalException {
+        when(apiRepository.findByEnvironmentIdAndCrossId("environment", "api-cross-id"))
+               .thenReturn(Optional.of(api));
+
+        final Optional<ApiEntity> result = apiService.findByEnvironmentIdAndCrossId("environment", "api-cross-id");
+        assertThat(result).isNotEmpty();
+        assertThat(result.get().getId()).isEqualTo(api.getId());
+    }
+
     private void prepareUpdate() throws TechnicalException {
         prepareUpdate("endpointGroupName", "endpointName", "/context");
     }
