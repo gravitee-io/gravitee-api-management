@@ -39,7 +39,7 @@ import ApiPoliciesController from '../management/api/design/policies/policies.co
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import ApiResourcesController from './api/proxy/resources/resources.controller';
 import ApiPropertiesController from './api/proxy/properties/properties.controller';
-import ApiEventsController from '../management/api/audit/events/apiEvents.controller';
+import { ApiEventsComponentAjs } from './api/audit/events/apiEvents.component.ajs';
 import { ApiHistoryComponentAjs } from './api/audit/history/apiHistory.component.ajs';
 import DialogAddPropertyController from './api/proxy/properties/add-property.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
@@ -674,7 +674,7 @@ graviteeManagementModule.directive('ngApiTransferOwnership', downgradeComponent(
 graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHealthcheckDashboardComponentAjs);
 
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
-graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
+graviteeManagementModule.component('apiEventsComponentAjs', ApiEventsComponentAjs);
 graviteeManagementModule.component('apiHistoryComponentAjs', ApiHistoryComponentAjs);
 graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
 graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
