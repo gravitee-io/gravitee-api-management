@@ -300,8 +300,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       analyticsGroup.items.push({
         displayName: 'Alerts',
-        targetRoute: 'management.apis.detail.analytics.alerts',
-        baseRoute: 'management.apis.detail.analytics.alerts',
+        targetRoute: 'management.apis.ng.analytics-alerts-v2',
+        baseRoute: 'management.apis.ng.analytics-alerts-v2',
       });
     }
     if (analyticsGroup.items.length > 0) {
