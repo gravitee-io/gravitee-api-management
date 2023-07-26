@@ -20,7 +20,7 @@ const AlertTriggerDampeningComponent: ng.IComponentOptions = {
     dampening: '<',
   },
   require: {
-    parent: '^alertComponent',
+    parent: '^alertComponentAjs',
   },
   template: require('./trigger-dampening.html'),
   /* @ngInject */

@@ -279,8 +279,8 @@ import NewApiPortalHeaderDialogController from './configuration/api-portal-heade
 import Base64Service from '../services/base64.service';
 // Alerts
 import AlertService from '../services/alert.service';
-import AlertsComponent from '../components/alerts/alerts.component';
-import AlertComponent from '../components/alerts/alert/alert.component';
+import AlertsComponentAjs from '../components/alerts/alerts.component.ajs';
+import AlertComponentAjs from '../components/alerts/alert/alert.component.ajs';
 import AlertNotificationsComponent from '../components/alerts/alert/notifications/alert-notifications';
 import AlertNotificationComponent from '../components/alerts/alert/notifications/alert-notification';
 import AlertHistoryComponent from '../components/alerts/alert/history/alert-history.component';
@@ -965,8 +965,8 @@ graviteeManagementModule.directive('ngClientRegistrationProvider', downgradeComp
 // Alerts
 graviteeManagementModule.service('AlertService', AlertService);
 graviteeManagementModule.controller('AlertTabsController', AlertTabsController);
-graviteeManagementModule.component('alertsComponent', AlertsComponent);
-graviteeManagementModule.component('alertComponent', AlertComponent);
+graviteeManagementModule.component('alertsComponentAjs', AlertsComponentAjs);
+graviteeManagementModule.component('alertComponentAjs', AlertComponentAjs);
 graviteeManagementModule.component('gvAlertNotification', AlertNotificationComponent);
 graviteeManagementModule.component('gvAlertNotifications', AlertNotificationsComponent);
 graviteeManagementModule.component('gvAlertHistory', AlertHistoryComponent);

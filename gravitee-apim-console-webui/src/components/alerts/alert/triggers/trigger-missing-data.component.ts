@@ -19,7 +19,7 @@ const AlertTriggerMissingDataComponent: ng.IComponentOptions = {
     alert: '<',
   },
   require: {
-    parent: '^alertComponent',
+    parent: '^alertComponentAjs',
   },
   template: require('./trigger-missing-data.html'),
   /* @ngInject */

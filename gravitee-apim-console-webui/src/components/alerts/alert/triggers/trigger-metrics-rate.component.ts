@@ -22,7 +22,7 @@ const AlertTriggerMetricsRateComponent: ng.IComponentOptions = {
     alert: '<',
   },
   require: {
-    parent: '^alertComponent',
+    parent: '^alertComponentAjs',
   },
   template: require('./trigger-metrics-rate.html'),
   /* @ngInject */

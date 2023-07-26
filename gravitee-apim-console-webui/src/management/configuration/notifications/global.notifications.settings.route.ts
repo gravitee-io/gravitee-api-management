@@ -79,7 +79,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
     })
     .state('management.alerts.list', {
       url: '/list',
-      component: 'alertsComponent',
+      component: 'alertsComponentAjs',
       data: {
         perms: {
           only: ['environment-alert-r'],
@@ -98,7 +98,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
     })
     .state('management.alertnew', {
       url: '/alerts/create',
-      component: 'alertComponent',
+      component: 'alertComponentAjs',
       data: {
         menu: null,
         docs: {
@@ -118,7 +118,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
     })
     .state('management.editalert', {
       url: '/alerts/:alertId?:tab',
-      component: 'alertComponent',
+      component: 'alertComponentAjs',
       data: {
         menu: null,
         docs: {
