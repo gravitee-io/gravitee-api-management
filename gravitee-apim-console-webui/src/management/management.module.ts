@@ -32,6 +32,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { ClientRegistrationProvidersModule } from './configuration/client-registration-providers/client-registration-providers.module';
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
+import { NotificationsModule } from '../components/notifications/notifications.module';
 
 @NgModule({
   imports: [
@@ -51,6 +52,7 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
     MessagesModule,
     TasksModule,
     ClientRegistrationProvidersModule,
+    NotificationsModule,
   ],
   declarations: [],
   entryComponents: [],

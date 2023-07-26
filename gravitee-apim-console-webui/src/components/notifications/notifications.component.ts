@@ -13,21 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
+import { Component, ElementRef, Injector, Input, SimpleChange } from '@angular/core';
+import { UpgradeComponent } from '@angular/upgrade/static';
 
-const NotificationsComponent: ng.IComponentOptions = {
-  bindings: {
-    notificationSettings: '<',
-    api: '<',
-    application: '<',
+@Component({
+  template: '',
+  selector: 'notifications-component',
+  host: {
+    class: 'bootstrap',
   },
-  template: require('./notifications.html'),
-  /* @ngInject */
-  controller: function (Constants: any, $state: StateService) {
-    this.$onInit = () => {
-      $state.go('^.notifications.notification', { notificationId: 'portal' });
-    };
-  },
-};
+})
+export class NotificationsComponent extends UpgradeComponent {
+  @Input() resolvedHookScope;
+  @Input() resolvedHooks;
+  @Input() resolvedNotifiers;
+  @Input() notificationSettings;
+  @Input() api;
+  @Input() plans;
 
-export default NotificationsComponent;
+  constructor(elementRef: ElementRef, injector: Injector) {
+    super('notificationsComponentAjs', elementRef, injector);
+  }
+
+  ngOnInit() {
+    // Hack to Force the binding between Angular and AngularJS
+    // Don't know why, but the binding is not done automatically when resolver is used
+    this.ngOnChanges({
+      resolvedHookScope: new SimpleChange(null, this.resolvedHookScope, true),
+      resolvedHooks: new SimpleChange(null, this.resolvedHooks, true),
+      resolvedNotifiers: new SimpleChange(null, this.resolvedNotifiers, true),
+      notificationSettings: new SimpleChange(null, this.notificationSettings, true),
+      api: new SimpleChange(null, this.api, true),
+    });
+
+    super.ngOnInit();
+  }
+}

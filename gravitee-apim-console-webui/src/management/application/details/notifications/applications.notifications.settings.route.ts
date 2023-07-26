@@ -25,7 +25,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
   $stateProvider
     .state('management.applications.application.notifications', {
       url: '/notifications',
-      component: 'notificationsComponent',
+      component: 'notificationsComponentAjs',
       data: {
         perms: {
           only: ['application-notification-r', 'application-alert-r'],
@@ -47,7 +47,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
     })
     .state('management.applications.application.notifications.notification', {
       url: '/:notificationId',
-      component: 'notificationSettingsComponent',
+      component: 'notificationsComponentAjs',
       data: {
         menu: null,
         docs: {

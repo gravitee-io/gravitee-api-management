@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
 import * as _ from 'lodash';
+import { IScope } from 'angular';
 
-import { Hook } from '../../../entities/hook';
-import { NotificationConfig } from '../../../entities/notificationConfig';
-import { Scope } from '../../../entities/scope';
-import NotificationService from '../../../services/notification.service';
-import NotificationSettingsService from '../../../services/notificationSettings.service';
+import { Hook } from '../../entities/hook';
+import { NotificationConfig } from '../../entities/notificationConfig';
+import { Scope } from '../../entities/scope';
+import NotificationService from '../../services/notification.service';
+import NotificationSettingsService from '../../services/notificationSettings.service';
 
-const NotificationSettingsComponent: ng.IComponentOptions = {
+const NotificationsComponentAjs: ng.IComponentOptions = {
   bindings: {
+    notificationSettings: '<',
+    api: '<',
+    application: '<',
     resolvedHookScope: '<',
     resolvedHooks: '<',
     resolvedNotifiers: '<',
-    notificationSettings: '=',
   },
-  template: require('./notificationsettings.html'),
+  template: require('./notifications.html'),
   /* @ngInject */
   controller: function (
+    Constants: any,
     $state: StateService,
     NotificationSettingsService: NotificationSettingsService,
     NotificationService: NotificationService,
@@ -40,6 +43,11 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     $timeout: ng.ITimeoutService,
     $rootScope: IScope,
   ) {
+    if (!$state.params.notificationId) {
+      $state.go('^.notifications.notification', { notificationId: 'portal' }, { reload: true });
+      return;
+    }
+
     this.$rootScope = $rootScope;
     this.$mdDialog = $mdDialog;
     this.readonly = false;
@@ -74,9 +82,16 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
       } else {
         this.selectedNotifier = undefined;
       }
+
       $timeout(() => {
-        $state.params.notificationId = this.selectedNotificationSetting.id || 'portal';
-        $state.transitionTo($state.current, $state.params, { reload: reload });
+        $state.transitionTo(
+          $state.current,
+          {
+            ...$state.params,
+            notificationId: this.selectedNotificationSetting.id || 'portal',
+          },
+          { reload: reload },
+        );
       });
     };
 
@@ -146,7 +161,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
         .show({
           controller: 'DialogAddNotificationSettingsController',
           controllerAs: 'dialogAddNotificationSettingsController',
-          template: require('./addnotificationsettings.dialog.html'),
+          template: require('./notificationsettings/addnotificationsettings.dialog.html'),
           clickOutsideToClose: true,
           notifiers: this.resolvedNotifiers,
         })
@@ -186,4 +201,4 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
   },
 };
 
-export default NotificationSettingsComponent;
+export default NotificationsComponentAjs;

@@ -359,8 +359,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
       notificationsGroup.items.push({
         displayName: 'Notifications',
-        targetRoute: 'management.apis.detail.notifications',
-        baseRoute: 'management.apis.detail.notifications',
+        targetRoute: 'management.apis.ng.notifications',
+        baseRoute: 'management.apis.ng.notifications',
       });
     }
 

@@ -72,6 +72,10 @@ import { ApiAuditComponent } from './audit/general/audit.component';
 import { ApiHistoryComponent } from './audit/history/apiHistory.component';
 import { ApiEventsComponent } from './audit/events/apiEvents.component';
 
+import { NotificationsComponent } from '../../components/notifications/notifications.component';
+import { Scope } from '../../entities/scope';
+import NotificationSettingsService from '../../services/notificationSettings.service';
+import { ApiService } from '../../services/api.service';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
 import { GioEmptyModule } from '../../shared/components/gio-empty/gio-empty.module';
@@ -1080,6 +1084,67 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-events',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.notifications',
+    component: NotificationsComponent,
+    url: '/notifications',
+    data: {
+      apiPermissions: {
+        only: ['api-notification-r'],
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'resolvedHookScope',
+        resolveFn: () => {
+          return Scope.API;
+        },
+      },
+      {
+        token: 'resolvedHooks',
+        deps: ['NotificationSettingsService'],
+        resolveFn: (NotificationSettingsService: NotificationSettingsService) => {
+          return NotificationSettingsService.getHooks(Scope.API).then((response) => response.data);
+        },
+      },
+      {
+        token: 'resolvedNotifiers',
+        deps: ['NotificationSettingsService', '$stateParams'],
+        resolveFn: (NotificationSettingsService: NotificationSettingsService, $stateParams) => {
+          return NotificationSettingsService.getNotifiers(Scope.API, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'notificationSettings',
+        deps: ['NotificationSettingsService', '$stateParams'],
+        resolveFn: (NotificationSettingsService: NotificationSettingsService, $stateParams) => {
+          return NotificationSettingsService.getNotificationSettings(Scope.API, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'api',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId).then((response) => response.data);
+        },
+      },
+    ],
+  },
+  {
+    name: 'management.apis.ng.notifications.notification',
+    component: NotificationsComponent,
+    url: '/:notificationId',
+    data: {
+      apiPermissions: {
+        only: ['api-notification-r'],
+      },
+      docs: {
+        page: 'management-api-notifications',
       },
       useAngularMaterial: true,
     },

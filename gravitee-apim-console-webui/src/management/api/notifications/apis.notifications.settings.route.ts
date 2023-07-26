@@ -30,7 +30,7 @@ function apisNotificationsRouterConfig($stateProvider) {
   $stateProvider
     .state('management.apis.detail.notifications', {
       url: '/notifications',
-      component: 'notificationsComponent',
+      component: 'notificationsComponentAjs',
       data: {
         perms: {
           only: ['api-notification-r'],
@@ -54,7 +54,7 @@ function apisNotificationsRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.notifications.notification', {
       url: '/:notificationId',
-      component: 'notificationSettingsComponent',
+      component: 'notificationsComponentAjs',
       data: {
         docs: {
           page: 'management-api-notifications',
