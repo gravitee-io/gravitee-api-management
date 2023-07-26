@@ -200,8 +200,7 @@ import UserController from '../user/user.controller';
 import UserComponent from '../user/user.component';
 import { TasksComponent } from './tasks/tasks.component';
 // Notification Settings
-import NotificationsComponent from '../components/notifications/notifications.component';
-import NotificationSettingsComponent from '../components/notifications/notificationsettings/notificationsettings.component';
+import NotificationsComponentAjs from '../components/notifications/notifications.component.ajs';
 import NotificationSettingsService from '../services/notificationSettings.service';
 import NotificationTemplatesService from '../services/notificationTemplates.service';
 
@@ -889,8 +888,7 @@ graviteeManagementModule.directive('tasks', downgradeComponent({ component: Task
 graviteeManagementModule.service('NotificationSettingsService', NotificationSettingsService);
 graviteeManagementModule.service('NotificationTemplatesService', NotificationTemplatesService);
 graviteeManagementModule.controller('DialogAddNotificationSettingsController', DialogAddNotificationSettingsController);
-graviteeManagementModule.component('notificationSettingsComponent', NotificationSettingsComponent);
-graviteeManagementModule.component('notificationsComponent', NotificationsComponent);
+graviteeManagementModule.component('notificationsComponentAjs', NotificationsComponentAjs);
 
 graviteeManagementModule.component('logout', LogoutComponent);
 
