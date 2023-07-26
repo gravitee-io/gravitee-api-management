@@ -22,7 +22,7 @@ const AlertTriggerMetricsSimpleConditionComponent: ng.IComponentOptions = {
     alert: '<',
   },
   require: {
-    parent: '^alertComponent',
+    parent: '^alertComponentAjs',
   },
   template: require('./trigger-metrics-simple-condition.html'),
   /* @ngInject */

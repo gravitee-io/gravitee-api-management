@@ -367,8 +367,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       notificationsGroup.items.push({
         displayName: 'Alerts',
-        targetRoute: 'management.apis.detail.alerts.list',
-        baseRoute: 'management.apis.detail.alerts',
+        targetRoute: 'management.apis.ng.alerts.list',
+        baseRoute: 'management.apis.ng.alerts',
       });
     }
 

@@ -22,7 +22,7 @@ const AlertTriggerMetricsAggregationComponent: ng.IComponentOptions = {
     alert: '<',
   },
   require: {
-    parent: '^alertComponent',
+    parent: '^alertComponentAjs',
   },
   template: require('./trigger-metrics-aggregation.html'),
   /* @ngInject */

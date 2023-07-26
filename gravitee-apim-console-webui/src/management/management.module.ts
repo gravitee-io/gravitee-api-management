@@ -33,6 +33,7 @@ import { ClientRegistrationProvidersModule } from './configuration/client-regist
 
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { NotificationsModule } from '../components/notifications/notifications.module';
+import { AlertsModule } from '../components/alerts/alerts.module';
 
 @NgModule({
   imports: [
@@ -53,6 +54,7 @@ import { NotificationsModule } from '../components/notifications/notifications.m
     TasksModule,
     ClientRegistrationProvidersModule,
     NotificationsModule,
+    AlertsModule,
   ],
   declarations: [],
   entryComponents: [],

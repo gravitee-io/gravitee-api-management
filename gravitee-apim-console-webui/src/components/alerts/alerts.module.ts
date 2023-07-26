@@ -13,30 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NgModule } from '@angular/core';
 
-const AlertNotificationsComponent: ng.IComponentOptions = {
-  bindings: {
-    alert: '<',
-  },
-  require: {
-    parent: '^alertComponentAjs',
-  },
-  template: require('./alert-notifications.html'),
-  /* @ngInject */
-  controller: function () {
-    this.addNotification = () => {
-      if (this.alert.notifications === undefined) {
-        this.alert.notifications = [];
-      }
+import { AlertsComponent } from './alerts.component';
+import { AlertComponent } from './alert/alert.component';
 
-      this.alert.notifications.push({});
-    };
-
-    this.removeNotification = (idx: number) => {
-      this.alert.notifications.splice(idx, 1);
-      this.parent.formAlert.$setDirty();
-    };
-  },
-};
-
-export default AlertNotificationsComponent;
+@NgModule({
+  declarations: [AlertsComponent, AlertComponent],
+  exports: [AlertsComponent, AlertComponent],
+})
+export class AlertsModule {}

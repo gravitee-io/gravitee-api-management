@@ -70,7 +70,7 @@ function apisNotificationsRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.alerts.list', {
       url: '/',
-      component: 'alertsComponent',
+      component: 'alertsComponentAjs',
       data: {
         perms: {
           only: ['api-alert-r'],
@@ -89,7 +89,7 @@ function apisNotificationsRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.alerts.alertnew', {
       url: '/create',
-      component: 'alertComponent',
+      component: 'alertComponentAjs',
       data: {
         docs: {
           page: 'management-alerts',
@@ -122,7 +122,7 @@ function apisNotificationsRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.alerts.editalert', {
       url: '/:alertId?:tab',
-      component: 'alertComponent',
+      component: 'alertComponentAjs',
       data: {
         docs: {
           page: 'management-alerts',

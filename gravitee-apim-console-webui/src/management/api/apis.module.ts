@@ -89,6 +89,11 @@ import GroupService from '../../services/group.service';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
+import { Scope as AlertScope } from '../../entities/alert';
+import AlertService from '../../services/alert.service';
+import NotifierService from '../../services/notifier.service';
+import { AlertsComponent } from '../../components/alerts/alerts.component';
+import { AlertComponent } from '../../components/alerts/alert/alert.component';
 
 const graviteeManagementModule = angular.module('gravitee-management');
 apiPermissionHook.$inject = ['$transitions', 'ngGioPermissionService'];
@@ -1148,6 +1153,129 @@ const states: Ng2StateDeclaration[] = [
       },
       useAngularMaterial: true,
     },
+  },
+  {
+    name: 'management.apis.ng.alerts',
+    component: GioEmptyComponent,
+    abstract: true,
+    url: '/alerts',
+    data: {
+      apiPermissions: {
+        only: ['api-alert-r'],
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'status',
+        deps: ['AlertService', '$stateParams'],
+        resolveFn: (AlertService: AlertService, $stateParams) => {
+          return AlertService.getStatus(AlertScope.API, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'notifiers',
+        deps: ['NotifierService'],
+        resolveFn: (NotifierService: NotifierService) => {
+          return NotifierService.list().then((response) => response.data);
+        },
+      },
+    ],
+  },
+  {
+    name: 'management.apis.ng.alerts.list',
+    component: AlertsComponent,
+    url: '/',
+    data: {
+      apiPermissions: {
+        only: ['api-alert-r'],
+      },
+      docs: {
+        page: 'management-alerts',
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'alerts',
+        deps: ['AlertService', '$stateParams'],
+        resolveFn: (AlertService: AlertService, $stateParams) => {
+          return AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+    ],
+  },
+  {
+    name: 'management.apis.ng.alerts.alertnew',
+    component: AlertComponent,
+    url: '/create',
+    data: {
+      apiPermissions: {
+        only: ['api-alert-c'],
+      },
+      docs: {
+        page: 'management-alerts',
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'alerts',
+        deps: ['AlertService', '$stateParams'],
+        resolveFn: (AlertService: AlertService, $stateParams) => {
+          return AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'mode',
+        resolveFn: () => {
+          return 'create';
+        },
+      },
+      {
+        token: 'resolvedApi',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId);
+        },
+      },
+    ],
+  },
+  {
+    name: 'management.apis.ng.alerts.editalert',
+    component: AlertComponent,
+    url: '/:alertId?:tab',
+    data: {
+      apiPermissions: {
+        only: ['api-alert-r'],
+      },
+      docs: {
+        page: 'management-alerts',
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'alerts',
+        deps: ['AlertService', '$stateParams'],
+        resolveFn: (AlertService: AlertService, $stateParams) => {
+          return AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'mode',
+        resolveFn: () => {
+          return 'detail';
+        },
+      },
+      {
+        token: 'resolvedApi',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId);
+        },
+      },
+    ],
   },
 ];
 

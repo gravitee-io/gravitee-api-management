@@ -28,7 +28,7 @@ describe('AlertsComponent', () => {
   beforeEach(inject((_$stateParams_, _$componentController_) => {
     $componentController = _$componentController_;
     $stateParams = _$stateParams_;
-    alertsComponent = $componentController('alertsComponent', null, {});
+    alertsComponent = $componentController('alertsComponentAjs', null, {});
   }));
 
   describe('enhanceAlert', () => {

@@ -21,7 +21,7 @@ const AlertHistoryComponent: ng.IComponentOptions = {
     alert: '<',
   },
   require: {
-    parent: '^alertComponent',
+    parent: '^alertComponentAjs',
   },
   template: require('./alert-history.html'),
   /* @ngInject */
