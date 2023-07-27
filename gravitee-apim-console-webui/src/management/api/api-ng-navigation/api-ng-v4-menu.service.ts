@@ -176,7 +176,7 @@ export class ApiNgV4MenuService implements ApiMenuService {
       endpointsGroup.items.push({
         displayName: 'Backend services',
         targetRoute: 'management.apis.ng.endpoints',
-        baseRoute: ['management.apis.ng.endpoints', 'management.apis.ng.endpoint'],
+        baseRoute: ['management.apis.ng.endpoints', 'management.apis.ng.endpoint', 'management.apis.ng.endpoints-group'],
       });
     }
 

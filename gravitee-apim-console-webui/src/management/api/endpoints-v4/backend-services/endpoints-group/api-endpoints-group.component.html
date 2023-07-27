@@ -1,0 +1,50 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="back-button">
+  <gio-go-back-button [ajsGo]="{ to: 'management.apis.ng.endpoints' }"></gio-go-back-button>
+  Go back to endpoint groups
+</div>
+<form *ngIf="groupForm" autocomplete="off" gioFormFocusInvalid [formGroup]="groupForm">
+  <mat-card class="endpoints-group-card">
+    <mat-tab-group animationDuration="0ms">
+      <mat-tab label="General" *ngIf="generalForm">
+        <!-- General tab content -->
+        <div class="tab-body-wrapper">
+          <api-endpoints-group-general [generalForm]="generalForm"></api-endpoints-group-general>
+        </div>
+      </mat-tab>
+      <mat-tab label="Configuration" *ngIf="configurationForm && endpointGroupType != 'mock'">
+        <!-- Configuration tab content -->
+        <div class="tab-body-wrapper">
+          <api-endpoints-group-configuration
+            [configurationForm]="configurationForm"
+            [endpointGroupType]="endpointGroupType"
+          ></api-endpoints-group-configuration>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+
+  <gio-save-bar
+    class="save-bar"
+    [creationMode]="false"
+    [form]="groupForm"
+    [formInitialValues]="initialGroupFormValue"
+    (submitted)="onSubmit()"
+  ></gio-save-bar>
+</form>
