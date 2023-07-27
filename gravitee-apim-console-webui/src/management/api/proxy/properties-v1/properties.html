@@ -15,11 +15,11 @@
     limitations under the License.
 
 -->
-<div class="gv-forms gv-forms-fluid properties" layout="column">
+<div class="gv-forms gv-forms-fluid properties" layout="column" ng-if="$ctrl.api">
   <div class="gv-forms-header">
     <h1>Properties</h1>
     <span permission permission-only="'api-definition-u'">
-      <ng-md-icon icon="settings" ng-click="apiPropertiesCtrl.open()"></ng-md-icon>
+      <ng-md-icon icon="settings" ng-click="$ctrl.open()"></ng-md-icon>
     </span>
   </div>
   <div class="gv-form">
@@ -28,17 +28,11 @@
       <div layout="row" style="padding-left: 16px" ng-if="dynamicPropertyEnabled">
         <span>
           Dynamic properties service is actually <code>running</code> state and run with cron expression
-          <code>{{apiPropertiesCtrl.dynamicPropertyService.schedule}}</code> using
-          <code>{{apiPropertiesCtrl.dynamicPropertyService.provider}}</code> provider.
+          <code>{{$ctrl.dynamicPropertyService.schedule}}</code> using <code>{{$ctrl.dynamicPropertyService.provider}}</code> provider.
         </span>
       </div>
 
-      <form
-        ng-if="apiPropertiesCtrl.hasPropertiesDefined()"
-        name="formApiProperties"
-        ng-submit="apiPropertiesCtrl.update(apiPropertiesCtrl.api)"
-        novalidate
-      >
+      <form ng-if="$ctrl.hasPropertiesDefined()" name="formApiProperties" ng-submit="$ctrl.update($ctrl.api)" novalidate>
         <md-table-container>
           <table md-table ng-init="reverse = false" aria-description="Properties table">
             <thead md-head md-order="name">
@@ -46,8 +40,8 @@
                 <th md-column>
                   <md-checkbox
                     aria-label="Select all"
-                    ng-model="apiPropertiesCtrl.selectAll"
-                    ng-change="apiPropertiesCtrl.toggleSelectAll(apiPropertiesCtrl.selectAll)"
+                    ng-model="$ctrl.selectAll"
+                    ng-change="$ctrl.toggleSelectAll($ctrl.selectAll)"
                   ></md-checkbox>
                 </th>
                 <th md-column md-order-by="name" ng-click="reverse = !reverse">Name</th>
@@ -57,12 +51,12 @@
               </tr>
             </thead>
             <tbody md-body>
-              <tr md-row ng-repeat="property in apiPropertiesCtrl.api.properties|orderBy:name:reverse">
+              <tr md-row ng-repeat="property in $ctrl.api.properties|orderBy:name:reverse">
                 <td md-cell>
                   <md-checkbox
                     aria-label="Select {{property.key}}"
-                    ng-model="apiPropertiesCtrl.selectedProperties[property.key]"
-                    ng-change="apiPropertiesCtrl.checkSelectAll()"
+                    ng-model="$ctrl.selectedProperties[property.key]"
+                    ng-change="$ctrl.checkSelectAll()"
                   ></md-checkbox>
                 </td>
                 <td md-cell>{{property.key}}</td>
@@ -70,7 +64,7 @@
                   permission
                   permission-only="'api-definition-u'"
                   md-cell
-                  ng-click="apiPropertiesCtrl.editValue($event, property)"
+                  ng-click="$ctrl.editValue($event, property)"
                   ng-class="{'gravitee-placeholder': property.value}"
                 >
                   {{property.value || 'Set value'}}
@@ -84,7 +78,7 @@
                     permission
                     permission-only="'api-definition-d'"
                     ng-show="!property.dynamic"
-                    ng-click="apiPropertiesCtrl.deleteProperty(property.key)"
+                    ng-click="$ctrl.deleteProperty(property.key)"
                     icon="delete"
                   ></ng-md-icon>
                 </td>
@@ -96,10 +90,10 @@
           <md-button
             class="md-raised md-warn float-right"
             type="button"
-            ng-click="apiPropertiesCtrl.deleteSelectedProperties()"
+            ng-click="$ctrl.deleteSelectedProperties()"
             permission
             permission-only="['api-definition-u']"
-            ng-disabled="!apiPropertiesCtrl.hasSelectedProperties()"
+            ng-disabled="!$ctrl.hasSelectedProperties()"
           >
             Delete
           </md-button>
@@ -107,7 +101,7 @@
       </form>
 
       <gravitee-empty-state
-        ng-if="!apiPropertiesCtrl.hasPropertiesDefined()"
+        ng-if="!$ctrl.hasPropertiesDefined()"
         icon="assignment"
         model="Property"
         message="Properties will appear here"
@@ -115,14 +109,14 @@
         create-mode="true"
       ></gravitee-empty-state>
 
-      <div ng-style="!apiPropertiesCtrl.hasPropertiesDefined() && {'text-align':'center'}">
+      <div ng-style="!$ctrl.hasPropertiesDefined() && {'text-align':'center'}">
         <md-button
           permission
           permission-only="'api-definition-u'"
-          ng-class="{'md-fab-bottom-right': apiPropertiesCtrl.hasPropertiesDefined()}"
+          ng-class="{'md-fab-bottom-right': $ctrl.hasPropertiesDefined()}"
           class="md-fab"
           aria-label="Add"
-          ng-click="apiPropertiesCtrl.showPropertyModal()"
+          ng-click="$ctrl.showPropertyModal()"
         >
           <ng-md-icon icon="add"></ng-md-icon>
         </md-button>
@@ -140,7 +134,7 @@
             <md-switch
               ng-model="dynamicPropertyEnabled"
               ng-disabled="formDynamicProperties.$invalid"
-              ng-change="apiPropertiesCtrl.switchEnabled()"
+              ng-change="$ctrl.switchEnabled()"
               class="md-block"
               aria-label="Enable dynamic-property service"
             ></md-switch>
@@ -153,14 +147,14 @@
             <span>Do not forget to deploy API to start dynamic-properties service.</span>
           </div>
 
-          <form name="formDynamicProperties" ng-submit="apiPropertiesCtrl.update()" novalidate>
+          <form name="formDynamicProperties" ng-submit="$ctrl.update()" novalidate>
             <h4>Polling frequency</h4>
 
             <md-input-container flex class="md-block">
               <gv-cron-editor
                 required
-                ng-value="apiPropertiesCtrl.dynamicPropertyService.schedule"
-                ng-on-input="apiPropertiesCtrl.updateSchedule($event)"
+                ng-value="$ctrl.dynamicPropertyService.schedule"
+                ng-on-input="$ctrl.updateSchedule($event)"
                 label="Schedule"
               ></gv-cron-editor>
 
@@ -174,50 +168,48 @@
               <md-input-container class="md-block" flex-gt-xs>
                 <label>Type</label>
                 <md-select
-                  ng-model="apiPropertiesCtrl.dynamicPropertyService.provider"
+                  ng-model="$ctrl.dynamicPropertyService.provider"
                   placeholder="Type"
                   required
                   ng-required="true"
-                  ng-change="apiPropertiesCtrl.onProviderTypeChange()"
+                  ng-change="$ctrl.onProviderTypeChange()"
                 >
-                  <md-option ng-repeat="provider in apiPropertiesCtrl.dynamicPropertyProviders" ng-value="provider.id"
-                    >{{provider.name}}</md-option
-                  >
+                  <md-option ng-repeat="provider in $ctrl.dynamicPropertyProviders" ng-value="provider.id">{{provider.name}}</md-option>
                 </md-select>
               </md-input-container>
             </div>
 
             <br />
 
-            <div ng-if="apiPropertiesCtrl.dynamicPropertyService.provider">
+            <div ng-if="$ctrl.dynamicPropertyService.provider">
               <h4>
                 Configuration
 
                 <md-button
-                  ng-if="apiPropertiesCtrl.dynamicPropertyService.provider == 'HTTP'"
+                  ng-if="$ctrl.dynamicPropertyService.provider == 'HTTP'"
                   class="md-icon-button"
                   aria-label="Expected HTTP provider output"
-                  ng-click="apiPropertiesCtrl.showExpectedProviderOutput()"
+                  ng-click="$ctrl.showExpectedProviderOutput()"
                 >
                   <ng-md-icon class="no-top" icon="info" style="fill: #b1bdc5"></ng-md-icon>
                 </md-button>
               </h4>
 
-              <div ng-if="apiPropertiesCtrl.dynamicPropertyService.provider == 'HTTP'" layout="column" layout-sm="column">
+              <div ng-if="$ctrl.dynamicPropertyService.provider == 'HTTP'" layout="column" layout-sm="column">
                 <md-input-container class="md-block" flex-gt-sm>
                   <label>HTTP Service URL</label>
-                  <input ng-model="apiPropertiesCtrl.dynamicPropertyService.configuration.url" type="url" ng-required="true" />
+                  <input ng-model="$ctrl.dynamicPropertyService.configuration.url" type="url" ng-required="true" />
                 </md-input-container>
 
                 <md-input-container class="md-block" flex-gt-sm>
                   <label>HTTP Method</label>
                   <md-select
-                    ng-model="apiPropertiesCtrl.dynamicPropertyService.configuration.method"
+                    ng-model="$ctrl.dynamicPropertyService.configuration.method"
                     placeholder="HTTP Methods"
                     required
                     ng-required="true"
                   >
-                    <md-option ng-value="method" ng-repeat="method in apiPropertiesCtrl.getHttpMethods()">{{method}}</md-option>
+                    <md-option ng-value="method" ng-repeat="method in $ctrl.getHttpMethods()">{{method}}</md-option>
                   </md-select>
                 </md-input-container>
 
@@ -228,7 +220,7 @@
                       icon="add_circle_outline"
                       style="fill: #b1bdc5"
                       aria-label="Add HTTP header"
-                      ng-click="apiPropertiesCtrl.addHTTPHeader()"
+                      ng-click="$ctrl.addHTTPHeader()"
                       >Add headers</ng-md-icon
                     >
                   </h5>
@@ -236,13 +228,13 @@
                     layout="row"
                     layout-sm="column"
                     layout-align="center center"
-                    ng-repeat="header in apiPropertiesCtrl.dynamicPropertyService.configuration.headers"
+                    ng-repeat="header in $ctrl.dynamicPropertyService.configuration.headers"
                   >
                     <ng-md-icon
                       icon="remove_circle_outline"
                       style="fill: #b1bdc5"
                       aria-label="Delete header"
-                      ng-click="apiPropertiesCtrl.removeHTTPHeader($index)"
+                      ng-click="$ctrl.removeHTTPHeader($index)"
                     ></ng-md-icon>
 
                     <div flex="5" hide-xs hide-sm>
@@ -267,9 +259,9 @@
                   <label style="transform: translate3d(0, 6px, 0) scale(0.75) !important"> Request body </label>
 
                   <textarea
-                    ui-codemirror="{ onLoad : apiPropertiesCtrl.codemirrorLoaded }"
-                    ui-codemirror-opts="apiPropertiesCtrl.requestBodyOptions"
-                    ng-model="apiPropertiesCtrl.dynamicPropertyService.configuration.body"
+                    ui-codemirror="{ onLoad : $ctrl.codemirrorLoaded }"
+                    ui-codemirror-opts="$ctrl.requestBodyOptions"
+                    ng-model="$ctrl.dynamicPropertyService.configuration.body"
                     rows="5"
                   ></textarea>
                 </md-input-container>
@@ -278,9 +270,9 @@
                   <label style="transform: translate3d(0, 6px, 0) scale(0.75) !important"> Transformation (JOLT Specification) </label>
 
                   <textarea
-                    ui-codemirror="{ onLoad : apiPropertiesCtrl.codemirrorLoaded }"
-                    ui-codemirror-opts="apiPropertiesCtrl.joltSpecificationOptions"
-                    ng-model="apiPropertiesCtrl.dynamicPropertyService.configuration.specification"
+                    ui-codemirror="{ onLoad : $ctrl.codemirrorLoaded }"
+                    ui-codemirror-opts="$ctrl.joltSpecificationOptions"
+                    ng-model="$ctrl.dynamicPropertyService.configuration.specification"
                     ng-required="true"
                     rows="5"
                   ></textarea>
@@ -299,7 +291,7 @@
               <md-button
                 class="md-warn"
                 type="button"
-                ng-click="apiPropertiesCtrl.reset()"
+                ng-click="$ctrl.reset()"
                 ng-disabled="formDynamicProperties.$invalid || formDynamicProperties.$pristine"
               >
                 Reset

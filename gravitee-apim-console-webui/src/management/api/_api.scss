@@ -5,8 +5,8 @@
 @import 'audit/history/apiHistory';
 @import 'deploy/deploy';
 @import 'design/policies/policy';
-@import 'proxy/properties/properties';
-@import 'proxy/resources/resources';
+@import 'proxy/properties-v1/properties';
+@import 'proxy/resources-v1/resources';
 @import 'proxy/health-check-dashboard/healthcheck';
 
 .gravitee-api-container {

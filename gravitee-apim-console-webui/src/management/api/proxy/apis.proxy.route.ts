@@ -228,8 +228,8 @@ function apisProxyRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.proxy.resources', {
       url: '/resources',
-      template: require('./resources/resources.html'),
-      controller: 'ApiResourcesController',
+      template: require('./resources-v1/resources.html'),
+      controller: 'apiV1ResourcesComponentAjs',
       controllerAs: 'apiResourcesCtrl',
       resolve: {
         resolvedResources: (ResourceService: ResourceService) => ResourceService.list(),
@@ -246,8 +246,8 @@ function apisProxyRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.proxy.properties', {
       url: '/properties',
-      template: require('./properties/properties.html'),
-      controller: 'ApiPropertiesController',
+      template: require('./properties-v1/properties.html'),
+      controller: 'apiV1PropertiesComponentAjs',
       controllerAs: 'apiPropertiesCtrl',
       apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.proxy.ng-properties' },
       resolve: {

@@ -24,11 +24,11 @@ import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match
 interface IApiPropertiesScope extends ng.IScope {
   formDynamicProperties: any;
   dynamicPropertyEnabled: boolean;
-  apiCtrl: any;
-  $parent: any;
 }
 
-class ApiPropertiesController {
+class ApiV1PropertiesControllerAjs {
+  resolvedApi: any;
+
   private api: any;
   private dynamicPropertyService: any;
   private controller: any;
@@ -43,7 +43,6 @@ class ApiPropertiesController {
   /* @ngInject */
   constructor(
     private ApiService: ApiService,
-    private resolvedApi,
     private $mdSidenav: angular.material.ISidenavService,
     private $mdEditDialog,
     private $mdDialog: angular.material.IDialogService,
@@ -52,15 +51,18 @@ class ApiPropertiesController {
     private $rootScope,
     private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
   ) {
+    this.$mdSidenav = $mdSidenav;
+    this.$mdEditDialog = $mdEditDialog;
+  }
+
+  $onInit() {
     this.dynamicPropertyProviders = [
       {
         id: 'HTTP',
         name: 'Custom (HTTP)',
       },
     ];
-    this.api = this.$scope.$parent.apiCtrl.api;
-    this.$mdSidenav = $mdSidenav;
-    this.$mdEditDialog = $mdEditDialog;
+    this.api = this.resolvedApi.data;
 
     this.editor = undefined;
 
@@ -164,7 +166,7 @@ class ApiPropertiesController {
       this.api = updatedApi.data;
       this.ngIfMatchEtagInterceptor.updateLastEtag('api', updatedApi.headers('etag'));
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
-      this.NotificationService.show("API '" + (this.$scope as any).$parent.apiCtrl.api.name + "' saved");
+      this.NotificationService.show("API '" + this.api.name + "' saved");
     });
   }
 
@@ -296,4 +298,4 @@ class ApiPropertiesController {
   }
 }
 
-export default ApiPropertiesController;
+export default ApiV1PropertiesControllerAjs;
