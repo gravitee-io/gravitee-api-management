@@ -18,16 +18,11 @@
 <div layout="row">
   <div flex="20" layout="column">
     <div class="inset">
-      <h5>Policies ({{apiPoliciesCtrl.policiesToCopy.length}})</h5>
+      <h5>Policies ({{$ctrl.policiesToCopy.length}})</h5>
       <md-divider></md-divider>
     </div>
     <div class="gravitee-policy-draggable gravitee-policy-panel gravitee-policy-panel-left">
-      <md-card
-        ng-repeat="policy in apiPoliciesCtrl.policiesToCopy"
-        class="gravitee-card gravitee-policy-card"
-        id="{{policy.policyId}}"
-        ng-cloak
-      >
+      <md-card ng-repeat="policy in $ctrl.policiesToCopy" class="gravitee-card gravitee-policy-card" id="{{policy.policyId}}" ng-cloak>
         <md-tooltip md-direction="right"> version: {{policy.version}} </md-tooltip>
         <md-card-content layout="row" layout-align="space-between">
           <span class="md-subhead">{{policy.name}}</span>
@@ -42,9 +37,9 @@
         <span
           flex
           class="badge gravitee-policy-method-badge-filter"
-          ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.httpMethodsFilter)"
-          ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
-          ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.httpMethodsFilter)"
+          ng-class="$ctrl.getHttpMethodClass(httpMethod, $ctrl.httpMethodsFilter)"
+          ng-repeat="httpMethod in $ctrl.httpMethods"
+          ng-click="$ctrl.toggleHttpMethod(httpMethod, $ctrl.httpMethodsFilter)"
         >
           {{httpMethod | uppercase}}
         </span>
@@ -52,7 +47,7 @@
       <md-divider></md-divider>
       <div class="gravitee-policy-panel gravitee-policy-panel-center">
         <v-accordion class="vAccordion--default" multiple>
-          <v-pane ng-repeat="path in apiPoliciesCtrl.sortedPaths()" expanded="$first">
+          <v-pane ng-repeat="path in $ctrl.sortedPaths()" expanded="$first">
             <v-pane-header>
               <h3 class="gravitee-policy-path" ng-if='path === "/"'>{{path}}</h3>
               <div ng-if='path !== "/"' layout="row" layout-align="space-between center">
@@ -65,11 +60,11 @@
                       required
                       aria-label="path"
                       ui-validate="{
-                            pathAlreadyExists : 'apiPoliciesCtrl.pathNotExists($value, $index)',
-                            mustStartWithSlash : 'apiPoliciesCtrl.pathStartWithSlash($value)'
+                            pathAlreadyExists : '$ctrl.pathNotExists($value, $index)',
+                            mustStartWithSlash : '$ctrl.pathStartWithSlash($value)'
                          }"
-                      ng-keydown="apiPoliciesCtrl.pathKeyPress($event, editPathForm['path'+$index], path, $index)"
-                      ng-blur="apiPoliciesCtrl.restoreOldPath($index, editPathForm['path'+$index])"
+                      ng-keydown="$ctrl.pathKeyPress($event, editPathForm['path'+$index], path, $index)"
+                      ng-blur="$ctrl.restoreOldPath($index, editPathForm['path'+$index])"
                       ng-click="$event.stopPropagation();"
                     />
                     <div ng-messages="editPathForm['path'+$index].$error" ng-show="editPathForm['path'+$index].$dirty">
@@ -80,25 +75,20 @@
                   </md-input-container>
                 </div>
                 <div style="margin-right: 15px">
-                  <ng-md-icon
-                    icon="delete"
-                    style="fill: #757575"
-                    size="18px"
-                    ng-click="apiPoliciesCtrl.removePath(path);$event.stopPropagation();"
-                  >
+                  <ng-md-icon icon="delete" style="fill: #757575" size="18px" ng-click="$ctrl.removePath(path);$event.stopPropagation();">
                     <md-tooltip md-direction="right"> Remove path </md-tooltip>
                   </ng-md-icon>
                 </div>
               </div>
             </v-pane-header>
             <v-pane-content>
-              <div ng-class="apiPoliciesCtrl.getDropzoneClass(path)" data-path="{{path}}">
+              <div ng-class="$ctrl.getDropzoneClass(path)" data-path="{{path}}">
                 <md-card
-                  ng-repeat="policy in apiPoliciesCtrl.apiPoliciesByPath[path]"
-                  ng-click="apiPoliciesCtrl.editPolicy($index, path, $event)"
-                  ng-hide="apiPoliciesCtrl.filterByMethod(policy)"
+                  ng-repeat="policy in $ctrl.apiPoliciesByPath[path]"
+                  ng-click="$ctrl.editPolicy($index, path, $event)"
+                  ng-hide="$ctrl.filterByMethod(policy)"
                   class="gravitee-card gravitee-policy-card"
-                  ng-class="apiPoliciesCtrl.getApiPolicyClass(policy)"
+                  ng-class="$ctrl.getApiPolicyClass(policy)"
                   layout="row"
                   layout-align="space-between start"
                 >
@@ -115,7 +105,7 @@
                       layout-align="start center"
                       layout-fill
                     >
-                      <div ng-switch="policy.methods.length === apiPoliciesCtrl.httpMethods.length">
+                      <div ng-switch="policy.methods.length === $ctrl.httpMethods.length">
                         <span
                           class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-GET-selected"
                           ng-switch-when="true"
@@ -136,7 +126,7 @@
                       style="fill: #757575"
                       size="18px"
                       class="gravitee-card-close"
-                      ng-click="apiPoliciesCtrl.removePolicy($index, path, $event)"
+                      ng-click="$ctrl.removePolicy($index, path, $event)"
                     >
                       <md-tooltip md-direction="right"> Remove policy </md-tooltip>
                     </ng-md-icon>
@@ -146,7 +136,7 @@
                       style="fill: #757575"
                       size="18px"
                       class="gravitee-card-close"
-                      ng-click="apiPoliciesCtrl.editPolicyDescription($index, path, $event)"
+                      ng-click="$ctrl.editPolicyDescription($index, path, $event)"
                     >
                       <md-tooltip md-direction="right"> Edit policy description </md-tooltip>
                     </ng-md-icon>
@@ -156,7 +146,7 @@
                       style="fill: #437536"
                       size="18px"
                       class="gravitee-card-close"
-                      ng-click="apiPoliciesCtrl.switchPolicyEnabled($index, path, $event)"
+                      ng-click="$ctrl.switchPolicyEnabled($index, path, $event)"
                     >
                       <md-tooltip md-direction="right"> Policy is enabled. Click to disable it. </md-tooltip>
                     </ng-md-icon>
@@ -166,14 +156,14 @@
                       style="fill: #751c16"
                       size="18px"
                       class="gravitee-card-close"
-                      ng-click="apiPoliciesCtrl.switchPolicyEnabled($index, path, $event)"
+                      ng-click="$ctrl.switchPolicyEnabled($index, path, $event)"
                     >
                       <md-tooltip md-direction="right"> Policy is disabled. Click to enable it. </md-tooltip>
                     </ng-md-icon>
                   </div>
                 </md-card>
               </div>
-              <span ng-if="apiPoliciesCtrl.initDragularDropZone(path)"></span>
+              <span ng-if="$ctrl.initDragularDropZone(path)"></span>
             </v-pane-content>
           </v-pane>
         </v-accordion>
@@ -182,7 +172,7 @@
   </div>
 
   <div flex layout="column">
-    <div ng-if="apiPoliciesCtrl.selectedApiPolicy.policyId">
+    <div ng-if="$ctrl.selectedApiPolicy.policyId">
       <div class="inset">
         <div layout="row" layout-align="space-between center">
           <h5>{{policy.name}}</h5>
@@ -193,9 +183,9 @@
         <span
           flex="10"
           class="badge gravitee-policy-method-badge-info"
-          ng-class="apiPoliciesCtrl.getHttpMethodClass(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)"
-          ng-repeat="httpMethod in apiPoliciesCtrl.httpMethods"
-          ng-click="apiPoliciesCtrl.toggleHttpMethod(httpMethod, apiPoliciesCtrl.selectedApiPolicy.methods)"
+          ng-class="$ctrl.getHttpMethodClass(httpMethod, $ctrl.selectedApiPolicy.methods)"
+          ng-repeat="httpMethod in $ctrl.httpMethods"
+          ng-click="$ctrl.toggleHttpMethod(httpMethod, $ctrl.selectedApiPolicy.methods)"
         >
           {{httpMethod | uppercase}}
         </span>
@@ -205,19 +195,19 @@
           name="policyConfigurationForm"
           sf-schema="policyJsonSchema"
           sf-form="policyJsonSchemaForm"
-          sf-model="apiPoliciesCtrl.selectedApiPolicy[apiPoliciesCtrl.selectedApiPolicy.policyId]"
+          sf-model="$ctrl.selectedApiPolicy[$ctrl.selectedApiPolicy.policyId]"
           sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }"
           novalidate
         ></form>
 
-        <div ng-if="apiPoliciesCtrl.schemaByPolicyId[apiPoliciesCtrl.selectedApiPolicy.policyId]">
+        <div ng-if="$ctrl.schemaByPolicyId[$ctrl.selectedApiPolicy.policyId]">
           <md-divider></md-divider>
           <md-button
             permission
             permission-only="'api-definition-u'"
             class="md-raised"
-            ng-disabled="!apiPoliciesCtrl.httpMethodsUpdated && (policyConfigurationForm.$invalid || policyConfigurationForm.$pristine)"
-            ng-click="apiPoliciesCtrl.savePaths();"
+            ng-disabled="!$ctrl.httpMethodsUpdated && (policyConfigurationForm.$invalid || policyConfigurationForm.$pristine)"
+            ng-click="$ctrl.savePaths();"
             >Save
           </md-button>
         </div>
@@ -231,7 +221,7 @@
   permission-only="'api-definition-d'"
   class="md-fab md-mini md-fab-bottom-right gravitee-policy-migration-button"
   aria-label="Update to Policy studio"
-  ng-click="apiPoliciesCtrl.migrateApiToPolicyStudio()"
+  ng-click="$ctrl.migrateApiToPolicyStudio()"
 >
   <ng-md-icon icon="queue_play_next"></ng-md-icon>
   <md-tooltip md-direction="top"> Migrate API to Policy Studio </md-tooltip>
@@ -242,7 +232,7 @@
   permission-only="'api-definition-d'"
   class="md-fab md-fab-bottom-right"
   aria-label="Add"
-  ng-click="apiPoliciesCtrl.showAddPathModal($event)"
+  ng-click="$ctrl.showAddPathModal($event)"
 >
   <ng-md-icon icon="add"></ng-md-icon>
   <md-tooltip md-direction="top"> Add a path </md-tooltip>
