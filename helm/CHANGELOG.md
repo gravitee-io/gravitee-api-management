@@ -18,6 +18,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 4.0.0
 
 - Remove old and unused `cache.type` from gateway config map
+- Remove `api.removePlugins` & `gateway.removePlugins` as the platform allows plugin override now, only `additionalPlugins`  is necessary.
 
 ### 3.20.12
 

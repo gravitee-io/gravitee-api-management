@@ -288,7 +288,7 @@ es:
     #     - /path/to/key
     #     - /path/to/key2
   endpoints:
-    - http://graviteeio-apim-elasticsearch-data.default.svc.cluster.local:9200
+    - http://graviteeio-apim-elasticsearch.default.svc.cluster.local:9200
   pipeline:
     plugins:
       ingest: geoip, user_agent # geoip and user_agent plugins are enabled by default
@@ -488,8 +488,6 @@ api:
   #         key: SPECIAL_LEVEL
   additionalPlugins:
 #    - https://path_to_plugin
-  removePlugins:
-#    - filename_of_plugin_without_version_and_extension
   ssl:
     enabled: false
   #  keystore:
@@ -797,8 +795,7 @@ gateway:
 
   additionalPlugins:
 #    - https://path_to_plugin
-  removePlugins:
-#    - filename_of_plugin_without_version_and_extension
+
 
   ssl:
     enabled: false
