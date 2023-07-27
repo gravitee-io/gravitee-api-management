@@ -21,8 +21,8 @@
       <div class="endpoints-group-card__header">
         <div class="endpoints-group-card__header__title">
           <span class="mat-h4">{{ group?.name }}</span>
-          <span class="gio-badge-primary">
-            <mat-icon *ngIf="plugins?.get(group.type)" [svgIcon]="plugins?.get(group.type)?.icon"></mat-icon>
+          <span *ngIf="plugins?.get(group.type)" class="gio-badge-primary">
+            <mat-icon [svgIcon]="plugins?.get(group.type)?.icon"></mat-icon>
             {{ plugins?.get(group.type)?.name }}
           </span>
           <span class="gio-badge-accent">
@@ -32,6 +32,14 @@
         </div>
 
         <div class="endpoints-group-card__header__actions">
+          <button
+            *gioPermission="{ anyOf: ['api-definition-u'] }"
+            mat-stroked-button
+            aria-label="Edit endpoint group"
+            (click)="editEndpointGroup(i)"
+          >
+            Configure group defaults
+          </button>
           <button
             id="{{ 'moveUpBtn-' + i }}"
             *ngIf="groupsTableData?.length > 1 && i !== 0"

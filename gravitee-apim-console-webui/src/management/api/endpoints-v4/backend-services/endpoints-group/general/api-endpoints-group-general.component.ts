@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, Input } from '@angular/core';
+import { FormGroup } from '@angular/forms';
 
-export interface LoadBalancer {
-  /**
-   * Load balancer type.
-   */
-  type?: LoadBalancerTypeEnum;
+import { LOAD_BALANCER_TYPES } from '../../../../../../entities/management-api-v2';
+
+@Component({
+  selector: 'api-endpoints-group-general',
+  template: require('./api-endpoints-group-general.component.html'),
+  styles: [require('./api-endpoints-group-general.component.scss')],
+})
+export class ApiEndpointsGroupGeneralComponent {
+  @Input() generalForm: FormGroup;
+  public loadBalancerTypes = LOAD_BALANCER_TYPES;
 }
-
-export const LOAD_BALANCER_TYPES = ['RANDOM', 'ROUND_ROBIN', 'WEIGHTED_RANDOM', 'WEIGHTED_ROUND_ROBIN'] as const;
-export type LoadBalancerTypeEnum = (typeof LOAD_BALANCER_TYPES)[number];

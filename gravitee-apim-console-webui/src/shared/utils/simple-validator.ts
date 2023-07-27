@@ -22,6 +22,13 @@ export const isUnique = (paths: string[]): ValidatorFn | null => {
   };
 };
 
+export const isUniqueAndDoesNotMatchDefaultValue = (values: string[], defaultValue: string): ValidatorFn | null => {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const formControlValue = control.value;
+    return formControlValue !== defaultValue && values.includes(formControlValue) ? { isUnique: true } : null;
+  };
+};
+
 export const MAIL_PATTERN =
   /^((\${.+})|(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,})))$/;
 export const URL_PATTERN = /^((\$\{.+\})|(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))$/;

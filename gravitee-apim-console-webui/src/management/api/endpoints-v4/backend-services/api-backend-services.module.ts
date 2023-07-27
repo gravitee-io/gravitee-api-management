@@ -18,10 +18,11 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ApiEndpointsGroupsModule } from './endpoints-groups/api-endpoints-groups.module';
+import { ApiEndpointsGroupModule } from './endpoints-group/api-endpoints-group.module';
 
 import { ApiProxyEndpointModule } from '../../proxy/endpoints/api-proxy-endpoints.module';
 
 @NgModule({
-  imports: [CommonModule, ApiProxyEndpointModule, ApiEndpointsGroupsModule],
+  imports: [CommonModule, ApiProxyEndpointModule, ApiEndpointsGroupsModule, ApiEndpointsGroupModule],
 })
 export class ApiBackendServicesModule {}
