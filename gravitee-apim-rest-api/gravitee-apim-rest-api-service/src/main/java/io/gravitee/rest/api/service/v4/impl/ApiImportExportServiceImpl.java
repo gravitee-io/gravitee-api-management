@@ -259,6 +259,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
             planEntity.setApiId(createdApiEntity.getId());
             planService.createOrUpdatePlan(executionContext, planEntity);
         });
+        createdApiEntity.setPlans(plans);
     }
 
     protected void createMetadata(final ExecutionContext executionContext, ApiEntity createdApiEntity, Set<ApiMetadataEntity> metadata) {
