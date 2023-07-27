@@ -76,7 +76,7 @@ public class FlowConverterTest {
     }
 
     @Test
-    public void toModelShouldInitializeNonNullableFields() {
+    public void to_model_should_initialize_non_nullable_fields() {
         Flow flowDefinition = new Flow();
         flowDefinition.setName("platform");
         flowDefinition.setPathOperator(pathOperator());
@@ -100,7 +100,7 @@ public class FlowConverterTest {
     }
 
     @Test
-    public void toModelShouldKeepTheStepOrder() {
+    public void to_model_should_keep_the_step_order() {
         Flow flowDefinition = new Flow();
         flowDefinition.setPre(pre());
 
@@ -114,7 +114,7 @@ public class FlowConverterTest {
     }
 
     @Test
-    public void toDefinitionShouldSetPathOperatorFromPathAndOperatorValues() {
+    public void to_definition_should_set_path_operator_from_path_and_operator_values() {
         final PathOperator expectedOperator = pathOperator();
 
         var flow = new io.gravitee.repository.management.model.flow.Flow();
@@ -130,7 +130,7 @@ public class FlowConverterTest {
     }
 
     @Test
-    public void toDefinitionStepShouldMapAllStepData() {
+    public void to_definition_step_should_map_all_stepData() {
         FlowStep flowStep = new FlowStep();
         flowStep.setPolicy("test-policy");
         flowStep.setDescription("test-description");
@@ -150,7 +150,7 @@ public class FlowConverterTest {
     }
 
     @Test
-    public void toDefinitionStepShouldMapConfiguration() {
+    public void to_definition_step_should_map_configuration() {
         FlowStep flowStep = new FlowStep();
         flowStep.setPolicy("test-policy");
         flowStep.setConfiguration("{\"key\": \"value\"}");
@@ -160,7 +160,7 @@ public class FlowConverterTest {
     }
 
     @Test
-    public void toDefinitionStepShouldMapConfigurationWithEscapedValues() {
+    public void to_definition_step_should_map_configuration_with_escaped_values() {
         FlowStep flowStep = new FlowStep();
         flowStep.setPolicy("test-policy");
         flowStep.setConfiguration("{\"key\": \"<\\/value\\nvalue>\"}");
@@ -170,7 +170,7 @@ public class FlowConverterTest {
     }
 
     @Test
-    public void toDefinitionShouldKeepTheStepOrder() {
+    public void to_definition_should_keep_the_step_order() {
         final PathOperator expectedOperator = pathOperator();
 
         var flow = new io.gravitee.repository.management.model.flow.Flow();
@@ -184,6 +184,30 @@ public class FlowConverterTest {
         assertEquals(2, flowDefinition.getPre().size());
         assertEquals("IPFiltering", flowDefinition.getPre().get(0).getName());
         assertEquals("HTTP Callout", flowDefinition.getPre().get(1).getName());
+    }
+
+    @Test
+    public void to_definition_should_not_stringify_null_values() {
+        FlowStep flowStep = new FlowStep();
+        flowStep.setEnabled(true);
+        flowStep.setName("IPFiltering");
+        flowStep.setPolicy("ip-filtering");
+        flowStep.setConfiguration("{\"whitelistIps\":[\"0.0.0.0/0\"]}");
+        flowStep.setOrder(0);
+        flowStep.setDescription(null);
+
+        var flow = new io.gravitee.repository.management.model.flow.Flow();
+        flow.setPath("/");
+        flow.setName(null);
+        flow.setCondition(null);
+        flow.setOperator(FlowOperator.STARTS_WITH);
+        flow.setConsumers(List.of());
+        flow.setPre(List.of(flowStep));
+
+        Flow convertedFlow = converter.toDefinition(flow);
+        assertNull(convertedFlow.getName());
+        assertNull(convertedFlow.getCondition());
+        assertNull(convertedFlow.getPre().get(0).getDescription());
     }
 
     private static List<FlowStep> definitionPre() {
