@@ -1,0 +1,58 @@
+{
+  "id": "52f1a803-729e-4870-b1a8-03729ee8706f",
+  "path-operator": {
+    "path": "/",
+    "operator": "STARTS_WITH"
+  },
+  "consumers": [],
+  "methods": [],
+  "pre": [
+    {
+      "name": "Rate Limiting",
+      "enabled": true,
+      "policy": "rate-limit",
+      "configuration": {
+        "async": false,
+        "addHeaders": false,
+        "rate": {
+          "periodTime": 1,
+          "limit": 4,
+          "periodTimeUnit": "SECONDS",
+          "key": ""
+        }
+      }
+    },
+    {
+      "name": "Quota",
+      "enabled": true,
+      "policy": "quota",
+      "configuration": {
+        "async": false,
+        "addHeaders": true,
+        "quota": {
+          "periodTime": 4,
+          "periodTimeUnit": "MONTHS",
+          "key": ""
+        }
+      }
+    },
+    {
+      "name": "Resource Filtering",
+      "enabled": true,
+      "policy": "resource-filtering",
+      "configuration": {
+        "blacklist": [],
+        "whitelist": [
+          {
+            "methods": [
+              "HEAD"
+            ],
+            "pattern": "/failnot"
+          }
+        ]
+      }
+    }
+  ],
+  "post": [],
+  "enabled": true
+}

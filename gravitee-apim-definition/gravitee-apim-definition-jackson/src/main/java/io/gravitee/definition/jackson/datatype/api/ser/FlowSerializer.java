@@ -44,14 +44,18 @@ public class FlowSerializer extends StdScalarSerializer<Flow> {
         jgen.writeStartObject();
 
         jgen.writeStringField("id", flow.getId());
-        jgen.writeStringField("name", flow.getName());
+        if (flow.getName() != null) {
+            jgen.writeStringField("name", flow.getName());
+        }
 
         final PathOperator pathOperator = flow.getPathOperator();
         if (pathOperator != null) {
             jgen.writeObjectField("path-operator", pathOperator);
         }
 
-        jgen.writeStringField("condition", flow.getCondition());
+        if (flow.getCondition() != null) {
+            jgen.writeStringField("condition", flow.getCondition());
+        }
 
         jgen.writeArrayFieldStart("consumers");
         if (flow.getConsumers() != null) {

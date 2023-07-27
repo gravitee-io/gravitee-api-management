@@ -16,12 +16,17 @@
 package io.gravitee.definition.jackson.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.flow.Flow;
+
+import java.io.IOException;
 import java.util.Set;
+
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,5 +46,25 @@ public class FlowSerializerTest extends AbstractTest {
         String flow2json = objectMapper().writeValueAsString(flow2);
 
         assertEquals(flow1json, flow2json);
+    }
+
+    @Test
+    public void should_handle_null_values() throws IOException {
+        final String rawDefinitionToSerialize = IOUtils.toString(read("/io/gravitee/definition/jackson/flow-nullvalue.json"));
+
+        final Flow flow = objectMapper().readValue(rawDefinitionToSerialize, Flow.class);
+        assertNull(flow.getName());
+        assertNull(flow.getCondition());
+        assertNull(flow.getPre().get(0).getDescription());
+    }
+
+    @Test
+    public void should_map_missing_fields_to_null() throws IOException {
+        final String rawDefinitionToSerialize = IOUtils.toString(read("/io/gravitee/definition/jackson/flow-missingfields.json"));
+
+        final Flow flow = objectMapper().readValue(rawDefinitionToSerialize, Flow.class);
+        assertNull(flow.getName());
+        assertNull(flow.getCondition());
+        assertNull(flow.getPre().get(0).getDescription());
     }
 }
