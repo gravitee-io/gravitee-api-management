@@ -39,10 +39,14 @@ public class StepDeserializer extends StdScalarDeserializer<Step> {
 
         Step step = new Step();
         step.setName(node.path("name").asText());
-        step.setDescription(node.path("description").asText());
+
+        JsonNode description = node.path("description");
+        if (!description.isMissingNode() && !description.isNull()) {
+            step.setDescription(description.asText());
+        }
         step.setPolicy(node.get("policy").asText());
         final JsonNode condition = node.get("condition");
-        if (condition != null && !condition.isNull()) {
+        if (condition != null && !condition.isMissingNode() && !condition.isNull()) {
             final String conditionStr = condition.asText();
             if (!conditionStr.isBlank()) {
                 step.setCondition(conditionStr);

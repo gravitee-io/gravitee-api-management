@@ -48,11 +48,15 @@ public class FlowDeserializer extends StdScalarDeserializer<Flow> {
 
         JsonNode jsonId = node.path("id");
 
-        if (jsonId != null && !jsonId.asText().isEmpty()) {
+        if (!jsonId.isNull() && !jsonId.asText().isEmpty()) {
             flow.setId(jsonId.asText());
         }
 
-        flow.setName(node.path("name").asText());
+        JsonNode name = node.path("name");
+        if (!name.isNull() && !name.isMissingNode()) {
+            flow.setName(name.asText());
+        }
+
         flow.setEnabled(node.path("enabled").asBoolean(true));
 
         JsonNode jsonPathOperator = node.get("path-operator");
@@ -61,7 +65,10 @@ public class FlowDeserializer extends StdScalarDeserializer<Flow> {
             flow.setPathOperator(jsonPathOperator.traverse(jp.getCodec()).readValueAs(PathOperator.class));
         }
 
-        flow.setCondition(node.path("condition").asText());
+        JsonNode condition = node.path("condition");
+        if (!condition.isNull() && !condition.isMissingNode()) {
+            flow.setCondition(condition.asText());
+        }
 
         JsonNode consumersNode = node.get("consumers");
         if (consumersNode != null && consumersNode.isArray()) {
