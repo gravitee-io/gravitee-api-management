@@ -36,7 +36,9 @@ public class StepSerializer extends StdScalarSerializer<Step> {
     public void serialize(Step step, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("name", step.getName());
-        jgen.writeStringField("description", step.getDescription());
+        if (step.getDescription() != null) {
+            jgen.writeStringField("description", step.getDescription());
+        }
         jgen.writeBooleanField("enabled", step.isEnabled());
         jgen.writeStringField("policy", step.getPolicy());
         if (step.getCondition() != null && !step.getCondition().isBlank()) {

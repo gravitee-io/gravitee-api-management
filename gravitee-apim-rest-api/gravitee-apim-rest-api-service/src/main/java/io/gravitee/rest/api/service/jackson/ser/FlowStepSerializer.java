@@ -31,7 +31,9 @@ public class FlowStepSerializer extends StdScalarSerializer<FlowStep> {
     public void serialize(FlowStep step, JsonGenerator jsonGenerator, SerializerProvider provider) throws IOException {
         jsonGenerator.writeStartObject();
         jsonGenerator.writeStringField("name", step.getName());
-        jsonGenerator.writeStringField("description", step.getDescription());
+        if (step.getDescription() != null) {
+            jsonGenerator.writeStringField("description", step.getDescription());
+        }
         jsonGenerator.writeBooleanField("enabled", step.isEnabled());
         jsonGenerator.writeStringField("policy", step.getPolicy());
         jsonGenerator.writeNumberField("order", step.getOrder());
