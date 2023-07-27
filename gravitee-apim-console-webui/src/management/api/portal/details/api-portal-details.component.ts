@@ -341,7 +341,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(
         filter((apiDuplicated) => !!apiDuplicated),
-        tap((apiDuplicated) => this.ajsState.go('management.apis.detail.portal.general', { apiId: apiDuplicated.id })),
+        tap((apiDuplicated) => this.ajsState.go('management.apis.ng.general', { apiId: apiDuplicated.id })),
 
         takeUntil(this.unsubscribe$),
       )
@@ -419,7 +419,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   }
 
   public reloadApi() {
-    this.ajsState.go('management.apis.detail.portal.general', { apiId: this.apiId }, { reload: true });
+    this.ajsState.go('management.apis.ng.general', { apiId: this.apiId }, { reload: true });
   }
 }
 

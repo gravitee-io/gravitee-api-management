@@ -35,7 +35,7 @@ describe('AnalyticsLogComponent', () => {
         },
       },
     };
-    logComponent = $componentController('log', null, bindings);
+    logComponent = $componentController('apiAnalyticsLogComponentAjs', null, bindings);
   }));
 
   describe('getMimeType', () => {

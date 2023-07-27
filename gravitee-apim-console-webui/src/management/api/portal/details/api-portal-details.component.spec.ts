@@ -304,7 +304,7 @@ describe('ApiPortalDetailsComponent', () => {
 
       await expectDuplicatePostRequest(API_ID);
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.detail.portal.general', { apiId: 'newApiId' });
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.general', { apiId: 'newApiId' });
     });
   });
 
