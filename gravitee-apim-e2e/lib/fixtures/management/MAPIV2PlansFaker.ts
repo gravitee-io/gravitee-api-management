@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import faker from '@faker-js/faker';
-import { PlanValidation, PlanSecurityType, CreatePlanV4, PlanMode, CreatePlan } from '../../management-v2-webclient-sdk/src/lib';
+import { PlanValidation, PlanSecurityType, PlanMode, CreatePlan, PlanV4, PlanStatus } from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 export class MAPIV2PlansFaker {
   static newPlanV4(attributes?: Partial<CreatePlan>): CreatePlan {
@@ -28,6 +28,25 @@ export class MAPIV2PlansFaker {
       validation: PlanValidation.AUTO,
       security: { type: PlanSecurityType.KEY_LESS },
       mode: PlanMode.STANDARD,
+      order: 1,
+      characteristics: [],
+      flows: [],
+      ...attributes,
+    };
+  }
+
+  static planV4(attributes?: Partial<PlanV4>): PlanV4 {
+    const name = faker.lorem.words(4);
+    const description = faker.lorem.words(10);
+
+    return {
+      name,
+      description,
+      definitionVersion: 'V4',
+      validation: PlanValidation.AUTO,
+      security: { type: PlanSecurityType.KEY_LESS },
+      mode: PlanMode.STANDARD,
+      status: PlanStatus.PUBLISHED,
       order: 1,
       characteristics: [],
       flows: [],
