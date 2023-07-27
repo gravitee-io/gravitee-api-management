@@ -122,7 +122,7 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.initFilters();
-    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.portal';
+    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.ng';
 
     this.filtersForm.valueChanges
       .pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$))

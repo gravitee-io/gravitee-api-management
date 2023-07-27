@@ -61,7 +61,7 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    const baseRoute = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.portal';
+    const baseRoute = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.ng';
     this.portalPlansRoute = baseRoute + '.plans';
 
     this.mode = this.ajsStateParams.planId ? 'edit' : 'create';

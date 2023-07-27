@@ -156,7 +156,7 @@ describe('ApiPortalPlanEditComponent', () => {
           ],
         } as CreatePlanV2);
         req.flush({});
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.detail.portal.plans');
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.plans');
       });
     });
 

@@ -72,7 +72,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
-    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.portal';
+    this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.ng';
     this.status = this.ajsStateParams.status ?? 'PUBLISHED';
 
     this.apiService
@@ -141,7 +141,7 @@ export class ApiPortalPlanListComponent implements OnInit, OnDestroy {
   }
 
   public designPlan(planId: string): void {
-    this.ajsState.go('management.apis.detail.design.flowsNg', { apiId: this.api.id, flows: `${planId}_0` });
+    this.ajsState.go('management.apis.ng.policy-studio-v2.design', { apiId: this.api.id, flows: `${planId}_0` });
   }
 
   public publishPlan(plan: Plan): void {

@@ -102,7 +102,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
             .afterClosed(),
         ),
         filter((apiId) => !!apiId),
-        tap((apiId) => this.ajsState.go('management.apis.detail.portal.general', { apiId })),
+        tap((apiId) => this.ajsState.go('management.apis.ng.general', { apiId })),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? 'An error occurred while importing the API.');
           return EMPTY;

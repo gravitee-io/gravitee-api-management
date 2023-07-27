@@ -105,7 +105,7 @@ export class TasksComponent implements OnInit, OnDestroy {
         const { api: apiId, id } = task.data as any;
         const taskEnvironmentId = this.tasks.metadata[apiId]?.environmentId;
 
-        this.ajsState.go('management.apis.detail.portal.subscription.edit', {
+        this.ajsState.go('management.apis.ng.subscription.edit', {
           apiId,
           subscriptionId: id,
           environmentId: taskEnvironmentId || currentEnvironmentId,
@@ -117,7 +117,7 @@ export class TasksComponent implements OnInit, OnDestroy {
         const { referenceId } = task.data as Workflow;
         const taskEnvironmentId = this.tasks.metadata[referenceId]?.environmentId;
 
-        this.ajsState.go('management.apis.detail.portal.general', {
+        this.ajsState.go('management.apis.ng.general', {
           apiId: referenceId,
           environmentId: taskEnvironmentId || currentEnvironmentId,
         });
