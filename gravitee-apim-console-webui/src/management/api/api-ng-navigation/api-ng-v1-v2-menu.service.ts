@@ -15,18 +15,17 @@
  */
 import { Inject, Injectable } from '@angular/core';
 import { map } from 'rxjs/operators';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { MenuGroupItem, MenuItem } from './MenuGroupItem';
 import { ApiMenuService } from './ApiMenuService';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { Feature } from '../../../shared/components/gio-license/gio-license-features';
-import { UTMMedium } from '../../../shared/components/gio-license/gio-license-utm';
 import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
-import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
 import { ApiV1, ApiV2, DefinitionVersion } from '../../../entities/management-api-v2';
+import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 
 @Injectable()
 export class ApiNgV1V2MenuService implements ApiMenuService {
@@ -330,10 +329,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
   }
 
   private getAuditGroup(): MenuGroupItem {
-    const license = { feature: Feature.APIM_AUDIT_TRAIL, utmMedium: UTMMedium.AUDIT_TRAIL_API };
-    const iconRight$ = this.gioLicenseService
-      .isMissingFeature$(license.feature)
-      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
+    const iconRight$ = this.gioLicenseService.isMissingFeature$(license).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
 
     const auditGroup: MenuGroupItem = {
       title: 'Audit',

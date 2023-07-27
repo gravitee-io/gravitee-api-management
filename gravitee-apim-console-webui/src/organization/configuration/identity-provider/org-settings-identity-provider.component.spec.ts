@@ -26,7 +26,7 @@ import { omit } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
-import { GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioFormTagsInputHarness, GioSaveBarHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
@@ -44,7 +44,6 @@ import { Role } from '../../../entities/role/role';
 import { Environment } from '../../../entities/environment/environment';
 import { fakeRole } from '../../../entities/role/role.fixture';
 import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
-import { GioLicenseTestingModule } from '../../../shared/testing/gio-license.testing.module';
 
 describe('OrgSettingsIdentityProviderComponent', () => {
   let fixture: ComponentFixture<OrgSettingsIdentityProviderComponent>;
@@ -474,7 +473,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   describe('edit', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
         providers: [
           { provide: UIRouterState, useValue: fakeAjsState },
           { provide: UIRouterStateParams, useValue: { id: 'providerId' } },

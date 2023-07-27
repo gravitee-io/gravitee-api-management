@@ -21,6 +21,7 @@ import {
   GioConfirmAndValidateDialogData,
   GioConfirmDialogComponent,
   GioConfirmDialogData,
+  GioLicenseService,
 } from '@gravitee/ui-particles-angular';
 import { StateService } from '@uirouter/core';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
@@ -31,11 +32,8 @@ import { Constants } from '../../../../../entities/Constants';
 import { Api, ApiV4, UpdateApi } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
-import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
 import { ApiReviewV2Service } from '../../../../../services-ngx/api-review-v2.service';
-import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
-import { Feature } from '../../../../../shared/components/gio-license/gio-license-features';
+import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
   selector: 'api-general-info-danger-zone',
@@ -45,7 +43,10 @@ import { Feature } from '../../../../../shared/components/gio-license/gio-licens
 export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public utmMedium = UTMMedium.GENERAL_DANGER_ZONE;
+  private licenseOptions = {
+    feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+    context: UTMTags.GENERAL_DANGER_ZONE,
+  };
 
   @Input()
   public api: Api;
@@ -76,7 +77,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
     if (api.type === 'PROXY') {
       return of(false);
     }
-    return this.licenseService?.isMissingFeature$(Feature.APIM_EN_MESSAGE_REACTOR);
+    return this.licenseService?.isMissingFeature$(this.licenseOptions);
   }
 
   public get canStart$(): Observable<boolean> {
@@ -94,7 +95,6 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
     private readonly snackBarService: SnackBarService,
     @Inject('Constants') private readonly constants: Constants,
     private readonly licenseService: GioLicenseService,
-    public readonly licenseDialog: GioLicenseDialog,
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -302,5 +302,9 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
     } else {
       return api.lifecycleState === 'CREATED' || api.lifecycleState === 'PUBLISHED' || api.lifecycleState === 'UNPUBLISHED';
     }
+  }
+
+  public onRequestUpgrade($event: MouseEvent) {
+    this.licenseService.openDialog(this.licenseOptions, $event);
   }
 }

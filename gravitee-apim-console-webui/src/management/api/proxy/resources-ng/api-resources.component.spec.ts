@@ -19,9 +19,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { Subject } from 'rxjs';
+import { GioLicenseService, GioSaveBarHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiResourcesComponent } from './api-resources.component';
 import { ApiResourcesModule } from './api-resources.module';
@@ -46,15 +45,18 @@ describe('PolicyStudioResourcesComponent', () => {
 
   const resources = [fakeResourceListItem()];
 
-  const dialog = {
-    open: jest.fn().mockReturnValue({
-      afterClosed: jest.fn().mockReturnValue(new Subject()),
-    }),
-  };
+  const openDialog = jest.fn();
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiResourcesModule, GioUiRouterTestingModule, MatDialogModule],
+      imports: [
+        NoopAnimationsModule,
+        GioHttpTestingModule,
+        ApiResourcesModule,
+        GioUiRouterTestingModule,
+        MatDialogModule,
+        GioLicenseTestingModule,
+      ],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         {
@@ -67,10 +69,11 @@ describe('PolicyStudioResourcesComponent', () => {
           provide: CurrentUserService,
           useValue: { currentUser },
         },
-
         {
-          provide: MatDialog,
-          useValue: dialog,
+          provide: GioLicenseService,
+          useValue: {
+            openDialog,
+          },
         },
       ],
     })
@@ -168,18 +171,9 @@ describe('PolicyStudioResourcesComponent', () => {
       }),
     );
 
-    expect(dialog.open).toHaveBeenCalledWith(expect.any(Function), {
-      data: {
-        featureInfo: {
-          description:
-            'Confluent Schema Registry is part of Gravitee Enterprise. Integration with a Schema Registry enables your APIs to validate schemas used in API calls, and serialize and deserialize data.',
-          image: 'assets/gio-ee-unlock-dialog/confluent-schema-registry.svg',
-        },
-        trialURL:
-          'https://gravitee.io/self-hosted-trial?utm_source=oss_apim&utm_medium=resource_confluent_schema_registry&utm_campaign=oss_apim_to_ee_apim',
-      },
-      id: 'dialog',
-      role: 'alertdialog',
+    expect(openDialog).toHaveBeenCalledWith({
+      feature: 'apim-en-schema-registry-provider',
+      context: 'api_confluent',
     });
   });
 

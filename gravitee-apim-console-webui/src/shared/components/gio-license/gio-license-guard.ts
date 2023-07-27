@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { TransitionService } from '@uirouter/angularjs';
-
-import { GioLicenseService } from './gio-license.service';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 export interface GioLicenseRouterData {
   license: {
@@ -41,7 +40,7 @@ export function licenseGuard(transitionService: TransitionService) {
     const licenseService: GioLicenseService = transition.injector().get(GioLicenseService);
     const $state = transition.router.stateService;
 
-    const notAllowed = await licenseService.isMissingFeature$(licenseRouterData.license.feature).toPromise();
+    const notAllowed = await licenseService.isMissingFeature$(licenseRouterData.license).toPromise();
     if (notAllowed) {
       return $state.target(licenseRouterData.redirect);
     }

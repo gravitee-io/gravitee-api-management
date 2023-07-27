@@ -17,7 +17,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
-import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, omitBy } from 'lodash';
 
@@ -28,8 +28,7 @@ import { ApiCreationPayload } from '../../models/ApiCreationPayload';
 import { Step3Endpoints2ConfigComponent } from '../step-3-endpoints/step-3-endpoints-2-config.component';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { PathV4 } from '../../../../../entities/management-api-v2';
-import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
-import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
+import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -46,7 +45,6 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public hasListeners: boolean;
   public enableVirtualHost: boolean;
   public domainRestrictions: string[] = [];
-  public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG;
   public shouldUpgrade = false;
 
   private apiType: ApiCreationPayload['type'];
@@ -57,7 +55,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     private readonly stepService: ApiCreationStepService,
     private readonly environmentService: EnvironmentService,
     private readonly changeDetectorRef: ChangeDetectorRef,
-    public readonly licenseDialog: GioLicenseDialog,
+    private readonly licenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
@@ -141,5 +139,12 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     this.stepService.goToPreviousStep();
+  }
+
+  onRequestUpgrade($event: MouseEvent) {
+    this.licenseService.openDialog(
+      { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG },
+      $event,
+    );
   }
 }

@@ -16,7 +16,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -107,6 +107,10 @@ describe('ApiCreationV4Component', () => {
             });
             return constants;
           },
+        },
+        {
+          provide: 'LicenseConfiguration',
+          useValue: LICENSE_CONFIGURATION_TESTING,
         },
       ],
       imports: [NoopAnimationsModule, ApiCreationV4Module, GioHttpTestingModule, MatIconTestingModule],
@@ -1644,6 +1648,6 @@ describe('ApiCreationV4Component', () => {
   }
 
   function expectLicenseGetRequest(license: License) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush(license);
+    httpTestingController.expectOne({ url: LICENSE_CONFIGURATION_TESTING.resourceURL, method: 'GET' }).flush(license);
   }
 });

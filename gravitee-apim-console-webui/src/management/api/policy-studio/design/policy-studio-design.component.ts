@@ -19,8 +19,8 @@ import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Location } from '@angular/common';
 import '@gravitee/ui-components/wc/gv-design';
-import { action } from '@storybook/addon-actions';
 import { MatDialog } from '@angular/material/dialog';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioDesignService } from './policy-studio-design.service';
 import { ChangeDesignEvent } from './models/ChangeDesignEvent';
@@ -34,13 +34,7 @@ import { FlowSchema } from '../../../../entities/flow/flowSchema';
 import { Grammar } from '../../../../entities/spel/grammar';
 import { ApiDefinition } from '../models/ApiDefinition';
 import { PolicyStudioService } from '../policy-studio.service';
-import {
-  GioEeUnlockDialogComponent,
-  GioEeUnlockDialogData,
-} from '../../../../components/gio-ee-unlock-dialog/gio-ee-unlock-dialog.component';
-import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
-import { Feature } from '../../../../shared/components/gio-license/gio-license-features';
-import { UTMMedium } from '../../../../shared/components/gio-license/gio-license-utm';
+import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 
 export interface UrlParams {
   path: string;
@@ -120,25 +114,7 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
   }
 
   public displayPolicyCta() {
-    const featureInfo = this.licenseService.getFeatureInfo(Feature.APIM_POLICY_V2);
-    const trialURL = this.licenseService.getTrialURL(UTMMedium.POLICY_STUDIO_V2);
-
-    this.matDialog
-      .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
-        data: {
-          featureInfo,
-          trialURL,
-        },
-        role: 'alertdialog',
-        id: 'gioLicenseDialog',
-      })
-      .afterClosed()
-      .pipe(
-        tap((confirmed) => {
-          action('confirmed?')(confirmed);
-        }),
-      )
-      .subscribe();
+    this.licenseService.openDialog({ feature: ApimFeature.APIM_POLICY_V2, context: UTMTags.CONTEXT_API });
   }
 
   public fetchPolicyDocumentation({ policy }: { policy: { id: string; icon: string } }): void {

@@ -15,11 +15,11 @@
  */
 
 import { Component, Inject, OnInit } from '@angular/core';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
-import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
-import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
+import { UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { Constants } from '../../../../../entities/Constants';
 
 @Component({
@@ -37,13 +37,11 @@ export class Step5SummaryComponent implements OnInit {
   public shouldUpgrade: boolean;
   public hasReviewEnabled = this.constants.env?.settings?.apiReview?.enabled ?? false;
 
-  public utmMedium = UTMMedium.API_CREATION_MESSAGE_SUMMARY;
-
   private apiType: ApiCreationPayload['type'];
 
   constructor(
     private readonly stepService: ApiCreationStepService,
-    public readonly licenseDialog: GioLicenseDialog,
+    public readonly licenseService: GioLicenseService,
     @Inject('Constants') private readonly constants: Constants,
   ) {}
 
@@ -69,5 +67,9 @@ export class Step5SummaryComponent implements OnInit {
 
   onChangeStepInfo(stepLabel: string) {
     this.stepService.goToStepLabel(stepLabel);
+  }
+
+  public onRequestUpgrade($event: MouseEvent) {
+    this.licenseService.openDialog({ feature: UTMTags.API_CREATION_MESSAGE_SUMMARY }, $event);
   }
 }

@@ -18,7 +18,12 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { GioFormFilePickerInputHarness, GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import {
+  GioFormFilePickerInputHarness,
+  GioFormTagsInputHarness,
+  GioSaveBarHarness,
+  LICENSE_CONFIGURATION_TESTING,
+} from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
@@ -57,6 +62,10 @@ describe('ApiGeneralInfoComponent', () => {
         { provide: UIRouterState, useValue: fakeAjsState },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: 'LicenseConfiguration',
+          useValue: LICENSE_CONFIGURATION_TESTING,
+        },
         {
           provide: 'Constants',
           useValue: {
@@ -534,7 +543,7 @@ describe('ApiGeneralInfoComponent', () => {
   }
 
   function expectLicenseGetRequest() {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush({ features: [], packs: [] });
+    httpTestingController.expectOne({ url: LICENSE_CONFIGURATION_TESTING.resourceURL, method: 'GET' }).flush({ features: [], packs: [] });
   }
 });
 

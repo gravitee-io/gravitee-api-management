@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum Feature {
+export enum ApimFeature {
   APIM_CUSTOM_ROLES = 'apim-custom-roles',
   APIM_OPENID_CONNECT_SSO = 'apim-openid-connect-sso',
   APIM_SHARDING_TAGS = 'apim-sharding-tags',
@@ -25,8 +25,24 @@ export enum Feature {
   APIM_EN_MESSAGE_REACTOR = 'apim-en-message-reactor',
 }
 
-export function stringFeature(value: string): Feature {
-  const feature = value as Feature;
+export enum UTMTags {
+  CONTEXT_API = 'api',
+  CONTEXT_API_V2 = 'api_v2',
+  CONTEXT_API_V4 = 'api_v4',
+  CONTEXT_ENVIRONMENT = 'environment',
+  CONTEXT_ORGANIZATION = 'organization',
+  API_CONFLUENT = 'api_confluent',
+  GENERAL_DANGER_ZONE = 'general_danger_zone',
+  API_CREATION_TRY_MESSAGE = 'api_creation_try_message',
+  API_CREATION_MESSAGE_ENTRYPOINT = 'api_creation_message_entrypoint',
+  API_CREATION_MESSAGE_ENTRYPOINT_CONFIG = 'api_creation_message_entrypoint_config',
+  API_CREATION_MESSAGE_ENDPOINT = 'api_creation_message_endpoint',
+  API_CREATION_MESSAGE_ENDPOINT_CONFIG = 'api_creation_message_endpoint_config',
+  API_CREATION_MESSAGE_SUMMARY = 'api_creation_message_summary',
+}
+
+export function stringFeature(value: string): ApimFeature {
+  const feature = value as ApimFeature;
   if (FeatureInfoData[feature]) {
     return feature;
   }
@@ -39,48 +55,48 @@ export interface FeatureInfo {
   title?: string;
 }
 
-export const FeatureInfoData: Record<Feature, FeatureInfo> = {
-  [Feature.APIM_CUSTOM_ROLES]: {
+export const FeatureInfoData: Record<ApimFeature, FeatureInfo> = {
+  [ApimFeature.APIM_CUSTOM_ROLES]: {
     image: 'assets/gio-ee-unlock-dialog/roles-customisation.svg',
     description:
       'Custom Roles is part of Gravitee Enterprise. Custom Roles allows you to specify a wide range of permissions applied to different scopes, which can then be assigned to groups and users.',
   },
-  [Feature.APIM_OPENID_CONNECT_SSO]: {
+  [ApimFeature.APIM_OPENID_CONNECT_SSO]: {
     image: 'assets/gio-ee-unlock-dialog/openid-connect.svg',
     description:
       'OpenID Connect is part of Gravitee Enterprise. The OpenID Connect Provider allows users to authenticate to Gravitee using third-party providers like Okta, Keycloak and Ping.',
   },
-  [Feature.APIM_SHARDING_TAGS]: {
+  [ApimFeature.APIM_SHARDING_TAGS]: {
     image: 'assets/gio-ee-unlock-dialog/sharding-tags.svg',
     description:
       'Sharding Tags is part of Gravitee Enterprise. Sharding Tags allows you to federate across multiple Gateway deployments, and control which APIs should be deployed where, and by which groups.',
   },
-  [Feature.APIM_AUDIT_TRAIL]: {
+  [ApimFeature.APIM_AUDIT_TRAIL]: {
     image: 'assets/gio-ee-unlock-dialog/audit-trail.svg',
     description:
       'Audit is part of Gravitee Enterprise. Audit gives you a complete understanding of events and their context to strengthen your security posture.',
   },
-  [Feature.APIM_DEBUG_MODE]: {
+  [ApimFeature.APIM_DEBUG_MODE]: {
     image: 'assets/gio-ee-unlock-dialog/debug-mode.svg',
     description:
       'Debug Mode is part of Gravitee Enterprise. It provides detailed information about the behaviour of each policy in your flows and trace attributes and data values across execution.',
   },
-  [Feature.APIM_DCR_REGISTRATION]: {
+  [ApimFeature.APIM_DCR_REGISTRATION]: {
     image: 'assets/gio-ee-unlock-dialog/dcr-providers.svg',
     description:
       "Dynamic Client Registration (DCR) Provider is part of Gravitee Enterprise. DCR enhances your API's security by seamlessly integrating OAuth 2.0 and OpenID Connect.",
   },
-  [Feature.APIM_POLICY_V2]: {
+  [ApimFeature.APIM_POLICY_V2]: {
     image: 'assets/gio-ee-unlock-dialog/policies.svg',
     description:
       'This policy is part of Gravitee Enterprise. Enterprise policies allows you to easily define and customise rules according to your evolving business needs.',
   },
-  [Feature.APIM_SCHEMA_REGISTRY_PROVIDER]: {
+  [ApimFeature.APIM_SCHEMA_REGISTRY_PROVIDER]: {
     image: 'assets/gio-ee-unlock-dialog/confluent-schema-registry.svg',
     description:
       'Confluent Schema Registry is part of Gravitee Enterprise. Integration with a Schema Registry enables your APIs to validate schemas used in API calls, and serialize and deserialize data.',
   },
-  [Feature.APIM_EN_MESSAGE_REACTOR]: {
+  [ApimFeature.APIM_EN_MESSAGE_REACTOR]: {
     title: 'Request an upgrade',
     image: 'assets/gio-ee-unlock-dialog/ee-upgrade.svg',
     description:

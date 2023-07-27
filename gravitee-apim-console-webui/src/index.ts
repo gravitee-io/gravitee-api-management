@@ -25,9 +25,11 @@ import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { UIRouter, UrlService } from '@uirouter/core';
 import { NgZone } from '@angular/core';
+import { LicenseConfiguration } from '@gravitee/ui-particles-angular';
 
 import { AppModule } from './app.module';
 import { Constants } from './entities/Constants';
+import { FeatureInfoData } from './shared/components/gio-license/gio-license-data';
 
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
@@ -153,8 +155,19 @@ function initComponents() {
 
 function bootstrapApplication(constants: Constants) {
   angular.module('gravitee-management').config(($urlServiceProvider: UrlService) => $urlServiceProvider.deferIntercept());
-
-  platformBrowserDynamic([{ provide: 'Constants', useValue: constants }])
+  const resourceURL = `${constants.v2BaseURL}/license`;
+  const featureInfoData = FeatureInfoData;
+  const licenseConfiguration: LicenseConfiguration = {
+    resourceURL,
+    featureInfoData,
+    trialResourceURL: 'https://gravitee.io/self-hosted-trial',
+    utmSource: 'oss_apim',
+    utmCampaign: 'oss_apim_to_ee_apim',
+  };
+  platformBrowserDynamic([
+    { provide: 'Constants', useValue: constants },
+    { provide: 'LicenseConfiguration', useValue: licenseConfiguration },
+  ])
     .bootstrapModule(AppModule)
     .then((platformRef) => {
       // Intialize the Angular Module
