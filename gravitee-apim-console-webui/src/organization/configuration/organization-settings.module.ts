@@ -51,6 +51,7 @@ import {
   GioMenuModule,
   GioSubmenuModule,
   GioClipboardModule,
+  GioLicenseModule,
 } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
@@ -92,7 +93,6 @@ import { GioFormColorInputModule } from '../../shared/components/gio-form-color-
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
-import { GioLicenseModule } from '../../shared/components/gio-license/gio-license.module';
 import { licenseGuard } from '../../shared/components/gio-license/gio-license-guard';
 
 const states: Ng2StateDeclaration[] = [

@@ -19,15 +19,14 @@ import { Subject, combineLatest, EMPTY, Observable } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/angularjs';
 import { MatDialog } from '@angular/material/dialog';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, LicenseOptions } from '@gravitee/ui-particles-angular';
 
 import { RoleService } from '../../../services-ngx/role.service';
 import { Role, RoleScope } from '../../../entities/role/role';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { Constants } from '../../../entities/Constants';
-import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
-import { Feature } from '../../../shared/components/gio-license/gio-license-features';
+import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
 
 interface RoleVM {
   name: string;
@@ -48,7 +47,7 @@ interface RoleVM {
 export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   rolesByScope: Array<{ scope: string; scopeId: string; roles: RoleVM[] }>;
   loading = true;
-  customRolesLicense = { feature: Feature.APIM_CUSTOM_ROLES, utmMedium: 'feature_custom_roles' };
+  customRolesLicenseOptions: LicenseOptions = { feature: ApimFeature.APIM_CUSTOM_ROLES };
   hasCustomRolesLock$: Observable<boolean>;
 
   constructor(
@@ -63,7 +62,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   private readonly unsubscribe$ = new Subject<boolean>();
 
   ngOnInit(): void {
-    this.hasCustomRolesLock$ = this.licenseService.isMissingFeature$(this.customRolesLicense.feature);
+    this.hasCustomRolesLock$ = this.licenseService.isMissingFeature$(this.customRolesLicenseOptions);
     combineLatest([
       this.roleService.list('ORGANIZATION'),
       this.roleService.list('ENVIRONMENT'),

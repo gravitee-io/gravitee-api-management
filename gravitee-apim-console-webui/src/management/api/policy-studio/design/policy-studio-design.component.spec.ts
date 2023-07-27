@@ -17,8 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { Subject } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
+import { GioLicenseTestingModule, GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioDesignComponent } from './policy-studio-design.component';
 import { PolicyStudioDesignModule } from './policy-studio-design.module';
@@ -48,15 +47,11 @@ describe('PolicyStudioDesignComponent', () => {
   const api = fakeApi();
   const resources = [fakeResourceListItem()];
 
-  const dialog = {
-    open: jest.fn().mockReturnValue({
-      afterClosed: jest.fn().mockReturnValue(new Subject()),
-    }),
-  };
+  const openDialog = jest.fn();
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioDesignModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioDesignModule, GioLicenseTestingModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: api.id } },
         {
@@ -65,8 +60,10 @@ describe('PolicyStudioDesignComponent', () => {
         },
         { provide: AjsRootScope, useValue: null },
         {
-          provide: MatDialog,
-          useValue: dialog,
+          provide: GioLicenseService,
+          useValue: {
+            openDialog,
+          },
         },
       ],
     })
@@ -117,18 +114,9 @@ describe('PolicyStudioDesignComponent', () => {
   it('should open dialog calling on display-policy-cta event', async () => {
     component.displayPolicyCta();
 
-    expect(dialog.open).toHaveBeenCalledWith(expect.any(Function), {
-      data: {
-        featureInfo: {
-          description:
-            'This policy is part of Gravitee Enterprise. Enterprise policies allows you to easily define and customise rules according to your evolving business needs.',
-          image: 'assets/gio-ee-unlock-dialog/policies.svg',
-        },
-        trialURL:
-          'https://gravitee.io/self-hosted-trial?utm_source=oss_apim&utm_medium=v2_policy_studio_policy&utm_campaign=oss_apim_to_ee_apim',
-      },
-      id: 'gioLicenseDialog',
-      role: 'alertdialog',
+    expect(openDialog).toHaveBeenCalledWith({
+      feature: 'apim-policy-v2',
+      context: 'api',
     });
   });
 });

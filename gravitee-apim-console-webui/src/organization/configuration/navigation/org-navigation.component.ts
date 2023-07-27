@@ -18,20 +18,18 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { LicenseOptions, GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
 import { UIRouterState } from '../../../ajs-upgraded-providers';
-import { GioLicenseOptions } from '../../../shared/components/gio-license/gio-license.directive';
-import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
-import { Feature } from '../../../shared/components/gio-license/gio-license-features';
-import { UTMMedium } from '../../../shared/components/gio-license/gio-license-utm';
+import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 
 interface MenuItem {
   targetRoute: string;
   displayName: string;
   permissions?: string[];
-  license?: GioLicenseOptions;
+  licenseOptions?: LicenseOptions;
   iconRight$?: Observable<any>;
 }
 
@@ -163,15 +161,13 @@ export class OrgNavigationComponent implements OnInit {
   }
 
   private appendAuditItems() {
-    const license = { feature: Feature.APIM_AUDIT_TRAIL, utmMedium: UTMMedium.AUDIT_TRAIL_ORG };
-    const iconRight$ = this.gioLicenseService
-      .isMissingFeature$(license.feature)
-      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const licenseOptions = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_ORGANIZATION };
+    const iconRight$ = this.gioLicenseService.isMissingFeature$(licenseOptions).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
     const items = this.filterMenuByPermission([
       {
         displayName: 'Audit',
         targetRoute: 'organization.audit',
-        license,
+        licenseOptions,
         iconRight$,
       },
     ]);

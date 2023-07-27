@@ -21,7 +21,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
-import { GioConfirmAndValidateDialogHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmAndValidateDialogHarness, GioLicenseService, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { SimpleChange } from '@angular/core';
 import { of } from 'rxjs';
@@ -33,7 +33,6 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { CurrentUserService, UIRouterState } from '../../../../../ajs-upgraded-providers';
 import { User } from '../../../../../entities/user';
 import { Api, fakeApiV2, fakeApiV4 } from '../../../../../entities/management-api-v2';
-import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
 
 describe('ApiPortalDetailsDangerZoneComponent', () => {
   const API_ID = 'apiId';
@@ -55,6 +54,10 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
       providers: [
         { provide: UIRouterState, useValue: fakeAjsState },
         { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: 'LicenseConfiguration',
+          useValue: LICENSE_CONFIGURATION_TESTING,
+        },
         {
           provide: 'Constants',
           useValue: {
@@ -280,6 +283,6 @@ describe('ApiPortalDetailsDangerZoneComponent', () => {
   }
 
   function expectLicenseGetRequest() {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush({ features: [], packs: [] });
+    httpTestingController.expectOne({ url: LICENSE_CONFIGURATION_TESTING.resourceURL, method: 'GET' }).flush({ features: [], packs: [] });
   }
 });

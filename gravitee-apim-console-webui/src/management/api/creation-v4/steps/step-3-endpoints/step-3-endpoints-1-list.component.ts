@@ -19,7 +19,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { of, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.component';
@@ -32,10 +32,7 @@ import {
   GioConnectorDialogData,
 } from '../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
 import { IconService } from '../../../../../services-ngx/icon.service';
-import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
-import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
-import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
-import { Feature } from '../../../../../shared/components/gio-license/gio-license-features';
+import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
   selector: 'step-3-endpoints-1-list',
@@ -49,11 +46,13 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
   public endpoints: ConnectorVM[];
 
-  public hasLicense;
-  public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG;
+  private licenseOptions = {
+    feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+    context: UTMTags.API_CREATION_MESSAGE_ENDPOINT,
+  };
 
   public get shouldUpgrade$() {
-    return this.licenseService?.isMissingFeature$(Feature.APIM_EN_MESSAGE_REACTOR);
+    return this.licenseService?.isMissingFeature$(this.licenseOptions);
   }
 
   constructor(
@@ -65,7 +64,6 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly iconService: IconService,
     private readonly licenseService: GioLicenseService,
-    public readonly licenseDialog: GioLicenseDialog,
   ) {}
 
   ngOnInit(): void {
@@ -180,5 +178,9 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  public onRequestUpgrade($event: MouseEvent) {
+    this.licenseService.openDialog(this.licenseOptions, $event);
   }
 }
