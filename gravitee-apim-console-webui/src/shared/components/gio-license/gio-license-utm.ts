@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { UTM } from '@gravitee/ui-particles-angular';
+
 export enum UTMMedium {
   DEBUG_MODE = 'feature_debugmode_v2',
   DEBUG_MODE_V4 = 'feature_debugmode_v4',
@@ -36,40 +38,28 @@ export enum UTMMedium {
   API_CREATION_MESSAGE_SUMMARY = 'api_creation_message_summary',
 }
 
-export type UTMSource = 'oss_apim';
-
-export type UTMCampaign = 'oss_apim_to_ee_apim';
-
-export class UTM {
-  constructor(private readonly source: UTMSource, private readonly medium: UTMMedium, private readonly campaign: UTMCampaign) {}
-
-  public buildURL(base: string): string {
-    return base + `?utm_source=${this.source}&utm_medium=${this.medium}&utm_campaign=${this.campaign}`;
-  }
-
-  public static ossEnterpriseV4(medium: UTMMedium): UTM {
-    return new UTM('oss_apim', medium, 'oss_apim_to_ee_apim');
-  }
-}
+const ossEnterpriseV4 = (medium: UTMMedium): UTM => {
+  return { source: 'oss_apim', medium: medium, campaign: 'oss_apim_to_ee_apim' };
+};
 
 export const UTM_DATA: Record<UTMMedium, UTM> = {
-  [UTMMedium.DEBUG_MODE]: UTM.ossEnterpriseV4(UTMMedium.DEBUG_MODE),
-  [UTMMedium.DEBUG_MODE_V4]: UTM.ossEnterpriseV4(UTMMedium.DEBUG_MODE_V4),
-  [UTMMedium.AUDIT_TRAIL_ORG]: UTM.ossEnterpriseV4(UTMMedium.AUDIT_TRAIL_ORG),
-  [UTMMedium.AUDIT_TRAIL_ENV]: UTM.ossEnterpriseV4(UTMMedium.AUDIT_TRAIL_ENV),
-  [UTMMedium.AUDIT_TRAIL_API]: UTM.ossEnterpriseV4(UTMMedium.AUDIT_TRAIL_API),
-  [UTMMedium.OPENID_CONNECT]: UTM.ossEnterpriseV4(UTMMedium.OPENID_CONNECT),
-  [UTMMedium.DCR_REGISTRATION]: UTM.ossEnterpriseV4(UTMMedium.DCR_REGISTRATION),
-  [UTMMedium.SHARDING_TAGS]: UTM.ossEnterpriseV4(UTMMedium.SHARDING_TAGS),
-  [UTMMedium.CUSTOM_ROLES]: UTM.ossEnterpriseV4(UTMMedium.CUSTOM_ROLES),
-  [UTMMedium.CONFLUENT_SCHEMA_REGISTRY]: UTM.ossEnterpriseV4(UTMMedium.CONFLUENT_SCHEMA_REGISTRY),
-  [UTMMedium.POLICY_STUDIO_V2]: UTM.ossEnterpriseV4(UTMMedium.POLICY_STUDIO_V2),
-  [UTMMedium.POLICY_STUDIO_V4]: UTM.ossEnterpriseV4(UTMMedium.POLICY_STUDIO_V4),
-  [UTMMedium.GENERAL_DANGER_ZONE]: UTM.ossEnterpriseV4(UTMMedium.GENERAL_DANGER_ZONE),
-  [UTMMedium.API_CREATION_TRY_MESSAGE]: UTM.ossEnterpriseV4(UTMMedium.API_CREATION_TRY_MESSAGE),
-  [UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT]: UTM.ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT),
-  [UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG]: UTM.ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG),
-  [UTMMedium.API_CREATION_MESSAGE_ENDPOINT]: UTM.ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_ENDPOINT),
-  [UTMMedium.API_CREATION_MESSAGE_ENDPOINT_CONFIG]: UTM.ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_ENDPOINT_CONFIG),
-  [UTMMedium.API_CREATION_MESSAGE_SUMMARY]: UTM.ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_SUMMARY),
+  [UTMMedium.DEBUG_MODE]: ossEnterpriseV4(UTMMedium.DEBUG_MODE),
+  [UTMMedium.DEBUG_MODE_V4]: ossEnterpriseV4(UTMMedium.DEBUG_MODE_V4),
+  [UTMMedium.AUDIT_TRAIL_ORG]: ossEnterpriseV4(UTMMedium.AUDIT_TRAIL_ORG),
+  [UTMMedium.AUDIT_TRAIL_ENV]: ossEnterpriseV4(UTMMedium.AUDIT_TRAIL_ENV),
+  [UTMMedium.AUDIT_TRAIL_API]: ossEnterpriseV4(UTMMedium.AUDIT_TRAIL_API),
+  [UTMMedium.OPENID_CONNECT]: ossEnterpriseV4(UTMMedium.OPENID_CONNECT),
+  [UTMMedium.DCR_REGISTRATION]: ossEnterpriseV4(UTMMedium.DCR_REGISTRATION),
+  [UTMMedium.SHARDING_TAGS]: ossEnterpriseV4(UTMMedium.SHARDING_TAGS),
+  [UTMMedium.CUSTOM_ROLES]: ossEnterpriseV4(UTMMedium.CUSTOM_ROLES),
+  [UTMMedium.CONFLUENT_SCHEMA_REGISTRY]: ossEnterpriseV4(UTMMedium.CONFLUENT_SCHEMA_REGISTRY),
+  [UTMMedium.POLICY_STUDIO_V2]: ossEnterpriseV4(UTMMedium.POLICY_STUDIO_V2),
+  [UTMMedium.POLICY_STUDIO_V4]: ossEnterpriseV4(UTMMedium.POLICY_STUDIO_V4),
+  [UTMMedium.GENERAL_DANGER_ZONE]: ossEnterpriseV4(UTMMedium.GENERAL_DANGER_ZONE),
+  [UTMMedium.API_CREATION_TRY_MESSAGE]: ossEnterpriseV4(UTMMedium.API_CREATION_TRY_MESSAGE),
+  [UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT]: ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT),
+  [UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG]: ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT_CONFIG),
+  [UTMMedium.API_CREATION_MESSAGE_ENDPOINT]: ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_ENDPOINT),
+  [UTMMedium.API_CREATION_MESSAGE_ENDPOINT_CONFIG]: ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_ENDPOINT_CONFIG),
+  [UTMMedium.API_CREATION_MESSAGE_SUMMARY]: ossEnterpriseV4(UTMMedium.API_CREATION_MESSAGE_SUMMARY),
 };

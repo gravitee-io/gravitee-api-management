@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { SelectorItem } from '@gravitee/ui-particles-angular';
+import { LicenseOptions, GioLicenseService, SelectorItem } from '@gravitee/ui-particles-angular';
 import { IRootScopeService } from 'angular';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -26,10 +26,8 @@ import { Constants } from '../../entities/Constants';
 import { EnvironmentService } from '../../services-ngx/environment.service';
 import UserService from '../../services/user.service';
 import PortalConfigService from '../../services/portalConfig.service';
-import { GioLicenseService } from '../../shared/components/gio-license/gio-license.service';
-import { GioLicenseOptions } from '../../shared/components/gio-license/gio-license.directive';
-import { UTMMedium } from '../../shared/components/gio-license/gio-license-utm';
-import { Feature } from '../../shared/components/gio-license/gio-license-features';
+import { UTM_DATA, UTMMedium } from '../../shared/components/gio-license/gio-license-utm';
+import { ApimFeature } from '../../shared/components/gio-license/gio-license-features';
 
 interface MenuItem {
   icon: string;
@@ -37,7 +35,7 @@ interface MenuItem {
   baseRoute: string;
   displayName: string;
   permissions?: string[];
-  license?: GioLicenseOptions;
+  licenseOptions?: LicenseOptions;
   iconRight$?: Observable<any>;
   subMenuPermissions?: string[];
 }
@@ -74,9 +72,12 @@ export class GioSideNavComponent implements OnInit {
   }
 
   private buildMainMenuItems(): MenuItem[] {
-    const auditLicense = { feature: Feature.APIM_AUDIT_TRAIL, utmMedium: UTMMedium.AUDIT_TRAIL_ENV };
+    const auditLicenseOptions: LicenseOptions = {
+      feature: ApimFeature.APIM_AUDIT_TRAIL,
+      utm: UTM_DATA[UTMMedium.AUDIT_TRAIL_ENV],
+    };
     const auditIconRight$ = this.gioLicenseService
-      .isMissingFeature$(auditLicense.feature)
+      .isMissingFeature$(auditLicenseOptions)
       .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
     const mainMenuItems: MenuItem[] = [
       { icon: 'gio:home', targetRoute: 'management.dashboard.home', baseRoute: 'management.dashboard', displayName: 'Dashboard' },
@@ -101,7 +102,7 @@ export class GioSideNavComponent implements OnInit {
         baseRoute: 'management.audit',
         displayName: 'Audit',
         permissions: ['environment-audit-r'],
-        license: auditLicense,
+        licenseOptions: auditLicenseOptions,
         iconRight$: auditIconRight$,
       },
       {

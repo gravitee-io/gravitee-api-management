@@ -18,24 +18,22 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
 import { map, takeUntil } from 'rxjs/operators';
-import { GioMenuService } from '@gravitee/ui-particles-angular';
+import { GioLicenseService, GioMenuService, LicenseOptions } from '@gravitee/ui-particles-angular';
 import { Observable, Subject } from 'rxjs';
 
 import { AjsRootScope, CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
-import { GioLicenseOptions } from '../../../shared/components/gio-license/gio-license.directive';
-import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
-import { Feature } from '../../../shared/components/gio-license/gio-license-features';
-import { UTMMedium } from '../../../shared/components/gio-license/gio-license-utm';
+import { ApimFeature } from '../../../shared/components/gio-license/gio-license-features';
+import { UTM_DATA, UTMMedium } from '../../../shared/components/gio-license/gio-license-utm';
 
 export interface MenuItem {
   targetRoute?: string;
   baseRoute?: string | string[];
   displayName: string;
   tabs?: MenuItem[];
-  license?: GioLicenseOptions;
+  license?: LicenseOptions;
   iconRight$?: Observable<any>;
 }
 
@@ -365,10 +363,8 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   }
 
   private appendAuditGroup() {
-    const license = { feature: Feature.APIM_AUDIT_TRAIL, utmMedium: UTMMedium.AUDIT_TRAIL_API };
-    const iconRight$ = this.gioLicenseService
-      .isMissingFeature$(license.feature)
-      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, utm: UTM_DATA[UTMMedium.AUDIT_TRAIL_API] };
+    const iconRight$ = this.gioLicenseService.isMissingFeature$(license).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
 
     const auditGroup: GroupItem = {
       title: 'Audit',

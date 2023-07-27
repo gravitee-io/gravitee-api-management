@@ -18,10 +18,11 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioIconsModule, GioLicenseModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { omit } from 'lodash';
 import { MatDialogModule } from '@angular/material/dialog';
+import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular/testing';
 
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
 import { toApiDefinition } from './models/ApiDefinition';
@@ -55,7 +56,9 @@ describe('GioPolicyStudioLayoutComponent', () => {
         MatTabsModule,
         GioSaveBarModule,
         GioUiRouterTestingModule,
+        GioLicenseModule,
         MatDialogModule,
+        GioIconsModule,
       ],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: api.id } },
@@ -68,6 +71,10 @@ describe('GioPolicyStudioLayoutComponent', () => {
         {
           provide: CurrentUserService,
           useValue: { currentUser },
+        },
+        {
+          provide: 'LicenseConfiguration',
+          useValue: LICENSE_CONFIGURATION_TESTING,
         },
       ],
     })
@@ -83,7 +90,7 @@ describe('GioPolicyStudioLayoutComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/license`);
+    httpTestingController.expectOne(LICENSE_CONFIGURATION_TESTING.resourceURL);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
 

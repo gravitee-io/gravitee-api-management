@@ -19,8 +19,8 @@ import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-resources';
 import { StateParams } from '@uirouter/angularjs';
-import { action } from '@storybook/addon-actions';
 import { MatDialog } from '@angular/material/dialog';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { ApiResourcesService } from './api-resources.service';
 
@@ -29,13 +29,8 @@ import { AjsRootScope, UIRouterStateParams } from '../../../../ajs-upgraded-prov
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
-import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
-import {
-  GioEeUnlockDialogComponent,
-  GioEeUnlockDialogData,
-} from '../../../../components/gio-ee-unlock-dialog/gio-ee-unlock-dialog.component';
 import { stringFeature } from '../../../../shared/components/gio-license/gio-license-features';
-import { UTMMedium } from '../../../../shared/components/gio-license/gio-license-utm';
+import { UTM_DATA, UTMMedium } from '../../../../shared/components/gio-license/gio-license-utm';
 
 @Component({
   selector: 'api-resources',
@@ -98,27 +93,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
     const resourceId = event.detail.id;
     const featureName = this.resourceTypes.find((resourceType) => resourceType.id === resourceId).feature;
     const feature = stringFeature(featureName);
-    const featureInfo = this.gioLicenseService.getFeatureInfo(feature);
-    const trialURL = this.gioLicenseService.getTrialURL(UTMMedium.CONFLUENT_SCHEMA_REGISTRY);
-
-    this.matDialog
-      .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
-        data: {
-          featureInfo,
-          trialURL,
-        },
-        role: 'alertdialog',
-        id: 'dialog',
-      })
-      .afterClosed()
-      .pipe(
-        tap((confirmed) => {
-          action('confirmed?')(confirmed);
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-
-      .subscribe();
+    this.gioLicenseService.openDialog({ feature, utm: UTM_DATA[UTMMedium.CONFLUENT_SCHEMA_REGISTRY] });
   }
 
   onReset() {

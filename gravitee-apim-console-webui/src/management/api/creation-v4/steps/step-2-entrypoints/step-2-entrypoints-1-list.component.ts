@@ -19,7 +19,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
@@ -28,8 +28,7 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { ConnectorVM, fromConnector } from '../../models/ConnectorVM';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
-import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
+import { UTM_DATA, UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
 
 @Component({
   selector: 'step-2-entrypoints-1-list',
@@ -43,8 +42,6 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   public entrypoints: ConnectorVM[];
 
-  public utmMedium = UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT;
-
   public shouldUpgrade = false;
 
   constructor(
@@ -54,7 +51,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
     private readonly stepService: ApiCreationStepService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly iconService: IconService,
-    public readonly licenseDialog: GioLicenseDialog,
+    private readonly licenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
@@ -134,5 +131,11 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       groupNumber: 2,
       component: Step2Entrypoints2ConfigComponent,
     });
+  }
+
+  public onRequestUpgrade($event: MouseEvent) {
+    // TODO: add feature ?
+    const licenseOptions = { utm: UTM_DATA[UTMMedium.API_CREATION_MESSAGE_ENTRYPOINT] };
+    this.licenseService.openDialog(licenseOptions, $event);
   }
 }

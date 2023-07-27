@@ -22,6 +22,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular/testing';
 
 import { ClientRegistrationProvidersComponent } from './client-registration-providers.component';
 import { ClientRegistrationProvidersModule } from './client-registration-providers.module';
@@ -30,7 +31,6 @@ import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-provid
 import { fakeClientRegistrationProvider } from '../../../entities/client-registration-provider/clientRegistrationProvider.fixture';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { GioLicenseTestingModule } from '../../../shared/testing/gio-license.testing.module';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 
 describe('ClientRegistrationProviders', () => {

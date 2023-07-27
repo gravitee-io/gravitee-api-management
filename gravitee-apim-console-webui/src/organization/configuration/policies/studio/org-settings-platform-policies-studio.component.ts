@@ -19,8 +19,8 @@ import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
 import { Location } from '@angular/common';
-import { action } from '@storybook/addon-actions';
 import { MatDialog } from '@angular/material/dialog';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { UrlParams } from '../../../../management/api/policy-studio/design/policy-studio-design.component';
 import { OrganizationService } from '../../../../services-ngx/organization.service';
@@ -31,13 +31,8 @@ import { PlatformFlowSchema } from '../../../../entities/flow/platformFlowSchema
 import { PolicyListItem } from '../../../../entities/policy';
 import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
 import { Grammar } from '../../../../entities/spel/grammar';
-import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
-import {
-  GioEeUnlockDialogComponent,
-  GioEeUnlockDialogData,
-} from '../../../../components/gio-ee-unlock-dialog/gio-ee-unlock-dialog.component';
-import { Feature } from '../../../../shared/components/gio-license/gio-license-features';
-import { UTMMedium } from '../../../../shared/components/gio-license/gio-license-utm';
+import { ApimFeature } from '../../../../shared/components/gio-license/gio-license-features';
+import { UTM_DATA, UTMMedium } from '../../../../shared/components/gio-license/gio-license-utm';
 
 @Component({
   selector: 'org-settings-platform-policies-studio',
@@ -126,24 +121,8 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
   }
 
   displayPolicyCTA() {
-    const featureInfo = this.licenseService.getFeatureInfo(Feature.APIM_POLICY_V2);
-    const trialURL = this.licenseService.getTrialURL(UTMMedium.POLICY_STUDIO_V2);
-    this.matDialog
-      .open<GioEeUnlockDialogComponent, GioEeUnlockDialogData, boolean>(GioEeUnlockDialogComponent, {
-        data: {
-          featureInfo,
-          trialURL,
-        },
-        role: 'alertdialog',
-        id: 'gioLicenseDialog',
-      })
-      .afterClosed()
-      .pipe(
-        tap((confirmed) => {
-          action('confirmed?')(confirmed);
-        }),
-      )
-      .subscribe();
+    const licenseOptions = { feature: ApimFeature.APIM_POLICY_V2, utm: UTM_DATA[UTMMedium.POLICY_STUDIO_V2] };
+    this.licenseService.openDialog(licenseOptions);
   }
 
   fetchSpelGrammar({ currentTarget }: { currentTarget: { grammar: Grammar } }): void {

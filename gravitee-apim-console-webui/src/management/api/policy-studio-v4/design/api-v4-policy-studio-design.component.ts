@@ -26,6 +26,7 @@ import {
   PolicySchemaFetcher,
   SaveOutput,
 } from '@gravitee/ui-policy-studio-angular';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -36,8 +37,7 @@ import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { PolicyV2Service } from '../../../../services-ngx/policy-v2.service';
 import { ResourceTypeService } from '../../../../shared/components/specific-json-schema-type/resource-type.service';
-import { GioLicenseService } from '../../../../shared/components/gio-license/gio-license.service';
-import { UTMMedium } from '../../../../shared/components/gio-license/gio-license-utm';
+import { UTM_DATA, UTMMedium } from '../../../../shared/components/gio-license/gio-license-utm';
 
 @Component({
   selector: 'api-v4-policy-studio-design',
@@ -143,7 +143,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
         this.isLoading = false;
       });
-    this.trialURL = this.gioLicenseService.getTrialURL(UTMMedium.POLICY_STUDIO_V4);
+    this.trialURL = this.gioLicenseService.getTrialURL(UTM_DATA[UTMMedium.POLICY_STUDIO_V4]);
   }
 
   ngOnDestroy() {

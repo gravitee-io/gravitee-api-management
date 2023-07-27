@@ -15,12 +15,10 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioMenuModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
+import { GioLicenseModule, GioMenuModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
 
 import { GioSideNavComponent } from './gio-side-nav.component';
-
-import { GioLicenseModule } from '../../shared/components/gio-license/gio-license.module';
 
 @NgModule({
   imports: [CommonModule, GioMenuModule, MatSelectModule, GioSubmenuModule, GioLicenseModule],

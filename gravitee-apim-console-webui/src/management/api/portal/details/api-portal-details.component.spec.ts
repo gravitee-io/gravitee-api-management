@@ -27,6 +27,7 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiPortalDetailsModule } from './api-portal-details.module';
 import { ApiPortalDetailsComponent } from './api-portal-details.component';
@@ -57,6 +58,10 @@ describe('ApiPortalDetailsComponent', () => {
         { provide: UIRouterState, useValue: fakeAjsState },
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: 'LicenseConfiguration',
+          useValue: LICENSE_CONFIGURATION_TESTING,
+        },
         {
           provide: 'Constants',
           useValue: {
@@ -534,7 +539,7 @@ describe('ApiPortalDetailsComponent', () => {
   }
 
   function expectLicenseGetRequest() {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush({ features: [], packs: [] });
+    httpTestingController.expectOne({ url: LICENSE_CONFIGURATION_TESTING.resourceURL, method: 'GET' }).flush({ features: [], packs: [] });
   }
 });
 

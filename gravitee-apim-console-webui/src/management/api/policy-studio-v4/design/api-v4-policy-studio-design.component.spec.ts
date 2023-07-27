@@ -22,6 +22,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioPolicyStudioHarness } from '@gravitee/ui-policy-studio-angular/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { of } from 'rxjs';
+import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiV4PolicyStudioDesignComponent } from './api-v4-policy-studio-design.component';
 
@@ -52,7 +53,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule, GioLicenseTestingModule],
       providers: [{ provide: UIRouterStateParams, useValue: { apiId: API_ID } }],
     })
       .overrideProvider(InteractivityChecker, {

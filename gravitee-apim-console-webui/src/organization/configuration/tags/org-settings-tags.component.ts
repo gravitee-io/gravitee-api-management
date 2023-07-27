@@ -19,7 +19,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData } from './org-settings-add-tag-dialog.component';
 import { OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData } from './org-settings-add-mapping-dialog.component';
@@ -34,7 +34,8 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TagService } from '../../../services-ngx/tag.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
-import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
+import { ApimFeature } from '../../../shared/components/gio-license/gio-license-features';
+import { UTM_DATA, UTMMedium } from '../../../shared/components/gio-license/gio-license-utm';
 
 type TagTableDS = {
   id: string;
@@ -74,7 +75,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   filteredEntrypointsTableDS: EntrypointTableDS;
   entrypointsTableUnpaginatedLength = 0;
   entrypointsTableDisplayedColumns: string[] = ['entrypoint', 'tags', 'actions'];
-  shardingTagsLicense = { feature: 'apim-sharding-tags', utmMedium: 'feature_sharding_tags' };
+  shardingTagsLicenseOptions = { feature: ApimFeature.APIM_SHARDING_TAGS, utm: UTM_DATA[UTMMedium.SHARDING_TAGS] };
   hasShardingTagsLock$: Observable<boolean>;
 
   private unsubscribe$ = new Subject<boolean>();
@@ -90,7 +91,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.hasShardingTagsLock$ = this.gioLicenseService.isMissingFeature$(this.shardingTagsLicense.feature);
+    this.hasShardingTagsLock$ = this.gioLicenseService.isMissingFeature$(this.shardingTagsLicenseOptions);
     combineLatest([
       this.tagService.list(),
       this.groupService.listByOrganization(),

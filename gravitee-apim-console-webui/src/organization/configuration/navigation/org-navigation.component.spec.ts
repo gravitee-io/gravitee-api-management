@@ -16,6 +16,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UIRouterModule } from '@uirouter/angular';
+import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular/testing';
 
 import { OrgNavigationComponent } from './org-navigation.component';
 
@@ -40,6 +41,7 @@ describe('OrgNavigationComponent', () => {
         GioUiRouterTestingModule,
         GioHttpTestingModule,
         OrganizationSettingsModule,
+        GioLicenseTestingModule,
         UIRouterModule.forRoot({ useHash: true }),
       ],
       providers: [

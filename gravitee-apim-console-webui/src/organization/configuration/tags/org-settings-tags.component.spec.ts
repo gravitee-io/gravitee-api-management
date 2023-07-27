@@ -26,6 +26,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular/testing';
 
 import { OrgSettingsTagsComponent } from './org-settings-tags.component';
 
@@ -41,7 +42,6 @@ import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
 import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { fakeEntrypoint } from '../../../entities/entrypoint/entrypoint.fixture';
-import { GioLicenseTestingModule } from '../../../shared/testing/gio-license.testing.module';
 
 describe('OrgSettingsTagsComponent', () => {
   const currentUser = new DeprecatedUser();

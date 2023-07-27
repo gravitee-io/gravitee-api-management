@@ -17,6 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular/testing';
 
 import { OrgSettingsPlatformPoliciesStudioComponent } from './org-settings-platform-policies-studio.component';
 
@@ -55,7 +56,7 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

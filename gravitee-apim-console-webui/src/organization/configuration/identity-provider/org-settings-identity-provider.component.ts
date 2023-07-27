@@ -19,6 +19,7 @@ import { StateService } from '@uirouter/angularjs';
 import { cloneDeep, isEmpty } from 'lodash';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, shareReplay, takeUntil, tap } from 'rxjs/operators';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { Environment } from '../../../entities/environment/environment';
@@ -28,7 +29,8 @@ import { GroupService } from '../../../services-ngx/group.service';
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
 import { RoleService } from '../../../services-ngx/role.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
+import { ApimFeature } from '../../../shared/components/gio-license/gio-license-features';
+import { UTM_DATA, UTMMedium } from '../../../shared/components/gio-license/gio-license-utm';
 
 export interface ProviderConfiguration {
   name: string;
@@ -49,7 +51,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   // Used for the edit mode
   initialIdentityProviderValue: IdentityProvider | null = null;
 
-  openidConnectSsoLicense = { feature: 'apim-openid-connect-sso', utmMedium: 'plugin_openidconnect' };
+  openidConnectSsoLicenseOptions = { feature: ApimFeature.APIM_OPENID_CONNECT_SSO, utm: UTM_DATA[UTMMedium.OPENID_CONNECT] };
   hasOpenidConnectSsoLock$: Observable<boolean>;
 
   @ViewChild('providerConfiguration', { static: false })
@@ -92,7 +94,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.hasOpenidConnectSsoLock$ = this.licenseService.isMissingFeature$(this.openidConnectSsoLicense.feature);
+    this.hasOpenidConnectSsoLock$ = this.licenseService.isMissingFeature$(this.openidConnectSsoLicenseOptions);
     this.identityProviderFormGroup = new FormGroup({
       type: new FormControl(),
       enabled: new FormControl(true),

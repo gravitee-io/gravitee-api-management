@@ -22,6 +22,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { set } from 'lodash';
+import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsHarness } from './steps/step-1-api-details/step-1-api-details.harness';
@@ -107,6 +108,10 @@ describe('ApiCreationV4Component', () => {
             });
             return constants;
           },
+        },
+        {
+          provide: 'LicenseConfiguration',
+          useValue: LICENSE_CONFIGURATION_TESTING,
         },
       ],
       imports: [NoopAnimationsModule, ApiCreationV4Module, GioHttpTestingModule, MatIconTestingModule],
@@ -1644,6 +1649,6 @@ describe('ApiCreationV4Component', () => {
   }
 
   function expectLicenseGetRequest(license: License) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/license`, method: 'GET' }).flush(license);
+    httpTestingController.expectOne({ url: LICENSE_CONFIGURATION_TESTING.resourceURL, method: 'GET' }).flush(license);
   }
 });

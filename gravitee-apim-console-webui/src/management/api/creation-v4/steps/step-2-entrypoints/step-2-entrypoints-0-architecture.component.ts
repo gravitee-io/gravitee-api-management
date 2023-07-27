@@ -17,7 +17,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
@@ -27,10 +27,8 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ApiType, ConnectorPlugin } from '../../../../../entities/management-api-v2';
-import { GioLicenseService } from '../../../../../shared/components/gio-license/gio-license.service';
-import { GioLicenseDialog } from '../../../../../shared/components/gio-license/gio-license.dialog';
-import { UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
-import { Feature } from '../../../../../shared/components/gio-license/gio-license-features';
+import { UTM_DATA, UTMMedium } from '../../../../../shared/components/gio-license/gio-license-utm';
+import { ApimFeature } from '../../../../../shared/components/gio-license/gio-license-features';
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
@@ -43,10 +41,10 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   private initialValue: { type: ApiType[] };
 
   public form: FormGroup;
-  public utmMedium = UTMMedium.API_CREATION_TRY_MESSAGE;
+  private licenseOptions = { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, utm: UTM_DATA[UTMMedium.API_CREATION_TRY_MESSAGE] };
 
   public get shouldUpgrade$() {
-    return this.licenseService?.isMissingFeature$(Feature.APIM_EN_MESSAGE_REACTOR);
+    return this.licenseService?.isMissingFeature$(this.licenseOptions);
   }
 
   constructor(
@@ -57,7 +55,6 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     private readonly matDialog: MatDialog,
     private readonly iconService: IconService,
     private readonly licenseService: GioLicenseService,
-    public readonly licenseDialog: GioLicenseDialog,
   ) {}
 
   ngOnInit(): void {
@@ -160,5 +157,9 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
       groupNumber: 2,
       component: Step2Entrypoints1ListComponent,
     });
+  }
+
+  public onRequestUpgrade($event: MouseEvent) {
+    this.licenseService.openDialog(this.licenseOptions, $event);
   }
 }

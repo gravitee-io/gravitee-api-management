@@ -18,7 +18,7 @@ import { StateService } from '@uirouter/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, LicenseOptions } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
@@ -28,7 +28,8 @@ import { ClientRegistrationProvider } from '../../../entities/client-registratio
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { PortalSettings, PortalSettingsApplication } from '../../../entities/portal/portalSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
+import { ApimFeature } from '../../../shared/components/gio-license/gio-license-features';
+import { UTM_DATA, UTMMedium } from '../../../shared/components/gio-license/gio-license-utm';
 
 export type ProvidersTableDS = {
   id: string;
@@ -48,7 +49,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   displayedColumns = ['name', 'description', 'updatedAt', 'actions'];
   isLoadingData = true;
   disabledMessage = 'Configuration provided by the system';
-  dcrRegistrationLicense = { feature: 'apim-dcr-registration', utmMedium: 'feature_dcr' };
+  dcrRegistrationLicenseOptions: LicenseOptions = { feature: ApimFeature.APIM_DCR_REGISTRATION, utm: UTM_DATA[UTMMedium.DCR_REGISTRATION] };
   hasDcrRegistrationLock$: Observable<boolean>;
   private unsubscribe$ = new Subject();
   private settings: PortalSettings;
@@ -69,7 +70,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
   ngOnInit(): void {
-    this.hasDcrRegistrationLock$ = this.licenseService.isMissingFeature$(this.dcrRegistrationLicense.feature);
+    this.hasDcrRegistrationLock$ = this.licenseService.isMissingFeature$(this.dcrRegistrationLicenseOptions);
 
     combineLatest([this.portalSettingsService.get(), this.clientRegistrationProvidersService.list()])
       .pipe(
