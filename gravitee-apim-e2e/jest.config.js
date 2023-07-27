@@ -79,6 +79,11 @@ module.exports = {
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
     '@api-test-resources/(.*)': '<rootDir>/api-test/resources/$1',
+    '@gravitee/fixtures/(.*)': '<rootDir>/lib/fixtures/$1',
+    '@gravitee/management-webclient-sdk/(.*)': '<rootDir>/lib/management-webclient-sdk/$1',
+    '@gravitee/management-v2-webclient-sdk/(.*)': '<rootDir>/lib/management-v2-webclient-sdk/$1',
+    '@gravitee/portal-webclient-sdk/(.*)': '<rootDir>/lib/portal-webclient-sdk/$1',
+    '@gravitee/utils/(.*)': '<rootDir>/lib/utils/$1',
     '@lib/jest-utils': '<rootDir>/lib/jest-utils',
   },
 
