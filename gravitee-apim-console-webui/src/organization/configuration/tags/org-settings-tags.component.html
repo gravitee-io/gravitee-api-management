@@ -25,7 +25,7 @@
     <div class="org-settings-tags__add-button-container" *gioPermission="{ anyOf: ['organization-tag-c'] }">
       <h2>Tags</h2>
       <button
-        [gioLicense]="shardingTagsLicense"
+        [gioLicense]="shardingTagsLicenseOptions"
         (click)="onAddTagClicked()"
         mat-raised-button
         color="primary"

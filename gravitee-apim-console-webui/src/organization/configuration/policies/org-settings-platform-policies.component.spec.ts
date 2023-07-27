@@ -21,6 +21,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingsPlatformPoliciesComponent } from './org-settings-platform-policies.component';
 
@@ -60,7 +61,7 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

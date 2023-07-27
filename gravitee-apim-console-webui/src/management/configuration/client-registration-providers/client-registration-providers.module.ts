@@ -22,6 +22,7 @@ import {
   GioFormSlideToggleModule,
   GioFormTagsInputModule,
   GioIconsModule,
+  GioLicenseModule,
   GioSaveBarModule,
 } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,7 +47,6 @@ import { ClientRegistrationProviderComponent } from './client-registration-provi
 import { GioFormCardGroupModule } from '../../../shared/components/gio-form-card-group/gio-form-card-group.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { GioLicenseModule } from '../../../shared/components/gio-license/gio-license.module';
 
 @NgModule({
   imports: [
