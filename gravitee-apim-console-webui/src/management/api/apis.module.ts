@@ -71,6 +71,8 @@ import { ApiAuditModule } from './audit/api-audit.module';
 import { ApiAuditComponent } from './audit/general/audit.component';
 import { ApiHistoryComponent } from './audit/history/apiHistory.component';
 import { ApiEventsComponent } from './audit/events/apiEvents.component';
+import { ApiV1PropertiesComponent } from './proxy/properties-v1/properties.component';
+import { ApiV1ResourcesComponent } from './proxy/resources-v1/resources.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -94,6 +96,7 @@ import AlertService from '../../services/alert.service';
 import NotifierService from '../../services/notifier.service';
 import { AlertsComponent } from '../../components/alerts/alerts.component';
 import { AlertComponent } from '../../components/alerts/alert/alert.component';
+import ResourceService from '../../services/resource.service';
 
 const graviteeManagementModule = angular.module('gravitee-management');
 apiPermissionHook.$inject = ['$transitions', 'ngGioPermissionService'];
@@ -352,6 +355,29 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
+    name: 'management.apis.ng.properties-v1',
+    url: '/v1/properties',
+    component: ApiV1PropertiesComponent,
+    data: {
+      useAngularMaterial: true,
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-properties',
+      },
+    },
+    resolve: [
+      {
+        token: 'resolvedApi',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId);
+        },
+      },
+    ],
+  },
+  {
     name: 'management.apis.ng.resources',
     url: '/resources',
     component: ApiResourcesComponent,
@@ -364,6 +390,36 @@ const states: Ng2StateDeclaration[] = [
         page: 'management-api-policy-studio-resources',
       },
     },
+  },
+  {
+    name: 'management.apis.ng.resources-v1',
+    url: '/v1/resources',
+    component: ApiV1ResourcesComponent,
+    data: {
+      useAngularMaterial: true,
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-resources',
+      },
+    },
+    resolve: [
+      {
+        token: 'resolvedApi',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId);
+        },
+      },
+      {
+        token: 'resolvedResources',
+        deps: ['ResourceService'],
+        resolveFn: (ResourceService: ResourceService) => {
+          return ResourceService.list();
+        },
+      },
+    ],
   },
   {
     name: 'management.apis.ng.documentation',

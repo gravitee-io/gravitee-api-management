@@ -15,7 +15,10 @@
  */
 import * as _ from 'lodash';
 
-class ApiResourcesController {
+class ApiV1ResourcesControllerAjs {
+  resolvedApi: any;
+  resolvedResources: any;
+
   private creation: boolean;
   private resourceJsonSchemaForm: string[];
   private types: any[];
@@ -31,13 +34,14 @@ class ApiResourcesController {
     private NotificationService,
     private $scope,
     private $rootScope,
-    private resolvedResources,
     private $timeout,
   ) {
     this.creation = true;
     this.resourceJsonSchemaForm = ['*'];
+  }
 
-    this.types = resolvedResources.data;
+  $onInit() {
+    this.types = this.resolvedResources.data;
   }
 
   initState() {
@@ -139,7 +143,7 @@ class ApiResourcesController {
       })
       .then((response) => {
         if (response) {
-          this.$scope.$parent.apiCtrl.api.resources.splice(resourceIdx, 1);
+          this.resolvedApi.data.resources.splice(resourceIdx, 1);
           this.updateApi();
         }
       });
@@ -151,14 +155,14 @@ class ApiResourcesController {
     delete this.resource.$$hashKey;
 
     if (this.creation) {
-      this.$scope.$parent.apiCtrl.api.resources.push(this.resource);
+      this.resolvedApi.data.resources.push(this.resource);
     }
 
     this.updateApi();
   }
 
   updateApi() {
-    let api = this.$scope.$parent.apiCtrl.api;
+    let api = this.resolvedApi.data;
     return this.ApiService.update(api).then(({ data }) => {
       this.closeResourcePanel();
       this.$rootScope.$broadcast('apiChangeSuccess', { api: data });
@@ -175,4 +179,4 @@ class ApiResourcesController {
   }
 }
 
-export default ApiResourcesController;
+export default ApiV1ResourcesControllerAjs;

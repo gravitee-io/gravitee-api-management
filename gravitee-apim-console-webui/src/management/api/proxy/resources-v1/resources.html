@@ -23,7 +23,7 @@
   <div class="gv-form">
     <h2></h2>
     <div class="gv-form-content" layout="column">
-      <md-table-container ng-show="$parent.apiCtrl.api.resources.length > 0">
+      <md-table-container ng-show="$ctrl.resolvedApi.data.resources.length > 0">
         <table md-table aria-description="Resources table">
           <thead md-head md-order="order">
             <tr md-row>
@@ -34,11 +34,11 @@
             </tr>
           </thead>
           <tbody md-body>
-            <tr md-row ng-repeat="resource in $parent.apiCtrl.api.resources | orderBy: order">
+            <tr md-row ng-repeat="resource in $ctrl.resolvedApi.data.resources | orderBy: order">
               <td md-cell>
                 <span><b>{{resource.name}}</b></span>
               </td>
-              <td md-cell>{{apiResourcesCtrl.getResourceTypeName(resource.type)}}</td>
+              <td md-cell>{{$ctrl.getResourceTypeName(resource.type)}}</td>
               <td md-cell>
                 <ng-md-icon ng-if="resource.enabled" icon="play_circle_outline" style="fill: green"></ng-md-icon>
                 <ng-md-icon ng-if="!resource.enabled" icon="pause_circle_outline" style="fill: red"></ng-md-icon>
@@ -46,12 +46,12 @@
               <td md-cell permission permission-only="'api-definition-u'">
                 <div layout="row">
                   <ng-md-icon
-                    ng-click="apiResourcesCtrl.showResourcePanel(resource)"
+                    ng-click="$ctrl.showResourcePanel(resource)"
                     icon="settings"
                     size="24"
                     style="margin-right: 20px"
                   ></ng-md-icon>
-                  <ng-md-icon ng-click="apiResourcesCtrl.deleteResource($index)" icon="delete" size="24"></ng-md-icon>
+                  <ng-md-icon ng-click="$ctrl.deleteResource($index)" icon="delete" size="24"></ng-md-icon>
                 </div>
               </td>
             </tr>
@@ -63,14 +63,14 @@
         <md-toolbar>
           <div class="md-toolbar-tools">
             <h2 style="color: white">
-              <span>Resource: {{apiResourcesCtrl.resource.name}} [{{apiResourcesCtrl.resource.type}}]</span>
+              <span>Resource: {{$ctrl.resource.name}} [{{$ctrl.resource.type}}]</span>
             </h2>
             <span flex></span>
 
             <md-switch
               ng-model="resourceEnabled"
-              ng-disabled="resourceConfigurationForm.$invalid || apiResourcesCtrl.creation"
-              ng-change="apiResourcesCtrl.switchEnabled()"
+              ng-disabled="resourceConfigurationForm.$invalid || $ctrl.creation"
+              ng-change="$ctrl.switchEnabled()"
               class="md-block"
               aria-label="Enable resource"
             ></md-switch>
@@ -79,11 +79,11 @@
 
         <md-content layout-padding>
           <h4>General</h4>
-          <form name="resourceForm" ng-submit="apiResourcesCtrl.save()" novalidate>
+          <form name="resourceForm" ng-submit="$ctrl.save()" novalidate>
             <div layout="row" layout-sm="column">
               <md-input-container class="md-block" flex-gt-xs>
                 <label>Name</label>
-                <input required ng-model="apiResourcesCtrl.resource.name" md-autofocus type="text" ng-required="true" />
+                <input required ng-model="$ctrl.resource.name" md-autofocus type="text" ng-required="true" />
               </md-input-container>
 
               <div flex="5" hide-xs hide-sm>
@@ -93,14 +93,14 @@
               <md-input-container class="md-block" flex-gt-xs>
                 <label>Type</label>
                 <md-select
-                  ng-model="apiResourcesCtrl.resource.type"
+                  ng-model="$ctrl.resource.type"
                   placeholder="Type"
                   required
                   ng-required="true"
-                  ng-change="apiResourcesCtrl.onTypeChange()"
-                  ng-disabled="!apiResourcesCtrl.creation"
+                  ng-change="$ctrl.onTypeChange()"
+                  ng-disabled="!$ctrl.creation"
                 >
-                  <md-option ng-repeat="type in apiResourcesCtrl.types" ng-value="type.id">{{type.name}}</md-option>
+                  <md-option ng-repeat="type in $ctrl.types" ng-value="type.id">{{type.name}}</md-option>
                 </md-select>
               </md-input-container>
             </div>
@@ -112,9 +112,9 @@
           <div layout="row" layout-align="start center">
             <form
               name="resourceConfigurationForm"
-              sf-schema="apiResourcesCtrl.resourceJsonSchema"
-              sf-form="apiResourcesCtrl.resourceJsonSchemaForm"
-              sf-model="apiResourcesCtrl.resource.configuration"
+              sf-schema="$ctrl.resourceJsonSchema"
+              sf-form="$ctrl.resourceJsonSchemaForm"
+              sf-model="$ctrl.resource.configuration"
               sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }"
               novalidate
             ></form>
@@ -126,7 +126,7 @@
             <md-button
               class="md-raised"
               ng-disabled="resourceConfigurationForm.$invalid || resourceForm.$invalid"
-              ng-click="apiResourcesCtrl.saveResource()"
+              ng-click="$ctrl.saveResource()"
               >Save</md-button
             >
           </div>
@@ -134,7 +134,7 @@
       </md-sidenav>
 
       <gravitee-empty-state
-        ng-if="$parent.apiCtrl.api.resources.length == 0"
+        ng-if="$ctrl.resolvedApi.data.resources.length == 0"
         icon="style"
         model="Resource"
         message="Resources will appear here"
@@ -142,12 +142,16 @@
         create-mode="true"
       ></gravitee-empty-state>
 
-      <div permission permission-only="'api-definition-c'" ng-style="$parent.apiCtrl.api.resources.length == 0 && {'text-align':'center'}">
+      <div
+        permission
+        permission-only="'api-definition-c'"
+        ng-style="$ctrl.resolvedApi.data.resources.length == 0 && {'text-align':'center'}"
+      >
         <md-button
-          ng-class="{'md-fab-bottom-right': $parent.apiCtrl.api.resources.length > 0}"
+          ng-class="{'md-fab-bottom-right': $ctrl.resolvedApi.data.resources.length > 0}"
           class="md-fab"
           aria-label="Add resource"
-          ng-click="apiResourcesCtrl.showResourcePanel()"
+          ng-click="$ctrl.showResourcePanel()"
         >
           <ng-md-icon icon="add"></ng-md-icon>
         </md-button>

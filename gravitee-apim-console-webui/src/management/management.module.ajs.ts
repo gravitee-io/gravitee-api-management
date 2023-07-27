@@ -37,11 +37,11 @@ import ApisStatusDashboardController from '../management/dashboard-ajs/apis-stat
 import ApiAdminController from '../management/api/apiAdmin.controller';
 import ApiPoliciesController from '../management/api/design/policies/policies.controller';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
-import ApiResourcesController from './api/proxy/resources/resources.controller';
-import ApiPropertiesController from './api/proxy/properties/properties.controller';
+import { ApiV1ResourcesComponentAjs } from './api/proxy/resources-v1/resources.component.ajs';
+import { ApiV1PropertiesComponentAjs } from './api/proxy/properties-v1/properties.component.ajs';
 import { ApiEventsComponentAjs } from './api/audit/events/apiEvents.component.ajs';
 import { ApiHistoryComponentAjs } from './api/audit/history/apiHistory.component.ajs';
-import DialogAddPropertyController from './api/proxy/properties/add-property.dialog.controller';
+import DialogAddPropertyController from './api/proxy/properties-v1/add-property.dialog.controller';
 import DialogEditPolicyController from '../management/api/design/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
 import FileLoaderDirective from '../components/fileloader/fileloader.directive';
@@ -173,7 +173,7 @@ import UserAvatarDirective from '../components/avatar/user-avatar.directive';
 import FileChooserDialogController from '../components/dialog/fileChooserDialog.controller';
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
 import DialogConfirmAndValidateController from '../components/dialog/confirmAndValidateDialog.controller';
-import DialogDynamicProviderHttpController from './api/proxy/properties/dynamic-provider-http-dialog.controller';
+import DialogDynamicProviderHttpController from './api/proxy/properties-v1/dynamic-provider-http-dialog.controller';
 import TenantService from '../services/tenant.service';
 
 import CategoriesComponent from '../management/configuration/categories/categories.component';
@@ -672,10 +672,10 @@ graviteeManagementModule.directive('ngApiMembers', downgradeComponent({ componen
 graviteeManagementModule.directive('ngApiTransferOwnership', downgradeComponent({ component: ApiPortalTransferOwnershipComponent }));
 graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHealthcheckDashboardComponentAjs);
 
-graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
+graviteeManagementModule.component('apiV1PropertiesComponentAjs', ApiV1PropertiesComponentAjs);
 graviteeManagementModule.component('apiEventsComponentAjs', ApiEventsComponentAjs);
 graviteeManagementModule.component('apiHistoryComponentAjs', ApiHistoryComponentAjs);
-graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
+graviteeManagementModule.component('apiV1ResourcesComponentAjs', ApiV1ResourcesComponentAjs);
 graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
 graviteeManagementModule.controller('DialogImportPathMappingController', DialogImportPathMappingController);
 graviteeManagementModule.controller('DialogAddPropertyController', DialogAddPropertyController);
