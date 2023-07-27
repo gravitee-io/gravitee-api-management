@@ -19,12 +19,13 @@ import { CommonModule } from '@angular/common';
 
 import { ApiBackendServicesComponent } from './api-backend-services.component';
 import { ApiEndpointsGroupsModule } from './endpoints-groups/api-endpoints-groups.module';
+import { ApiEndpointGroupModule } from './endpoint-group/api-endpoint-group.module';
 
 import { ApiProxyEndpointModule } from '../../proxy/endpoints/api-proxy-endpoints.module';
 
 @NgModule({
   declarations: [ApiBackendServicesComponent],
   exports: [ApiBackendServicesComponent],
-  imports: [CommonModule, ApiProxyEndpointModule, ApiEndpointsGroupsModule],
+  imports: [CommonModule, ApiProxyEndpointModule, ApiEndpointsGroupsModule, ApiEndpointGroupModule],
 })
 export class ApiBackendServicesModule {}

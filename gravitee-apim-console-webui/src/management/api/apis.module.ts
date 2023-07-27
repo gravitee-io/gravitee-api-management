@@ -43,6 +43,7 @@ import { ApiEndpointComponent } from './endpoints-v4/backend-services/endpoint/a
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
 import { ApiPropertiesComponent } from './proxy/properties-ng/api-properties.component';
 import { ApiResourcesComponent } from './proxy/resources-ng/api-resources.component';
+import { ApiEndpointGroupComponent } from './endpoints-v4/backend-services/endpoint-group/api-endpoint-group.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioEmptyComponent } from '../../shared/components/gio-empty/gio-empty.component';
@@ -263,6 +264,21 @@ const states: Ng2StateDeclaration[] = [
       },
     },
   },
+  {
+    name: 'management.apis.ng.endpoint-group',
+    url: '/group/:groupIndex',
+    component: ApiEndpointGroupComponent,
+    data: {
+      useAngularMaterial: true,
+      apiPermissions: {
+        only: ['api-definition-u'],
+      },
+      docs: {
+        page: 'management-api-proxy-endpoints',
+      },
+    },
+  },
+
   {
     name: 'management.apis.ng.endpoint-new',
     url: '/groups/:groupIndex/endpoint/new',

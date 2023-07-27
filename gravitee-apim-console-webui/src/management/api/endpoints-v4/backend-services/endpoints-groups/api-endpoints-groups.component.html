@@ -29,6 +29,16 @@
             <mat-icon svgIcon="gio:share-2"></mat-icon>
             {{ group.loadBalancerType }}
           </span>
+          <span>
+            <a
+              *gioPermission="{ anyOf: ['api-definition-u'] }"
+              mat-stroked-button
+              aria-label="Edit endpoint group"
+              class="edit_endpoint_group"
+              (click)="editEndpointGroup(i)"
+              >Edit group</a
+            >
+          </span>
         </div>
 
         <div class="endpoints-group-card__header__actions">

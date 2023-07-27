@@ -182,6 +182,25 @@ describe('ApiEndpointsGroupsComponent', () => {
     });
   });
 
+  describe('GIVEN an endpoint group', () => {
+    describe('WHEN an endpoint group is edited', () => {
+      it('THEN the page should navigate to the endpoint group edit page AND the button should be visible', async () => {
+        const apiV4 = fakeApiV4({
+          id: API_ID,
+          endpointGroups: [group1, group2],
+        });
+
+        await initComponent(apiV4);
+
+        expect(await componentHarness.isEditEndpointGroupNameFieldAvailable(0)).toEqual(true);
+
+        await componentHarness.clickEditEndpointGroup(0);
+
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.endpoint-group', { groupIndex: 0 });
+      });
+    });
+  });
+
   describe('addEndpoint', () => {
     it('should navigate to endpoint creation page', async () => {
       const apiV4 = fakeApiV4({
