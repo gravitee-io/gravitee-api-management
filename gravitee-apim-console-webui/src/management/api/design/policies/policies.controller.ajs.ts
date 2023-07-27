@@ -17,7 +17,9 @@ import { StateService } from '@uirouter/core';
 import angular from 'angular';
 import * as _ from 'lodash';
 
-class ApiPoliciesController {
+class ApiV1PoliciesControllerAjs {
+  api: any;
+
   private apiPoliciesByPath: any;
   private policiesToCopy: any[];
   private policiesMap: any;
@@ -61,7 +63,7 @@ class ApiPoliciesController {
         this.policiesToCopy.push(policy);
         this.policiesMap[policy.policyId] = policy;
       });
-      _.forEach(this.$scope.$parent.apiCtrl.api.paths, (policies, path) => {
+      _.forEach(this.api.paths, (policies, path) => {
         this.apiPoliciesByPath[path] = _.cloneDeep(policies);
       });
       this.completeApiPolicies(this.apiPoliciesByPath);
@@ -315,8 +317,8 @@ class ApiPoliciesController {
   }
 
   savePaths() {
-    this.$scope.$parent.apiCtrl.api.paths = _.cloneDeep(this.apiPoliciesByPath);
-    _.forEach(this.$scope.$parent.apiCtrl.api.paths, (policies) => {
+    this.$scope.api.paths = _.cloneDeep(this.apiPoliciesByPath);
+    _.forEach(this.$scope.api.paths, (policies) => {
       _.forEach(policies, (policy) => {
         delete policy.policyId;
         delete policy.name;
@@ -337,7 +339,7 @@ class ApiPoliciesController {
       });
     });
 
-    const api = this.$scope.$parent.apiCtrl.api;
+    const api = this.$scope.api;
     return this.ApiService.update(api).then((updatedApi) => {
       this.NotificationService.show("API '" + updatedApi.data.name + "' saved");
       this.pathsToCompare = this.generatePathsToCompare();
@@ -382,7 +384,7 @@ class ApiPoliciesController {
       })
       .then((response) => {
         if (response) {
-          this.ApiService.migrateApiToPolicyStudio(this.$scope.$parent.apiCtrl.api.id).then((response) => {
+          this.ApiService.migrateApiToPolicyStudio(this.api.id).then((response) => {
             this.$state.go('management.apis.ng.general', { apiId: response.data.id }, { reload: true });
           });
         }
@@ -485,4 +487,4 @@ class ApiPoliciesController {
   }
 }
 
-export default ApiPoliciesController;
+export default ApiV1PoliciesControllerAjs;

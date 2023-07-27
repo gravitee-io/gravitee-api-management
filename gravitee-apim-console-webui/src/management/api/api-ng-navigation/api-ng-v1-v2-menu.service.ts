@@ -42,11 +42,21 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     groupItems: MenuGroupItem[];
   } {
     const subMenuItems: MenuItem[] = [
-      {
-        displayName: 'Policy Studio',
-        targetRoute: 'management.apis.ng.policy-studio-v2',
-        baseRoute: 'management.apis.ng.policy-studio-v2',
-      },
+      ...(api.definitionVersion === 'V1'
+        ? [
+            {
+              displayName: 'Policy Studio',
+              targetRoute: 'management.apis.ng.policies-v1',
+              baseRoute: 'management.apis.ng.policies-v1',
+            },
+          ]
+        : [
+            {
+              displayName: 'Policy Studio',
+              targetRoute: 'management.apis.ng.policy-studio-v2',
+              baseRoute: 'management.apis.ng.policy-studio-v2',
+            },
+          ]),
       {
         displayName: 'Messages',
         targetRoute: 'management.apis.ng.messages',

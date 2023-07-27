@@ -73,6 +73,7 @@ import { ApiHistoryComponent } from './audit/history/apiHistory.component';
 import { ApiEventsComponent } from './audit/events/apiEvents.component';
 import { ApiV1PropertiesComponent } from './proxy/properties-v1/properties.component';
 import { ApiV1ResourcesComponent } from './proxy/resources-v1/resources.component';
+import { ApiV1PoliciesComponent } from './design/policies/policies.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -947,6 +948,29 @@ const states: Ng2StateDeclaration[] = [
    * V1 Api state only
    */
   {
+    name: 'management.apis.ng.policies-v1',
+    url: '/v1/policies',
+    component: ApiV1PoliciesComponent,
+    data: {
+      useAngularMaterial: true,
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-policies',
+      },
+    },
+    resolve: [
+      {
+        token: 'api',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId).then((response) => response.data);
+        },
+      },
+    ],
+  },
+  {
     name: 'management.apis.ng.properties-v1',
     url: '/v1/properties',
     component: ApiV1PropertiesComponent,
@@ -1368,6 +1392,7 @@ const states: Ng2StateDeclaration[] = [
 ];
 
 @NgModule({
+  declarations: [ApiV1PoliciesComponent],
   imports: [
     ApiAnalyticsModule,
     ApiListModule,

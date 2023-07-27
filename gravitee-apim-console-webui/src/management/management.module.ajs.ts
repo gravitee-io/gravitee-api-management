@@ -35,7 +35,7 @@ import { ApiService } from '../services/api.service';
 import CorsService from '../services/cors.service';
 import ApisStatusDashboardController from '../management/dashboard-ajs/apis-status-dashboard/apis-status-dashboard.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';
-import ApiPoliciesController from '../management/api/design/policies/policies.controller';
+import { ApiV1PoliciesComponentAjs } from './api/design/policies/policies.component.ajs';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import { ApiV1ResourcesComponentAjs } from './api/proxy/resources-v1/resources.component.ajs';
 import { ApiV1PropertiesComponentAjs } from './api/proxy/properties-v1/properties.component.ajs';
@@ -666,7 +666,7 @@ graviteeManagementModule.directive(
 );
 
 graviteeManagementModule.component('apiAnalyticsOverviewComponentAjs', ApiAnalyticsOverviewComponentAjs);
-graviteeManagementModule.controller('ApiPoliciesController', ApiPoliciesController);
+graviteeManagementModule.component('apiV1PoliciesComponentAjs', ApiV1PoliciesComponentAjs);
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
 graviteeManagementModule.directive('ngApiMembers', downgradeComponent({ component: ApiPortalMembersComponent }));
 graviteeManagementModule.directive('ngApiTransferOwnership', downgradeComponent({ component: ApiPortalTransferOwnershipComponent }));
