@@ -19,6 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UIRouterModule } from '@uirouter/angular';
+import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 
 import { ApiNgNavigationModule } from './api-ng-navigation.module';
 import { ApiNgNavigationComponent } from './api-ng-navigation.component';
@@ -66,6 +67,7 @@ describe('ApiNgNavigationComponent', () => {
           },
           { provide: CurrentUserService, useValue: { currentUser } },
           { provide: 'Constants', useValue: CONSTANTS_TESTING },
+          { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
         ],
       }).compileComponents();
 

@@ -20,7 +20,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioSaveBarHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSelectHarness } from '@angular/material/select/testing';
@@ -41,7 +41,6 @@ import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
 import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { fakeEntrypoint } from '../../../entities/entrypoint/entrypoint.fixture';
-import { GioLicenseTestingModule } from '../../../shared/testing/gio-license.testing.module';
 
 describe('OrgSettingsTagsComponent', () => {
   const currentUser = new DeprecatedUser();

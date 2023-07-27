@@ -17,6 +17,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateParams, StateService } from '@uirouter/angularjs';
 import { map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { Observable, of, Subject } from 'rxjs';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioService } from './policy-studio.service';
 import { ApiDefinition, toApiDefinition } from './models/ApiDefinition';
@@ -26,7 +27,7 @@ import { AjsRootScope, UIRouterState, UIRouterStateParams } from '../../../ajs-u
 import { ApiService } from '../../../services-ngx/api.service';
 import { Api } from '../../../entities/api';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { GioLicenseService } from '../../../shared/components/gio-license/gio-license.service';
+import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 
 interface MenuItem {
   label: string;
@@ -62,8 +63,8 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    const debugLicense = { feature: 'apim-debug-mode', utmMedium: 'feature_debugmode_v2' };
-    const notAllowed$ = this.gioLicenseService.isMissingFeature$(debugLicense.feature);
+    const debugLicense = { feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V2 };
+    const notAllowed$ = this.gioLicenseService.isMissingFeature$(debugLicense);
     this.policyStudioMenu.push({
       label: 'Debug',
       uiSref: notAllowed$.pipe(map((notAllowed) => (notAllowed ? null : '.debug'))),

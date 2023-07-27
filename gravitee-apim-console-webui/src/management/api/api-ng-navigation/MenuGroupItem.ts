@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 import { Observable } from 'rxjs';
-
-import { GioLicenseOptions } from '../../../shared/components/gio-license/gio-license.directive';
+import { LicenseOptions } from '@gravitee/ui-particles-angular';
 
 export interface MenuItem {
   targetRoute?: string;
   baseRoute?: string | string[];
   displayName: string;
-  license?: GioLicenseOptions;
+  license?: LicenseOptions;
   iconRight$?: Observable<string>;
   tabs?: MenuItem[];
 }

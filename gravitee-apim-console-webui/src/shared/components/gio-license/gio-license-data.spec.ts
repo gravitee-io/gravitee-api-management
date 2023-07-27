@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { Feature, stringFeature } from './gio-license-features';
+import { ApimFeature, stringFeature } from './gio-license-data';
 
 describe('GIO license features', () => {
   it('should convert string to Feature', () => {
-    expect(stringFeature('apim-custom-roles')).toEqual(Feature.APIM_CUSTOM_ROLES);
+    expect(stringFeature('apim-custom-roles')).toEqual(ApimFeature.APIM_CUSTOM_ROLES);
   });
 
   it('should throw error with unknown Feature string', () => {

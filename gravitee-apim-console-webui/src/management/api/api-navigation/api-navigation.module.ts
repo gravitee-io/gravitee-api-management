@@ -15,14 +15,12 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioBreadcrumbModule, GioIconsModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
+import { GioBreadcrumbModule, GioIconsModule, GioLicenseModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 
 import { ApiNavigationComponent } from './api-navigation.component';
 import { ApiNavigationTitleModule } from './api-navigation-title/api-navigation-title.module';
 import { ApiNavigationTabsModule } from './api-navigation-tabs/api-navigation-tabs.module';
-
-import { GioLicenseModule } from '../../../shared/components/gio-license/gio-license.module';
 
 @NgModule({
   imports: [

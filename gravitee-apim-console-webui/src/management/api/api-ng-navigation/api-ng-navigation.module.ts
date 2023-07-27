@@ -20,6 +20,7 @@ import {
   GioBreadcrumbModule,
   GioFormSlideToggleModule,
   GioIconsModule,
+  GioLicenseModule,
   GioLoaderModule,
   GioSubmenuModule,
 } from '@gravitee/ui-particles-angular';
@@ -40,8 +41,6 @@ import { ApiNgNavigationTabsComponent } from './api-ng-navigation-tabs/api-ng-na
 import { ApiNgNavigationTitleComponent } from './api-ng-navigation-title/api-ng-navigation-title.component';
 import { ApiNgNavigationComponent } from './api-ng-navigation.component';
 import { ApiNgNavigationDisabledComponent } from './api-ng-navigation-disabled/api-ng-navigation-disabled.component';
-
-import { GioLicenseModule } from '../../../shared/components/gio-license/gio-license.module';
 
 @NgModule({
   imports: [

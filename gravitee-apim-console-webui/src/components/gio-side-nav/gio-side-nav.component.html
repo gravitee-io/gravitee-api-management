@@ -34,7 +34,7 @@
         [icon]="item.icon"
         (click)="navigateTo(item.targetRoute)"
         [active]="isActive(item.baseRoute)"
-        [gioLicense]="item?.license"
+        [gioLicense]="item?.licenseOptions"
         [iconRight]="item?.iconRight$ | async"
         >{{ item.displayName }}</gio-menu-item
       >

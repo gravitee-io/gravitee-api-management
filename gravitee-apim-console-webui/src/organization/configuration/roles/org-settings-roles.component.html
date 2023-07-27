@@ -24,7 +24,7 @@
         <h2 gioTableOfContents>{{ item.scope }}</h2>
         <button
           *gioPermission="{ anyOf: ['organization-role-c'] }"
-          [gioLicense]="customRolesLicense"
+          [gioLicense]="customRolesLicenseOptions"
           (click)="onAddARoleClicked(item.scopeId)"
           mat-raised-button
           color="primary"
