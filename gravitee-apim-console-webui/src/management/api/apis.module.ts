@@ -97,6 +97,7 @@ import NotifierService from '../../services/notifier.service';
 import { AlertsComponent } from '../../components/alerts/alerts.component';
 import { AlertComponent } from '../../components/alerts/alert/alert.component';
 import ResourceService from '../../services/resource.service';
+import { MessagesComponent } from '../messages/messages.component';
 
 const graviteeManagementModule = angular.module('gravitee-management');
 apiPermissionHook.$inject = ['$transitions', 'ngGioPermissionService'];
@@ -147,6 +148,17 @@ const states: Ng2StateDeclaration[] = [
       docs: null,
     },
     component: ApiV4PolicyStudioDesignComponent,
+  },
+  {
+    name: 'management.apis.ng.messages',
+    url: '/messages',
+    data: {
+      useAngularMaterial: true,
+      docs: {
+        page: 'management-messages',
+      },
+    },
+    component: MessagesComponent,
   },
   {
     name: 'management.apis.ng.general',
