@@ -23,6 +23,14 @@ $textColor: map.get(gio.$mat-dove-palette, default);
   height: 100%;
 }
 
+::ng-deep {
+  // Add padding for legacy angularjs pages using bootstrap
+  .api-navigation__content__view__ui > .bootstrap {
+    display: block;
+    padding: 0 32px;
+  }
+}
+
 .api-navigation {
   display: flex;
   justify-content: flex-start;
