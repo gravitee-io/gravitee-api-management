@@ -99,8 +99,7 @@ public class RoleResource extends AbstractResource {
     @Operation(summary = "Delete a role", description = "User must have the MANAGEMENT_ROLE[DELETE] permission to use this service")
     @ApiResponse(
         responseCode = "204",
-        description = "Role successfully deleted",
-        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = RoleEntity.class))
+        description = "Role successfully deleted"
     )
     @ApiResponse(responseCode = "404", description = "Role not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
