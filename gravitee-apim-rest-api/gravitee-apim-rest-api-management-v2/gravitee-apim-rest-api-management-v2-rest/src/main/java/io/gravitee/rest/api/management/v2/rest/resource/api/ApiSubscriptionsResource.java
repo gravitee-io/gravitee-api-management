@@ -633,7 +633,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         if (applicationEntity.hasApiKeySharedMode()) {
             throw new InvalidApplicationApiKeyModeException(
                 String.format(
-                    "Invalid operation for api key mode [%s] of application [%s].",
+                    "Invalid operation for API Key mode [%s] of application [%s].",
                     applicationEntity.getApiKeyMode(),
                     applicationEntity.getId()
                 )

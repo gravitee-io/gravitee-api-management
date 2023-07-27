@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApiKeyMode;
@@ -38,6 +39,7 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationGrantType
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -173,6 +175,85 @@ public class ApplicationService_UpdateTest {
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
     }
 
+    @Test
+    public void shouldUpdateForV4Api() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(Strings.EMPTY);
+        settings.setApp(clientSettings);
+
+        // 'Shared API KEY' setting is enabled, allows to update to SHARED mode
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(true);
+
+        String apiKeyPlanId = "apiKeyPlan";
+        String pushPlanId = "pushPLan";
+        SubscriptionEntity apiKeySubscription = new SubscriptionEntity();
+        apiKeySubscription.setPlan(apiKeyPlanId);
+        apiKeySubscription.setStatus(SubscriptionStatus.ACCEPTED);
+        SubscriptionEntity pushSubscription = new SubscriptionEntity();
+        pushSubscription.setPlan(pushPlanId);
+        pushSubscription.setStatus(SubscriptionStatus.ACCEPTED);
+        when(subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null))
+            .thenReturn(Arrays.asList(apiKeySubscription, pushSubscription));
+
+        io.gravitee.rest.api.model.v4.plan.PlanEntity apiKeyPlanEntity = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        apiKeyPlanEntity.setId(apiKeyPlanId);
+        apiKeyPlanEntity.setSecurity(new PlanSecurity(PlanSecurityType.API_KEY.name(), ""));
+        apiKeyPlanEntity.setMode(PlanMode.STANDARD);
+        io.gravitee.rest.api.model.v4.plan.PlanEntity pushPlanEntity = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        pushPlanEntity.setId(pushPlanId);
+        pushPlanEntity.setSecurity(null);
+        pushPlanEntity.setMode(PlanMode.PUSH);
+        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(apiKeyPlanId, pushPlanId)))
+            .thenReturn(Set.of(apiKeyPlanEntity, pushPlanEntity));
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        final ApplicationEntity applicationEntity = applicationService.update(
+            GraviteeContext.getExecutionContext(),
+            APPLICATION_ID,
+            updateApplication
+        );
+
+        verify(applicationRepository)
+            .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
+
+        assertNotNull(applicationEntity);
+        assertEquals(APPLICATION_NAME, applicationEntity.getName());
+
+        verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
+        verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(apiKeyPlanId, pushPlanId)));
+    }
+
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
@@ -298,16 +379,16 @@ public class ApplicationService_UpdateTest {
 
     @Test(expected = InvalidApplicationApiKeyModeException.class)
     public void should_throw_exception_trying_to_update_apiKeyMode_shared() throws TechnicalException {
-        // existing application has a SHARED api key mode
+        // existing application has a SHARED API Key mode
         when(existingApplication.getApiKeyMode()).thenReturn(SHARED);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
 
-        // updated application has a UNSPECIFIED api key mode
+        // updated application has a UNSPECIFIED API Key mode
         when(updateApplication.getApiKeyMode()).thenReturn(UNSPECIFIED);
         when(updateApplication.getSettings()).thenReturn(new ApplicationSettings());
         updateApplication.getSettings().setApp(new SimpleApplicationSettings());
 
-        // this should throw exception cause API key mode update is forbidden
+        // this should throw exception cause API Key mode update is forbidden
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
     }
 
@@ -323,16 +404,16 @@ public class ApplicationService_UpdateTest {
         )
             .thenReturn(false);
 
-        // existing application has a UNSPECIFIED api key mode
+        // existing application has a UNSPECIFIED API Key mode
         when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
 
-        // updated application has a SHARED api key mode
+        // updated application has a SHARED API Key mode
         when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
         when(updateApplication.getSettings()).thenReturn(new ApplicationSettings());
         updateApplication.getSettings().setApp(new SimpleApplicationSettings());
 
-        // this should throw exception cause shard API key setting is disabled
+        // this should throw exception cause shard API Key setting is disabled
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
     }
 
@@ -398,7 +479,7 @@ public class ApplicationService_UpdateTest {
         ApplicationSettings settings = new ApplicationSettings();
         OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
         oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
-        oAuthClientSettings.setApplicationType("application-type");
+        oAuthClientSettings.setApplicationType(ApplicationType.BROWSER.name());
         settings.setoAuthClient(oAuthClientSettings);
         when(updateApplication.getSettings()).thenReturn(settings);
 
@@ -408,7 +489,7 @@ public class ApplicationService_UpdateTest {
         applicationGrantTypeEntity.setResponse_types(List.of("response-type"));
         applicationTypeEntity.setAllowed_grant_types(List.of(applicationGrantTypeEntity));
         applicationTypeEntity.setRequires_redirect_uris(false);
-        when(applicationTypeService.getApplicationType("application-type")).thenReturn(applicationTypeEntity);
+        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
 
         // mock response from DCR with a new client ID
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
@@ -459,7 +540,7 @@ public class ApplicationService_UpdateTest {
         ApplicationSettings settings = new ApplicationSettings();
         OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
         oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
-        oAuthClientSettings.setApplicationType("application-type");
+        oAuthClientSettings.setApplicationType(ApplicationType.BROWSER.name());
         settings.setoAuthClient(oAuthClientSettings);
         when(updateApplication.getSettings()).thenReturn(settings);
 
@@ -469,7 +550,7 @@ public class ApplicationService_UpdateTest {
         applicationGrantTypeEntity.setResponse_types(List.of("response-type"));
         applicationTypeEntity.setAllowed_grant_types(List.of(applicationGrantTypeEntity));
         applicationTypeEntity.setRequires_redirect_uris(false);
-        when(applicationTypeService.getApplicationType("application-type")).thenReturn(applicationTypeEntity);
+        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
 
         // DCR throws exception
         when(clientRegistrationService.update(any(), any(), same(updateApplication))).thenThrow(RuntimeException.class);
@@ -506,8 +587,26 @@ public class ApplicationService_UpdateTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
-        List<SubscriptionEntity> subscriptions = List.of(mock(SubscriptionEntity.class), mock(SubscriptionEntity.class));
-        when(subscriptionService.search(any(), argThat(criteria -> criteria.getApplications().contains(APPLICATION_ID))))
+        SubscriptionEntity subscription1 = new SubscriptionEntity();
+        subscription1.setId("sub-1");
+        subscription1.setClientId("old id");
+
+        SubscriptionEntity subscription2 = new SubscriptionEntity();
+        subscription2.setId("sub-2");
+        subscription2.setClientId("old id");
+
+        List<SubscriptionEntity> subscriptions = List.of(subscription1, subscription2);
+        when(
+            subscriptionService.search(
+                any(),
+                argThat(criteria ->
+                    criteria.getApplications().contains(APPLICATION_ID) &&
+                    criteria
+                        .getStatuses()
+                        .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
+                )
+            )
+        )
             .thenReturn(subscriptions);
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
@@ -516,7 +615,7 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
-    public void shouldNotUpdateWhenClientIdIsEmptyWithJWTPlan() throws TechnicalException {
+    public void shouldNotUpdateWhenClientIdIsEmptyWithJWTPlan() {
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(Strings.EMPTY);
@@ -590,16 +689,16 @@ public class ApplicationService_UpdateTest {
         PlanEntity apiKeyPlanEntity = new PlanEntity();
         apiKeyPlanEntity.setId(apiKeyPlanId);
         when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(apiKeyPlanId)))
-            .thenReturn(Set.of(apiKeyPlanEntity));
+                .thenReturn(Set.of(apiKeyPlanEntity));
 
         when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                ParameterReferenceType.ENVIRONMENT
-            )
+                parameterService.findAsBoolean(
+                        GraviteeContext.getExecutionContext(),
+                        Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                        ParameterReferenceType.ENVIRONMENT
+                )
         )
-            .thenReturn(true);
+                .thenReturn(true);
 
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
@@ -608,6 +707,7 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
 
         when(applicationRepository.update(any())).thenReturn(existingApplication);
+
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = new MembershipEntity();
@@ -620,17 +720,109 @@ public class ApplicationService_UpdateTest {
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         final ApplicationEntity applicationEntity = applicationService.update(
-            GraviteeContext.getExecutionContext(),
-            APPLICATION_ID,
-            updateApplication
+                GraviteeContext.getExecutionContext(),
+                APPLICATION_ID,
+                updateApplication
         );
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
 
         verify(applicationRepository)
-            .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
+                .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
         verify(subscriptionService).findByApplicationAndPlan(any(ExecutionContext.class), eq(APPLICATION_ID), isNull());
         verify(planSearchService).findByIdIn(any(ExecutionContext.class), eq(Set.of(apiKeyPlanId)));
+
+    }
+    @Test
+    public void should_not_update_null_new_client_id() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        settings.setApp(clientSettings);
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+        SubscriptionEntity subscription1 = new SubscriptionEntity();
+        subscription1.setId("sub-1");
+        subscription1.setClientId("old id");
+
+        SubscriptionEntity subscription2 = new SubscriptionEntity();
+        subscription2.setId("sub-2");
+        subscription2.setClientId("old id");
+
+        List<SubscriptionEntity> subscriptions = List.of(subscription1, subscription2);
+        when(
+                subscriptionService.search(
+                        any(),
+                        argThat(criteria ->
+                                criteria.getApplications().contains(APPLICATION_ID) &&
+                                        criteria
+                                                .getStatuses()
+                                                .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
+                        )
+                )
+        )
+                .thenReturn(subscriptions);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class), any());
+    }
+
+    @Test
+    public void should_not_update_client_id_of_subscriptions_with_null_client_id() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = new MembershipEntity();
+        po.setMemberId(USER_NAME);
+        po.setMemberType(MembershipMemberType.USER);
+        po.setReferenceId(APPLICATION_ID);
+        po.setReferenceType(MembershipReferenceType.APPLICATION);
+        po.setRoleId("APPLICATION_PRIMARY_OWNER");
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        List<SubscriptionEntity> subscriptions = List.of(mock(SubscriptionEntity.class), mock(SubscriptionEntity.class));
+        when(
+            subscriptionService.search(
+                any(),
+                argThat(criteria ->
+                    criteria.getApplications().contains(APPLICATION_ID) &&
+                    criteria
+                        .getStatuses()
+                        .containsAll(Set.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED, SubscriptionStatus.PENDING))
+                )
+            )
+        )
+            .thenReturn(subscriptions);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(subscriptionService, never()).update(any(), any(UpdateSubscriptionEntity.class), any());
     }
 }

@@ -20,7 +20,7 @@ import { IScope } from 'angular';
 
 import { Constants } from '../entities/Constants';
 import { AjsRootScope } from '../ajs-upgraded-providers';
-import { Subscription } from '../entities/subscription/subscription';
+import { ApplicationSubscription, Subscription } from '../entities/subscription/subscription';
 import { PagedResult } from '../entities/pagedResult';
 
 @Injectable({
@@ -36,6 +36,12 @@ export class SubscriptionService {
   public getApiSubscriptionsByPlan(apiId: string, planId): Observable<PagedResult<Subscription>> {
     return this.http.get<PagedResult<Subscription>>(
       `${this.constants.env.baseURL}/apis/${apiId}/subscriptions?plan=${planId}&status=accepted,pending,rejected,closed,paused`,
+    );
+  }
+
+  public getApplicationSubscriptions(appId: string): Observable<PagedResult<ApplicationSubscription>> {
+    return this.http.get<PagedResult<ApplicationSubscription>>(
+      `${this.constants.env.baseURL}/applications/${appId}/subscriptions?expand=security`,
     );
   }
 }

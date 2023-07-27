@@ -122,13 +122,7 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -565,7 +559,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             application.getApiKeyMode() == UNSPECIFIED &&
             countApiKeySubscriptions(executionContext, application) > 0
         ) {
-            logger.debug("Force application {} Api Key mode to EXCLUSIVE, as it's his second subscription", application.getId());
+            logger.debug("Force application {} API Key mode to EXCLUSIVE, as it's his second subscription", application.getId());
             application.setApiKeyMode(EXCLUSIVE);
             applicationService.update(executionContext, application.getId(), applicationConverter.toUpdateApplicationEntity(application));
         }
@@ -689,7 +683,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 .findById(updateSubscription.getId())
                 .orElseThrow(() -> new SubscriptionNotFoundException(updateSubscription.getId()));
 
-            if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
+            if (
+                subscription.getStatus() == Subscription.Status.ACCEPTED ||
+                subscription.getStatus() == PENDING ||
+                subscription.getStatus() == Subscription.Status.PAUSED
+            ) {
                 final GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
 
                 subscriptionValidationService.validateAndSanitize(genericPlanEntity, updateSubscription);
@@ -717,7 +715,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscription
                 );
 
-                // Update the expiration date for not yet revoked api-keys relative to this subscription (except for shared API keys)
+                // Update the expiration date for not yet revoked api-keys relative to this subscription (except for shared API Keys)
                 PlanSecurity planSecurity = genericPlanEntity.getPlanSecurity();
                 if (planSecurity != null) {
                     Date endingAt = subscription.getEndingAt();
@@ -1037,7 +1035,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     private void pauseNonSharedApiKeys(ExecutionContext executionContext, Subscription subscription, ApplicationEntity application) {
         streamActiveApiKeys(executionContext, subscription.getId())
             .forEach(apiKey -> {
-                // Only paused key if the applicatio is not using shared api key
+                // Only paused key if the applicatio is not using shared API Key
                 if (!application.hasApiKeySharedMode()) {
                     apiKey.setPaused(true);
                 }

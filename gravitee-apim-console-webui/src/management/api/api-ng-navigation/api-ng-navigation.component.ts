@@ -28,24 +28,16 @@ import {
   ApiConfirmDeploymentDialogResult,
 } from './api-confirm-deployment-dialog/api-confirm-deployment-dialog.component';
 import { ApiReviewDialogComponent, ApiReviewDialogData, ApiReviewDialogResult } from './api-review-dialog/api-review-dialog.component';
+import { MenuGroupItem, MenuItem } from './MenuGroupItem';
+import { ApiNgV4MenuService } from './api-ng-v4-menu.service';
+import { ApiNgV1V2MenuService } from './api-ng-v1-v2-menu.service';
 
 import { AjsRootScope, CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import UserService from '../../../services/user.service';
 import { Constants } from '../../../entities/Constants';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-
-export interface MenuItem {
-  targetRoute?: string;
-  baseRoute?: string | string[];
-  displayName: string;
-  tabs?: MenuItem[];
-}
-
-interface GroupItem {
-  title: string;
-  items: MenuItem[];
-}
+import { Api } from '../../../entities/management-api-v2';
 
 type TopBanner = {
   title: string;
@@ -60,12 +52,12 @@ type TopBanner = {
   selector: 'api-ng-navigation',
   template: require('./api-ng-navigation.component.html'),
   styles: [require('./api-ng-navigation.component.scss')],
+  providers: [ApiNgV1V2MenuService, ApiNgV4MenuService],
 })
 export class ApiNgNavigationComponent implements OnInit, OnDestroy {
-  public currentApi$ = this.apiV2Service.getLastApiFetch(this.ajsStateParams.apiId);
-
+  public currentApi: Api;
   public subMenuItems: MenuItem[] = [];
-  public groupItems: GroupItem[] = [];
+  public groupItems: MenuGroupItem[] = [];
   public selectedItemWithTabs: MenuItem = undefined;
   public bannerState: string;
   public hasBreadcrumb = false;
@@ -246,6 +238,8 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
     private readonly gioMenuService: GioMenuService,
     private readonly apiV2Service: ApiV2Service,
     private readonly matDialog: MatDialog,
+    private readonly apiNgV1V2MenuService: ApiNgV1V2MenuService,
+    private readonly apiNgV4MenuService: ApiNgV4MenuService,
   ) {}
 
   ngOnInit() {
@@ -255,119 +249,29 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
 
     this.bannerState = localStorage.getItem('gv-api-navigation-banner');
 
-    this.appendPolicyStudio();
-    this.appendGeneralGroup();
-    this.appendEntrypointsGroup();
-    this.appendEndpointsGroup();
+    this.apiV2Service
+      .getLastApiFetch(this.ajsStateParams.apiId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((api) => {
+        this.currentApi = api;
+        const { groupItems, subMenuItems } =
+          api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu() : this.apiNgV4MenuService.getMenu();
+        this.groupItems = groupItems;
+        this.subMenuItems = subMenuItems;
 
-    this.selectedItemWithTabs = this.findMenuItemWithTabs();
-    this.breadcrumbItems = this.computeBreadcrumbItems();
+        this.selectedItemWithTabs = this.findMenuItemWithTabs();
+        this.breadcrumbItems = this.computeBreadcrumbItems();
 
-    this.ajsRootScope.$on('$locationChangeStart', () => {
-      this.selectedItemWithTabs = this.findMenuItemWithTabs();
-    });
+        this.ajsRootScope.$on('$locationChangeStart', () => {
+          this.selectedItemWithTabs = this.findMenuItemWithTabs();
+        });
+      });
   }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
   }
-
-  private appendPolicyStudio() {
-    this.subMenuItems.push({
-      displayName: 'Policy Studio',
-      targetRoute: 'management.apis.ng.policyStudio',
-      baseRoute: 'management.apis.ng.policyStudio',
-      tabs: undefined,
-    });
-  }
-
-  private appendGeneralGroup() {
-    const generalGroup: GroupItem = {
-      title: 'General',
-      items: [
-        {
-          displayName: 'Info',
-          targetRoute: 'management.apis.ng.general',
-          baseRoute: 'management.apis.ng.general',
-        },
-      ],
-    };
-    // Plans
-    const plansMenuItem: MenuItem = {
-      displayName: 'Plans',
-      tabs: [],
-    };
-
-    if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
-      plansMenuItem.tabs.push({
-        displayName: 'Plans',
-        targetRoute: 'management.apis.ng.plans',
-        baseRoute: ['management.apis.ng.plans', 'management.apis.ng.plan'],
-      });
-    }
-    if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
-      plansMenuItem.tabs.push({
-        displayName: 'Subscriptions',
-        targetRoute: 'management.apis.ng.subscriptions',
-        baseRoute: ['management.apis.ng.subscriptions', 'management.apis.ng.subscription'],
-      });
-    }
-    if (plansMenuItem.tabs.length > 0) {
-      generalGroup.items.push(plansMenuItem);
-    }
-
-    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      generalGroup.items.push(
-        {
-          displayName: 'Properties',
-          targetRoute: 'management.apis.ng.properties',
-          baseRoute: 'management.apis.ng.properties',
-        },
-        {
-          displayName: 'Resources',
-          targetRoute: 'management.apis.ng.resources',
-          baseRoute: 'management.apis.ng.resources',
-        },
-      );
-    }
-
-    this.groupItems.push(generalGroup);
-  }
-
-  private appendEntrypointsGroup() {
-    if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
-      const entrypointsGroup: GroupItem = {
-        title: 'Entrypoints',
-        items: [
-          {
-            displayName: 'General',
-            targetRoute: 'management.apis.ng.entrypoints',
-            baseRoute: 'management.apis.ng.entrypoints',
-          },
-        ],
-      };
-      this.groupItems.push(entrypointsGroup);
-    }
-  }
-
-  private appendEndpointsGroup() {
-    const endpointsGroup: GroupItem = {
-      title: 'Endpoints',
-      items: [],
-    };
-
-    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      endpointsGroup.items.push({
-        displayName: 'Backend services',
-        targetRoute: 'management.apis.ng.endpoints',
-        baseRoute: ['management.apis.ng.endpoints', 'management.apis.ng.endpoint'],
-      });
-    }
-
-    this.groupItems.push(endpointsGroup);
-  }
-
   private findMenuItemWithTabs(): MenuItem {
     let item: MenuItem = this.findActiveMenuItem(this.subMenuItems);
     if (item) {

@@ -5,21 +5,23 @@
  */
 
 // Override this variable if you use prefix
-const prefix = '';
+const prefix = "";
 
 function unsetUndefined(doc) {
     return Object.keys(doc).some((k, i) => {
         if (doc[k] === undefined) {
-            print('found an undefined field on API key', doc._id, k, 'will be unset');
+            print("found an undefined field on API Key", doc._id, k, "will be unset");
             delete doc[k];
             return true;
         }
     });
 }
 
-db.getCollection(`${prefix}keys`).find({}).forEach(doc => {
-    const changed = unsetUndefined(doc);
-    if (changed) {
-        db.getCollection(`${prefix}keys`).replaceOne({ _id: doc._id }, doc);
-    }
-});
+db.getCollection(`${prefix}keys`)
+    .find({})
+    .forEach((doc) => {
+        const changed = unsetUndefined(doc);
+        if (changed) {
+            db.getCollection(`${prefix}keys`).replaceOne({ _id: doc._id }, doc);
+        }
+    });

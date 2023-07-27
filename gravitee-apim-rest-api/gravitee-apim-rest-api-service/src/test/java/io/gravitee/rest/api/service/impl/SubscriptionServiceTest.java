@@ -793,7 +793,7 @@ public class SubscriptionServiceTest {
         UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
         updatedSubscription.setId(SUBSCRIPTION_ID);
 
-        Subscription subscription = buildTestSubscription(PENDING);
+        Subscription subscription = buildTestSubscription(REJECTED);
 
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
@@ -867,6 +867,44 @@ public class SubscriptionServiceTest {
 
         // Verify
         verify(subscriptionRepository, times(1)).update(argThat(s -> "my-client-id".equals(s.getClientId())));
+    }
+
+    @Test
+    public void shouldUpdateSubscriptionWithPendingStatus() throws Exception {
+        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+
+        Subscription subscription = buildTestSubscription(PENDING);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        // Run
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription, null);
+
+        // Verify
+        verify(subscriptionRepository, times(1)).update(any());
+    }
+
+    @Test
+    public void shouldUpdateSubscriptionWithPausedStatus() throws Exception {
+        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+        updatedSubscription.setId(SUBSCRIPTION_ID);
+
+        Subscription subscription = buildTestSubscription(PAUSED);
+
+        // Stub
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        // Run
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription, null);
+
+        // Verify
+        verify(subscriptionRepository, times(1)).update(any());
     }
 
     @Test(expected = SubscriptionNotFoundException.class)
@@ -1216,7 +1254,7 @@ public class SubscriptionServiceTest {
         verify(subscriptionRepository, times(0)).update(any());
         verify(applicationService).findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
         verify(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
-        assertEquals("API key already exists", exception.getMessage());
+        assertEquals("API Key already exists", exception.getMessage());
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
@@ -1716,7 +1754,7 @@ public class SubscriptionServiceTest {
 
         subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
 
-        // assert api keys 1 and 3 have been revoked, but not 2 and 4 because it's already revoked or expired
+        // assert API Keys 1 and 3 have been revoked, but not 2 and 4 because it's already revoked or expired
         verify(apiKeyService, times(1)).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
         verify(apiKeyService, times(1)).revoke(GraviteeContext.getExecutionContext(), apiKeys.get(0), false);
         verify(apiKeyService, times(1)).revoke(GraviteeContext.getExecutionContext(), apiKeys.get(2), false);
@@ -1744,7 +1782,7 @@ public class SubscriptionServiceTest {
 
         subscriptionService.close(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
 
-        // no key has been revoked nor updated, as their application use shared api key mode
+        // no key has been revoked nor updated, as their application use shared API Key mode
         verifyNoMoreInteractions(apiKeyService);
     }
 
@@ -1820,7 +1858,7 @@ public class SubscriptionServiceTest {
         // Run
         subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription);
 
-        // subscription has been updated, but no api key has been updated cause they are shared with other subscriptions
+        // subscription has been updated, but no API Key has been updated cause they are shared with other subscriptions
         verify(subscriptionRepository, times(1)).update(subscription);
         verify(apiKeyService, times(1)).findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
         verifyNoMoreInteractions(apiKeyService);

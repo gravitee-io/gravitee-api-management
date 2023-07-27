@@ -84,7 +84,7 @@ public class UpdateApplicationEntity {
     private boolean disableMembershipNotifications;
 
     @JsonProperty("api_key_mode")
-    @Schema(description = "The API key mode used for this application.")
+    @Schema(description = "The API Key mode used for this application.")
     private ApiKeyMode apiKeyMode;
 
     private String background;

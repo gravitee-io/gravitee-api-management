@@ -235,7 +235,7 @@ mongodb:
   podAffinityPreset: soft
   image:
     repository: bitnami/mongodb
-    tag: 6.0.7
+    tag: 6.0.8
   auth:
     enabled: false
   resources:
@@ -693,6 +693,11 @@ gateway:
   ingressController: false
   type: Deployment
   name: gateway
+  http:
+    maxHeaderSize: 8192
+    maxChunkSize: 8192
+    maxInitialLineLength: 4096
+    maxFormAttributeSize: 2048
   logging:
     debug: false
     stdout:
@@ -743,18 +748,6 @@ gateway:
 
     startupProbe:
       enabled: true
-      initialDelaySeconds: 10
-      periodSeconds: 10
-      timeoutSeconds: 1
-      successThreshold: 1
-      failureThreshold: 29
-      httpGet:
-        path: /_node/health?probes=http-server
-        scheme: HTTP
-        port: 18082
-        httpHeaders:
-        - name: Authorization
-          value: Basic YWRtaW46YWRtaW5hZG1pbg==
 
     # set startupProbe.enabled: false to define your own StartupProbe
     customStartupProbe: {}
@@ -765,17 +758,6 @@ gateway:
 
     livenessProbe:
       enabled: true
-      periodSeconds: 15
-      timeoutSeconds: 2
-      successThreshold: 1
-      failureThreshold: 3
-      httpGet:
-        path: /_node/health?probes=http-server
-        scheme: HTTP
-        port: 18082
-        httpHeaders:
-        - name: Authorization
-          value: Basic YWRtaW46YWRtaW5hZG1pbg==
 
     # set livenessProbe.enabled: false to define your own livenessProbe
     customLivenessProbe: {}
@@ -787,17 +769,6 @@ gateway:
 
     readinessProbe:
       enabled: true
-      periodSeconds: 10
-      timeoutSeconds: 2
-      successThreshold: 1
-      failureThreshold: 2
-      httpGet:
-        path: /_node/health?probes=sync-process
-        scheme: HTTP
-        port: 18082
-        httpHeaders:
-        - name: Authorization
-          value: Basic YWRtaW46YWRtaW5hZG1pbg==
 
     # set readinessProbe.enabled: false to define your own readinessProbe
     customReadinessProbe: {}

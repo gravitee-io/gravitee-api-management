@@ -30,12 +30,15 @@
                   Drag and drop a file to upload it. <br />
                   Alternatively, click here to choose a file.
                 </p>
-                <p>Supported file formats: yml, yaml, json, wsdl, xml.</p>
+                <p>
+                  Supported file formats: yml, yaml, json, wsdl, xml.<br />
+                  Supported API Definition: V2, V4.
+                </p>
               </div>
             </gio-form-file-picker-add-button>
           </gio-form-file-picker>
         </div>
-        <div *ngIf="importFile && importType !== 'GRAVITEE'" class="content__file-tab__config">
+        <div *ngIf="importFile && importType !== 'GRAVITEE' && importType !== 'MAPI_V2'" class="content__file-tab__config">
           <ng-container *ngTemplateOutlet="configs"></ng-container>
         </div>
       </div>
@@ -97,14 +100,14 @@
       </div>
 
       <div class="configs__checkbox">
-        <mat-checkbox formControlName="importPolicyPaths" [indeterminate]="importPolicyPathsIntermediate"
-          >Create policies on paths</mat-checkbox
-        >
+        <mat-checkbox formControlName="importPolicyPaths">Create flows on paths</mat-checkbox>
         <div class="configs__checkbox__warn">This will overwrite all the policies.</div>
       </div>
 
       <div *ngFor="let policy of policies" class="configs__checkbox policies-section" formGroupName="importPolicies">
-        <mat-checkbox [formControlName]="policy.id">Apply {{ policy.name }} policy</mat-checkbox>
+        <mat-checkbox [formControlName]="policy.id" [disabled]="!configsForm.get('importPolicyPaths').value"
+          >Apply {{ policy.name }} policy</mat-checkbox
+        >
         <div class="configs__checkbox__warn">This will overwrite all the existing policy.</div>
       </div>
     </div>

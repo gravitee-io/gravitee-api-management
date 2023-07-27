@@ -20,9 +20,9 @@ package io.gravitee.rest.api.service.notification;
  * @author GraviteeSource Team
  */
 public enum ApiHook implements Hook {
-    APIKEY_EXPIRED("API-Key Expired", "Triggered when an API key is expired.", "API KEY"),
-    APIKEY_RENEWED("API-Key Renewed", "Triggered when an API key is renewed.", "API KEY"),
-    APIKEY_REVOKED("API-Key Revoked", "Triggered when an API key is revoked.", "API KEY"),
+    APIKEY_EXPIRED("API-Key Expired", "Triggered when an API Key is expired.", "API KEY"),
+    APIKEY_RENEWED("API-Key Renewed", "Triggered when an API Key is renewed.", "API KEY"),
+    APIKEY_REVOKED("API-Key Revoked", "Triggered when an API Key is revoked.", "API KEY"),
     SUBSCRIPTION_NEW("New Subscription", "Triggered when a Subscription is created.", "SUBSCRIPTION"),
     SUBSCRIPTION_ACCEPTED("Subscription Accepted", "Triggered when a Subscription is accepted.", "SUBSCRIPTION"),
     SUBSCRIPTION_CLOSED("Subscription Closed", "Triggered when a Subscription is closed.", "SUBSCRIPTION"),

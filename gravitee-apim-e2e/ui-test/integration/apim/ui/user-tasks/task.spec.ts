@@ -116,7 +116,7 @@ describe('Task screen', () => {
           expect(response.status).to.eq(200);
           api = response.body;
 
-          // create an application to subscribe to the API key plan
+          // create an application to subscribe to the API Key plan
           cy.request({
             method: 'POST',
             url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/applications`,

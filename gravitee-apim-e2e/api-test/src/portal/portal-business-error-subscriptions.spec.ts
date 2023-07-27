@@ -107,7 +107,7 @@ describe('Portal: Business Error - subscriptions', () => {
       application: createdApplication.id,
     });
 
-    // get the subscription 1 api keys
+    // get the subscription 1 API Keys
     subscription1Keys = await appSubscriptionsAsAdminUser.getApiKeysForApplicationSubscription({
       orgId,
       envId,

@@ -20,8 +20,9 @@
     <h2>Manage your subscriptions</h2>
   </div>
 
-  <div *ngIf="!isReadOnly && subscriptionsTableDS && !isLoadingData" class="subscriptions__header__buttons">
+  <div *ngIf="!isKubernetesOrigin && subscriptionsTableDS && !isLoadingData" class="subscriptions__header__buttons">
     <button
+      *gioPermission="{ anyOf: ['api-subscription-r'] }"
       mat-raised-button
       type="button"
       [disabled]="isLoadingData || subscriptionsTableDS.length === 0"
@@ -71,7 +72,7 @@
     </mat-form-field>
 
     <mat-form-field class="subscriptions__filters__inputs__field">
-      <mat-label>API key</mat-label>
+      <mat-label>API Key</mat-label>
       <input matInput formControlName="apiKey" />
     </mat-form-field>
   </div>
@@ -158,9 +159,8 @@
       <th mat-header-cell *matHeaderCellDef id="actions"></th>
       <td mat-cell *matCellDef="let element">
         <div class="subscriptions__table__actions">
-          <ng-container *ngIf="!isReadOnly; else readOnlyPlanActions">
+          <ng-container *ngIf="canUpdate; else readOnlyPlanActions">
             <button
-              *gioPermission="{ anyOf: ['api-subscription-u'] }"
               mat-icon-button
               aria-label="Edit the subscription"
               matTooltip="Edit the subscription"

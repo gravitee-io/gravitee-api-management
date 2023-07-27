@@ -1,0 +1,13 @@
+:host {
+  padding: 8px;
+}
+.api-navigation-disabled {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+
+  &__icon {
+    width: 16px;
+  }
+}

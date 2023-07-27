@@ -41,7 +41,7 @@ export class ApiFakers {
       ...attributes,
       contextPath: `/${faker.random.word()}-${faker.datatype.uuid()}-${Math.floor(Date.now() / 1000)}`,
       name,
-      description: faker.commerce.productDescription(),
+      description: faker.lorem.words(10),
       version: ApiFakers.version(),
       endpoint: 'https://api.gravitee.io/echo',
     };
@@ -62,7 +62,7 @@ export class ApiFakers {
         ],
       },
       name,
-      description: faker.commerce.productDescription(),
+      description: faker.lorem.words(10),
       version: ApiFakers.version(),
     };
   }
@@ -74,7 +74,7 @@ export class ApiFakers {
       status: PlanStatus.PUBLISHED,
       ...attributes,
       name: faker.commerce.productName(),
-      description: faker.commerce.productDescription(),
+      description: faker.lorem.words(10),
     };
   }
 

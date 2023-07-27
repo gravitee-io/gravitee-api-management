@@ -113,7 +113,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
         try {
             return internalApiKeyRepo.findByApplication(applicationId).stream().map(this::toApiKey).collect(toList());
         } catch (Exception e) {
-            throw new TechnicalException("An error occurred trying to find api key by application", e);
+            throw new TechnicalException("An error occurred trying to find API Key by application", e);
         }
     }
 

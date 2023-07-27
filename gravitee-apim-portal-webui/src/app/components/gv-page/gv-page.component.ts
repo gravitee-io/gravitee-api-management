@@ -46,6 +46,8 @@ export class GvPageComponent implements OnChanges, OnDestroy {
 
   @Input() fragment: string;
 
+  @Input() pageBaseUrl: string;
+
   constructor(
     private componentFactoryResolver: ComponentFactoryResolver,
     private portalService: PortalService,
@@ -94,6 +96,7 @@ export class GvPageComponent implements OnChanges, OnDestroy {
           this.pageService.set(page);
           viewerPage.instance.fragment = this.fragment;
           viewerPage.instance.withToc = this.withToc;
+          viewerPage.instance.pageBaseUrl = this.pageBaseUrl;
           this.loaded.emit(true);
         });
       }

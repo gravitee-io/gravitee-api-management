@@ -107,15 +107,15 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             }
             return findById(apiKey.getId()).orElse(null);
         } catch (Exception e) {
-            LOGGER.error("Failed to create api key", e);
-            throw new TechnicalException("Failed to create api key", e);
+            LOGGER.error("Failed to create API Key", e);
+            throw new TechnicalException("Failed to create API Key", e);
         }
     }
 
     @Override
     public ApiKey update(ApiKey apiKey) throws TechnicalException {
         if (apiKey == null) {
-            throw new IllegalStateException("Trying to update a null API key");
+            throw new IllegalStateException("Trying to update a null API Key");
         }
 
         try {
@@ -130,8 +130,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         } catch (IllegalStateException e) {
             throw e;
         } catch (Exception e) {
-            LOGGER.error("Failed to update api key " + apiKey.getId(), e);
-            throw new TechnicalException("Failed to update api key " + apiKey.getId(), e);
+            LOGGER.error("Failed to update API Key " + apiKey.getId(), e);
+            throw new TechnicalException("Failed to update API Key " + apiKey.getId(), e);
         }
     }
 
@@ -214,8 +214,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return rowMapper.getRows();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find api keys by criteria:", ex);
-            throw new TechnicalException("Failed to find api keys by criteria", ex);
+            LOGGER.error("Failed to find API Keys by criteria:", ex);
+            throw new TechnicalException("Failed to find API Keys by criteria", ex);
         }
     }
 
@@ -245,8 +245,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return new HashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find api keys by subscription:", ex);
-            throw new TechnicalException("Failed to find api keys by subscription", ex);
+            LOGGER.error("Failed to find API Keys by subscription:", ex);
+            throw new TechnicalException("Failed to find API Keys by subscription", ex);
         }
     }
 
@@ -272,8 +272,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return new HashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find api keys by plan:", ex);
-            throw new TechnicalException("Failed to find api keys by plan", ex);
+            LOGGER.error("Failed to find API Keys by plan:", ex);
+            throw new TechnicalException("Failed to find API Keys by plan", ex);
         }
     }
 
@@ -298,8 +298,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return rowMapper.getRows();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find api key by key", ex);
-            throw new TechnicalException("Failed to find api key by key", ex);
+            LOGGER.error("Failed to find API Key by key", ex);
+            throw new TechnicalException("Failed to find API Key by key", ex);
         }
     }
 
@@ -322,8 +322,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return rowMapper.getRows();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find api keys by application", ex);
-            throw new TechnicalException("Failed to find api keys by application", ex);
+            LOGGER.error("Failed to find API Keys by application", ex);
+            throw new TechnicalException("Failed to find API Keys by application", ex);
         }
     }
 
@@ -351,8 +351,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find api key by key and api", ex);
-            throw new TechnicalException("Failed to find api key by key and api", ex);
+            LOGGER.error("Failed to find API Key by key and api", ex);
+            throw new TechnicalException("Failed to find API Key by key and api", ex);
         }
     }
 

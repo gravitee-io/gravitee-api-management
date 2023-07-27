@@ -27,6 +27,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiEndpointsGroupsComponent } from './api-endpoints-groups.component';
 
 import { ApiEndpointModule } from '../endpoint/api-endpoint.module';
+import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [ApiEndpointsGroupsComponent],
@@ -42,6 +43,7 @@ import { ApiEndpointModule } from '../endpoint/api-endpoint.module';
     GioIconsModule,
 
     ApiEndpointModule,
+    GioPermissionModule,
   ],
 })
 export class ApiEndpointsGroupsModule {}

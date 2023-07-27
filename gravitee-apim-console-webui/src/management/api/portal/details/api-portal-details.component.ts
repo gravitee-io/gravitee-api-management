@@ -88,6 +88,7 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
   public isQualityEnabled = false;
 
   public isReadOnly = false;
+  public isKubernetesOrigin = false;
   public updateState: 'TO_UPDATE' | 'IN_PROGRESS' | 'UPDATED' | undefined;
 
   constructor(
@@ -130,7 +131,8 @@ export class ApiPortalDetailsComponent implements OnInit, OnDestroy {
           ),
         ),
         tap(([api, categories]) => {
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin;
 
           this.apiId = api.id;
           this.api = api;

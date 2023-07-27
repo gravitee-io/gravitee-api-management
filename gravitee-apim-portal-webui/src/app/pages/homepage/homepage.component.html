@@ -16,7 +16,7 @@
 
 -->
 <div class="page__content">
-  <app-gv-page [page]="homepage" *ngIf="homepage"></app-gv-page>
+  <app-gv-page [page]="homepage" *ngIf="homepage" [pageBaseUrl]="pageBaseUrl"></app-gv-page>
 
   <h3 class="title" *ngIf="this.topApis.length > 0">{{ 'homepage.apis' | translate }}</h3>
   <section *ngIf="topApis.length > 0">

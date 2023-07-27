@@ -23,7 +23,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Mongo model for Api Key
+ * Mongo model for API Key
  *
  * @author Loic DASSONVILLE (loic.dassonville at gmail.com)
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,18 +33,18 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class ApiKeyMongo {
 
     /**
-     * Api Key's unique id
+     * API Key's unique id
      */
     @Id
     private String id;
 
     /**
-     * Api Key
+     * API Key
      */
     private String key;
 
     /**
-     * The subscriptions for which the Api Key is generated
+     * The subscriptions for which the API Key is generated
      *
      * The collection should contain more than one element only if the subscriptions are made
      * for an application where the SHARED mode has been configured for API Key subscriptions
@@ -54,7 +54,7 @@ public class ApiKeyMongo {
     private Set<String> subscriptions = new HashSet<>();
 
     /**
-     * The subscription for which the Api Key is generated
+     * The subscription for which the API Key is generated
      *
      * @deprecated
      * Starting from 3.17 this field is kept for backward compatibility only and subscriptions should be used instead
@@ -72,7 +72,7 @@ public class ApiKeyMongo {
     private String plan;
 
     /**
-     * The api on which this api key is used
+     * The api on which this API Key is used
      *
      * @deprecated
      * Starting from 3.17 this field is kept for backward compatibility and apis should be accessed through subscriptions instead
@@ -86,27 +86,27 @@ public class ApiKeyMongo {
     private String application;
 
     /**
-     * Expiration date (end date) of the Api Key
+     * Expiration date (end date) of the API Key
      */
     private Date expireAt;
 
     /**
-     * API key creation date
+     * API Key creation date
      */
     private Date createdAt;
 
     /**
-     * API key updated date
+     * API Key updated date
      */
     private Date updatedAt;
 
     /**
-     * Flag to indicate if the Api Key is revoked ?
+     * Flag to indicate if the API Key is revoked ?
      */
     private boolean revoked;
 
     /**
-     * Flag to indicate if the Api Key is paused ?
+     * Flag to indicate if the API Key is paused ?
      */
     private boolean paused;
 
@@ -116,7 +116,7 @@ public class ApiKeyMongo {
     private Date revokedAt;
 
     /**
-     * Number of days before the expiration of this api key when the last pre-expiration notification was sent
+     * Number of days before the expiration of this API Key when the last pre-expiration notification was sent
      */
     private Integer daysToExpirationOnLastNotification;
 

@@ -217,7 +217,7 @@ describe('Create several plan flows and use them', () => {
       application: createdApplication.id,
     });
 
-    // Get the subscription api key
+    // Get the subscription API Key
     createdApiKey = (
       await applicationSubscriptionsResource.getApiKeysForApplicationSubscription({
         envId,

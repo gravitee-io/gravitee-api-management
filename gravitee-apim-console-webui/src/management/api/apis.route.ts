@@ -64,7 +64,7 @@ function apisRouterConfig($stateProvider: StateProvider) {
                 // Used for the task page links
                 const ngStateRedirectionMap = {
                   'management.apis.detail.portal.general': 'management.apis.ng.general',
-                  'management.apis.detail.portal.subscriptions.subscription': 'management.apis.ng.subscription.edit',
+                  'management.apis.detail.portal.subscription.edit': 'management.apis.ng.subscription.edit',
                 };
 
                 const ngRedirectToState = ngStateRedirectionMap[$state.transition.to().name];

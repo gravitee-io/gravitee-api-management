@@ -211,7 +211,6 @@ const gatewayDependenciesExclusion = [
   'gravitee-apim-repository-elasticsearch',
   'gravitee-apim-repository-hazelcast',
   'gravitee-apim-repository-noop',
-  'gravitee-apim-repository-redis',
 ];
 
 console.log(chalk.blue(`Add plugins to Gateway`));

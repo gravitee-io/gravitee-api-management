@@ -17,13 +17,13 @@ package io.gravitee.definition.model.v4.ssl.none;
 
 import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.KeyStoreType;
-import lombok.experimental.SuperBuilder;
+import lombok.Builder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@SuperBuilder
+@Builder
 public class NoneKeyStore extends KeyStore {
 
     private static final long serialVersionUID = -2540354913966457704L;

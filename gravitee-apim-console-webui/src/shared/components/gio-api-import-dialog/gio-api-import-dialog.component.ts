@@ -25,10 +25,14 @@ import { Api } from '../../../entities/api';
 import { PolicyListItem } from '../../../entities/policy';
 import { ApiService } from '../../../services-ngx/api.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { ApiV4 } from '../../../entities/management-api-v2';
 
 const allowedFileExtensions = ['yml', 'yaml', 'json', 'wsdl', 'xml'] as const;
+const importType = ['WSDL', 'SWAGGER', 'GRAVITEE', 'MAPI_V2'] as const;
 
 type FileExtension = (typeof allowedFileExtensions)[number];
+type ImportType = (typeof importType)[number];
 
 export type GioApiImportDialogData = {
   policies?: PolicyListItem[];
@@ -50,7 +54,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
     WSDL: 'WSDL',
   };
 
-  importType: 'WSDL' | 'SWAGGER' | 'GRAVITEE';
+  importType: ImportType;
 
   displayImportConfig = false;
 
@@ -65,7 +69,6 @@ export class GioApiImportDialogComponent implements OnDestroy {
   descriptorUrlForm = new FormControl();
 
   configsForm: FormGroup;
-  importPolicyPathsIntermediate = false;
 
   public get isImportValid(): boolean {
     return !!this.importType && (!!this.importFile || !!this.descriptorUrlForm?.value);
@@ -79,6 +82,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
     private readonly dialogRef: MatDialogRef<GioApiImportDialogData>,
     @Inject(MAT_DIALOG_DATA) dialogData: GioApiImportDialogData,
     private readonly apiService: ApiService,
+    private readonly apiV2Service: ApiV2Service,
     private readonly snackBarService: SnackBarService,
   ) {
     this.policies = dialogData?.policies ?? [];
@@ -98,37 +102,20 @@ export class GioApiImportDialogComponent implements OnDestroy {
       ),
     });
 
-    // select all policy when importPolicyPaths is checked
+    // Unselect all policies when unselecting "Create flows on path"
     this.configsForm
       .get('importPolicyPaths')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((value) => {
-        this.importPolicyPathsIntermediate = false;
+      .subscribe((checked) => {
         this.configsForm.get('importPolicies').patchValue(
           this.policies.reduce((acc, policy) => {
-            acc[policy.id] = value;
+            if (!checked) {
+              acc[policy.id] = checked;
+            }
             return acc;
           }, {}),
           { emitEvent: false },
         );
-      });
-
-    // handle intermediate state for importPolicyPaths and check importPolicyPaths if at least one policy is checked
-    this.configsForm
-      .get('importPolicies')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$))
-      .subscribe((importPoliciesValue) => {
-        const nbPoliciesChecked = Object.keys(importPoliciesValue).filter((policyId) => importPoliciesValue[policyId]).length;
-
-        const isEmptyOrAllChecked = nbPoliciesChecked === 0 || nbPoliciesChecked === this.policies.length;
-        if (isEmptyOrAllChecked) {
-          this.configsForm.get('importPolicyPaths').patchValue(nbPoliciesChecked !== 0, { emitEvent: false });
-          this.importPolicyPathsIntermediate = false;
-          return;
-        }
-
-        this.configsForm.get('importPolicyPaths').patchValue(true, { emitEvent: false });
-        this.importPolicyPathsIntermediate = true;
       });
   }
 
@@ -164,10 +151,8 @@ export class GioApiImportDialogComponent implements OnDestroy {
 
       case 'json':
         try {
-          const json = JSON.parse(fileContent);
-
-          // Check if it's a swagger. if not consider is gravitee api definition
-          this.importType = isSwaggerJsonContent(json) ? 'SWAGGER' : 'GRAVITEE';
+          const json: any = JSON.parse(fileContent);
+          this.importType = determineImportType(json);
         } catch (error) {
           this.resetImportFile('Invalid JSON file.');
         }
@@ -238,7 +223,7 @@ export class GioApiImportDialogComponent implements OnDestroy {
       throw new Error('No file or url provided');
     }
 
-    let importRequest$: Observable<Api>;
+    let importRequest$: Observable<Api | ApiV4>;
 
     switch (this.importType) {
       case 'WSDL':
@@ -280,6 +265,10 @@ export class GioApiImportDialogComponent implements OnDestroy {
           this.definitionVersion,
           this.updateModeApiId,
         );
+        break;
+
+      case 'MAPI_V2':
+        importRequest$ = this.apiV2Service.import(payload);
         break;
     }
 
@@ -325,4 +314,15 @@ const isSwaggerJsonContent = (fileContent: unknown): boolean => {
       Object.prototype.hasOwnProperty.call(fileContent, 'swaggerVersion') ||
       Object.prototype.hasOwnProperty.call(fileContent, 'openapi'))
   );
+};
+
+const determineImportType = (jsonNode: any): ImportType => {
+  // Check if it's a swagger. if not consider is gravitee api definition
+  if (isSwaggerJsonContent(jsonNode)) {
+    return 'SWAGGER';
+  }
+  if (jsonNode.api?.definitionVersion === 'V4') {
+    return 'MAPI_V2';
+  }
+  return 'GRAVITEE';
 };

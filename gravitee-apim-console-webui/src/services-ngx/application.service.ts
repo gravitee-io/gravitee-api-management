@@ -74,4 +74,17 @@ export class ApplicationService {
   getById(applicationId: string): Observable<Application> {
     return this.http.get<Application>(`${this.constants.env.baseURL}/applications/${applicationId}`);
   }
+
+  update(application: Application): Observable<Application> {
+    return this.http.put<Application>(`${this.constants.env.baseURL}/applications/${application.id}`, {
+      name: application.name,
+      description: application.description,
+      domain: application.domain,
+      groups: application.groups,
+      settings: application.settings,
+      picture_url: application.picture_url,
+      disable_membership_notifications: application.disable_membership_notifications,
+      api_key_mode: application.api_key_mode,
+    });
+  }
 }

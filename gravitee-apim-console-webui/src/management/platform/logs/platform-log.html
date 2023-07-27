@@ -40,7 +40,7 @@
                 <tbody md-body>
                   <tr md-row ng-if="$ctrl.log.securityToken">
                     <td md-cell style="width: 1%; font-weight: bold" nowrap>
-                      {{$ctrl.log.securityType === 'API_KEY'?'API key': 'Client id'}}
+                      {{$ctrl.log.securityType === 'API_KEY'?'API Key': 'Client id'}}
                     </td>
                     <td md-cell>{{$ctrl.log.securityToken}}</td>
                   </tr>
@@ -64,7 +64,7 @@
                     <td md-cell></td>
                     <td md-cell>
                       <a
-                        ui-sref="management.apis.detail.portal.subscriptions.subscription({apiId: $ctrl.log.api, subscriptionId: $ctrl.log.subscription})"
+                        ui-sref="management.apis.detail.portal.subscription.edit({apiId: $ctrl.log.api, subscriptionId: $ctrl.log.subscription})"
                         >Go to subscription</a
                       >
                     </td>

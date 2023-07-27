@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
 import { StateService, UIRouterGlobals } from '@uirouter/core';
 import { isEqual } from 'lodash';
@@ -104,9 +104,9 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
   private api: Api;
 
   public isLoadingData = true;
-  public isReadOnly = false;
+  public canUpdate = false;
   private routeBase: string;
-
+  private isKubernetesOrigin = false;
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -148,9 +148,8 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
       .pipe(
         tap((api) => {
           this.api = api;
-          this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-subscription-u', 'api-subscription-c']) ||
-            api.definitionContext?.origin === 'KUBERNETES';
+          this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+          this.canUpdate = this.permissionService.hasAnyMatching(['api-subscription-u']) && !this.isKubernetesOrigin;
         }),
         switchMap(() => this.apiPlanService.list(this.ajsStateParams.apiId, null, null, null, 1, 9999)),
         tap((plansResponse) => (this.plans = plansResponse.data)),
@@ -279,8 +278,15 @@ export class ApiPortalSubscriptionListComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .pipe(
+        filter((result) => !!result),
         switchMap((result) => {
-          return result ? this.apiSubscriptionService.create(this.api.id, result.subscriptionToCreate) : EMPTY;
+          if (!result?.apiKeyMode) {
+            return of(result);
+          }
+          return this.applicationService.update({ ...result.application, api_key_mode: result.apiKeyMode }).pipe(map(() => result));
+        }),
+        switchMap((result) => {
+          return this.apiSubscriptionService.create(this.api.id, result.subscriptionToCreate);
         }),
         takeUntil(this.unsubscribe$),
       )

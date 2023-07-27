@@ -1,5 +1,3 @@
 # Default
 *                                                             @gravitee-io/apim
-
-# Archi
-/gravitee-apim-gateway/                                       @gravitee-io/archi
+/helm/                                                        @gravitee-io/devops @gravitee-io/apim

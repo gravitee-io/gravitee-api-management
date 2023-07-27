@@ -195,6 +195,24 @@ describe('ApiV2Service', () => {
     });
   });
 
+  describe('import', () => {
+    it('should call the API', (done) => {
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.import(fakeApi.id).subscribe((api) => {
+        expect(api).toEqual(fakeApi);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/definition`,
+        method: 'POST',
+      });
+
+      req.flush(fakeApi);
+    });
+  });
+
   describe('search', () => {
     it('should call the API', (done) => {
       const fakeApi = fakeApiV4();

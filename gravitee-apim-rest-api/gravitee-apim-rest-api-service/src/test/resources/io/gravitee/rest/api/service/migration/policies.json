@@ -1,7 +1,7 @@
 [ {
   "id" : "api-key",
-  "name" : "Api Key",
-  "description" : "Description of the ApiKey Gravitee Policy",
+  "name" : "API Key",
+  "description" : "Description of the API Key Gravitee Policy",
   "version" : "2.1.0",
   "category" : "security",
   "dev": {

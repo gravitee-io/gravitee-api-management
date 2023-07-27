@@ -15,12 +15,11 @@
  */
 package io.gravitee.definition.model.v4.ssl.pkcs12;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.v4.ssl.TrustStore;
 import io.gravitee.definition.model.v4.ssl.TrustStoreType;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -28,7 +27,7 @@ import lombok.experimental.SuperBuilder;
  */
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 public class PKCS12TrustStore extends TrustStore {
 
     private static final long serialVersionUID = 3915578060196536545L;
@@ -43,5 +42,13 @@ public class PKCS12TrustStore extends TrustStore {
 
     public PKCS12TrustStore() {
         super(TrustStoreType.PKCS12);
+    }
+
+    public PKCS12TrustStore(String path, String content, String password, String alias) {
+        super(TrustStoreType.PKCS12);
+        this.path = path;
+        this.content = content;
+        this.password = password;
+        this.alias = alias;
     }
 }

@@ -31,6 +31,10 @@ $textColor: map.get(gio.$mat-dove-palette, default);
   &__menu {
     display: flex;
     flex-direction: column;
+
+    &__disabled {
+      padding-left: 12px;
+    }
   }
 
   &__submenu {
@@ -40,6 +44,10 @@ $textColor: map.get(gio.$mat-dove-palette, default);
 
     &__title {
       padding: 2px;
+    }
+
+    &__disabled {
+      padding-left: 20px;
     }
   }
 

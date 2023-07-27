@@ -25,6 +25,7 @@ import {
   ApiSortByParam,
   ApisResponse,
   ApiSubscribersResponse,
+  ApiV4,
   CreateApi,
   UpdateApi,
 } from '../entities/management-api-v2';
@@ -81,6 +82,14 @@ export class ApiV2Service {
     });
   }
 
+  import(importApi: any): Observable<ApiV4> {
+    return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/definition`, importApi, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
   search(searchQuery?: ApiSearchQuery, sortBy?: ApiSortByParam, page = 1, perPage = 10): Observable<ApisResponse> {
     return this.http.post<ApisResponse>(`${this.constants.env.v2BaseURL}/apis/_search`, searchQuery, {
       params: {
@@ -123,7 +132,7 @@ export class ApiV2Service {
     }
     return this.lastApiFetch$.pipe(
       filter((api) => !!api),
-      shareReplay(1),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
   }
 }
