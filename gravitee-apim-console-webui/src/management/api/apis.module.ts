@@ -140,15 +140,10 @@ const states: Ng2StateDeclaration[] = [
       baseRouteState: 'management.apis.ng',
     },
   },
-  {
-    name: 'management.apis.ng.policyStudio',
-    url: '/policy-studio',
-    data: {
-      useAngularMaterial: true,
-      docs: null,
-    },
-    component: ApiV4PolicyStudioDesignComponent,
-  },
+
+  /**
+   * Common Api state
+   */
   {
     name: 'management.apis.ng.messages',
     url: '/messages',
@@ -285,153 +280,6 @@ const states: Ng2StateDeclaration[] = [
         only: ['api-subscription-r', 'api-subscription-u'],
       },
     },
-  },
-  {
-    name: 'management.apis.ng.entrypoints',
-    url: '/entrypoints',
-    component: ApiEntrypointsV4GeneralComponent,
-    data: {
-      useAngularMaterial: true,
-      docs: null,
-      apiPermissions: {
-        only: ['api-definition-r'],
-      },
-    },
-  },
-  {
-    name: 'management.apis.ng.entrypoints-edit',
-    url: '/entrypoints/:entrypointId',
-    component: ApiEntrypointsV4EditComponent,
-    data: {
-      useAngularMaterial: true,
-      docs: null,
-      apiPermissions: {
-        only: ['api-definition-u'],
-      },
-    },
-  },
-  {
-    name: 'management.apis.ng.endpoints',
-    url: '/endpoints',
-    component: ApiEndpointsGroupsComponent,
-    data: {
-      useAngularMaterial: true,
-      apiPermissions: {
-        only: ['api-definition-r'],
-      },
-      docs: {
-        page: 'management-api-proxy-endpoints',
-      },
-    },
-  },
-  {
-    name: 'management.apis.ng.endpoint-new',
-    url: '/groups/:groupIndex/endpoint/new',
-    component: ApiEndpointComponent,
-    data: {
-      useAngularMaterial: true,
-      apiPermissions: {
-        only: ['api-definition-u'],
-      },
-      docs: {
-        page: 'management-api-proxy-endpoints',
-      },
-    },
-  },
-  {
-    name: 'management.apis.ng.endpoint-edit',
-    url: '/groups/:groupIndex/endpoint/:endpointIndex/edit',
-    component: ApiEndpointComponent,
-    data: {
-      useAngularMaterial: true,
-      apiPermissions: {
-        only: ['api-definition-u'],
-      },
-      docs: {
-        page: 'management-api-proxy-endpoints',
-      },
-    },
-  },
-  {
-    name: 'management.apis.ng.properties',
-    url: '/properties',
-    component: ApiPropertiesComponent,
-    data: {
-      useAngularMaterial: true,
-      apiPermissions: {
-        only: ['api-definition-r'],
-      },
-      docs: {
-        page: 'management-api-policy-studio-properties',
-      },
-    },
-  },
-  {
-    name: 'management.apis.ng.properties-v1',
-    url: '/v1/properties',
-    component: ApiV1PropertiesComponent,
-    data: {
-      useAngularMaterial: true,
-      apiPermissions: {
-        only: ['api-definition-r'],
-      },
-      docs: {
-        page: 'management-api-properties',
-      },
-    },
-    resolve: [
-      {
-        token: 'resolvedApi',
-        deps: ['ApiService', '$stateParams'],
-        resolveFn: (ApiService: ApiService, $stateParams) => {
-          return ApiService.get($stateParams.apiId);
-        },
-      },
-    ],
-  },
-  {
-    name: 'management.apis.ng.resources',
-    url: '/resources',
-    component: ApiResourcesComponent,
-    data: {
-      useAngularMaterial: true,
-      apiPermissions: {
-        only: ['api-definition-r'],
-      },
-      docs: {
-        page: 'management-api-policy-studio-resources',
-      },
-    },
-  },
-  {
-    name: 'management.apis.ng.resources-v1',
-    url: '/v1/resources',
-    component: ApiV1ResourcesComponent,
-    data: {
-      useAngularMaterial: true,
-      apiPermissions: {
-        only: ['api-definition-r'],
-      },
-      docs: {
-        page: 'management-api-resources',
-      },
-    },
-    resolve: [
-      {
-        token: 'resolvedApi',
-        deps: ['ApiService', '$stateParams'],
-        resolveFn: (ApiService: ApiService, $stateParams) => {
-          return ApiService.get($stateParams.apiId);
-        },
-      },
-      {
-        token: 'resolvedResources',
-        deps: ['ResourceService'],
-        resolveFn: (ResourceService: ResourceService) => {
-          return ResourceService.list();
-        },
-      },
-    ],
   },
   {
     name: 'management.apis.ng.documentation',
@@ -799,20 +647,6 @@ const states: Ng2StateDeclaration[] = [
     },
   },
   {
-    name: 'management.apis.ng.entrypoints-v2',
-    component: ApiProxyEntrypointsComponent,
-    url: '/entrypoints-v2',
-    data: {
-      apiPermissions: {
-        only: ['api-definition-r', 'api-health-r'],
-      },
-      docs: {
-        page: 'management-api-proxy',
-      },
-      useAngularMaterial: true,
-    },
-  },
-  {
     name: 'management.apis.ng.cors',
     component: ApiProxyCorsComponent,
     url: '/cors',
@@ -878,6 +712,307 @@ const states: Ng2StateDeclaration[] = [
       },
       docs: {
         page: 'management-api-proxy-response-templates',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.audit',
+    component: ApiAuditComponent,
+    url: '/audit',
+    data: {
+      apiPermissions: {
+        only: ['api-audit-r'],
+      },
+      docs: {
+        page: 'management-api-audit',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.history',
+    component: ApiHistoryComponent,
+    url: '/history',
+    data: {
+      apiPermissions: {
+        only: ['api-event-r'],
+      },
+      docs: {
+        page: 'management-api-history',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.events',
+    component: ApiEventsComponent,
+    url: '/events',
+    data: {
+      apiPermissions: {
+        only: ['api-event-r'],
+      },
+      docs: {
+        page: 'management-api-events',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.notifications',
+    component: NotificationsComponent,
+    url: '/notifications',
+    data: {
+      apiPermissions: {
+        only: ['api-notification-r'],
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'resolvedHookScope',
+        resolveFn: () => {
+          return Scope.API;
+        },
+      },
+      {
+        token: 'resolvedHooks',
+        deps: ['NotificationSettingsService'],
+        resolveFn: (NotificationSettingsService: NotificationSettingsService) => {
+          return NotificationSettingsService.getHooks(Scope.API).then((response) => response.data);
+        },
+      },
+      {
+        token: 'resolvedNotifiers',
+        deps: ['NotificationSettingsService', '$stateParams'],
+        resolveFn: (NotificationSettingsService: NotificationSettingsService, $stateParams) => {
+          return NotificationSettingsService.getNotifiers(Scope.API, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'notificationSettings',
+        deps: ['NotificationSettingsService', '$stateParams'],
+        resolveFn: (NotificationSettingsService: NotificationSettingsService, $stateParams) => {
+          return NotificationSettingsService.getNotificationSettings(Scope.API, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'api',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId).then((response) => response.data);
+        },
+      },
+    ],
+  },
+  {
+    name: 'management.apis.ng.notifications.notification',
+    component: NotificationsComponent,
+    url: '/:notificationId',
+    data: {
+      apiPermissions: {
+        only: ['api-notification-r'],
+      },
+      docs: {
+        page: 'management-api-notifications',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.alerts',
+    component: GioEmptyComponent,
+    abstract: true,
+    url: '/alerts',
+    data: {
+      apiPermissions: {
+        only: ['api-alert-r'],
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'status',
+        deps: ['AlertService', '$stateParams'],
+        resolveFn: (AlertService: AlertService, $stateParams) => {
+          return AlertService.getStatus(AlertScope.API, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'notifiers',
+        deps: ['NotifierService'],
+        resolveFn: (NotifierService: NotifierService) => {
+          return NotifierService.list().then((response) => response.data);
+        },
+      },
+    ],
+  },
+  {
+    name: 'management.apis.ng.alerts.list',
+    component: AlertsComponent,
+    url: '/',
+    data: {
+      apiPermissions: {
+        only: ['api-alert-r'],
+      },
+      docs: {
+        page: 'management-alerts',
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'alerts',
+        deps: ['AlertService', '$stateParams'],
+        resolveFn: (AlertService: AlertService, $stateParams) => {
+          return AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+    ],
+  },
+  {
+    name: 'management.apis.ng.alerts.alertnew',
+    component: AlertComponent,
+    url: '/create',
+    data: {
+      apiPermissions: {
+        only: ['api-alert-c'],
+      },
+      docs: {
+        page: 'management-alerts',
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'alerts',
+        deps: ['AlertService', '$stateParams'],
+        resolveFn: (AlertService: AlertService, $stateParams) => {
+          return AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'mode',
+        resolveFn: () => {
+          return 'create';
+        },
+      },
+      {
+        token: 'resolvedApi',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId);
+        },
+      },
+    ],
+  },
+  {
+    name: 'management.apis.ng.alerts.editalert',
+    component: AlertComponent,
+    url: '/:alertId?:tab',
+    data: {
+      apiPermissions: {
+        only: ['api-alert-r'],
+      },
+      docs: {
+        page: 'management-alerts',
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'alerts',
+        deps: ['AlertService', '$stateParams'],
+        resolveFn: (AlertService: AlertService, $stateParams) => {
+          return AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'mode',
+        resolveFn: () => {
+          return 'detail';
+        },
+      },
+      {
+        token: 'resolvedApi',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId);
+        },
+      },
+    ],
+  },
+
+  /**
+   * V1 Api state only
+   */
+  {
+    name: 'management.apis.ng.properties-v1',
+    url: '/v1/properties',
+    component: ApiV1PropertiesComponent,
+    data: {
+      useAngularMaterial: true,
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-properties',
+      },
+    },
+    resolve: [
+      {
+        token: 'resolvedApi',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId);
+        },
+      },
+    ],
+  },
+  {
+    name: 'management.apis.ng.resources-v1',
+    url: '/v1/resources',
+    component: ApiV1ResourcesComponent,
+    data: {
+      useAngularMaterial: true,
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-resources',
+      },
+    },
+    resolve: [
+      {
+        token: 'resolvedApi',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId);
+        },
+      },
+      {
+        token: 'resolvedResources',
+        deps: ['ResourceService'],
+        resolveFn: (ResourceService: ResourceService) => {
+          return ResourceService.list();
+        },
+      },
+    ],
+  },
+
+  /**
+   * V1 & V2 Api state only
+   */
+  {
+    name: 'management.apis.ng.entrypoints-v2',
+    component: ApiProxyEntrypointsComponent,
+    url: '/v2/entrypoints',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r', 'api-health-r'],
+      },
+      docs: {
+        page: 'management-api-proxy',
       },
       useAngularMaterial: true,
     },
@@ -1119,231 +1254,116 @@ const states: Ng2StateDeclaration[] = [
       useAngularMaterial: true,
     },
   },
+
+  /**
+   * V2 & V4 Api state only
+   */
   {
-    name: 'management.apis.ng.audit',
-    component: ApiAuditComponent,
-    url: '/audit',
+    name: 'management.apis.ng.properties',
+    url: '/properties',
+    component: ApiPropertiesComponent,
     data: {
+      useAngularMaterial: true,
       apiPermissions: {
-        only: ['api-audit-r'],
+        only: ['api-definition-r'],
       },
       docs: {
-        page: 'management-api-audit',
+        page: 'management-api-policy-studio-properties',
       },
-      useAngularMaterial: true,
     },
   },
   {
-    name: 'management.apis.ng.history',
-    component: ApiHistoryComponent,
-    url: '/history',
+    name: 'management.apis.ng.resources',
+    url: '/resources',
+    component: ApiResourcesComponent,
     data: {
+      useAngularMaterial: true,
       apiPermissions: {
-        only: ['api-event-r'],
+        only: ['api-definition-r'],
       },
       docs: {
-        page: 'management-api-history',
+        page: 'management-api-policy-studio-resources',
       },
+    },
+  },
+
+  /**
+   * V4 Api state only
+   */
+  {
+    name: 'management.apis.ng.policyStudio',
+    url: '/policy-studio',
+    data: {
       useAngularMaterial: true,
+      docs: null,
+    },
+    component: ApiV4PolicyStudioDesignComponent,
+  },
+  {
+    name: 'management.apis.ng.entrypoints',
+    url: '/entrypoints',
+    component: ApiEntrypointsV4GeneralComponent,
+    data: {
+      useAngularMaterial: true,
+      docs: null,
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
     },
   },
   {
-    name: 'management.apis.ng.events',
-    component: ApiEventsComponent,
-    url: '/events',
+    name: 'management.apis.ng.entrypoints-edit',
+    url: '/entrypoints/:entrypointId',
+    component: ApiEntrypointsV4EditComponent,
     data: {
+      useAngularMaterial: true,
+      docs: null,
       apiPermissions: {
-        only: ['api-event-r'],
+        only: ['api-definition-u'],
+      },
+    },
+  },
+  {
+    name: 'management.apis.ng.endpoints',
+    url: '/endpoints',
+    component: ApiEndpointsGroupsComponent,
+    data: {
+      useAngularMaterial: true,
+      apiPermissions: {
+        only: ['api-definition-r'],
       },
       docs: {
-        page: 'management-api-events',
+        page: 'management-api-proxy-endpoints',
       },
-      useAngularMaterial: true,
     },
   },
   {
-    name: 'management.apis.ng.notifications',
-    component: NotificationsComponent,
-    url: '/notifications',
+    name: 'management.apis.ng.endpoint-new',
+    url: '/groups/:groupIndex/endpoint/new',
+    component: ApiEndpointComponent,
     data: {
-      apiPermissions: {
-        only: ['api-notification-r'],
-      },
       useAngularMaterial: true,
-    },
-    resolve: [
-      {
-        token: 'resolvedHookScope',
-        resolveFn: () => {
-          return Scope.API;
-        },
-      },
-      {
-        token: 'resolvedHooks',
-        deps: ['NotificationSettingsService'],
-        resolveFn: (NotificationSettingsService: NotificationSettingsService) => {
-          return NotificationSettingsService.getHooks(Scope.API).then((response) => response.data);
-        },
-      },
-      {
-        token: 'resolvedNotifiers',
-        deps: ['NotificationSettingsService', '$stateParams'],
-        resolveFn: (NotificationSettingsService: NotificationSettingsService, $stateParams) => {
-          return NotificationSettingsService.getNotifiers(Scope.API, $stateParams.apiId).then((response) => response.data);
-        },
-      },
-      {
-        token: 'notificationSettings',
-        deps: ['NotificationSettingsService', '$stateParams'],
-        resolveFn: (NotificationSettingsService: NotificationSettingsService, $stateParams) => {
-          return NotificationSettingsService.getNotificationSettings(Scope.API, $stateParams.apiId).then((response) => response.data);
-        },
-      },
-      {
-        token: 'api',
-        deps: ['ApiService', '$stateParams'],
-        resolveFn: (ApiService: ApiService, $stateParams) => {
-          return ApiService.get($stateParams.apiId).then((response) => response.data);
-        },
-      },
-    ],
-  },
-  {
-    name: 'management.apis.ng.notifications.notification',
-    component: NotificationsComponent,
-    url: '/:notificationId',
-    data: {
       apiPermissions: {
-        only: ['api-notification-r'],
+        only: ['api-definition-u'],
       },
       docs: {
-        page: 'management-api-notifications',
+        page: 'management-api-proxy-endpoints',
       },
-      useAngularMaterial: true,
     },
   },
   {
-    name: 'management.apis.ng.alerts',
-    component: GioEmptyComponent,
-    abstract: true,
-    url: '/alerts',
+    name: 'management.apis.ng.endpoint-edit',
+    url: '/groups/:groupIndex/endpoint/:endpointIndex/edit',
+    component: ApiEndpointComponent,
     data: {
-      apiPermissions: {
-        only: ['api-alert-r'],
-      },
       useAngularMaterial: true,
-    },
-    resolve: [
-      {
-        token: 'status',
-        deps: ['AlertService', '$stateParams'],
-        resolveFn: (AlertService: AlertService, $stateParams) => {
-          return AlertService.getStatus(AlertScope.API, $stateParams.apiId).then((response) => response.data);
-        },
-      },
-      {
-        token: 'notifiers',
-        deps: ['NotifierService'],
-        resolveFn: (NotifierService: NotifierService) => {
-          return NotifierService.list().then((response) => response.data);
-        },
-      },
-    ],
-  },
-  {
-    name: 'management.apis.ng.alerts.list',
-    component: AlertsComponent,
-    url: '/',
-    data: {
       apiPermissions: {
-        only: ['api-alert-r'],
+        only: ['api-definition-u'],
       },
       docs: {
-        page: 'management-alerts',
+        page: 'management-api-proxy-endpoints',
       },
-      useAngularMaterial: true,
     },
-    resolve: [
-      {
-        token: 'alerts',
-        deps: ['AlertService', '$stateParams'],
-        resolveFn: (AlertService: AlertService, $stateParams) => {
-          return AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data);
-        },
-      },
-    ],
-  },
-  {
-    name: 'management.apis.ng.alerts.alertnew',
-    component: AlertComponent,
-    url: '/create',
-    data: {
-      apiPermissions: {
-        only: ['api-alert-c'],
-      },
-      docs: {
-        page: 'management-alerts',
-      },
-      useAngularMaterial: true,
-    },
-    resolve: [
-      {
-        token: 'alerts',
-        deps: ['AlertService', '$stateParams'],
-        resolveFn: (AlertService: AlertService, $stateParams) => {
-          return AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data);
-        },
-      },
-      {
-        token: 'mode',
-        resolveFn: () => {
-          return 'create';
-        },
-      },
-      {
-        token: 'resolvedApi',
-        deps: ['ApiService', '$stateParams'],
-        resolveFn: (ApiService: ApiService, $stateParams) => {
-          return ApiService.get($stateParams.apiId);
-        },
-      },
-    ],
-  },
-  {
-    name: 'management.apis.ng.alerts.editalert',
-    component: AlertComponent,
-    url: '/:alertId?:tab',
-    data: {
-      apiPermissions: {
-        only: ['api-alert-r'],
-      },
-      docs: {
-        page: 'management-alerts',
-      },
-      useAngularMaterial: true,
-    },
-    resolve: [
-      {
-        token: 'alerts',
-        deps: ['AlertService', '$stateParams'],
-        resolveFn: (AlertService: AlertService, $stateParams) => {
-          return AlertService.listAlerts(AlertScope.API, true, $stateParams.apiId).then((response) => response.data);
-        },
-      },
-      {
-        token: 'mode',
-        resolveFn: () => {
-          return 'detail';
-        },
-      },
-      {
-        token: 'resolvedApi',
-        deps: ['ApiService', '$stateParams'],
-        resolveFn: (ApiService: ApiService, $stateParams) => {
-          return ApiService.get($stateParams.apiId);
-        },
-      },
-    ],
   },
 ];
 
