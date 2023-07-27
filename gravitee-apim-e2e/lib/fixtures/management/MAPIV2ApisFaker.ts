@@ -16,13 +16,16 @@
 import faker from '@faker-js/faker';
 import {
   ApiType,
+  ApiV4,
   CreateApiV4,
   DefinitionVersion,
+  ExportApiV4,
   FlowExecution,
   FlowMode,
   HttpListener,
+  ListenerType,
   SubscriptionListener,
-} from '../../management-v2-webclient-sdk/src/lib';
+} from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 export class MAPIV2ApisFaker {
   static version() {
@@ -63,6 +66,69 @@ export class MAPIV2ApisFaker {
       listeners: [],
       tags: [],
       type: ApiType.MESSAGE,
+      ...attributes,
+    };
+  }
+
+  static apiV4(attributes?: Partial<ApiV4>): ApiV4 {
+    const name = faker.lorem.words(10);
+    const apiVersion = this.version();
+    const description = faker.lorem.words(10);
+
+    return {
+      apiVersion,
+      definitionVersion: DefinitionVersion.V4,
+      description,
+      name,
+      endpointGroups: [
+        {
+          name: 'default-group',
+          type: 'http-proxy',
+          endpoints: [
+            {
+              name: 'default-endpoint',
+              type: 'http-proxy',
+            },
+          ],
+        },
+      ],
+      flowExecution: {
+        flowMode: FlowMode.DEFAULT,
+        matchRequired: false,
+      } as FlowExecution,
+      flows: [],
+      groups: [],
+      listeners: [
+        {
+          type: ListenerType.HTTP,
+          paths: [
+            {
+              path: `${faker.helpers.slugify(faker.lorem.words(3))}`,
+            },
+          ],
+          entrypoints: [
+            {
+              type: 'http-proxy',
+            },
+          ],
+        },
+      ],
+      tags: [],
+      type: ApiType.PROXY,
+      ...attributes,
+    };
+  }
+
+  static apiImportV4(attributes?: Partial<ExportApiV4>): ExportApiV4 {
+    return {
+      api: this.apiV4(),
+      members: [],
+      metadata: [],
+      pages: [],
+      apiMedia: [],
+      plans: [],
+      apiPicture: null,
+      apiBackground: null,
       ...attributes,
     };
   }
