@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.rest.api.management.v2.rest.model.Api;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Metadata;
@@ -24,13 +22,10 @@ import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = { ApiMapper.class, DateMapper.class, MemberMapper.class, MetadataMapper.class, PageMapper.class, PlanMapper.class })
@@ -42,7 +37,7 @@ public interface ImportExportApiMapper {
     @Mapping(target = "api", source = "apiEntity")
     ExportApiV4 map(ExportApiEntity exportApiEntityV4);
 
-    @Mapping(target = "apiEntity", source = "api")
+    @Mapping(target = "apiEntity", expression = "java(buildApiEntity(exportApiV4))")
     @Mapping(target = "members", expression = "java(buildMembers(exportApiV4))")
     @Mapping(target = "metadata", expression = "java(buildMetadata(exportApiV4))")
     ExportApiEntity map(ExportApiV4 exportApiV4);
@@ -51,6 +46,13 @@ public interface ImportExportApiMapper {
     @Mapping(target = "referenceType", constant = "API")
     @Mapping(target = "referenceId", expression = "java(apiId)")
     MemberEntity map(Member member, String apiId);
+
+    default ApiEntity buildApiEntity(ExportApiV4 exportApiV4) {
+        final ApiEntity apiEntity = ApiMapper.INSTANCE.map(exportApiV4.getApi());
+        apiEntity.setPicture(exportApiV4.getApiPicture());
+        apiEntity.setBackground(exportApiV4.getApiBackground());
+        return apiEntity;
+    }
 
     default Set<MemberEntity> buildMembers(ExportApiV4 exportApiV4) {
         return exportApiV4.getMembers().stream().map(member -> map(member, exportApiV4.getApi().getId())).collect(Collectors.toSet());

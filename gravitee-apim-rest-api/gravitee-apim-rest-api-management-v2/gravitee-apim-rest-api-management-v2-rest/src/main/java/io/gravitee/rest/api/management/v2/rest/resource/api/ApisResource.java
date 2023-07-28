@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import com.google.common.base.Strings;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
@@ -35,6 +36,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
+import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
@@ -47,6 +49,8 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Objects;
 import java.util.Set;
 
@@ -55,6 +59,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @Path("/environments/{envId}/apis")
+@Slf4j
 public class ApisResource extends AbstractResource {
 
     private static final String EXPAND_DEPLOYMENT_STATE = "deploymentState";
@@ -122,6 +127,9 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
     public Response createApiWithDefinition(@Valid ExportApiV4 apiToImport) {
+        verifyImage(apiToImport.getApiPicture(), "picture");
+        verifyImage(apiToImport.getApiBackground(), "background");
+
         ExportApiEntity exportApiEntity = ImportExportApiMapper.INSTANCE.map(apiToImport);
         GenericApiEntity fromExportedApi = apiImportExportService.createFromExportedApi(
             GraviteeContext.getExecutionContext(),
@@ -135,6 +143,15 @@ public class ApisResource extends AbstractResource {
             .created(this.getLocationHeader(fromExportedApi.getId()))
             .entity(ApiMapper.INSTANCE.map(fromExportedApi, uriInfo, isSynchronized))
             .build();
+    }
+
+    private static void verifyImage(String imageContent, String imageUsage) {
+        try {
+            ImageUtils.verify(imageContent);
+        } catch (InvalidImageException e) {
+            log.warn("Error while parsing {} while importing api", imageUsage, e);
+            throw new BadRequestException("Invalid image format for api " + imageUsage);
+        }
     }
 
     @POST
