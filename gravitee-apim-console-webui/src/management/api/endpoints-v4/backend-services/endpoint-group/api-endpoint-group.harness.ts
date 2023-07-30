@@ -26,15 +26,20 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
   private readInputValue = (input: MatInputHarness) => input.getValue();
   private setInputValue = (inputValue : string) => (input: MatInputHarness) => input.setValue(inputValue);
   private clickButton = (button: MatButtonHarness) => button.click();
+
+  private clickSaveButton = (saveButton: GioSaveBarHarness) =>  saveButton.clickSubmit();
+
+  private clickResetButton = (saveButton: GioSaveBarHarness) =>  saveButton.clickReset();
+
   private selectTab = (tab: MatTabHarness) => tab.select();
 
-  private isEndpointGroupSubmitButtonButtonInvalid = (gioSaveBar: GioSaveBarHarness) => gioSaveBar.isSubmitButtonInvalid();
+  private isEndpointGroupSubmitButtonInvalid = (gioSaveBar: GioSaveBarHarness) => gioSaveBar.isSubmitButtonInvalid();
 
 
   private getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' }));
   private getGeneralTab = this.locatorFor(MatTabHarness.with({ label: 'General' }));
   private getEndpointGroupNameInput = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Endpoint group name input"]' }));
-  private getEndpointGroupSubmitButton = this.locatorFor(GioSaveBarHarness);
+  private getEndpointGroupSubmissionBar = this.locatorFor(GioSaveBarHarness);
 
   public async clickBackButton() {
     return this.getBackButton().then(this.clickButton);
@@ -44,15 +49,24 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
     return this.getGeneralTab().then(this.selectTab);
   }
 
+
   public async readEndpointGroupNameInput() {
     return this.getEndpointGroupNameInput().then(this.readInputValue);
   }
 
   public writeToEndpointGroupNameInput(inputValue) {
-    return this.getEndpointGroupNameInput().then(this.setInputValue(inputValue))
+    return this.getEndpointGroupNameInput().then(this.setInputValue(inputValue));
   }
 
   public isGeneralTabSaveButtonInvalid() {
-    return this.getEndpointGroupSubmitButton().then(this.isEndpointGroupSubmitButtonButtonInvalid)
+    return this.getEndpointGroupSubmissionBar().then(this.isEndpointGroupSubmitButtonInvalid);
+  }
+
+  public clickEndpointGroupSaveButton() {
+    return this.getEndpointGroupSubmissionBar().then(this.clickSaveButton);
+  }
+
+  public clickEndpointGroupDismissButton() {
+    return this.getEndpointGroupSubmissionBar().then(this.clickResetButton);
   }
 }
