@@ -165,6 +165,7 @@
                 <exclude>*:*:jar</exclude>
                 <exclude>io.gravitee.policy:gravitee-gateway-services-ratelimit:zip</exclude>
                 <exclude>com.graviteesource.reporter:*:zip</exclude>
+                <exclude>io.gravitee.apim.repository:gravitee-apim-repository-redis:zip</exclude>
                 <exclude>io.gravitee.reporter:*:zip</exclude>
                 <exclude>io.gravitee.tracer:*:zip</exclude>
                 <exclude>com.graviteesource.reactor:*:zip</exclude>
