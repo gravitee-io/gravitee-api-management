@@ -129,7 +129,8 @@ export class AuthService {
   }
 
   private _configure(provider) {
-    const redirectUri = window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname);
+    const redirectUri =
+      window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname.replace('/user/logout', '/'));
     this.oauthService.configure({
       clientId: provider.client_id,
       loginUrl: provider.authorizationEndpoint,
