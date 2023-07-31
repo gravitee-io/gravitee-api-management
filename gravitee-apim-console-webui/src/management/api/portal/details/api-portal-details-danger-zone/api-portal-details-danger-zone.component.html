@@ -81,7 +81,15 @@
           Delete this API.
           <span *ngIf="!dangerActions.canDelete">A running or published API cannot be deleted</span>
         </span>
-        <button mat-button color="warn" [disabled]="!dangerActions.canDelete || isReadOnly" (click)="delete()">Delete</button>
+        <button
+          mat-button
+          color="warn"
+          data-testid="api_dangerzone_delete"
+          [disabled]="!dangerActions.canDelete || isReadOnly"
+          (click)="delete()"
+        >
+          Delete
+        </button>
       </div>
     </ng-container>
   </div>
