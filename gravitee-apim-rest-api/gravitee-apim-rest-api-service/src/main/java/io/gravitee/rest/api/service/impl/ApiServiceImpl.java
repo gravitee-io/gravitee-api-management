@@ -1258,7 +1258,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private void checkShardingTags(final UpdateApiEntity updateApiEntity, final ApiEntity existingAPI, ExecutionContext executionContext) {
+    private void checkShardingTags(final UpdateApiEntity updateApiEntity, final ApiEntity existingAPI, ExecutionContext executionContext) throws TechnicalException {
         final Set<String> tagsToUpdate = updateApiEntity.getTags() == null ? new HashSet<>() : updateApiEntity.getTags();
         final Set<String> updatedTags;
         if (existingAPI == null) {
@@ -1268,7 +1268,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             updatedTags = existingAPITags.stream().filter(tag -> !tagsToUpdate.contains(tag)).collect(toSet());
             updatedTags.addAll(tagsToUpdate.stream().filter(tag -> !existingAPITags.contains(tag)).collect(toSet()));
         }
-        if (updatedTags != null && !updatedTags.isEmpty()) {
+        if (!updatedTags.isEmpty()) {
+            tagService.checkTagsExist(updatedTags, executionContext.getOrganizationId(), TagReferenceType.ORGANIZATION);
+
+            // Check if user has permissions
             final Set<String> userTags = tagService.findByUser(
                 getAuthenticatedUsername(),
                 executionContext.getOrganizationId(),
