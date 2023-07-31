@@ -57,12 +57,6 @@ const allDependencies = [
     version: releasingVersion,
     type: 'zip',
   },
-  {
-    groupId: 'io.gravitee.apim.repository',
-    artifactId: 'gravitee-apim-repository-hazelcast',
-    version: releasingVersion,
-    type: 'zip',
-  },
 ].map((dependency) => {
   const fileName = `${dependency.artifactId}-${dependency.version}.${dependency.type}`;
   console.log(chalk.yellow(` - ${dependency.artifactId}: ${dependency.version}`));
@@ -166,9 +160,7 @@ const restApiDependenciesExclusion = [
   'io.gravitee.tracer',
   // ArtifactIds to exclude
   'gravitee-gateway-services-ratelimit',
-  'gravitee-apim-repository-hazelcast',
   'gravitee-apim-repository-redis',
-  'gravitee-apim-repository-gateway-bridge-http-client',
 ];
 
 console.log(chalk.blue(`Add plugins to Rest API`));
@@ -192,8 +184,6 @@ const gatewayDependenciesExclusion = [
   'io.gravitee.tracer',
   // ArtifactIds to exclude
   'gravitee-apim-repository-elasticsearch',
-  'gravitee-apim-repository-hazelcast',
-  'gravitee-apim-repository-noop',
 ];
 
 console.log(chalk.blue(`Add plugins to Gateway`));
