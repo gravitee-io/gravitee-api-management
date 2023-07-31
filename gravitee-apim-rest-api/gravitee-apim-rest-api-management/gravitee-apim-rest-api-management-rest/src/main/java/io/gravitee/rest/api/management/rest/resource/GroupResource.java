@@ -20,8 +20,10 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.UpdateGroupEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -31,6 +33,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -135,6 +138,14 @@ public class GroupResource extends AbstractResource {
     @Path("/memberships")
     @Produces(APPLICATION_JSON)
     @Operation(summary = "List APIs or applications linked to this group")
+    @ApiResponse(
+           responseCode = "200",
+           description = "Group memberships",
+           content = @Content(
+                  mediaType = APPLICATION_JSON,
+                  array = @ArraySchema(schema = @Schema(oneOf = {ApiEntity.class, ApplicationEntity.class}))
+    )
+    )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getGroupMemberships(@QueryParam("type") String type) {
         if ("api".equalsIgnoreCase(type)) {
