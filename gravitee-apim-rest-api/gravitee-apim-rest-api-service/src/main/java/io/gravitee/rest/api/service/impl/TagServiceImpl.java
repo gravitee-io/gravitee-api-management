@@ -102,6 +102,16 @@ public class TagServiceImpl extends AbstractService implements TagService {
     }
 
     @Override
+    public void checkTagsExist(Set<String> tagIds, String referenceId, TagReferenceType referenceType) throws TechnicalException {
+        Set<Tag> foundTags = tagRepository.findByIdsAndReference(tagIds, referenceId, repoTagReferenceType(referenceType));
+        if (foundTags.size() == tagIds.size()) {
+            return;
+        }
+        foundTags.forEach(tag -> tagIds.remove(tag.getId()));
+        throw new TagNotFoundException(tagIds.toArray(String[]::new));
+    }
+
+    @Override
     public TagEntity create(final ExecutionContext executionContext, NewTagEntity tag, String referenceId, TagReferenceType referenceType) {
         return create(executionContext, singletonList(tag), referenceId, referenceType).get(0);
     }

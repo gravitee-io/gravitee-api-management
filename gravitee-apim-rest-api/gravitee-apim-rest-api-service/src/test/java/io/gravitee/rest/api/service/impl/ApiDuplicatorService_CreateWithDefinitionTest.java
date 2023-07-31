@@ -429,8 +429,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
-        String plan1newId = "310f7dd5-71b9-3bdd-b74d-4b76bc71c5b1";
-        String plan2newId = "ed7bef56-b9ec-3c0a-9d21-02e046df429c";
+        String plan1newId = "14b9b538-1e83-334d-a96a-ec04a825928e";
+        String plan2newId = "237961c1-3675-3168-832a-d67f7df97d99";
 
         // check createWithApiDefinition has been called with newly generated plans IDs in API's definition
         verify(apiService, times(1))

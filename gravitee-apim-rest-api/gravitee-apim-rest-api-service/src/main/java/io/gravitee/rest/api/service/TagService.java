@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.NewTagEntity;
 import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.TagReferenceType;
@@ -30,6 +31,7 @@ import java.util.Set;
 public interface TagService {
     List<TagEntity> findByReference(String referenceId, TagReferenceType referenceType);
     TagEntity findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType);
+    void checkTagsExist(Set<String> tagIds, String referenceId, TagReferenceType referenceType) throws TechnicalException;
     TagEntity create(final ExecutionContext executionContext, NewTagEntity tag, String referenceId, TagReferenceType referenceType);
     TagEntity update(final ExecutionContext executionContext, UpdateTagEntity tag, String referenceId, TagReferenceType referenceType);
     List<TagEntity> create(
