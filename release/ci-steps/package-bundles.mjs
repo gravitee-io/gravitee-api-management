@@ -156,11 +156,13 @@ const restApiDependenciesExclusion = [
   'io.gravitee.apim.ui',
   'io.gravitee.apim.gateway.standalone.distribution',
   'io.gravitee.apim.rest.api.standalone.distribution',
+  'com.graviteesource.reactor',
+  'com.graviteesource.reporter',
   'io.gravitee.reporter',
   'io.gravitee.tracer',
   // ArtifactIds to exclude
-  'gravitee-gateway-services-ratelimit',
   'gravitee-apim-repository-redis',
+  'gravitee-gateway-services-ratelimit',
 ];
 
 console.log(chalk.blue(`Add plugins to Rest API`));
@@ -178,12 +180,11 @@ const gatewayDependenciesExclusion = [
   'io.gravitee.apim.ui',
   'io.gravitee.apim.gateway.standalone.distribution',
   'io.gravitee.apim.rest.api.standalone.distribution',
-  'io.gravitee.cockpit',
   'io.gravitee.fetcher',
   'io.gravitee.notifier',
-  'io.gravitee.tracer',
   // ArtifactIds to exclude
   'gravitee-apim-repository-elasticsearch',
+  'gravitee-cockpit-connectors-ws',
 ];
 
 console.log(chalk.blue(`Add plugins to Gateway`));
