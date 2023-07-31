@@ -63,12 +63,6 @@ const allDependencies = [
     version: releasingVersion,
     type: 'zip',
   },
-  {
-    groupId: 'io.gravitee.apim.repository',
-    artifactId: 'gravitee-apim-repository-redis',
-    version: releasingVersion,
-    type: 'zip',
-  },
 ].map((dependency) => {
   const fileName = `${dependency.artifactId}-${dependency.version}.${dependency.type}`;
   console.log(chalk.yellow(` - ${dependency.artifactId}: ${dependency.version}`));
