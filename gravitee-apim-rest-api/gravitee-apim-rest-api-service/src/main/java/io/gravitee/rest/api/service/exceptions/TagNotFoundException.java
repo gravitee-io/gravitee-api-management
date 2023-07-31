@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -24,15 +25,19 @@ import java.util.Map;
  */
 public class TagNotFoundException extends AbstractNotFoundException {
 
-    private final String tag;
+    private final String tags;
 
     public TagNotFoundException(String tag) {
-        this.tag = tag;
+        this.tags = "[ " + tag + "]";
+    }
+
+    public TagNotFoundException(String[] tags) {
+        this.tags = Arrays.toString(tags);
     }
 
     @Override
     public String getMessage() {
-        return "Tag [" + tag + "] can not be found.";
+        return "Tag(s) " + tags + " cannot be found.";
     }
 
     @Override
@@ -42,6 +47,6 @@ public class TagNotFoundException extends AbstractNotFoundException {
 
     @Override
     public Map<String, String> getParameters() {
-        return Collections.singletonMap("tag", tag);
+        return Collections.singletonMap("tag", tags);
     }
 }
