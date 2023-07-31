@@ -56,19 +56,19 @@
         <!-- Clusters -->
         <dependency>
             <groupId>io.gravitee.node</groupId>
-            <artifactId>gravitee-node-cluster-plugin-standalone</artifactId>
-            <version>${gravitee-node.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- Clusters -->
-        <dependency>
-            <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-cache-plugin-standalone</artifactId>
             <version>${gravitee-node.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-cluster-plugin-standalone</artifactId>
+            <version>${gravitee-node.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Connectors -->
         <dependency>
             <groupId>io.gravitee.ae</groupId>
@@ -153,6 +153,7 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+
         <!-- Notifiers -->
         <dependency>
             <groupId>io.gravitee.notifier</groupId>
@@ -175,6 +176,7 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+
         <!-- Policies -->
         <dependency>
             <groupId>io.gravitee.policy</groupId>
@@ -500,6 +502,7 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
+
         <!-- Repositories -->
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
@@ -775,7 +778,6 @@
                 </dependency>
 
                 <!-- Policies -->
-
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-transform-avro-json</artifactId>
