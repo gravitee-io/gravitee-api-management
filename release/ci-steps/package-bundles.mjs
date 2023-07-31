@@ -161,6 +161,7 @@ const restApiDependenciesExclusion = [
   'io.gravitee.reporter',
   'io.gravitee.tracer',
   // ArtifactIds to exclude
+  'gravitee-apim-repository-bridge-http-client',
   'gravitee-apim-repository-redis',
   'gravitee-gateway-services-ratelimit',
 ];
