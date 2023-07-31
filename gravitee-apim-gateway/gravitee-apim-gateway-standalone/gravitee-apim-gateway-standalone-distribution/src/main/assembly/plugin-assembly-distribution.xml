@@ -146,7 +146,6 @@
                 <exclude>io.gravitee.cockpit:gravitee-cockpit-connectors-ws:zip</exclude>
                 <exclude>io.gravitee.fetcher:*:zip</exclude>
                 <exclude>io.gravitee.notifier:*:zip</exclude>
-                <exclude>io.gravitee.repository:gravitee-apim-repository-noop:zip</exclude>
             </excludes>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>755</fileMode>
