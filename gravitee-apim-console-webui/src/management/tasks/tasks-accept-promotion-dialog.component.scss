@@ -1,0 +1,11 @@
+.promote {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.actions {
+  justify-content: flex-end;
+}
