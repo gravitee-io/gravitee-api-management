@@ -1,11 +1,11 @@
 {
-  "id": "my-api-id",
+  "id": "117e79a3-6023-4b72-be79-a36023ab72f9",
   "name": "test",
   "version": "1",
   "description": "bmll",
   "visibility": "PRIVATE",
   "lifecycle_state": "CREATED",
-  "tags": [],
+  "tags": ["unit-test"],
   "proxy": {
     "context_path": "/test",
     "endpoints": [
