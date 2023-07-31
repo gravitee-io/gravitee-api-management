@@ -25,6 +25,10 @@
       </div>
       <div ng-if="!$ctrl.isLoading">
         <div ng-if="$ctrl.promotionTargets.length > 0">
+          <div class="promote-api-dialog__content__sharding-tag-info">
+            <gv-icon shape="action:info"></gv-icon>
+            <span>For your promotion to be accepted, your API deployment tags must exist in the targeted environment.</span>
+          </div>
           <div>Select the environment to which you want to promote the API</div>
           <div class="promote-api-dialog__content__environments">
             <md-radio-group ng-model="$ctrl.selectedPromotionTarget">

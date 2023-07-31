@@ -46,18 +46,16 @@ class PromotionTaskComponentController {
   }
 
   public openAcceptDialog(): IPromise<void> {
-    const msg = this.task.data.isApiUpdate
-      ? `Since the API <code>${this.task.data.apiName}</code> has already been promoted to <strong>${this.task.data.targetEnvironmentName}</strong> environment, accepting this promotion will update it.`
-      : `Accepting this promotion will create a new API in <strong>${this.task.data.targetEnvironmentName}</strong> environment.`;
     return this.$mdDialog
       .show({
-        controller: 'DialogConfirmController',
+        controller: 'PromotionTaskAcceptDialogController',
         controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirm.dialog.html'),
+        template: require('../promotion/accept/promotion-task-accept.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: 'Accept Promotion Request',
-          msg,
+          isApiUpdate: this.task.data.isApiUpdate,
+          apiName: this.task.data.apiName,
+          targetEnvironmentName: this.task.data.targetEnvironmentName,
         },
       })
       .then((dialogValidation) => {
