@@ -23,7 +23,7 @@ tasks:
   build-quick:
     desc: "Build management-api & gateway quickly without running tests & validations steps"
     cmds:
-      - mvn clean install -DskipTests -Dskip.validation -P distribution-dev -T 1C
+      - mvn clean install -DskipTests -Dskip.validation -Pbundle-default,bundle-dev -T 1C
 
   docker:
     desc: "Build all 🐳 images"
