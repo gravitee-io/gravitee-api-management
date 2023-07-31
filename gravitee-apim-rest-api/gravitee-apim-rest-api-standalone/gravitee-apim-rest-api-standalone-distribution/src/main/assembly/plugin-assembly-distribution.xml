@@ -163,6 +163,7 @@
             <unpack>false</unpack>
             <excludes>
                 <exclude>*:*:jar</exclude>
+                <exclude>com.graviteesource.apim:gravitee-apim-repository-bridge-http-client:zip</exclude>
                 <exclude>com.graviteesource.reactor:*:zip</exclude>
                 <exclude>com.graviteesource.reporter:*:zip</exclude>
                 <exclude>io.gravitee.apim.repository:gravitee-apim-repository-redis:zip</exclude>
