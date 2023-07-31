@@ -8,40 +8,22 @@ console.log(chalk.magenta(`######################################`));
 
 console.log(chalk.blue(`Step 1: Prepare APIM distribution`));
 await within(async () => {
-  cd('../');
-  await $`mvn flatten:flatten`;
+  cd('../gravitee-apim-distribution');
+  // https://maven.apache.org/plugins/maven-help-plugin/effective-pom-mojo.html
+  await $`mvn help:effective-pom -Doutput=.effective-pom.xml -Pbundle-default`;
 });
 
-const distributionPomXml = await fs.readFile(`../gravitee-apim-distribution/.flattened-pom.xml`, 'utf-8');
+const distributionPomXml = await fs.readFile(`../gravitee-apim-distribution/.effective-pom.xml`, 'utf-8');
 const distributionJsonPom = JSON.parse(await xml2json.toJson(distributionPomXml, {}));
-
-const parentPomXml = await fs.readFile(`../.flattened-pom.xml`, 'utf-8');
-const parentJsonPom = JSON.parse(await xml2json.toJson(parentPomXml, {}));
 
 const releasingVersion = argv.version;
 const tmpPath = `./.tmp/${releasingVersion}`;
 
-const resolveLinkedVersion = (allVersions, valueToResolve) => {
-  const versionLinkMatch = valueToResolve.match(/\${(.*?)}/);
-  return versionLinkMatch ? allVersions[versionLinkMatch[1]] : valueToResolve;
-};
-const distributionProperties = Object.fromEntries(
-  Object.entries(parentJsonPom.project.properties)
-    .filter(([key, value]) => key.endsWith('version'))
-    .map(([key, value]) => {
-    return [key, resolveLinkedVersion(parentJsonPom.project.properties, value)];
-  }),
-);
-const distributionDependencies = distributionJsonPom.project.dependencies.dependency.map((dependency) => ({
-  ...dependency,
-  version: resolveLinkedVersion(
-    {
-      ...distributionProperties,
-      'project.version': releasingVersion,
-    },
-    dependency.version,
-  ),
-}));
+const distributionDependencies = distributionJsonPom.project.dependencies.dependency
+  .filter((dependency) => dependency.scope === 'runtime' && dependency.type === 'zip')
+  .map((dependency) => ({
+    ...dependency,
+  }));
 
 console.log(chalk.blue(`Step 2: Download all dependencies from artifactory`));
 await $`mkdir -p ${tmpPath}`;
