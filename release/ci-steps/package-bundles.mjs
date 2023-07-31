@@ -8,33 +8,22 @@ console.log(chalk.magenta(`######################################`));
 
 console.log(chalk.blue(`Step 1: Prepare APIM distribution`));
 await within(async () => {
-  cd('../');
-  await $`mvn flatten:flatten`;
+  cd('../gravitee-apim-distribution');
+  // https://maven.apache.org/plugins/maven-help-plugin/effective-pom-mojo.html
+  await $`mvn help:effective-pom -Doutput=.effective-pom.xml -Pbundle-default`;
 });
 
-const pomXml = await fs.readFile(`../gravitee-apim-distribution/.flattened-pom.xml`, 'utf-8');
+const pomXml = await fs.readFile(`../gravitee-apim-distribution/.effective-pom.xml`, 'utf-8');
 const jsonPom = JSON.parse(await xml2json.toJson(pomXml, {}));
 
 const releasingVersion = argv.version;
 const tmpPath = `./.tmp/${releasingVersion}`;
 
-const resolveLinkedVersion = (allVersions, valueToResolve) => {
-  const versionLinkMatch = valueToResolve.match(/\${(.*?)}/);
-  return versionLinkMatch ? allVersions[versionLinkMatch[1]] : valueToResolve;
-};
-const distributionProperties = Object.fromEntries(
-  Object.entries(jsonPom.project.properties).map(([key, value]) => [key, resolveLinkedVersion(jsonPom.project.properties, value)]),
-);
-const distributionDependencies = jsonPom.project.dependencies.dependency.map((dependency) => ({
-  ...dependency,
-  version: resolveLinkedVersion(
-    {
-      ...distributionProperties,
-      'project.version': releasingVersion,
-    },
-    dependency.version,
-  ),
-}));
+const distributionDependencies = jsonPom.project.dependencies.dependency
+  .filter((dependency) => dependency.scope === 'runtime' && dependency.type === 'zip')
+  .map((dependency) => ({
+    ...dependency,
+  }));
 
 console.log(chalk.blue(`Step 2: Download all dependencies from artifactory`));
 await $`mkdir -p ${tmpPath}`;

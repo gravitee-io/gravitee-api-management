@@ -32,17 +32,26 @@
 
     <name>Gravitee.io APIM - Distribution</name>
 
+    <!-- INSTRUCTIONS -->
     <!--
-        This pom.xml is used to prepare the full distribution of Management API & Gateway.
-        It defines all dependencies that have to be bundled by default in each component.
-        To add a new plugin in the bundle:
-         1. add the version in the <properties> section.
-            please respect alphabetic order and the separation between Gateway only, Management only and both
-         2. add the plugin in the <dependencies> section with <type>zip</type> and <scope>runtime</scope>.
+        This pom.xml is used to prepare the distribution of Management API & Gateway. It defines all dependencies that have to be bundled by default those components.
 
-        To add plugins only for the dev environment, follow the same steps in the distribution-dev profile defined at the end of this file
+        Keep in my mind that this pom.xml is used by both Management API & Gateway. So every dependency defined here will be bundled in both components by default.
+        To exclude a dependency from one of the component, you have to add an exclusion rule in the right assembly.xml:
+         - gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/src/main/assembly/plugin-assembly-distribution.xml
+         - gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/src/main/assembly/plugin-assembly-distribution.xml
+
+        To add a new dependency in the bundle:
+         1. Add the version in the <properties> section of the parent pom.xml
+         2. Determine the profile to use:
+           - if the dependency is opensource and has to be shipped in the default bundle, add it in the <dependencies> section of this pom.xml
+           - if the dependency is "enterprise" but has to be shipped in the default bundle, add it in the <dependencies> section of the `bundle-default` profile
+           - otherwise, add it in the <dependencies> section of the `bundle-dev` profile
+
+         The plugin must be added with <type>zip</type> and <scope>runtime</scope>.
     -->
 
+    <!-- Default dependencies, to allow a full OSS distribution with opensource plugins only -->
     <dependencies>
         <!-- Clusters -->
         <dependency>
@@ -91,41 +100,6 @@
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
-        <dependency>
-            <groupId>com.graviteesource.entrypoint</groupId>
-            <artifactId>gravitee-entrypoint-http-get</artifactId>
-            <version>${gravitee-entrypoint-http-get.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.entrypoint</groupId>
-            <artifactId>gravitee-entrypoint-http-post</artifactId>
-            <version>${gravitee-entrypoint-http-post.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.entrypoint</groupId>
-            <artifactId>gravitee-entrypoint-sse</artifactId>
-            <version>${gravitee-entrypoint-sse.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.entrypoint</groupId>
-            <artifactId>gravitee-entrypoint-webhook</artifactId>
-            <version>${gravitee-entrypoint-webhook.version}</version>
-            <scope>runtime</scope>
-            <type>zip</type>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.entrypoint</groupId>
-            <artifactId>gravitee-entrypoint-websocket</artifactId>
-            <version>${gravitee-entrypoint-websocket.version}</version>
-            <scope>runtime</scope>
-            <type>zip</type>
-        </dependency>
 
         <!-- Endpoints -->
         <dependency>
@@ -141,27 +115,6 @@
             <version>${project.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.endpoint</groupId>
-            <artifactId>gravitee-endpoint-kafka</artifactId>
-            <version>${gravitee-endpoint-kafka.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.endpoint</groupId>
-            <artifactId>gravitee-endpoint-mqtt5</artifactId>
-            <version>${gravitee-endpoint-mqtt5.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.endpoint</groupId>
-            <artifactId>gravitee-endpoint-rabbitmq</artifactId>
-            <version>${gravitee-endpoint-rabbitmq.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Fetchers -->
@@ -238,13 +191,6 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.graviteesource.policy</groupId>
-            <artifactId>gravitee-policy-assign-metrics</artifactId>
-            <version>${gravitee-policy-assign-metrics.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-assign-content</artifactId>
             <version>${gravitee-policy-assign-content.version}</version>
@@ -264,26 +210,6 @@
             <version>${gravitee-policy-callout-http.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.policy</groupId>
-            <artifactId>gravitee-policy-cloud-events</artifactId>
-            <version>${gravitee-policy-cloud-events.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.graviteesource.policy</groupId>
-            <artifactId>gravitee-policy-data-logging-masking</artifactId>
-            <version>${gravitee-policy-data-logging-masking.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.jayway.jsonpath</groupId>
-                    <artifactId>json-path</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.gravitee.policy</groupId>
@@ -552,13 +478,6 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.graviteesource.policy</groupId>
-            <artifactId>gravitee-policy-xslt</artifactId>
-            <version>${gravitee-policy-xslt.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-json-threat-protection</artifactId>
             <version>${gravitee-policy-json-threat-protection.version}</version>
@@ -672,15 +591,6 @@
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
-
-        <!-- Reactors -->
-        <dependency>
-            <groupId>com.graviteesource.reactor</groupId>
-            <artifactId>gravitee-reactor-message</artifactId>
-            <version>${gravitee-reactor-message.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -715,12 +625,127 @@
         </pluginManagement>
     </build>
     <profiles>
+        <!-- Default Bundle profile, to build a distribution with enterprise plugins we want to ship in the release -->
         <profile>
-            <id>distribution-dev</id>
+            <id>bundle-default</id>
             <activation>
                 <property>
-                    <name>distribution-dev</name>
-                    <value>true</value>
+                    <name>bundle.default</name>
+                </property>
+            </activation>
+            <dependencies>
+                <!-- Entrypoints -->
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-http-get</artifactId>
+                    <version>${gravitee-entrypoint-http-get.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-http-post</artifactId>
+                    <version>${gravitee-entrypoint-http-post.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-sse</artifactId>
+                    <version>${gravitee-entrypoint-sse.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-webhook</artifactId>
+                    <version>${gravitee-entrypoint-webhook.version}</version>
+                    <scope>runtime</scope>
+                    <type>zip</type>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.entrypoint</groupId>
+                    <artifactId>gravitee-entrypoint-websocket</artifactId>
+                    <version>${gravitee-entrypoint-websocket.version}</version>
+                    <scope>runtime</scope>
+                    <type>zip</type>
+                </dependency>
+
+                <!-- Endpoints -->
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-kafka</artifactId>
+                    <version>${gravitee-endpoint-kafka.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-mqtt5</artifactId>
+                    <version>${gravitee-endpoint-mqtt5.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-rabbitmq</artifactId>
+                    <version>${gravitee-endpoint-rabbitmq.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+
+                <!-- Policies -->
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-assign-metrics</artifactId>
+                    <version>${gravitee-policy-assign-metrics.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-cloud-events</artifactId>
+                    <version>${gravitee-policy-cloud-events.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-data-logging-masking</artifactId>
+                    <version>${gravitee-policy-data-logging-masking.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>com.jayway.jsonpath</groupId>
+                            <artifactId>json-path</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-xslt</artifactId>
+                    <version>${gravitee-policy-xslt.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+
+                <!-- Reactors -->
+                <dependency>
+                    <groupId>com.graviteesource.reactor</groupId>
+                    <artifactId>gravitee-reactor-message</artifactId>
+                    <version>${gravitee-reactor-message.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <!-- Developer profile, to add all available plugins not already added in default bundle. Useful to deploy on our dev & test environments-->
+        <profile>
+            <id>bundle-dev</id>
+            <activation>
+                <property>
+                    <name>bundle.dev</name>
                 </property>
             </activation>
             <dependencies>
