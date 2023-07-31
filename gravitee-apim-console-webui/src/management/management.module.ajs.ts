@@ -548,6 +548,7 @@ import { EnvApplicationListComponent } from './application/list/env-application-
 import { ApiListComponent } from './api/list/api-list.component';
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
 import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
+import PromotionTaskAcceptDialogController from './tasks/promotion/accept/promotion-task-accept.controller';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -933,6 +934,7 @@ graviteeManagementModule.component('user', UserComponent);
 
 graviteeManagementModule.component('tasks', TasksComponent);
 graviteeManagementModule.component('promotionTask', PromotionTaskComponent);
+graviteeManagementModule.controller('PromotionTaskAcceptDialogController', PromotionTaskAcceptDialogController);
 
 graviteeManagementModule.service('TaskService', TaskService);
 
