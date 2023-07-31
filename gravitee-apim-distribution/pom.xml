@@ -748,6 +748,22 @@
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
+
+                <!-- Repositories -->
+                <dependency>
+                    <groupId>com.graviteesource.apim</groupId>
+                    <artifactId>gravitee-apim-repository-bridge-http-server</artifactId>
+                    <version>${gravitee-repository-bridge.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.apim</groupId>
+                    <artifactId>gravitee-apim-repository-bridge-http-client</artifactId>
+                    <version>${gravitee-repository-bridge.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                </dependency>
             </dependencies>
         </profile>
         <!-- Developer profile, to add all available plugins not already added in default bundle. Useful to deploy on our dev & test environments-->
@@ -883,20 +899,6 @@
                     <groupId>com.graviteesource.resource</groupId>
                     <artifactId>gravitee-resource-schema-registry-confluent</artifactId>
                     <version>${gravitee-resource-schema-registry-confluent.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.apim</groupId>
-                    <artifactId>gravitee-apim-repository-bridge-http-server</artifactId>
-                    <version>${gravitee-repository-bridge.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.apim</groupId>
-                    <artifactId>gravitee-apim-repository-bridge-http-client</artifactId>
-                    <version>${gravitee-repository-bridge.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
