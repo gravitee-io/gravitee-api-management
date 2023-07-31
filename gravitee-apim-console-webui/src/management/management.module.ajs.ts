@@ -538,6 +538,7 @@ import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.int
 import ApiPortalController from './api/portal/general/apiPortal.controller';
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
 import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
+import PromotionTaskAcceptDialogController from './tasks/promotion/accept/promotion-task-accept.controller';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -940,6 +941,7 @@ graviteeManagementModule.component('user', UserComponent);
 graviteeManagementModule.component('tasks', TasksComponent);
 graviteeManagementModule.factory('ngTaskService', downgradeInjectable(TaskService));
 graviteeManagementModule.component('promotionTask', PromotionTaskComponent);
+graviteeManagementModule.controller('PromotionTaskAcceptDialogController', PromotionTaskAcceptDialogController);
 
 graviteeManagementModule.service('NotificationSettingsService', NotificationSettingsService);
 graviteeManagementModule.service('NotificationTemplatesService', NotificationTemplatesService);
