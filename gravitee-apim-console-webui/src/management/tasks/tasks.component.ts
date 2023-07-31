@@ -20,6 +20,12 @@ import { StateService } from '@uirouter/angularjs';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
+import {
+  TasksAcceptPromotionDialogComponent,
+  TasksAcceptPromotionDialogData,
+  TasksAcceptPromotionDialogResult,
+} from './tasks-accept-promotion-dialog.component';
+
 import { TaskService } from '../../services-ngx/task.service';
 import { PagedResult } from '../../entities/pagedResult';
 import { PromotionApprovalTaskData, Task } from '../../entities/task/task';
@@ -149,27 +155,24 @@ export class TasksComponent implements OnInit, OnDestroy {
   }
 
   openAcceptDialog(task: TaskData) {
-    const { isApiUpdate, apiName, targetEnvironmentName, promotionId } = task.data as PromotionApprovalTaskData;
-
-    const message = isApiUpdate
-      ? `Since the API <code>${apiName}</code> has already been promoted to <strong>${targetEnvironmentName}</strong> environment, accepting this promotion will update it.`
-      : `Accepting this promotion will create a new API in <strong>${targetEnvironmentName}</strong> environment.`;
+    const promotionTaskData = task.data as PromotionApprovalTaskData;
 
     this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-        width: '500px',
-        data: {
-          title: 'Accept Promotion Request',
-          content: message,
-          confirmButton: 'Accept',
+      .open<TasksAcceptPromotionDialogComponent, TasksAcceptPromotionDialogData, TasksAcceptPromotionDialogResult>(
+        TasksAcceptPromotionDialogComponent,
+        {
+          width: '500px',
+          data: {
+            ...promotionTaskData,
+          },
+          role: 'alertdialog',
+          id: 'acceptPromotionConfirmDialog',
         },
-        role: 'alertdialog',
-        id: 'acceptPromotionConfirmDialog',
-      })
+      )
       .afterClosed()
       .pipe(
-        filter((confirm) => confirm === true),
-        switchMap(() => this.promotionService.processPromotion(promotionId, true)),
+        filter((result) => result?.accepted === true),
+        switchMap(() => this.promotionService.processPromotion(promotionTaskData.promotionId, true)),
         tap(() => this.snackBarService.success(`API promotion accepted`)),
         takeUntil(this.unsubscribe$),
       )

@@ -18,14 +18,24 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { TasksComponent } from './tasks.component';
+import { TasksAcceptPromotionDialogComponent } from './tasks-accept-promotion-dialog.component';
 
 @NgModule({
-  imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, MatDialogModule, MatSnackBarModule, GioLoaderModule],
-  declarations: [TasksComponent],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatIconModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatSnackBarModule,
+    GioLoaderModule,
+    GioBannerModule,
+  ],
+  declarations: [TasksComponent, TasksAcceptPromotionDialogComponent],
 })
 export class TasksModule {}
