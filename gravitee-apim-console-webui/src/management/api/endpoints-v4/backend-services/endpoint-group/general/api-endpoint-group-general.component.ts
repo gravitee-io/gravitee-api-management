@@ -16,7 +16,6 @@
 import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
-
 @Component({
   selector: 'api-endpoint-group-general',
   template: require('./api-endpoint-group-general.component.html'),

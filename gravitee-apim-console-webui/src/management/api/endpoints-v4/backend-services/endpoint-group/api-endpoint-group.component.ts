@@ -13,30 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Inject, OnInit, OnDestroy} from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
+import { StateService } from '@uirouter/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject, Subscription } from 'rxjs';
 
-import {
-  ApiV4,
-  ConnectorPlugin,
-  EndpointGroupServices,
-  EndpointGroupV4,
-  EndpointV4
-} from '../../../../../entities/management-api-v2';
-import {Api} from "../../../../../entities/api";
-import {UIRouterState, UIRouterStateParams} from "../../../../../ajs-upgraded-providers";
-import {StateService} from "@uirouter/core";
-import {ApiV2Service} from "../../../../../services-ngx/api-v2.service";
-import {ConnectorPluginsV2Service} from "../../../../../services-ngx/connector-plugins-v2.service";
-import {SnackBarService} from "../../../../../services-ngx/snack-bar.service";
-import {IconService} from "../../../../../services-ngx/icon.service";
-import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {isUniq, serviceDiscoveryValidator} from "../../../proxy/endpoints/groups/edit/api-proxy-group-edit.validator";
-import {catchError, switchMap, takeUntil, tap} from "rxjs/operators";
-import {EMPTY, Subject, Subscription} from "rxjs";
-import {toProxyGroup} from "../../../proxy/endpoints/groups/api-proxy-groups.adapter";
-import {GioPermissionService} from "../../../../../shared/components/gio-permission/gio-permission.service";
-
-
+import { ApiV4, EndpointGroupV4 } from '../../../../../entities/management-api-v2';
+import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { isUniq } from '../../../proxy/endpoints/groups/edit/api-proxy-group-edit.validator';
 
 @Component({
   selector: 'api-endpoint-group',
@@ -45,13 +32,12 @@ import {GioPermissionService} from "../../../../../shared/components/gio-permiss
 })
 export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
-  private SUCCESSFUL_ENDPOINT_CONFIGURATION_SAVE_MESSAGE: string = 'Configuration successfully saved!';
+  private SUCCESSFUL_ENDPOINT_CONFIGURATION_SAVE_MESSAGE = 'Configuration successfully saved!';
 
   public api: ApiV4;
   public generalForm: FormGroup;
   public endpointGroupForm: FormGroup;
   public initialGroupFormValue: unknown;
-
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -60,20 +46,19 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
   ) {}
 
-
   public ngOnInit(): void {
     const apiId = this.ajsStateParams.apiId;
-    const groupIndex = +this.ajsStateParams.groupIndex;
 
-    this.apiService.get(apiId).pipe(
-      tap((api : ApiV4)=> {
-        this.api = api;
-        this.initForms();
-        }
-      ),
-      takeUntil(this.unsubscribe$)
-    ).subscribe();
-
+    this.apiService
+      .get(apiId)
+      .pipe(
+        tap((api: ApiV4) => {
+          this.api = api;
+          this.initForms();
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   public ngOnDestroy(): void {
@@ -85,13 +70,20 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     const group = { ...this.api.endpointGroups[this.ajsStateParams.groupIndex] };
 
     this.generalForm = new FormGroup({
-      name: new FormControl({
-        value: group?.name ?? null,
-        disabled: false,
-      }, [Validators.required, Validators.pattern(/^[^:]*$/), isUniq(
-        this.api.endpointGroups.reduce((acc, group) => [...acc, group.name], []),
-        group?.name,
-      ), ]),
+      name: new FormControl(
+        {
+          value: group?.name ?? null,
+          disabled: false,
+        },
+        [
+          Validators.required,
+          Validators.pattern(/^[^:]*$/),
+          isUniq(
+            this.api.endpointGroups.reduce((acc, group) => [...acc, group.name], []),
+            group?.name,
+          ),
+        ],
+      ),
     });
 
     this.endpointGroupForm = new FormGroup({
@@ -103,13 +95,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
 
   public onSubmit(): Subscription {
     const groupIndex = this.ajsStateParams.groupIndex;
-    const {
-      loadBalancer,
-      services,
-      sharedConfiguration,
-      endpoints,
-      type
-    } = this.api.endpointGroups[groupIndex];
+    const { loadBalancer, services, sharedConfiguration, endpoints, type } = this.api.endpointGroups[groupIndex];
 
     const updatedEndpointGroup: EndpointGroupV4 = {
       loadBalancer: loadBalancer,
@@ -123,7 +109,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        switchMap((api : ApiV4) => {
+        switchMap((api: ApiV4) => {
           this.updateApiObject(api, updatedEndpointGroup);
           return this.apiService.update(api.id, api);
         }),
@@ -148,10 +134,10 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     this.ngOnInit();
   }
 
-  private updateApiObject(api: ApiV4,updatedEndpointGroupObject:EndpointGroupV4): void {
-    this.hasAnEndpointGroupIndex() ?
-      api.endpointGroups.splice(this.ajsStateParams.groupIndex , 1, updatedEndpointGroupObject) :
-      api.endpointGroups.push(updatedEndpointGroupObject);
+  private updateApiObject(api: ApiV4, updatedEndpointGroupObject: EndpointGroupV4): void {
+    this.hasAnEndpointGroupIndex()
+      ? api.endpointGroups.splice(this.ajsStateParams.groupIndex, 1, updatedEndpointGroupObject)
+      : api.endpointGroups.push(updatedEndpointGroupObject);
   }
 
   private hasAnEndpointGroupIndex(): boolean {

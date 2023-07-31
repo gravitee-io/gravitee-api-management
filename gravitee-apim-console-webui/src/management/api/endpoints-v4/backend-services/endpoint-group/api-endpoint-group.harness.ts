@@ -13,28 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ComponentHarness, ContentContainerComponentHarness} from '@angular/cdk/testing';
-import {MatButtonHarness} from "@angular/material/button/testing";
-import {MatTabHarness} from "@angular/material/tabs/testing";
-import {MatInputHarness} from "@angular/material/input/testing";
-import {input} from "@gravitee/ui-components/src/styles/input";
-import {GioSaveBarHarness} from "@gravitee/ui-particles-angular";
+import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTabHarness } from '@angular/material/tabs/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 export class ApiEndpointGroupHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint-group';
 
   private readInputValue = (input: MatInputHarness) => input.getValue();
-  private setInputValue = (inputValue : string) => (input: MatInputHarness) => input.setValue(inputValue);
+  private setInputValue = (inputValue: string) => (input: MatInputHarness) => input.setValue(inputValue);
   private clickButton = (button: MatButtonHarness) => button.click();
 
-  private clickSaveButton = (saveButton: GioSaveBarHarness) =>  saveButton.clickSubmit();
+  private clickSaveButton = (saveButton: GioSaveBarHarness) => saveButton.clickSubmit();
 
-  private clickResetButton = (saveButton: GioSaveBarHarness) =>  saveButton.clickReset();
+  private clickResetButton = (saveButton: GioSaveBarHarness) => saveButton.clickReset();
 
   private selectTab = (tab: MatTabHarness) => tab.select();
 
   private isEndpointGroupSubmitButtonInvalid = (gioSaveBar: GioSaveBarHarness) => gioSaveBar.isSubmitButtonInvalid();
-
 
   private getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' }));
   private getGeneralTab = this.locatorFor(MatTabHarness.with({ label: 'General' }));
@@ -48,7 +46,6 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
   public async clickGeneralTab() {
     return this.getGeneralTab().then(this.selectTab);
   }
-
 
   public async readEndpointGroupNameInput() {
     return this.getEndpointGroupNameInput().then(this.readInputValue);

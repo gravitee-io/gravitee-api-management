@@ -16,32 +16,48 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
-
-import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
-import {MatButtonModule} from "@angular/material/button";
-import {MatIconModule} from "@angular/material/icon";
-import {UIRouterModule} from "@uirouter/angular";
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { UIRouterModule } from '@uirouter/angular';
 import {
   GioFormFocusInvalidModule,
   GioFormJsonSchemaModule,
-  GioFormSlideToggleModule, GioSaveBarModule
-} from "@gravitee/ui-particles-angular";
-import {MatCardModule} from "@angular/material/card";
-import {MatFormFieldModule} from "@angular/material/form-field";
-import {MatInputModule} from "@angular/material/input";
-import {MatSlideToggleModule} from "@angular/material/slide-toggle";
-import {MatTabsModule} from "@angular/material/tabs";
-import {ReactiveFormsModule} from "@angular/forms";
-import {GioGoBackButtonModule} from "../../../../../shared/components/gio-go-back-button/gio-go-back-button.module";
+  GioFormSlideToggleModule,
+  GioSaveBarModule,
+} from '@gravitee/ui-particles-angular';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTabsModule } from '@angular/material/tabs';
+import { ReactiveFormsModule } from '@angular/forms';
+
+import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
 import { ApiEndpointGroupGeneralComponent } from './general/api-endpoint-group-general.component';
 
+import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+
 @NgModule({
-  declarations: [
-    ApiEndpointGroupComponent,
-    ApiEndpointGroupGeneralComponent],
+  declarations: [ApiEndpointGroupComponent, ApiEndpointGroupGeneralComponent],
   exports: [ApiEndpointGroupComponent],
-  imports: [CommonModule, GioPermissionModule, MatButtonModule, MatIconModule, UIRouterModule, GioFormJsonSchemaModule, GioFormSlideToggleModule, MatCardModule, MatFormFieldModule, MatInputModule, MatSlideToggleModule, MatTabsModule, ReactiveFormsModule, GioGoBackButtonModule, GioFormFocusInvalidModule, GioSaveBarModule],
+  imports: [
+    CommonModule,
+    GioPermissionModule,
+    MatButtonModule,
+    MatIconModule,
+    UIRouterModule,
+    GioFormJsonSchemaModule,
+    GioFormSlideToggleModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSlideToggleModule,
+    MatTabsModule,
+    ReactiveFormsModule,
+    GioGoBackButtonModule,
+    GioFormFocusInvalidModule,
+    GioSaveBarModule,
+  ],
 })
 export class ApiEndpointGroupModule {}

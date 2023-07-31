@@ -24,48 +24,26 @@ import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
 import { ApiEndpointGroupHarness } from './api-endpoint-group.harness';
 import { ApiEndpointGroupModule } from './api-endpoint-group.module';
 
-import {CONSTANTS_TESTING, GioHttpTestingModule} from '../../../../../shared/testing';
-import {CurrentUserService, UIRouterState, UIRouterStateParams} from '../../../../../ajs-upgraded-providers';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../../../entities/user';
-import {ApiV4, fakeApiV4} from "../../../../../entities/management-api-v2";
-import {MatButtonHarness} from "@angular/material/button/testing";
-import {HarnessLoader} from "@angular/cdk/testing";
-import {ApiProxyGroupEditComponent} from "../../../proxy/endpoints/groups/edit/api-proxy-group-edit.component";
-import {ApiProxyGroupsModule} from "../../../proxy/endpoints/groups/api-proxy-groups.module";
-import {fakeConnectorListItem} from "../../../../../entities/connector/connector-list-item.fixture";
-import {fakeResourceListItem} from "../../../../../entities/resource/resourceListItem.fixture";
-import {By} from "@angular/platform-browser";
-import {fakeApi} from "../../../../../entities/api/Api.fixture";
-import {Api} from "../../../../../entities/api";
-import {MatTabHarness} from "@angular/material/tabs/testing";
-import {MatInputHarness} from "@angular/material/input/testing";
-import {GioSaveBarHarness} from "@gravitee/ui-particles-angular";
-import {SnackBarService} from "../../../../../services-ngx/snack-bar.service";
-import {MatSnackBar, MatSnackBarRef, TextOnlySnackBar, MatSnackBarModule} from "@angular/material/snack-bar";
+import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 describe('ApiEndpointsGroupsComponent', () => {
   const fakeUiRouter = { go: jest.fn() };
-  //const fakeSnackBar = {error: jest.fn()};
 
   const API_ID = 'apiId';
   const DEFAULT_GROUP_NAME = 'default-group';
   const VALID_ENDPOINT_GROUP_NAME = 'New Endpoint Group Name';
-  const INVALID_ENDPOINT_GROUP_NAME =  '';
+  const INVALID_ENDPOINT_GROUP_NAME = '';
 
   let fixture: ComponentFixture<ApiEndpointGroupComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiEndpointGroupHarness;
-  let loader: HarnessLoader;
 
   function expectApiGetRequest(api: ApiV4) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
-    fixture.detectChanges();
-  }
-
-  function expectApiPutRequestError(apiId: string) {
-    httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`, method: 'PUT' })
-      .error(new ErrorEvent('error'));
     fixture.detectChanges();
   }
 
@@ -95,7 +73,6 @@ describe('ApiEndpointsGroupsComponent', () => {
     });
 
     fixture = TestBed.createComponent(ApiEndpointGroupComponent);
-    loader = TestbedHarnessEnvironment.loader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
 
@@ -121,7 +98,6 @@ describe('ApiEndpointsGroupsComponent', () => {
     beforeEach(async () => {
       await TestBed.compileComponents();
       fixture = TestBed.createComponent(ApiEndpointGroupComponent);
-      loader = TestbedHarnessEnvironment.loader(fixture);
       httpTestingController = TestBed.inject(HttpTestingController);
 
       api = fakeApiV4({
@@ -131,12 +107,12 @@ describe('ApiEndpointsGroupsComponent', () => {
             name: DEFAULT_GROUP_NAME,
             type: 'kafka',
             endpoints: [],
-          }
+          },
         ],
       });
       fixture.detectChanges();
     });
-    describe('WHEN the general tab is selected', ()=> {
+    describe('WHEN the general tab is selected', () => {
       beforeEach(async () => {
         await componentHarness.clickGeneralTab();
 
@@ -144,86 +120,96 @@ describe('ApiEndpointsGroupsComponent', () => {
 
         fixture.detectChanges();
       });
-      it('THEN the endpoint group name field should be visible with a default value', async ()=> {
+      it('THEN the endpoint group name field should be visible with a default value', async () => {
         expect(await componentHarness.readEndpointGroupNameInput()).toEqual(DEFAULT_GROUP_NAME);
       });
 
-        describe('AND WHEN the endpoint group name is modified with a valid value',  () => {
+      describe('AND WHEN the endpoint group name is modified with a valid value', () => {
+        beforeEach(async () => {
+          await componentHarness.writeToEndpointGroupNameInput(VALID_ENDPOINT_GROUP_NAME);
+
+          fixture.detectChanges();
+        });
+        it('THEN the endpoint group name field should be updated with the expected value', async () => {
+          expect(await componentHarness.readEndpointGroupNameInput()).toEqual(VALID_ENDPOINT_GROUP_NAME);
+        });
+
+        it('THEN the save button should be valid', async () => {
+          expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toBeFalsy();
+        });
+
+        describe('AND WHEN the save button is clicked', () => {
           beforeEach(async () => {
-            await componentHarness.writeToEndpointGroupNameInput(VALID_ENDPOINT_GROUP_NAME);
+            api = fakeApiV4({
+              id: API_ID,
+              endpointGroups: [
+                {
+                  name: DEFAULT_GROUP_NAME,
+                  type: 'kafka',
+                  endpoints: [],
+                },
+              ],
+            });
+
+            await componentHarness.clickEndpointGroupSaveButton();
+
+            expectApiGetRequest(api);
 
             fixture.detectChanges();
           });
-          it('THEN the endpoint group name field should be updated with the expected value', async ()=> {
-            expect(await componentHarness.readEndpointGroupNameInput()).toEqual(VALID_ENDPOINT_GROUP_NAME);
-          });
+          it('THEN the endpoint group name field should be saved', async () => {
+            const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
 
-          it('THEN the save button should be valid', async () => {
-            expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toBeFalsy();
-          });
-
-          describe('AND WHEN the save button is clicked', () => {
-            beforeEach(async () => {
-              api = fakeApiV4({
-                id: API_ID,
-                endpointGroups: [
+            expect(req.request.body.endpointGroups).toEqual([
+              {
+                endpoints: [
                   {
-                    name: DEFAULT_GROUP_NAME,
+                    configuration: { bootstrapServers: 'localhost:9092' },
+                    inheritConfiguration: false,
+                    name: 'default',
                     type: 'kafka',
-                    endpoints: [],
-                  }
+                    weight: 1,
+                  },
                 ],
-              });
-
-              await componentHarness.clickEndpointGroupSaveButton();
-
-              expectApiGetRequest(api);
-
-              fixture.detectChanges();
-            });
-            it('THEN the endpoint group name field should be saved', async ()=> {
-              const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
-
-              expect(req.request.body.endpointGroups).toEqual([
-                {"endpoints": [{"configuration": {"bootstrapServers": "localhost:9092"}, "inheritConfiguration": false, "name": "default", "type": "kafka", "weight": 1}], "loadBalancer": {"type": "ROUND_ROBIN"}, "name": VALID_ENDPOINT_GROUP_NAME, "services": undefined, "sharedConfiguration": undefined, "type": "kafka"},
-              ]);
-            });
-          });
-
-          describe('AND WHEN the changes made have been dismissed', ()  => {
-            beforeEach(async () => {
-              await componentHarness.writeToEndpointGroupNameInput("TEST");
-
-              fixture.detectChanges();
-            });
-
-            it('THEN the endpoint group details should reset back to the original values', async () => {
-              await componentHarness.clickEndpointGroupDismissButton();
-
-              expectApiGetRequest(api);
-
-              expect(await componentHarness.readEndpointGroupNameInput()).toEqual(DEFAULT_GROUP_NAME);
-            });
-
-          });
-
-          describe('AND WHEN the endpoint group is modified with an invalid value', ()  => {
-            beforeEach(async () => {
-              await componentHarness.writeToEndpointGroupNameInput(INVALID_ENDPOINT_GROUP_NAME);
-
-              fixture.detectChanges();
-            });
-
-            it('THEN the save button should be invalid', async () => {
-              expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toBeTruthy();
-            });
-
+                loadBalancer: { type: 'ROUND_ROBIN' },
+                name: VALID_ENDPOINT_GROUP_NAME,
+                services: undefined,
+                sharedConfiguration: undefined,
+                type: 'kafka',
+              },
+            ]);
           });
         });
 
+        describe('AND WHEN the changes made have been dismissed', () => {
+          beforeEach(async () => {
+            await componentHarness.writeToEndpointGroupNameInput('TEST');
+
+            fixture.detectChanges();
+          });
+
+          it('THEN the endpoint group details should reset back to the original values', async () => {
+            await componentHarness.clickEndpointGroupDismissButton();
+
+            expectApiGetRequest(api);
+
+            expect(await componentHarness.readEndpointGroupNameInput()).toEqual(DEFAULT_GROUP_NAME);
+          });
         });
 
+        describe('AND WHEN the endpoint group is modified with an invalid value', () => {
+          beforeEach(async () => {
+            await componentHarness.writeToEndpointGroupNameInput(INVALID_ENDPOINT_GROUP_NAME);
 
+            fixture.detectChanges();
+          });
+
+          it('THEN the save button should be invalid', async () => {
+            expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toBeTruthy();
+          });
+        });
+      });
+    });
 
     describe('WHEN the back button is clicked', () => {
       it('THEN the endpoint groups list page should be the next page expected to be shown', async () => {
@@ -239,6 +225,5 @@ describe('ApiEndpointsGroupsComponent', () => {
         expect(routerSpy).toHaveBeenCalledWith('management.apis.ng.endpoints', undefined, undefined);
       });
     });
-    });
   });
-
+});
