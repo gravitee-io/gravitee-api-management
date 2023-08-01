@@ -34,6 +34,7 @@
 
     <!-- INSTRUCTIONS -->
     <!--
+        TO CONFIGURE THE DISTRIBUTIONS
         This pom.xml is used to prepare the distribution of Management API & Gateway. It defines all dependencies that have to be bundled by default those components.
 
         Keep in my mind that this pom.xml is used by both Management API & Gateway. So every dependency defined here will be bundled in both components by default.
@@ -50,6 +51,23 @@
 
          The plugin must be added with <type>zip</type> and <scope>runtime</scope>.
     -->
+    <!--
+        TO MAKE A DISTRIBUTION
+        There are 3 "flavors" for the distribution:
+
+        - The "Community bundle" which is full OSS.
+          It can be built with `mvn clean install`.
+          Every single user is able to make this distribution, as it requires only OSS plugins.
+
+        - The "Prod bundle" which is based on the "Community bundle" and contains also a couple of EE plugins.
+          It can be built with `mvn clean install -Dbundle`.
+          Only Gravitee members are able to make this distribution, as it requires access to an internal repository.
+
+        - The "Dev bundle" which is based on the "Prod bundle" and contains almost all available OSS & EE plugins. This distribution is used internally for our dev & test environments.
+          It can be built with `mvn clean install -Dbundle=dev`.
+          Only Gravitee members are able to make this distribution, as it requires access to an internal repository.
+    -->
+
 
     <!-- Default dependencies, to allow a full OSS distribution with opensource plugins only -->
     <dependencies>
@@ -640,7 +658,7 @@
             <id>bundle-default</id>
             <activation>
                 <property>
-                    <name>bundle.default</name>
+                    <name>bundle</name>
                 </property>
             </activation>
             <dependencies>
@@ -771,7 +789,8 @@
             <id>bundle-dev</id>
             <activation>
                 <property>
-                    <name>bundle.dev</name>
+                    <name>bundle</name>
+                    <value>dev</value>
                 </property>
             </activation>
             <dependencies>

@@ -10,7 +10,9 @@ console.log(chalk.blue(`Step 1: Prepare APIM distribution`));
 await within(async () => {
   cd('../gravitee-apim-distribution');
   // https://maven.apache.org/plugins/maven-help-plugin/effective-pom-mojo.html
-  await $`mvn help:effective-pom -Doutput=.effective-pom.xml -Pbundle-default`;
+  // `help:effective-pom` allows to get the pom.xml with all the inherited properties
+  // `-Dbundle` activate the "bundle" profile (from distribution/pom.xml). This maven profile adds some EE plugins in the release.
+  await $`mvn help:effective-pom -Doutput=.effective-pom.xml -Dbundle`;
 });
 
 const distributionPomXml = await fs.readFile(`../gravitee-apim-distribution/.effective-pom.xml`, 'utf-8');
