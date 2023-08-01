@@ -907,7 +907,7 @@
                 <!-- Using service GeoIP requires to adapt Java HeapSpace: https://github.com/gravitee-io/gravitee-service-geoip/blob/master/README.adoc -->
                 <!-- So keep it commented for the moment -->
                 <!-- <dependency>-->
-                <!--     <groupId>io.gravitee.service</groupId>-->
+                <!--     <groupId>com.graviteesource.service</groupId>-->
                 <!--     <artifactId>gravitee-service-geoip</artifactId>-->
                 <!--     <version>${gravitee-service-geoip.version}</version>-->
                 <!--     <type>zip</type>-->

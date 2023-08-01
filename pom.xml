@@ -255,9 +255,7 @@
         <gravitee-resource-auth-provider-ldap.version>1.3.0</gravitee-resource-auth-provider-ldap.version>
         <gravitee-resource-cache-redis.version>1.3.0</gravitee-resource-cache-redis.version>
         <gravitee-resource-oauth2-provider-keycloak.version>1.9.2</gravitee-resource-oauth2-provider-keycloak.version>
-        <!-- Using service GeoIP requires to adapt Java HeapSpace: https://github.com/gravitee-io/gravitee-service-geoip/blob/master/README.adoc -->
-        <!-- So keep it commented for the moment -->
-        <!-- <gravitee-service-geoip.version>1.1.0</gravitee-service-geoip.version>-->
+        <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
 
         <!-- Enterprise plugins -->
         <gravitee-entrypoint-http-get.version>1.0.1</gravitee-entrypoint-http-get.version>
