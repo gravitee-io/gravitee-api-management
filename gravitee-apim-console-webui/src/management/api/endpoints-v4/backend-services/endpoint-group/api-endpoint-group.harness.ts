@@ -18,6 +18,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTabHarness } from '@angular/material/tabs/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import {MatSelectHarness} from "@angular/material/select/testing";
 
 export class ApiEndpointGroupHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint-group';
@@ -32,12 +33,15 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
 
   private selectTab = (tab: MatTabHarness) => tab.select();
 
+  private readSelectorValue = (selector: MatSelectHarness) => selector.getValueText();
+
   private isEndpointGroupSubmitButtonInvalid = (gioSaveBar: GioSaveBarHarness) => gioSaveBar.isSubmitButtonInvalid();
 
   private getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' }));
   private getGeneralTab = this.locatorFor(MatTabHarness.with({ label: 'General' }));
   private getEndpointGroupNameInput = this.locatorFor(MatInputHarness.with({ selector: '[aria-label="Endpoint group name input"]' }));
   private getEndpointGroupSubmissionBar = this.locatorFor(GioSaveBarHarness);
+  private getEndpointGroupLoadBalancerSelector = this.locatorFor(MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }));
 
   public async clickBackButton() {
     return this.getBackButton().then(this.clickButton);
@@ -53,6 +57,14 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
 
   public writeToEndpointGroupNameInput(inputValue) {
     return this.getEndpointGroupNameInput().then(this.setInputValue(inputValue));
+  }
+
+  public async readEndpointGroupLoadBalancerSelector() {
+    return this.getEndpointGroupLoadBalancerSelector().then(this.readSelectorValue)
+  }
+
+  public async writeToEndpointGroupLoadBalancerSelector() {
+    return this.getEndpointGroupLoadBalancerSelector()
   }
 
   public isGeneralTabSaveButtonInvalid() {

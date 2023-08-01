@@ -15,6 +15,7 @@
  */
 import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import {ProxyGroupLoadBalancerEnum} from "../../../../../../entities/proxy";
 
 @Component({
   selector: 'api-endpoint-group-general',
@@ -23,4 +24,5 @@ import { FormGroup } from '@angular/forms';
 })
 export class ApiEndpointGroupGeneralComponent {
   @Input() generalForm: FormGroup;
+  public loadBalancerTypes = ProxyGroupLoadBalancerEnum;
 }

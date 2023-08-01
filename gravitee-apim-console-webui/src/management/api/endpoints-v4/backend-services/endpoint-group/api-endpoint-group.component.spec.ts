@@ -37,6 +37,7 @@ describe('ApiEndpointsGroupsComponent', () => {
   const DEFAULT_GROUP_NAME = 'default-group';
   const VALID_ENDPOINT_GROUP_NAME = 'New Endpoint Group Name';
   const INVALID_ENDPOINT_GROUP_NAME = '';
+  const DEFAULT_LOAD_BALANCER_TYPE = 'ROUND_ROBIN';
 
   let fixture: ComponentFixture<ApiEndpointGroupComponent>;
   let httpTestingController: HttpTestingController;
@@ -123,6 +124,11 @@ describe('ApiEndpointsGroupsComponent', () => {
       it('THEN the endpoint group name field should be visible with a default value', async () => {
         expect(await componentHarness.readEndpointGroupNameInput()).toEqual(DEFAULT_GROUP_NAME);
       });
+
+      it('THEN the endpoint group load balancer field should be visible with a default value', async () => {
+        expect(await componentHarness.readEndpointGroupLoadBalancerSelector()).toEqual(DEFAULT_LOAD_BALANCER_TYPE);
+      });
+
 
       describe('AND WHEN the endpoint group name is modified with a valid value', () => {
         beforeEach(async () => {

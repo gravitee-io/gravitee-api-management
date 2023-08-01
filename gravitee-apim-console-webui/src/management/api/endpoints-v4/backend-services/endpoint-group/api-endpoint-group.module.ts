@@ -37,6 +37,8 @@ import { ApiEndpointGroupGeneralComponent } from './general/api-endpoint-group-g
 
 import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import {MatOptionModule} from "@angular/material/core";
+import {MatSelectModule} from "@angular/material/select";
 
 @NgModule({
   declarations: [ApiEndpointGroupComponent, ApiEndpointGroupGeneralComponent],
@@ -58,6 +60,8 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
     GioGoBackButtonModule,
     GioFormFocusInvalidModule,
     GioSaveBarModule,
+    MatOptionModule,
+    MatSelectModule,
   ],
 })
 export class ApiEndpointGroupModule {}

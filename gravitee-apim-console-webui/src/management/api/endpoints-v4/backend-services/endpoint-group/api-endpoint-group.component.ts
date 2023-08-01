@@ -84,6 +84,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
           ),
         ],
       ),
+      loadBalancerType: new  FormControl({ value: group?.loadBalancer?.type ?? null, disabled: false }, [Validators.required]),
     });
 
     this.endpointGroupForm = new FormGroup({
