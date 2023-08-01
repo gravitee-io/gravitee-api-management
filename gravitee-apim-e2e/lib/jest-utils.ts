@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { expect, test } from '@jest/globals';
-import { ApiResponse, ResponseError } from 'lib/management-webclient-sdk/src/lib/runtime';
+import { ApiResponse, ResponseError } from '@gravitee/management-webclient-sdk/src/lib/runtime';
 
 interface PortalBusinessError {
   code: string;
@@ -87,9 +87,27 @@ export async function notFound<T>(
 }
 
 export async function succeed<T>(promise: Promise<ApiResponse<T>>, expectedStatus: number = 200): Promise<T> {
-  const response = await promise;
-  expect(response.raw.status).toEqual(expectedStatus);
-  return await response.value();
+  try {
+    const response = await promise;
+    expect(response.raw.status).toEqual(expectedStatus);
+    return await response.value();
+  } catch (error) {
+    const response = error.response ? error.response : error;
+    if (response == undefined || response.status == undefined) {
+      throw response;
+    }
+    // improve ResponseError message with response status
+    let responseError = error as ResponseError;
+    let errorContent = await responseError.response.json();
+    let errorMessage = errorContent.message;
+    let errorParameters = JSON.stringify(errorContent.parameters);
+    throw new ResponseError(
+      responseError.response,
+      `${expect.getState().currentTestName}\n\n Response returned an error code: ${
+        responseError.response.status
+      }\n Message: ${errorMessage}\n Parameters: ${errorParameters}`,
+    );
+  }
 }
 
 export async function created<T>(promise: Promise<ApiResponse<T>>) {
