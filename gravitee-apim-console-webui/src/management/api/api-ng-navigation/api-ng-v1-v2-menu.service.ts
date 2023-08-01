@@ -120,7 +120,12 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
       documentationMenuItem.tabs.push({
         displayName: 'Pages',
         targetRoute: 'management.apis.ng.documentation',
-        baseRoute: 'management.apis.ng.documentation',
+        baseRoute: [
+          'management.apis.ng.documentation',
+          'management.apis.ng.documentationNew',
+          'management.apis.ng.documentationImport',
+          'management.apis.ng.documentationEdit',
+        ],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
@@ -198,7 +203,11 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
       proxyGroup.items.push({
         displayName: 'Response Templates',
         targetRoute: 'management.apis.ng.responseTemplates',
-        baseRoute: 'management.apis.ng.responseTemplates',
+        baseRoute: [
+          'management.apis.ng.responseTemplates',
+          'management.apis.ng.responseTemplateNew',
+          'management.apis.ng.responseTemplateEdit',
+        ],
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {

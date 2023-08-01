@@ -122,7 +122,6 @@ function apisProxyRouterConfig($stateProvider) {
     .state('management.apis.detail.proxy.healthCheckDashboard', {
       abstract: true,
       url: '/healthcheck-dashboard',
-      // template: require('./health-check-dashboard/healthcheck.html'),
     })
     .state('management.apis.detail.proxy.healthCheckDashboard.visualize', {
       url: '?from&to&page&size',
