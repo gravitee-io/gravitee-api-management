@@ -1,4 +1,4 @@
-{{- if and (.Values.ui.enabled) (not (include "ui.externalConfig" .)) -}}
+{{- if and (and (.Values.ui.enabled) (not .Values.apim.dbLess)) (not (include "ui.externalConfig" .)) -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:

@@ -1,4 +1,4 @@
-{{- if and (.Values.api.enabled) (or (not (include "api.externalConfig" .)) (.Values.api.logging.debug)) -}}
+{{- if and (and (.Values.api.enabled) (not .Values.apim.dbLess)) (or (not (include "api.externalConfig" .)) (.Values.api.logging.debug)) -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:

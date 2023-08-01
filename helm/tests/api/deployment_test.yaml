@@ -191,3 +191,13 @@ tests:
               name: I-am-a-techapi
             - containerPort: 18092
               name: I-am-a-v-bridge
+
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 0

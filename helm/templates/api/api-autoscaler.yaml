@@ -1,4 +1,4 @@
-{{- if and (.Values.api.enabled) (.Values.api.autoscaling.enabled) -}}
+{{- if and (and (.Values.api.enabled) (not .Values.apim.dbLess)) (.Values.api.autoscaling.enabled) -}}
 {{- $apiVersion := include "common.capabilities.autoscaling.apiVersion" . -}}
 apiVersion: {{ $apiVersion }}
 kind: HorizontalPodAutoscaler

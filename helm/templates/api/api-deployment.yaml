@@ -1,4 +1,4 @@
-{{- if .Values.api.enabled -}}
+{{- if and (.Values.api.enabled) (not .Values.apim.dbLess) -}}
 {{- $initContainers := .Values.initContainers -}}
 {{- $serviceAccount := include "apim.serviceAccount" . -}}
 {{- $logbackVolumeName := include "api.logbackVolumeName" . -}}

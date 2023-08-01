@@ -1,4 +1,4 @@
-{{- if .Values.api.http.services.core.http.enabled -}}
+{{- if and (not .Values.apim.dbLess) (.Values.api.http.services.core.http.enabled) -}}
 {{- if .Values.api.http.services.core.ingress.enabled -}}
 {{- $serviceAPIName := include "gravitee.api.fullname" . -}}
 {{- $serviceAPIPort := .Values.api.http.services.core.service.externalPort -}}

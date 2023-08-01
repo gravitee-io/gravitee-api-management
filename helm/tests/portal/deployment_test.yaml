@@ -47,3 +47,13 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env[1].value
           value: "/test/"
+
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 0

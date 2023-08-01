@@ -1,4 +1,4 @@
-{{- if .Values.ui.enabled -}}
+{{- if and (.Values.ui.enabled) (not .Values.apim.dbLess) -}}
 {{- if .Values.ui.ingress.enabled -}}
 {{- $serviceAPIName := include "gravitee.ui.fullname" . -}}
 {{- $serviceAPIPort := .Values.ui.service.externalPort -}}

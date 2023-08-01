@@ -56,3 +56,13 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].resources.limits.cpu
           value: "100m"
+
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 0

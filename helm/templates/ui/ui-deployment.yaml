@@ -1,4 +1,4 @@
-{{- if .Values.ui.enabled -}}
+{{- if and (.Values.ui.enabled) (not .Values.apim.dbLess) -}}
 {{- $base_href := include "ui.base_href" . -}}
 {{- $base_href_defined := include "ui.base_href.defined" . -}}
 apiVersion: apps/v1

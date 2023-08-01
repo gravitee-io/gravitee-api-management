@@ -75,7 +75,11 @@ data:
       websocket:
         enabled: {{ .Values.gateway.websocket }}
     management:
+      {{- if .Values.apim.dbLess }}
+      type: {{ "none" }}
+      {{- else }}
       type: {{ .Values.management.type | default "mongodb" }}
+      {{- end }}
       {{- if or (eq .Values.management.type "mongodb") (kindIs "invalid" .Values.management.type) }}
       mongodb:
         sslEnabled: {{ .Values.mongo.sslEnabled }}
@@ -156,7 +160,11 @@ data:
       {{- end }}
 
     ratelimit:
+      {{- if .Values.apim.dbLess }}
+      type: {{ "hazelcast" }}
+      {{- else }}
       type: {{ .Values.ratelimit.type | default "mongodb" }}
+      {{- end }}
       {{- if or (eq .Values.ratelimit.type "mongodb") (kindIs "invalid" .Values.ratelimit.type) }}
       mongodb:
         sslEnabled: {{ .Values.mongo.sslEnabled }}
@@ -445,7 +453,7 @@ data:
         enabled: {{ .Values.gateway.classloader.legacy.enabled }}
 
   {{- end }}
-  {{- if .Values.gateway.logging.debug }}
+    {{- if .Values.gateway.logging.debug }}
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
 

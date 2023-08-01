@@ -106,3 +106,12 @@ tests:
       - matchRegex:
           path: data.[gravitee.yml]
           pattern: "pattern: \\^regex\\$"
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 0

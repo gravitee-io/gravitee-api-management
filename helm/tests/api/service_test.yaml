@@ -117,3 +117,13 @@ tests:
       - equal:
           path: spec.externalTrafficPolicy
           value: Local
+
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 0

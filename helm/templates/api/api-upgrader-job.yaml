@@ -1,4 +1,4 @@
-{{- if and .Values.api.enabled .Values.api.upgrader  -}}
+{{- if and (and (.Values.api.enabled) (not .Values.apim.dbLess)) .Values.api.upgrader  -}}
 {{- $initContainers := .Values.initContainers -}}
 {{- $serviceAccount := include "apim.serviceAccount" . -}}
 apiVersion: batch/v1

@@ -175,3 +175,13 @@ tests:
       - equal:
           path: spec.rules[0].http.paths[0].path
           value: /test-ui
+
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 0
