@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
@@ -133,6 +134,7 @@ public class PageService_CreateTest {
         when(newPage.getLastContributor()).thenReturn(contrib);
         when(newPage.getType()).thenReturn(PageType.SWAGGER);
         when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
+        when(newPage.getAttachedMedia()).thenReturn(List.of(new PageMediaEntity()));
 
         final PageEntity createdPage = pageService.createPage(new ExecutionContext("DEFAULT", "envId"), API_ID, newPage);
 
@@ -142,6 +144,7 @@ public class PageService_CreateTest {
                     pageToCreate.getId().split("-").length == 5 &&
                     API_ID.equals(pageToCreate.getReferenceId()) &&
                     PageReferenceType.API.equals(pageToCreate.getReferenceType()) &&
+                    pageToCreate.getAttachedMedia().size() == 1 &&
                     name.equals(pageToCreate.getName()) &&
                     contrib.equals(pageToCreate.getLastContributor()) &&
                     content.equals(pageToCreate.getContent()) &&

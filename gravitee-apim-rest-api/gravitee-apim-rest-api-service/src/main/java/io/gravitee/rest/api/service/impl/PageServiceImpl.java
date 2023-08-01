@@ -246,6 +246,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         page.setParentId("".equals(newPageEntity.getParentId()) ? null : newPageEntity.getParentId());
         page.setMetadata(newPageEntity.getMetadata());
         page.setUseAutoFetch(newPageEntity.getUseAutoFetch());
+        page.setAttachedMedia(convertMediaEntity(newPageEntity.getAttachedMedia()));
         return page;
     }
 
