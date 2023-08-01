@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.monitor;
 
-import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
-import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
-import static io.gravitee.repository.analytics.query.QueryBuilders.dateHistogram;
+import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.monitoring.MonitoringRepository;
+import io.gravitee.repository.monitoring.model.MonitoringResponse;
+import java.io.IOException;
 
-import io.gravitee.repository.analytics.api.AnalyticsRepository;
-import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
+import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,17 +29,17 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
+public class NoOpMonitoringRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Autowired
-    private AnalyticsRepository analyticsRepository;
+    private MonitoringRepository monitoringRepository;
 
     @Test
-    public void testQuery() throws Exception {
-        Assert.assertNotNull(analyticsRepository);
+    public void testQuery() throws AnalyticsException, IOException {
+        Assert.assertNotNull(monitoringRepository);
 
-        DateHistogramResponse response = analyticsRepository.query(dateHistogram().timeRange(lastDays(30), hours(1)).build());
+        final MonitoringResponse monitoringResponse = monitoringRepository.query("1876c024-c6a2-409a-b6c0-24c6a2e09a5f");
 
-        Assert.assertNull(response);
+        Assert.assertNull(monitoringResponse);
     }
 }

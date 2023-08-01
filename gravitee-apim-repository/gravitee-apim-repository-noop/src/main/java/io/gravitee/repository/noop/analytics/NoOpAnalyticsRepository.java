@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.analytics;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import io.gravitee.repository.analytics.AnalyticsException;
+import io.gravitee.repository.analytics.api.AnalyticsRepository;
+import io.gravitee.repository.analytics.query.Query;
+import io.gravitee.repository.analytics.query.response.Response;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-@Import({
-        NoOpAnalyticsRepositoryConfiguration.class,
-        NoOpManagementRepositoryConfiguration.class,
-        NoOpRateLimitRepositoryConfiguration.class
-})
-public class NoOpRepositoryConfigurationTest {
+public class NoOpAnalyticsRepository implements AnalyticsRepository {
+
+    @Override
+    public <T extends Response> T query(final Query<T> query) throws AnalyticsException {
+        return null;
+    }
 }

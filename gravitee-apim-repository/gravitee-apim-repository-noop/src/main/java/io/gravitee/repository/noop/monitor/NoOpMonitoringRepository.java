@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.monitor;
 
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.api.AnalyticsRepository;
-import io.gravitee.repository.analytics.query.Query;
-import io.gravitee.repository.analytics.query.response.Response;
+import io.gravitee.repository.monitoring.MonitoringRepository;
+import io.gravitee.repository.monitoring.model.MonitoringResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpAnalyticsRepository implements AnalyticsRepository {
+public class NoOpMonitoringRepository implements MonitoringRepository {
+
+    /**
+     * Logger.
+     */
+    private final Logger logger = LoggerFactory.getLogger(NoOpMonitoringRepository.class);
 
     @Override
-    public <T extends Response> T query(final Query<T> query) throws AnalyticsException {
+    public MonitoringResponse query(final String gatewayId) {
         return null;
     }
 }

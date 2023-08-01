@@ -15,24 +15,21 @@
  */
 package io.gravitee.repository.noop;
 
-import io.gravitee.repository.monitoring.MonitoringRepository;
-import io.gravitee.repository.monitoring.model.MonitoringResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.gravitee.repository.noop.ratelimit.NoOpRateLimitRepository;
+import io.gravitee.repository.ratelimit.api.RateLimitRepository;
+import io.gravitee.repository.ratelimit.model.RateLimit;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpMonitoringRepository implements MonitoringRepository {
+@Configuration
+public class NoOpRateLimitRepositoryConfiguration {
 
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(NoOpMonitoringRepository.class);
-
-    @Override
-    public MonitoringResponse query(final String gatewayId) {
-        return null;
+    @Bean
+    public RateLimitRepository<RateLimit> rateLimitRepository() {
+        return new NoOpRateLimitRepository();
     }
 }

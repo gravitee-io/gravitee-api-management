@@ -37,18 +37,18 @@ public class NoOpRepositoryProviderTest {
 
     @Test
     public void shouldReturnAnalyticsScope() {
-        assertArrayEquals(new Scope[] { Scope.ANALYTICS }, provider.scopes());
+        assertArrayEquals(new Scope[] { Scope.ANALYTICS, Scope.MANAGEMENT, Scope.RATE_LIMIT }, provider.scopes());
     }
 
     @Test
     public void shouldReturnNoOpConfigurationClass() {
         Class<?> configClass = provider.configuration(Scope.ANALYTICS);
-        assertEquals(NoOpRepositoryConfiguration.class, configClass);
+        assertEquals(NoOpAnalyticsRepositoryConfiguration.class, configClass);
     }
 
     @Test
     public void shouldReturnNullClass() {
-        Class<?> configClass = provider.configuration(Scope.MANAGEMENT);
+        Class<?> configClass = provider.configuration(Scope.OAUTH2);
         assertNull(configClass);
     }
 }

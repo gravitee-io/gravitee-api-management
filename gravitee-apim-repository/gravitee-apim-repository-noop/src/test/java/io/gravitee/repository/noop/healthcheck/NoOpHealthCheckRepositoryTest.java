@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.healthcheck;
 
 import static io.gravitee.repository.healthcheck.query.QueryBuilders.dateHistogram;
 
@@ -21,6 +21,7 @@ import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
 import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogramResponse;
+import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

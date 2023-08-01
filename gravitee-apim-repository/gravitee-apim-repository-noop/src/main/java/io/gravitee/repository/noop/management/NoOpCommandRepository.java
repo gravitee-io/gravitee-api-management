@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.management;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.api.search.CommandCriteria;
+import io.gravitee.repository.management.model.Command;
+
+import java.util.List;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-@Import({
-        NoOpAnalyticsRepositoryConfiguration.class,
-        NoOpManagementRepositoryConfiguration.class,
-        NoOpRateLimitRepositoryConfiguration.class
-})
-public class NoOpRepositoryConfigurationTest {
+public class NoOpCommandRepository extends AbstractNoOpManagementRepository<Command, String> implements CommandRepository {
+
+
+    @Override
+    public List<Command> search(CommandCriteria criteria) {
+        return List.of();
+    }
 }

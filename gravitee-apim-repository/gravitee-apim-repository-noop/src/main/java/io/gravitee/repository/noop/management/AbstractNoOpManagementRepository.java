@@ -13,34 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.management;
 
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.analytics.query.tabular.TabularQuery;
-import io.gravitee.repository.analytics.query.tabular.TabularResponse;
-import io.gravitee.repository.log.api.LogRepository;
-import io.gravitee.repository.log.model.ExtendedLog;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.CrudRepository;
+
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpLogRepository implements LogRepository {
-
-    /**
-     * Logger.
-     */
-    private final Logger logger = LoggerFactory.getLogger(NoOpLogRepository.class);
+public abstract class AbstractNoOpManagementRepository<U, V> implements CrudRepository<U, V> {
 
     @Override
-    public TabularResponse query(final TabularQuery query) throws AnalyticsException {
+    public Optional<U> findById(V v) throws TechnicalException {
+        return Optional.empty();
+    }
+
+    @Override
+    public U create(U item) throws TechnicalException {
         return null;
     }
 
     @Override
-    public ExtendedLog findById(String logId, Long timestamp) throws AnalyticsException {
+    public U update(U item) throws TechnicalException {
         return null;
+    }
+
+    @Override
+    public void delete(V v) throws TechnicalException {
+
+    }
+
+    @Override
+    public Set<U> findAll() throws TechnicalException {
+        return Set.of();
     }
 }
