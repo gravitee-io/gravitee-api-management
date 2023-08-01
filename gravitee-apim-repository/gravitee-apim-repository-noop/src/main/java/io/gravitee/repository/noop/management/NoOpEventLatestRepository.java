@@ -13,27 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.management;
 
-import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
-import io.gravitee.repository.healthcheck.query.Query;
-import io.gravitee.repository.healthcheck.query.Response;
-import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.model.Event;
+
+import java.util.List;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpHealthCheckRepository implements HealthCheckRepository {
+public class NoOpEventLatestRepository implements EventLatestRepository {
+
 
     @Override
-    public <T extends Response> T query(final Query<T> query) throws AnalyticsException {
+    public List<Event> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
+        return List.of();
+    }
+
+    @Override
+    public Event createOrUpdate(Event event) throws TechnicalException {
         return null;
     }
 
     @Override
-    public ExtendedLog findById(String id) throws AnalyticsException {
-        return null;
-    }
+    public void delete(String eventId) throws TechnicalException {}
 }

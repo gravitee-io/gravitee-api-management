@@ -13,31 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.healthcheck;
 
 import io.gravitee.repository.analytics.AnalyticsException;
-import io.gravitee.repository.monitoring.MonitoringRepository;
-import io.gravitee.repository.monitoring.model.MonitoringResponse;
-import java.io.IOException;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
+import io.gravitee.repository.healthcheck.query.Query;
+import io.gravitee.repository.healthcheck.query.Response;
+import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class NoOpMonitoringRepositoryTest extends AbstractNoOpRepositoryTest {
+public class NoOpHealthCheckRepository implements HealthCheckRepository {
 
-    @Autowired
-    private MonitoringRepository monitoringRepository;
+    @Override
+    public <T extends Response> T query(final Query<T> query) throws AnalyticsException {
+        return null;
+    }
 
-    @Test
-    public void testQuery() throws AnalyticsException, IOException {
-        Assert.assertNotNull(monitoringRepository);
-
-        final MonitoringResponse monitoringResponse = monitoringRepository.query("1876c024-c6a2-409a-b6c0-24c6a2e09a5f");
-
-        Assert.assertNull(monitoringResponse);
+    @Override
+    public ExtendedLog findById(String id) throws AnalyticsException {
+        return null;
     }
 }

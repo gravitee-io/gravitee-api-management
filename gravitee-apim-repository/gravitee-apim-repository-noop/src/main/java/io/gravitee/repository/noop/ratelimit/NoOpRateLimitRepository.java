@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.ratelimit;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import io.gravitee.repository.ratelimit.api.RateLimitRepository;
+import io.gravitee.repository.ratelimit.model.RateLimit;
+import io.reactivex.rxjava3.core.Single;
+
+import java.util.function.Supplier;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-@Import({
-        NoOpAnalyticsRepositoryConfiguration.class,
-        NoOpManagementRepositoryConfiguration.class,
-        NoOpRateLimitRepositoryConfiguration.class
-})
-public class NoOpRepositoryConfigurationTest {
+public class NoOpRateLimitRepository implements RateLimitRepository<RateLimit> {
+
+
+    @Override
+    public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {
+        return null;
+    }
 }

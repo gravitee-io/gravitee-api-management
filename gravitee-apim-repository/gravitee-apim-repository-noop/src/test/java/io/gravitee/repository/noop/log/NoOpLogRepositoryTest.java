@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.log;
 
 import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
 import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
@@ -23,6 +23,7 @@ import static org.junit.Assert.*;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
+import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

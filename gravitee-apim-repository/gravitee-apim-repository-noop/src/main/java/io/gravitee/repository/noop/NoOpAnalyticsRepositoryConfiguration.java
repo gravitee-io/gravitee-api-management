@@ -19,6 +19,10 @@ import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.monitoring.MonitoringRepository;
+import io.gravitee.repository.noop.analytics.NoOpAnalyticsRepository;
+import io.gravitee.repository.noop.healthcheck.NoOpHealthCheckRepository;
+import io.gravitee.repository.noop.log.NoOpLogRepository;
+import io.gravitee.repository.noop.monitor.NoOpMonitoringRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
  * @author GraviteeSource Team
  */
 @Configuration
-public class NoOpRepositoryConfiguration {
+public class NoOpAnalyticsRepositoryConfiguration {
 
     @Bean
     public AnalyticsRepository analyticsRepository() {

@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.management;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.InstallationRepository;
+import io.gravitee.repository.management.model.Installation;
+
+import java.util.Optional;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-@Import({
-        NoOpAnalyticsRepositoryConfiguration.class,
-        NoOpManagementRepositoryConfiguration.class,
-        NoOpRateLimitRepositoryConfiguration.class
-})
-public class NoOpRepositoryConfigurationTest {
+public class NoOpInstallationRepository extends AbstractNoOpManagementRepository<Installation, String> implements InstallationRepository {
+
+
+    @Override
+    public Optional<Installation> find() throws TechnicalException {
+        return Optional.empty();
+    }
 }

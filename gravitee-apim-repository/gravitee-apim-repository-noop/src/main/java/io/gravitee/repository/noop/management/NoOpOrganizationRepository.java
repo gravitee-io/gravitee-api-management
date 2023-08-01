@@ -13,20 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.noop;
+package io.gravitee.repository.noop.management;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Organization;
+
+import java.util.Set;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-@Import({
-        NoOpAnalyticsRepositoryConfiguration.class,
-        NoOpManagementRepositoryConfiguration.class,
-        NoOpRateLimitRepositoryConfiguration.class
-})
-public class NoOpRepositoryConfigurationTest {
+public class NoOpOrganizationRepository extends AbstractNoOpManagementRepository<Organization, String> implements OrganizationRepository {
+
+    @Override
+    public Long count() throws TechnicalException {
+        return null;
+    }
+
+    @Override
+    public Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException {
+        return Set.of();
+    }
+
 }

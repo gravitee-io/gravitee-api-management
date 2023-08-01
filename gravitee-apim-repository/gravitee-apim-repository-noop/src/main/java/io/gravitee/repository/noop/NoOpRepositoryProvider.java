@@ -35,14 +35,19 @@ public class NoOpRepositoryProvider implements RepositoryProvider {
 
     @Override
     public Scope[] scopes() {
-        return new Scope[] { Scope.ANALYTICS };
+        return new Scope[]{Scope.ANALYTICS, Scope.MANAGEMENT, Scope.RATE_LIMIT};
     }
 
     @Override
     public Class<?> configuration(Scope scope) {
         if (scope == Scope.ANALYTICS) {
-            return NoOpRepositoryConfiguration.class;
+            return NoOpAnalyticsRepositoryConfiguration.class;
+        } else if (scope == Scope.MANAGEMENT) {
+            return NoOpManagementRepositoryConfiguration.class;
+        } else if (scope == Scope.RATE_LIMIT) {
+            return NoOpRateLimitRepositoryConfiguration.class;
         }
+
         LOGGER.debug("Skipping unhandled repository scope {}", scope);
         return null;
     }
