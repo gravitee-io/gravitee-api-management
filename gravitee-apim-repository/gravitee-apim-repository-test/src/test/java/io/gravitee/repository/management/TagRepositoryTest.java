@@ -18,6 +18,7 @@ package io.gravitee.repository.management;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
@@ -126,5 +127,12 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(tag.isPresent());
         assertEquals("Other", tag.get().getName());
         assertEquals("Description for other tag", tag.get().getDescription());
+    }
+
+    @Test
+    public void should_find_by_ids_and_reference_id_and_reference_type() throws Exception {
+        final Set<Tag> tags = tagRepository.findByIdsAndReference(Set.of("international", "stores", "not-to-be-found"), "DEFAULT", TagReferenceType.ORGANIZATION);
+
+        assertThat(tags).hasSize(2).anyMatch(tag -> tag.getId().equals("international") && tag.getName().equals("International"));
     }
 }
