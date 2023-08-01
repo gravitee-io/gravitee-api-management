@@ -72,4 +72,10 @@ public class HttpTagRepository extends AbstractRepository implements TagReposito
     public Set<Tag> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    @ExcludeMethodFromGeneratedCoverage
+    public Set<Tag> findByIdsAndReference(Set<String> tagIds, String referenceId, TagReferenceType referenceType) {
+        throw new IllegalStateException();
+    }
 }
