@@ -38,6 +38,7 @@ describe('ApiEndpointsGroupsComponent', () => {
   const VALID_ENDPOINT_GROUP_NAME = 'New Endpoint Group Name';
   const INVALID_ENDPOINT_GROUP_NAME = '';
   const DEFAULT_LOAD_BALANCER_TYPE = 'ROUND_ROBIN';
+  const ALTERNATE_LOAD_BALANCER_TYPE = 'RANDOM';
 
   let fixture: ComponentFixture<ApiEndpointGroupComponent>;
   let httpTestingController: HttpTestingController;
@@ -113,6 +114,8 @@ describe('ApiEndpointsGroupsComponent', () => {
       });
       fixture.detectChanges();
     });
+
+    // General Tab
     describe('WHEN the general tab is selected', () => {
       beforeEach(async () => {
         await componentHarness.clickGeneralTab();
@@ -121,14 +124,11 @@ describe('ApiEndpointsGroupsComponent', () => {
 
         fixture.detectChanges();
       });
+
+      // General Tab -> Endpoint Group Name
       it('THEN the endpoint group name field should be visible with a default value', async () => {
         expect(await componentHarness.readEndpointGroupNameInput()).toEqual(DEFAULT_GROUP_NAME);
       });
-
-      it('THEN the endpoint group load balancer field should be visible with a default value', async () => {
-        expect(await componentHarness.readEndpointGroupLoadBalancerSelector()).toEqual(DEFAULT_LOAD_BALANCER_TYPE);
-      });
-
 
       describe('AND WHEN the endpoint group name is modified with a valid value', () => {
         beforeEach(async () => {
@@ -187,22 +187,6 @@ describe('ApiEndpointsGroupsComponent', () => {
           });
         });
 
-        describe('AND WHEN the changes made have been dismissed', () => {
-          beforeEach(async () => {
-            await componentHarness.writeToEndpointGroupNameInput('TEST');
-
-            fixture.detectChanges();
-          });
-
-          it('THEN the endpoint group details should reset back to the original values', async () => {
-            await componentHarness.clickEndpointGroupDismissButton();
-
-            expectApiGetRequest(api);
-
-            expect(await componentHarness.readEndpointGroupNameInput()).toEqual(DEFAULT_GROUP_NAME);
-          });
-        });
-
         describe('AND WHEN the endpoint group is modified with an invalid value', () => {
           beforeEach(async () => {
             await componentHarness.writeToEndpointGroupNameInput(INVALID_ENDPOINT_GROUP_NAME);
@@ -214,9 +198,92 @@ describe('ApiEndpointsGroupsComponent', () => {
             expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toBeTruthy();
           });
         });
+
+        describe('AND WHEN the changes made have been dismissed', () => {
+          beforeEach(async () => {
+            await componentHarness.writeToEndpointGroupNameInput('TEST');
+
+            await componentHarness.clickEndpointGroupDismissButton();
+
+            fixture.detectChanges();
+          });
+
+          it('THEN the endpoint group name should reset back to the original value', async () => {
+            expectApiGetRequest(api);
+
+            expect(await componentHarness.readEndpointGroupNameInput()).toEqual(DEFAULT_GROUP_NAME);
+          });
+        });
+      });
+
+      // General Tab -> Endpoint Group Load Balancer Type
+      it('THEN the endpoint group load balancer field should be visible with a default value', async () => {
+        expect(await componentHarness.readEndpointGroupLoadBalancerSelector()).toEqual(DEFAULT_LOAD_BALANCER_TYPE);
+      });
+
+      describe('AND WHEN the endpoint group load balancer type is modified', () => {
+        beforeEach(async () => {
+          await componentHarness.writeToEndpointGroupLoadBalancerSelector(ALTERNATE_LOAD_BALANCER_TYPE);
+
+          fixture.detectChanges();
+        });
+
+        it('THEN the endpoint group name field should be updated with the expected value', async () => {
+          expect(await componentHarness.readEndpointGroupLoadBalancerSelector()).toEqual(ALTERNATE_LOAD_BALANCER_TYPE);
+        });
+
+        describe('AND WHEN the save button is clicked', () => {
+          beforeEach(async () => {
+            await componentHarness.clickEndpointGroupSaveButton();
+
+            expectApiGetRequest(api);
+
+            fixture.detectChanges();
+          });
+          it('THEN the endpoint group load balancer type field should be saved', async () => {
+            const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
+
+            expect(req.request.body.endpointGroups).toEqual([
+              {
+                endpoints: [
+                  {
+                    configuration: { bootstrapServers: 'localhost:9092' },
+                    inheritConfiguration: false,
+                    name: 'default',
+                    type: 'kafka',
+                    weight: 1,
+                  },
+                ],
+                loadBalancer: { type: ALTERNATE_LOAD_BALANCER_TYPE },
+                name: DEFAULT_GROUP_NAME,
+                services: undefined,
+                sharedConfiguration: undefined,
+                type: 'kafka',
+              },
+            ]);
+          });
+        });
+
+        describe('AND WHEN the changes made have been dismissed', () => {
+          beforeEach(async () => {
+            await componentHarness.writeToEndpointGroupLoadBalancerSelector('TEST');
+
+            await componentHarness.clickEndpointGroupDismissButton();
+
+            fixture.detectChanges();
+          });
+
+          it('THEN the endpoint group load balancer type should reset back to the original value', async () => {
+            expectApiGetRequest(api);
+
+            expect(await componentHarness.readEndpointGroupLoadBalancerSelector()).toEqual(DEFAULT_LOAD_BALANCER_TYPE);
+          });
+        });
+
       });
     });
 
+    // Back Button
     describe('WHEN the back button is clicked', () => {
       it('THEN the endpoint groups list page should be the next page expected to be shown', async () => {
         const routerSpy = jest.spyOn(fakeUiRouter, 'go');

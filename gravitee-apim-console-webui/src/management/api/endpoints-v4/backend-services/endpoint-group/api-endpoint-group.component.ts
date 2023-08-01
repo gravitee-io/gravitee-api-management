@@ -99,7 +99,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     const { loadBalancer, services, sharedConfiguration, endpoints, type } = this.api.endpointGroups[groupIndex];
 
     const updatedEndpointGroup: EndpointGroupV4 = {
-      loadBalancer: loadBalancer,
+      loadBalancer: {type: this.generalForm.get('loadBalancerType').value},
       name: this.generalForm.get('name').value,
       services: services,
       sharedConfiguration: sharedConfiguration,

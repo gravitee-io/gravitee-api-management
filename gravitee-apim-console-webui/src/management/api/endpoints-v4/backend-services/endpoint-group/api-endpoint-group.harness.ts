@@ -25,6 +25,9 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
 
   private readInputValue = (input: MatInputHarness) => input.getValue();
   private setInputValue = (inputValue: string) => (input: MatInputHarness) => input.setValue(inputValue);
+
+  private setSelectorValue = (selectorValue: string) => (input: MatSelectHarness) => input.clickOptions({text: selectorValue });
+
   private clickButton = (button: MatButtonHarness) => button.click();
 
   private clickSaveButton = (saveButton: GioSaveBarHarness) => saveButton.clickSubmit();
@@ -63,8 +66,8 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
     return this.getEndpointGroupLoadBalancerSelector().then(this.readSelectorValue)
   }
 
-  public async writeToEndpointGroupLoadBalancerSelector() {
-    return this.getEndpointGroupLoadBalancerSelector()
+  public async writeToEndpointGroupLoadBalancerSelector(selectorValue) {
+    return this.getEndpointGroupLoadBalancerSelector().then(this.setSelectorValue(selectorValue));
   }
 
   public isGeneralTabSaveButtonInvalid() {
