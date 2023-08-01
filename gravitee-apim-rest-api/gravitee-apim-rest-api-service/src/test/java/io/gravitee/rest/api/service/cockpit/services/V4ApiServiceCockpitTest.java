@@ -15,25 +15,24 @@
  */
 package io.gravitee.rest.api.service.cockpit.services;
 
-import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
-import io.gravitee.rest.api.service.v4.PlanService;
 import io.reactivex.rxjava3.observers.TestObserver;
-import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Objects;
+
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Ashraful Hasan (ashraful.hasan at graviteesource.com)
@@ -46,16 +45,13 @@ public class V4ApiServiceCockpitTest {
     private ApiService apiServiceV4;
 
     @Mock
-    private PlanService planServiceV4;
-
-    @Mock
     private ApiStateService apiStateService;
 
     private V4ApiServiceCockpitImpl service;
 
     @BeforeEach
     public void setUp() throws Exception {
-        service = new V4ApiServiceCockpitImpl(apiServiceV4, planServiceV4, apiStateService);
+        service = new V4ApiServiceCockpitImpl(apiServiceV4, apiStateService);
     }
 
     @Test
@@ -66,8 +62,6 @@ public class V4ApiServiceCockpitTest {
         final ApiEntity startedApi = new ApiEntity();
         startedApi.setId("any-started-id");
         when(apiServiceV4.create(any(), any(), any())).thenReturn(apiEntity);
-        when(planServiceV4.create(any(), any())).thenReturn(new PlanEntity());
-        when(planServiceV4.publish(any(), any())).thenReturn(new PlanEntity());
         when(apiStateService.start(any(), any(), any())).thenReturn(startedApi);
         when(apiStateService.deploy(any(), any(), any(), any())).thenReturn(startedApi);
         when(apiServiceV4.update(any(), any(), any(), any())).thenReturn(startedApi);
@@ -78,8 +72,6 @@ public class V4ApiServiceCockpitTest {
         observer.assertValue(Objects::nonNull);
         verify(apiServiceV4, times(1)).create(any(), any(), any());
         verify(apiServiceV4, times(1)).update(any(), any(), any(), any());
-        verify(planServiceV4, times(1)).create(any(), any());
-        verify(planServiceV4, times(1)).publish(any(), any());
         verify(apiStateService, times(1)).start(any(), any(), any());
         verify(apiStateService, times(1)).deploy(any(), any(), any(), any());
     }
