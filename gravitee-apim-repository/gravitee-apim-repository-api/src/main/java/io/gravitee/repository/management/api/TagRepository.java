@@ -29,4 +29,6 @@ public interface TagRepository extends CrudRepository<Tag, String> {
     Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException;
 
     Optional<Tag> findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) throws TechnicalException;
+
+    Set<Tag> findByIdsAndReference(Set<String> tagIds, String referenceId, TagReferenceType referenceType) throws TechnicalException;
 }
