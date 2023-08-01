@@ -100,7 +100,7 @@ public class PlansDataFixUpgrader implements Upgrader {
         try {
             AtomicBoolean upgradeFailed = new AtomicBoolean(false);
             apiRepository
-                .search(new ApiCriteria.Builder().build(), null, ApiFieldFilter.allFields())
+                .search(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(), null, ApiFieldFilter.allFields())
                 .forEach(api -> {
                     try {
                         io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
@@ -108,7 +108,7 @@ public class PlansDataFixUpgrader implements Upgrader {
                             io.gravitee.definition.model.Api.class
                         );
                         ExecutionContext executionContext = getApiExecutionContext(api);
-                        if (DefinitionVersion.V2 == apiDefinition.getDefinitionVersion() && executionContext != null) {
+                        if (executionContext != null) {
                             fixApiPlans(executionContext, api, apiDefinition);
                         }
                     } catch (Exception e) {
@@ -250,8 +250,8 @@ public class PlansDataFixUpgrader implements Upgrader {
             .stream()
             .filter(plan -> plan.getStatus() != Plan.Status.CLOSED)
             .map(Plan::getId)
-            .collect(toList());
-        List<String> definitionPlansIds = definitionPlans.stream().map(io.gravitee.definition.model.Plan::getId).collect(toList());
+            .toList();
+        List<String> definitionPlansIds = definitionPlans.stream().map(io.gravitee.definition.model.Plan::getId).toList();
         return apiPlansIds.size() != definitionPlansIds.size() || !definitionPlansIds.containsAll(apiPlansIds);
     }
 
