@@ -1,4 +1,4 @@
-{{- if and (.Values.portal.enabled) (not (include "portal.externalConfig" .)) -}}
+{{- if and (and (.Values.portal.enabled) (not .Values.apim.dbLess)) (not (include "portal.externalConfig" .)) -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:

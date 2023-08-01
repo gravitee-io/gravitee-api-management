@@ -1,4 +1,4 @@
-{{- if .Values.portal.enabled -}}
+{{- if and (.Values.portal.enabled) (not .Values.apim.dbLess) -}}
 {{- $base_href := include "portal.base_href" . -}}
 {{- $base_href_defined := include "portal.base_href.defined" . -}}
 apiVersion: apps/v1

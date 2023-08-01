@@ -1,4 +1,4 @@
-{{- if .Values.portal.enabled -}}
+{{- if and (.Values.portal.enabled) (not .Values.apim.dbLess) -}}
 apiVersion: v1
 kind: Service
 metadata:

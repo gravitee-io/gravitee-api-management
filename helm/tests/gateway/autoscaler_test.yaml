@@ -37,3 +37,17 @@ tests:
           of: HorizontalPodAutoscaler
       - isAPIVersion:
           of: autoscaling/v2beta1
+
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: HorizontalPodAutoscaler
+      - isAPIVersion:
+          of: autoscaling/v2

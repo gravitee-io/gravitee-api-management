@@ -36,3 +36,13 @@ tests:
           content:
             name: "upgrade.mode"
             value: "false"
+
+  - it: Check DB Less mode
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 0

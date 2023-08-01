@@ -24,6 +24,9 @@ apim:
         - get
         - list
         - watch
+  # Whether you want to run the APIM in DB less mode. If ste to true, it will disable both UIs and also Management API components
+  # Only Gateway will be deployed to the cluster in DB less mode
+  dbLess: false
 
 chaos:
   enabled: false

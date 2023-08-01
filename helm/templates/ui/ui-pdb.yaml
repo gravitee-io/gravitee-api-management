@@ -1,4 +1,4 @@
-{{- if and (.Values.ui.enabled) (.Values.ui.pdb.enabled) -}}
+{{- if and (and (.Values.ui.enabled) (not .Values.apim.dbLess)) (.Values.ui.pdb.enabled) -}}
 apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
 kind: PodDisruptionBudget
 metadata:

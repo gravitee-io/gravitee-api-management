@@ -220,3 +220,21 @@ tests:
               name: I-am-a-v-bridge
             - containerPort: 18082
               name: I-am-a-techapi
+
+  - it: Check DB Less mode
+    template: gateway/gateway-deployment.yaml
+    chart:
+      version: 1.0.0-chart
+      appVersion: 1.0.0-app
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - isAPIVersion:
+          of: apps/v1
