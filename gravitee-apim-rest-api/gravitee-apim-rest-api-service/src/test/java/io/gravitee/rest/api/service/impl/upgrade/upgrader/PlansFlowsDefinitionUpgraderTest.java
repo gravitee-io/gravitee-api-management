@@ -19,6 +19,7 @@ import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -79,18 +80,16 @@ public class PlansFlowsDefinitionUpgraderTest {
     public void upgrade_should_convert_flows_of_every_v2_apis() throws Exception {
         doNothing().when(upgrader).migrateApiFlows(any(), any());
 
-        Api api1 = buildApi("api1", "1.0.0");
         Api api2 = buildApi("api2", "2.0.0");
-        Api api3 = buildApi("api3", "1.0.0");
         Api api4 = buildApi("api4", "2.0.0");
-        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
-            .thenReturn(Stream.of(api1, api2, api3, api4));
+        when(apiRepository.search(eq(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build()), eq(null), any(ApiFieldFilter.class)))
+            .thenReturn(Stream.of(api2, api4));
 
         upgrader.upgrade();
 
-        verify(upgrader, times(1)).migrateApiFlows(eq("api2"), argThat(api -> api.getId().equals("api2")));
-        verify(upgrader, times(1)).migrateApiFlows(eq("api4"), argThat(api -> api.getId().equals("api4")));
-        verify(upgrader, times(1)).upgrade();
+        verify(upgrader).migrateApiFlows(eq("api2"), argThat(api -> api.getId().equals("api2")));
+        verify(upgrader).migrateApiFlows(eq("api4"), argThat(api -> api.getId().equals("api4")));
+        verify(upgrader).upgrade();
         verifyNoMoreInteractions(upgrader);
     }
 

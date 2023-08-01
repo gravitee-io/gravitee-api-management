@@ -19,20 +19,18 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
-import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Plan;
-import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.service.EmailService;
-import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
@@ -103,31 +101,21 @@ public class PlansDataFixUpgraderTest {
         doNothing().when(upgrader).fixApiPlans(any(), any(), any());
         when(environmentRepository.findById(any())).thenAnswer(i -> Optional.of(buildTestEnvironment(i.getArgument(0), "testOrgId")));
 
-        Api apiv1_1 = new Api();
-        apiv1_1.setId("api1");
-        apiv1_1.setDefinition("{}");
-        apiv1_1.setEnvironmentId("envId");
         Api apiv2_1 = new Api();
         apiv2_1.setId("api2");
         apiv2_1.setDefinition("{\"gravitee\": \"2.0.0\"}");
         apiv2_1.setEnvironmentId("envId");
-        Api apiv1_2 = new Api();
-        apiv1_2.setId("api3");
-        apiv1_2.setDefinition("{\"gravitee\": \"1.0.0\"}");
-        apiv1_2.setEnvironmentId("envId");
         Api apiv2_2 = new Api();
         apiv2_2.setId("api4");
         apiv2_2.setDefinition("{\"gravitee\": \"2.0.0\"}");
         apiv2_2.setEnvironmentId("envId");
-        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class)))
-            .thenReturn(Stream.of(apiv1_1, apiv2_1, apiv1_2, apiv2_2));
+        when(apiRepository.search(eq(new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build()), eq(null), any(ApiFieldFilter.class)))
+            .thenReturn(Stream.of(apiv2_1, apiv2_2));
 
         upgrader.upgrade();
 
-        verify(upgrader, times(1)).fixApiPlans(any(), same(apiv2_1), any());
-        verify(upgrader, times(1)).fixApiPlans(any(), same(apiv2_2), any());
-        verify(upgrader, never()).fixApiPlans(any(), same(apiv1_1), any());
-        verify(upgrader, never()).fixApiPlans(any(), same(apiv1_2), any());
+        verify(upgrader).fixApiPlans(any(), same(apiv2_1), any());
+        verify(upgrader).fixApiPlans(any(), same(apiv2_2), any());
     }
 
     @Test
