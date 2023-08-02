@@ -69,6 +69,7 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
 
 
     private void recalculateIdsFromCrossId(ExecutionContext executionContext, ExportApiEntity toRecalculate, ApiEntity api) {
+        log.debug("Recalculating page and plans ids from cross id {} for api {}", api.getCrossId(), api.getId());
         toRecalculate.getApiEntity().setId(api.getId());
         Map<String, String> newPageIdsByOldPageIds = recalculatePageIdsFromCrossIds(executionContext.getEnvironmentId(), api, toRecalculate.getPages());
         recalculatePlanIdsFromCrossIds(executionContext, api, toRecalculate.getPlans(), newPageIdsByOldPageIds);
@@ -138,6 +139,7 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
 
     private void recalculateIdsFromDefinitionIds(ExecutionContext executionContext, ExportApiEntity toRecalculate) {
         if (canRecalculateIds(toRecalculate)) {
+            log.debug("Recalculating page and plans ids from definition");
             String newApiId = UuidString.generateForEnvironment(executionContext.getEnvironmentId(), toRecalculate.getApiEntity().getId());
             toRecalculate.getApiEntity().setId(newApiId);
             Map<String, String> pagesIdsMap = recalculatePageIdsFromDefinitionIds(toRecalculate.getPages(), executionContext.getEnvironmentId(), newApiId);
