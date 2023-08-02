@@ -265,6 +265,12 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
         this.ajsRootScope.$on('$locationChangeStart', () => {
           this.selectedItemWithTabs = this.findMenuItemWithTabs();
         });
+        this.ajsRootScope.$on('$locationChangeSuccess', () => {
+          const contentDiv = document.getElementsByClassName('api-navigation__content');
+          if (contentDiv.length > 0) {
+            contentDiv.item(0).scrollIntoView();
+          }
+        });
       });
   }
 
