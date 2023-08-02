@@ -240,6 +240,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
                 }
             });
         }
+        log.debug("Members successfully created for imported api {}", createdApiEntity.getId());
     }
 
     protected void createPages(final ExecutionContext executionContext, ApiEntity createdApiEntity, List<PageEntity> pages) {
@@ -247,7 +248,16 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
             return;
         }
 
-        pageService.createOrUpdatePages(executionContext, pages, createdApiEntity.getId());
+        try {
+            pageService.createOrUpdatePages(executionContext, pages, createdApiEntity.getId());
+        } catch (Exception e) {
+            log.warn(
+                   "Unable to create pages for imported API {}' due to : {}",
+                   createdApiEntity.getId(),
+                   e.getMessage()
+            );
+        }
+        log.debug("Pages successfully created for imported api {}", createdApiEntity.getId());
     }
 
     protected void createPlans(final ExecutionContext executionContext, ApiEntity createdApiEntity, Set<PlanEntity> plans) {
@@ -257,9 +267,19 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
 
         plans.forEach(planEntity -> {
             planEntity.setApiId(createdApiEntity.getId());
-            planService.createOrUpdatePlan(executionContext, planEntity);
+            try {
+                planService.createOrUpdatePlan(executionContext, planEntity);
+            } catch (Exception e) {
+                log.warn(
+                       "Unable to create plan {} for imported API {}' due to : {}",
+                       planEntity.getName(),
+                       createdApiEntity.getId(),
+                       e.getMessage()
+                );
+            }
         });
         createdApiEntity.setPlans(plans);
+        log.debug("Plans successfully created for imported api {}", createdApiEntity.getId());
     }
 
     protected void createMetadata(final ExecutionContext executionContext, ApiEntity createdApiEntity, Set<ApiMetadataEntity> metadata) {
@@ -276,8 +296,18 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
                 return updateApiMetadataEntity;
             })
             .forEach(metadataEntity -> {
-                apiMetadataService.update(executionContext, metadataEntity);
+                try {
+                    apiMetadataService.update(executionContext, metadataEntity);
+                } catch (Exception e) {
+                    log.warn(
+                           "Unable to create metadata {} for imported API {}' due to : {}",
+                           metadataEntity.getName(),
+                           createdApiEntity.getId(),
+                           e.getMessage()
+                    );
+                }
             });
+        log.debug("Metadata successfully created for imported api {}", createdApiEntity.getId());
     }
 
     protected void createPageAndMedia(
@@ -286,7 +316,16 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         List<MediaEntity> mediaEntities
     ) {
         mediaEntities.forEach(mediaEntity -> {
-            mediaService.saveApiMedia(createdApiEntity.getId(), mediaEntity);
+            try {
+                mediaService.saveApiMedia(createdApiEntity.getId(), mediaEntity);
+            } catch (Exception e) {
+                log.warn(
+                       "Unable to create api media {} for imported API {}' due to : {}",
+                       mediaEntity.getFileName(),
+                       createdApiEntity.getId(),
+                       e.getMessage()
+                );
+            }
         });
 
         List<PageEntity> search = pageService.search(
@@ -301,5 +340,6 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         if (search.isEmpty()) {
             pageService.createAsideFolder(executionContext, createdApiEntity.getId());
         }
+        log.debug("Media successfully created for imported api {}", createdApiEntity.getId());
     }
 }
