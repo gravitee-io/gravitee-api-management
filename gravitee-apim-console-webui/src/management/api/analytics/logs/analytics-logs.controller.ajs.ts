@@ -103,18 +103,19 @@ class ApiAnalyticsLogsControllerAjs {
       this.logs = logs.data;
       this.AnalyticsService.setFetchedLogs(logs.data.logs);
 
-      this.$state.transitionTo(
-        this.$state.current,
-        {
-          ...this.$state.params,
-          from: this.query.from,
-          to: this.query.to,
-          page: this.query.page,
-          size: this.query.size,
-          q: this.query.query,
-        },
-        { notify: false },
-      );
+      // FIXME: this transition breaks the navigation. We need to find another way to update the URL when data are updated
+      // this.$state.transitionTo(
+      //   this.$state.current,
+      //   {
+      //     ...this.$state.params,
+      //     from: this.query.from,
+      //     to: this.query.to,
+      //     page: this.query.page,
+      //     size: this.query.size,
+      //     q: this.query.query,
+      //   },
+      //   { notify: false },
+      // );
     });
   }
 
