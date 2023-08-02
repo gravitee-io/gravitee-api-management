@@ -277,12 +277,11 @@ public abstract class AbstractReferenceMetadataService {
             }
             final ReferenceMetadataEntity referenceMetadataEntity = convert(savedMetadata);
             if (withDefaults) {
-                final List<MetadataEntity> defaultMetatata = metadataService.findAllDefault();
-                final Optional<MetadataEntity> optDefaultMetadata = defaultMetatata
+                metadataService.findAllDefault()
                     .stream()
                     .filter(m -> m.getKey().equals(metadataEntity.getKey()))
-                    .findAny();
-                optDefaultMetadata.ifPresent(defaultMetadata -> referenceMetadataEntity.setDefaultValue(defaultMetadata.getValue()));
+                    .findAny()
+                    .ifPresent(defaultMetadata -> referenceMetadataEntity.setDefaultValue(defaultMetadata.getValue()));
             }
             return referenceMetadataEntity;
         } catch (TechnicalException ex) {

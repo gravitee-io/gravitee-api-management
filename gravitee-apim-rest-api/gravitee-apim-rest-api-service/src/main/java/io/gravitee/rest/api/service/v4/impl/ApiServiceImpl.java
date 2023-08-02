@@ -259,6 +259,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity createWithImport(final ExecutionContext executionContext, final ApiEntity apiEntity, final String userId) {
         String id = apiEntity.getId() != null && !apiEntity.getId().isEmpty() ? apiEntity.getId() : UuidString.generateRandom();
+        log.debug("Importing API {}", id);
         try {
             apiRepository
                 .findById(id)
@@ -323,6 +324,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Api createdApi;
         try {
             createdApi = apiRepository.create(repositoryApi);
+            log.debug("API {} imported", createdApi.getId());
         } catch (TechnicalException ex) {
             String errorMsg = String.format("An error occurs while trying to create '%s' for user '%s'", apiEntity, userId);
             log.error(errorMsg, ex);
