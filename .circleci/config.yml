@@ -1706,7 +1706,7 @@ jobs:
     job-e2e-cypress:
         executor:
             name: ubuntu
-            class: medium
+            class: large
         steps:
             - checkout
             - attach_workspace:
@@ -1726,6 +1726,8 @@ jobs:
                   path: ./gravitee-apim-e2e/.tmp/screenshots
             - store_artifacts:
                   path: ./gravitee-apim-e2e/.tmp/videos
+            - store_artifacts:
+                  path: ./gravitee-apim-e2e/.logs
 
     job-publish-rpm-packages:
         parameters:
