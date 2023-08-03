@@ -1,0 +1,93 @@
+suite: Test config maps properly sets ES reporter
+templates:
+  - "gateway/gateway-configmap.yaml"
+
+tests:
+
+  - it: Check that ingest plugins takes default values if not set
+    asserts:
+      - matchRegex:
+          path: data.gravitee\.yml
+          pattern: "[ ]+ingest: geoip, user_agent\n"
+
+  - it: Check that ingest plugins are set with given values
+    set:
+      es:
+        pipeline:
+          plugins:
+            ingest: my-test-ingest-plugin, another-plugin
+    asserts:
+      - matchRegex:
+          path: data.gravitee\.yml
+          pattern: "[ ]+ingest: my-test-ingest-plugin, another-plugin\n"
+
+  - it: Check that ingest plugins are set empty, if user want to disable them
+    set:
+      es:
+        pipeline:
+          plugins:
+            ingest:
+    asserts:
+      - matchRegex:
+          path: data.gravitee\.yml
+          pattern: "[ ]+ingest: \n"
+
+  - it: Check default es settings
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            reporters:
+              # Elasticsearch reporter
+              elasticsearch:
+                enabled: true
+                endpoints:
+                  - http://graviteeio-apim-elasticsearch.default.svc.cluster.local:9200
+                index_mode: daily
+                pipeline:
+                  plugins:
+                    ingest: geoip, user_agent
+                index: gravitee
+                settings:
+                  number_of_replicas: 1
+                  number_of_shards: 1
+                  refresh_interval: 5s
+                bulk:
+                  actions: 1000           # Number of requests action before flush
+                  flush_interval: 5       # Flush interval in seconds
+
+  - it: Check override es settings
+    template: gateway/gateway-configmap.yaml
+    set:
+      es:
+        settings:
+          number_of_shards: 2
+          number_of_replicas: 2
+          refresh_interval: 10s
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            reporters:
+              # Elasticsearch reporter
+              elasticsearch:
+                enabled: true
+                endpoints:
+                  - http://graviteeio-apim-elasticsearch.default.svc.cluster.local:9200
+                index_mode: daily
+                pipeline:
+                  plugins:
+                    ingest: geoip, user_agent
+                index: gravitee
+                settings:
+                  number_of_replicas: 2
+                  number_of_shards: 2
+                  refresh_interval: 10s
+                bulk:
+                  actions: 1000           # Number of requests action before flush
+                  flush_interval: 5       # Flush interval in seconds
