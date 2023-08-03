@@ -33,7 +33,7 @@ type EventsTableDS = {
   template: require('./api-events.component.html'),
   styles: [require('./api-events.component.scss')],
 })
-export class ApiNgEventsComponent implements OnInit, OnDestroy {
+export class ApiEventsComponent implements OnInit, OnDestroy {
   public displayedColumns = ['icon', 'type', 'createdAt', 'user'];
   public eventsTableDS: EventsTableDS[] = [];
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

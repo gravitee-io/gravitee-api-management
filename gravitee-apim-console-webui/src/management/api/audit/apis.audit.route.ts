@@ -63,15 +63,7 @@ function apisAuditRouterConfig($stateProvider) {
     })
     .state('management.apis.detail.audit.events', {
       url: '/events',
-      template: require('./events/apiEvents.html'),
-      controller: 'ApiEventsController',
-      controllerAs: 'apiEventsCtrl',
-      resolve: {
-        resolvedEvents: function ($stateParams, ApiService) {
-          const eventTypes = 'START_API,STOP_API';
-          return ApiService.getApiEvents($stateParams.apiId, eventTypes);
-        },
-      },
+      component: 'ngApiEvents',
       data: {
         perms: {
           only: ['api-event-r'],
@@ -79,6 +71,7 @@ function apisAuditRouterConfig($stateProvider) {
         docs: {
           page: 'management-api-events',
         },
+        useAngularMaterial: true,
       },
     });
 }

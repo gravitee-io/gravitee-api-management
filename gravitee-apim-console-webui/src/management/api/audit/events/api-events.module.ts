@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, Injector } from '@angular/core';
-import { UpgradeComponent } from '@angular/upgrade/static';
 
-@Component({
-  template: '',
-  selector: 'api-events',
-  host: {
-    class: 'bootstrap',
-  },
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTableModule } from '@angular/material/table';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
+
+import { ApiEventsComponent } from './api-events.component';
+
+@NgModule({
+  declarations: [ApiEventsComponent],
+  exports: [ApiEventsComponent],
+  imports: [CommonModule, MatIconModule, MatTooltipModule, MatTableModule, GioLoaderModule],
 })
-export class ApiEventsComponent extends UpgradeComponent {
-  constructor(elementRef: ElementRef, injector: Injector) {
-    super('apiEventsComponentAjs', elementRef, injector);
-  }
-}
+export class ApiEventsModule {}
