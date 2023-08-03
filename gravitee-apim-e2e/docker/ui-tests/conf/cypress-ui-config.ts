@@ -1,4 +1,5 @@
 import { defineConfig } from "cypress";
+import { unlinkSync } from "fs";
 
 export default defineConfig({
     env: {
@@ -27,11 +28,23 @@ export default defineConfig({
         screenshotsFolder: "./ui-test/screenshots",
         supportFile: "./ui-test/support/e2e.ts",
         videosFolder: "./ui-test/videos",
-        video: false,
-        screenshotOnRunFailure: false,
+        video: true,
+        screenshotOnRunFailure: true,
         baseUrl: "http://nginx/console",
         setupNodeEvents(on, config) {
-            // implement node event listeners here
+            // Delete videos for successful tests
+            on('after:spec', (spec, results) => {
+                if (results && results.video) {
+                    // Do we have failures for any retry attempts?
+                    const failures = results.tests && results.tests.some((test) =>
+                      test.attempts.some((attempt) => attempt.state === 'failed')
+                    )
+                    if (!failures) {
+                        // delete the video if the spec passed and no tests retried
+                        unlinkSync(results.video)
+                    }
+                }
+            })
         },
     },
 });
