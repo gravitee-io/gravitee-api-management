@@ -278,6 +278,10 @@ data:
             {{- end }}
         {{- end }}
         index: {{ .Values.es.index }}
+        {{- with .Values.es.settings }}
+        settings:
+          {{ toYaml . | nindent 10 | trim -}}
+        {{- end }}
         bulk:
           actions: 1000           # Number of requests action before flush
           flush_interval: 5       # Flush interval in seconds
