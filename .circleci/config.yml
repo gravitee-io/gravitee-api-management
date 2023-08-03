@@ -1789,11 +1789,11 @@ jobs:
                       <!-- Environment placeholder -->
 
                       🏗️ Your changes can be tested here and will be available soon:
-                            Console: [https://$PR_NUMBER.team-apim.gravitee.dev/console](https://$PR_NUMBER.team-apim.gravitee.dev/console)
-                            Portal: [https://$PR_NUMBER.team-apim.gravitee.dev/portal](https://$PR_NUMBER.team-apim.gravitee.dev/portal)
-                            Management-api: [https://$PR_NUMBER.team-apim.gravitee.dev/api/management](https://$PR_NUMBER.team-apim.gravitee.dev/api/management)
-                            Gateway v4: [https://$PR_NUMBER.team-apim.gravitee.dev](https://$PR_NUMBER.team-apim.gravitee.dev)
-                            Gateway v3: [https://$PR_NUMBER.gateway-v3.team-apim.gravitee.dev](https://$PR_NUMBER.gateway-v3.team-apim.gravitee.dev)
+                            Console: [https://pr.team-apim.gravitee.dev/$PR_NUMBER/console](https://pr.team-apim.gravitee.dev/$PR_NUMBER/console)
+                            Portal: [https://pr.team-apim.gravitee.dev/$PR_NUMBER/portal](https://pr.team-apim.gravitee.dev/$PR_NUMBER/portal)
+                            Management-api: [https://pr.team-apim.gravitee.dev/$PR_NUMBER/api/management](https://pr.team-apim.gravitee.dev/$PR_NUMBER/api/management)
+                            Gateway v4: [https://pr.team-apim.gravitee.dev/$PR_NUMBER](https://pr.team-apim.gravitee.dev/$PR_NUMBER)
+                            Gateway v3: [https://pr.gateway-v3.team-apim.gravitee.dev/$PR_NUMBER](https://pr.gateway-v3.team-apim.gravitee.dev/$PR_NUMBER)
 
                       <!-- Environment placeholder end -->
                       "
