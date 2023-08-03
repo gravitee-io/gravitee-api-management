@@ -110,11 +110,35 @@ export class ApiNgV4MenuService implements ApiMenuService {
       });
     }
 
+    // Users
+    const userAndGroupAccessMenuItems: MenuItem = {
+      displayName: 'User and group access',
+      tabs: [],
+    };
     if (this.permissionService.hasAnyMatching(['api-member-r'])) {
-      generalGroup.items.push({
-        displayName: 'User and group access',
-        targetRoute: 'DISABLED',
-      });
+      userAndGroupAccessMenuItems.tabs.push(
+        {
+          displayName: 'Members',
+          targetRoute: 'management.apis.ng.members',
+          baseRoute: 'management.apis.ng.members',
+        },
+        {
+          displayName: 'Groups',
+          targetRoute: 'management.apis.ng.groups',
+          baseRoute: 'management.apis.ng.groups',
+        },
+      );
+    }
+    // TODO: add transfer ownership
+    // if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
+    //   userAndGroupAccessMenuItems.tabs.push({
+    //     displayName: 'Transfer ownership',
+    //     targetRoute: 'management.apis.ng.transferOwnership',
+    //     baseRoute: 'management.apis.ng.transferOwnership',
+    //   });
+    // }
+    if (userAndGroupAccessMenuItems.tabs.length > 0) {
+      generalGroup.items.push(userAndGroupAccessMenuItems);
     }
 
     return generalGroup;
