@@ -26,6 +26,9 @@ services:
       - ./docker/ui-tests/conf/cypress-ui-config.ts:/test/cypress-ui-config.ts
       - ./.tmp/screenshots:/test/ui-test/screenshots
       - ./.tmp/videos:/test/ui-test/videos
+    environment:
+      # Disable colors in Cypress output to avoid ANSI escape sequences in logs
+      - NO_COLOR=1
     depends_on:
       nginx:
         condition: service_healthy
