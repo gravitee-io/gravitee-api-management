@@ -1862,7 +1862,7 @@ jobs:
             - run:
                   name: "Open a PR to create release notes into docs repository"
                   working_directory: "./release"
-                  command: npm run zx -- --quiet ci-steps/doc-new-release-notes.mjs --version=${VERSION}
+                  command: npm run zx -- --quiet ci-steps/generate-changelog.mjs --version=${VERSION}
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run>>
