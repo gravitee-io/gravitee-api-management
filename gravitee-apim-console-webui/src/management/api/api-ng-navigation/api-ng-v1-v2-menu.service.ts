@@ -359,8 +359,8 @@ export class ApiNgV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-event-u'])) {
       auditGroup.items.push({
         displayName: 'Events',
-        targetRoute: 'management.apis.ng.events',
-        baseRoute: 'management.apis.ng.events',
+        targetRoute: 'management.apis.ng.ng-events',
+        baseRoute: 'management.apis.ng.ng-events',
       });
     }
 

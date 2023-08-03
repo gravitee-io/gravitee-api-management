@@ -13,33 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { User } from '../user/user';
 
-export type EventType =
-  | 'PUBLISH_API'
-  | 'PUBLISH_API_RESULT'
-  | 'UNPUBLISH_API'
-  | 'UNPUBLISH_API_RESULT'
-  | 'START_API'
-  | 'STOP_API'
-  | 'GATEWAY_STARTED'
-  | 'GATEWAY_STOPPED'
-  | 'PUBLISH_DICTIONARY'
-  | 'UNPUBLISH_DICTIONARY'
-  | 'START_DICTIONARY'
-  | 'STOP_DICTIONARY'
-  | 'ALERT_NOTIFICATION'
-  | 'PUBLISH_ORGANIZATION'
-  | 'DEBUG_API';
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTableModule } from '@angular/material/table';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
-export interface Event {
-  id: string;
-  type: EventType;
-  payload: string;
-  parentId: string;
-  properties: Record<string, string>;
-  user: User;
-  environments: string[];
-  created_at: Date;
-  updated_at: Date;
-}
+import { ApiNgEventsComponent } from './api-events.component';
+
+@NgModule({
+  declarations: [ApiNgEventsComponent],
+  exports: [ApiNgEventsComponent],
+  imports: [CommonModule, MatIconModule, MatTooltipModule, MatTableModule, GioLoaderModule],
+})
+export class ApiNgEventsModule {}
