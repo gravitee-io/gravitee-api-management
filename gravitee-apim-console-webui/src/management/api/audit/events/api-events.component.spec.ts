@@ -21,8 +21,8 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
 
-import { ApiNgEventsComponent } from './api-events.component';
-import { ApiNgEventsModule } from './api-events.module';
+import { ApiEventsComponent } from './api-events.component';
+import { ApiEventsModule } from './api-events.module';
 
 import { UIRouterStateParams, AjsRootScope } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -32,13 +32,13 @@ import { Event } from '../../../../entities/event/event';
 describe('ApiNgEventsComponent', () => {
   const API_ID = 'apiId';
 
-  let fixture: ComponentFixture<ApiNgEventsComponent>;
+  let fixture: ComponentFixture<ApiEventsComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiNgEventsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiEventsModule],
       providers: [
         { provide: UIRouterStateParams, useValue: { apiId: API_ID } },
         { provide: AjsRootScope, useValue: null },
@@ -104,7 +104,7 @@ describe('ApiNgEventsComponent', () => {
   });
 
   async function initComponent(events: Event[]) {
-    fixture = TestBed.createComponent(ApiNgEventsComponent);
+    fixture = TestBed.createComponent(ApiEventsComponent);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
