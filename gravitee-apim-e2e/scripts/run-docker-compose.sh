@@ -29,6 +29,7 @@ if [ -n "$1" ] && [ -n "$2" ]; then
   # Create a tmp directory with video and screenshot folders for cypress
   mkdir -p .tmp/screenshots
   mkdir -p .tmp/videos
+  mkdir -p .logs
 
   mode="$1"
   databaseType="$2"
@@ -51,6 +52,17 @@ if [ -n "$1" ] && [ -n "$2" ]; then
   elif [ "$mode" = "ui-test" ]; then
     DB_PROVIDER=$databaseType docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-$databaseType.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from cypress
   fi
+
+  # Extract logs from containers
+  docker logs gravitee-apim-e2e-cypress-1 > ./.logs/cypress.log
+  docker logs gravitee-apim-e2e-gateway > ./.logs/gateway.log
+  docker logs gravitee-apim-e2e-management_api > ./.logs/management_api.log
+  docker logs gravitee-apim-e2e-management_ui > ./.logs/management_ui.log
+  docker logs gravitee-apim-e2e-portal_ui > ./.logs/portal_ui.log
+  docker logs gravitee-apim-e2e-nginx > ./.logs/nginx.log
+  docker logs gravitee-apim-e2e-wiremock > ./.logs/wiremock.log
+  docker logs gravitee-apim-e2e-elasticsearch > ./.logs/elasticsearch.log
+  # TODO: Need to add DB logs
 else
   echo "Usage: $0 [clean|only-apim|api-test|ui-test] [mongo|jdbc|bridge]"
 fi
