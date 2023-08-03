@@ -16,12 +16,11 @@ db.getCollection(`${prefix}applications`).reIndex();
 
 // "events" collection
 db.getCollection(`${prefix}events`).dropIndexes();
-db.getCollection(`${prefix}events`).createIndex( { "type" : 1 }, { "name": "t1" } );
 db.getCollection(`${prefix}events`).createIndex( { "updatedAt" : 1 }, { "name": "u1" } );
 db.getCollection(`${prefix}events`).createIndex( { "updatedAt" : -1, "_id" : -1 }, { "name": "u1i1" } );
-db.getCollection(`${prefix}events`).createIndex( { "properties.api_id" : 1 }, { "name": "pa1" } );
 db.getCollection(`${prefix}events`).createIndex( { "properties.api_id":1, "type":1}, { "name": "pa1t1" } );
-db.getCollection(`${prefix}events`).createIndex( { "properties.api_id":1, "updatedAt" : 1.0}, { "name": "pa1u1" } );
+db.getCollection(`${prefix}events`).createIndex( { "properties.api_id":1, "updatedAt" : 1}, { "name": "pa1u1" } );
+db.getCollection(`${prefix}events`).createIndex( { "properties.dictionary_id":1, "updatedAt" : -1}, { "name": "pdi1u1" } );
 db.getCollection(`${prefix}events`).createIndex( { "type" : 1, "updatedAt" : 1}, { "name": "t1u1" } );
 db.getCollection(`${prefix}events`).reIndex();
 
@@ -134,3 +133,8 @@ db.getCollection(`${prefix}custom_user_fields`).reIndex();
 db.getCollection(`${prefix}client_registration_providers`).dropIndexes();
 db.getCollection(`${prefix}client_registration_providers`).createIndex({ environmentId: 1 }, { name: "e1" });
 db.getCollection(`${prefix}client_registration_providers`).reIndex();
+
+// "node_monitoring" collection
+db.getCollection(`${prefix}node_monitoring`).dropIndexes();
+db.getCollection(`${prefix}node_monitoring`).createIndex({ type: 1, updatedAt: 1 }, { name: "t1u1" });
+db.getCollection(`${prefix}node_monitoring`).reIndex();
