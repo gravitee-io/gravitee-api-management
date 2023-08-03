@@ -26,6 +26,10 @@ fi
 
 if [ -n "$1" ] && [ -n "$2" ]; then
   clean
+  # Create a tmp directory with video and screenshot folders for cypress
+  mkdir -p .tmp/screenshots
+  mkdir -p .tmp/videos
+
   mode="$1"
   databaseType="$2"
 
