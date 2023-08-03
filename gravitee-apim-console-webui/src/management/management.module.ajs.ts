@@ -189,7 +189,7 @@ import apisAnalyticsRouterConfig from './api/analytics/apis.analytics.route';
 import apisAuditRouterConfig from './api/audit/apis.audit.route';
 import apisDesignRouterConfig from './api/design/apis.design.route';
 import apisProxyRouterConfig from './api/proxy/apis.proxy.route';
-import apisPortalRouterConfig from './api/portal/apis.portal.route';
+import apisPortalRouterConfig from './api/general/apis.portal.route';
 import apisNotificationsRouterConfig from './api/notifications/apis.notifications.settings.route';
 import configurationRouterConfig from './configuration/configuration.route';
 import globalNotificationsRouterConfig from './configuration/notifications/global.notifications.settings.route';
@@ -468,7 +468,7 @@ import { ApiProxyCorsComponent } from './api/proxy/cors/api-proxy-cors.component
 import { ApiProxyDeploymentsComponent } from './api/proxy/deployments/api-proxy-deployments.component';
 import { ApiProxyResponseTemplatesListComponent } from './api/proxy/response-templates/list/api-proxy-response-templates-list.component';
 import { ApiProxyResponseTemplatesEditComponent } from './api/proxy/response-templates/edit/api-proxy-response-templates-edit.component';
-import { ApiPortalDetailsComponent } from './api/portal/details/api-portal-details.component';
+import { ApiGeneralInfoComponent } from './api/general/details/api-general-info.component';
 import { ApiProxyGroupEditComponent } from './api/proxy/endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyGroupEndpointEditComponent } from './api/proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyFailoverComponent } from './api/proxy/failover/api-proxy-failover.component';
@@ -478,27 +478,27 @@ import { SettingsNavigationComponent } from './configuration/settings-navigation
 import { ApplicationNavigationComponent } from './application/details/application-navigation/application-navigation.component';
 import { ApiNavigationComponent } from './api/api-navigation/api-navigation.component';
 import { ApiProxyHealthCheckComponent } from './api/proxy/health-check/api-proxy-health-check.component';
-import { ApiPortalPlanListComponent } from './api/portal/plans/list/api-portal-plan-list.component';
+import { ApiPortalPlanListComponent } from './api/general/plans/list/api-portal-plan-list.component';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import { ApiLogsConfigurationComponent } from './api/analytics/logs/configuration/api-logs-configuration.component';
 import { ApiCreationV4Component } from './api/creation-v4/api-creation-v4.component';
 import { ApiPathMappingsComponent } from './api/analytics/pathMappings/api-path-mappings.component';
 import { ApiCreationV4ConfirmationComponent } from './api/creation-v4/api-creation-v4-confirmation.component';
-import { ApiPortalGroupsComponent } from './api/portal/user-group-access/groups/api-portal-groups.component';
-import { ApiPortalMembersComponent } from './api/portal/user-group-access/members/api-portal-members.component';
+import { ApiGeneralGroupsComponent } from './api/general/user-group-access/groups/api-general-groups.component';
+import { ApiGeneralMembersComponent } from './api/general/user-group-access/members/api-general-members.component';
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
 import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
-import { ApiPortalTransferOwnershipComponent } from './api/portal/user-group-access/transfer-ownership/api-portal-transfer-ownership.component';
+import { ApiGeneralTransferOwnershipComponent } from './api/general/user-group-access/transfer-ownership/api-general-transfer-ownership.component';
 import AlertTabsController from '../components/alerts/alertTabs/alert-tabs-component';
 import AlertsActivityController from '../components/alerts/activity/alerts-activity.controller';
-import { ApiPortalPlanEditComponent } from './api/portal/plans/edit/api-portal-plan-edit.component';
-import { ApiPortalDocumentationMetadataComponent } from './api/portal/documentation/metadata/api-portal-documentation-metadata.component';
+import { ApiPortalPlanEditComponent } from './api/general/plans/edit/api-portal-plan-edit.component';
+import { ApiPortalDocumentationMetadataComponent } from './api/general/documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
 import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
-import { ApiPortalSubscriptionListComponent } from './api/portal/subscriptions/list/api-portal-subscription-list.component';
-import { ApiPortalSubscriptionEditComponent } from './api/portal/subscriptions/edit/api-portal-subscription-edit.component';
+import { ApiPortalSubscriptionListComponent } from './api/general/subscriptions/list/api-portal-subscription-list.component';
+import { ApiPortalSubscriptionEditComponent } from './api/general/subscriptions/edit/api-portal-subscription-edit.component';
 import { ApiAnalyticsOverviewComponentAjs } from './api/analytics/overview/analytics-overview.component.ajs';
 import { ApiEventsComponent } from './api/audit/events/api-events.component';
 
@@ -656,7 +656,7 @@ graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPen
 graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
 
 graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
-graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiPortalDetailsComponent }));
+graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiGeneralInfoComponent }));
 graviteeManagementModule.directive('ngApiPortalPlanList', downgradeComponent({ component: ApiPortalPlanListComponent }));
 graviteeManagementModule.directive('ngApiPortalSubscriptionList', downgradeComponent({ component: ApiPortalSubscriptionListComponent }));
 graviteeManagementModule.directive('ngApiPortalSubscriptionEdit', downgradeComponent({ component: ApiPortalSubscriptionEditComponent }));
@@ -668,8 +668,8 @@ graviteeManagementModule.directive(
 graviteeManagementModule.component('apiAnalyticsOverviewComponentAjs', ApiAnalyticsOverviewComponentAjs);
 graviteeManagementModule.component('apiV1PoliciesComponentAjs', ApiV1PoliciesComponentAjs);
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
-graviteeManagementModule.directive('ngApiMembers', downgradeComponent({ component: ApiPortalMembersComponent }));
-graviteeManagementModule.directive('ngApiTransferOwnership', downgradeComponent({ component: ApiPortalTransferOwnershipComponent }));
+graviteeManagementModule.directive('ngApiMembers', downgradeComponent({ component: ApiGeneralMembersComponent }));
+graviteeManagementModule.directive('ngApiTransferOwnership', downgradeComponent({ component: ApiGeneralTransferOwnershipComponent }));
 graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHealthcheckDashboardComponentAjs);
 
 graviteeManagementModule.component('apiV1PropertiesComponentAjs', ApiV1PropertiesComponentAjs);
@@ -841,7 +841,7 @@ graviteeManagementModule.controller('DashboardTimeframeController', DashboardTim
 // Plan
 graviteeManagementModule.directive('ngApiPortalPlanEdit', downgradeComponent({ component: ApiPortalPlanEditComponent }));
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);
-graviteeManagementModule.directive('ngApiPortalGroups', downgradeComponent({ component: ApiPortalGroupsComponent }));
+graviteeManagementModule.directive('ngApiPortalGroups', downgradeComponent({ component: ApiGeneralGroupsComponent }));
 
 // API subscriptions
 graviteeManagementModule.component('apiKeys', ApiKeysComponent);

@@ -29,13 +29,13 @@ import { ApiNgNavigationModule } from './api-ng-navigation/api-ng-navigation.mod
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
 import { ApiNgNavigationComponent } from './api-ng-navigation/api-ng-navigation.component';
-import { ApiPortalDetailsComponent } from './portal/details/api-portal-details.component';
-import { ApiPortalPlanEditComponent } from './portal/plans/edit/api-portal-plan-edit.component';
-import { ApiPortalPlanListComponent } from './portal/plans/list/api-portal-plan-list.component';
-import { ApiPortalSubscriptionListComponent } from './portal/subscriptions/list/api-portal-subscription-list.component';
+import { ApiGeneralInfoComponent } from './general/details/api-general-info.component';
+import { ApiPortalPlanEditComponent } from './general/plans/edit/api-portal-plan-edit.component';
+import { ApiPortalPlanListComponent } from './general/plans/list/api-portal-plan-list.component';
+import { ApiPortalSubscriptionListComponent } from './general/subscriptions/list/api-portal-subscription-list.component';
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
-import { ApisPortalModule } from './portal/apis-portal.module';
-import { ApiPortalSubscriptionEditComponent } from './portal/subscriptions/edit/api-portal-subscription-edit.component';
+import { ApisGeneralModule } from './general/apis-general.module';
+import { ApiPortalSubscriptionEditComponent } from './general/subscriptions/edit/api-portal-subscription-edit.component';
 import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
@@ -44,10 +44,10 @@ import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypo
 import { ApiPropertiesComponent } from './proxy/properties-ng/api-properties.component';
 import { ApiResourcesComponent } from './proxy/resources-ng/api-resources.component';
 import { GioPolicyStudioRoutingModule } from './policy-studio/gio-policy-studio-routing.module';
-import { ApiPortalMembersComponent } from './portal/user-group-access/members/api-portal-members.component';
-import { ApiPortalGroupsComponent } from './portal/user-group-access/groups/api-portal-groups.component';
-import { ApiPortalTransferOwnershipComponent } from './portal/user-group-access/transfer-ownership/api-portal-transfer-ownership.component';
-import { ApiPortalDocumentationMetadataComponent } from './portal/documentation/metadata/api-portal-documentation-metadata.component';
+import { ApiGeneralMembersComponent } from './general/user-group-access/members/api-general-members.component';
+import { ApiGeneralGroupsComponent } from './general/user-group-access/groups/api-general-groups.component';
+import { ApiGeneralTransferOwnershipComponent } from './general/user-group-access/transfer-ownership/api-general-transfer-ownership.component';
+import { ApiPortalDocumentationMetadataComponent } from './general/documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiProxyEntrypointsComponent } from './proxy/entrypoints/api-proxy-entrypoints.component';
 import { ApiProxyCorsComponent } from './proxy/cors/api-proxy-cors.component';
 import { ApiProxyDeploymentsComponent } from './proxy/deployments/api-proxy-deployments.component';
@@ -163,7 +163,7 @@ const states: Ng2StateDeclaration[] = [
       useAngularMaterial: true,
       docs: null,
     },
-    component: ApiPortalDetailsComponent,
+    component: ApiGeneralInfoComponent,
   },
   {
     name: 'management.apis.ng.plans',
@@ -607,7 +607,7 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.ng.members',
-    component: ApiPortalMembersComponent,
+    component: ApiGeneralMembersComponent,
     url: '/members',
     data: {
       apiPermissions: {
@@ -621,7 +621,7 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.ng.groups',
-    component: ApiPortalGroupsComponent,
+    component: ApiGeneralGroupsComponent,
     url: '/groups',
     data: {
       apiPermissions: {
@@ -635,7 +635,7 @@ const states: Ng2StateDeclaration[] = [
   },
   {
     name: 'management.apis.ng.transferOwnership',
-    component: ApiPortalTransferOwnershipComponent,
+    component: ApiGeneralTransferOwnershipComponent,
     url: '/transfer-ownership',
     data: {
       apiPermissions: {
@@ -1399,7 +1399,7 @@ const states: Ng2StateDeclaration[] = [
     ApiNavigationModule,
     ApiNgNavigationModule,
     ApiV4PolicyStudioModule,
-    ApisPortalModule,
+    ApisGeneralModule,
     ApiProxyModule,
     ApiEntrypointsV4Module,
     ApiEndpointsModule,
