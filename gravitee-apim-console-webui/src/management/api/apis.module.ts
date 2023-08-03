@@ -74,6 +74,7 @@ import { ApiEventsComponent } from './audit/events/apiEvents.component';
 import { ApiV1PropertiesComponent } from './proxy/properties-v1/properties.component';
 import { ApiV1ResourcesComponent } from './proxy/resources-v1/resources.component';
 import { ApiV1PoliciesComponent } from './design/policies/policies.component';
+import { ApiNgEventsComponent } from './audit/ng-events/api-events.component';
 
 import { NotificationsComponent } from '../../components/notifications/notifications.component';
 import { Scope } from '../../entities/scope';
@@ -749,6 +750,20 @@ const states: Ng2StateDeclaration[] = [
     name: 'management.apis.ng.events',
     component: ApiEventsComponent,
     url: '/events',
+    data: {
+      apiPermissions: {
+        only: ['api-event-r'],
+      },
+      docs: {
+        page: 'management-api-events',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.ng.ng-events',
+    component: ApiNgEventsComponent,
+    url: '/ng-events',
     data: {
       apiPermissions: {
         only: ['api-event-r'],

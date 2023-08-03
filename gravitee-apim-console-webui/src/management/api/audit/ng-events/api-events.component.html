@@ -1,0 +1,92 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2>API Events</h2>
+<table mat-table [dataSource]="eventsTableDS" class="events__table" id="eventsTable" aria-label="Events table">
+  <!-- Display Event icon -->
+  <ng-container matColumnDef="icon">
+    <th mat-header-cell *matHeaderCellDef id="icon"></th>
+    <td mat-cell *matCellDef="let element">
+      <mat-icon
+        *ngIf="element.type === 'START_API'"
+        matTooltip="Started"
+        class="type__api-started"
+        size="20"
+        svgIcon="gio:play-circle"
+      ></mat-icon>
+      <mat-icon
+        *ngIf="element.type === 'PUBLISH_API'"
+        matTooltip="Deployed"
+        class="type__api-deployed"
+        size="20"
+        svgIcon="gio:send"
+      ></mat-icon>
+      <mat-icon
+        *ngIf="element.type === 'STOP_API'"
+        matTooltip="Stopped"
+        class="type__api-stopped"
+        size="20"
+        svgIcon="gio:stop-circle"
+      ></mat-icon>
+    </td>
+  </ng-container>
+
+  <!-- Display Event type -->
+  <ng-container matColumnDef="type">
+    <th mat-header-cell *matHeaderCellDef id="type">Type</th>
+    <td mat-cell *matCellDef="let element">
+      {{ element.type === 'PUBLISH_API' ? 'Deployed' : element.type === 'START_API' ? 'Started' : 'Stopped' }}
+    </td>
+  </ng-container>
+
+  <!-- Display Event date -->
+  <ng-container matColumnDef="createdAt">
+    <th mat-header-cell *matHeaderCellDef id="createdAt">Created at</th>
+    <td mat-cell *matCellDef="let element">
+      {{ element.createdAt | date : 'medium' }}
+    </td>
+  </ng-container>
+
+  <!-- Display Event user -->
+  <ng-container matColumnDef="user">
+    <th mat-header-cell *matHeaderCellDef id="user">User</th>
+    <td mat-cell *matCellDef="let element">
+      {{ element.user?.displayName ?? 'unknown' }}
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr
+    mat-row
+    *matRowDef="let row; columns: displayedColumns"
+    [ngClass]="{
+      'row__api-started': row.type === 'START_API',
+      'row__api-deployed': row.type === 'PUBLISH_API',
+      'row__api-stopped': row.type === 'STOP_API'
+    }"
+  ></tr>
+
+  <!-- Row shown when there is no data -->
+  <tr class="mat-row" *matNoDataRow>
+    <td *ngIf="!isLoadingData && eventsTableDS.length === 0" class="mat-cell" [attr.colspan]="displayedColumns.length">
+      {{ 'There is no event (yet).' }}
+    </td>
+    <td *ngIf="isLoadingData" class="mat-cell loader" [attr.colspan]="displayedColumns.length">
+      <gio-loader></gio-loader>
+    </td>
+  </tr>
+</table>

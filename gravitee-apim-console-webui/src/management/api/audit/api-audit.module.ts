@@ -18,10 +18,11 @@ import { NgModule } from '@angular/core';
 import { ApiAuditComponent } from './general/audit.component';
 import { ApiHistoryComponent } from './history/apiHistory.component';
 import { ApiEventsComponent } from './events/apiEvents.component';
+import { ApiNgEventsModule } from './ng-events/api-events.module';
 
 @NgModule({
   declarations: [ApiAuditComponent, ApiHistoryComponent, ApiEventsComponent],
   exports: [ApiAuditComponent, ApiHistoryComponent, ApiEventsComponent],
-  imports: [],
+  imports: [ApiNgEventsModule],
 })
 export class ApiAuditModule {}

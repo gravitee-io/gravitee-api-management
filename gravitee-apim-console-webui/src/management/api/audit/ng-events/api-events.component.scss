@@ -1,0 +1,61 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+@use '../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.events {
+  &__table {
+    width: 100%;
+    @include mat.elevation(3); // default elevation
+
+    .mat-column-icon {
+      width: 1%;
+      padding: 0 8px;
+      white-space: nowrap;
+
+      .mat-icon {
+        margin: 0 4px;
+      }
+
+      .type {
+        &__api-started {
+          color: mat.get-color-from-palette(gio.$mat-success-palette, 'darker40');
+        }
+
+        &__api-deployed {
+          color: mat.get-color-from-palette(gio.$mat-primary-palette, 'default');
+        }
+
+        &__api-stopped {
+          color: mat.get-color-from-palette(gio.$mat-error-palette, 'darker40');
+        }
+      }
+    }
+
+    .row {
+      &__api-started {
+        background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'lighter');
+      }
+
+      &__api-deployed {
+      }
+
+      &__api-stopped {
+        background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'lighter');
+      }
+    }
+
+    .loader {
+      gio-loader {
+        height: 50px;
+        width: 50px;
+        margin: 0 auto;
+      }
+    }
+  }
+}

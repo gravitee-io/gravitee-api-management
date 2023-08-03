@@ -501,6 +501,7 @@ import { GioPermissionService } from '../shared/components/gio-permission/gio-pe
 import { ApiPortalSubscriptionListComponent } from './api/portal/subscriptions/list/api-portal-subscription-list.component';
 import { ApiPortalSubscriptionEditComponent } from './api/portal/subscriptions/edit/api-portal-subscription-edit.component';
 import { ApiAnalyticsOverviewComponentAjs } from './api/analytics/overview/analytics-overview.component.ajs';
+import { ApiNgEventsComponent } from './api/audit/ng-events/api-events.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -674,6 +675,7 @@ graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHea
 
 graviteeManagementModule.component('apiV1PropertiesComponentAjs', ApiV1PropertiesComponentAjs);
 graviteeManagementModule.component('apiEventsComponentAjs', ApiEventsComponentAjs);
+graviteeManagementModule.directive('ngApiEvents', downgradeComponent({ component: ApiNgEventsComponent }));
 graviteeManagementModule.component('apiHistoryComponentAjs', ApiHistoryComponentAjs);
 graviteeManagementModule.component('apiV1ResourcesComponentAjs', ApiV1ResourcesComponentAjs);
 graviteeManagementModule.controller('DialogAddPathMappingController', DialogAddPathMappingController);
