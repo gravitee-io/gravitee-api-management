@@ -261,6 +261,10 @@ es:
   # elastic search cluster
   # https://docs.gravitee.io/apim_installguide_repositories_elasticsearch.html#management_api_configuration
   index_mode: daily # Index mode normal (daily index) vs ILM (managed by ILM)
+  settings:
+    number_of_shards: 1
+    number_of_replicas: 1
+    refresh_interval: 5s
   security:
     enabled: false
     username: example
