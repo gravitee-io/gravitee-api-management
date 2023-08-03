@@ -28,6 +28,7 @@ import { fakeUpdateApi } from '../entities/api/UpdateApi.fixture';
 import { AjsRootScope } from '../ajs-upgraded-providers';
 import { fakeGroupMember } from '../entities/group/groupMember.fixture';
 import { fakeMetadata, fakeNewMetadata, fakeUpdateMetadata } from '../entities/metadata/metadata.fixture';
+import { fakeEvent } from '../entities/event/event.fixture';
 
 describe('ApiService', () => {
   let httpTestingController: HttpTestingController;
@@ -617,6 +618,35 @@ describe('ApiService', () => {
           method: 'DELETE',
         })
         .flush({});
+    });
+  });
+
+  /**
+   * Events **
+   */
+  describe('list API events', () => {
+    it('should call the list events endpoint', (done) => {
+      const apiId = 'my-api';
+      const events = [
+        fakeEvent({ type: 'PUBLISH_API', created_at: new Date('2020-02-02T20:20:02') }),
+        fakeEvent({ type: 'START_API', created_at: new Date('2020-02-02T20:22:02') }),
+        fakeEvent({ type: 'STOP_API', created_at: new Date('2020-02-22T20:22:02') }),
+      ];
+
+      apiService.getApiEvents(apiId, ['PUBLISH_API', 'START_API', 'STOP_API']).subscribe((events) => {
+        expect(events.length).toEqual(3);
+        expect(events[0].type).toEqual('PUBLISH_API');
+        expect(events[1].type).toEqual('START_API');
+        expect(events[2].type).toEqual('STOP_API');
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/events?type=PUBLISH_API,START_API,STOP_API`,
+        method: 'GET',
+      });
+
+      req.flush(events);
     });
   });
 });

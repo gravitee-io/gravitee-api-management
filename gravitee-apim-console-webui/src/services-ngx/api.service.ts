@@ -29,6 +29,7 @@ import { AjsRootScope } from '../ajs-upgraded-providers';
 import { GroupMember } from '../entities/group/groupMember';
 import { ApiHealthAverage } from '../entities/api/ApiHealthAverage';
 import { Metadata, NewMetadata, UpdateMetadata } from '../entities/metadata/metadata';
+import { Event, EventType } from '../entities/event/event';
 
 export interface ContextPathValidatorParams {
   currentContextPath?: string;
@@ -356,5 +357,12 @@ export class ApiService {
 
   getPermissions(apiId: string): Observable<Record<string, ('C' | 'R' | 'U' | 'D')[]>> {
     return this.http.get<Record<string, ('C' | 'R' | 'U' | 'D')[]>>(`${this.constants.env.baseURL}/apis/${apiId}/members/permissions`);
+  }
+
+  /*
+   * API events
+   */
+  getApiEvents(apiId: string, eventTypes: EventType[]): Observable<Event[]> {
+    return this.http.get<Event[]>(`${this.constants.env.baseURL}/apis/${apiId}/events?type=${eventTypes ? `${eventTypes.join(',')}` : ''}`);
   }
 }
