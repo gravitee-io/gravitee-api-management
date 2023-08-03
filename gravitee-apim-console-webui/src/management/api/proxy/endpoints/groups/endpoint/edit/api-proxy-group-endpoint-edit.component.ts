@@ -199,7 +199,13 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       ],
     });
 
-    this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(this.endpoint?.healthcheck, this.isReadOnly);
+    // If the endpoint group has a health check enabled, by default, the endpoint will inherit it during creation
+    const defaultHealthCheck =
+      this.api?.services?.['health-check']?.enabled && this.mode === 'new' ? { enabled: true, inherit: true } : { enabled: false };
+    this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(
+      this.endpoint?.healthcheck ?? defaultHealthCheck,
+      this.isReadOnly,
+    );
     this.inheritHealthCheck = this.api?.services?.['health-check'] ?? { enabled: false };
 
     this.endpointForm = this.formBuilder.group({
