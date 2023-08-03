@@ -1,4 +1,17 @@
 pull_request_rules:
+    - name: Can merge
+      conditions:
+          - base=master
+      actions:
+          post_check:
+              success_conditions:
+                  - "-label~==^do-not-merge$"
+              title: |
+                  {% if check_succeed %}
+                  PR can be merged
+                  {% else %}
+                  PR cannot be merged because of do-not-merge label
+                  {% endif %}
     - name: Apply commits on `master`
       conditions:
           - label=apply-on-master
