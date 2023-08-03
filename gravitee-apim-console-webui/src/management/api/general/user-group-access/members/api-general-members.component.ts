@@ -14,31 +14,29 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
+import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { isEmpty, uniqueId } from 'lodash';
 
-import { Api, ApiMember } from '../../../../../entities/api';
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { ApiMemberService } from '../../../../../services-ngx/api-member.service';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../../services-ngx/users.service';
 import { RoleService } from '../../../../../services-ngx/role.service';
-import { Role } from '../../../../../entities/role/role';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import {
   GioUsersSelectorComponent,
   GioUsersSelectorData,
 } from '../../../../../shared/components/gio-users-selector/gio-users-selector.component';
 import { SearchableUser } from '../../../../../entities/user/searchableUser';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { ApiMemberV2Service } from '../../../../../services-ngx/api-member-v2.service';
+import { Api, Member, Role } from '../../../../../entities/management-api-v2';
 
 class MemberDataSource {
   id: string;
-  reference: string;
   role: string;
   displayName: string;
   picture: string;
@@ -57,10 +55,10 @@ export class ApiGeneralMembersComponent implements OnInit {
 
   form: FormGroup;
 
-  roles: Role[];
+  roles: string[];
   defaultRole?: Role;
-  members: ApiMember[];
-  membersToAdd: (ApiMember & { _viewId: string })[] = [];
+  members: Member[];
+  membersToAdd: (Member & { _viewId: string; reference: string })[] = [];
   groupData: GroupData[];
   isReadOnly = false;
 
@@ -71,8 +69,8 @@ export class ApiGeneralMembersComponent implements OnInit {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiService: ApiService,
-    private readonly apiMembersService: ApiMemberService,
+    private readonly apiService: ApiV2Service,
+    private readonly apiMemberService: ApiMemberV2Service,
     private readonly userService: UsersService,
     private readonly roleService: RoleService,
     private readonly permissionService: GioPermissionService,
@@ -91,15 +89,15 @@ export class ApiGeneralMembersComponent implements OnInit {
       this.displayedColumns.push('delete');
     }
 
-    combineLatest([this.apiService.get(this.apiId), this.apiMembersService.getMembers(this.apiId), this.roleService.list('API')])
+    forkJoin([this.apiService.get(this.apiId), this.apiMemberService.getMembers(this.apiId), this.roleService.list('API')])
       .pipe(
         tap(([api, members, roles]) => {
-          this.members = members;
-          this.roles = roles;
+          this.members = members.data ?? [];
+          this.roles = roles.map((r) => r.name) ?? [];
           this.defaultRole = roles.find((role) => role.default);
           this.groupData = api.groups?.map((groupId) => ({ groupId, isVisible: true }));
-          this.initDataSource(members);
-          this.initForm(api, members);
+          this.initDataSource();
+          this.initForm(api);
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -189,29 +187,35 @@ export class ApiGeneralMembersComponent implements OnInit {
     this.ngOnInit();
   }
 
-  private initDataSource(members: ApiMember[]) {
-    this.dataSource = members.map((member) => {
+  private initDataSource() {
+    this.dataSource = this.members?.map((member) => {
+      // The data structure for roles allows multiple role for one user, but at API level, we only manage one role per user. Throw error if data is incorrect
+      if (member.roles.length !== 1) {
+        throw new Error('Cannot manage more than one role at API level');
+      }
       return {
         id: member.id,
-        reference: member.reference,
-        role: member.role,
+        role: member.roles[0].name,
         displayName: member.displayName,
         picture: this.userService.getUserAvatar(member.id),
       };
     });
   }
 
-  private initForm(api: Api, members: ApiMember[]) {
+  private initForm(api: Api) {
     this.form = new FormGroup({
       isNotificationsEnabled: new FormControl({
-        value: !api.disable_membership_notifications,
+        value: !api.disableMembershipNotifications,
         disabled: this.isReadOnly,
       }),
       members: this.formBuilder.group(
-        members.reduce((formGroup, member) => {
+        this.members.reduce((formGroup, member) => {
           return {
             ...formGroup,
-            [member.id]: this.formBuilder.control({ value: member.role, disabled: member.role === 'PRIMARY_OWNER' || this.isReadOnly }),
+            [member.id]: new FormControl({
+              value: member.roles[0].name,
+              disabled: member.roles[0].name === 'PRIMARY_OWNER' || this.isReadOnly,
+            }),
           };
         }, {}),
       ),
@@ -229,17 +233,16 @@ export class ApiGeneralMembersComponent implements OnInit {
       id: member.id,
       reference: member.reference,
       displayName: member.displayName,
-      role: this.defaultRole?.name,
+      roles: [this.defaultRole],
     });
 
     this.dataSource = [
       ...this.dataSource,
       {
         id: member._viewId,
-        reference: member.reference,
         displayName: member.displayName,
         picture: this.userService.getUserAvatar(member.id),
-        role: this.defaultRole?.name,
+        role: this.defaultRole.name,
       },
     ];
     const roleFormControl = new FormControl({ value: this.defaultRole?.name, disabled: this.isReadOnly }, [Validators.required]);
@@ -249,12 +252,12 @@ export class ApiGeneralMembersComponent implements OnInit {
     membersForm.addControl(member._viewId, roleFormControl);
     membersForm.markAsDirty();
   }
-  private deleteMember(member: ApiMember) {
-    this.apiMembersService.deleteMember(this.apiId, member.id).subscribe({
+  private deleteMember(member: Member) {
+    this.apiMemberService.deleteMember(this.apiId, member.id).subscribe({
       next: () => {
         // remove from members
         this.members = this.members.filter((m) => m.id !== member.id);
-        this.initDataSource(this.members);
+        this.initDataSource();
         // remove from form
         // reset before removing to discard save bar if changes only on this element
         (this.form.get('members') as FormGroup).get(member.id).reset();
@@ -269,27 +272,36 @@ export class ApiGeneralMembersComponent implements OnInit {
     });
   }
 
-  private getSaveMemberQuery$(memberFormId: string, newRole: string): Observable<void> {
-    const memberToAdd = this.membersToAdd.find((m) => m._viewId === memberFormId);
+  private getSaveMemberQuery$(memberFormId: string, newRole: string): Observable<Member> {
     const memberToUpdate = this.members.find((m) => m.id === memberFormId);
-
-    const memberToSave = memberToAdd || memberToUpdate;
-
-    return this.apiMembersService.addOrUpdateMember(this.apiId, {
-      id: memberToSave.id,
-      role: newRole,
-      reference: memberToSave.reference,
-    });
+    if (memberToUpdate) {
+      return this.apiMemberService.updateMember(this.apiId, {
+        memberId: memberToUpdate.id,
+        roleName: newRole,
+      });
+    } else {
+      const memberToAdd = this.membersToAdd.find((m) => m._viewId === memberFormId);
+      return this.apiMemberService.addMember(this.apiId, {
+        userId: memberToAdd.id,
+        roleName: newRole,
+        externalReference: memberToAdd.reference,
+      });
+    }
   }
 
   private getSaveChangeOnApiNotificationsQuery$(): Observable<Api> {
     return this.apiService.get(this.apiId).pipe(
       switchMap((api) => {
-        const updatedApi = {
-          ...api,
-          disable_membership_notifications: !this.form.value.isNotificationsEnabled,
-        };
-        return this.apiService.update(updatedApi);
+        if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4') {
+          const updatedApi = {
+            ...api,
+            disableMembershipNotifications: !this.form.value.isNotificationsEnabled,
+          };
+          return this.apiService.update(api.id, updatedApi);
+        } else {
+          // Update V1 API is not supported
+          return EMPTY;
+        }
       }),
     );
   }

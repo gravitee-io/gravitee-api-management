@@ -63,9 +63,7 @@
         <td mat-cell *matCellDef="let member">
           <mat-form-field>
             <mat-select [formControlName]="member.id">
-              <mat-option *ngFor="let role of roles" [value]="role.name" [disabled]="role.name === 'PRIMARY_OWNER'">{{
-                role.name
-              }}</mat-option>
+              <mat-option *ngFor="let role of roles" [value]="role" [disabled]="role === 'PRIMARY_OWNER'">{{ role }}</mat-option>
             </mat-select>
             <mat-error *ngIf="form.get('members').get(member.id).hasError('required')"> Role is required. </mat-error>
           </mat-form-field>

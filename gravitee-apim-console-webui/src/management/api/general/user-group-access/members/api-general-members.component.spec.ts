@@ -29,14 +29,13 @@ import { ApiGeneralMembersHarness } from './api-general-members.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralUserGroupModule } from '../api-general-user-group.module';
-import { fakeApi } from '../../../../../entities/api/Api.fixture';
-import { Api, ApiMember } from '../../../../../entities/api';
 import { CurrentUserService, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { RoleService } from '../../../../../services-ngx/role.service';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
 import { User } from '../../../../../entities/user';
 import { fakeSearchableUser } from '../../../../../entities/user/searchableUser.fixture';
+import { ApiV4, fakeApiV4, MembersResponse } from '../../../../../entities/management-api-v2';
 
 describe('ApiGeneralMembersComponent', () => {
   let fixture: ComponentFixture<ApiGeneralMembersComponent>;
@@ -83,7 +82,7 @@ describe('ApiGeneralMembersComponent', () => {
 
   describe('API member change notification', () => {
     it('should uncheck box when notifications are off', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: true });
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: true });
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
       expectGetGroupMembersRequest();
@@ -92,7 +91,7 @@ describe('ApiGeneralMembersComponent', () => {
     });
 
     it('should show save bar when toggle is toggles', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
       expectGetGroupMembersRequest();
@@ -104,7 +103,7 @@ describe('ApiGeneralMembersComponent', () => {
     });
 
     it('should save notifications modifications when clicking on save bar', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
       expectGetGroupMembersRequest();
@@ -116,8 +115,8 @@ describe('ApiGeneralMembersComponent', () => {
       // Setup all http calls for save + new OnInit execution
       // save
       expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}`, method: 'PUT' });
-      expect(req.request.body.disable_membership_notifications).toEqual(true);
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`, method: 'PUT' });
+      expect(req.request.body.disableMembershipNotifications).toEqual(true);
       req.flush(api);
       // init
       expectApiGetRequest(api);
@@ -128,11 +127,13 @@ describe('ApiGeneralMembersComponent', () => {
 
   describe('List members', () => {
     it('should show all api members with roles', async () => {
-      const api = fakeApi({ id: apiId });
-      const members: ApiMember[] = [
-        { id: '1', displayName: 'Mufasa', role: 'King' },
-        { id: '2', displayName: 'Simba', role: 'Prince' },
-      ];
+      const api = fakeApiV4({ id: apiId });
+      const members: MembersResponse = {
+        data: [
+          { id: '1', displayName: 'Mufasa', roles: [{ name: 'King', scope: 'API' }] },
+          { id: '2', displayName: 'Simba', roles: [{ name: 'Prince', scope: 'API' }] },
+        ],
+      };
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
       expectGetGroupMembersRequest();
@@ -142,8 +143,8 @@ describe('ApiGeneralMembersComponent', () => {
     });
 
     it('should make role readonly when user is PRIMARY OWNER', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
-      const members: ApiMember[] = [{ id: '1', displayName: 'admin', role: 'PRIMARY_OWNER' }];
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
+      const members: MembersResponse = { data: [{ id: '1', displayName: 'admin', roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }] }] };
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
       expectGetGroupMembersRequest();
@@ -152,8 +153,8 @@ describe('ApiGeneralMembersComponent', () => {
     });
 
     it('should make role editable when user is not PRIMARY OWNER', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
-      const members: ApiMember[] = [{ id: '1', displayName: 'owner', role: 'OWNER' }];
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
+      const members: MembersResponse = { data: [{ id: '1', displayName: 'owner', roles: [{ name: 'OWNER', scope: 'API' }] }] };
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
       expectGetGroupMembersRequest();
@@ -170,11 +171,17 @@ describe('ApiGeneralMembersComponent', () => {
     });
 
     it('should call API to change role when clicking on save', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
-      const members: ApiMember[] = [
-        { id: '1', displayName: 'owner', role: 'PRIMARY_OWNER' },
-        { id: '2', displayName: 'other', role: 'OWNER' },
-      ];
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
+      const members: MembersResponse = {
+        data: [
+          { id: '1', displayName: 'owner', roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }] },
+          {
+            id: '2',
+            displayName: 'other',
+            roles: [{ name: 'OWNER', scope: 'API' }],
+          },
+        ],
+      };
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
       expectGetGroupMembersRequest();
@@ -188,9 +195,9 @@ describe('ApiGeneralMembersComponent', () => {
 
       // Setup all http calls for save + new OnInit execution
       // save
-      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members`, method: 'POST' });
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/members/2`, method: 'PUT' });
       req.flush({});
-      expect(req.request.body).toEqual({ id: '2', reference: undefined, role: 'USER' });
+      expect(req.request.body).toEqual({ memberId: '2', roleName: 'USER' });
       // init
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
@@ -200,8 +207,16 @@ describe('ApiGeneralMembersComponent', () => {
 
   describe('Delete a member', () => {
     it('should not allow to delete primary owner', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
-      const members: ApiMember[] = [{ id: '1', displayName: 'owner', role: 'PRIMARY_OWNER' }];
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
+      const members: MembersResponse = {
+        data: [
+          {
+            id: '1',
+            displayName: 'owner',
+            roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }],
+          },
+        ],
+      };
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
       expectGetGroupMembersRequest();
@@ -210,11 +225,17 @@ describe('ApiGeneralMembersComponent', () => {
     });
 
     it('should ask confirmation before delete member, and do nothing if canceled', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
-      const members: ApiMember[] = [
-        { id: '1', displayName: 'owner', role: 'PRIMARY_OWNER' },
-        { id: '2', displayName: 'user', role: 'USER' },
-      ];
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
+      const members: MembersResponse = {
+        data: [
+          { id: '1', displayName: 'owner', roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }] },
+          {
+            id: '2',
+            displayName: 'user',
+            roles: [{ name: 'USER', scope: 'API' }],
+          },
+        ],
+      };
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
       expectGetGroupMembersRequest();
@@ -233,11 +254,17 @@ describe('ApiGeneralMembersComponent', () => {
     });
 
     it('should call the API if member deletion is confirmed', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
-      const members: ApiMember[] = [
-        { id: '1', displayName: 'owner', role: 'PRIMARY_OWNER' },
-        { id: '2', displayName: 'user', role: 'USER' },
-      ];
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
+      const members: MembersResponse = {
+        data: [
+          { id: '1', displayName: 'owner', roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }] },
+          {
+            id: '2',
+            displayName: 'user',
+            roles: [{ name: 'USER', scope: 'API' }],
+          },
+        ],
+      };
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
       expectGetGroupMembersRequest();
@@ -259,8 +286,16 @@ describe('ApiGeneralMembersComponent', () => {
 
   describe('Add a member', () => {
     it('should add add members with default role', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
-      const members: ApiMember[] = [{ id: '1', displayName: 'Existing User', role: 'PRIMARY_OWNER' }];
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
+      const members: MembersResponse = {
+        data: [
+          {
+            id: '1',
+            displayName: 'Existing User',
+            roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }],
+          },
+        ],
+      };
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
       expectGetGroupMembersRequest();
@@ -297,13 +332,15 @@ describe('ApiGeneralMembersComponent', () => {
 
       // Save and expect POST request
       await harness.clickOnSave();
-      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members`, method: 'POST' });
-      expect(req.request.body).toEqual({ id: memberToAdd.id, reference: memberToAdd.reference, role: 'USER' });
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/members`, method: 'POST' });
+      expect(req.request.body).toEqual({ userId: memberToAdd.id, externalReference: memberToAdd.reference, roleName: 'USER' });
     });
 
     it('should add add members without id', async () => {
-      const api = fakeApi({ id: apiId, disable_membership_notifications: false });
-      const members: ApiMember[] = [{ id: '1', displayName: 'Existing User', role: 'PRIMARY_OWNER' }];
+      const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
+      const members: MembersResponse = {
+        data: [{ id: '1', displayName: 'Existing User', roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }] }],
+      };
       expectApiGetRequest(api);
       expectApiMembersGetRequest(members);
       expectGetGroupMembersRequest();
@@ -318,25 +355,25 @@ describe('ApiGeneralMembersComponent', () => {
 
       // Save and expect POST request
       await harness.clickOnSave();
-      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members`, method: 'POST' });
-      expect(req.request.body).toEqual({ id: undefined, reference: memberToAdd.reference, role: 'USER' });
+      const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/members`, method: 'POST' });
+      expect(req.request.body).toEqual({ userId: undefined, externalReference: memberToAdd.reference, roleName: 'USER' });
     });
   });
 
-  function expectApiGetRequest(api: Api) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV4) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
 
-  function expectApiMembersGetRequest(members: ApiMember[] = []) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members`, method: 'GET' }).flush(members);
+  function expectApiMembersGetRequest(members: MembersResponse = { data: [] }) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/members`, method: 'GET' }).flush(members);
     fixture.detectChanges();
   }
 
   function expectDeleteMember(apiId: string, memberId: string) {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members?user=${memberId}`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/members/${memberId}`,
         method: 'DELETE',
       })
       .flush({});
@@ -345,7 +382,7 @@ describe('ApiGeneralMembersComponent', () => {
 
   function expectGetGroupMembersRequest() {
     // Call expected in child ApiPortalGroupMembers
-    const groupId = fakeApi().groups[0];
+    const groupId = fakeApiV4().groups[0];
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${groupId}/members?page=1&perPage=10`, method: 'GET' })
       .flush({ data: [], metadata: { groupName: 'group1' }, pagination: {} });
