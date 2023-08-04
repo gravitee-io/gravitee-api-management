@@ -21,6 +21,7 @@ import { MatMenuHarness } from '@angular/material/menu/testing';
 
 import { ApiPlanFormHarness } from '../../../component/plan/api-plan-form.harness';
 import { fakeGroup } from '../../../../../entities/group/group.fixture';
+import { CONSTANTS_TESTING } from '../../../../../shared/testing';
 
 export class Step4Security1PlansHarness extends ComponentHarness {
   static hostSelector = 'step-4-security-1-plans';
@@ -121,11 +122,15 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     apiPlanFormHarness.httpRequest(httpTestingController).expectGroupLisRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
 
     await (await this.getButtonByText('Next')).click();
-
     const rateLimitToggle = await apiPlanFormHarness.getRateLimitEnabledInput();
     await rateLimitToggle.toggle();
 
-    apiPlanFormHarness.httpRequest(httpTestingController).expectPolicySchemaGetRequest('rate-limit', {});
+    // When form has initial value, value is patched and multiple requests can be sent to get the schema. Need to use match here, but we check that at least one request is done
+    const req = httpTestingController
+      .match({ url: `${CONSTANTS_TESTING.env.baseURL}/policies/rate-limit/schema`, method: 'GET' })
+      .filter((req) => !req.cancelled);
+    expect(req.length).toEqual(1);
+    req[0].flush({});
 
     await (await this.getButtonByText('Save changes')).click();
   }

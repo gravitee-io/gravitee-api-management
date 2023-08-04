@@ -42,6 +42,6 @@
       <mat-icon svgIcon="gio:shield-cross"></mat-icon>
     </ng-template>
     <ng-template matStepLabel>Restriction</ng-template>
-    <plan-edit-restriction-step matStepContent></plan-edit-restriction-step>
+    <plan-edit-restriction-step matStepContent [initialFormValues]="planForm.get('restriction')?.value"></plan-edit-restriction-step>
   </mat-step>
 </mat-stepper>
