@@ -29,6 +29,7 @@ export default defineConfig({
         supportFile: "./ui-test/support/e2e.ts",
         videosFolder: "./ui-test/videos",
         video: true,
+        videoCompression: 10,
         screenshotOnRunFailure: true,
         baseUrl: "http://nginx/console",
         setupNodeEvents(on, config) {
