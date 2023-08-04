@@ -33,7 +33,17 @@ import { ApiPortalPlansModule } from '../api-portal-plans.module';
 import { fakeTag } from '../../../../../entities/tag/tag.fixture';
 import { fakeGroup } from '../../../../../entities/group/group.fixture';
 import { ApiPlanFormHarness } from '../../../component/plan/api-plan-form.harness';
-import { Api, CreatePlanV2, fakeApiV2, fakeApiV4, fakePlanV2, fakePlanV4, Plan, PlanV2 } from '../../../../../entities/management-api-v2';
+import {
+  Api,
+  CreatePlanV2,
+  fakeApiV2,
+  fakeApiV4,
+  fakePlanV2,
+  fakePlanV4,
+  Plan,
+  PlanStatus,
+  PlanV2,
+} from '../../../../../entities/management-api-v2';
 
 describe('ApiPortalPlanEditComponent', () => {
   const API_ID = 'my-api';
@@ -156,7 +166,7 @@ describe('ApiPortalPlanEditComponent', () => {
           ],
         } as CreatePlanV2);
         req.flush({});
-        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.plans');
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.plans', { status: 'STAGING' });
       });
     });
 
@@ -168,10 +178,12 @@ describe('ApiPortalPlanEditComponent', () => {
         configureTestingModule(PLAN.id);
         fixture.detectChanges();
         expectApiGetRequest(fakeApiV2({ id: API_ID }));
-        expectPlanGetRequest(API_ID, PLAN);
       });
 
-      it('should edit plan', async () => {
+      it.each(['STAGING', 'PUBLISHED', 'DEPRECATED'])('should edit plan', async (status: PlanStatus) => {
+        PLAN.status = status;
+        expectPlanGetRequest(API_ID, PLAN);
+
         const saveBar = await loader.getHarness(GioSaveBarHarness);
         expect(await saveBar.isVisible()).toBe(false);
 
@@ -212,7 +224,7 @@ describe('ApiPortalPlanEditComponent', () => {
           description: 'Default plan',
           characteristics: [],
           excludedGroups: undefined,
-          status: 'PUBLISHED',
+          status: PLAN.status,
           validation: 'MANUAL',
           tags: ['tag1'],
           commentMessage: 'comment message',
@@ -250,7 +262,7 @@ describe('ApiPortalPlanEditComponent', () => {
           ],
         } as PlanV2);
         req.flush({});
-        expect(fakeUiRouter.go).toHaveBeenCalled();
+        expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.plans', { status: PLAN.status });
       });
     });
 
@@ -430,7 +442,7 @@ describe('ApiPortalPlanEditComponent', () => {
           method: 'POST',
         })
         .flush({});
-      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.plans');
+      expect(fakeUiRouter.go).toHaveBeenCalledWith('management.apis.ng.plans', { status: 'STAGING' });
     });
   });
 
