@@ -4,14 +4,6 @@
 
 This repo contains some https://github.com/google/zx[zx] scripts to execute the different release steps for APIM.
 
-It will allow you to run these pipeline on CircleCI:
-
-1. Release
-2. Package Zip
-3. Docker and RPMs
-4. Generate changelog
-5. Nexus Sync
-
 == 🛠 Requirement
 
 To run the scripts, you need to have:
@@ -63,6 +55,15 @@ Here is the command to fully release APIM (Releasing 3.15.11, in the following e
 
 === 🐌 Step by step release
 
+It will allow you to manually trigger these workflows on CircleCI:
+
+1. Release
+2. Package Zip
+3. Docker and RPMs
+4. Helm Chart
+5. Generate changelog
+6. Nexus Sync
+
 This is the legacy process making you execute each step manually
 
 Thanks to link:package.json[package.json], you can run those scripts as simple `npm` commands (do not forget to use `npm i` before starting).
@@ -76,30 +77,34 @@ Optional flag:
 
 * `--dry-run`: allow to run the pipeline in dry run mode (except for `nexus_sync` which does not have this mode)
 
-Each commands, when successful, will guide you to the next command to run, for example:
-```
+Each command, when successful, will guide you to the next command to run, for example:
+
+[source]
+----
 When it's done, run 'npm run nexus_sync -- --version=3.19.8'
-```
+----
 
 Here are the steps to run to fully release APIM (Releasing 3.19.8, in the following example):
 
 1. `npm run release -- --version=3.19.8`
 2. `npm run package_zip -- --version=3.19.8`:
 3. `npm run docker_rpms -- --version=3.19.8`: You can also provide the `--latest` parameter to flag the image as `latest`.
-4. `npm run release_notes -- --version=3.19.8`
-5. `npm run nexus_sync -- --version=3.19.8`
+4. `npm run helm_chart -- --version=3.19.8`
+5. `npm run release_notes -- --version=3.19.8`
+6. `npm run nexus_sync -- --version=3.19.8`
 
 == 🧪 Handle pre-version releases
 
 To create a pre-version release (like `alpha`, `beta`, RC`, `GA`, ...), you just have to change the `<sha1/>` tag in `pom.xml` file. +
 This tag MUST be of the form: `-NAME.VERSION` (e.g. `-alpha.1`, `-RC.3`, ...)
 
-```xml
+[source,xml]
+----
     <!-- Version properties -->
     <revision>3.20.0</revision>
     <sha1>-alpha.1</sha1>
     <changelist>-SNAPSHOT</changelist>
-```
+----
 
 Then, follow instructions of <<Usage>> with `--version=3.20.0-alpha.1`. +
 The version of the modifier will be automatically increased. (`3.20.0-alpha.2` in the example above).
