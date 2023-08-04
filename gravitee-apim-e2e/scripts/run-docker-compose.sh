@@ -52,6 +52,8 @@ if [ -n "$1" ] && [ -n "$2" ]; then
   elif [ "$mode" = "ui-test" ]; then
     DB_PROVIDER=$databaseType docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-$databaseType.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from cypress
   fi
+  # Save exit code of docker-compose
+  status=$?
 
   # Extract logs from containers
   docker logs gravitee-apim-e2e-cypress-1 > ./.logs/cypress.log
@@ -63,6 +65,10 @@ if [ -n "$1" ] && [ -n "$2" ]; then
   docker logs gravitee-apim-e2e-wiremock > ./.logs/wiremock.log
   docker logs gravitee-apim-e2e-elasticsearch > ./.logs/elasticsearch.log
   # TODO: Need to add DB logs
+
+  # Use exit code of docker-compose
+  exit $status
+
 else
   echo "Usage: $0 [clean|only-apim|api-test|ui-test] [mongo|jdbc|bridge]"
 fi
