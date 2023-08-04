@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Observable, of, Subject } from 'rxjs';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
+import { mergeMap, takeUntil, tap } from 'rxjs/operators';
 
 import { PolicyService } from '../../../../../services-ngx/policy.service';
+import { InternalPlanFormValue } from '../api-plan-form.component';
 
 @Component({
   selector: 'plan-edit-restriction-step',
@@ -27,6 +28,9 @@ import { PolicyService } from '../../../../../services-ngx/policy.service';
 })
 export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  @Input()
+  public initialFormValues: InternalPlanFormValue['restriction'];
 
   public restrictionForm: FormGroup;
 
@@ -49,22 +53,32 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
     });
 
     this.rateLimitSchema$ = this.restrictionForm.get('rateLimitEnabled').valueChanges.pipe(
-      switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit'))),
-      tap(() => this.restrictionForm.setControl('rateLimitConfig', new FormControl({}), { emitEvent: false })),
+      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit'))),
+      tap(() =>
+        this.restrictionForm.setControl('rateLimitConfig', new FormControl(this.initialFormValues?.rateLimitConfig ?? {}), {
+          emitEvent: false,
+        }),
+      ),
 
       takeUntil(this.unsubscribe$),
     );
 
     this.quotaSchema$ = this.restrictionForm.get('quotaEnabled').valueChanges.pipe(
-      switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('quota'))),
-      tap(() => this.restrictionForm.setControl('quotaConfig', new FormControl({}), { emitEvent: false })),
+      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('quota'))),
+      tap(() =>
+        this.restrictionForm.setControl('quotaConfig', new FormControl(this.initialFormValues?.quotaConfig ?? {}), { emitEvent: false }),
+      ),
 
       takeUntil(this.unsubscribe$),
     );
 
     this.resourceFilteringSchema$ = this.restrictionForm.get('resourceFilteringEnabled').valueChanges.pipe(
-      switchMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('resource-filtering'))),
-      tap(() => this.restrictionForm.setControl('resourceFilteringConfig', new FormControl({}), { emitEvent: false })),
+      mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('resource-filtering'))),
+      tap(() =>
+        this.restrictionForm.setControl('resourceFilteringConfig', new FormControl(this.initialFormValues?.resourceFilteringConfig ?? {}), {
+          emitEvent: false,
+        }),
+      ),
 
       takeUntil(this.unsubscribe$),
     );

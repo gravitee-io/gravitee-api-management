@@ -54,7 +54,7 @@ import {
 import { isApiV2FromMAPIV2 } from '../../../../util';
 import { PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
 
-type InternalPlanFormValue = {
+export type InternalPlanFormValue = {
   general: {
     name: string;
     description: string;
@@ -280,7 +280,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
       ...(this.mode === 'create' ? { restriction: this.planEditRestrictionStepComponent.restrictionForm } : {}),
     });
 
-    const value = planToInternalFormValue(this.controlValue);
+    const value = planToInternalFormValue(this.controlValue, this.mode, this.isV2Api);
 
     if (value) {
       this.planForm.patchValue(value);
@@ -333,9 +333,54 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   }
 }
 
-const planToInternalFormValue = (plan: PlanFormValue | undefined): InternalPlanFormValue | undefined => {
+const planToInternalFormValue = (
+  plan: PlanFormValue | undefined,
+  mode: 'create' | 'edit',
+  isV2Api: boolean,
+): InternalPlanFormValue | undefined => {
   if (!plan) {
     return undefined;
+  }
+
+  const restriction: InternalPlanFormValue['restriction'] = {};
+  if (mode === 'create' && plan.flows?.length > 0) {
+    if (isV2Api) {
+      const flow = plan.flows.map((flow) => flow as FlowV2)[0];
+      if (flow.enabled) {
+        flow.pre.forEach((step) => {
+          if (step.policy === 'rate-limit' && step.enabled) {
+            restriction.rateLimitEnabled = true;
+            restriction.rateLimitConfig = step.configuration;
+          }
+          if (step.policy === 'quota' && step.enabled) {
+            restriction.quotaEnabled = true;
+            restriction.quotaConfig = step.configuration;
+          }
+          if (step.policy === 'resource-filtering' && step.enabled) {
+            restriction.resourceFilteringEnabled = true;
+            restriction.resourceFilteringConfig = step.configuration;
+          }
+        });
+      }
+    } else {
+      const flow = plan.flows.map((flow) => flow as FlowV4)[0];
+      if (flow.enabled) {
+        flow.request.forEach((step) => {
+          if (step.policy === 'rate-limit' && step.enabled) {
+            restriction.rateLimitEnabled = true;
+            restriction.rateLimitConfig = step.configuration;
+          }
+          if (step.policy === 'quota' && step.enabled) {
+            restriction.quotaEnabled = true;
+            restriction.quotaConfig = step.configuration;
+          }
+          if (step.policy === 'resource-filtering' && step.enabled) {
+            restriction.resourceFilteringEnabled = true;
+            restriction.resourceFilteringConfig = step.configuration;
+          }
+        });
+      }
+    }
   }
 
   return {
@@ -354,6 +399,7 @@ const planToInternalFormValue = (plan: PlanFormValue | undefined): InternalPlanF
       securityConfig: plan.security?.configuration,
       selectionRule: plan.selectionRule,
     },
+    restriction,
   };
 };
 
