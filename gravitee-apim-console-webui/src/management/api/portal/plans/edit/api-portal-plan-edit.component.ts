@@ -25,7 +25,7 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPlanFormComponent, PlanFormValue } from '../../../component/plan/api-plan-form.component';
 import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
-import { Api, CreatePlanV2, CreatePlanV4, Plan } from '../../../../../entities/management-api-v2';
+import { Api, CreatePlanV2, CreatePlanV4, Plan, PlanStatus } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
@@ -48,6 +48,7 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
 
   @ViewChild('apiPlanForm')
   private apiPlanForm: ApiPlanFormComponent;
+  private currentPlanStatus: PlanStatus;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -77,6 +78,7 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
           this.mode === 'edit' ? this.planService.get(this.ajsStateParams.apiId, this.ajsStateParams.planId) : of(undefined),
         ),
         tap((plan: Plan) => {
+          this.currentPlanStatus = plan?.status;
           this.planForm = new FormGroup({
             plan: new FormControl({
               value: plan,
@@ -138,7 +140,13 @@ export class ApiPortalPlanEditComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => this.ajsState.go(this.portalPlansRoute));
+      .subscribe(() => {
+        if (this.mode === 'edit') {
+          this.ajsState.go(this.portalPlansRoute, { status: this.currentPlanStatus ?? 'PUBLISHED' });
+        } else {
+          this.ajsState.go(this.portalPlansRoute, { status: 'STAGING' });
+        }
+      });
   }
 }
 
