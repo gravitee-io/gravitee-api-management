@@ -68,7 +68,10 @@
             ></mat-slide-toggle>
           </gio-form-slide-toggle>
           <div class="endpoint-card__form__shared-config">
-            <gio-form-json-schema formControlName="sharedConfiguration" [jsonSchema]="endpointSchema?.sharedConfig"></gio-form-json-schema>
+            <gio-form-json-schema
+              formControlName="sharedConfigurationOverride"
+              [jsonSchema]="endpointSchema?.sharedConfig"
+            ></gio-form-json-schema>
           </div>
         </mat-tab>
       </mat-tab-group>
