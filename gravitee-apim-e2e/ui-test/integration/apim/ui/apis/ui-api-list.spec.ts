@@ -172,7 +172,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
         cy.getByDataTestId('api_list_table_row').should('have.length', noOfApis);
         cy.getByDataTestId('api_list_table_row').should('contain.text', 'admin');
         cy.getByDataTestId('api_list_edit_button').first().click();
-        cy.url().should('include', '/portal');
+        cy.url().should('include', '/general');
       });
 
       it(`should display ${noOfApis} APIs when searching for v4 APIs`, function () {
