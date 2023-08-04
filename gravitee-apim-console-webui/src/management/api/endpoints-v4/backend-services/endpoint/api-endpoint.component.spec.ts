@@ -103,7 +103,18 @@ describe('ApiEndpointComponent', () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
       });
-      await initComponent(apiV4, { apiId: API_ID, groupIndex: 0 });
+      const apiV4WithSharedConfiguration: ApiV4 = {
+        ...apiV4,
+        endpointGroups: [
+          {
+            ...apiV4.endpointGroups[0],
+            sharedConfiguration: {
+              test: 'test-from-parent',
+            },
+          },
+        ],
+      };
+      await initComponent(apiV4WithSharedConfiguration, { apiId: API_ID, groupIndex: 0 });
 
       expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
 
@@ -114,23 +125,21 @@ describe('ApiEndpointComponent', () => {
       expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
       await componentHarness.clickSaveButton();
 
-      expectApiGetRequest(apiV4);
+      expectApiGetRequest(apiV4WithSharedConfiguration);
       const updatedApi: ApiV4 = {
-        ...apiV4,
+        ...apiV4WithSharedConfiguration,
         endpointGroups: [
           {
-            ...apiV4.endpointGroups[0],
+            ...apiV4WithSharedConfiguration.endpointGroups[0],
             endpoints: [
-              { ...apiV4.endpointGroups[0].endpoints[0] },
+              { ...apiV4WithSharedConfiguration.endpointGroups[0].endpoints[0] },
               {
                 configuration: {
                   bootstrapServers: undefined,
                 },
-                inheritConfiguration: false,
+                inheritConfiguration: true,
+                sharedConfigurationOverride: {},
                 name: 'endpoint-name',
-                sharedConfigurationOverride: {
-                  test: undefined,
-                },
                 type: 'kafka',
                 weight: 10,
               },

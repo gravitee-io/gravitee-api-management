@@ -97,7 +97,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       name: this.formGroup.get('name').value,
       weight: this.formGroup.get('weight').value,
       configuration: this.formGroup.get('configuration').value,
-      sharedConfigurationOverride: inheritConfiguration ? {} : this.formGroup.get('sharedConfiguration').value,
+      sharedConfigurationOverride: inheritConfiguration ? {} : this.formGroup.get('sharedConfigurationOverride').value,
       inheritConfiguration,
     };
 
@@ -134,27 +134,29 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
   public onInheritConfigurationChange() {
     if (this.formGroup.get('inheritConfiguration').value) {
-      this.formGroup.get('sharedConfiguration').disable();
+      this.formGroup.get('sharedConfigurationOverride').disable();
     } else {
-      this.formGroup.get('sharedConfiguration').enable();
+      this.formGroup.get('sharedConfigurationOverride').enable();
     }
   }
 
   private initForm() {
     let name = null;
-    let inheritConfiguration = false;
+    let inheritConfiguration = true;
     let configuration = null;
-    let sharedConfiguration = null;
+    let sharedConfigurationOverride = this.endpointGroup.sharedConfiguration;
     let weight = null;
 
-    if (this.ajsStateParams.endpointIndex !== undefined) {
+    if (this.isEditing()) {
       this.endpointIndex = +this.ajsStateParams.endpointIndex;
       const endpoint = this.endpointGroup.endpoints[this.endpointIndex];
       name = endpoint.name;
       weight = endpoint.weight;
       inheritConfiguration = endpoint.inheritConfiguration;
       configuration = endpoint.configuration;
-      sharedConfiguration = inheritConfiguration ? this.endpointGroup.sharedConfiguration : endpoint.sharedConfigurationOverride;
+      if (!inheritConfiguration) {
+        sharedConfigurationOverride = endpoint.sharedConfigurationOverride;
+      }
     }
 
     this.formGroup = new FormGroup({
@@ -162,7 +164,12 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       weight: new FormControl(weight, Validators.required),
       inheritConfiguration: new FormControl(inheritConfiguration),
       configuration: new FormControl(configuration),
-      sharedConfiguration: new FormControl({ value: sharedConfiguration, disabled: inheritConfiguration }),
+      sharedConfigurationOverride: new FormControl({ value: sharedConfigurationOverride, disabled: inheritConfiguration }),
     });
+  }
+
+  private isEditing() {
+    // If endpointIndex is defined, then we are editing an endpoint
+    return this.ajsStateParams.endpointIndex !== undefined;
   }
 }
