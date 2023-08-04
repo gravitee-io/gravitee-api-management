@@ -263,10 +263,10 @@
         <gravitee-entrypoint-sse.version>4.0.1</gravitee-entrypoint-sse.version>
         <gravitee-entrypoint-webhook.version>2.0.1</gravitee-entrypoint-webhook.version>
         <gravitee-entrypoint-websocket.version>1.0.1</gravitee-entrypoint-websocket.version>
-        <gravitee-endpoint-kafka.version>2.1.0</gravitee-endpoint-kafka.version>
-        <gravitee-endpoint-mqtt5.version>2.0.2</gravitee-endpoint-mqtt5.version>
-        <gravitee-endpoint-rabbitmq.version>1.0.2</gravitee-endpoint-rabbitmq.version>
-        <gravitee-endpoint-solace.version>1.0.1</gravitee-endpoint-solace.version>
+        <gravitee-endpoint-kafka.version>2.1.1</gravitee-endpoint-kafka.version>
+        <gravitee-endpoint-mqtt5.version>2.0.3</gravitee-endpoint-mqtt5.version>
+        <gravitee-endpoint-rabbitmq.version>1.0.3</gravitee-endpoint-rabbitmq.version>
+        <gravitee-endpoint-solace.version>1.0.4</gravitee-endpoint-solace.version>
         <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>1.0.2</gravitee-reactor-message.version>
         <gravitee-repository-bridge.version>4.0.1</gravitee-repository-bridge.version>
