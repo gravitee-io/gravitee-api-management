@@ -1701,7 +1701,9 @@ jobs:
                                 - gravitee-apim-e2e/package.json
             - cmd-notify-on-failure
             - store_test_results:
-                  path: ~/test-results
+                  path: ./gravitee-apim-e2e/.tmp/e2e-test-report.xml
+            - store_artifacts:
+                  path: ./gravitee-apim-e2e/.logs
 
     job-e2e-cypress:
         executor:
@@ -1775,9 +1777,9 @@ jobs:
                   var-name: ARTIFACTORY_PASSWORD
             - checkout
             - run:
-                name: Checkout tag << pipeline.parameters.graviteeio_version >>
-                command: |
-                  git checkout << pipeline.parameters.graviteeio_version >>
+                  name: Checkout tag << pipeline.parameters.graviteeio_version >>
+                  command: |
+                      git checkout << pipeline.parameters.graviteeio_version >>
             - run:
                   name: Install dependencies
                   command: npm install
