@@ -43,6 +43,7 @@
         "dotenv": "16.0.0",
         "har-validator": "5.1.5",
         "jest": "27.5.1",
+        "jest-junit": "16.0.0",
         "license-check-and-add": "4.0.3",
         "node-fetch": "2.6.7",
         "prettier": "2.8.4",
