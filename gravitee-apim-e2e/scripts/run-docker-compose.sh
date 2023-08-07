@@ -55,15 +55,16 @@ if [ -n "$1" ] && [ -n "$2" ]; then
   # Save exit code of docker-compose
   status=$?
 
-  # Extract logs from containers
-  docker logs gravitee-apim-e2e-cypress-1 > ./.logs/cypress.log
-  docker logs gravitee-apim-e2e-gateway > ./.logs/gateway.log
-  docker logs gravitee-apim-e2e-management_api > ./.logs/management_api.log
-  docker logs gravitee-apim-e2e-management_ui > ./.logs/management_ui.log
-  docker logs gravitee-apim-e2e-portal_ui > ./.logs/portal_ui.log
-  docker logs gravitee-apim-e2e-nginx > ./.logs/nginx.log
-  docker logs gravitee-apim-e2e-wiremock > ./.logs/wiremock.log
-  docker logs gravitee-apim-e2e-elasticsearch > ./.logs/elasticsearch.log
+  # Extract logs from containers if it exists
+  docker logs gravitee-apim-e2e-cypress-1 > ./.logs/cypress.log || true
+  docker logs gravitee-apim-e2e-gateway > ./.logs/gateway.log || true
+  docker logs gravitee-apim-e2e-management_api > ./.logs/management_api.log || true
+  docker logs gravitee-apim-e2e-management_ui > ./.logs/management_ui.log || true
+  docker logs gravitee-apim-e2e-portal_ui > ./.logs/portal_ui.log || true
+  docker logs gravitee-apim-e2e-nginx > ./.logs/nginx.log || true
+  docker logs gravitee-apim-e2e-wiremock > ./.logs/wiremock.log || true
+  docker logs gravitee-apim-e2e-elasticsearch > ./.logs/elasticsearch.log || true
+  docker logs gravitee-apim-e2e-jest-e2e-1 > ./.logs/jest.log || true
   # TODO: Need to add DB logs
 
   # Use exit code of docker-compose
