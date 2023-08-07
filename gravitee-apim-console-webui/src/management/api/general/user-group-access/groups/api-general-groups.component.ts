@@ -21,9 +21,9 @@ import { EMPTY, Subject, combineLatest } from 'rxjs';
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { GroupService } from '../../../../../services-ngx/group.service';
 import { Group } from '../../../../../entities/group/group';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-general-access-groups',
@@ -41,7 +41,7 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiService: ApiService,
+    private readonly apiService: ApiV2Service,
     private readonly groupService: GroupService,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
@@ -76,7 +76,16 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        switchMap((api) => this.apiService.update({ ...api, groups: this.form.getRawValue()?.selectedGroups ?? this.initialFormValue })),
+        switchMap((api) => {
+          if (api.definitionVersion !== 'V1') {
+            return this.apiService.update(api.id, {
+              ...api,
+              groups: this.form.getRawValue()?.selectedGroups ?? this.initialFormValue,
+            });
+          }
+          // V1 API edition not supported
+          return EMPTY;
+        }),
         tap(
           () => this.snackBarService.success('Configuration successfully saved!'),
           ({ error }) => {
