@@ -591,6 +591,16 @@ describe('ApiPortalSubscriptionListComponent', () => {
 
       flush();
     }));
+
+    it('API created with the kubernetes operator should be able to create subscription', fakeAsync(async () => {
+      await init();
+      await initComponent([], fakeApiV4({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } }));
+
+      const harness = await loader.getHarness(ApiPortalSubscriptionListHarness);
+      const createSubBtn = await harness.getCreateSubscriptionButton();
+      expect(await createSubBtn).toBeDefined();
+      expect(await createSubBtn.isDisabled()).toEqual(false);
+    }));
   });
 
   describe('export subscriptions', () => {
