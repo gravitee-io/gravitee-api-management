@@ -25,4 +25,6 @@ module.exports = {
   transform: {
     '^.+\\.xml$': '<rootDir>/lib/jest-raw-loader.js',
   },
+
+  reporters: ['default', ['jest-junit', { outputDirectory: '.tmp', outputName: 'e2e-test-report.xml' }]],
 };
