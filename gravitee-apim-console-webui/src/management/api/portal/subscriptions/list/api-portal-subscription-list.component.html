@@ -20,7 +20,7 @@
     <h2>Manage your subscriptions</h2>
   </div>
 
-  <div *ngIf="!isKubernetesOrigin && subscriptionsTableDS && !isLoadingData" class="subscriptions__header__buttons">
+  <div *ngIf="subscriptionsTableDS && !isLoadingData" class="subscriptions__header__buttons">
     <button
       *gioPermission="{ anyOf: ['api-subscription-r'] }"
       mat-raised-button
