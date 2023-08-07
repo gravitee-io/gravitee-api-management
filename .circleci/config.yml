@@ -1686,6 +1686,8 @@ jobs:
             - store_test_results:
                   path: ./gravitee-apim-e2e/.tmp/e2e-test-report.xml
             - store_artifacts:
+                  path: ./gravitee-apim-e2e/.tmp/e2e-test-report.xml
+            - store_artifacts:
                   path: ./gravitee-apim-e2e/.logs
 
     job-e2e-cypress:
