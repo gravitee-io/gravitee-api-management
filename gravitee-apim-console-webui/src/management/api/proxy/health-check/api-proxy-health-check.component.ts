@@ -24,6 +24,7 @@ import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiProxyHealthCheckFormComponent } from '../components/health-check-form/api-proxy-health-check-form.component';
+import { Api } from '../../../../entities/api';
 
 @Component({
   selector: 'api-proxy-health-check',
@@ -69,15 +70,24 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
+<<<<<<< HEAD
         switchMap((api) =>
           this.apiService.update({
+=======
+        takeUntil(this.unsubscribe$),
+        switchMap((api) => {
+          const apiHealthCheck = ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, false);
+          this.updateEndpointsHealthCheckConfig(api.proxy?.groups, apiHealthCheck.enabled);
+
+          return this.apiService.update({
+>>>>>>> cbc810168c (fix: cascade HC de/activation at the API level to the API endpoints)
             ...api,
             services: {
               ...api.services,
-              'health-check': ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, false),
+              'health-check': apiHealthCheck,
             },
-          }),
-        ),
+          });
+        }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -91,5 +101,30 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
 
   gotToHealthCheckDashboard() {
     this.ajsState.go('management.apis.ng.healthcheck-dashboard-v2');
+  }
+
+  updateEndpointsHealthCheckConfig(groups: Api['proxy']['groups'], apiHealthCheckEnabled: boolean) {
+    if (apiHealthCheckEnabled === true) {
+      // If the API healthcheck is enabled, we enable the health-check for all endpoints without `healthcheck` config
+      groups.forEach((group) => {
+        group.endpoints.forEach((endpoint) => {
+          if (!endpoint.healthcheck) {
+            endpoint.healthcheck = {
+              enabled: true,
+              inherit: true,
+            };
+          }
+        });
+      });
+    } else {
+      // If the API healthcheck is disabled, we disable the health-check for all endpoints inheriting the health-check config
+      groups.forEach((group) => {
+        group.endpoints.forEach((endpoint) => {
+          if (endpoint.healthcheck?.enabled === true && endpoint.healthcheck?.inherit === true) {
+            endpoint.healthcheck.enabled = false;
+          }
+        });
+      });
+    }
   }
 }

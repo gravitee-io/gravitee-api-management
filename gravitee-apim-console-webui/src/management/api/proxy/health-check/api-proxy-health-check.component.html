@@ -15,6 +15,7 @@
     limitations under the License.
 
 -->
+<<<<<<< HEAD
 <div class="api-proxy-health-check__header">
   <p class="api-proxy-health-check__header__description">
     Health check configuration let you enable or disable health check service, set a frequency rate, choose an health relative path and
@@ -22,11 +23,23 @@
   </p>
   <button class="api-proxy-health-check__header__go-to-dashboard" mat-raised-button type="button" (click)="gotToHealthCheckDashboard()">
     Go to Health-check dashboard
+=======
+<h1>
+  Health-check
+  <button class="api-proxy-health-check__go-to-dashboard" mat-raised-button type="button" (click)="gotToHealthCheckDashboard()">
+    Go to health check dashboard
+>>>>>>> cbc810168c (fix: cascade HC de/activation at the API level to the API endpoints)
   </button>
 </div>
 
 <gio-banner-info class="api-proxy-health-check__banner-info">
-  <span> By enabling health-check, all non-backup endpoints will be checked except if health-check is disabled at endpoint level. </span>
+  <span
+    >Enabling health check on the API will activate health check for all non-backup endpoints, except if the health check is disabled at
+    endpoint level.
+    <br />
+    Disabling health check on the API will deactivate health check for all endpoints configured to inherit health check settings from the
+    API.
+  </span>
 </gio-banner-info>
 
 <form *ngIf="healthCheckForm" autocomplete="off" gioFormFocusInvalid [formGroup]="healthCheckForm">
