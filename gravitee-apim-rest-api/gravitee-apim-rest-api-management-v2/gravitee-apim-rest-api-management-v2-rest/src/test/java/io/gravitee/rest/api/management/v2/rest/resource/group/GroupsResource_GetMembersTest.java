@@ -39,7 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class GroupResource_GetMembersTest extends AbstractResourceTest {
+public class GroupsResource_GetMembersTest extends AbstractResourceTest {
 
     private static final String GROUP = "my-group";
     private static final String ENVIRONMENT = "my-env";
