@@ -27,7 +27,7 @@ tags:
       description: Everything about API plans
     - name: API Subscriptions
       description: Everything about API subscriptions
-    - name: Group
+    - name: Groups
       description: Everything about groups
     - name: Installation
       description: Base resources about the installation
@@ -813,6 +813,26 @@ paths:
                     $ref: "#/components/responses/Error"
 
     # Group
+    /environments/{envId}/groups:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - Groups
+            summary: List of environment groups
+            description: |
+                List the groups of a given environment.
+
+                User must have the ENVIRONMENT_GROUP[READ] permission.
+            operationId: listGroups
+            responses:
+                "200":
+                    $ref: "#/components/responses/GroupsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/groups/{groupId}/members:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -822,7 +842,7 @@ paths:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:
-                - Group
+                - Groups
             summary: List a group's members
             description: |
                 List the members of a given group.
@@ -3791,6 +3811,74 @@ components:
                     example: iOS
                 primaryOwner:
                     $ref: "#/components/schemas/PrimaryOwner"
+        BaseGroup:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Group's uuid.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                name:
+                    type: string
+                    description: Group's name.
+                    example: Gravitee group
+                    minLength: 1
+        Group:
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/BaseGroup"
+                - properties:
+                    eventRules:
+                        type: array
+                        items:
+                            $ref: "#/components/schemas/GroupEvent"
+                        description: Event rules for the group.
+                    manageable:
+                        type: boolean
+                        description: Current user can manage group.
+                    createdAt:
+                        type: string
+                        format: date-time
+                        description: Group's creation date.
+                        example: 2018-11-23T22:00:00.000Z
+                    updatedAt:
+                        type: string
+                        format: date-time
+                        description: Group's last updated date.
+                        example: 2018-11-23T22:00:00.000Z
+                    maxInvitation:
+                        type: integer
+                        description: Maximum number of group members.
+                    apiRole:
+                        type: string
+                        description: The Api role of the group.
+                    lockApiRole:
+                        type: boolean
+                        description: Api role cannot be changed.
+                    applicationRole:
+                        type: string
+                        description: The Application role of the group.
+                    lockApplicationRole:
+                        type: boolean
+                        description: Application role cannot be changed.
+                    systemInvitation:
+                        type: boolean
+                        description: Invitation via user search enabled.
+                    emailInvitation:
+                        type: boolean
+                        description: Email invitation enabled.
+                    disableMembershipNotifications:
+                        type: boolean
+                        description: Notifications of new members are disabled.
+                    primaryOwner:
+                        type: boolean
+                        description: Group's members contain one primary owner.
+        GroupEvent:
+            type: string
+            description: Type of group event.
+            enum:
+                - API_CREATE
+                - APPLICATION_CREATE
         Member:
             type: object
             properties:
@@ -5287,6 +5375,24 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+        GroupsResponse:
+            description: Page of Groups
+            content:
+                application/json:
+                    schema:
+                        title: "GroupsResponse"
+                        properties:
+                            data:
+                                description: List of groups.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Group"
+                            links:
+                                $ref: "#/components/schemas/Links"
+                            metadata:
+                                $ref: "#/components/schemas/MetadataResponse"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
         ImageResponse:
             description: An image
             content:
