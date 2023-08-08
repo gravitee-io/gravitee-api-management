@@ -22,7 +22,6 @@ import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParam
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.management.v2.rest.resource.OpenAPIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.*;
-import io.gravitee.rest.api.management.v2.rest.resource.group.GroupResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
@@ -56,7 +55,6 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(EndpointsResource.class);
         register(EntrypointsResource.class);
         register(GroupsResource.class);
-        register(GroupResource.class);
         register(PoliciesResource.class);
         register(ApiMembersResource.class);
 

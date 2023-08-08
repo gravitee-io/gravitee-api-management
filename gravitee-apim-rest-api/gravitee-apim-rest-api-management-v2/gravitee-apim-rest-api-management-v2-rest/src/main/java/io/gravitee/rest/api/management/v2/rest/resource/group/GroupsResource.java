@@ -50,7 +50,7 @@ public class GroupsResource extends AbstractResource {
     @Inject
     private GroupService groupService;
 
-    private GroupMapper mapper = GroupMapper.INSTANCE;
+    private final GroupMapper mapper = GroupMapper.INSTANCE;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -64,5 +64,33 @@ public class GroupsResource extends AbstractResource {
                 .data(mapper.map(groupsSubset))
                 .pagination(computePaginationInfo(groups.size(), groupsSubset.size(), paginationParam))
                 .links(computePaginationLinks(groups.size(), paginationParam));
+    }
+
+    @GET
+    @Path("/{groupId}/members")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ) })
+    public MembersResponse listGroupMembers(@PathParam("groupId") String groupId, @BeanParam @Valid PaginationParam paginationParam) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        GroupEntity groupEntity = groupService.findById(executionContext, groupId);
+
+        var metadata = new LinkedHashMap<String, Object>();
+        metadata.put("groupName", groupEntity.getName());
+
+        var members = membershipService
+                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, groupId)
+                .stream()
+                .map(MemberMapper.INSTANCE::map)
+                .sorted(Comparator.comparing(Member::getId))
+                .collect(Collectors.toList());
+
+        List<Member> membersSubset = computePaginationData(members, paginationParam);
+
+        return new MembersResponse()
+                .data(membersSubset)
+                .pagination(computePaginationInfo(members.size(), membersSubset.size(), paginationParam))
+                .links(computePaginationLinks(members.size(), paginationParam))
+                .metadata(metadata);
     }
 }
