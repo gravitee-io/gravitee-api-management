@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.Role;
 import io.gravitee.rest.api.model.RoleEntity;
-import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
