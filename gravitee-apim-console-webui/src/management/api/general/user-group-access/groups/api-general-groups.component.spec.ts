@@ -26,10 +26,8 @@ import { ApiGeneralGroupsHarness } from './api-general-groups.harness';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralUserGroupModule } from '../api-general-user-group.module';
 import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { fakeGroup } from '../../../../../entities/group/group.fixture';
-import { Group } from '../../../../../entities/group/group';
 import { User } from '../../../../../entities/user';
-import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { Api, fakeApiV1, fakeApiV2, fakeApiV4, fakeGroup, Group } from '../../../../../entities/management-api-v2';
 
 describe('ApiPortalGroupsComponent', () => {
   const API_ID = 'api-id';
@@ -88,7 +86,7 @@ describe('ApiPortalGroupsComponent', () => {
 
     it('should pre-select groups found in user + save new groups', async () => {
       expectOneGroupList([fakeGroup({ id: 'my_group', name: 'My Group' }), fakeGroup({ id: 'new_group', name: 'New Group' })]);
-      expectOneApiGet(fakeApiV4({ id: API_ID, groups: ['my_group'] }));
+      expectOneApiGet(fakeApiV2({ id: API_ID, groups: ['my_group'] }));
 
       expect(await harness.isFillFormControlDirty()).toEqual(false);
 
@@ -107,18 +105,27 @@ describe('ApiPortalGroupsComponent', () => {
       expect(await harness.isSaveBarVisible()).toEqual(true);
       await harness.clickSubmit();
 
-      const api: ApiV4 = fakeApiV4({ id: API_ID, groups: ['my_group'] });
-      expectOneApiGet(api);
-      expectOneApiPut({ ...api, id: API_ID, groups: ['my_group', 'new_group'] });
+      expectOneApiGet(fakeApiV2({ id: API_ID, groups: ['my_group'] }));
+      expectOneApiPut(fakeApiV2({ id: API_ID, groups: ['my_group', 'new_group'] }));
 
       // expect reloaded component
       expectOneGroupList([fakeGroup({ id: 'my_group', name: 'My Group' }), fakeGroup({ id: 'new_group', name: 'New Group' })]);
-      expectOneApiGet(fakeApiV4({ id: API_ID, groups: ['my_group', 'new_group'] }));
+      expectOneApiGet(fakeApiV2({ id: API_ID, groups: ['my_group', 'new_group'] }));
 
       expect(await harness.isFillFormControlDirty()).toEqual(false);
 
       const newSelectedGroups = await harness.getSelectedGroups();
       expect(newSelectedGroups.length).toEqual(2);
+      expect(await harness.isSaveBarVisible()).toEqual(false);
+    });
+
+    it('should be read-only for V1 API', async () => {
+      expectOneGroupList([fakeGroup({ id: 'my_group', name: 'My Group' }), fakeGroup({ id: 'new_group', name: 'New Group' })]);
+      expectOneApiGet(fakeApiV1({ id: API_ID, groups: ['my_group'] }));
+
+      expect(await harness.isReadOnlyGroupsPresent()).toEqual(true);
+      expect(await harness.getReadOnlyGroupsText()).toContain('My Group');
+      expect(await harness.isFillFormPresent()).toEqual(false);
       expect(await harness.isSaveBarVisible()).toEqual(false);
     });
 
@@ -158,11 +165,11 @@ describe('ApiPortalGroupsComponent', () => {
     });
   });
 
-  function expectOneApiGet(api: ApiV4) {
+  function expectOneApiGet(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
   }
 
-  function expectOneApiPut(api: ApiV4) {
+  function expectOneApiPut(api: Api) {
     const httpCall = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
     const requestBody = httpCall.request.body;
     expect(requestBody.groups).toEqual(api.groups);
@@ -171,6 +178,8 @@ describe('ApiPortalGroupsComponent', () => {
   }
 
   function expectOneGroupList(groups: Group[]) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups`, method: 'GET' }).flush(groups);
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
+      .flush({ data: groups });
   }
 });

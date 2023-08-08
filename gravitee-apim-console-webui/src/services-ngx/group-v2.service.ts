@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { MembersResponse } from '../entities/management-api-v2';
+import { GroupsResponse, MembersResponse } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -28,6 +28,15 @@ export class GroupV2Service {
 
   getMembers(groupId: string, page = 1, perPage = 10): Observable<MembersResponse> {
     return this.http.get<MembersResponse>(`${this.constants.env.v2BaseURL}/groups/${groupId}/members`, {
+      params: {
+        page,
+        perPage,
+      },
+    });
+  }
+
+  list(page = 1, perPage = 10): Observable<GroupsResponse> {
+    return this.http.get<GroupsResponse>(`${this.constants.env.v2BaseURL}/groups`, {
       params: {
         page,
         perPage,
