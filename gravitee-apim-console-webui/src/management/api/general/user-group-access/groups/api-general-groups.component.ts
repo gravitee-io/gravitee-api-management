@@ -15,14 +15,14 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { switchMap, takeUntil, tap } from 'rxjs/operators';
-import { EMPTY, Subject, combineLatest } from 'rxjs';
+import { switchMap, takeUntil } from 'rxjs/operators';
+import { Subject, combineLatest, throwError } from 'rxjs';
 
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
-import { GroupService } from '../../../../../services-ngx/group.service';
-import { Group } from '../../../../../entities/group/group';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
+import { Group } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 @Component({
@@ -38,11 +38,12 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
   public groups: Group[];
   public initialFormValue: unknown;
   public readOnlyGroupList: string;
+  private isV1Api = false;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     private readonly apiService: ApiV2Service,
-    private readonly groupService: GroupService,
+    private readonly groupService: GroupV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly formBuilder: FormBuilder,
@@ -50,10 +51,11 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
-    combineLatest([this.groupService.list(), this.apiService.get(this.ajsStateParams.apiId)])
+    combineLatest([this.groupService.list(1, 9999), this.apiService.get(this.ajsStateParams.apiId)])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([groups, api]) => {
-        this.groups = groups;
+        this.isV1Api = api.definitionVersion === 'V1';
+        this.groups = groups.data;
 
         const userGroupList: Group[] = this.groups.filter((group) => api.groups?.includes(group.id));
         this.form = this.formBuilder.group({
@@ -76,26 +78,20 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.ajsStateParams.apiId)
       .pipe(
-        switchMap((api) => {
-          if (api.definitionVersion !== 'V1') {
-            return this.apiService.update(api.id, {
-              ...api,
-              groups: this.form.getRawValue()?.selectedGroups ?? this.initialFormValue,
-            });
-          }
-          // V1 API edition not supported
-          return EMPTY;
-        }),
-        tap(
-          () => this.snackBarService.success('Configuration successfully saved!'),
-          ({ error }) => {
-            this.snackBarService.error(error.message);
-            return EMPTY;
-          },
+        switchMap((api) =>
+          api.definitionVersion === 'V1'
+            ? throwError({ message: 'You cannot modify a V1 API.' })
+            : this.apiService.update(api.id, { ...api, groups: this.form.getRawValue()?.selectedGroups ?? this.initialFormValue }),
         ),
-        tap(() => this.ngOnInit()),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe(
+        (_) => {
+          this.form.markAsPristine(); // Close save bar
+          this.snackBarService.success('Configuration successfully saved!');
+          this.ngOnInit();
+        },
+        ({ error }) => this.snackBarService.error(error.message),
+      );
   }
 }

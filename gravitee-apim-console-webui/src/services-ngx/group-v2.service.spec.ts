@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { GroupV2Service } from './group-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { MembersResponse } from '../entities/management-api-v2';
+import { fakeGroupsResponse, GroupsResponse, MembersResponse } from '../entities/management-api-v2';
 import { fakeMember } from '../entities/management-api-v2/member/member.fixture';
 
 describe('GroupV2Service', () => {
@@ -85,6 +85,36 @@ describe('GroupV2Service', () => {
       expect(req.request.method).toEqual('GET');
 
       req.flush(fakeMembersResponse);
+    });
+  });
+
+  describe('list groups', () => {
+    it('should call API', (done) => {
+      const groupsResponse: GroupsResponse = fakeGroupsResponse({ pagination: { page: 1, perPage: 10 } });
+
+      groupService.list().subscribe((groups) => {
+        expect(groups).toMatchObject(groupsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=10`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(groupsResponse);
+    });
+
+    it('should allow custom pagination', (done) => {
+      const groupsResponse: GroupsResponse = fakeGroupsResponse({ pagination: { page: 2, perPage: 1 } });
+
+      groupService.list(2, 1).subscribe((groups) => {
+        expect(groups).toMatchObject(groupsResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=2&perPage=1`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(groupsResponse);
     });
   });
 

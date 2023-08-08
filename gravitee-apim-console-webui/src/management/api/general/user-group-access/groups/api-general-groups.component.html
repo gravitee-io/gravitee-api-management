@@ -18,7 +18,7 @@
 <form *ngIf="form" [formGroup]="form" class="api-portal-access-groups">
   <mat-card>
     <div class="api-portal-access-groups__body">
-      <mat-form-field *ngIf="!isReadOnly; else readOnlyGroups">
+      <mat-form-field *ngIf="!isReadOnly && !isV1Api; else readOnlyGroups">
         <mat-label>Groups</mat-label>
         <mat-select formControlName="selectedGroups" multiple>
           <mat-option *ngFor="let availableGroup of groups" [value]="availableGroup.id">{{ availableGroup.name }}</mat-option>

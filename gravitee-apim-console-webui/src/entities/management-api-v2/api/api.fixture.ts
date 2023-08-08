@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'lodash';
 
-import { BaseApi, ApiV2, ApiV4 } from '.';
+import { BaseApi, ApiV2, ApiV4, ApiV1 } from '.';
 
 export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) => BaseApi)): BaseApi {
   const base: BaseApi = {
@@ -73,6 +73,75 @@ export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) =>
       pictureUrl: 'https://api.company.com/environment/default/apis/aee23b1e-34b1-4551-a23b-1e34b165516a/picture',
       backgroundUrl: 'https://api.company.com/environment/default/apis/aee23b1e-34b1-4551-a23b-1e34b165516a/background',
     },
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeApiV1(modifier?: Partial<ApiV1> | ((baseApi: ApiV1) => ApiV1)): ApiV1 {
+  const base: ApiV1 = {
+    ...fakeBaseApi(modifier),
+    definitionVersion: 'V1',
+    environmentId: 'my-environment',
+    entrypoints: [
+      {
+        target: 'https://api.company.com/planets',
+      },
+    ],
+    contextPath: '/planets',
+    proxy: {
+      virtualHosts: [
+        {
+          path: '/planets',
+          overrideEntrypoint: true,
+        },
+      ],
+      stripContextPath: false,
+      preserveHost: false,
+      logging: {
+        mode: 'PROXY',
+        content: 'PAYLOADS',
+        scope: 'REQUEST_RESPONSE',
+      },
+      groups: [
+        {
+          name: 'default-group',
+          endpoints: [
+            {
+              name: 'default',
+              target: 'https://api.le-systeme-solaire.net/rest/',
+              weight: 1,
+              backup: false,
+              type: 'HTTP',
+              inherit: true,
+            },
+          ],
+          loadBalancer: {
+            type: 'ROUND_ROBIN',
+          },
+          httpClientOptions: {
+            connectTimeout: 5000,
+            idleTimeout: 60000,
+            keepAlive: true,
+            readTimeout: 10000,
+            pipelining: false,
+            maxConcurrentConnections: 100,
+            useCompression: true,
+            followRedirects: false,
+          },
+        },
+      ],
+    },
+    paths: [],
+    pathMappings: [],
+    executionMode: 'V3',
   };
 
   if (isFunction(modifier)) {
