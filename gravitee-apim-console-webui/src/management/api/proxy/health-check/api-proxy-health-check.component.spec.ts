@@ -130,6 +130,174 @@ describe('ApiProxyHealthCheckComponent', () => {
     });
   });
 
+  it('should activate health check for all endpoints with no health check config', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      services: {
+        'health-check': {
+          enabled: false,
+        },
+      },
+      proxy: {
+        groups: [
+          {
+            name: 'default',
+            endpoints: [
+              { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
+              { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
+              { name: 'endpoint1-without-healthcheck' },
+            ],
+          },
+          {
+            name: 'group-2',
+            endpoints: [
+              { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
+              { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
+              { name: 'endpoint2-without-healthcheck' },
+            ],
+          },
+        ],
+      },
+    });
+    expectApiGetRequest(api);
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+    // Enable health check
+    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+    await enabledSlideToggle.check();
+
+    // Trigger
+    component.healthCheckForm.get('schedule').setValue('* * * * *');
+    expect(component.healthCheckForm.get('schedule').disabled).toEqual(false);
+
+    // Request
+    const allowMethodsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="method"]' }));
+    await allowMethodsInput.clickOptions({ text: 'POST' });
+
+    const pathInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="path"]' }));
+    await pathInput.setValue('/test');
+
+    expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+    await saveBar.clickSubmit();
+
+    // Expect fetch api and update
+    expectApiGetRequest(api);
+
+    const req = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`,
+    });
+    expect(req.request.body.proxy.groups).toStrictEqual([
+      {
+        name: 'default',
+        endpoints: [
+          { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
+          { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
+          { name: 'endpoint1-without-healthcheck', healthcheck: { enabled: true, inherit: true } },
+        ],
+      },
+      {
+        name: 'group-2',
+        endpoints: [
+          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
+          { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: true } },
+          { name: 'endpoint2-without-healthcheck', healthcheck: { enabled: true, inherit: true } },
+        ],
+      },
+    ]);
+  });
+
+  it('should deactivate health check for all endpoints with "inherit" health check config', async () => {
+    const api = fakeApi({
+      id: API_ID,
+      services: {
+        'health-check': {
+          enabled: true,
+          schedule: '* * * * *',
+          steps: [
+            {
+              request: {
+                method: 'POST',
+                path: '/test',
+                headers: [],
+                body: undefined,
+                fromRoot: undefined,
+              },
+              response: {
+                assertions: ['#response.status == 200'],
+              },
+            },
+          ],
+        },
+      },
+      proxy: {
+        groups: [
+          {
+            name: 'default',
+            endpoints: [
+              { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
+              { name: 'endpoint1-with-healthcheck-activated-inherited', healthcheck: { enabled: true, inherit: true } },
+              { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
+              { name: 'endpoint1-without-healthcheck' },
+            ],
+          },
+          {
+            name: 'group-2',
+            endpoints: [
+              { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
+              { name: 'endpoint2-with-healthcheck-activated-inherited', healthcheck: { enabled: true, inherit: true } },
+              { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
+              { name: 'endpoint2-without-healthcheck' },
+            ],
+          },
+        ],
+      },
+    });
+    expectApiGetRequest(api);
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+    // Disable health check
+    const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+    await enabledSlideToggle.uncheck();
+
+    expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+    await saveBar.clickSubmit();
+
+    // Expect fetch api and update
+    expectApiGetRequest(api);
+
+    const req = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`,
+    });
+    expect(req.request.body.services['health-check']).toStrictEqual({
+      enabled: false,
+    });
+
+    expect(req.request.body.proxy.groups).toStrictEqual([
+      {
+        name: 'default',
+        endpoints: [
+          { name: 'endpoint1-with-healthcheck-deactivated', healthcheck: { enabled: false } },
+          { name: 'endpoint1-with-healthcheck-activated-inherited', healthcheck: { enabled: false, inherit: true } },
+          { name: 'endpoint1-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
+          { name: 'endpoint1-without-healthcheck' },
+        ],
+      },
+      {
+        name: 'group-2',
+        endpoints: [
+          { name: 'endpoint2-with-healthcheck-deactivated', healthcheck: { enabled: false } },
+          { name: 'endpoint2-with-healthcheck-activated-inherited', healthcheck: { enabled: false, inherit: true } },
+          { name: 'endpoint2-with-healthcheck-activated', healthcheck: { enabled: true, inherit: false } },
+          { name: 'endpoint2-without-healthcheck' },
+        ],
+      },
+    ]);
+  });
+
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();

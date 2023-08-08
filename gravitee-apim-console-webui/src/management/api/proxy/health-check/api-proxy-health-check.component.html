@@ -21,12 +21,18 @@
     provide some assertions to control endpoint API's health.
   </p>
   <button class="api-proxy-health-check__header__go-to-dashboard" mat-raised-button type="button" (click)="gotToHealthCheckDashboard()">
-    Go to Health-check dashboard
+    Go to health check dashboard
   </button>
 </div>
 
 <gio-banner-info class="api-proxy-health-check__banner-info">
-  <span> By enabling health-check, all non-backup endpoints will be checked except if health-check is disabled at endpoint level. </span>
+  <span
+    >Enabling health check on the API will activate health check for all non-backup endpoints, except if the health check is disabled at
+    endpoint level.
+    <br />
+    Disabling health check on the API will deactivate health check for all endpoints configured to inherit health check settings from the
+    API.
+  </span>
 </gio-banner-info>
 
 <form *ngIf="healthCheckForm" autocomplete="off" gioFormFocusInvalid [formGroup]="healthCheckForm">
