@@ -15,19 +15,18 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 
-@SuppressWarnings("ALL")
-public class PrimaryOwnerFixtures extends PrimaryOwnerModelFixtures {
+public class PrimaryOwnerModelFixtures {
 
-    private static final PrimaryOwner.PrimaryOwnerBuilder BASE_PRIMARY_OWNER = PrimaryOwner
+    private static final PrimaryOwnerEntity.PrimaryOwnerEntityBuilder BASE_PRIMARY_OWNER_ENTITY = PrimaryOwnerEntity
         .builder()
         .id("primary-owner-id")
         .displayName("primary-owner-displayName")
-        .email("primary-owner@email.com")
-        .type(PrimaryOwner.TypeEnum.USER);
+        .email("primary-owner-email")
+        .type("USER");
 
-    public static PrimaryOwner aPrimaryOwner() {
-        return BASE_PRIMARY_OWNER.build();
+    public static PrimaryOwnerEntity aPrimaryOwnerEntity() {
+        return BASE_PRIMARY_OWNER_ENTITY.build();
     }
 }

@@ -15,19 +15,19 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
+import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
+import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity.GraviteeLicenseEntityBuilder;
+import java.util.Set;
 
-@SuppressWarnings("ALL")
-public class PrimaryOwnerFixtures extends PrimaryOwnerModelFixtures {
+public class GraviteeLicenseModelFixtures {
 
-    private static final PrimaryOwner.PrimaryOwnerBuilder BASE_PRIMARY_OWNER = PrimaryOwner
+    private static final GraviteeLicenseEntityBuilder BASE_GRAVITEE_LICENSE_ENTITY = GraviteeLicenseEntity
         .builder()
-        .id("primary-owner-id")
-        .displayName("primary-owner-displayName")
-        .email("primary-owner@email.com")
-        .type(PrimaryOwner.TypeEnum.USER);
+        .tier("tier-galaxy")
+        .features(Set.of("feature-datadog-reporter"))
+        .packs(Set.of("pack-observability"));
 
-    public static PrimaryOwner aPrimaryOwner() {
-        return BASE_PRIMARY_OWNER.build();
+    public static GraviteeLicenseEntity aGraviteeLicenseEntity() {
+        return BASE_GRAVITEE_LICENSE_ENTITY.build();
     }
 }

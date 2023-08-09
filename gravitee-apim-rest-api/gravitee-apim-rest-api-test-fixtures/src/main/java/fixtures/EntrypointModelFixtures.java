@@ -15,19 +15,16 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
+public class EntrypointModelFixtures {
 
-@SuppressWarnings("ALL")
-public class PrimaryOwnerFixtures extends PrimaryOwnerModelFixtures {
-
-    private static final PrimaryOwner.PrimaryOwnerBuilder BASE_PRIMARY_OWNER = PrimaryOwner
+    private static final io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint.EntrypointBuilder BASE_MODEL_ENTRYPOINT_V4 = io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint
         .builder()
-        .id("primary-owner-id")
-        .displayName("primary-owner-displayName")
-        .email("primary-owner@email.com")
-        .type(PrimaryOwner.TypeEnum.USER);
+        .type("Entrypoint type")
+        .qos(io.gravitee.definition.model.v4.listener.entrypoint.Qos.AT_LEAST_ONCE)
+        .dlq(new io.gravitee.definition.model.v4.listener.entrypoint.Dlq("my-endpoint"))
+        .configuration("{\"nice\": \"configuration\"}");
 
-    public static PrimaryOwner aPrimaryOwner() {
-        return BASE_PRIMARY_OWNER.build();
+    public static io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint aModelEntrypointV4() {
+        return BASE_MODEL_ENTRYPOINT_V4.build();
     }
 }

@@ -15,19 +15,19 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
+import io.gravitee.definition.model.Policy;
+import java.util.Set;
 
-@SuppressWarnings("ALL")
-public class PrimaryOwnerFixtures extends PrimaryOwnerModelFixtures {
+public class RuleModelFixtures {
 
-    private static final PrimaryOwner.PrimaryOwnerBuilder BASE_PRIMARY_OWNER = PrimaryOwner
+    private static final io.gravitee.definition.model.Rule.RuleBuilder BASE_MODEL_RULE = io.gravitee.definition.model.Rule
         .builder()
-        .id("primary-owner-id")
-        .displayName("primary-owner-displayName")
-        .email("primary-owner@email.com")
-        .type(PrimaryOwner.TypeEnum.USER);
+        .description("description")
+        .enabled(true)
+        .methods(Set.of(io.gravitee.common.http.HttpMethod.GET, io.gravitee.common.http.HttpMethod.POST))
+        .policy(Policy.builder().name("policy-name").configuration("{ }").build());
 
-    public static PrimaryOwner aPrimaryOwner() {
-        return BASE_PRIMARY_OWNER.build();
+    public static io.gravitee.definition.model.Rule oneModelRule() {
+        return BASE_MODEL_RULE.build();
     }
 }

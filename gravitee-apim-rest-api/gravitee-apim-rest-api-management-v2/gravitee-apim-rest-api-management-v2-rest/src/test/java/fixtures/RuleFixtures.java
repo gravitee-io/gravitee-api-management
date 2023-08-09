@@ -15,22 +15,13 @@
  */
 package fixtures;
 
-import io.gravitee.definition.model.Policy;
 import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.model.Rule;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
 
 @SuppressWarnings("ALL")
-public class RuleFixtures {
-
-    private static final io.gravitee.definition.model.Rule.RuleBuilder BASE_MODEL_RULE = io.gravitee.definition.model.Rule
-        .builder()
-        .description("description")
-        .enabled(true)
-        .methods(Set.of(io.gravitee.common.http.HttpMethod.GET, io.gravitee.common.http.HttpMethod.POST))
-        .policy(Policy.builder().name("policy-name").configuration("{ }").build());
+public class RuleFixtures extends RuleModelFixtures {
 
     private static final Rule.RuleBuilder BASE_RULE = Rule
         .builder()
@@ -39,10 +30,6 @@ public class RuleFixtures {
         .methods(List.of(HttpMethod.GET, HttpMethod.POST))
         .operation("policy-name")
         .configuration(new LinkedHashMap<>());
-
-    public static io.gravitee.definition.model.Rule oneModelRule() {
-        return BASE_MODEL_RULE.build();
-    }
 
     public static Rule oneRule() {
         return BASE_RULE.build();

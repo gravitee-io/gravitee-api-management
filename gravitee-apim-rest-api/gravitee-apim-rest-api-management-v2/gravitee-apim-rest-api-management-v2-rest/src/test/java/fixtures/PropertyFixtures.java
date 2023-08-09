@@ -15,12 +15,10 @@
  */
 package fixtures;
 
-import io.gravitee.definition.model.Properties;
 import io.gravitee.rest.api.management.v2.rest.model.Property;
-import java.util.List;
 
 @SuppressWarnings("ALL")
-public class PropertyFixtures {
+public class PropertyFixtures extends PropertyModelFixtures {
 
     private static final Property.PropertyBuilder BASE_PROPERTY = Property
         .builder()
@@ -29,33 +27,7 @@ public class PropertyFixtures {
         .key("prop-key")
         .value("prop-value");
 
-    private static final io.gravitee.definition.model.Property.PropertyBuilder BASE_MODEL_PROPERTY_V2 = io.gravitee.definition.model.Property
-        .builder()
-        .dynamic(false)
-        .encrypted(false)
-        .key("prop-key")
-        .value("prop-value");
-
-    private static final io.gravitee.definition.model.v4.property.Property.PropertyBuilder BASE_MODEL_PROPERTY_V4 = io.gravitee.definition.model.v4.property.Property
-        .builder()
-        .dynamic(false)
-        .encrypted(false)
-        .key("prop-key")
-        .value("prop-value");
-
-    private static final Properties.PropertiesBuilder BASE_MODEL_PROPERTIES_V2 = Properties
-        .builder()
-        .propertiesList(List.of(BASE_MODEL_PROPERTY_V2.build()));
-
-    public static Properties aModelPropertiesV2() {
-        return BASE_MODEL_PROPERTIES_V2.build();
-    }
-
     public static Property aProperty() {
         return BASE_PROPERTY.build();
-    }
-
-    public static io.gravitee.definition.model.v4.property.Property aModelPropertyV4() {
-        return BASE_MODEL_PROPERTY_V4.build();
     }
 }

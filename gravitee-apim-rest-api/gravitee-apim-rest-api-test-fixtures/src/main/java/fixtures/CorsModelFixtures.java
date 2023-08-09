@@ -15,21 +15,22 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.management.v2.rest.model.Resource;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Set;
 
-@SuppressWarnings("ALL")
-public class ResourceFixtures extends ResourceModelFixtures {
+public class CorsModelFixtures {
 
-    private static final Resource.ResourceBuilder BASE_RESOURCE = Resource
+    private static final io.gravitee.definition.model.Cors.CorsBuilder BASE_MODEL_CORS = io.gravitee.definition.model.Cors
         .builder()
-        .name("role-name")
-        .type("resource-type")
+        .accessControlAllowCredentials(true)
+        .accessControlAllowHeaders(Set.of("header1", "header2"))
+        .accessControlAllowMethods(Set.of("method1", "method2"))
+        .accessControlAllowOrigin(Set.of("origin1", "origin2"))
         .enabled(true)
-        .configuration(new LinkedHashMap<>(Map.of("key", "value")));
+        .accessControlExposeHeaders(Set.of("exposeHeader1", "exposeHeader2"))
+        .accessControlMaxAge(10)
+        .runPolicies(true);
 
-    public static Resource aResource() {
-        return BASE_RESOURCE.build();
+    public static io.gravitee.definition.model.Cors aModelCors() {
+        return BASE_MODEL_CORS.build();
     }
 }

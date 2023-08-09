@@ -15,69 +15,23 @@
  */
 package fixtures;
 
-import io.gravitee.rest.api.management.v2.rest.model.*;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
-import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.management.v2.rest.model.AcceptSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.CreateSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.RejectSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.RenewApiKey;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionConsumerConfiguration;
+import io.gravitee.rest.api.management.v2.rest.model.TransferSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiKey;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscription;
+import io.gravitee.rest.api.management.v2.rest.model.VerifySubscription;
 import java.time.OffsetDateTime;
-import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SubscriptionFixtures {
-
-    private static final SubscriptionEntity.SubscriptionEntityBuilder BASE_SUBSCRIPTION_ENTITY = SubscriptionEntity
-        .builder()
-        .id("my-subscription")
-        .api("my-api")
-        .plan("my-plan")
-        .application("my-application")
-        .createdAt(new Date())
-        .updatedAt(new Date())
-        .closedAt(new Date())
-        .endingAt(new Date())
-        .pausedAt(new Date())
-        .processedAt(new Date())
-        .status(SubscriptionStatus.ACCEPTED)
-        .consumerPausedAt(new Date())
-        .consumerStatus(SubscriptionConsumerStatus.STOPPED)
-        .daysToExpirationOnLastNotification(12)
-        .security("api-key")
-        .configuration(
-            SubscriptionConfigurationEntity
-                .builder()
-                .entrypointConfiguration("{\"nice\": \"config\"}")
-                .entrypointId("entrypoint-id")
-                .channel("channel")
-                .build()
-        )
-        .request("request")
-        .reason("reason")
-        .metadata(Map.of("meta1", "value1", "meta2", "value2"))
-        .subscribedBy("subscribed-by")
-        .processedBy("processed-by");
-
-    protected static final ApiKeyEntity.ApiKeyEntityBuilder BASE_API_KEY_ENTITY = ApiKeyEntity
-        .builder()
-        .id("my-api-key")
-        .key("custom")
-        .application(ApplicationFixtures.anApplicationEntity())
-        .createdAt(new Date())
-        .updatedAt(new Date())
-        .expireAt(new Date())
-        .revokedAt(new Date())
-        .updatedAt(new Date())
-        .daysToExpirationOnLastNotification(10)
-        .expired(true)
-        .paused(true)
-        .revoked(true)
-        .subscriptions(Set.of(BASE_SUBSCRIPTION_ENTITY.build()))
-        .revokedAt(new Date());
+public class SubscriptionFixtures extends SubscriptionModelFixtures {
 
     private static final CreateSubscription.CreateSubscriptionBuilder BASE_CREATE_SUBSCRIPTION = CreateSubscription
         .builder()
@@ -108,10 +62,6 @@ public class SubscriptionFixtures {
         )
         .metadata(Map.of("meta1", "value1", "meta2", "value2"));
 
-    public static SubscriptionEntity aSubscriptionEntity() {
-        return BASE_SUBSCRIPTION_ENTITY.build();
-    }
-
     public static CreateSubscription aCreateSubscription() {
         return BASE_CREATE_SUBSCRIPTION.build();
     }
@@ -140,10 +90,6 @@ public class SubscriptionFixtures {
 
     public static TransferSubscription aTransferSubscription() {
         return TransferSubscription.builder().planId("other-plan").build();
-    }
-
-    public static ApiKeyEntity anApiKeyEntity() {
-        return BASE_API_KEY_ENTITY.build();
     }
 
     public static UpdateApiKey anUpdateApiKey() {

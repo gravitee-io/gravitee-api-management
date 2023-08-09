@@ -27,23 +27,13 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @SuppressWarnings("rawtypes")
-public class GraviteeLicenseFixtures {
-
-    private static final GraviteeLicenseEntityBuilder BASE_GRAVITEE_LICENSE_ENTITY = GraviteeLicenseEntity
-        .builder()
-        .tier("tier-galaxy")
-        .features(Set.of("feature-datadog-reporter"))
-        .packs(Set.of("pack-observability"));
+public class GraviteeLicenseFixtures extends GraviteeLicenseModelFixtures {
 
     private static final GraviteeLicenseBuilder BASE_GRAVITEE_LICENSE = GraviteeLicense
         .builder()
         .tier("tier-galaxy")
         .features(List.of("feature-datadog-reporter"))
         .packs(List.of("pack-observability"));
-
-    public static GraviteeLicenseEntity aGraviteeLicenseEntity() {
-        return BASE_GRAVITEE_LICENSE_ENTITY.build();
-    }
 
     public static GraviteeLicense aGraviteeLicense() {
         return BASE_GRAVITEE_LICENSE.build();
