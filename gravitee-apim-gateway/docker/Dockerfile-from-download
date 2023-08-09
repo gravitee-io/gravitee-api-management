@@ -26,14 +26,15 @@ RUN addgroup -g 1000 graviteeio \
     && adduser -D -H -u 1001 graviteeio --ingroup graviteeio
 
 RUN apk update \
-	&& apk add --update --no-cache zip unzip netcat-openbsd \
+	&& apk add --update --no-cache zip unzip netcat-openbsd libc6-compat \
     && wget ${GRAVITEEIO_DOWNLOAD_URL}/${GRAVITEEIO_PACKAGE_NAME}-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp \
     && unzip /tmp/${GRAVITEEIO_PACKAGE_NAME}-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
     && apk del zip unzip netcat-openbsd \
     && mv /tmp/graviteeio-full-${GRAVITEEIO_VERSION}/graviteeio-apim-gateway* ${GRAVITEEIO_HOME} \
     && rm -rf /tmp/* \
     && chgrp -R graviteeio ${GRAVITEEIO_HOME} \
-    && chmod -R g=u ${GRAVITEEIO_HOME}
+    && chmod -R g=u ${GRAVITEEIO_HOME} \
+    && ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2
 
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082
