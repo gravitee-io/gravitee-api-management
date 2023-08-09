@@ -57,6 +57,7 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.GroupNameAlreadyExistsException;
@@ -372,7 +373,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 throw new GroupNotFoundException(groupId);
             }
             logger.debug("findById {} - DONE", group.get());
-            GroupEntity groupEntity = this.map(group.get());
+            GroupEntity groupEntity = this.map(executionContext, group.get());
 
             if (groupEntity == null) {
                 logger.error("An error occurs while trying to find a group {}", groupId);
@@ -911,6 +912,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     private GroupEntity map(Group group) {
+        return map(null, group);
+    }
+
+    private GroupEntity map(ExecutionContext executionContext, Group group) {
         if (group == null) {
             return null;
         }
@@ -919,6 +924,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         entity.setId(group.getId());
         entity.setName(group.getName());
         entity.setApiPrimaryOwner(group.getApiPrimaryOwner());
+        if (executionContext != null) {
+            populateGroupFlags(executionContext, List.of(entity));
+        }
 
         if (group.getEventRules() != null && !group.getEventRules().isEmpty()) {
             List<GroupEventRuleEntity> groupEventRules = new ArrayList<>();

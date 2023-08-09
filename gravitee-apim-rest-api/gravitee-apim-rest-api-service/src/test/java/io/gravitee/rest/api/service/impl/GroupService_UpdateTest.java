@@ -25,13 +25,16 @@ import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.Optional;
@@ -61,6 +64,9 @@ public class GroupService_UpdateTest {
 
     @Mock
     private PermissionService permissionService;
+
+    @Mock
+    private RoleService roleService;
 
     @Mock
     private AuditService auditService;
@@ -94,6 +100,7 @@ public class GroupService_UpdateTest {
         )
             .thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), "DEFAULT")).thenReturn(Optional.of(new RoleEntity()));
 
         groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 
@@ -147,6 +154,7 @@ public class GroupService_UpdateTest {
         )
             .thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), "DEFAULT")).thenReturn(Optional.of(new RoleEntity()));
 
         groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 

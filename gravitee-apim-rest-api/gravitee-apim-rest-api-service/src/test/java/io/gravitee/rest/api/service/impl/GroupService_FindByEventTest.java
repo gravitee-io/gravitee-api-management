@@ -25,8 +25,10 @@ import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.GroupEventRule;
 import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
 import java.util.*;
@@ -53,6 +55,9 @@ public class GroupService_FindByEventTest {
 
     @Mock
     private MembershipService membershipService;
+
+    @Mock
+    private RoleService roleService;
 
     @Test
     public void shouldGetGroupsByEvents() throws Exception {

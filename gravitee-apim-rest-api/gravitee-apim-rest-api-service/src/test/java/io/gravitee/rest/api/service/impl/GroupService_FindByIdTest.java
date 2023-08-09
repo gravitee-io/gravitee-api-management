@@ -23,6 +23,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -85,6 +86,8 @@ public class GroupService_FindByIdTest extends TestCase {
         )
             .thenReturn(true);
 
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID)).thenReturn(Optional.of(new RoleEntity()));
+
         var result = groupService.findById(executionContext, GROUP_ID);
 
         verify(permissionService)
@@ -108,6 +111,7 @@ public class GroupService_FindByIdTest extends TestCase {
         ExecutionContext executionContext = new ExecutionContext(ORGANIZATION_ID, null);
 
         when(roleService.findByScopeAndName(RoleScope.GROUP, SystemRole.ADMIN.name(), ORGANIZATION_ID)).thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID)).thenReturn(Optional.of(new RoleEntity()));
 
         var result = groupService.findById(executionContext, GROUP_ID);
 
@@ -121,7 +125,7 @@ public class GroupService_FindByIdTest extends TestCase {
                 eq(RolePermissionAction.DELETE)
             );
         verify(roleService).findByScopeAndName(eq(RoleScope.GROUP), eq(SystemRole.ADMIN.name()), eq(ORGANIZATION_ID));
-        verify(membershipService, times(0)).getMembershipsByMemberAndReferenceAndRole(any(), any(), any(), any());
+        verify(membershipService, times(1)).getMembershipsByMemberAndReferenceAndRole(any(), any(), any(), any());
         assertThat(result).isNotNull().extracting(GroupEntity::getId, GroupEntity::isManageable).containsExactly(GROUP_ID, false);
     }
 }
