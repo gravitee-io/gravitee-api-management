@@ -491,7 +491,7 @@ describe('ApiGeneralInfoComponent', () => {
       await expectExportV4GetRequest(API_ID);
     });
 
-    it('should not duplicate api', async () => {
+    it('should duplicate api', async () => {
       const api = fakeApiV4({
         id: API_ID,
       });
@@ -502,8 +502,24 @@ describe('ApiGeneralInfoComponent', () => {
       await waitImageCheck();
 
       const button = await loader.getHarness(MatButtonHarness.with({ text: /Duplicate/ }));
+      await button.click();
       expectLicenseGetRequest();
-      expect(await button.isDisabled()).toBeTruthy();
+
+      const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#duplicateApiDialog' }));
+
+      const contextPathInput = await confirmDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="contextPath"]' }));
+      await contextPathInput.setValue('/duplicate');
+      expectVerifyContextPathGetRequest();
+
+      const versionInput = await confirmDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
+      await versionInput.setValue('1.0.0');
+
+      const confirmButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Duplicate' }));
+      await confirmButton.click();
+
+      expectDuplicatePostRequest(API_ID);
+
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.general', { apiId: 'newApiId' });
     });
   });
 
@@ -518,7 +534,7 @@ describe('ApiGeneralInfoComponent', () => {
   }
 
   function expectDuplicatePostRequest(apiId: string) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/duplicate`, method: 'POST' }).flush({
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_duplicate`, method: 'POST' }).flush({
       id: 'newApiId',
     });
     fixture.detectChanges();

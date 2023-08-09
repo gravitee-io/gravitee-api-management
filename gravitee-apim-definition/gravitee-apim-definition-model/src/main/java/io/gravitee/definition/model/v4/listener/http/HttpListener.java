@@ -43,7 +43,7 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "HttpListenerV4")
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 public class HttpListener extends Listener {
 
     @NotEmpty

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.management.v2.rest.JerseySpringTest;
 import io.gravitee.rest.api.management.v2.rest.spring.ResourceContextConfiguration;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -32,6 +33,7 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
@@ -124,6 +126,12 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected RoleService roleService;
+
+    @Autowired
+    protected ApiDuplicatorService apiDuplicatorService;
+
+    @Autowired
+    protected ApiDuplicateService apiDuplicateService;
 
     @BeforeEach
     public void setUp() {

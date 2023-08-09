@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
-import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
-import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -30,13 +28,14 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
-import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.DuplicateApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
+import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
@@ -69,6 +68,7 @@ import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -79,6 +79,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
@@ -87,9 +88,26 @@ import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -141,6 +159,12 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ApiWorkflowStateService apiWorkflowStateService;
+
+    @Inject
+    private ApiDuplicatorService apiDuplicatorService;
+
+    @Inject
+    private ApiDuplicateService duplicateApiService;
 
     @Context
     protected UriInfo uriInfo;
@@ -278,6 +302,59 @@ public class ApiResource extends AbstractResource {
     }
 
     @POST
+    @Path("/_duplicate")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response duplicateAPI(@PathParam("apiId") String apiId, @Valid @NotNull DuplicateApiOptions duplicateOptions) {
+        if (
+            !hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_API,
+                GraviteeContext.getCurrentEnvironment(),
+                RolePermissionAction.CREATE
+            ) ||
+            !hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DEFINITION, apiId, RolePermissionAction.READ)
+        ) {
+            throw new ForbiddenAccessException();
+        }
+
+        final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
+
+        GenericApiEntity duplicate;
+        var definitionVersion = currentEntity.getDefinitionVersion();
+
+        if (definitionVersion == DefinitionVersion.V1) {
+            return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new Error()
+                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                        .message("Duplicating V1 API is not supported")
+                        .technicalCode("api.duplicate.v1")
+                )
+                .build();
+        }
+
+        if (definitionVersion == DefinitionVersion.V4) {
+            duplicate =
+                duplicateApiService.duplicate(
+                    GraviteeContext.getExecutionContext(),
+                    (ApiEntity) currentEntity,
+                    DuplicateApiMapper.INSTANCE.map(duplicateOptions)
+                );
+        } else {
+            duplicate =
+                apiDuplicatorService.duplicate(
+                    GraviteeContext.getExecutionContext(),
+                    (io.gravitee.rest.api.model.api.ApiEntity) currentEntity,
+                    DuplicateApiMapper.INSTANCE.mapToV2(duplicateOptions)
+                );
+        }
+
+        return apiResponse(duplicate);
+    }
+
+    @POST
     @Path("/_start")
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response startAPI(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
@@ -316,7 +393,6 @@ public class ApiResource extends AbstractResource {
     @Path("/_transfer-ownership")
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE) })
     public Response transferOwnership(@PathParam("apiId") String apiId, ApiTransferOwnership apiTransferOwnership) {
-
         if (!apiSearchService.exists(apiId)) {
             throw new ApiNotFoundException(apiId);
         }
@@ -325,19 +401,19 @@ public class ApiResource extends AbstractResource {
 
         if (apiTransferOwnership.getPoRole() != null) {
             roleService
-                   .findByScopeAndName(RoleScope.API, apiTransferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization())
-                   .ifPresent(newRoles::add);
+                .findByScopeAndName(RoleScope.API, apiTransferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization())
+                .ifPresent(newRoles::add);
         }
 
         membershipService.transferApiOwnership(
-               GraviteeContext.getExecutionContext(),
-               apiId,
-               new MembershipService.MembershipMember(
-                      apiTransferOwnership.getUserId(),
-                      apiTransferOwnership.getUserReference(),
-                      apiTransferOwnership.getUserType() != null ? MembershipMemberType.valueOf(apiTransferOwnership.getUserType().name()) : null
-               ),
-               newRoles
+            GraviteeContext.getExecutionContext(),
+            apiId,
+            new MembershipService.MembershipMember(
+                apiTransferOwnership.getUserId(),
+                apiTransferOwnership.getUserReference(),
+                apiTransferOwnership.getUserType() != null ? MembershipMemberType.valueOf(apiTransferOwnership.getUserType().name()) : null
+            ),
+            newRoles
         );
         return Response.noContent().build();
     }
@@ -568,8 +644,9 @@ public class ApiResource extends AbstractResource {
                 HttpListener httpListener = (HttpListener) first.get();
                 if (httpListener.getPaths() != null && !httpListener.getPaths().isEmpty()) {
                     io.gravitee.definition.model.v4.listener.http.Path path = httpListener.getPaths().get(0);
-                    io.gravitee.definition.model.v4.listener.http.Path filteredPath =
-                        new io.gravitee.definition.model.v4.listener.http.Path(path.getPath());
+                    io.gravitee.definition.model.v4.listener.http.Path filteredPath = new io.gravitee.definition.model.v4.listener.http.Path(
+                        path.getPath()
+                    );
                     httpListener.setPaths(List.of(filteredPath));
                 }
                 httpListener.setPathMappings(null);

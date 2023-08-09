@@ -19,8 +19,14 @@ import { TestBed } from '@angular/core/testing';
 import { ApiV2Service } from './api-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { fakeApiV4, fakeBaseApplication, fakeCreateApiV4, fakeUpdateApiV4 } from '../entities/management-api-v2';
-import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTransferOwnership';
+import {
+  ApiTransferOwnership,
+  DuplicateApiOptions,
+  fakeApiV4,
+  fakeBaseApplication,
+  fakeCreateApiV4,
+  fakeUpdateApiV4,
+} from '../entities/management-api-v2';
 
 describe('ApiV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -175,6 +181,26 @@ describe('ApiV2Service', () => {
       expect(req.request.body).toEqual({
         deploymentLabel: 'Deployment label',
       });
+      req.flush(fakeApi);
+    });
+  });
+
+  describe('duplicate', () => {
+    it('should call the API', (done) => {
+      const fakeApi = fakeApiV4();
+
+      const options: DuplicateApiOptions = { contextPath: '/duplicate', filteredFields: [] };
+
+      apiV2Service.duplicate(fakeApi.id, options).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}/_duplicate`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual(options);
       req.flush(fakeApi);
     });
   });

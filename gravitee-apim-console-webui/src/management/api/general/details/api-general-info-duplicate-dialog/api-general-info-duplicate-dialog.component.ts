@@ -20,9 +20,10 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
-import { Api, ApiV2, ApiV4, HttpListener } from '../../../../../entities/management-api-v2';
+import { Api, ApiV2, ApiV4, DuplicateFilteredField, HttpListener } from '../../../../../entities/management-api-v2';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 export type ApiPortalDetailsDuplicateDialogData = {
   api: Api;
@@ -36,11 +37,11 @@ export type ApiPortalDetailsDuplicateDialogData = {
 export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public optionsCheckbox = [
-    { id: 'groups', label: 'Groups', checked: true },
-    { id: 'members', label: 'Members', checked: true },
-    { id: 'pages', label: 'Pages', checked: true },
-    { id: 'plans', label: 'Plans', checked: true },
+  public optionsCheckbox: { id: DuplicateFilteredField; label: string; checked: boolean }[] = [
+    { id: 'GROUPS', label: 'Groups', checked: true },
+    { id: 'MEMBERS', label: 'Members', checked: true },
+    { id: 'PAGES', label: 'Pages', checked: true },
+    { id: 'PLANS', label: 'Plans', checked: true },
   ];
 
   public duplicateApiForm: FormGroup;
@@ -53,6 +54,7 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
     private readonly dialogRef: MatDialogRef<ApiPortalDetailsDuplicateDialogData>,
     @Inject(MAT_DIALOG_DATA) dialogData: ApiPortalDetailsDuplicateDialogData,
     private readonly apiService: ApiService,
+    private readonly apiV2Service: ApiV2Service,
     private readonly snackBarService: SnackBarService,
   ) {
     this.apiId = dialogData.api.id;
@@ -61,7 +63,7 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
 
     this.duplicateApiForm = new FormGroup({
       contextPath: new FormControl('', [Validators.required], [this.apiService.contextPathValidator({})]),
-      version: new FormControl('', [Validators.required, this.apiService.versionValidator()]),
+      version: new FormControl('', [Validators.required]),
       options: new FormGroup(
         this.optionsCheckbox.reduce((acc, option) => {
           acc[option.id] = new FormControl(option.checked);
@@ -79,11 +81,11 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
   async onDuplicate() {
     const configsFormValue = this.duplicateApiForm.value;
 
-    this.apiService
+    this.apiV2Service
       .duplicate(this.apiId, {
-        context_path: configsFormValue.contextPath,
+        contextPath: configsFormValue.contextPath,
         version: configsFormValue.version,
-        filtered_fields: this.optionsCheckbox.filter((option) => !configsFormValue.options[option.id]).map((option) => option.id),
+        filteredFields: this.optionsCheckbox.filter((option) => !configsFormValue.options[option.id]).map((option) => option.id),
       })
       .pipe(
         tap(() => this.snackBarService.success('API duplicated successfully.')),

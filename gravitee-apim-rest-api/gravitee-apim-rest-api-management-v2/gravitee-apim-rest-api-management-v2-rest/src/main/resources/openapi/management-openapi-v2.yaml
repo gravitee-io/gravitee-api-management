@@ -454,6 +454,35 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/_duplicate:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Duplicate an API
+            description: |-
+                Create a new API from an existing one.
+
+                User must have at least the API_DEFINITION[READ] and ENVIRONMENT_API[CREATE] permissions.
+            operationId: duplicateApi
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/DuplicateApiOptions"
+                required: true
+            responses:
+                "200":
+                    description: API successfully duplicated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Api"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API Reviews
     /environments/{envId}/apis/{apiId}/reviews/_ask:
         parameters:
@@ -2276,6 +2305,30 @@ components:
                           items:
                               $ref: "#/components/schemas/FlowV4"
                   required: [listeners, endpointGroups, type]
+
+        DuplicateApiOptions:
+            type: object
+            properties:
+                contextPath:
+                    type: string
+                    description: The context path of the duplicated API.
+                version:
+                    type: string
+                    description: The version of the duplicated API. If it is not defined, the value of the source API is used.
+                filteredFields:
+                    type: array
+                    description: The list of API fields that can be excluded to create the new API.
+                    items:
+                        type: string
+                        enum:
+                            - GROUPS
+                            - PLANS
+                            - MEMBERS
+                            - PAGES
+                    uniqueItems: true
+            required:
+                - contextPath
+                - filteredFields
 
         ExportApiV4:
             type: object
