@@ -21,14 +21,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Mapper
 public interface ConfigurationSerializationMapper {
     ConfigurationSerializationMapper INSTANCE = Mappers.getMapper(ConfigurationSerializationMapper.class);
+    Logger logger = LoggerFactory.getLogger(ConfigurationSerializationMapper.class);
 
     @Named("serializeConfiguration")
     default String serializeConfiguration(Object configuration) {
@@ -41,7 +45,7 @@ public interface ConfigurationSerializationMapper {
                 JsonNode jsonNode = mapper.valueToTree(configuration);
                 return mapper.writeValueAsString(jsonNode);
             } catch (IllegalArgumentException | JsonProcessingException e) {
-                throw new TechnicalManagementException("An error occurred while trying to parse connector configuration " + e);
+                throw new TechnicalManagementException("An error occurred while trying to parse configuration " + e);
             }
         } else {
             return configuration.toString();
@@ -53,11 +57,21 @@ public interface ConfigurationSerializationMapper {
         if (Objects.isNull(configuration)) {
             return null;
         }
+
+        ObjectMapper mapper = new GraviteeMapper();
         try {
-            ObjectMapper mapper = new GraviteeMapper();
             return mapper.readValue(configuration, LinkedHashMap.class);
         } catch (JsonProcessingException jse) {
-            throw new TechnicalManagementException("An error occurred while trying to parse connector configuration");
+            logger.debug("Cannot parse configuration as LinkedHashMap: " + configuration);
         }
+
+        try {
+            return mapper.readValue(configuration, List.class);
+        } catch (JsonProcessingException jse) {
+            logger.debug("Cannot parse configuration as List: " + configuration);
+        }
+
+        return configuration;
     }
+
 }
