@@ -15,6 +15,7 @@
  */
 package fixtures;
 
+import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
 import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 
@@ -28,7 +29,7 @@ public class PrimaryOwnerFixtures {
         .id("primary-owner-id")
         .displayName("primary-owner-displayName")
         .email("primary-owner@email.com")
-        .type(PrimaryOwner.TypeEnum.USER);
+        .type(MembershipMemberType.USER);
 
     public static PrimaryOwner aPrimaryOwner() {
         return BASE_PRIMARY_OWNER.build();

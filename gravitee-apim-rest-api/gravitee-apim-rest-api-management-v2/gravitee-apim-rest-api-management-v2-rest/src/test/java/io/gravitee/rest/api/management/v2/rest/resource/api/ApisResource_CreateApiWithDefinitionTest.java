@@ -44,6 +44,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PlanType;
 import io.gravitee.rest.api.management.v2.rest.model.Visibility;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;

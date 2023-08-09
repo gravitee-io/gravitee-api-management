@@ -41,9 +41,4 @@ export class ApiMemberV2Service {
   deleteMember(api: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.v2BaseURL}/apis/${api}/members/${memberId}`);
   }
-
-  // TODO add this when needed
-  // transferOwnership(api: string, ownership: ApiMembership): Observable<any> {
-  //   return this.http.post(`${this.constants.env.v2BaseURL}/apis/${api}/members/transfer_ownership`, ownership);
-  // }
 }

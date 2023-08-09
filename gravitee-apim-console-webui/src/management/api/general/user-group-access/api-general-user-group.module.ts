@@ -34,6 +34,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { ApiGeneralGroupsComponent } from './groups/api-general-groups.component';
 import { ApiGeneralMembersComponent } from './members/api-general-members.component';
@@ -67,6 +68,7 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
     MatDialogModule,
     MatSlideToggleModule,
     MatRadioModule,
+    MatButtonToggleModule,
 
     GioAvatarModule,
     GioIconsModule,

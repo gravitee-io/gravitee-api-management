@@ -20,6 +20,7 @@ import { ApiV2Service } from './api-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeApiV4, fakeBaseApplication, fakeCreateApiV4, fakeUpdateApiV4 } from '../entities/management-api-v2';
+import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTransferOwnership';
 
 describe('ApiV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -315,6 +316,31 @@ describe('ApiV2Service', () => {
       });
 
       req.flush([fakeBaseApplication()]);
+    });
+  });
+
+  describe('transfer ownership', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+
+      const transferOwnership: ApiTransferOwnership = {
+        userId: 'user',
+        userReference: 'userRef',
+        userType: 'USER',
+        poRole: 'role',
+      };
+
+      apiV2Service.transferOwnership(apiId, transferOwnership).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_transfer-ownership`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual(transferOwnership);
+      req.flush(null);
     });
   });
 });
