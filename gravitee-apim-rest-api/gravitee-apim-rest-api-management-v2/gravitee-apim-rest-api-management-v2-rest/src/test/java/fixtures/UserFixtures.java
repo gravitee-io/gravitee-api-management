@@ -15,4 +15,13 @@
  */
 package fixtures;
 
-public class UserFixtures extends UserModelFixtures {}
+import io.gravitee.rest.api.model.UserEntity;
+
+public class UserFixtures {
+
+    private UserFixtures() {}
+
+    public static UserEntity aUserEntity() {
+        return UserModelFixtures.aUserEntity();
+    }
+}

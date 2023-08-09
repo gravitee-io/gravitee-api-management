@@ -15,6 +15,7 @@
  */
 package fixtures;
 
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.management.v2.rest.model.BaseSelector;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV2;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
@@ -33,7 +34,9 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @SuppressWarnings("ALL")
-public class FlowFixtures extends FlowModelFixtures {
+public class FlowFixtures {
+
+    private FlowFixtures() {}
 
     private static final io.gravitee.rest.api.management.v2.rest.model.ChannelSelector.ChannelSelectorBuilder BASE_CHANNEL_SELECTOR_V4 = io.gravitee.rest.api.management.v2.rest.model.ChannelSelector
         .builder()
@@ -93,5 +96,13 @@ public class FlowFixtures extends FlowModelFixtures {
 
     public static FlowV2 aFlowV2() {
         return BASE_FLOW_V2.build();
+    }
+
+    public static Flow aModelFlowV4() {
+        return FlowModelFixtures.aModelFlowV4();
+    }
+
+    public static io.gravitee.definition.model.flow.Flow aModelFlowV2() {
+        return FlowModelFixtures.aModelFlowV2();
     }
 }

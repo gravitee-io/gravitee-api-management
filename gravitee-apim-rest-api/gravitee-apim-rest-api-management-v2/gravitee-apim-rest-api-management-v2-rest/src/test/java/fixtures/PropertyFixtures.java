@@ -15,10 +15,13 @@
  */
 package fixtures;
 
+import io.gravitee.definition.model.Properties;
 import io.gravitee.rest.api.management.v2.rest.model.Property;
 
 @SuppressWarnings("ALL")
-public class PropertyFixtures extends PropertyModelFixtures {
+public class PropertyFixtures {
+
+    private PropertyFixtures() {}
 
     private static final Property.PropertyBuilder BASE_PROPERTY = Property
         .builder()
@@ -29,5 +32,13 @@ public class PropertyFixtures extends PropertyModelFixtures {
 
     public static Property aProperty() {
         return BASE_PROPERTY.build();
+    }
+
+    public static Properties aModelPropertiesV2() {
+        return PropertyModelFixtures.aModelPropertiesV2();
+    }
+
+    public static io.gravitee.definition.model.v4.property.Property aModelPropertyV4() {
+        return PropertyModelFixtures.aModelPropertyV4();
     }
 }

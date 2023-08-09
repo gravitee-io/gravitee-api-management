@@ -17,6 +17,8 @@ package fixtures;
 
 public class ResourceModelFixtures {
 
+    private ResourceModelFixtures() {}
+
     private static final io.gravitee.definition.model.plugins.resources.Resource.ResourceBuilder BASE_RESOURCE_ENTITY_V2 = io.gravitee.definition.model.plugins.resources.Resource
         .builder()
         .name("role-name")

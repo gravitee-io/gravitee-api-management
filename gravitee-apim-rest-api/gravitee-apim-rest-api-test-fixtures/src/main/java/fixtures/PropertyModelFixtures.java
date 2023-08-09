@@ -20,6 +20,8 @@ import java.util.List;
 
 public class PropertyModelFixtures {
 
+    private PropertyModelFixtures() {}
+
     private static final io.gravitee.definition.model.Property.PropertyBuilder BASE_MODEL_PROPERTY_V2 = io.gravitee.definition.model.Property
         .builder()
         .dynamic(false)

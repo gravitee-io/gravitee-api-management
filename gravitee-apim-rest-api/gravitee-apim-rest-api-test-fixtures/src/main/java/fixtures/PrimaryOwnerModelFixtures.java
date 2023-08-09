@@ -19,6 +19,8 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 
 public class PrimaryOwnerModelFixtures {
 
+    private PrimaryOwnerModelFixtures() {}
+
     private static final PrimaryOwnerEntity.PrimaryOwnerEntityBuilder BASE_PRIMARY_OWNER_ENTITY = PrimaryOwnerEntity
         .builder()
         .id("primary-owner-id")

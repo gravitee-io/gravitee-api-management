@@ -22,7 +22,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @SuppressWarnings("ALL")
-public class EntrypointFixtures extends EntrypointModelFixtures {
+public class EntrypointFixtures {
+
+    private EntrypointFixtures() {}
 
     private static final Entrypoint.EntrypointBuilder BASE_ENTRYPOINT_V4 = Entrypoint
         .builder()
@@ -33,5 +35,9 @@ public class EntrypointFixtures extends EntrypointModelFixtures {
 
     public static Entrypoint anEntrypointV4() {
         return BASE_ENTRYPOINT_V4.build();
+    }
+
+    public static io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint aModelEntrypointV4() {
+        return EntrypointModelFixtures.aModelEntrypointV4();
     }
 }

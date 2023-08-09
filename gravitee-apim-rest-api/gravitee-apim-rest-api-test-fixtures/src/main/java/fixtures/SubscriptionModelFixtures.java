@@ -26,6 +26,8 @@ import java.util.Set;
 
 public class SubscriptionModelFixtures {
 
+    private SubscriptionModelFixtures() {}
+
     private static final SubscriptionEntity.SubscriptionEntityBuilder BASE_SUBSCRIPTION_ENTITY = SubscriptionEntity
         .builder()
         .id("my-subscription")

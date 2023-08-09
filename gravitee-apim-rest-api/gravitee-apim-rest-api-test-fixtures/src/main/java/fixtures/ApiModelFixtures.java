@@ -30,6 +30,8 @@ import java.util.Set;
 
 public class ApiModelFixtures {
 
+    private ApiModelFixtures() {}
+
     private static final io.gravitee.definition.model.DefinitionContext.DefinitionContextBuilder BASE_MODEL_DEFINITION_CONTEXT = io.gravitee.definition.model.DefinitionContext
         .builder()
         .origin(io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT)

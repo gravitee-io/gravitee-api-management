@@ -23,7 +23,9 @@ import io.gravitee.rest.api.management.v2.rest.model.TcpListener;
 import java.util.List;
 
 @SuppressWarnings("ALL")
-public class ListenerFixtures extends ListenerModelFixtures {
+public class ListenerFixtures {
+
+    private ListenerFixtures() {}
 
     private static final PathV4.PathV4Builder BASE_PATH_V4 = PathV4.builder().host("my.fake.host").path("/test").overrideAccess(true);
 
@@ -62,5 +64,17 @@ public class ListenerFixtures extends ListenerModelFixtures {
 
     public static TcpListener aTcpListener() {
         return BASE_TCP_LISTENER.build();
+    }
+
+    public static io.gravitee.definition.model.v4.listener.http.HttpListener aModelHttpListener() {
+        return ListenerModelFixtures.aModelHttpListener();
+    }
+
+    public static io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener aModelSubscriptionListener() {
+        return ListenerModelFixtures.aModelSubscriptionListener();
+    }
+
+    public static io.gravitee.definition.model.v4.listener.tcp.TcpListener aModelTcpListener() {
+        return ListenerModelFixtures.aModelTcpListener();
     }
 }

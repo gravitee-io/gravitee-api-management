@@ -27,6 +27,8 @@ import java.util.Set;
 
 public class PlanModelFixtures {
 
+    private PlanModelFixtures() {}
+
     private static final PlanSecurity.PlanSecurityBuilder BASE_PLAN_SECURITY_V4 = PlanSecurity
         .builder()
         .type(PlanSecurityType.API_KEY.getLabel())

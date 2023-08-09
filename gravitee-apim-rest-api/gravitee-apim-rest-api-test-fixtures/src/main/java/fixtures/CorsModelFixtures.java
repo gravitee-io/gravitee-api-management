@@ -19,6 +19,8 @@ import java.util.Set;
 
 public class CorsModelFixtures {
 
+    private CorsModelFixtures() {}
+
     private static final io.gravitee.definition.model.Cors.CorsBuilder BASE_MODEL_CORS = io.gravitee.definition.model.Cors
         .builder()
         .accessControlAllowCredentials(true)

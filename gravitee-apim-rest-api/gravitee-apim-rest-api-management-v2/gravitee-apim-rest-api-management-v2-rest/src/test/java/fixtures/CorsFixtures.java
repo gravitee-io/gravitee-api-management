@@ -23,7 +23,9 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 @SuppressWarnings("ALL")
-public class CorsFixtures extends CorsModelFixtures {
+public class CorsFixtures {
+
+    private CorsFixtures() {}
 
     private static final Cors.CorsBuilder BASE_CORS = Cors
         .builder()
@@ -38,5 +40,9 @@ public class CorsFixtures extends CorsModelFixtures {
 
     public static Cors aCors() {
         return BASE_CORS.build();
+    }
+
+    public static io.gravitee.definition.model.Cors aModelCors() {
+        return CorsModelFixtures.aModelCors();
     }
 }

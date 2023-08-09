@@ -16,9 +16,12 @@
 package fixtures;
 
 import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 
 @SuppressWarnings("ALL")
-public class PrimaryOwnerFixtures extends PrimaryOwnerModelFixtures {
+public class PrimaryOwnerFixtures {
+
+    private PrimaryOwnerFixtures() {}
 
     private static final PrimaryOwner.PrimaryOwnerBuilder BASE_PRIMARY_OWNER = PrimaryOwner
         .builder()
@@ -29,5 +32,9 @@ public class PrimaryOwnerFixtures extends PrimaryOwnerModelFixtures {
 
     public static PrimaryOwner aPrimaryOwner() {
         return BASE_PRIMARY_OWNER.build();
+    }
+
+    public static PrimaryOwnerEntity aPrimaryOwnerEntity() {
+        return PrimaryOwnerModelFixtures.aPrimaryOwnerEntity();
     }
 }

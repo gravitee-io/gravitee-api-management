@@ -27,6 +27,8 @@ import java.util.Set;
 
 public class ApplicationModelFixtures {
 
+    private ApplicationModelFixtures() {}
+
     protected static final ApplicationSettings.ApplicationSettingsBuilder APPLICATION_SETTINGS_BUILDER = ApplicationSettings
         .builder()
         .app(SimpleApplicationSettings.builder().clientId("clientId").build())

@@ -34,12 +34,15 @@ import io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Visibility;
+import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ApiFixtures extends ApiModelFixtures {
+public class ApiFixtures {
+
+    private ApiFixtures() {}
 
     private static final DefinitionContext.DefinitionContextBuilder BASE_DEFINITION_CONTEXT = DefinitionContext
         .builder()
@@ -146,5 +149,17 @@ public class ApiFixtures extends ApiModelFixtures {
 
     public static UpdateApiV2 anUpdateApiV2() {
         return BASE_UPDATE_API_V2.build();
+    }
+
+    public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV1() {
+        return ApiModelFixtures.aModelApiV1();
+    }
+
+    public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV2() {
+        return ApiModelFixtures.aModelApiV2();
+    }
+
+    public static ApiEntity aModelApiV4() {
+        return ApiModelFixtures.aModelApiV4();
     }
 }

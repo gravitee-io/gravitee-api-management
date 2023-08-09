@@ -21,7 +21,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 @SuppressWarnings("ALL")
-public class RuleFixtures extends RuleModelFixtures {
+public class RuleFixtures {
+
+    private RuleFixtures() {}
 
     private static final Rule.RuleBuilder BASE_RULE = Rule
         .builder()
@@ -33,5 +35,9 @@ public class RuleFixtures extends RuleModelFixtures {
 
     public static Rule oneRule() {
         return BASE_RULE.build();
+    }
+
+    public static io.gravitee.definition.model.Rule oneModelRule() {
+        return RuleModelFixtures.oneModelRule();
     }
 }

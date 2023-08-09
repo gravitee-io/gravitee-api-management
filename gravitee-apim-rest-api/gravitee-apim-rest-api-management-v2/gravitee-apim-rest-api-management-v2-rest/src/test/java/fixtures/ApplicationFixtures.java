@@ -15,8 +15,22 @@
  */
 package fixtures;
 
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.application.ApplicationListItem;
+
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApplicationFixtures extends ApplicationModelFixtures {}
+public class ApplicationFixtures {
+
+    private ApplicationFixtures() {}
+
+    public static ApplicationListItem anApplicationListItem() {
+        return ApplicationModelFixtures.anApplicationListItem();
+    }
+
+    public static ApplicationEntity anApplicationEntity() {
+        return ApplicationModelFixtures.anApplicationEntity();
+    }
+}

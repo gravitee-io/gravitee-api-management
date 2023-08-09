@@ -21,6 +21,8 @@ import java.util.Set;
 
 public class GraviteeLicenseModelFixtures {
 
+    private GraviteeLicenseModelFixtures() {}
+
     private static final GraviteeLicenseEntityBuilder BASE_GRAVITEE_LICENSE_ENTITY = GraviteeLicenseEntity
         .builder()
         .tier("tier-galaxy")

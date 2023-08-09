@@ -15,12 +15,14 @@
  */
 package fixtures;
 
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericPlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +31,9 @@ import java.util.Set;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PlanFixtures extends PlanModelFixtures {
+public class PlanFixtures {
+
+    private PlanFixtures() {}
 
     private static final UpdateGenericPlanSecurity.UpdateGenericPlanSecurityBuilder<?, ?> BASE_UPDATE_PLAN_SECURITY = UpdateGenericPlanSecurity
         .builder()
@@ -142,7 +146,11 @@ public class PlanFixtures extends PlanModelFixtures {
         return BASE_UPDATE_PLAN_V2.build();
     }
 
+    public static PlanEntity aPlanEntityV4() {
+        return PlanModelFixtures.aPlanEntityV4();
+    }
+
     public static io.gravitee.rest.api.model.PlanEntity aPlanEntityV2() {
-        return BASE_PLAN_ENTITY_V2.build();
+        return PlanModelFixtures.aPlanEntityV2();
     }
 }

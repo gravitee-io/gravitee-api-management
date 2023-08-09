@@ -23,6 +23,8 @@ import java.util.Set;
 
 public class EndpointModelFixtures {
 
+    private EndpointModelFixtures() {}
+
     private static final io.gravitee.definition.model.Endpoint.EndpointBuilder BASE_MODEL_ENDPOINT_V2 = io.gravitee.definition.model.Endpoint
         .builder()
         .name("Endpoint name")

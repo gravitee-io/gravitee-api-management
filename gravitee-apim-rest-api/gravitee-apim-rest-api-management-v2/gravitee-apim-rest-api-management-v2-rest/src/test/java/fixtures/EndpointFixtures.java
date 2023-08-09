@@ -15,6 +15,8 @@
  */
 package fixtures;
 
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupServices;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupServicesV2;
 import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV2;
@@ -32,7 +34,9 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("ALL")
-public class EndpointFixtures extends EndpointModelFixtures {
+public class EndpointFixtures {
+
+    private EndpointFixtures() {}
 
     private static final HttpEndpointV2.HttpEndpointV2Builder BASE_HTTP_ENDPOINT_V2 = HttpEndpointV2
         .builder()
@@ -107,5 +111,21 @@ public class EndpointFixtures extends EndpointModelFixtures {
 
     public static EndpointGroupV4 anEndpointGroupV4() {
         return BASE_ENDPOINTGROUP_V4.build();
+    }
+
+    public static io.gravitee.definition.model.Endpoint aModelEndpointV2() {
+        return EndpointModelFixtures.aModelEndpointV2();
+    }
+
+    public static io.gravitee.definition.model.EndpointGroup aModelEndpointGroupV2() {
+        return EndpointModelFixtures.aModelEndpointGroupV2();
+    }
+
+    public static Endpoint aModelEndpointV4() {
+        return EndpointModelFixtures.aModelEndpointV4();
+    }
+
+    public static EndpointGroup aModelEndpointGroupV4() {
+        return EndpointModelFixtures.aModelEndpointGroupV4();
     }
 }

@@ -19,6 +19,8 @@ import io.gravitee.rest.api.model.UserEntity;
 
 public class UserModelFixtures {
 
+    private UserModelFixtures() {}
+
     private static final UserEntity.UserEntityBuilder USER_ENTITY = UserEntity
         .builder()
         .id("id")

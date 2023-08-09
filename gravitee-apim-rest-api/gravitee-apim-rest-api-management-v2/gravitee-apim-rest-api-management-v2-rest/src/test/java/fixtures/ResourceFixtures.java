@@ -20,7 +20,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @SuppressWarnings("ALL")
-public class ResourceFixtures extends ResourceModelFixtures {
+public class ResourceFixtures {
+
+    private ResourceFixtures() {}
 
     private static final Resource.ResourceBuilder BASE_RESOURCE = Resource
         .builder()
@@ -31,5 +33,13 @@ public class ResourceFixtures extends ResourceModelFixtures {
 
     public static Resource aResource() {
         return BASE_RESOURCE.build();
+    }
+
+    public static io.gravitee.definition.model.plugins.resources.Resource aResourceEntityV2() {
+        return ResourceModelFixtures.aResourceEntityV2();
+    }
+
+    public static io.gravitee.definition.model.v4.resource.Resource aResourceEntityV4() {
+        return ResourceModelFixtures.aResourceEntityV4();
     }
 }

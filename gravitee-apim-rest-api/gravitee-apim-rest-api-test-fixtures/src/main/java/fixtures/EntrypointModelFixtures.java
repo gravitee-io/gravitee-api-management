@@ -17,6 +17,8 @@ package fixtures;
 
 public class EntrypointModelFixtures {
 
+    private EntrypointModelFixtures() {}
+
     private static final io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint.EntrypointBuilder BASE_MODEL_ENTRYPOINT_V4 = io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint
         .builder()
         .type("Entrypoint type")

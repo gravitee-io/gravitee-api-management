@@ -24,6 +24,8 @@ import io.gravitee.rest.api.management.v2.rest.model.TransferSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiKey;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscription;
 import io.gravitee.rest.api.management.v2.rest.model.VerifySubscription;
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
@@ -31,7 +33,9 @@ import java.util.Map;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SubscriptionFixtures extends SubscriptionModelFixtures {
+public class SubscriptionFixtures {
+
+    private SubscriptionFixtures() {}
 
     private static final CreateSubscription.CreateSubscriptionBuilder BASE_CREATE_SUBSCRIPTION = CreateSubscription
         .builder()
@@ -98,5 +102,13 @@ public class SubscriptionFixtures extends SubscriptionModelFixtures {
 
     public static RenewApiKey aRenewApiKey() {
         return RenewApiKey.builder().customApiKey("custom").build();
+    }
+
+    public static SubscriptionEntity aSubscriptionEntity() {
+        return SubscriptionModelFixtures.aSubscriptionEntity();
+    }
+
+    public static ApiKeyEntity anApiKeyEntity() {
+        return SubscriptionModelFixtures.anApiKeyEntity();
     }
 }

@@ -23,6 +23,8 @@ import java.util.Set;
 
 public class FlowModelFixtures {
 
+    private FlowModelFixtures() {}
+
     private static final ChannelSelector.ChannelSelectorBuilder BASE_MODEL_CHANNEL_SELECTOR_V4 = ChannelSelector
         .builder()
         .channel("channel")

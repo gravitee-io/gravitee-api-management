@@ -21,6 +21,8 @@ import java.util.Set;
 
 public class ListenerModelFixtures {
 
+    private ListenerModelFixtures() {}
+
     private static final Path.PathBuilder BASE_MODEL_PATH_V4 = Path.builder().host("my.fake.host").path("/test").overrideAccess(true);
 
     private static final io.gravitee.definition.model.v4.listener.http.HttpListener.HttpListenerBuilder BASE_MODEL_HTTP_LISTENER = io.gravitee.definition.model.v4.listener.http.HttpListener
