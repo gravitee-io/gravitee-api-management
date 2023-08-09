@@ -34,7 +34,8 @@ RUN apk update \
     && rm -rf /tmp/* \
     && chgrp -R graviteeio ${GRAVITEEIO_HOME} \
     && chmod -R g=u ${GRAVITEEIO_HOME} \
-    && ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2
+    && apkArch="$(apk --print-arch)" \
+    && ln -s /lib/libc.musl-${apkArch}.so.1 /lib/ld-linux-${apkArch/_/-}.so.2
 
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082
