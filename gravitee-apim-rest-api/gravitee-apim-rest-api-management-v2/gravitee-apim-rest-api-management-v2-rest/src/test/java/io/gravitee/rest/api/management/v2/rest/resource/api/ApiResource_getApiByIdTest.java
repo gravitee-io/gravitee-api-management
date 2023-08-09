@@ -31,6 +31,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
+import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -51,10 +52,8 @@ import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
-import io.gravitee.rest.api.management.v2.rest.model.EndpointGroupV4;
-import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
+import io.gravitee.definition.model.v4.service.Service;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -202,6 +201,18 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
 
         var conditionSelector = flow.getSelectors().get(2).getConditionSelector();
         assertEquals("my-condition", conditionSelector.getCondition());
+
+        var service = responseApi.getServices();
+        assertNotNull(service);
+        assertNotNull(service.getDynamicProperty());
+        assertNotNull(service.getDynamicProperty().getConfiguration());
+
+        ServiceV4 dynamicPropertyConfiguration = service.getDynamicProperty();
+        assertNotNull(dynamicPropertyConfiguration);
+        assertEquals(true, dynamicPropertyConfiguration.getEnabled());
+        assertEquals(true, dynamicPropertyConfiguration.getOverrideConfiguration());
+        assertNotNull(dynamicPropertyConfiguration.getConfiguration());
+        assertEquals("dynamic-property", dynamicPropertyConfiguration.getType());
     }
 
     @Test
@@ -266,6 +277,20 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertEquals(Boolean.TRUE, responseApi.getServices().getHealthCheck().getEnabled());
         assertNotNull(responseApi.getServices().getDynamicProperty());
         assertEquals(Boolean.TRUE, responseApi.getServices().getDynamicProperty().getEnabled());
+        assertNotNull(responseApi.getServices().getDynamicProperty().getConfiguration());
+        assertEquals(true, responseApi.getServices().getDynamicProperty().getEnabled());
+
+        var httpDynamicProperty = responseApi
+            .getServices()
+            .getDynamicProperty()
+            .getConfiguration()
+            .getHttpDynamicPropertyProviderConfiguration();
+        assertNotNull(httpDynamicProperty);
+        assertEquals("GET", httpDynamicProperty.getMethod().getValue());
+        assertNotNull(httpDynamicProperty.getBody());
+        assertNotNull(httpDynamicProperty.getSpecification());
+        assertEquals(false, httpDynamicProperty.getUseSystemProxy());
+        assertEquals("https://api.gravitee.io/echo", httpDynamicProperty.getUrl());
     }
 
     @Test
@@ -389,6 +414,26 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         flow.setSelectors(List.of(httpSelector, channelSelector, conditionSelector));
         apiEntity.setFlows(List.of(flow));
 
+        Service dynamicProperty = new Service();
+        dynamicProperty.setConfiguration(
+            "{\n" +
+            "        \"enabled\": true,\n" +
+            "        \"schedule\": \"*/10 * * * * *\",\n" +
+            "        \"provider\": \"HTTP\",\n" +
+            "        \"configuration\": {\n" +
+            "          \"url\": \"https://api.gravitee.io/echo\",\n" +
+            "          \"specification\": \"[{\\n    \\\"operation\\\": \\\"shift\\\",\\n    \\\"spec\\\": {\\n      \\\"rating\\\": {\\n        \\\"primary\\\": {\\n          \\\"value\\\": \\\"Rating\\\",\\n          \\\"max\\\": \\\"RatingRange\\\"\\n        },\\n        \\\"*\\\": {\\n          \\\"max\\\": \\\"SecondaryRatings.&1.Range\\\",\\n          \\\"value\\\": \\\"SecondaryRatings.&1.Value\\\",\\n          \\\"$\\\": \\\"SecondaryRatings.&1.Id\\\"\\n        }\\n      }\\n    }\\n  },\\n  {\\n    \\\"operation\\\": \\\"default\\\",\\n    \\\"spec\\\": {\\n      \\\"Range\\\": 5,\\n      \\\"SecondaryRatings\\\": {\\n        \\\"*\\\": {\\n          \\\"Range\\\": 5\\n        }\\n      }\\n    }\\n  }\\n]\",\n" +
+            "          \"useSystemProxy\": false,\n" +
+            "          \"method\": \"GET\",\n" +
+            "          \"body\": \"{\\n    \\\"rating\\\": {\\n      \\\"primary\\\": {\\n        \\\"value\\\": 3\\n      },\\n      \\\"quality\\\": {\\n        \\\"value\\\": 3\\n      }\\n    }\\n  }\"\n" +
+            "        }\n" +
+            "      }"
+        );
+        dynamicProperty.setType("dynamic-property");
+        dynamicProperty.setEnabled(true);
+        dynamicProperty.setOverrideConfiguration(true);
+        apiEntity.setServices(new ApiServices(dynamicProperty));
+
         return apiEntity;
     }
 
@@ -412,6 +457,43 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         final DynamicPropertyService dynamicPropertyService = new DynamicPropertyService();
         dynamicPropertyService.setEnabled(true);
         dynamicPropertyService.setSchedule("schedule");
+
+        var httpConfiguration = new HttpDynamicPropertyProviderConfiguration();
+        httpConfiguration.setBody("not an object");
+        httpConfiguration.setMethod(HttpMethod.GET);
+        httpConfiguration.setUrl("https://api.gravitee.io/echo");
+        httpConfiguration.setUseSystemProxy(false);
+        httpConfiguration.setSpecification(
+            "[{\n" +
+            "    \"operation\": \"shift\",\n" +
+            "    \"spec\": {\n" +
+            "      \"rating\": {\n" +
+            "        \"primary\": {\n" +
+            "          \"value\": \"Rating\",\n" +
+            "          \"max\": \"RatingRange\"\n" +
+            "        },\n" +
+            "        \"*\": {\n" +
+            "          \"max\": \"SecondaryRatings.&1.Range\",\n" +
+            "          \"value\": \"SecondaryRatings.&1.Value\",\n" +
+            "          \"$\": \"SecondaryRatings.&1.Id\"\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
+            "  },\n" +
+            "  {\n" +
+            "    \"operation\": \"default\",\n" +
+            "    \"spec\": {\n" +
+            "      \"Range\": 5,\n" +
+            "      \"SecondaryRatings\": {\n" +
+            "        \"*\": {\n" +
+            "          \"Range\": 5\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
+            "  }\n" +
+            "]"
+        );
+        dynamicPropertyService.setConfiguration(httpConfiguration);
         services.setDynamicPropertyService(dynamicPropertyService);
         apiEntity.setServices(services);
         apiEntity.setResources(List.of(new io.gravitee.definition.model.plugins.resources.Resource()));
