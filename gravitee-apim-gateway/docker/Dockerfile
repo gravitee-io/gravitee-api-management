@@ -18,8 +18,10 @@
 FROM graviteeio/java:17 as base
 ENV GRAVITEEIO_HOME /opt/graviteeio-gateway
 
-RUN apk update && apk add --no-cache libc6-compat && \
-ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2
+RUN apk update  \
+    && apk add --no-cache libc6-compat  \
+    && apkArch="$(apk --print-arch)" \
+    && ln -s /lib/libc.musl-${apkArch}.so.1 /lib/ld-linux-${apkArch/_/-}.so.2
 
 RUN addgroup -g 1000 graviteeio \
     && adduser -D -H -u 1001 graviteeio --ingroup graviteeio
