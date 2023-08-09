@@ -4498,7 +4498,7 @@ components:
                     items:
                         $ref: "#/components/schemas/HttpHeader"
                 body:
-                    type: string
+                    type: object
                     description: The body of the request
                     example: my body
         HttpHeader:
