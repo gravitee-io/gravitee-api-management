@@ -17,26 +17,19 @@
 -->
 <form [formGroup]="form" *ngIf="form" (ngSubmit)="onSubmit()">
   <mat-card class="card">
-    <p>
-      Give full access to this API to another
-      <ng-container *ngIf="mode === 'USER'">
-        <mat-radio-group aria-label="Select User or Group" formControlName="userOrGroup">
-          <mat-radio-button class="card__userOrGroup_radio" value="apiMember">API member</mat-radio-button>
-          <span style="vertical-align: bottom"> or </span>
-          <mat-radio-button class="card__userOrGroup_radio" value="user">Other user</mat-radio-button>
-        </mat-radio-group>
-      </ng-container>
-      <ng-container *ngIf="mode === 'GROUP'">group</ng-container>
-      <ng-container *ngIf="mode === 'HYBRID'">
-        <mat-radio-group aria-label="Select User or Group" formControlName="userOrGroup">
-          <mat-radio-button class="card__userOrGroup_radio" value="apiMember">API member</mat-radio-button>
-          <span style="vertical-align: bottom"> or </span>
-          <mat-radio-button class="card__userOrGroup_radio" value="user">Other user</mat-radio-button>
-          <span style="vertical-align: bottom"> or </span>
-          <mat-radio-button class="card__userOrGroup_radio" value="group">Group</mat-radio-button>
-        </mat-radio-group>
-      </ng-container>
-    </p>
+    <div class="card__header">
+      <div>
+        <h3>Transfer ownership</h3>
+        <p>Select your preferred method for granting complete API access</p>
+      </div>
+    </div>
+    <ng-container *ngIf="mode && mode !== 'GROUP'">
+      <mat-button-toggle-group aria-label="Select User or Group" class="card__userOrGroup__toggle-group" formControlName="userOrGroup">
+        <mat-button-toggle class="card__userOrGroup__toggle" value="apiMember"> API member </mat-button-toggle>
+        <mat-button-toggle class="card__userOrGroup__toggle" value="user"> Other user </mat-button-toggle>
+        <mat-button-toggle *ngIf="mode === 'HYBRID'" class="card__userOrGroup__toggle" value="group"> Group </mat-button-toggle>
+      </mat-button-toggle-group>
+    </ng-container>
 
     <div class="card__userOrGroup" *ngIf="form.get('userOrGroup').value === 'apiMember'">
       <mat-form-field class="card__userOrGroup__field">

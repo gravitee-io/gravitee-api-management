@@ -20,10 +20,16 @@ import { ApiMenuService } from './ApiMenuService';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
+import UserService from '../../../services/user.service';
 
 @Injectable()
 export class ApiNgV4MenuService implements ApiMenuService {
-  constructor(private readonly permissionService: GioPermissionService, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(
+    private readonly permissionService: GioPermissionService,
+    @Inject(CurrentUserService) private readonly currentUserService: UserService,
+    @Inject('Constants') private readonly constants: Constants,
+  ) {}
 
   public getMenu(): {
     subMenuItems: MenuItem[];
@@ -129,14 +135,13 @@ export class ApiNgV4MenuService implements ApiMenuService {
         },
       );
     }
-    // TODO: add transfer ownership
-    // if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
-    //   userAndGroupAccessMenuItems.tabs.push({
-    //     displayName: 'Transfer ownership',
-    //     targetRoute: 'management.apis.ng.transferOwnership',
-    //     baseRoute: 'management.apis.ng.transferOwnership',
-    //   });
-    // }
+    if (this.currentUserService.currentUser.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
+      userAndGroupAccessMenuItems.tabs.push({
+        displayName: 'Transfer ownership',
+        targetRoute: 'management.apis.ng.transferOwnership',
+        baseRoute: 'management.apis.ng.transferOwnership',
+      });
+    }
     if (userAndGroupAccessMenuItems.tabs.length > 0) {
       generalGroup.items.push(userAndGroupAccessMenuItems);
     }

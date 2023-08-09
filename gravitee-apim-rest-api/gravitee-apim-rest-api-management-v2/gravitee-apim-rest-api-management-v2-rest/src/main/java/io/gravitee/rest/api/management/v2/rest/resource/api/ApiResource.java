@@ -36,6 +36,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
+import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
@@ -48,6 +49,8 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.management.v2.rest.security.Permission;
 import io.gravitee.rest.api.management.v2.rest.security.Permissions;
 import io.gravitee.rest.api.model.InlinePictureEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
@@ -60,18 +63,21 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
@@ -85,6 +91,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.*;
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -303,6 +310,36 @@ public class ApiResource extends AbstractResource {
         );
 
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+    }
+
+    @POST
+    @Path("/_transfer-ownership")
+    @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE) })
+    public Response transferOwnership(@PathParam("apiId") String apiId, ApiTransferOwnership apiTransferOwnership) {
+
+        if (!apiSearchService.exists(apiId)) {
+            throw new ApiNotFoundException(apiId);
+        }
+
+        List<RoleEntity> newRoles = new ArrayList<>();
+
+        if (apiTransferOwnership.getPoRole() != null) {
+            roleService
+                   .findByScopeAndName(RoleScope.API, apiTransferOwnership.getPoRole(), GraviteeContext.getCurrentOrganization())
+                   .ifPresent(newRoles::add);
+        }
+
+        membershipService.transferApiOwnership(
+               GraviteeContext.getExecutionContext(),
+               apiId,
+               new MembershipService.MembershipMember(
+                      apiTransferOwnership.getUserId(),
+                      apiTransferOwnership.getUserReference(),
+                      apiTransferOwnership.getUserType() != null ? MembershipMemberType.valueOf(apiTransferOwnership.getUserType().name()) : null
+               ),
+               newRoles
+        );
+        return Response.noContent().build();
     }
 
     @GET

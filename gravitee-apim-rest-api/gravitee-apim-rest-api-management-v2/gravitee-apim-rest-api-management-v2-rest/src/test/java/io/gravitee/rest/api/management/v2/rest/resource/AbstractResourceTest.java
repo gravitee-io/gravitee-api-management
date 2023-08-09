@@ -112,6 +112,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected ApiWorkflowStateService apiWorkflowStateService;
 
+    @Autowired
+    protected RoleService roleService;
+
     @Before
     public void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);

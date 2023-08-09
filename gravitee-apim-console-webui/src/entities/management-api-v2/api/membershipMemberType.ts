@@ -13,11 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MembershipMemberType } from './membershipMemberType';
 
-export interface PrimaryOwner {
-  id?: string;
-  displayName?: string;
-  email?: string;
-  type?: MembershipMemberType;
-}
+export type MembershipMemberType = 'USER' | 'GROUP';

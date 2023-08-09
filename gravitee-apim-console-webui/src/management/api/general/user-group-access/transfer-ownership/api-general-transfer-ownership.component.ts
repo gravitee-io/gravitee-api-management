@@ -23,7 +23,6 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-pa
 
 import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { ApiMemberService } from '../../../../../services-ngx/api-member.service';
-import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GroupService } from '../../../../../services-ngx/group.service';
 import { Group } from '../../../../../entities/group/group';
@@ -31,6 +30,8 @@ import { RoleService } from '../../../../../services-ngx/role.service';
 import { Role } from '../../../../../entities/role/role';
 import { Constants } from '../../../../../entities/Constants';
 import { SearchableUser } from '../../../../../entities/user/searchableUser';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { ApiTransferOwnership } from '../../../../../entities/management-api-v2/api/apiTransferOwnership';
 
 @Component({
   selector: 'api-general-transfer-ownership',
@@ -55,7 +56,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
-    private readonly apiService: ApiService,
+    private readonly apiV2Service: ApiV2Service,
     private readonly apiMembersService: ApiMemberService,
     private readonly groupService: GroupService,
     private readonly roleService: RoleService,
@@ -70,7 +71,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
     this.mode = this.constants.env.settings.api.primaryOwnerMode.toUpperCase() as 'USER' | 'GROUP' | 'HYBRID';
 
     combineLatest([
-      this.apiService.get(this.apiId),
+      this.apiV2Service.get(this.apiId),
       this.groupService.list(),
       this.roleService.list('API'),
       this.apiMembersService.getMembers(this.apiId),
@@ -78,8 +79,8 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
       .pipe(
         tap(([api, groups, roles, apiMembers]) => {
           this.poGroups = groups.filter((group) => group.apiPrimaryOwner != null);
-          if (api.owner.type === 'GROUP') {
-            this.poGroups = this.poGroups.filter((group) => group.id !== api.owner.id);
+          if (api.primaryOwner.type === 'GROUP') {
+            this.poGroups = this.poGroups.filter((group) => group.id !== api.primaryOwner.id);
           }
 
           this.warnUseGroupAsPrimaryOwner = (this.mode === 'HYBRID' || this.mode === 'GROUP') && isEmpty(this.poGroups);
@@ -95,7 +96,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
               displayName: member.displayName,
             }));
 
-          this.initForm(defaultRolePO, this.mode);
+          this.initForm(defaultRolePO);
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -121,17 +122,17 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
     });
 
     const user: SearchableUser = this.form.get('user').value;
-    const transferOwnershipToUser = {
-      id: user?.id,
-      reference: user?.reference,
-      role: newRole,
-      type: 'USER',
+    const transferOwnershipToUser: ApiTransferOwnership = {
+      userId: user?.id,
+      userReference: user?.reference,
+      poRole: newRole,
+      userType: 'USER',
     };
-    const transferOwnershipToGroup = {
-      id: this.form.get('groupId').value,
-      reference: null,
-      role: newRole,
-      type: 'GROUP',
+    const transferOwnershipToGroup: ApiTransferOwnership = {
+      userId: this.form.get('groupId').value,
+      userReference: null,
+      poRole: newRole,
+      userType: 'GROUP',
     };
 
     const userMode = this.form.get('userOrGroup').value;
@@ -141,7 +142,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter((confirmed) => confirmed),
-        switchMap(() => this.apiService.transferOwnership(this.apiId, isUserMode ? transferOwnershipToUser : transferOwnershipToGroup)),
+        switchMap(() => this.apiV2Service.transferOwnership(this.apiId, isUserMode ? transferOwnershipToUser : transferOwnershipToGroup)),
         tap(
           () => this.snackBarService.success('Transfer ownership done.'),
           ({ error }) => {
@@ -155,10 +156,10 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
       .subscribe();
   }
 
-  private initForm(defaultRolePO: Role, mode: 'USER' | 'GROUP' | 'HYBRID') {
+  private initForm(defaultRolePO: Role) {
     this.form = new FormGroup(
       {
-        userOrGroup: new FormControl(mode === 'HYBRID' ? undefined : mode === 'USER' ? 'user' : 'group'),
+        userOrGroup: new FormControl('apiMember'),
         user: new FormControl(),
         groupId: new FormControl(),
         roleId: new FormControl(defaultRolePO.name),

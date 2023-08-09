@@ -52,6 +52,7 @@ import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.PageType;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.permissions.RolePermission;

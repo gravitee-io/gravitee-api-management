@@ -13,11 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { MembershipMemberType } from './membershipMemberType';
 
-export interface PrimaryOwner {
-  id?: string;
-  displayName?: string;
-  email?: string;
-  type?: MembershipMemberType;
+export interface ApiTransferOwnership {
+  /**
+   * User's technical identifier
+   */
+  userId?: string;
+  /**
+   * User's reference for user provided by an identity provider
+   */
+  userReference?: string;
+  /**
+   * The type of membership
+   */
+  userType?: MembershipMemberType;
+  /**
+   * Primary owner role's name
+   */
+  poRole?: string;
 }

@@ -423,6 +423,36 @@ paths:
                     description: API successfully stopped
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/_transfer-ownership:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - APIs
+            summary: Transfer the ownership of the API
+            description: |-
+                Transfer the ownership of the API to a user, a group or an api member.
+                
+                Return a 404 HTTP Error if API cannot be found.
+
+                Return a 400 HTTP Error:
+                 - when user tries to stop an ARCHIVED API
+                 - when the API is already STOPPED.
+
+                User must have the API_MEMBER[UPDATE] permission.
+            operationId: transferOwnership
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ApiTransferOwnership"
+                required: true
+            responses:
+                "204":
+                    description: Ownership has been transfered successfully
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API Reviews
     /environments/{envId}/apis/{apiId}/reviews/_ask:
@@ -2125,6 +2155,20 @@ components:
                     type: string
                     description: The URL to the API's background.
                     example: https://gravitee.example.com/management/v2/environments/00f8c9e7-78fc-4907-b8c9-e778fc790750/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background
+        ApiTransferOwnership:
+            type: object
+            properties:
+                userId:
+                    type: string
+                    description: The new primary owner ID (user's technical identifier). Can be null if userReference is defined.
+                userReference:
+                    type: string
+                    description: The new primary owner reference (user's reference provided by an identity provider). Can be null if userId is defined.
+                userType:
+                    $ref: "#/components/schemas/MembershipMemberType"
+                poRole:
+                    type: string
+                    description: The name of the role that will be assigned to the current primary owner after the transfer.
 
         CreateApi:
             oneOf:
@@ -4004,12 +4048,7 @@ components:
                     example: John Doe
                     minLength: 1
                 type:
-                    type: string
-                    description: Owner's type.
-                    example: USER
-                    enum:
-                        - USER
-                        - GROUP
+                    $ref: "#/components/schemas/MembershipMemberType"
         Property:
             type: object
             required:
@@ -4080,6 +4119,12 @@ components:
                     description: The value of the sampling
             required:
                 - type
+        MembershipMemberType:
+            type: string
+            description: The type of membership
+            enum:
+                - USER
+                - GROUP
         Selector:
             oneOf:
                 - $ref: "#/components/schemas/HttpSelector"

@@ -29,6 +29,7 @@ import {
   CreateApi,
   UpdateApi,
 } from '../entities/management-api-v2';
+import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTransferOwnership';
 
 @Injectable({
   providedIn: 'root',
@@ -134,5 +135,9 @@ export class ApiV2Service {
       filter((api) => !!api),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
+  }
+
+  transferOwnership(api: string, ownership: ApiTransferOwnership): Observable<any> {
+    return this.http.post(`${this.constants.env.v2BaseURL}/apis/${api}/_transfer-ownership`, ownership);
   }
 }
