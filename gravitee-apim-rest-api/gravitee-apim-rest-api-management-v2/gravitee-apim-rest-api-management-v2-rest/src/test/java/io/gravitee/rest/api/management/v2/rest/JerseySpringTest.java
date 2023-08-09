@@ -60,7 +60,7 @@ public abstract class JerseySpringTest {
         return target(path, "");
     }
 
-    private final WebTarget target(final String path, final String baseURL) {
+    private WebTarget target(final String path, final String baseURL) {
         String finalPath = "";
         String contextPath = contextPath();
         if (!contextPath.startsWith("/")) {
@@ -101,6 +101,7 @@ public abstract class JerseySpringTest {
                     ResourceConfig application = new GraviteeManagementV2Application();
 
                     application.property("contextConfig", context);
+                    application.property("jersey.config.server.wadl.disableWadl", true);
                     decorate(application);
 
                     return application;
@@ -135,7 +136,7 @@ public abstract class JerseySpringTest {
     public static class AuthenticationFilter implements ContainerRequestFilter {
 
         @Override
-        public void filter(final ContainerRequestContext requestContext) throws IOException {
+        public void filter(final ContainerRequestContext requestContext) {
             requestContext.setSecurityContext(
                 new SecurityContext() {
                     @Override
@@ -143,8 +144,7 @@ public abstract class JerseySpringTest {
                         UserDetails userDetails = new UserDetails(USER_NAME, "", Collections.emptyList());
                         userDetails.setOrganizationId(ORGANIZATION);
 
-                        UsernamePasswordAuthenticationToken principal = new UsernamePasswordAuthenticationToken(userDetails, new Object());
-                        return principal;
+                        return new UsernamePasswordAuthenticationToken(userDetails, new Object());
                     }
 
                     @Override
