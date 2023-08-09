@@ -60,7 +60,8 @@ export class GioPolicyStudioRoutingModule {
     const states = [
       {
         name: `${config.stateNamePrefix}`,
-        url: '/policy-studio',
+        // Here URL should not start with a `/` in order to preserve parent route params (like API id)
+        url: 'policy-studio',
         component: GioPolicyStudioLayoutComponent,
         redirectTo: { state: `${config.stateNamePrefix}.design`, params: { psPage: 'design' } },
         data: {
