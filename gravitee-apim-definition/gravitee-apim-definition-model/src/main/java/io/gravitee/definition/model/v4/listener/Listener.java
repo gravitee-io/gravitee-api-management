@@ -66,7 +66,7 @@ import lombok.experimental.SuperBuilder;
     },
     oneOf = { HttpListener.class, TcpListener.class, SubscriptionListener.class }
 )
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 public abstract class Listener implements Serializable {
 
     public static final String HTTP_LABEL = "http";

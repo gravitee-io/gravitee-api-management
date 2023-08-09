@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
@@ -194,5 +195,15 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiWorkflowStateService apiWorkflowStateService() {
         return mock(ApiWorkflowStateService.class);
+    }
+
+    @Bean
+    public ApiDuplicatorService apiDuplicatorService() {
+        return mock(ApiDuplicatorService.class);
+    }
+
+    @Bean
+    public ApiDuplicateService apiDuplicateService() {
+        return mock(ApiDuplicateService.class);
     }
 }

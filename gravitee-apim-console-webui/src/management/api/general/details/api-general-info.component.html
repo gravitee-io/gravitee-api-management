@@ -173,7 +173,7 @@
         *gioPermission="{ anyOf: ['api-definition-c'] }"
         mat-button
         class="details-card__actions_btn"
-        [disabled]="isKubernetesOrigin || api.definitionVersion === 'V4'"
+        [disabled]="isKubernetesOrigin || api.definitionVersion === 'V1'"
         data-testid="api_info_duplicate_menu"
         (click)="duplicateApi()"
       >

@@ -27,6 +27,7 @@ import {
   ApiSubscribersResponse,
   ApiV4,
   CreateApi,
+  DuplicateApiOptions,
   UpdateApi,
 } from '../entities/management-api-v2';
 import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTransferOwnership';
@@ -75,6 +76,10 @@ export class ApiV2Service {
     return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/deployments`, {
       deploymentLabel,
     });
+  }
+
+  duplicate(apiId: string, options: DuplicateApiOptions): Observable<Api> {
+    return this.http.post<Api>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_duplicate`, options);
   }
 
   export(apiId: string): Observable<Blob> {

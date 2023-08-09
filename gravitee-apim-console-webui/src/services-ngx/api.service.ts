@@ -19,7 +19,7 @@ import { Observable, of } from 'rxjs';
 import * as _ from 'lodash';
 import { catchError, map, mapTo } from 'rxjs/operators';
 import { IScope } from 'angular';
-import { AbstractControl, AsyncValidatorFn, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
 
 import { Api, ApiMetrics, ApiQualityMetrics, ApiStateEntity, UpdateApi } from '../entities/api';
 import { Constants } from '../entities/Constants';
@@ -253,18 +253,6 @@ export class ApiService {
           return of({ contextPath: message });
         }),
       );
-  }
-
-  versionValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      if (!control.value) {
-        // If the control is empty, return no error
-        return null;
-      }
-      const version = control.value;
-
-      return version.length > 32 ? { version: 'Maximum length is 32 characters.' } : null;
-    };
   }
 
   migrateApiToPolicyStudio(apiId: string): Observable<Api> {

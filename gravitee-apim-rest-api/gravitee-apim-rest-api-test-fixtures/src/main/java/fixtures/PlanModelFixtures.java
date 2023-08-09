@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -80,6 +81,29 @@ public class PlanModelFixtures {
 
     public static PlanEntity aPlanEntityV4() {
         return BASE_PLAN_ENTITY_V4.build();
+    }
+
+    public static PlanEntity aKeylessPlanV4() {
+        return PlanEntity
+            .builder()
+            .id("keyless-id")
+            .name("keyless")
+            .apiId("my-api")
+            .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00.00Z")))
+            .updatedAt(Date.from(Instant.parse("2020-02-02T10:15:30.00Z")))
+            .status(PlanStatus.PUBLISHED)
+            .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS.getLabel()).build())
+            .type(PlanType.API)
+            .validation(PlanValidationType.AUTO)
+            .build();
+    }
+
+    public static PlanEntity anApiKeyPanV4() {
+        return aPlanEntityV4()
+            .toBuilder()
+            .name("apikey")
+            .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
+            .build();
     }
 
     public static io.gravitee.rest.api.model.PlanEntity aPlanEntityV2() {
