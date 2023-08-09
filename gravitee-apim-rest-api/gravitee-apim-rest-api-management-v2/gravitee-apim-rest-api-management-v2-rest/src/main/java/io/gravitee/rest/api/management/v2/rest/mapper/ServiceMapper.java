@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.v4.service.Service;
@@ -49,7 +51,7 @@ public interface ServiceMapper {
     @Mapping(target = "discoveryService", source = "discovery")
     Services map(EndpointGroupServicesV2 endpointGroupServicesV2);
 
-    @Mapping(target = "configuration", qualifiedByName = "toDynamicPropertyServiceConfiguration")
+    @Mapping(target = "configuration", qualifiedByName = "toDynamicPropertyProviderConfiguration")
     @Mapping(target = "name", constant = io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService.SERVICE_KEY)
     io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService map(DynamicPropertyService dynamicPropertyService);
 
@@ -60,6 +62,7 @@ public interface ServiceMapper {
     @Mapping(target = "name", constant = io.gravitee.definition.model.services.discovery.EndpointDiscoveryService.SERVICE_KEY)
     io.gravitee.definition.model.services.discovery.EndpointDiscoveryService map(EndpointDiscoveryService endpointDiscoveryService);
 
+    @Mapping(target = "configuration", qualifiedByName = "toDynamicPropertyServiceConfiguration")
     DynamicPropertyService map(io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService dynamicPropertyService);
 
     HealthCheckService map(io.gravitee.definition.model.services.healthcheck.HealthCheckService healthCheckService);
@@ -67,12 +70,19 @@ public interface ServiceMapper {
     EndpointDiscoveryService map(io.gravitee.definition.model.services.discovery.EndpointDiscoveryService endpointDiscoveryService);
 
     @Mapping(target = "specification", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "body", qualifiedByName = "serializeConfiguration")
     io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration map(
         HttpDynamicPropertyProviderConfiguration httpDynamicPropertyProviderConfiguration
     );
 
-    @Named("toDynamicPropertyServiceConfiguration")
-    default DynamicPropertyProviderConfiguration mapToDynamicPropertyServiceConfiguration(
+    @Mapping(target = "specification", qualifiedByName = "deserializeConfiguration")
+    @Mapping(target = "body", qualifiedByName = "deserializeConfiguration")
+    HttpDynamicPropertyProviderConfiguration map(
+            io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration httpDynamicPropertyProviderConfiguration
+    );
+
+    @Named("toDynamicPropertyProviderConfiguration")
+    default DynamicPropertyProviderConfiguration mapToDynamicPropertyProviderConfiguration(
         DynamicPropertyServiceConfiguration configuration
     ) {
         if (Objects.isNull(configuration)) {
@@ -83,4 +93,16 @@ public interface ServiceMapper {
         }
         return null;
     }
+
+    @Named("toDynamicPropertyServiceConfiguration")
+    default DynamicPropertyServiceConfiguration mapToDynamicPropertyServiceConfiguration(
+            DynamicPropertyProviderConfiguration configuration
+    ) {
+        if (Objects.nonNull(configuration) && configuration instanceof io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration) {
+            var mappedConfiguration = this.map((io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration) configuration);
+            return new DynamicPropertyServiceConfiguration(mappedConfiguration);
+        }
+        return null;
+    }
+
 }
