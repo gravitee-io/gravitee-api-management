@@ -17,7 +17,7 @@
 -->
 <div class="gv-sub-content" ng-class="{'ae-promo-content': $ctrl.isAlertEngineEnabled() == false}">
   <div ng-if="$ctrl.isAlertEngineEnabled() == false">
-    <alert-engine-promotion />
+    <alert-engine-promotion trial-url="$ctrl.trialUrl" />
   </div>
 
   <div ng-if="$ctrl.isAlertEngineEnabled() == true">
