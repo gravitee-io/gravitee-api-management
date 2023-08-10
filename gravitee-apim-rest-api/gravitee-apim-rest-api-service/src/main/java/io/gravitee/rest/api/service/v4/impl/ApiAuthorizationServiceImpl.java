@@ -381,11 +381,11 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         }
 
         // get user apis
-        final Set<String> userApiIds = this.findUserApiIdsFromMemberships(userId, false);
+        final Set<String> userApiIds = this.findUserApiIdsFromMemberships(userId, true);
         apiIds.addAll(userApiIds);
 
         // get user groups apis
-        final Set<String> userGroupApiIds = this.findApiIdsByUserGroups(executionContext, userId, apiQuery, false);
+        final Set<String> userGroupApiIds = this.findApiIdsByUserGroups(executionContext, userId, apiQuery, true);
         apiIds.addAll(userGroupApiIds);
 
         return apiIds;

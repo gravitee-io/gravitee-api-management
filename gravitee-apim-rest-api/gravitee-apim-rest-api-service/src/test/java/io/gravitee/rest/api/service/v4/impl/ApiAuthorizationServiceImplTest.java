@@ -167,7 +167,71 @@ public class ApiAuthorizationServiceImplTest {
 
         assertThat(apis).hasSize(1);
     }
+    @Test
+    public void findIdsByUserId() {
+        final String userId = "USER#1";
+        final String poRoleId = "API_PRIMARY_OWNER";
 
+        MembershipEntity membership = new MembershipEntity();
+        membership.setId("id");
+        membership.setMemberId(userId);
+        membership.setMemberType(MembershipMemberType.USER);
+        membership.setReferenceId(api.getId());
+        membership.setReferenceType(MembershipReferenceType.API);
+        membership.setRoleId(poRoleId);
+
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API))
+                .thenReturn(Collections.singleton(membership));
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(poRoleId);
+        poRole.setPermissions(ImmutableMap.of("MEMBER", "CRUD".toCharArray()));
+        poRole.setScope(RoleScope.API);
+        poRole.setName("PRIMARY_OWNER");
+        when(roleService.findById(poRoleId)).thenReturn(poRole);
+
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole));
+
+        final Set<String> apis = apiAuthorizationService.findApiIdsByUserId(GraviteeContext.getExecutionContext(), userId, null);
+
+        assertThat(apis).hasSize(1);
+    }
+
+    @Test
+    public void findIdsByUserIdShouldExcludeReadonlyRoles() {
+        final String userId = "USER#1";
+        final String userRoleId = "API_USER";
+        final String poRoleId = "API_PRIMARY_OWNER";
+
+        MembershipEntity membership = new MembershipEntity();
+        membership.setId("id");
+        membership.setMemberId(userId);
+        membership.setMemberType(MembershipMemberType.USER);
+        membership.setReferenceId(api.getId());
+        membership.setReferenceType(MembershipReferenceType.API);
+        membership.setRoleId(userRoleId);
+
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.API))
+            .thenReturn(Collections.singleton(membership));
+
+        RoleEntity userRole = new RoleEntity();
+        userRole.setId(userRoleId);
+        userRole.setPermissions(ImmutableMap.of("MEMBER", "R".toCharArray()));
+        userRole.setScope(RoleScope.API);
+        userRole.setName("USER");
+        when(roleService.findById(userRoleId)).thenReturn(userRole);
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(poRoleId);
+        poRole.setPermissions(ImmutableMap.of("MEMBER", "CRUD".toCharArray()));
+        poRole.setScope(RoleScope.API);
+        poRole.setName("PRIMARY_OWNER");
+
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
+
+        final Set<String> apis = apiAuthorizationService.findApiIdsByUserId(GraviteeContext.getExecutionContext(), userId, null);
+
+        assertThat(apis).hasSize(0);
+    }
     @Test
     public void shouldFindIdsByUserWithCriteria() {
         final String userRoleId = "API_USER";
