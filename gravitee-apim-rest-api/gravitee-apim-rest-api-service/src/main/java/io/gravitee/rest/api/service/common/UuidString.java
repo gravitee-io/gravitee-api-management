@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.common;
 
 import io.gravitee.common.utils.UUID;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -25,16 +26,23 @@ import java.util.stream.Stream;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface UuidString {
+public class UuidString {
+
+    private static final Supplier<String> DEFAULT_GENERATOR = () -> UUID.toString(UUID.random());
+
+    private static Supplier<String> uuidGenerator = DEFAULT_GENERATOR;
+
+    private UuidString() {}
+
     /**
      * Random version-4 UUID will have 6 predetermined variant and version bits, leaving 122 bits for the randomly generated part.
      * @return A random UUID as string
      */
-    static String generateRandom() {
-        return UUID.toString(UUID.random());
+    public static String generateRandom() {
+        return uuidGenerator.get();
     }
 
-    static String generateForEnvironment(String environmentId, String... fields) {
+    public static String generateForEnvironment(String environmentId, String... fields) {
         if (Stream.of(fields).anyMatch(Objects::isNull)) {
             return generateRandom();
         }
@@ -47,5 +55,13 @@ public interface UuidString {
         String baseStringForUUID = b.toString();
 
         return UUID.toString(java.util.UUID.nameUUIDFromBytes(baseStringForUUID.getBytes()));
+    }
+
+    public static void overrideGenerator(Supplier<String> newGenerator) {
+        UuidString.uuidGenerator = newGenerator;
+    }
+
+    public static void reset() {
+        UuidString.uuidGenerator = DEFAULT_GENERATOR;
     }
 }
