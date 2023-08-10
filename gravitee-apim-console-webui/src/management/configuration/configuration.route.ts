@@ -46,30 +46,6 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       abstract: true,
       url: '/settings',
       template: require('./settings.html'),
-      data: {
-        perms: {
-          only: [
-            // hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
-            'environment-category-r',
-            'environment-metadata-r',
-            'environment-top_apis-r',
-            'environment-group-r',
-            'environment-tag-c',
-            'environment-tenant-c',
-            'environment-group-c',
-            'environment-documentation-c',
-            'environment-tag-u',
-            'environment-tenant-u',
-            'environment-group-u',
-            'environment-documentation-u',
-            'environment-tag-d',
-            'environment-tenant-d',
-            'environment-group-d',
-            'environment-documentation-d',
-            'environment-api_header-r',
-          ],
-        },
-      },
     })
     // Portal
     .state('management.settings.analytics', {

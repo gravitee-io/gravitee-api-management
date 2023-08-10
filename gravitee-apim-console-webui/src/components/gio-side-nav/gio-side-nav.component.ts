@@ -31,7 +31,6 @@ interface MenuItem {
   baseRoute: string;
   displayName: string;
   permissions?: string[];
-  subMenuPermissions?: string[];
 }
 
 @Component({
@@ -101,26 +100,40 @@ export class GioSideNavComponent implements OnInit {
         targetRoute: 'management.settings.analytics.list',
         baseRoute: 'management.settings',
         displayName: 'Settings',
-        permissions: ['environment-settings-c', 'environment-settings-r', 'environment-settings-u', 'environment-settings-d'],
-        subMenuPermissions: [
-          // hack only read permissions is necessary but READ is also allowed for API_PUBLISHER
-          'environment-category-r',
-          'environment-metadata-r',
-          'environment-top_apis-r',
-          'environment-group-r',
-          'environment-tag-c',
-          'environment-tenant-c',
-          'environment-group-c',
-          'environment-documentation-c',
-          'environment-tag-u',
-          'environment-tenant-u',
-          'environment-group-u',
-          'environment-documentation-u',
-          'environment-tag-d',
-          'environment-tenant-d',
-          'environment-group-d',
-          'environment-documentation-d',
-          'environment-api_header-r',
+        // prettier-ignore
+        permissions: [
+          // Portal
+          'environment-dashboard-r',                    // Analytics
+          'environment-api_header-r',                   // API Portal Information
+          'environment-quality_rule-r',                 // API Quality
+          'organization-identity_provider-r',           // Authentication
+          'environment-identity_provider_activation-r', // Authentication
+          'environment-category-r',                     // Categories
+          'environment-client_registration_provider-r', // Client Registration
+          'environment-documentation-c',                // Documentation
+          'environment-documentation-u',                // Documentation
+          'environment-documentation-d',                // Documentation
+          'environment-metadata-r',                     // Metadata
+          'environment-settings-r',                     // Settings
+          'environment-theme-r',                        // Theme
+          'environment-top_apis-r',                     // Top APIs
+          // Gateway
+          'organization-settings-r',                    // API Logging + FIXME should be moved to organization settings screen
+          'environment-dictionary-r',                   // Dictionaries
+          'environment-tag-c',                          // Sharding Tags
+          'environment-tag-r',                          // Sharding Tags
+          'environment-tag-u',                          // Sharding Tags
+          'environment-tag-d',                          // Sharding Tags
+          'environment-tenant-c',                       // Tenants
+          'environment-tenant-r',                       // Tenants
+          'environment-tenant-u',                       // Tenants
+          'environment-tenant-d',                       // Tenants
+          // User Management
+          'organization-custom_user_fields-r',          // User Fields + FIXME should be moved to organization settings screen
+          'environment-group-r',                        // Groups
+          // Notifications
+          'environment-notification-r',                 // Notifications
+          'environment-alert-r',                        // Alerts
         ],
       },
     ]);
@@ -139,14 +152,9 @@ export class GioSideNavComponent implements OnInit {
   }
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
-    return menuItems.filter(
-      (item) =>
-        !item.permissions ||
-        (item.subMenuPermissions &&
-          this.permissionService.hasAnyMatching(item.subMenuPermissions) &&
-          this.permissionService.hasAnyMatching(item.permissions)) ||
-        this.permissionService.hasAnyMatching(item.permissions),
-    );
+    return menuItems
+      .filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions))
+      .filter((item) => (item.permissions?.includes('environment-alert-r') ? this.constants.org?.settings?.alert?.enabled : true)); // Dirty hack to remove the "Alert" menu item if the alert feature is not enabled
   }
 
   navigateTo(route: string) {
