@@ -19,10 +19,8 @@ import static io.gravitee.common.component.Lifecycle.State.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
-import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.processor.chain.DefaultStreamableProcessorChain;
 import io.gravitee.gateway.handlers.api.definition.Api;
@@ -33,12 +31,13 @@ import io.gravitee.gateway.policy.NoOpPolicyChain;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.reporter.api.http.Metrics;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
@@ -72,6 +71,9 @@ public class ApiReactorHandlerTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private OnErrorProcessorChainFactory errorProcessorChainFactory;
+
+    @Mock
+    private Configuration configuration;
 
     @Mock
     Node node;
@@ -149,7 +151,7 @@ public class ApiReactorHandlerTest {
     }
 
     private ApiReactorHandler createHandler(long pendingRequestsTimeout) {
-        ApiReactorHandler apiReactorHandler = new ApiReactorHandler(api);
+        ApiReactorHandler apiReactorHandler = new ApiReactorHandler(configuration, api);
         apiReactorHandler.setNode(node);
         apiReactorHandler.setPendingRequestsTimeout(pendingRequestsTimeout);
         apiReactorHandler.setGroupLifecycleManager(groupLifecycleManager);

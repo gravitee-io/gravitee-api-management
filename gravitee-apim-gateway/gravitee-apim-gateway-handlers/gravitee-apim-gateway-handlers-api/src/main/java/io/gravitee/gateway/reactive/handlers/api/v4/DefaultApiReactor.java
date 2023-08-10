@@ -19,10 +19,7 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTER
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
 import static java.lang.Boolean.TRUE;
@@ -98,6 +95,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     public static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
     public static final String REQUEST_TIMEOUT_KEY = "REQUEST_TIMEOUT";
     public static final String SERVICES_TRACING_ENABLED_PROPERTY = "services.tracing.enabled";
+    public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
     static final int STOP_UNTIL_INTERVAL_PERIOD_MS = 100;
     private static final Logger log = LoggerFactory.getLogger(DefaultApiReactor.class);
     protected final List<ChainHook> processorChainHooks;
@@ -138,6 +136,8 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
     private Lifecycle.State lifecycleState;
     protected AnalyticsContext analyticsContext;
     private List<ApiService> services;
+    private final boolean validateSubscriptionEnabled;
+
 
     public DefaultApiReactor(
         final Api api,
@@ -187,6 +187,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         this.lifecycleState = Lifecycle.State.INITIALIZED;
         this.tracingEnabled = configuration.getProperty(SERVICES_TRACING_ENABLED_PROPERTY, Boolean.class, false);
         this.pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
+        this.validateSubscriptionEnabled = configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, true);
         this.loggingExcludedResponseType =
             configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
         this.loggingMaxSize = configuration.getProperty(REPORTERS_LOGGING_MAX_SIZE_PROPERTY, String.class, null);
@@ -227,6 +228,7 @@ public class DefaultApiReactor extends AbstractLifecycleComponent<ReactorHandler
         ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER, defaultInvoker);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, validateSubscriptionEnabled);
     }
 
     private void prepareMetrics(HttpExecutionContext ctx) {

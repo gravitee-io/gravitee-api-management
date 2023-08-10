@@ -88,8 +88,8 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
     }
 
     @Override
-    protected ApiReactorHandler getApiReactorHandler(Api api) {
-        return new DebugApiReactorHandler(api);
+    protected ApiReactorHandler getApiReactorHandler(Configuration configuration, Api api) {
+        return new DebugApiReactorHandler(configuration, api);
     }
 
     @Override

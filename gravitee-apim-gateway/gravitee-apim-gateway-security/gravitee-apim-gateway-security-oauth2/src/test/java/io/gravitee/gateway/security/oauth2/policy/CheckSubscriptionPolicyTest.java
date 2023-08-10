@@ -203,4 +203,19 @@ public class CheckSubscriptionPolicyTest {
                 )
             );
     }
+
+    @Test
+    public void shouldContinue_cause_validate_subscription_is_skipped() throws PolicyException {
+        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
+        Response response = mock(Response.class);
+        PolicyChain policyChain = mock(PolicyChain.class);
+
+        when(executionContext.getAttribute(ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION)).thenReturn(false);
+        when(executionContext.response()).thenReturn(response);
+
+        policy.execute(policyChain, executionContext);
+
+        verify(policyChain, times(1)).doNext(request, response);
+    }
+
 }

@@ -38,6 +38,8 @@ import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.configuration.Configuration;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,6 +52,8 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public class ApiReactorHandler extends AbstractReactorHandler<Api> {
+
+    public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
 
     /**
      * Invoker is the connector to access the remote backend / endpoint.
@@ -74,9 +78,11 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
     private final AtomicInteger pendingRequests = new AtomicInteger(0);
 
     private long pendingRequestsTimeout;
+    private final Configuration configuration;
 
-    public ApiReactorHandler(final Api api) {
+    public ApiReactorHandler(Configuration configuration, final Api api) {
         super(api);
+        this.configuration = configuration;
     }
 
     @Override
@@ -96,6 +102,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         context.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
         context.setAttribute(ExecutionContext.ATTR_ORGANIZATION, reactable.getOrganizationId());
         context.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, reactable.getEnvironmentId());
+        context.setAttribute(ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION, this.configuration.getProperty(API_VALIDATE_SUBSCRIPTION_PROPERTY, Boolean.class, true));
 
         // Prepare request metrics
         request.metrics().setApi(reactable.getId());
