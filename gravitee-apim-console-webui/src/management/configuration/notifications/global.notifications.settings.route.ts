@@ -30,6 +30,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       data: {
         perms: {
           only: ['environment-notification-r'],
+          unauthorizedFallbackTo: 'management.home',
         },
       },
       resolve: {
