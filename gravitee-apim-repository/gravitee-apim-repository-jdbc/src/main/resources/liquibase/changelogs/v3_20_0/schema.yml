@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 3.20.0
       author: GraviteeSource Team
+      validCheckSum: ANY
       changes:
         # ################
         # Apis v4 Changes
