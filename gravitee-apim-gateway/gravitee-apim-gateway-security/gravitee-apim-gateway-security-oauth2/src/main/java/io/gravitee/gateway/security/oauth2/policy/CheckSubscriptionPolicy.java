@@ -60,6 +60,12 @@ public class CheckSubscriptionPolicy implements Policy {
         executionContext.request().metrics().setSecurityType(OAUTH2);
         executionContext.request().metrics().setSecurityToken(clientId);
 
+        Object validateSubscription = executionContext.getAttribute(ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION);
+        if(validateSubscription != null && !((boolean) validateSubscription)) {
+            policyChain.doNext(executionContext.request(), executionContext.response());
+            return;
+        }
+
         Optional<io.gravitee.gateway.api.service.Subscription> optionalSubscription = subscriptionService.getByApiAndClientIdAndPlan(
             api,
             clientId,

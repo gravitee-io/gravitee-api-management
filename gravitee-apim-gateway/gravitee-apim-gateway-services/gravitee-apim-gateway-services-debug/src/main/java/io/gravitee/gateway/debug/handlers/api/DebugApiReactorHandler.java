@@ -24,6 +24,7 @@ import io.gravitee.gateway.debug.reactor.handler.http.ContextualizedDebugHttpSer
 import io.gravitee.gateway.handlers.api.ApiReactorHandler;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
+import io.gravitee.node.api.configuration.Configuration;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -31,8 +32,8 @@ import io.gravitee.gateway.reactor.handler.HttpAcceptor;
  */
 public class DebugApiReactorHandler extends ApiReactorHandler {
 
-    public DebugApiReactorHandler(Api api) {
-        super(api);
+    public DebugApiReactorHandler(Configuration configuration, Api api) {
+        super(configuration, api);
     }
 
     @Override

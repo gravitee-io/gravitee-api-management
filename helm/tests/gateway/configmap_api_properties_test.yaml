@@ -10,6 +10,7 @@ tests:
           pattern: |
             api:
               properties:
+
   - it: Set the API properties
     template: gateway/gateway-configmap.yaml
     set:
@@ -26,3 +27,40 @@ tests:
               properties:
                 encryption:
                   secret: aSecret
+
+  - it: Set the API properties, skip validateSubscription
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        api:
+          properties:
+            encryption:
+              secret: aSecret
+          validateSubscription: true
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            api:
+              properties:
+                encryption:
+                  secret: aSecret
+              validateSubscription: true
+
+  - it: Check DB Less mode
+    template: gateway/gateway-configmap.yaml
+    set:
+      global:
+        kubeVersion: 1.23.0
+      apim:
+        dbLess: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: |
+            api:
+              validateSubscription: false

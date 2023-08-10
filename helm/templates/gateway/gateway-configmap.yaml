@@ -160,11 +160,7 @@ data:
       {{- end }}
 
     ratelimit:
-      {{- if .Values.apim.dbLess }}
-      type: {{ "hazelcast" }}
-      {{- else }}
       type: {{ .Values.ratelimit.type | default "mongodb" }}
-      {{- end }}
       {{- if or (eq .Values.ratelimit.type "mongodb") (kindIs "invalid" .Values.ratelimit.type) }}
       mongodb:
         sslEnabled: {{ .Values.mongo.sslEnabled }}
@@ -439,8 +435,12 @@ data:
     {{- end }}
 
     # APIs specific configuration
+    api:
+    {{- if .Values.apim.dbLess }}
+      validateSubscription: false
+    {{- end }}
     {{- if .Values.gateway.api }}
-    api: {{- toYaml .Values.gateway.api | nindent 6 -}}
+      {{- toYaml .Values.gateway.api | nindent 6 -}}
     {{- end}}
 
     gracefulShutdown:

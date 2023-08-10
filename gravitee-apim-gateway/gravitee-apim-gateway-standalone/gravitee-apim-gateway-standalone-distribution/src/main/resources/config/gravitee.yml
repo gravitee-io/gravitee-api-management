@@ -528,7 +528,7 @@ api:
   # when an API is un-deployed (either because it has been stopped or because it has restarted due to a configuration
   # change), this timeout will be the maximum time (in milliseconds) to wait for all pending requests to terminate
 #  pending_requests_timeout: 10000
-
+  validateSubscription: true  # set to false if you want to skip validating the subscription, default value is true
 # Graceful shutdown.
 #gracefulShutdown:
   # Default delay is 0 but it can be useful to set it to an adequate value depending on how much time the load balancer takes to stop routing traffic to a gateway instance which is shutting down.

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.security.plan;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -264,5 +265,18 @@ class SecurityPlanTest {
         final TestObserver<Void> obs = cut.execute(ctx, ExecutionPhase.REQUEST).test();
 
         obs.assertResult();
+    }
+
+    @Test
+    void canExecute_shouldReturnTrue_whenValidateSubscriptionIsEscaped() {
+        when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION)).thenReturn(false);
+        when(plan.getId()).thenReturn(PLAN_ID);
+
+        final SecurityPlan cut = new SecurityPlan(plan.getId(), policy, plan.getSelectionRule());
+        final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
+
+        obs.assertResult(true);
+        verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
     }
 }

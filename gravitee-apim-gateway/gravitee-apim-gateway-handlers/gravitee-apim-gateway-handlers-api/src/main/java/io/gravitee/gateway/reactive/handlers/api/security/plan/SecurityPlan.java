@@ -19,8 +19,7 @@ import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_AP
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_APPLICATION;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_PLAN;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_SUBSCRIPTION_ID;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_TOKEN;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
 
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
@@ -148,6 +147,13 @@ public class SecurityPlan {
     }
 
     private boolean validateSubscription(GenericExecutionContext ctx, SecurityToken securityToken) {
+        Boolean validateSubscriptionEnabled = ctx.getInternalAttribute(ATTR_INTERNAL_VALIDATE_SUBSCRIPTION);
+
+        // Skip validating the subscription
+        if(validateSubscriptionEnabled != null && !validateSubscriptionEnabled) {
+            return true;
+        }
+
         if (!policy.requireSubscription()) {
             return true;
         }

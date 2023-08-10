@@ -219,7 +219,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
                         apiComponentProvider
                     );
 
-                    final ApiReactorHandler v3ApiReactor = getApiReactorHandler(api);
+                    final ApiReactorHandler v3ApiReactor = getApiReactorHandler(configuration, api);
                     final FlowPolicyResolverFactory v3FlowPolicyResolverFactory = new FlowPolicyResolverFactory();
                     final PolicyChainFactory policyChainFactory = policyChainFactory(v3PolicyManager);
                     v3ApiReactor.setNode(node);
@@ -394,8 +394,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         return templateVariableProviders;
     }
 
-    protected ApiReactorHandler getApiReactorHandler(Api api) {
-        return new ApiReactorHandler(api);
+    protected ApiReactorHandler getApiReactorHandler(Configuration configuration, Api api) {
+        return new ApiReactorHandler(configuration, api);
     }
 
     public PolicyChainFactory policyChainFactory(PolicyManager policyManager) {

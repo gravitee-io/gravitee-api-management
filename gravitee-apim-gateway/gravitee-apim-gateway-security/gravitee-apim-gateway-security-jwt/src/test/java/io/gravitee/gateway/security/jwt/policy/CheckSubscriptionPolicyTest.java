@@ -137,6 +137,20 @@ public class CheckSubscriptionPolicyTest {
         verify(policyChain, times(1)).doNext(request, response);
     }
 
+    @Test
+    public void shouldContinueCauseValidateSubscriptionIsSkipped() throws PolicyException {
+        CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
+        Response response = mock(Response.class);
+        PolicyChain policyChain = mock(PolicyChain.class);
+
+        when(executionContext.getAttribute(ExecutionContext.ATTR_VALIDATE_SUBSCRIPTION)).thenReturn(false);
+        when(executionContext.response()).thenReturn(response);
+
+        policy.execute(policyChain, executionContext);
+
+        verify(policyChain, times(1)).doNext(request, response);
+    }
+
     ArgumentMatcher<PolicyResult> statusCode(int statusCode) {
         return argument -> argument.statusCode() == statusCode;
     }
