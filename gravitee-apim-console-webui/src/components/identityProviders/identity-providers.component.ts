@@ -24,6 +24,7 @@ import IdentityProviderService from '../../services/identityProvider.service';
 import NotificationService from '../../services/notification.service';
 import OrganizationService from '../../services/organization.service';
 import PortalSettingsService from '../../services/portalSettings.service';
+import UserService from '../../services/user.service';
 
 const IdentityProvidersComponent: ng.IComponentOptions = {
   bindings: {
@@ -43,6 +44,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     ConsoleSettingsService: ConsoleSettingsService,
     PortalSettingsService: PortalSettingsService,
     NotificationService: NotificationService,
+    UserService: UserService,
     $state: StateService,
     Constants,
     $rootScope: IScope,
@@ -55,6 +57,16 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     this.$onInit = () => {
       this.identities.forEach((ipa: IdentityProviderActivation) => (this.activatedIdps[ipa.identityProvider] = true));
       this.hasEnabledIdp = this.identityProviders.filter((idp) => idp.enabled).length > 0;
+      this.canUpdatePortalSettings = UserService.isUserHasPermissions([
+        'environment-settings-c',
+        'environment-settings-u',
+        'environment-settings-d',
+      ]);
+      this.canUpdateConsoleSettings = UserService.isUserHasPermissions([
+        'organization-settings-c',
+        'organization-settings-u',
+        'organization-settings-d',
+      ]);
     };
 
     this.availableProviders = [

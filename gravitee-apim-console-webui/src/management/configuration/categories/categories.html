@@ -25,7 +25,7 @@
           ng-model="$ctrl.settings.portal.apis.categoryMode.enabled"
           aria-label="Category Mode"
           ng-change="$ctrl.toggleDisplayMode();"
-          ng-disabled="$ctrl.isReadonlySetting('portal.apis.categoryMode.enabled')"
+          ng-disabled="$ctrl.isReadonlySetting('portal.apis.categoryMode.enabled') || !$ctrl.canUpdateSettings"
         >
           Enable Category Mode
           <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.apis.categoryMode.enabled')"
@@ -61,11 +61,27 @@
                 ></gravitee-identity-picture>
               </td>
               <td md-cell width="1%" nowrap>
-                <a ui-sref="management.settings.categories.category({categoryId: category.key})">{{category.name}}</a>
+                <a
+                  permission
+                  permission-only="'environment-category-u'"
+                  ui-sref="management.settings.categories.category({categoryId: category.key})"
+                  >{{category.name}}</a
+                >
+                <span permission permission-except="'environment-category-u'">{{category.name}}</span>
               </td>
               <td md-cell>{{category.description}}</td>
-              <td permission permission-only="'environment-category-u'" md-cell width="1%" nowrap>
-                <ng-md-icon icon="visibility{{category.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility(category)"></ng-md-icon>
+              <td md-cell width="1%" nowrap>
+                <ng-md-icon
+                  permission
+                  permission-only="'environment-category-u'"
+                  icon="visibility{{category.hidden?'_off':''}}"
+                  ng-click="$ctrl.toggleVisibility(category)"
+                ></ng-md-icon>
+                <ng-md-icon
+                  permission
+                  permission-except="'environment-category-u'"
+                  icon="visibility{{category.hidden?'_off':''}}"
+                ></ng-md-icon>
               </td>
               <td md-cell width="1%" nowrap>{{category.totalApis}}</td>
               <td md-cell width="96px" nowrap style="text-align: center">
