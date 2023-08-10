@@ -18,6 +18,7 @@ import * as _ from 'lodash';
 
 import NotificationService from '../../../services/notification.service';
 import PortalSettingsService from '../../../services/portalSettings.service';
+import UserService from '../../../services/user.service';
 
 const ApiQualityRulesComponent: ng.IComponentOptions = {
   bindings: {
@@ -30,11 +31,17 @@ const ApiQualityRulesComponent: ng.IComponentOptions = {
     PortalSettingsService: PortalSettingsService,
     NotificationService: NotificationService,
     $mdDialog: angular.material.IDialogService,
+    UserService: UserService,
   ) {
     'ngInject';
     this.$rootScope = $rootScope;
     this.settings = _.cloneDeep(Constants.env.settings);
     this.providedConfigurationMessage = 'Configuration provided by the system';
+    this.canUpdateSettings = UserService.isUserHasPermissions([
+      'environment-settings-c',
+      'environment-settings-u',
+      'environment-settings-d',
+    ]);
 
     this.save = () => {
       PortalSettingsService.save(this.settings).then((response) => {

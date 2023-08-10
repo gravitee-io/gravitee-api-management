@@ -27,7 +27,7 @@
           ng-model="$ctrl.settings.application.registration.enabled"
           aria-label="Client registration"
           ng-change="$ctrl.saveClientRegistration()"
-          ng-disabled="$ctrl.isReadonlySetting('application.registration.enabled')"
+          ng-disabled="$ctrl.isReadonlySetting('application.registration.enabled') || !$ctrl.canUpdateSettings"
         >
           Client registration for applications (OpenID Connect - Dynamic Client Registration)
           <md-tooltip ng-if="$ctrl.isReadonlySetting('application.registration.enabled')"
@@ -42,7 +42,7 @@
           ng-model="$ctrl.settings.application.types.simple.enabled"
           aria-label="Allow or deny simple application type"
           ng-change="$ctrl.saveApplicationType('simple')"
-          ng-disabled="$ctrl.isReadonlySetting('application.types.simple.enabled')"
+          ng-disabled="$ctrl.isReadonlySetting('application.types.simple.enabled') || !$ctrl.canUpdateSettings"
         >
           Simple (A hands-free application. Using this type, you will be able to define the client_id by your own)
           <md-tooltip ng-if="$ctrl.isReadonlySetting('application.types.simple.enabled')"
@@ -55,7 +55,7 @@
           ng-model="$ctrl.settings.application.types.browser.enabled"
           aria-label="Allow or deny browser application type"
           ng-change="$ctrl.saveApplicationType('browser')"
-          ng-disabled="$ctrl.isReadonlySetting('application.types.browser.enabled')"
+          ng-disabled="$ctrl.isReadonlySetting('application.types.browser.enabled') || !$ctrl.canUpdateSettings"
         >
           Browser (Angular, React, ...)
           <md-tooltip ng-if="$ctrl.isReadonlySetting('application.types.browser.enabled')"
@@ -68,7 +68,7 @@
           ng-model="$ctrl.settings.application.types.web.enabled"
           aria-label="Allow or deny web application type"
           ng-change="$ctrl.saveApplicationType('web')"
-          ng-disabled="$ctrl.isReadonlySetting('application.types.web.enabled')"
+          ng-disabled="$ctrl.isReadonlySetting('application.types.web.enabled') || !$ctrl.canUpdateSettings"
         >
           Web (Java, .Net, ...)
           <md-tooltip ng-if="$ctrl.isReadonlySetting('application.types.web.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
@@ -79,7 +79,7 @@
           ng-model="$ctrl.settings.application.types.native.enabled"
           aria-label="Allow or deny native application type"
           ng-change="$ctrl.saveApplicationType('native')"
-          ng-disabled="$ctrl.isReadonlySetting('application.types.native.enabled')"
+          ng-disabled="$ctrl.isReadonlySetting('application.types.native.enabled') || !$ctrl.canUpdateSettings"
         >
           Native (iOS, Android, ...)
           <md-tooltip ng-if="$ctrl.isReadonlySetting('application.types.native.enabled')"
@@ -92,7 +92,7 @@
           ng-model="$ctrl.settings.application.types.backend_to_backend.enabled"
           aria-label="Allow or deny machine to machine application type"
           ng-change="$ctrl.saveApplicationType('backend_to_backend')"
-          ng-disabled="$ctrl.isReadonlySetting('application.types.backend_to_backend.enabled')"
+          ng-disabled="$ctrl.isReadonlySetting('application.types.backend_to_backend.enabled') || !$ctrl.canUpdateSettings"
         >
           Backend-to-Backend
           <md-tooltip ng-if="$ctrl.isReadonlySetting('application.types.backend_to_backend.enabled')"
@@ -119,7 +119,13 @@
           <tbody md-body>
             <tr md-row ng-repeat="clientRegistrationProvider in $ctrl.clientRegistrationProviders | orderBy: name">
               <td md-cell>
-                <a ng-click="$ctrl.select(clientRegistrationProvider)">{{clientRegistrationProvider.name}}</a>
+                <a
+                  permission
+                  permission-only="'environment-client_registration_provider-u'"
+                  ng-click="$ctrl.select(clientRegistrationProvider)"
+                  >{{clientRegistrationProvider.name}}</a
+                >
+                <span permission permission-except="'environment-client_registration_provider-u'">{{clientRegistrationProvider.name}}</span>
               </td>
               <td md-cell>{{clientRegistrationProvider.description}}</td>
               <td md-cell>{{clientRegistrationProvider.updated_at | date:'MMM d, y h:mm:ss a'}}</td>
