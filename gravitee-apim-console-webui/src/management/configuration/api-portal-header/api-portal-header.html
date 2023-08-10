@@ -25,7 +25,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.portal.apis.apiHeaderShowTags.enabled"
           aria-label="Show Tags"
-          ng-disabled="$ctrl.isReadonlySetting('portal.apis.apiheader.showtags.enabled')"
+          ng-disabled="$ctrl.isReadonlySetting('portal.apis.apiheader.showtags.enabled') || !$ctrl.canUpdateSettings"
           ng-change="$ctrl.saveShowTags()"
         >
           Show tags list in the API header
@@ -38,7 +38,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.portal.apis.apiHeaderShowCategories.enabled"
           aria-label="Show Categories"
-          ng-disabled="$ctrl.isReadonlySetting('portal.apis.apiheader.showcategories.enabled')"
+          ng-disabled="$ctrl.isReadonlySetting('portal.apis.apiheader.showcategories.enabled') || !$ctrl.canUpdateSettings"
           ng-change="$ctrl.saveShowCategories()"
         >
           Show categories list in the API header
@@ -61,7 +61,10 @@
           </thead>
           <tbody md-body>
             <tr md-row ng-repeat="header in $ctrl.apiPortalHeaders">
-              <td md-cell width="1%" nowrap><a ng-click="$ctrl.updateHeader(header)">{{header.name}}</a></td>
+              <td md-cell width="1%" nowrap>
+                <a permission permission-only="'environment-api_header-u'" ng-click="$ctrl.updateHeader(header)">{{header.name}}</a>
+                <span permission permission-except="'environment-api_header-u'">{{header.name}}</span>
+              </td>
               <td md-cell><code>{{header.value}}</code></td>
               <td md-cell width="76px" nowrap layout="row" layout-align="center center">
                 <div permission permission-only="'environment-api_header-u'">
@@ -84,7 +87,7 @@
         <md-checkbox
           ng-model="$ctrl.settings.portal.apis.promotedApiMode.enabled"
           aria-label="Display promotion banner"
-          ng-disabled="$ctrl.isReadonlySetting('portal.apis.promotedApiMode.enabled')"
+          ng-disabled="$ctrl.isReadonlySetting('portal.apis.promotedApiMode.enabled') || !$ctrl.canUpdateSettings"
           ng-change="$ctrl.savePromotedApiMode()"
         >
           Display promotion banner

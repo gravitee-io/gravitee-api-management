@@ -27,7 +27,7 @@
             aria-label="Force login"
             ng-change="$ctrl.saveForceLogin()"
             ng-model="$ctrl.settings.authentication.forceLogin.enabled"
-            ng-disabled="$ctrl.isReadonlySetting('portal.authentication.forceLogin.enabled')"
+            ng-disabled="$ctrl.isReadonlySetting('portal.authentication.forceLogin.enabled') || !$ctrl.canUpdatePortalSettings"
           >
             Force authentication to access portal
             <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.authentication.forceLogin.enabled')"
@@ -40,7 +40,7 @@
             aria-label="Show login form"
             ng-change="$ctrl.saveShowLoginForm()"
             ng-model="$ctrl.settings.authentication.localLogin.enabled"
-            ng-disabled="$ctrl.isReadonlySetting('portal.authentication.localLogin.enabled') || !$ctrl.hasActivatedIdp()"
+            ng-disabled="$ctrl.isReadonlySetting('portal.authentication.localLogin.enabled') || !$ctrl.hasActivatedIdp() || !$ctrl.canUpdatePortalSettings"
           >
             Show login form on portal
             <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.authentication.localLogin.enabled')"
@@ -111,7 +111,7 @@
             aria-label="Show login form"
             ng-change="$ctrl.saveShowLoginForm()"
             ng-model="$ctrl.settings.authentication.localLogin.enabled"
-            ng-disabled="$ctrl.isReadonlySetting('console.authentication.localLogin.enabled') || !$ctrl.hasActivatedIdp()"
+            ng-disabled="$ctrl.isReadonlySetting('console.authentication.localLogin.enabled') || !$ctrl.hasActivatedIdp() || !$ctrl.canUpdateConsoleSettings"
           >
             Show login form on management console
             <md-tooltip ng-if="$ctrl.isReadonlySetting('console.authentication.localLogin.enabled')"

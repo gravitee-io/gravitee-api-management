@@ -20,6 +20,7 @@ import { ClientRegistrationProvider } from '../../../../entities/clientRegistrat
 import ClientRegistrationProviderService from '../../../../services/clientRegistrationProvider.service';
 import NotificationService from '../../../../services/notification.service';
 import PortalSettingsService from '../../../../services/portalSettings.service';
+import UserService from '../../../../services/user.service';
 
 const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
   bindings: {
@@ -34,10 +35,16 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
     NotificationService: NotificationService,
     $state: StateService,
     Constants,
+    UserService: UserService,
   ) {
     'ngInject';
 
     this.providedConfigurationMessage = 'Configuration provided by the system';
+    this.canUpdateSettings = UserService.isUserHasPermissions([
+      'environment-settings-c',
+      'environment-settings-u',
+      'environment-settings-d',
+    ]);
 
     this.select = (provider: ClientRegistrationProvider) => {
       $state.go('management.settings.clientregistrationproviders.clientregistrationprovider', { id: provider.id });

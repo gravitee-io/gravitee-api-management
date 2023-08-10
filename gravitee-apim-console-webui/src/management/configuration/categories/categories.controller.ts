@@ -20,9 +20,11 @@ import * as _ from 'lodash';
 import CategoryService from '../../../services/category.service';
 import NotificationService from '../../../services/notification.service';
 import PortalSettingsService from '../../../services/portalSettings.service';
+import UserService from '../../../services/user.service';
 
 class CategoriesController {
   public providedConfigurationMessage = 'Configuration provided by the system';
+  public canUpdateSettings: boolean;
   private categoriesToUpdate: any[];
   private categories: any[];
   private Constants: any;
@@ -37,6 +39,7 @@ class CategoriesController {
     private PortalSettingsService: PortalSettingsService,
     Constants: any,
     private $rootScope: IScope,
+    private UserService: UserService,
   ) {
     'ngInject';
     this.$rootScope = $rootScope;
@@ -50,6 +53,12 @@ class CategoriesController {
     _.forEach(this.categories, (category, idx) => {
       category.order = idx;
     });
+
+    this.canUpdateSettings = this.UserService.isUserHasPermissions([
+      'environment-settings-c',
+      'environment-settings-u',
+      'environment-settings-d',
+    ]);
   }
 
   toggleVisibility(category) {

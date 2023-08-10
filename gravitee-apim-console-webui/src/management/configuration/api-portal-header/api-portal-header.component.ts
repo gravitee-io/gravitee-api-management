@@ -19,6 +19,7 @@ import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
 import ApiHeaderService from '../../../services/apiHeader.service';
 import NotificationService from '../../../services/notification.service';
 import PortalSettingsService from '../../../services/portalSettings.service';
+import UserService from '../../../services/user.service';
 
 const ApiPortalHeaderComponent: ng.IComponentOptions = {
   bindings: {
@@ -33,12 +34,18 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     $mdDialog: angular.material.IDialogService,
     Constants,
     $rootScope: IScope,
+    UserService: UserService,
   ) {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$mdDialog = $mdDialog;
 
     this.providedConfigurationMessage = 'Configuration provided by the system';
+    this.canUpdateSettings = UserService.isUserHasPermissions([
+      'environment-settings-c',
+      'environment-settings-u',
+      'environment-settings-d',
+    ]);
 
     this.upward = (header: ApiPortalHeader) => {
       header.order = header.order - 1;
