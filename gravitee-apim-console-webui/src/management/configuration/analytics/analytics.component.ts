@@ -20,6 +20,7 @@ import { Dashboard } from '../../../entities/dashboard';
 import DashboardService from '../../../services/dashboard.service';
 import NotificationService from '../../../services/notification.service';
 import PortalSettingsService from '../../../services/portalSettings.service';
+import UserService from '../../../services/user.service';
 
 const AnalyticsSettingsComponent: ng.IComponentOptions = {
   bindings: {
@@ -37,6 +38,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
     $mdDialog: angular.material.IDialogService,
     DashboardService: DashboardService,
     $rootScope,
+    UserService: UserService,
   ) {
     this.settings = _.cloneDeep(Constants.env.settings);
     this.$rootScope = $rootScope;
@@ -48,6 +50,12 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
         API: this.dashboardsApi,
         Application: this.dashboardsApplication,
       };
+
+      this.canUpdateSettings = UserService.isUserHasPermissions([
+        'environment-settings-c',
+        'environment-settings-u',
+        'environment-settings-d',
+      ]);
     };
 
     this.isDashboardsEmpty = () => {
