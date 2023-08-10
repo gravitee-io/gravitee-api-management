@@ -27,6 +27,8 @@ export enum ApimFeature {
 
 export enum UTMTags {
   CONTEXT_API = 'api',
+  CONTEXT_API_ANALYTICS = 'api_analytics',
+  CONTEXT_API_NOTIFICATIONS = 'api_notifications',
   CONTEXT_API_V2 = 'api_v2',
   CONTEXT_API_V4 = 'api_v4',
   CONTEXT_ENVIRONMENT = 'environment',

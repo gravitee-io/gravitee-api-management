@@ -456,7 +456,7 @@ import { CockpitService } from '../services-ngx/cockpit.service';
 import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
 import { ConfigureLoggingDialogController } from './api/analytics/logs/configure-logging.dialog';
-import { GioBannerComponent } from '@gravitee/ui-particles-angular';
+import { GioBannerComponent, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { GioPendoService } from '@gravitee/ui-analytics';
 import ApplicationSubscriptionsListComponent from '../management/application/details/subscriptions/application-subscriptions-list.component';
 import ApplicationSubscriptionsListController from '../management/application/details/subscriptions/application-subscriptions-list.controller';
@@ -658,6 +658,8 @@ graviteeManagementModule.directive('ngApiProxyFailover', downgradeComponent({ co
 // Pendo Analytics
 graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));
 graviteeManagementModule.controller('ApisStatusDashboardController', ApisStatusDashboardController);
+
+graviteeManagementModule.factory('ngGioLicenseService', downgradeInjectable(GioLicenseService));
 
 graviteeManagementModule.controller('ApiAdminController', ApiAdminController);
 graviteeManagementModule.directive('ngApiPortalDetails', downgradeComponent({ component: ApiPortalDetailsComponent }));
