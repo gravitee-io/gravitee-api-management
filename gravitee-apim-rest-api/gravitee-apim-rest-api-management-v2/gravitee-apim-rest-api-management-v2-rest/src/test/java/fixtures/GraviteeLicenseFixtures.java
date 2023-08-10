@@ -18,9 +18,7 @@ package fixtures;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense.GraviteeLicenseBuilder;
 import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
-import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity.GraviteeLicenseEntityBuilder;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -29,11 +27,7 @@ import java.util.Set;
 @SuppressWarnings("rawtypes")
 public class GraviteeLicenseFixtures {
 
-    private static final GraviteeLicenseEntityBuilder BASE_GRAVITEE_LICENSE_ENTITY = GraviteeLicenseEntity
-        .builder()
-        .tier("tier-galaxy")
-        .features(Set.of("feature-datadog-reporter"))
-        .packs(Set.of("pack-observability"));
+    private GraviteeLicenseFixtures() {}
 
     private static final GraviteeLicenseBuilder BASE_GRAVITEE_LICENSE = GraviteeLicense
         .builder()
@@ -41,11 +35,11 @@ public class GraviteeLicenseFixtures {
         .features(List.of("feature-datadog-reporter"))
         .packs(List.of("pack-observability"));
 
-    public static GraviteeLicenseEntity aGraviteeLicenseEntity() {
-        return BASE_GRAVITEE_LICENSE_ENTITY.build();
-    }
-
     public static GraviteeLicense aGraviteeLicense() {
         return BASE_GRAVITEE_LICENSE.build();
+    }
+
+    public static GraviteeLicenseEntity aGraviteeLicenseEntity() {
+        return GraviteeLicenseModelFixtures.aGraviteeLicenseEntity();
     }
 }

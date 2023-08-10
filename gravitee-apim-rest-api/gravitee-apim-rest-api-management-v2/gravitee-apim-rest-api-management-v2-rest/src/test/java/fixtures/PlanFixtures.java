@@ -16,15 +16,15 @@
 package fixtures;
 
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
+import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericPlanSecurity;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import io.gravitee.rest.api.model.v4.plan.PlanType;
-import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -33,41 +33,16 @@ import java.util.Set;
  */
 public class PlanFixtures {
 
-    private static final PlanSecurity.PlanSecurityBuilder BASE_PLAN_SECURITY_V4 = PlanSecurity
+    private PlanFixtures() {}
+
+    private static final UpdateGenericPlanSecurity.UpdateGenericPlanSecurityBuilder<?, ?> BASE_UPDATE_PLAN_SECURITY = UpdateGenericPlanSecurity
         .builder()
-        .type(PlanSecurityType.API_KEY.getLabel())
         .configuration("{\"nice\": \"config\"}");
 
-    protected static final io.gravitee.rest.api.management.v2.rest.model.PlanSecurity.PlanSecurityBuilder<?, ?> BASE_PLAN_SECURITY =
-        io.gravitee.rest.api.management.v2.rest.model.PlanSecurity
-            .builder()
-            .type(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY)
-            .configuration("{\"nice\": \"config\"}");
-
-    private static final UpdateGenericPlanSecurity.UpdateGenericPlanSecurityBuilder<?, ?> BASE_UPDATE_PLAN_SECURITY =
-        UpdateGenericPlanSecurity.builder().configuration("{\"nice\": \"config\"}");
-
-    private static final PlanEntity.PlanEntityBuilder BASE_PLAN_ENTITY_V4 = PlanEntity
+    private static final io.gravitee.rest.api.management.v2.rest.model.PlanSecurity.PlanSecurityBuilder<?, ?> BASE_PLAN_SECURITY = io.gravitee.rest.api.management.v2.rest.model.PlanSecurity
         .builder()
-        .id("my-plan")
-        .apiId("my-api")
-        .name("My plan")
-        .description("Description")
-        .order(1)
-        .characteristics(List.of("characteristic1", "characteristic2"))
-        .createdAt(new Date())
-        .updatedAt(new Date())
-        .commentMessage("Comment message")
-        .crossId("my-plan-crossId")
-        .generalConditions("General conditions")
-        .tags(Set.of("tag1", "tag2"))
-        .status(PlanStatus.PUBLISHED)
-        .security(BASE_PLAN_SECURITY_V4.build())
-        .type(PlanType.API)
-        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
-        .validation(PlanValidationType.AUTO)
-        .selectionRule("{#request.attribute['selectionRule'] != null}")
-        .flows(List.of(FlowFixtures.aModelFlowV4()));
+        .type(io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType.API_KEY)
+        .configuration("{\"nice\": \"config\"}");
 
     private static final CreatePlanV4.CreatePlanV4Builder BASE_CREATE_PLAN_V4 = CreatePlanV4
         .builder()
@@ -155,10 +130,6 @@ public class PlanFixtures {
         .selectionRule("{#request.attribute['selectionRule'] != null}")
         .flows(List.of(FlowFixtures.aModelFlowV2()));
 
-    public static PlanEntity aPlanEntityV4() {
-        return BASE_PLAN_ENTITY_V4.build();
-    }
-
     public static CreatePlanV4 aCreatePlanV4() {
         return BASE_CREATE_PLAN_V4.build();
     }
@@ -175,11 +146,11 @@ public class PlanFixtures {
         return BASE_UPDATE_PLAN_V2.build();
     }
 
-    public static io.gravitee.rest.api.model.PlanEntity aPlanEntityV2() {
-        return BASE_PLAN_ENTITY_V2.build();
+    public static PlanEntity aPlanEntityV4() {
+        return PlanModelFixtures.aPlanEntityV4();
     }
 
-    public static PlanSecurity aPlanSecurityV4() {
-        return BASE_PLAN_SECURITY_V4.build();
+    public static io.gravitee.rest.api.model.PlanEntity aPlanEntityV2() {
+        return PlanModelFixtures.aPlanEntityV2();
     }
 }
