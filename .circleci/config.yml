@@ -452,7 +452,7 @@ jobs:
                 default: "gravitee-apim-rest-api"
                 type: string
         docker:
-            - image: sonarsource/sonar-scanner-cli:4.7
+            - image: sonarsource/sonar-scanner-cli:5.0.1
         resource_class: large
         steps:
             - run:
