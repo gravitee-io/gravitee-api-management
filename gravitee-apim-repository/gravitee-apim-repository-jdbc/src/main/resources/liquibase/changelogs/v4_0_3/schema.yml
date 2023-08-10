@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.0.3
+      author: GraviteeSource Team
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            columnExists:
+              tableName: ${gravitee_prefix}subscriptions
+              columnName: failure_cause
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: failure_cause
+                  type: nvarchar(256)
+                  constraints:
+                    nullable: true
