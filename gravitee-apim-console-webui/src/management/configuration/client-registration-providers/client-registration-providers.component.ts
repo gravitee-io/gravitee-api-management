@@ -29,6 +29,7 @@ import { PortalSettingsService } from '../../../services-ngx/portal-settings.ser
 import { PortalSettings, PortalSettingsApplication } from '../../../entities/portal/portalSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ApimFeature } from '../../../shared/components/gio-license/gio-license-data';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 export type ProvidersTableDS = {
   id: string;
@@ -50,6 +51,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   disabledMessage = 'Configuration provided by the system';
   dcrRegistrationLicenseOptions: LicenseOptions = { feature: ApimFeature.APIM_DCR_REGISTRATION };
   hasDcrRegistrationLock$: Observable<boolean>;
+  canUpdateSettings: boolean;
   private unsubscribe$ = new Subject();
   private settings: PortalSettings;
 
@@ -62,6 +64,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
     private readonly licenseService: GioLicenseService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnDestroy(): void {
@@ -71,6 +74,14 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.hasDcrRegistrationLock$ = this.licenseService.isMissingFeature$(this.dcrRegistrationLicenseOptions);
 
+    this.canUpdateSettings = this.permissionService.hasAnyMatching([
+      'environment-settings-c',
+      'environment-settings-u',
+      'environment-settings-d',
+    ]);
+    if (!this.canUpdateSettings) {
+      this.disabledMessage = undefined;
+    }
     combineLatest([this.portalSettingsService.get(), this.clientRegistrationProvidersService.list()])
       .pipe(
         tap(([settings, providers]) => {
@@ -134,38 +145,38 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
       registration: new FormGroup({
         enabled: new FormControl({
           value: application.registration.enabled,
-          disabled: this.isReadonly(`application.registration.enabled`),
+          disabled: this.isReadonly(`application.registration.enabled`) || !this.canUpdateSettings,
         }),
       }),
       types: new FormGroup({
         simple: new FormGroup({
           enabled: new FormControl({
             value: application.types.simple.enabled,
-            disabled: this.isReadonly(`application.types.simple.enabled`),
+            disabled: this.isReadonly(`application.types.simple.enabled`) || !this.canUpdateSettings,
           }),
         }),
         browser: new FormGroup({
           enabled: new FormControl({
             value: application.types.browser.enabled,
-            disabled: this.isReadonly(`application.types.browser.enabled`),
+            disabled: this.isReadonly(`application.types.browser.enabled`) || !this.canUpdateSettings,
           }),
         }),
         web: new FormGroup({
           enabled: new FormControl({
             value: application.types.web.enabled,
-            disabled: this.isReadonly(`application.types.web.enabled`),
+            disabled: this.isReadonly(`application.types.web.enabled`) || !this.canUpdateSettings,
           }),
         }),
         native: new FormGroup({
           enabled: new FormControl({
             value: application.types.native.enabled,
-            disabled: this.isReadonly(`application.types.native.enabled`),
+            disabled: this.isReadonly(`application.types.native.enabled`) || !this.canUpdateSettings,
           }),
         }),
         backend_to_backend: new FormGroup({
           enabled: new FormControl({
             value: application.types.backend_to_backend.enabled,
-            disabled: this.isReadonly(`application.types.backend_to_backend.enabled`),
+            disabled: this.isReadonly(`application.types.backend_to_backend.enabled`) || !this.canUpdateSettings,
           }),
         }),
       }),

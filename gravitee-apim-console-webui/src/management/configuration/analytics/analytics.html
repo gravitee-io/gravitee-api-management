@@ -112,7 +112,7 @@
           type="number"
           min="0"
           ng-model="$ctrl.settings.analytics.clientTimeout"
-          ng-disabled="$ctrl.isReadonlySetting('analytics.client.timeout')"
+          ng-disabled="$ctrl.isReadonlySetting('analytics.client.timeout') || !$ctrl.canUpdateSettings"
         />
         <md-tooltip ng-if="$ctrl.isReadonlySetting('analytics.client.timeout')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
