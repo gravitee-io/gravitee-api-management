@@ -92,7 +92,7 @@ describe('API - V4 - Transfer Ownership', () => {
     });
 
     test('should transfer ownership to other user', async () => {
-      await succeed(
+      await noContent(
         v2ApisResourceAsApiPublisher.transferOwnershipRaw({
           envId,
           apiId: importedApi.id,
@@ -214,7 +214,7 @@ describe('API - V4 - Transfer Ownership', () => {
     });
 
     test('should transfer ownership to other user', async () => {
-      await succeed(
+      await noContent(
         v2ApisResourceAsApiPublisher.transferOwnershipRaw({
           envId,
           apiId: importedApi.id,
@@ -355,7 +355,7 @@ describe('API - V4 - Transfer Ownership', () => {
     });
 
     test('should transfer ownership to group', async () => {
-      await succeed(
+      await noContent(
         v2ApisResourceAsApiPublisher.transferOwnershipRaw({
           envId,
           apiId: importedApi.id,
