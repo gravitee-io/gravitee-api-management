@@ -16,12 +16,18 @@
 package io.gravitee.rest.api.model;
 
 import java.util.Map;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * A page that can be fetched from an external source.
  *
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@EqualsAndHashCode
 public abstract class FetchablePageEntity {
 
     private String content;
@@ -31,36 +37,4 @@ public abstract class FetchablePageEntity {
     private Map<String, String> metadata;
 
     private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public PageSourceEntity getSource() {
-        return source;
-    }
-
-    public void setSource(PageSourceEntity source) {
-        this.source = source;
-    }
-
-    public Map<String, String> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, String> metadata) {
-        this.metadata = metadata;
-    }
-
-    public Boolean getUseAutoFetch() {
-        return useAutoFetch;
-    }
-
-    public void setUseAutoFetch(Boolean useAutoFetch) {
-        this.useAutoFetch = useAutoFetch;
-    }
 }

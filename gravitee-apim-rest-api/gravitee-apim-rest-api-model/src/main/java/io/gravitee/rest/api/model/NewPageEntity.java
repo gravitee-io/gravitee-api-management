@@ -21,12 +21,18 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author Guillaume GILLON
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
 public class NewPageEntity extends FetchablePageEntity {
 
     /**
@@ -68,115 +74,11 @@ public class NewPageEntity extends FetchablePageEntity {
 
     private String parentId;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public PageType getType() {
-        return type;
-    }
-
-    public void setType(PageType type) {
-        this.type = type;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public boolean isPublished() {
-        return published;
-    }
-
-    public void setPublished(boolean published) {
-        this.published = published;
-    }
-
-    public String getLastContributor() {
-        return lastContributor;
-    }
-
-    public void setLastContributor(String lastContributor) {
-        this.lastContributor = lastContributor;
-    }
-
-    public PageSourceEntity getSource() {
-        return source;
-    }
-
-    public void setSource(PageSourceEntity source) {
-        this.source = source;
-    }
-
-    public Map<String, String> getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(Map<String, String> configuration) {
-        this.configuration = configuration;
-    }
-
-    public boolean isHomepage() {
-        return homepage;
-    }
-
-    public void setHomepage(boolean homepage) {
-        this.homepage = homepage;
-    }
-
-    public List<String> getExcludedGroups() {
-        return excludedGroups;
-    }
-
-    public void setExcludedGroups(List<String> excludedGroups) {
-        this.excludedGroups = excludedGroups;
-    }
-
-    public void setExcludedAccessControls(boolean excludedAccessControls) {
-        this.excludedAccessControls = excludedAccessControls;
-    }
-
-    public Boolean isExcludedAccessControls() {
-        return excludedAccessControls;
-    }
-
-    public Set<AccessControlEntity> getAccessControls() {
-        return accessControls;
-    }
-
-    public void setAccessControls(Set<AccessControlEntity> accessControls) {
-        this.accessControls = accessControls;
-    }
-
-    public String getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
-
-    public Visibility getVisibility() {
-        return visibility;
-    }
-
-    public void setVisibility(Visibility visibility) {
-        this.visibility = visibility;
-    }
-
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Page{");
         sb.append("crossId='").append(crossId).append('\'');
-        sb.append("name='").append(name).append('\'');
+        sb.append(", name='").append(name).append('\'');
         sb.append(", type='").append(type).append('\'');
         sb.append(", order='").append(order).append('\'');
         sb.append(", homepage='").append(homepage).append('\'');
@@ -184,21 +86,5 @@ public class NewPageEntity extends FetchablePageEntity {
         sb.append(", lastContributor='").append(lastContributor).append('\'');
         sb.append('}');
         return sb.toString();
-    }
-
-    public List<PageMediaEntity> getAttachedMedia() {
-        return attachedMedia;
-    }
-
-    public void setAttachedMedia(List<PageMediaEntity> attachedMedia) {
-        this.attachedMedia = attachedMedia;
-    }
-
-    public String getCrossId() {
-        return crossId;
-    }
-
-    public void setCrossId(String crossId) {
-        this.crossId = crossId;
     }
 }

@@ -18,13 +18,24 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
-
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.With;
 
 /**
  * @author Titouan COMPIEGNE
  * @author Guillaume GILLON
  */
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@With
 public class PageEntity implements Indexable {
 
     private String id;

@@ -15,55 +15,21 @@
  */
 package io.gravitee.rest.api.model;
 
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Data
 public class AccessControlEntity {
 
     private String referenceId;
     private String referenceType;
-
-    public AccessControlEntity() {}
-
-    public AccessControlEntity(String referenceId, String referenceType) {
-        this.referenceId = referenceId;
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AccessControlEntity accessControl = (AccessControlEntity) o;
-        return Objects.equals(referenceId, accessControl.referenceId) && Objects.equals(referenceType, accessControl.referenceType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(referenceType, referenceId);
-    }
-
-    @Override
-    public String toString() {
-        return "AccessControlEntity{" + "referenceId='" + referenceId + '\'' + ", referenceType='" + referenceType + '\'' + '}';
-    }
 }

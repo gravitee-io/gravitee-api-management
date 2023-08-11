@@ -19,6 +19,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,6 +31,11 @@ import java.util.Map;
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class MemberEntity {
 
     private String id;
@@ -49,86 +59,6 @@ public class MemberEntity {
 
     @JsonProperty("updated_at")
     private Date updatedAt;
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public MembershipReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(MembershipReferenceType referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public List<RoleEntity> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<RoleEntity> roles) {
-        this.roles = roles;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Map<String, char[]> getPermissions() {
-        return permissions;
-    }
-
-    public void setPermissions(Map<String, char[]> permissions) {
-        this.permissions = permissions;
-    }
-
-    public MembershipMemberType getType() {
-        return type;
-    }
-
-    public void setType(MembershipMemberType type) {
-        this.type = type;
-    }
 
     @Override
     public boolean equals(Object o) {
