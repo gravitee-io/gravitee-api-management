@@ -21,11 +21,23 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
 public class RoleEntity {
 
     @NotNull
@@ -40,62 +52,6 @@ public class RoleEntity {
 
     private boolean system;
     private Map<String, char[]> permissions;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public RoleScope getScope() {
-        return scope;
-    }
-
-    public void setScope(RoleScope scope) {
-        this.scope = scope;
-    }
-
-    public Map<String, char[]> getPermissions() {
-        return permissions;
-    }
-
-    public void setPermissions(Map<String, char[]> permissions) {
-        this.permissions = permissions;
-    }
-
-    public boolean isDefaultRole() {
-        return defaultRole;
-    }
-
-    public void setDefaultRole(boolean defaultRole) {
-        this.defaultRole = defaultRole;
-    }
-
-    public boolean isSystem() {
-        return system;
-    }
-
-    public void setSystem(boolean system) {
-        this.system = system;
-    }
 
     public boolean isApiPrimaryOwner() {
         return scope == RoleScope.API && SystemRole.PRIMARY_OWNER.name().equals(name);

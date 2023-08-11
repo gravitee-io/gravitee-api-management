@@ -52,6 +52,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.With;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -65,6 +66,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @Schema(name = "ApiEntityV4")
 @Builder(toBuilder = true)
+@With
 public class ApiEntity implements GenericApiEntity {
 
     @Schema(description = "API's uuid.", example = "00f8c9e7-78fc-4907-b8c9-e778fc790750")

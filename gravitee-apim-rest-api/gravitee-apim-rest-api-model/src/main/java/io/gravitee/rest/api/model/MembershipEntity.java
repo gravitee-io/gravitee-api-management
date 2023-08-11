@@ -17,11 +17,23 @@ package io.gravitee.rest.api.model;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.With;
 
 /**
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@With
+@Getter
+@Setter
 public class MembershipEntity {
 
     private String id;
@@ -38,10 +50,6 @@ public class MembershipEntity {
 
     private Date updatedAt;
 
-    public MembershipEntity() {
-        super();
-    }
-
     public MembershipEntity(MembershipEntity cloned) {
         this.id = cloned.id;
         this.memberId = cloned.memberId;
@@ -51,70 +59,6 @@ public class MembershipEntity {
         this.roleId = cloned.roleId;
         this.createdAt = cloned.createdAt;
         this.updatedAt = cloned.updatedAt;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(String roleId) {
-        this.roleId = roleId;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String getMemberId() {
-        return memberId;
-    }
-
-    public void setMemberId(String memberId) {
-        this.memberId = memberId;
-    }
-
-    public MembershipMemberType getMemberType() {
-        return memberType;
-    }
-
-    public void setMemberType(MembershipMemberType memberType) {
-        this.memberType = memberType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public MembershipReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(MembershipReferenceType referenceType) {
-        this.referenceType = referenceType;
     }
 
     @Override

@@ -17,6 +17,8 @@ package io.gravitee.rest.api.model;
 
 import java.util.Date;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
@@ -25,33 +27,11 @@ import lombok.NoArgsConstructor;
  */
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
+@Data
 public class PageMediaEntity {
 
     private String mediaHash;
     private String mediaName;
     private Date attachedAt;
-
-    public String getMediaHash() {
-        return mediaHash;
-    }
-
-    public void setMediaHash(String mediaHash) {
-        this.mediaHash = mediaHash;
-    }
-
-    public String getMediaName() {
-        return mediaName;
-    }
-
-    public void setMediaName(String mediaName) {
-        this.mediaName = mediaName;
-    }
-
-    public Date getAttachedAt() {
-        return attachedAt;
-    }
-
-    public void setAttachedAt(Date attachedAt) {
-        this.attachedAt = attachedAt;
-    }
 }
