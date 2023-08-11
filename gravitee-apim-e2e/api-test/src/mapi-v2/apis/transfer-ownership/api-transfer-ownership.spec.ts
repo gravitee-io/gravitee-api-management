@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 import { test, describe, expect, afterAll } from '@jest/globals';
-import { APIMembersApi, APIsApi, ApiV4, HttpListener } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import {
+  APIMembersApi,
+  ApiResponse,
+  APIsApi,
+  Api,
+  ApiV4,
+  HttpListener,
+  MembersResponse,
+} from '@gravitee/management-v2-webclient-sdk/src/lib';
 import {
   API_USER,
   forManagementAsAdminUser,
@@ -81,7 +89,7 @@ describe('API - V4 - Transfer Ownership', () => {
     });
 
     test('should get created v4 API with generated ID', async () => {
-      const apiV4 = await succeed(
+      const apiV4: Api = await succeed(
         v2ApisResourceAsApiPublisher.getApiRaw({
           envId,
           apiId: importedApi.id,
@@ -116,7 +124,7 @@ describe('API - V4 - Transfer Ownership', () => {
     });
 
     test('should verify other user is primary owner', async () => {
-      let membersResponse = await succeed(
+      let membersResponse: MembersResponse = await succeed(
         // Ideally, we should list members as the 'Other user'
         v2ApiMembersResourceAsAdmin.listApiMembersRaw({
           envId,
@@ -136,6 +144,12 @@ describe('API - V4 - Transfer Ownership', () => {
 
     afterAll(async () => {
       await noContent(
+        v2ApisResourceAsAdmin.deleteApiRaw({
+          envId,
+          apiId: importedApi.id,
+        }),
+      );
+      await noContent(
         v1ConfigurationResourceAsAdmin.deleteRoleRaw({
           orgId,
           role: roleName,
@@ -147,12 +161,6 @@ describe('API - V4 - Transfer Ownership', () => {
           orgId,
           envId,
           userId: user.id,
-        }),
-      );
-      await noContent(
-        v2ApisResourceAsAdmin.deleteApiRaw({
-          envId,
-          apiId: importedApi.id,
         }),
       );
     });
@@ -203,7 +211,7 @@ describe('API - V4 - Transfer Ownership', () => {
     });
 
     test('should get created v4 API with generated ID', async () => {
-      const apiV4 = await succeed(
+      const apiV4: Api = await succeed(
         v2ApisResourceAsApiPublisher.getApiRaw({
           envId,
           apiId: importedApi.id,
@@ -238,7 +246,7 @@ describe('API - V4 - Transfer Ownership', () => {
     });
 
     test('should verify other user is primary owner', async () => {
-      let membersResponse = await succeed(
+      let membersResponse: MembersResponse = await succeed(
         // Ideally, we should list members as the 'Other user'
         v2ApiMembersResourceAsAdmin.listApiMembersRaw({
           envId,
@@ -258,6 +266,12 @@ describe('API - V4 - Transfer Ownership', () => {
 
     afterAll(async () => {
       await noContent(
+        v2ApisResourceAsAdmin.deleteApiRaw({
+          envId,
+          apiId: importedApi.id,
+        }),
+      );
+      await noContent(
         v1ConfigurationResourceAsAdmin.deleteRoleRaw({
           orgId,
           role: roleName,
@@ -269,12 +283,6 @@ describe('API - V4 - Transfer Ownership', () => {
           orgId,
           envId,
           userId: user.id,
-        }),
-      );
-      await noContent(
-        v2ApisResourceAsAdmin.deleteApiRaw({
-          envId,
-          apiId: importedApi.id,
         }),
       );
     });
@@ -344,7 +352,7 @@ describe('API - V4 - Transfer Ownership', () => {
     });
 
     test('should get created v4 API with generated ID', async () => {
-      const apiV4 = await succeed(
+      const apiV4: Api = await succeed(
         v2ApisResourceAsApiPublisher.getApiRaw({
           envId,
           apiId: importedApi.id,
@@ -409,6 +417,12 @@ describe('API - V4 - Transfer Ownership', () => {
 
     afterAll(async () => {
       await noContent(
+        v2ApisResourceAsAdmin.deleteApiRaw({
+          envId,
+          apiId: importedApi.id,
+        }),
+      );
+      await noContent(
         v1ConfigurationResourceAsAdmin.deleteRoleRaw({
           orgId,
           role: roleName,
@@ -427,12 +441,6 @@ describe('API - V4 - Transfer Ownership', () => {
           orgId,
           envId,
           userId: user.id,
-        }),
-      );
-      await noContent(
-        v2ApisResourceAsAdmin.deleteApiRaw({
-          envId,
-          apiId: importedApi.id,
         }),
       );
     });
