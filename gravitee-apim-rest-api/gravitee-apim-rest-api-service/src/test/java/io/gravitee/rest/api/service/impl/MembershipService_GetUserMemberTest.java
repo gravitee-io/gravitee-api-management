@@ -25,29 +25,25 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.Optional;
 import java.util.Set;
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MembershipService_GetUserMemberTest {
 
-    @InjectMocks
-    private MembershipService cut = new MembershipServiceImpl();
+    private MembershipService cut;
 
     @Mock
     private MembershipRepository membershipRepository;
@@ -57,6 +53,28 @@ public class MembershipService_GetUserMemberTest {
 
     @Mock
     private ApplicationRepository applicationRepository;
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        cut =
+            new MembershipServiceImpl(
+                null,
+                null,
+                applicationRepository,
+                null,
+                null,
+                null,
+                membershipRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                apiRepository,
+                null,
+                null
+            );
+    }
 
     @Test
     public void should_throw_if_no_api_found() throws TechnicalException {

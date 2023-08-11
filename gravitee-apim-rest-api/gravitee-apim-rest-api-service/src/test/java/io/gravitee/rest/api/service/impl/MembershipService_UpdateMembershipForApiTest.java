@@ -20,9 +20,11 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -37,7 +39,6 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.OrganizationPermission;
 import io.gravitee.rest.api.model.permissions.Permission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
@@ -49,20 +50,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MembershipService_UpdateMembershipForApiTest {
 
     private static final String API_ID = "api-id-1";
 
-    @InjectMocks
-    private MembershipService membershipService = new MembershipServiceImpl();
+    private MembershipService membershipService;
 
     @Mock
     private MembershipRepository membershipRepository;
@@ -82,9 +81,28 @@ public class MembershipService_UpdateMembershipForApiTest {
     @Mock
     private ApiRepository apiRepository;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         reset(membershipRepository, apiSearchService, userService, auditService, roleService);
+
+        membershipService =
+            new MembershipServiceImpl(
+                null,
+                userService,
+                null,
+                null,
+                null,
+                null,
+                membershipRepository,
+                roleService,
+                null,
+                null,
+                apiSearchService,
+                null,
+                apiRepository,
+                null,
+                auditService
+            );
         mockApi();
     }
 
@@ -129,8 +147,8 @@ public class MembershipService_UpdateMembershipForApiTest {
             "API_OWNER"
         );
 
-        assertNotNull(updatedMember);
-        assertEquals("API_OWNER", updatedMember.getRoles().iterator().next().getId());
+        assertThat(updatedMember).isNotNull();
+        assertThat(updatedMember.getRoles()).flatExtracting(RoleEntity::getId).contains("API_OWNER");
     }
 
     @Test
@@ -152,7 +170,7 @@ public class MembershipService_UpdateMembershipForApiTest {
             userId,
             "OWNER"
         );
-        assertNull(updatedMember);
+        assertThat(updatedMember).isNull();
     }
 
     private void mockExistingUser(String existingUserId) {
@@ -171,7 +189,9 @@ public class MembershipService_UpdateMembershipForApiTest {
         role.setName(roleId);
         role.setId(roleId);
         role.setPermissions(perms);
-        when(roleService.findByScopeAndName(RoleScope.API, roleId, GraviteeContext.getCurrentOrganization())).thenReturn(Optional.of(role));
+        lenient()
+            .when(roleService.findByScopeAndName(RoleScope.API, roleId, GraviteeContext.getCurrentOrganization()))
+            .thenReturn(Optional.of(role));
         when(roleService.findById(roleId)).thenReturn(role);
     }
 

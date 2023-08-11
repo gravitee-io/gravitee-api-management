@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.service.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,32 +32,32 @@ import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiOwnershipTransferException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
-import io.gravitee.rest.api.service.impl.MembershipServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.Collections;
 import java.util.Optional;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Ouahid KHELIFI (ouahid.khelifi at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MembershipService_TransferOwnershipTest {
 
     private static final String API_ID = "api-id-1";
@@ -70,8 +73,7 @@ public class MembershipService_TransferOwnershipTest {
     private static final String OWNER_ROLE_NAME = "OWNER";
     private final RoleEntity newPrimaryOwnerRole = new RoleEntity();
 
-    @InjectMocks
-    private MembershipService membershipService = new MembershipServiceImpl();
+    private MembershipService membershipService;
 
     @Mock
     private MembershipRepository membershipRepository;
@@ -94,20 +96,40 @@ public class MembershipService_TransferOwnershipTest {
     @Mock
     private ApiRepository apiRepository;
 
-    @Before
+    @BeforeEach
     public void setUp() throws TechnicalException {
+        membershipService =
+            new MembershipServiceImpl(
+                null,
+                userService,
+                null,
+                null,
+                null,
+                null,
+                membershipRepository,
+                roleService,
+                null,
+                null,
+                apiSearchService,
+                apiGroupService,
+                apiRepository,
+                null,
+                auditService
+            );
         newPrimaryOwnerRole.setId(USER_ROLE_ID);
         newPrimaryOwnerRole.setName(USER_ROLE_NAME);
         newPrimaryOwnerRole.setScope(RoleScope.API);
 
         UserEntity user = new UserEntity();
         user.setId(USER_ID);
-        when(userService.findByIds(EXECUTION_CONTEXT, Collections.singletonList(USER_ID), false)).thenReturn(Collections.singleton(user));
-        when(userService.findById(EXECUTION_CONTEXT, USER_ID)).thenReturn(user);
+        lenient()
+            .when(userService.findByIds(EXECUTION_CONTEXT, Collections.singletonList(USER_ID), false))
+            .thenReturn(Collections.singleton(user));
+        lenient().when(userService.findById(EXECUTION_CONTEXT, USER_ID)).thenReturn(user);
 
         Api api = new Api();
         api.setId(API_ID);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        lenient().when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
     }
 
     @Test
@@ -127,18 +149,16 @@ public class MembershipService_TransferOwnershipTest {
         when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, Collections.singletonList(GROUP_ID), null))
             .thenReturn(Collections.singleton(ownerMembership));
 
-        ApiOwnershipTransferException exception = Assert.assertThrows(
-            ApiOwnershipTransferException.class,
-            () ->
+        assertThatThrownBy(() ->
                 this.membershipService.transferApiOwnership(
                         new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
                         API_ID,
                         new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
                         Collections.singletonList(newPrimaryOwnerRole)
                     )
-        );
-
-        assertEquals("Api [api-id-1] transfer not allowed.", exception.getMessage());
+            )
+            .isInstanceOf(ApiOwnershipTransferException.class)
+            .hasMessage("Api [api-id-1] transfer not allowed.");
     }
 
     @Test
@@ -158,18 +178,16 @@ public class MembershipService_TransferOwnershipTest {
         when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, Collections.singletonList(GROUP_ID), null))
             .thenReturn(Collections.singleton(poMembership));
 
-        RoleNotFoundException exception = Assert.assertThrows(
-            RoleNotFoundException.class,
-            () ->
+        assertThatThrownBy(() ->
                 this.membershipService.transferApiOwnership(
                         new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
                         API_ID,
                         new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
                         Collections.singletonList(newPrimaryOwnerRole)
                     )
-        );
-
-        assertEquals("Role [API_PRIMARY_OWNER] cannot be found.", exception.getMessage());
+            )
+            .isInstanceOf(RoleNotFoundException.class)
+            .hasMessage("Role [API_PRIMARY_OWNER] cannot be found.");
     }
 
     @Test
@@ -189,18 +207,16 @@ public class MembershipService_TransferOwnershipTest {
         when(membershipRepository.findByReferencesAndRoleId(MembershipReferenceType.GROUP, Collections.singletonList(GROUP_ID), null))
             .thenReturn(Collections.singleton(poMembership));
 
-        RoleNotFoundException exception = Assert.assertThrows(
-            RoleNotFoundException.class,
-            () ->
+        assertThatThrownBy(() ->
                 this.membershipService.transferApiOwnership(
                         new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
                         API_ID,
                         new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP),
                         Collections.singletonList(newPrimaryOwnerRole)
                     )
-        );
-
-        assertEquals("Role [API_PRIMARY_OWNER] cannot be found.", exception.getMessage());
+            )
+            .isInstanceOf(RoleNotFoundException.class)
+            .hasMessage("Role [API_PRIMARY_OWNER] cannot be found.");
     }
 
     @Test

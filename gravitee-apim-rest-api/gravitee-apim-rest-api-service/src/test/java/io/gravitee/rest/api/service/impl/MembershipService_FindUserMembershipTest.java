@@ -16,10 +16,18 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import io.gravitee.common.data.domain.Page;
@@ -28,7 +36,10 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Application;
+import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.MembershipMemberType;
+import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserMembership;
@@ -38,26 +49,24 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class MembershipService_FindUserMembershipTest {
 
     private static final String USER_ID = "john-doe";
 
-    @InjectMocks
-    private MembershipService membershipService = new MembershipServiceImpl();
+    private MembershipService membershipService;
 
     @Mock
     private MembershipRepository mockMembershipRepository;
@@ -74,6 +83,28 @@ public class MembershipService_FindUserMembershipTest {
     @Mock
     private RoleService mockRoleService;
 
+    @BeforeEach
+    public void setUp() throws Exception {
+        membershipService =
+            new MembershipServiceImpl(
+                null,
+                null,
+                mockApplicationRepository,
+                null,
+                null,
+                null,
+                mockMembershipRepository,
+                mockRoleService,
+                null,
+                null,
+                null,
+                null,
+                mockApiRepository,
+                mockGroupService,
+                null
+            );
+    }
+
     @Test
     public void shouldGetEmptyResultForEnvironmentType() {
         List<UserMembership> references = membershipService.findUserMembership(
@@ -82,7 +113,7 @@ public class MembershipService_FindUserMembershipTest {
             USER_ID
         );
 
-        assertTrue(references.isEmpty());
+        assertThat(references).isEmpty();
     }
 
     @Test
@@ -107,7 +138,7 @@ public class MembershipService_FindUserMembershipTest {
 
         verify(mockApiRepository, never()).searchIds(any(), any(), any());
 
-        assertTrue(references.isEmpty());
+        assertThat(references).isEmpty();
     }
 
     @Test
@@ -137,10 +168,10 @@ public class MembershipService_FindUserMembershipTest {
             USER_ID
         );
 
-        assertFalse(references.isEmpty());
-        assertEquals(1, references.size());
-        assertEquals("api-id1", references.get(0).getReference());
-        assertEquals("API", references.get(0).getType());
+        assertThat(references)
+            .hasSize(1)
+            .extracting(UserMembership::getReference, UserMembership::getType)
+            .containsExactly(tuple("api-id1", "API"));
     }
 
     @Test
@@ -158,10 +189,12 @@ public class MembershipService_FindUserMembershipTest {
 
         GroupEntity group1 = new GroupEntity();
         group1.setId("Group1Id");
-        when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(new HashSet<>(asList(group1)));
+        when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(Set.of(group1));
 
-        when(mockApiRepository.searchIds(eq(asList((new ApiCriteria.Builder().groups("Group1Id").build()))), isA(Pageable.class), isNull()))
-            .thenReturn(new Page(asList("apiGroup1Id"), 0, 1, 1));
+        when(
+            mockApiRepository.searchIds(eq(List.of((new ApiCriteria.Builder().groups("Group1Id").build()))), isA(Pageable.class), isNull())
+        )
+            .thenReturn(new Page<>(List.of("apiGroup1Id"), 0, 1, 1));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),
@@ -169,10 +202,10 @@ public class MembershipService_FindUserMembershipTest {
             USER_ID
         );
 
-        assertFalse(references.isEmpty());
-        assertEquals(1, references.size());
-        assertEquals("apiGroup1Id", references.get(0).getReference());
-        assertEquals("API", references.get(0).getType());
+        assertThat(references)
+            .hasSize(1)
+            .extracting(UserMembership::getReference, UserMembership::getType)
+            .containsExactly(tuple("apiGroup1Id", "API"));
     }
 
     @Test
@@ -197,10 +230,12 @@ public class MembershipService_FindUserMembershipTest {
 
         GroupEntity group1 = new GroupEntity();
         group1.setId("Group1Id");
-        when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(new HashSet<>(asList(group1)));
+        when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(Set.of(group1));
 
-        when(mockApiRepository.searchIds(eq(asList((new ApiCriteria.Builder().groups("Group1Id").build()))), isA(Pageable.class), isNull()))
-            .thenReturn(new Page(asList("apiGroup1Id"), 0, 1, 1));
+        when(
+            mockApiRepository.searchIds(eq(List.of((new ApiCriteria.Builder().groups("Group1Id").build()))), isA(Pageable.class), isNull())
+        )
+            .thenReturn(new Page<>(List.of("apiGroup1Id"), 0, 1, 1));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),
@@ -208,12 +243,10 @@ public class MembershipService_FindUserMembershipTest {
             USER_ID
         );
 
-        assertFalse(references.isEmpty());
-        assertEquals(2, references.size());
-        assertNotEquals(references.get(0).getReference(), references.get(1).getReference());
-        assertEquals(references.get(0).getReference(), "api-id1");
-        assertEquals(references.get(1).getReference(), "apiGroup1Id");
-        assertEquals("API", references.get(0).getType());
+        assertThat(references)
+            .hasSize(2)
+            .extracting(UserMembership::getReference, UserMembership::getType)
+            .containsExactly(tuple("api-id1", "API"), tuple("apiGroup1Id", "API"));
     }
 
     @Test
@@ -255,11 +288,10 @@ public class MembershipService_FindUserMembershipTest {
             "oauth2"
         );
 
-        assertFalse(references.isEmpty());
-        assertEquals(2, references.size());
-        assertNotEquals(references.get(0).getReference(), references.get(1).getReference());
-        assertTrue(references.get(0).getReference().equals("api-id1") || references.get(0).getReference().equals("app-id1"));
-        assertTrue(references.get(1).getReference().equals("api-id1") || references.get(1).getReference().equals("app-id1"));
+        assertThat(references)
+            .hasSize(2)
+            .extracting(UserMembership::getReference, UserMembership::getType)
+            .containsExactly(tuple("app-id1", "GROUP"), tuple("api-id1", "GROUP"));
     }
 
     @Test
@@ -277,11 +309,11 @@ public class MembershipService_FindUserMembershipTest {
 
         GroupEntity group1 = new GroupEntity();
         group1.setId("Group1Id");
-        when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(new HashSet<>(asList(group1)));
+        when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(Set.of(group1));
 
         Application application = new Application();
         application.setId("applicationGroup1Id");
-        when(mockApplicationRepository.findByGroups(eq(List.of("Group1Id")))).thenReturn(new HashSet<>(asList(application)));
+        when(mockApplicationRepository.findByGroups(eq(List.of("Group1Id")))).thenReturn(Set.of(application));
 
         List<UserMembership> references = membershipService.findUserMembership(
             GraviteeContext.getExecutionContext(),
@@ -289,10 +321,10 @@ public class MembershipService_FindUserMembershipTest {
             USER_ID
         );
 
-        assertFalse(references.isEmpty());
-        assertEquals(1, references.size());
-        assertEquals("applicationGroup1Id", references.get(0).getReference());
-        assertEquals("APPLICATION", references.get(0).getType());
+        assertThat(references)
+            .hasSize(1)
+            .extracting(UserMembership::getReference, UserMembership::getType)
+            .containsExactly(tuple("applicationGroup1Id", "APPLICATION"));
     }
 
     @Test
@@ -317,6 +349,6 @@ public class MembershipService_FindUserMembershipTest {
 
         verify(mockApplicationRepository, never()).findByGroups(anyList());
 
-        assertTrue(references.isEmpty());
+        assertThat(references).isEmpty();
     }
 }
