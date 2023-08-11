@@ -752,7 +752,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
         },
         perms: {
           only: ['environment-group-r'],
-          unauthorizedFallbackTo: 'management.home',
+          unauthorizedFallbackTo: 'management.settings.notifications',
         },
       },
     })

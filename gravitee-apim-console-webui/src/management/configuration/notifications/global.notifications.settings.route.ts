@@ -52,6 +52,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         },
         perms: {
           only: ['environment-notification-r'],
+          unauthorizedFallbackTo: 'management.settings.alerts.list',
         },
       },
     })
@@ -65,6 +66,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
       data: {
         perms: {
           only: ['environment-alert-r'],
+          unauthorizedFallbackTo: 'management.home',
         },
         docs: {
           page: 'management-alerts',
