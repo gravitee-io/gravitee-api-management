@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 const AlertEnginePromotionComponent: ng.IComponentOptions = {
-  bindings: {},
+  bindings: {
+    trialUrl: '<',
+  },
   template: require('./alert-engine-promotion.html'),
   /* @ngInject */
   controller: function () {
-    this.contactUrl = 'https://www.gravitee.io/contact-us-alert';
     this.learnUrl = 'https://www.gravitee.io/get-started-alert-engine';
   },
 };

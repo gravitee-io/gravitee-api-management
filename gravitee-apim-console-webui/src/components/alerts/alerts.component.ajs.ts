@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 import { Alert, Scope } from '../../entities/alert';
 import AlertService from '../../services/alert.service';
 import NotificationService from '../../services/notification.service';
 import UserService from '../../services/user.service';
 import { Constants } from '../../entities/Constants';
+import { UTMTags } from '../../shared/components/gio-license/gio-license-data';
 
 const AlertsComponentAjs: ng.IComponentOptions = {
   bindings: {
@@ -35,6 +37,7 @@ const AlertsComponentAjs: ng.IComponentOptions = {
     UserService: UserService,
     $mdDialog,
     Constants: Constants,
+    ngGioLicenseService: GioLicenseService,
   ) {
     this.alerts = this.alerts ?? [];
     this.goTo = (suffixState: string, alertId: string) => {
@@ -53,6 +56,11 @@ const AlertsComponentAjs: ng.IComponentOptions = {
         }
       }
     };
+
+    this.trialUrl = ngGioLicenseService.getTrialURL({
+      feature: 'alert_engine',
+      context: $stateParams.apiId ? UTMTags.CONTEXT_API_NOTIFICATIONS : UTMTags.CONTEXT_ENVIRONMENT,
+    });
 
     this.delete = (alert: Alert) => {
       this.enhanceAlert(alert);
