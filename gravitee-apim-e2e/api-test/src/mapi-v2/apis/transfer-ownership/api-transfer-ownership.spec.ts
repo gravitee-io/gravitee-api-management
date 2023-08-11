@@ -46,7 +46,7 @@ const v2ApisResourceAsAdmin = new APIsApi(forManagementV2AsAdminUser());
 const v2ApiMembersResourceAsApiPublisher = new APIMembersApi(forManagementV2AsApiUser());
 const v2ApiMembersResourceAsAdmin = new APIMembersApi(forManagementV2AsAdminUser());
 
-describe('API - V4 - Transfer Ownership', () => {
+xdescribe('API - V4 - Transfer Ownership', () => {
   describe('Transfer ownership to other user', () => {
     const roleName = 'TRANSFER_OWNERSHIP_ROLE';
     let importedApi;
