@@ -15,14 +15,6 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.processor.subscription;
 
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_API;
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_APPLICATION;
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_CLIENT_IDENTIFIER;
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_PLAN;
-import static io.gravitee.gateway.api.ExecutionContext.ATTR_SUBSCRIPTION_ID;
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
-import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
-
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -31,12 +23,21 @@ import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionTemplateVariableProvider;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
+import org.bouncycastle.util.encoders.Hex;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
-import org.bouncycastle.util.encoders.Hex;
+
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_API;
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_APPLICATION;
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_CLIENT_IDENTIFIER;
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_PLAN;
+import static io.gravitee.gateway.api.ExecutionContext.ATTR_SUBSCRIPTION_ID;
+import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SECURITY_SKIP;
+import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
 
 /**
  * This processor will add template variable provide for the resolved {@link Subscription} if any.
@@ -91,14 +92,16 @@ public class SubscriptionProcessor implements Processor {
                 }
             }
 
-            String requestClientIdentifier = ctx.request().headers().get(this.clientIdentifierHeader);
+            String requestClientIdentifier = ctx.request().headers().get(clientIdentifierHeader);
+            if (requestClientIdentifier == null) {
+                requestClientIdentifier = ctx.request().parameters().getFirst(clientIdentifierHeader);
+            }
             String ctxClientIdentifier;
 
             // If request doesn't contain ClientIdentifier header, generate new one
             if (requestClientIdentifier == null || requestClientIdentifier.isBlank()) {
                 ctxClientIdentifier = computeCtxClientIdentifier(ctx, subscriptionId, transactionId);
                 requestClientIdentifier = ctxClientIdentifier;
-                ctx.response().headers().set(this.clientIdentifierHeader, ctxClientIdentifier);
             } else {
                 // Make sure given ClientIdentifier header, is ctx from subscription
                 if ((!requestClientIdentifier.endsWith(subscriptionId) && !requestClientIdentifier.endsWith(transactionId))) {
@@ -106,9 +109,8 @@ public class SubscriptionProcessor implements Processor {
                 } else {
                     ctxClientIdentifier = requestClientIdentifier;
                 }
-                ctx.response().headers().set(this.clientIdentifierHeader, requestClientIdentifier);
             }
-
+            ctx.response().headers().set(clientIdentifierHeader, requestClientIdentifier);
             ctx.setAttribute(ATTR_CLIENT_IDENTIFIER, ctxClientIdentifier);
             ctx.request().clientIdentifier(ctxClientIdentifier);
 
