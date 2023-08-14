@@ -39,4 +39,8 @@ public class SubscriptionListener extends Listener {
     public SubscriptionListener() {
         super(ListenerType.SUBSCRIPTION);
     }
+
+    protected SubscriptionListener(SubscriptionListenerBuilder<?, ?> b) {
+        super(ListenerType.SUBSCRIPTION, b);
+    }
 }

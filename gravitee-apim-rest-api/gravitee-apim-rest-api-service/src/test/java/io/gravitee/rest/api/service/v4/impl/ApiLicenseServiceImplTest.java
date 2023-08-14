@@ -189,8 +189,7 @@ public class ApiLicenseServiceImplTest {
     }
 
     private static List<Listener> listeners(List<Entrypoint> entrypoints) {
-        HttpListener httpListener = new HttpListener();
-        httpListener.setEntrypoints(entrypoints);
+        HttpListener httpListener = HttpListener.builder().entrypoints(entrypoints).build();
         return List.of(httpListener);
     }
 }
