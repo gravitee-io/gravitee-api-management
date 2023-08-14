@@ -35,7 +35,7 @@ import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
 import { User } from '../../../../../entities/user';
 import { fakeSearchableUser } from '../../../../../entities/user/searchableUser.fixture';
-import { ApiV4, fakeApiV4, MembersResponse } from '../../../../../entities/management-api-v2';
+import { ApiV4, fakeApiV4, fakeGroup, fakeGroupsResponse, MembersResponse } from '../../../../../entities/management-api-v2';
 
 describe('ApiGeneralMembersComponent', () => {
   let fixture: ComponentFixture<ApiGeneralMembersComponent>;
@@ -83,18 +83,14 @@ describe('ApiGeneralMembersComponent', () => {
   describe('API member change notification', () => {
     it('should uncheck box when notifications are off', async () => {
       const api = fakeApiV4({ id: apiId, disableMembershipNotifications: true });
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest();
-      expectGetGroupMembersRequest();
+      expectRequests(api);
 
       expect(await harness.isNotificationsToggleChecked()).toEqual(false);
     });
 
     it('should show save bar when toggle is toggles', async () => {
       const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest();
-      expectGetGroupMembersRequest();
+      expectRequests(api);
 
       expect(await harness.isNotificationsToggleChecked()).toEqual(true);
       await harness.toggleNotificationToggle();
@@ -104,9 +100,7 @@ describe('ApiGeneralMembersComponent', () => {
 
     it('should save notifications modifications when clicking on save bar', async () => {
       const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest();
-      expectGetGroupMembersRequest();
+      expectRequests(api);
 
       await harness.toggleNotificationToggle();
 
@@ -121,6 +115,7 @@ describe('ApiGeneralMembersComponent', () => {
       // init
       expectApiGetRequest(api);
       expectApiMembersGetRequest();
+      expectGetGroupsListRequest(api.groups);
       expectGetGroupMembersRequest();
     });
   });
@@ -134,9 +129,7 @@ describe('ApiGeneralMembersComponent', () => {
           { id: '2', displayName: 'Simba', roles: [{ name: 'Prince', scope: 'API' }] },
         ],
       };
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-      expectGetGroupMembersRequest();
+      expectRequests(api, members);
 
       expect((await harness.getTableRows()).length).toEqual(2);
       expect(await harness.getMembersName()).toEqual(['Mufasa', 'Simba']);
@@ -145,9 +138,7 @@ describe('ApiGeneralMembersComponent', () => {
     it('should make role readonly when user is PRIMARY OWNER', async () => {
       const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
       const members: MembersResponse = { data: [{ id: '1', displayName: 'admin', roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }] }] };
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-      expectGetGroupMembersRequest();
+      expectRequests(api, members);
 
       expect(await harness.isMemberRoleSelectDisabled(0)).toEqual(true);
     });
@@ -155,9 +146,7 @@ describe('ApiGeneralMembersComponent', () => {
     it('should make role editable when user is not PRIMARY OWNER', async () => {
       const api = fakeApiV4({ id: apiId, disableMembershipNotifications: false });
       const members: MembersResponse = { data: [{ id: '1', displayName: 'owner', roles: [{ name: 'OWNER', scope: 'API' }] }] };
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-      expectGetGroupMembersRequest();
+      expectRequests(api, members);
 
       expect(await harness.isMemberRoleSelectDisabled(0)).toEqual(false);
       const roleOptions: MatOptionHarness[] = await harness.getMemberRoleSelectOptions(0);
@@ -182,9 +171,7 @@ describe('ApiGeneralMembersComponent', () => {
           },
         ],
       };
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-      expectGetGroupMembersRequest();
+      expectRequests(api, members);
 
       await harness.getMemberRoleSelectForRowIndex(1).then(async (select) => {
         await select.open();
@@ -199,9 +186,7 @@ describe('ApiGeneralMembersComponent', () => {
       req.flush({});
       expect(req.request.body).toEqual({ memberId: '2', roleName: 'USER' });
       // init
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest();
-      expectGetGroupMembersRequest();
+      expectRequests(api);
     });
   });
 
@@ -217,9 +202,7 @@ describe('ApiGeneralMembersComponent', () => {
           },
         ],
       };
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-      expectGetGroupMembersRequest();
+      expectRequests(api, members);
 
       expect(await harness.isMemberDeleteButtonVisible(0)).toEqual(false);
     });
@@ -236,9 +219,7 @@ describe('ApiGeneralMembersComponent', () => {
           },
         ],
       };
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-      expectGetGroupMembersRequest();
+      expectRequests(api, members);
 
       expect(await harness.isMemberDeleteButtonVisible(1)).toEqual(true);
 
@@ -265,9 +246,7 @@ describe('ApiGeneralMembersComponent', () => {
           },
         ],
       };
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-      expectGetGroupMembersRequest();
+      expectRequests(api, members);
 
       expect(await harness.isMemberDeleteButtonVisible(1)).toEqual(true);
 
@@ -296,9 +275,7 @@ describe('ApiGeneralMembersComponent', () => {
           },
         ],
       };
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-      expectGetGroupMembersRequest();
+      expectRequests(api, members);
 
       const memberToAdd = fakeSearchableUser({ id: 'user', displayName: 'User Id' });
 
@@ -341,9 +318,7 @@ describe('ApiGeneralMembersComponent', () => {
       const members: MembersResponse = {
         data: [{ id: '1', displayName: 'Existing User', roles: [{ name: 'PRIMARY_OWNER', scope: 'API' }] }],
       };
-      expectApiGetRequest(api);
-      expectApiMembersGetRequest(members);
-      expectGetGroupMembersRequest();
+      expectRequests(api, members);
 
       const memberToAdd = fakeSearchableUser({ id: undefined, displayName: 'User from LDAP' });
 
@@ -359,6 +334,13 @@ describe('ApiGeneralMembersComponent', () => {
       expect(req.request.body).toEqual({ userId: undefined, externalReference: memberToAdd.reference, roleName: 'USER' });
     });
   });
+
+  function expectRequests(api: ApiV4, members: MembersResponse = { data: [] }) {
+    expectApiGetRequest(api);
+    expectGetGroupsListRequest(api.groups);
+    expectApiMembersGetRequest(members);
+    expectGetGroupMembersRequest();
+  }
 
   function expectApiGetRequest(api: ApiV4) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`, method: 'GET' }).flush(api);
@@ -386,6 +368,13 @@ describe('ApiGeneralMembersComponent', () => {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${groupId}/members?page=1&perPage=10`, method: 'GET' })
       .flush({ data: [], metadata: { groupName: 'group1' }, pagination: {} });
+    fixture.detectChanges();
+  }
+
+  function expectGetGroupsListRequest(groups: string[]) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
+      .flush(fakeGroupsResponse({ data: groups.map((id) => fakeGroup({ id, name: id + '-name' })) }));
     fixture.detectChanges();
   }
 });

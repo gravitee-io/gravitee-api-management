@@ -34,6 +34,7 @@ import { SearchableUser } from '../../../../../entities/user/searchableUser';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { ApiMemberV2Service } from '../../../../../services-ngx/api-member-v2.service';
 import { Api, Member, Role } from '../../../../../entities/management-api-v2';
+import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 
 class MemberDataSource {
   id: string;
@@ -41,9 +42,10 @@ class MemberDataSource {
   displayName: string;
   picture: string;
 }
-interface GroupData {
-  groupId: string;
-  isVisible: boolean;
+export interface GroupData {
+  id: string;
+  name?: string;
+  isVisible?: boolean;
 }
 @Component({
   selector: 'api-general-members',
@@ -73,6 +75,7 @@ export class ApiGeneralMembersComponent implements OnInit {
     private readonly apiMemberService: ApiMemberV2Service,
     private readonly userService: UsersService,
     private readonly roleService: RoleService,
+    private readonly groupService: GroupV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly formBuilder: FormBuilder,
@@ -88,14 +91,24 @@ export class ApiGeneralMembersComponent implements OnInit {
     if (this.permissionService.hasAnyMatching(['api-member-d']) && !this.displayedColumns.includes('delete')) {
       this.displayedColumns.push('delete');
     }
+    // Get group list, map id + name
 
-    forkJoin([this.apiService.get(this.apiId), this.apiMemberService.getMembers(this.apiId), this.roleService.list('API')])
+    forkJoin([
+      this.apiService.get(this.apiId),
+      this.apiMemberService.getMembers(this.apiId),
+      this.roleService.list('API'),
+      this.groupService.list(1, 9999),
+    ])
       .pipe(
-        tap(([api, members, roles]) => {
+        tap(([api, members, roles, groups]) => {
           this.members = members.data ?? [];
           this.roles = roles.map((r) => r.name) ?? [];
           this.defaultRole = roles.find((role) => role.default);
-          this.groupData = api.groups?.map((groupId) => ({ groupId, isVisible: true }));
+          this.groupData = api.groups.map((id) => ({
+            id,
+            name: groups.data.find((g) => g.id === id)?.name,
+            isVisible: true,
+          }));
           this.initDataSource();
           this.initForm(api);
         }),

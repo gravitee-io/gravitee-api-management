@@ -86,7 +86,7 @@
     <ng-container *ngFor="let group of groupData">
       <api-general-group-members
         *ngIf="group.isVisible"
-        [groupId]="group.groupId"
+        [groupData]="group"
         (destroy)="group.isVisible = false"
       ></api-general-group-members>
     </ng-container>
