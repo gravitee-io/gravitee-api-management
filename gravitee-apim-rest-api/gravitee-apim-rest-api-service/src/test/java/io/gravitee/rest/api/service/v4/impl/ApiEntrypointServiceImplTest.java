@@ -67,11 +67,7 @@ public class ApiEntrypointServiceImplTest {
     public void shouldReturnDefaultEntrypointWithoutApiV4Tags() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        HttpListener httpListener = new HttpListener();
-        Path path = new Path();
-        path.setHost("host");
-        path.setPath("path");
-        httpListener.setPaths(List.of(path));
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
         when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("https://default-entrypoint");
@@ -87,11 +83,7 @@ public class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = new HttpListener();
-        Path path = new Path();
-        path.setHost("host");
-        path.setPath("path");
-        httpListener.setPaths(List.of(path));
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
         when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("https://default-entrypoint");
@@ -111,11 +103,7 @@ public class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = new HttpListener();
-        Path path = new Path();
-        path.setHost("host");
-        path.setPath("path");
-        httpListener.setPaths(List.of(path));
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();

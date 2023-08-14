@@ -19,7 +19,6 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.Cors;
-import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -60,6 +59,14 @@ public class HttpListener extends Listener {
 
     public HttpListener() {
         super(ListenerType.HTTP);
+    }
+
+    protected HttpListener(HttpListenerBuilder<?, ?> b) {
+        super(ListenerType.HTTP, b);
+        this.paths = b.paths;
+        this.pathMappings = b.pathMappings;
+        this.pathMappingsPattern = b.pathMappingsPattern;
+        this.cors = b.cors;
     }
 
     public void setPathMappings(final Set<String> pathMappings) {

@@ -54,8 +54,7 @@ public class ApiBuilder {
     }
 
     public static ApiBuilder aSyncApiV4() {
-        var httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path()));
+        var httpListener = HttpListener.builder().paths(List.of(new Path())).build();
 
         return new ApiBuilder(List.of(httpListener), List.of(EndpointGroup.builder().build()));
     }

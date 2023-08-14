@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -51,19 +52,19 @@ public class ListenerMapperTest {
         assertThat(httpListenerEntityV4.getType()).isEqualTo(ListenerType.HTTP);
         assertThat(httpListenerEntityV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(httpListenerEntityV4.getServers())
-            .isNotNull()
             .asList()
-            .hasSize(httpListener.getServers().size())
-            .contains(httpListener.getServers().toArray());
-        assertThat(httpListenerEntityV4).isNotNull().isInstanceOf(HttpListener.class);
+            .hasSameSizeAs(httpListener.getServers())
+            .contains(Objects.requireNonNull(httpListener.getServers()).toArray());
+        assertThat(httpListenerEntityV4).isInstanceOf(HttpListener.class);
 
-        assertThat(((HttpListener) httpListenerEntityV4).getPaths()).isNotNull().asList().hasSize(1);
+        assertThat(((HttpListener) httpListenerEntityV4).getPaths()).asList().hasSize(1);
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0)).isNotNull();
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).getHost()).isEqualTo(httpListener.getPaths().get(0).getHost());
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).getPath()).isEqualTo(httpListener.getPaths().get(0).getPath());
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).isOverrideAccess())
             .isEqualTo(httpListener.getPaths().get(0).getOverrideAccess());
-        assertThat(((HttpListener) httpListenerEntityV4).getPathMappings()).isEqualTo(new HashSet<>(httpListener.getPathMappings()));
+        assertThat(((HttpListener) httpListenerEntityV4).getPathMappings())
+            .isEqualTo(new HashSet<>(Objects.requireNonNull(httpListener.getPathMappings())));
         assertThat(((HttpListener) httpListenerEntityV4).getPathMappingsPattern()).isNotNull();
         assertThat(((HttpListener) httpListenerEntityV4).getPathMappingsPattern().get("/test")).isNotNull().isInstanceOf(Pattern.class);
         assertThat(((HttpListener) httpListenerEntityV4).getCors()).isNotNull(); // Tested in CorsMapperTest
@@ -72,21 +73,19 @@ public class ListenerMapperTest {
         assertThat(subscriptionEntityV4.getType()).isEqualTo(ListenerType.SUBSCRIPTION);
         assertThat(subscriptionEntityV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(subscriptionEntityV4.getServers())
-            .isNotNull()
             .asList()
-            .hasSize(httpListener.getServers().size())
+            .hasSameSizeAs(httpListener.getServers())
             .contains(httpListener.getServers().toArray());
-        assertThat(subscriptionEntityV4).isNotNull().isInstanceOf(SubscriptionListener.class);
+        assertThat(subscriptionEntityV4).isInstanceOf(SubscriptionListener.class);
 
         var tcpListenerEntityV4 = listenerEntityV4List.get(2);
         assertThat(tcpListenerEntityV4.getType()).isEqualTo(ListenerType.TCP);
         assertThat(tcpListenerEntityV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(tcpListenerEntityV4.getServers())
-            .isNotNull()
             .asList()
-            .hasSize(httpListener.getServers().size())
+            .hasSameSizeAs(httpListener.getServers())
             .contains(httpListener.getServers().toArray());
-        assertThat(tcpListenerEntityV4).isNotNull().isInstanceOf(TcpListener.class);
+        assertThat(tcpListenerEntityV4).isInstanceOf(TcpListener.class);
     }
 
     @Test
@@ -106,11 +105,10 @@ public class ListenerMapperTest {
         assertThat(httpListenerV4.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP);
         assertThat(httpListenerV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(httpListenerV4.getServers())
-            .isNotNull()
             .asList()
-            .hasSize(httpListenerEntityV4.getServers().size())
+            .hasSameSizeAs(httpListenerEntityV4.getServers())
             .contains(httpListenerEntityV4.getServers().toArray());
-        assertThat(httpListenerV4.getPaths()).isNotNull().asList().hasSize(1);
+        assertThat(httpListenerV4.getPaths()).asList().hasSize(1);
         assertThat(httpListenerV4.getPaths().get(0)).isNotNull();
         assertThat(httpListenerV4.getPaths().get(0).getHost()).isEqualTo(httpListenerEntityV4.getPaths().get(0).getHost());
         assertThat(httpListenerV4.getPaths().get(0).getPath()).isEqualTo(httpListenerEntityV4.getPaths().get(0).getPath());
@@ -123,18 +121,16 @@ public class ListenerMapperTest {
         assertThat(subscriptionListenerV4.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ListenerType.SUBSCRIPTION);
         assertThat(subscriptionListenerV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(subscriptionListenerV4.getServers())
-            .isNotNull()
             .asList()
-            .hasSize(httpListenerEntityV4.getServers().size())
+            .hasSameSizeAs(httpListenerEntityV4.getServers())
             .contains(httpListenerEntityV4.getServers().toArray());
 
         var tcpListenerV4 = listenerV4List.get(2).getTcpListener();
         assertThat(tcpListenerV4.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ListenerType.TCP);
         assertThat(tcpListenerV4.getEntrypoints()).isNotNull(); // Tested in EntrypointMapperTest
         assertThat(tcpListenerV4.getServers())
-            .isNotNull()
             .asList()
-            .hasSize(httpListenerEntityV4.getServers().size())
+            .hasSameSizeAs(httpListenerEntityV4.getServers())
             .contains(httpListenerEntityV4.getServers().toArray());
     }
 }

@@ -425,8 +425,7 @@ public class ApiServiceImplTest {
         newApiEntity.setApiVersion("v1");
         newApiEntity.setType(ApiType.PROXY);
         newApiEntity.setDescription("Ma description");
-        HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path("/context")));
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/context").build())).build();
         newApiEntity.setListeners(List.of(httpListener));
 
         final ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), newApiEntity, USER_NAME);
@@ -491,8 +490,7 @@ public class ApiServiceImplTest {
         newApiEntity.setApiVersion("v1");
         newApiEntity.setType(ApiType.PROXY);
         newApiEntity.setDescription("Ma description");
-        HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path("/context")));
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/context").build())).build();
         newApiEntity.setListeners(List.of(httpListener));
 
         List<Flow> apiFlows = List.of(new Flow(), new Flow());
@@ -1076,8 +1074,7 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(singletonList(new Path("/old")));
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/old").build())).build();
         apiDefinition.setListeners(singletonList(httpListener));
         Analytics analytics = new Analytics();
         analytics.setEnabled(true);
@@ -1123,8 +1120,7 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(singletonList(new Path("/old")));
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/old").build())).build();
         apiDefinition.setListeners(singletonList(httpListener));
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
@@ -1167,8 +1163,7 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(singletonList(new Path("/old")));
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/old").build())).build();
 
         Analytics analytics = new Analytics();
         analytics.setEnabled(true);
@@ -1241,8 +1236,7 @@ public class ApiServiceImplTest {
 
     @Test
     public void shouldFindByEnvironmentIdAndCrossId() throws TechnicalException {
-        when(apiRepository.findByEnvironmentIdAndCrossId("environment", "api-cross-id"))
-               .thenReturn(Optional.of(api));
+        when(apiRepository.findByEnvironmentIdAndCrossId("environment", "api-cross-id")).thenReturn(Optional.of(api));
 
         final Optional<ApiEntity> result = apiService.findByEnvironmentIdAndCrossId("environment", "api-cross-id");
         assertThat(result).isNotEmpty();
@@ -1290,8 +1284,7 @@ public class ApiServiceImplTest {
         updateApiEntity.setEndpointGroups(singletonList(endpointGroup));
         updateApiEntity.setLifecycleState(CREATED);
 
-        HttpListener listener = new HttpListener();
-        listener.setPaths(singletonList(new Path(path)));
+        HttpListener listener = HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build();
         updateApiEntity.setListeners(singletonList(listener));
     }
 
@@ -1319,9 +1312,11 @@ public class ApiServiceImplTest {
         primaryOwnerEntity.setDisplayName(USER_NAME);
         apiEntity.setPrimaryOwner(primaryOwnerEntity);
 
-        HttpListener httpListener = new HttpListener();
-        httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
-        httpListener.setPathMappings(Set.of("/test"));
+        HttpListener httpListener = HttpListener
+            .builder()
+            .paths(List.of(Path.builder().host("my.fake.host").path("/test").build()))
+            .pathMappings(Set.of("/test"))
+            .build();
 
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         Entrypoint entrypoint = new Entrypoint();
