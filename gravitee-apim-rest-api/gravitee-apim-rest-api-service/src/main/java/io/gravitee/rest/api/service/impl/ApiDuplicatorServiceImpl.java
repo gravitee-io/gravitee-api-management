@@ -28,13 +28,36 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.GroupEntity;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.NewGroupEntity;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.SystemFolderType;
+import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.DuplicateApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiIdsCalculatorService;
+import io.gravitee.rest.api.service.ApiMetadataService;
+import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.MembershipDuplicateService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -45,7 +68,6 @@ import io.gravitee.rest.api.service.imports.ImportJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
-import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
 import java.util.*;
@@ -77,6 +99,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final ObjectMapper objectMapper;
     private final ApiMetadataService apiMetadataService;
     private final MembershipService membershipService;
+    private final MembershipDuplicateService membershipDuplicateService;
     private final RoleService roleService;
     private final PageService pageService;
     private final PlanService planService;
@@ -95,6 +118,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         ObjectMapper objectMapper,
         ApiMetadataService apiMetadataService,
         MembershipService membershipService,
+        MembershipDuplicateService membershipDuplicateService,
         RoleService roleService,
         PageService pageService,
         PlanService planService,
@@ -112,6 +136,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         this.objectMapper = objectMapper;
         this.apiMetadataService = apiMetadataService;
         this.membershipService = membershipService;
+        this.membershipDuplicateService = membershipDuplicateService;
         this.roleService = roleService;
         this.pageService = pageService;
         this.planService = planService;
@@ -230,30 +255,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         );
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_MEMBERS)) {
-            final Set<MembershipEntity> membershipsToDuplicate = membershipService.getMembershipsByReference(
-                io.gravitee.rest.api.model.MembershipReferenceType.API,
-                apiId
-            );
-            RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(
-                executionContext.getOrganizationId(),
-                RoleScope.API
-            );
-            if (primaryOwnerRole != null) {
-                String primaryOwnerRoleId = primaryOwnerRole.getId();
-                membershipsToDuplicate.forEach(membership -> {
-                    String roleId = membership.getRoleId();
-                    if (!primaryOwnerRoleId.equals(roleId)) {
-                        membershipService.addRoleToMemberOnReference(
-                            executionContext,
-                            io.gravitee.rest.api.model.MembershipReferenceType.API,
-                            duplicatedApi.getId(),
-                            membership.getMemberType(),
-                            membership.getMemberId(),
-                            roleId
-                        );
-                    }
-                });
-            }
+            membershipDuplicateService.duplicateMemberships(executionContext, apiId, duplicatedApi.getId());
         }
 
         final Map<String, String> pagesIdsMap = new HashMap<>();
