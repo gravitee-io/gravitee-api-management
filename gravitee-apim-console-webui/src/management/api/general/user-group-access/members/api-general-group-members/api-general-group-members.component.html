@@ -15,43 +15,49 @@
     limitations under the License.
 
 -->
-<mat-card class="card" *ngIf="dataSourceGroup">
-  <h3>Group {{ dataSourceGroup.groupName }} inherited members ({{ dataSourceGroup.dataSource.length }})</h3>
+<mat-card class="card">
+  <ng-container *ngIf="!canViewGroupMembers">
+    <h3>Group {{ groupData.name }}</h3>
+    <p id="cannot-view-members">You do not have the appropriate permissions to view members of this group.</p>
+  </ng-container>
+  <ng-container *ngIf="canViewGroupMembers">
+    <h3>Group {{ groupData.name }} inherited members ({{ dataSourceGroup.memberTotalCount }})</h3>
 
-  <gio-table-wrapper
-    [disableSearchInput]="true"
-    [length]="dataSourceGroup.memberTotalCount"
-    [filters]="filters"
-    (filtersChange)="onFiltersChanged($event)"
-    [paginationPageSizeOptions]="[5, 10, 25, 50]"
-  >
-    <table
-      mat-table
-      *ngIf="dataSourceGroup"
-      [dataSource]="dataSourceGroup.dataSource"
-      class="card__table"
-      [attr.aria-label]="'Group ' + dataSourceGroup.groupName + ' members table'"
+    <gio-table-wrapper
+      [disableSearchInput]="true"
+      [length]="dataSourceGroup.memberTotalCount"
+      [filters]="filters"
+      (filtersChange)="onFiltersChanged($event)"
+      [paginationPageSizeOptions]="[5, 10, 25, 50]"
     >
-      <ng-container matColumnDef="picture">
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let member">
-          <gio-avatar [src]="member.picture" [name]="member.displayName" size="24" [roundedBorder]="true"></gio-avatar>
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="displayName">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let member" [class.primary-owner-name]="member.role === 'PRIMARY_OWNER'">
-          {{ member.displayName }}
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="role">
-        <th mat-header-cell *matHeaderCellDef>Role</th>
-        <td mat-cell *matCellDef="let member">
-          {{ member.role }}
-        </td>
-      </ng-container>
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
-  </gio-table-wrapper>
+      <table
+        mat-table
+        *ngIf="dataSourceGroup"
+        [dataSource]="dataSourceGroup.membersPageResult"
+        class="card__table"
+        [attr.aria-label]="'Group ' + groupData.name + ' members table'"
+      >
+        <ng-container matColumnDef="picture">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let member">
+            <gio-avatar [src]="member.picture" [name]="member.displayName" size="24" [roundedBorder]="true"></gio-avatar>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="displayName">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let member" [class.primary-owner-name]="member.role === 'PRIMARY_OWNER'">
+            {{ member.displayName }}
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="role">
+          <th mat-header-cell *matHeaderCellDef>Role</th>
+          <td mat-cell *matCellDef="let member">
+            {{ member.role }}
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </gio-table-wrapper>
+  </ng-container>
 </mat-card>

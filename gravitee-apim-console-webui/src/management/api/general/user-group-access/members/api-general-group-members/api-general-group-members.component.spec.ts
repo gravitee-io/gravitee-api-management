@@ -31,13 +31,20 @@ import { ApiGeneralUserGroupModule } from '../../api-general-user-group.module';
 import { CurrentUserService } from '../../../../../../services-ngx/current-user.service';
 import { MembersResponse } from '../../../../../../entities/management-api-v2';
 import { fakeMember } from '../../../../../../entities/management-api-v2/member/member.fixture';
+import { GroupData } from '../api-general-members.component';
+
+const GROUP_ID = 'groupId1';
+const GROUP_NAME = 'groupName1';
 
 @Component({
   selector: `host-component`,
-  template: `<api-general-group-members [groupId]="groupId"></api-general-group-members>`,
+  template: `<api-general-group-members [groupData]="groupData"></api-general-group-members>`,
 })
 class TestComponent {
-  groupId = 'groupId1';
+  groupData: GroupData = {
+    id: GROUP_ID,
+    name: GROUP_NAME,
+  };
 }
 describe('ApiGeneralGroupMembersComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
@@ -71,9 +78,9 @@ describe('ApiGeneralGroupMembersComponent', () => {
   });
 
   it('should display group members tables', async () => {
-    expectGroupsGetMembersRequest('groupId1', {
+    expectGroupsGetMembersRequest({
       data: [fakeMember({ roles: [{ name: 'USER', scope: 'API' }] })],
-      metadata: { groupName: 'Group1' },
+      metadata: { groupName: GROUP_NAME },
       pagination: { totalCount: 1 },
     });
 
@@ -81,14 +88,14 @@ describe('ApiGeneralGroupMembersComponent', () => {
 
     const apiGroupsMembersComponent = await loader.getHarness(ApiGeneralGroupMembersHarness);
 
-    const group1MembersTable = await apiGroupsMembersComponent.getGroupTableByGroupName('Group1');
+    const group1MembersTable = await apiGroupsMembersComponent.getGroupTableByGroupName();
     expect(await group1MembersTable.getCellTextByIndex()).toEqual([['', 'member-display-name', 'USER']]);
   });
 
   it('should group members tables -- no API role', async () => {
-    expectGroupsGetMembersRequest('groupId1', {
+    expectGroupsGetMembersRequest({
       data: [fakeMember({ roles: [{ name: 'USER', scope: 'APPLICATION' }] })],
-      metadata: { groupName: 'Group1' },
+      metadata: { groupName: GROUP_NAME },
       pagination: { totalCount: 1 },
     });
 
@@ -96,26 +103,39 @@ describe('ApiGeneralGroupMembersComponent', () => {
 
     const apiGroupsMembersComponent = await loader.getHarness(ApiGeneralGroupMembersHarness);
 
-    const group1MembersTable = await apiGroupsMembersComponent.getGroupTableByGroupName('Group1');
+    const group1MembersTable = await apiGroupsMembersComponent.getGroupTableByGroupName();
     expect(await group1MembersTable.getCellTextByIndex()).toEqual([['', 'member-display-name', '']]);
   });
 
   it('should not display group members tables if no members', async () => {
-    expectGroupsGetMembersRequest('groupId1', {
+    expectGroupsGetMembersRequest({
       data: [],
-      metadata: { groupName: 'Group1' },
+      metadata: { groupName: GROUP_NAME },
       pagination: { totalCount: 0 },
     });
 
     fixture.detectChanges();
 
     const apiGroupsMembersComponent = await loader.getHarness(ApiGeneralGroupMembersHarness);
-    expect(await apiGroupsMembersComponent.groupTableExistsByGroupName('Group1')).toEqual(false);
+    expect(await apiGroupsMembersComponent.groupTableExistsByGroupName()).toEqual(false);
   });
 
-  function expectGroupsGetMembersRequest(groupId: string, membersResponse: MembersResponse) {
+  it('should display message if user lacks permissions', async () => {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${groupId}/members?page=1&perPage=10`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/groupId1/members?page=1&perPage=10`, method: 'GET' })
+      .flush(
+        { httpStatus: 403, message: 'You do not have the permissions to access this resource' },
+        { statusText: 'Forbidden', status: 403 },
+      );
+    fixture.detectChanges();
+
+    const apiGroupsMembersComponent = await loader.getHarness(ApiGeneralGroupMembersHarness);
+    expect(await apiGroupsMembersComponent.userCannotViewGroupMembers()).toEqual(true);
+  });
+
+  function expectGroupsGetMembersRequest(membersResponse: MembersResponse) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${GROUP_ID}/members?page=1&perPage=10`, method: 'GET' })
       .flush(membersResponse);
   }
 });

@@ -20,6 +20,7 @@ import { takeUntil } from 'rxjs/operators';
 import { UsersService } from '../../../../../../services-ngx/users.service';
 import { GioTableWrapperFilters } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GroupV2Service } from '../../../../../../services-ngx/group-v2.service';
+import { GroupData } from '../api-general-members.component';
 
 interface MemberDataSource {
   id: string;
@@ -34,31 +35,30 @@ interface MemberDataSource {
   styles: [require('./api-general-group-members.component.scss')],
 })
 export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-
-  dataSourceGroup: {
-    groupName: string;
-    memberTotalCount: number;
-    dataSource: MemberDataSource[];
-  };
-
-  displayedColumns = ['picture', 'displayName', 'role'];
-
-  filters: GioTableWrapperFilters = {
-    pagination: { index: 1, size: 10 },
-    searchTerm: '',
-  };
-
   @Input()
-  groupId: string;
+  groupData: GroupData;
 
   @Output()
   destroy = new EventEmitter<void>();
 
+  public dataSourceGroup: {
+    memberTotalCount?: number;
+    membersPageResult?: MemberDataSource[];
+  };
+
+  public displayedColumns = ['picture', 'displayName', 'role'];
+
+  public filters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  };
+
+  public canViewGroupMembers: boolean;
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   constructor(private readonly groupService: GroupV2Service, private readonly userService: UsersService) {}
 
   ngOnInit(): void {
-    if (!this.groupId || this.groupId.length === 0) {
+    if (!this.groupData.id || this.groupData.id.length === 0) {
       this.destroy.emit();
       return;
     }
@@ -73,7 +73,7 @@ export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
   onFiltersChanged($event: GioTableWrapperFilters) {
     // Only refresh data if not all data is shown or requested page size is less than total count
     if (
-      this.dataSourceGroup.dataSource.length < this.dataSourceGroup.memberTotalCount ||
+      this.dataSourceGroup.membersPageResult.length < this.dataSourceGroup.memberTotalCount ||
       $event.pagination.size <= this.dataSourceGroup.memberTotalCount
     ) {
       this.getGroupMembersPage($event.pagination.index, $event.pagination.size);
@@ -82,25 +82,30 @@ export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
 
   private getGroupMembersPage(page = 1, perPage = 10): void {
     this.groupService
-      .getMembers(this.groupId, page, perPage)
+      .getMembers(this.groupData.id, page, perPage)
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((membersResponse) => {
-        if (!membersResponse.pagination.totalCount || membersResponse.pagination.totalCount === 0) {
-          this.destroy.emit();
-          return;
-        }
-        this.dataSourceGroup = {
-          groupName: membersResponse.metadata?.groupName,
-          memberTotalCount: membersResponse.pagination.totalCount,
-          dataSource: membersResponse.data.map((member) => {
-            return {
+      .subscribe(
+        (membersResponse) => {
+          if (!membersResponse.pagination.totalCount || membersResponse.pagination.totalCount === 0) {
+            this.destroy.emit();
+            return;
+          }
+          this.canViewGroupMembers = true;
+          this.dataSourceGroup = {
+            memberTotalCount: membersResponse.pagination.totalCount,
+            membersPageResult: membersResponse.data.map((member) => ({
               id: member.id,
               role: member.roles.find((role) => role.scope === 'API')?.name,
               displayName: member.displayName,
               picture: this.userService.getUserAvatar(member.id),
-            };
-          }),
-        };
-      });
+            })),
+          };
+        },
+        ({ error }) => {
+          if (error.httpStatus === 403) {
+            this.canViewGroupMembers = false;
+          }
+        },
+      );
   }
 }

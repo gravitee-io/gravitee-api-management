@@ -19,15 +19,22 @@ import { MatTableHarness } from '@angular/material/table/testing';
 export class ApiGeneralGroupMembersHarness extends ComponentHarness {
   static hostSelector = 'api-general-group-members';
 
-  protected getGroupTable = (groupName: string) =>
-    this.locatorFor(MatTableHarness.with({ selector: '[aria-label="Group ' + groupName + ' members table"]' }))();
+  protected getGroupTable = () => this.locatorFor(MatTableHarness)();
 
-  public getGroupTableByGroupName(groupName: string): Promise<MatTableHarness> {
-    return this.getGroupTable(groupName);
+  protected getDoNotHavePermissionMessage = () => this.locatorFor('#cannot-view-members')();
+
+  public getGroupTableByGroupName(): Promise<MatTableHarness> {
+    return this.getGroupTable();
   }
 
-  public groupTableExistsByGroupName(groupName: string): Promise<boolean> {
-    return this.getGroupTable(groupName)
+  public groupTableExistsByGroupName(): Promise<boolean> {
+    return this.getGroupTable()
+      .then((_) => true)
+      .catch((_) => false);
+  }
+
+  public userCannotViewGroupMembers(): Promise<boolean> {
+    return this.getDoNotHavePermissionMessage()
       .then((_) => true)
       .catch((_) => false);
   }
