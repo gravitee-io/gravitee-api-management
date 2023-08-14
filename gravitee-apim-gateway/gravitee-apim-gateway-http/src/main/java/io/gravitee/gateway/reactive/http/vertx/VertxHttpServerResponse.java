@@ -95,15 +95,21 @@ public class VertxHttpServerResponse extends AbstractResponse {
                 return Completable.error(new IllegalStateException("The response is already ended"));
             }
             prepareHeaders();
+            // this atomic reference maybe useless due to  https://github.com/vert-x3/vertx-rx/pull/285
+            // how to confirm ?
+            final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 
             if (lazyBufferFlow().hasChunks()) {
-                return nativeResponse.rxSend(
-                    chunks()
-                        .map(buffer -> Buffer.buffer(buffer.getNativeBuffer()))
-                        .doOnNext(buffer ->
-                            ctx.metrics().setResponseContentLength(ctx.metrics().getResponseContentLength() + buffer.length())
+                return nativeResponse
+                        .rxSend(
+                                chunks()
+                                        .doOnSubscribe(subscriptionRef::set)
+                                        .map(buffer -> io.vertx.rxjava3.core.buffer.Buffer.buffer(buffer.getNativeBuffer()))
+                                        .doOnNext(buffer ->
+                                                ctx.metrics().setResponseContentLength(ctx.metrics().getResponseContentLength() + buffer.length())
+                                        )
                         )
-                );
+                        .doOnDispose(() -> subscriptionRef.get().cancel());
             }
 
             return nativeResponse.rxEnd();
