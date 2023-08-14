@@ -44,9 +44,12 @@ public class TransactionRequestProcessor extends AbstractProcessor<ExecutionCont
     @Override
     public void handle(final ExecutionContext context) {
         final String requestId = context.request().id();
-        String transactionId = context.request().headers().getFirst(transactionHeader);
+        String transactionId = context.request().headers().get(transactionHeader);
         if (transactionId == null) {
-            transactionId = requestId;
+            transactionId = context.request().parameters().getFirst(transactionHeader);
+            if (transactionId == null) {
+                transactionId = requestId;
+            }
             context.request().headers().set(transactionHeader, transactionId);
         }
         context.request().metrics().setTransactionId(transactionId);

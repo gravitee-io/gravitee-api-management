@@ -30,8 +30,10 @@ import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
+import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionTemplateVariableProvider;
@@ -40,6 +42,8 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import io.vertx.core.MultiMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -49,6 +53,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -69,6 +74,7 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
     ArgumentCaptor<Collection<TemplateVariableProvider>> providersCaptor;
 
     private SubscriptionProcessor cut;
+    private MultiValueMap<String,String> requestParams;
 
     @BeforeEach
     void initProcessor() {
@@ -78,6 +84,8 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
         spyCtx.setAttribute(ATTR_SUBSCRIPTION_ID, SUBSCRIPTION_ID);
         lenient().when(mockRequest.remoteAddress()).thenReturn(REMOTE_ADDRESS);
         lenient().when(mockRequest.transactionId()).thenReturn(TRANSACTION_ID);
+        requestParams = new VertxHttpHeaders(MultiMap.caseInsensitiveMultiMap());
+        lenient().when(mockRequest.parameters()).thenReturn(requestParams);
     }
 
     @Test
@@ -281,6 +289,22 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
             verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(SUBSCRIPTION_ID)));
             verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(TRANSACTION_ID)));
             verify(mockRequest).clientIdentifier(AdditionalMatchers.not(eq(REMOTE_ADDRESS)));
+            assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(clientIdentifier);
+        }
+
+        @Test
+        void should_suffix_client_identifier_param_with_subscription_when_not_suffix_by_subscription() {
+            String clientIdentifier = "1234";
+            String ctxClientIdentifier = "1234-" + SUBSCRIPTION_ID;
+            requestParams.set(DEFAULT_CLIENT_IDENTIFIER_HEADER, clientIdentifier);
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            assertThat(spyCtx.<String>getAttribute(ATTR_CLIENT_IDENTIFIER)).isEqualTo(ctxClientIdentifier);
+            assertThat(spyRequestHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isNull();
+            assertThat(spyResponseHeaders.get(DEFAULT_CLIENT_IDENTIFIER_HEADER)).isEqualTo(clientIdentifier);
+
+            verify(mockRequest).clientIdentifier(ctxClientIdentifier);
             assertThat(spyCtx.metrics().getClientIdentifier()).isEqualTo(clientIdentifier);
         }
     }
